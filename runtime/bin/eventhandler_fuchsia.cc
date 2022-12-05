@@ -17,7 +17,6 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <zircon/assert.h>
 #include <zircon/status.h>
 #include <zircon/syscalls.h>
 #include <zircon/syscalls/object.h>
@@ -96,6 +95,9 @@ intptr_t IOHandle::Read(void* buffer, intptr_t num_bytes) {
   if ((available_bytes_ == 0) || (read_bytes < 0)) {
     // Resubscribe to read events.
     read_events_enabled_ = true;
+    if (wait_key_ == 0) {
+      LOG_ERR("IOHandle::Read calling AsyncWaitLocked with wait_key_ == 0");
+    }
     if (!AsyncWaitLocked(ZX_HANDLE_INVALID, POLLIN, wait_key_)) {
       LOG_ERR("IOHandle::AsyncWait failed for fd = %ld\n", fd_);
     }
@@ -114,6 +116,9 @@ intptr_t IOHandle::Write(const void* buffer, intptr_t num_bytes) {
 
   // Resubscribe to write events.
   write_events_enabled_ = true;
+  if (wait_key_ == 0) {
+    LOG_ERR("IOHandle::Write calling AsyncWaitLocked with wait_key_ == 0");
+  }
   if (!AsyncWaitLocked(ZX_HANDLE_INVALID, POLLOUT, wait_key_)) {
     LOG_ERR("IOHandle::AsyncWait failed for fd = %ld\n", fd_);
   }
@@ -130,6 +135,9 @@ intptr_t IOHandle::Accept(struct sockaddr* addr, socklen_t* addrlen) {
 
   // Re-subscribe to read events.
   read_events_enabled_ = true;
+  if (wait_key_ == 0) {
+    LOG_ERR("IOHandle::Accept calling AsyncWaitLocked with wait_key_ == 0");
+  }
   if (!AsyncWaitLocked(ZX_HANDLE_INVALID, POLLIN, wait_key_)) {
     LOG_ERR("IOHandle::AsyncWait failed for fd = %ld\n", fd_);
   }
@@ -198,7 +206,10 @@ intptr_t IOHandle::EpollEventsToMask(intptr_t events) {
 bool IOHandle::AsyncWaitLocked(zx_handle_t port,
                                uint32_t events,
                                uint64_t key) {
-  LOG_INFO("IOHandle::AsyncWait: fd = %ld\n", fd_);
+  LOG_INFO("IOHandle::AsyncWaitLocked: fd = %ld\n", fd_);
+  if (key == 0) {
+    LOG_ERR("IOHandle::AsyncWaitLocked called with key == 0");
+  }
   // The call to fdio_unsafe_fd_to_io() in the DescriptorInfo constructor may
   // have returned NULL. If it did, propagate the problem up to Dart.
   if (fdio_ == NULL) {
@@ -245,6 +256,9 @@ void IOHandle::CancelWait(zx_handle_t port, uint64_t key) {
   LOG_INFO("IOHandle::CancelWait: fd = %ld\n", fd_);
   ASSERT(port != ZX_HANDLE_INVALID);
   ASSERT(handle_ != ZX_HANDLE_INVALID);
+  if (key == 0) {
+    LOG_ERR("IOHandle::CancelWait calling zx_port_cancel with key == 0");
+  }
   zx_status_t status = zx_port_cancel(port, handle_, key);
   if ((status != ZX_OK) && (status != ZX_ERR_NOT_FOUND)) {
     LOG_ERR("zx_port_cancel failed: %s\n", zx_status_get_string(status));
@@ -354,6 +368,11 @@ void EventHandlerImplementation::AddToPort(zx_handle_t port_handle,
                                            DescriptorInfo* di) {
   const uint32_t events = di->io_handle()->MaskToEpollEvents(di->Mask());
   const uint64_t key = reinterpret_cast<uint64_t>(di);
+  if (key == 0) {
+    LOG_ERR(
+        "EventHandlerImplementation::AddToPort calling AsyncWait with key == "
+        "0");
+  }
   if (!di->io_handle()->AsyncWait(port_handle, events, key)) {
     di->NotifyAllDartPorts(1 << kCloseEvent);
   }
@@ -362,6 +381,11 @@ void EventHandlerImplementation::AddToPort(zx_handle_t port_handle,
 void EventHandlerImplementation::RemoveFromPort(zx_handle_t port_handle,
                                                 DescriptorInfo* di) {
   const uint64_t key = reinterpret_cast<uint64_t>(di);
+  if (key == 0) {
+    LOG_ERR(
+        "EventHandlerImplementation::RemoveFromPort calling CancelWait with "
+        "key == 0");
+  }
   di->io_handle()->CancelWait(port_handle, key);
 }
 
@@ -543,6 +567,10 @@ void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
 }
 
 void EventHandlerImplementation::HandlePacket(zx_port_packet_t* pkt) {
+  if (pkt->key == 0) {
+    LOG_ERR("HandlePacket called with pkt->key==0");
+    return;
+  }
   LOG_INFO("HandlePacket: Got event packet: key=%lx\n", pkt->key);
   LOG_INFO("HandlePacket: Got event packet: type=%x\n", pkt->type);
   LOG_INFO("HandlePacket: Got event packet: status=%d\n", pkt->status);
@@ -558,9 +586,8 @@ void EventHandlerImplementation::HandlePacket(zx_port_packet_t* pkt) {
     LOG_ERR("HandlePacket: Got unexpected packet type: key=%x\n", pkt->type);
     return;
   }
-  
+
   // Handle pkt->type == ZX_PKT_TYPE_SIGNAL_ONE
-  ZX_ASSERT(pkt->key != 0);
   LOG_INFO("HandlePacket: Got event packet: observed = %x\n",
           pkt->signal.observed);
   LOG_INFO("HandlePacket: Got event packet: count = %ld\n", pkt->signal.count);

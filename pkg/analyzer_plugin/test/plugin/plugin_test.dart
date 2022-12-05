@@ -346,8 +346,8 @@ class ServerPluginTest extends AbstractPluginTest {
   }
 
   Future<void> test_onRequest_pluginVersionCheck() async {
-    var response = (await channel.sendRequest(
-        PluginVersionCheckParams('byteStorePath', 'sdkPath', '0.1.0')));
+    var response = await channel.sendRequest(
+        PluginVersionCheckParams('byteStorePath', 'sdkPath', '0.1.0'));
     var result = PluginVersionCheckResult.fromResponse(response);
     expect(result, isNotNull);
     expect(result.interestingFiles, ['*.dart']);

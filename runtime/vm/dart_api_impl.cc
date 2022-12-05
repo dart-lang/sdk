@@ -1826,6 +1826,45 @@ DART_EXPORT void Dart_NotifyDestroyed() {
   T->heap()->NotifyDestroyed();
 }
 
+DART_EXPORT void Dart_EnableHeapSampling() {
+#if !defined(PRODUCT)
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->thread_registry()->ForEachThread(
+        [&](Thread* thread) { thread->heap_sampler().Enable(true); });
+  });
+#endif
+}
+
+DART_EXPORT void Dart_DisableHeapSampling() {
+#if !defined(PRODUCT)
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->thread_registry()->ForEachThread(
+        [&](Thread* thread) { thread->heap_sampler().Enable(false); });
+  });
+#endif
+}
+
+DART_EXPORT void Dart_RegisterHeapSamplingCallback(
+    Dart_HeapSamplingCallback callback) {
+#if !defined(PRODUCT)
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->thread_registry()->ForEachThread([&](Thread* thread) {
+      thread->heap_sampler().SetSamplingCallback(callback);
+    });
+  });
+#endif
+}
+
+DART_EXPORT void Dart_SetHeapSamplingPeriod(intptr_t bytes) {
+#if !defined(PRODUCT)
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->thread_registry()->ForEachThread([&](Thread* thread) {
+      thread->heap_sampler().SetSamplingInterval(bytes);
+    });
+  });
+#endif
+}
+
 DART_EXPORT void Dart_NotifyLowMemory() {
   API_TIMELINE_BEGIN_END(Thread::Current());
   Page::ClearCache();

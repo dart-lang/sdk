@@ -23,7 +23,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -52,7 +52,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -76,7 +76,7 @@ void f(x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   typeArguments: TypeArgumentList
@@ -95,7 +95,34 @@ ListPattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@46
-        type: dynamic
+        type: int
+  rightBracket: ]
+  requiredType: List<int>
+''');
+  }
+
+  test_matchList_noTypeArguments_restElement() async {
+    await assertNoErrorsInCode(r'''
+void f(List<int> x) {
+  if (x case [0, ...var rest]) {}
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    ConstantPattern
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+    RestPatternElement
+      operator: ...
+      pattern: VariablePattern
+        keyword: var
+        name: rest
+        declaredElement: hasImplicitType rest@46
+          type: List<int>
   rightBracket: ]
   requiredType: List<int>
 ''');
@@ -110,7 +137,7 @@ void f(List<int> x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -134,7 +161,7 @@ void f(List<num> x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   typeArguments: TypeArgumentList
@@ -153,7 +180,7 @@ ListPattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@56
-        type: num
+        type: int
   rightBracket: ]
   requiredType: List<int>
 ''');
@@ -168,7 +195,7 @@ void f(Object x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -191,7 +218,7 @@ void f(Object x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -209,7 +236,7 @@ void f(Object x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -238,7 +265,7 @@ void f(Object x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   leftBracket: [
@@ -262,7 +289,7 @@ void f(Object x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   typeArguments: TypeArgumentList
@@ -295,7 +322,7 @@ void f(Object x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   typeArguments: TypeArgumentList
@@ -334,7 +361,7 @@ void f(Object x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ListPattern
   typeArguments: TypeArgumentList
@@ -353,9 +380,126 @@ ListPattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@53
-        type: Object?
+        type: int
   rightBracket: ]
   requiredType: List<int>
+''');
+  }
+
+  test_variableDeclaration_inferredType() async {
+    await assertNoErrorsInCode(r'''
+void f(List<int> x) {
+  var [a] = x;
+}
+''');
+    final node = findNode.singlePatternVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclaration
+  keyword: var
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      VariablePattern
+        name: a
+        declaredElement: hasImplicitType a@29
+          type: int
+    rightBracket: ]
+    requiredType: List<int>
+  equals: =
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: List<int>
+''');
+  }
+
+  test_variableDeclaration_typeSchema_withTypeArguments() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  var <int>[a] = g();
+}
+
+T g<T>() => throw 0;
+''');
+    final node = findNode.singlePatternVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclaration
+  keyword: var
+  pattern: ListPattern
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      rightBracket: >
+    leftBracket: [
+    elements
+      VariablePattern
+        name: a
+        declaredElement: hasImplicitType a@23
+          type: int
+    rightBracket: ]
+    requiredType: List<int>
+  equals: =
+  expression: MethodInvocation
+    methodName: SimpleIdentifier
+      token: g
+      staticElement: self::@function::g
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: List<int> Function()
+    staticType: List<int>
+    typeArgumentTypes
+      List<int>
+''');
+  }
+
+  test_variableDeclaration_typeSchema_withVariableType() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  var [int a] = g();
+}
+
+T g<T>() => throw 0;
+''');
+    final node = findNode.singlePatternVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclaration
+  keyword: var
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      VariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+        name: a
+        declaredElement: a@22
+          type: int
+    rightBracket: ]
+    requiredType: List<int>
+  equals: =
+  expression: MethodInvocation
+    methodName: SimpleIdentifier
+      token: g
+      staticElement: self::@function::g
+      staticType: T Function<T>()
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticInvokeType: List<int> Function()
+    staticType: List<int>
+    typeArgumentTypes
+      List<int>
 ''');
   }
 }

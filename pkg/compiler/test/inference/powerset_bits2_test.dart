@@ -12,7 +12,7 @@ import 'package:compiler/src/inferrer/powersets/powersets.dart';
 import 'package:compiler/src/inferrer/powersets/powerset_bits.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const String CODE = """
 class A {}

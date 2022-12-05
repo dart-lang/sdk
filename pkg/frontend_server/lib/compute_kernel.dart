@@ -95,6 +95,7 @@ final summaryArgsParser = new ArgParser()
   ..addMultiOption('define', abbr: 'D')
   ..addFlag('verbose', defaultsTo: false)
   ..addFlag('sound-null-safety', defaultsTo: false)
+  ..addFlag('null-environment', defaultsTo: false, negatable: false)
   ..addOption('verbosity',
       defaultsTo: fe.Verbosity.defaultValue,
       help: 'Sets the verbosity level used for filtering messages during '
@@ -238,9 +239,24 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       (parsedArgs['input-summary'] as List<String>).map(toUri).toList();
 
   fe.InitializedCompilerState state;
-  bool usingIncrementalCompiler = false;
+  bool usingIncrementalCompiler = parsedArgs['use-incremental-compiler'];
   bool recordUsedInputs = parsedArgs["used-inputs"] != null;
+  bool usingNullEnvironment = parsedArgs['null-environment'];
+  Map<String, String>? nullableEnvironmentDefines;
   var environmentDefines = _parseEnvironmentDefines(parsedArgs['define']);
+  if (usingNullEnvironment) {
+    if (environmentDefines.isNotEmpty) {
+      throw ArgumentError('`--null-environment` not supported with defines.');
+    } else if (!target.constantsBackend.supportsUnevaluatedConstants) {
+      throw ArgumentError(
+          '`--null-environment` not supported on `$targetName`.');
+    } else if (usingIncrementalCompiler) {
+      throw ArgumentError(
+          '`--null-environment` not supported with incremental compilation.');
+    }
+  } else {
+    nullableEnvironmentDefines = environmentDefines;
+  }
   var verbose = parsedArgs['verbose'] as bool;
   var verbosity = fe.Verbosity.parseArgument(parsedArgs['verbosity']);
   Uri? sdkSummaryUri = toUriNullable(parsedArgs['dart-sdk-summary']);
@@ -276,7 +292,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         target,
         fileSystem,
         parsedArgs['enable-experiment'] as List<String>,
-        environmentDefines,
+        nullableEnvironmentDefines,
         verbose: verbose,
         nnbdMode: nnbdMode);
     var uriTranslator = await helper.processedOpts.getUriTranslator();
@@ -288,9 +304,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     }
   }
 
-  if (parsedArgs['use-incremental-compiler']) {
-    usingIncrementalCompiler = true;
-
+  if (usingIncrementalCompiler) {
     // If digests weren't given and if not in worker mode, create fake data and
     // ensure we don't have a previous state (as that wouldn't be safe with
     // fake input digests).
@@ -324,7 +338,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         fileSystem,
         (parsedArgs['enable-experiment'] as List<String>),
         summaryOnly,
-        environmentDefines,
+        nullableEnvironmentDefines!,
         trackNeededDillLibraries: recordUsedInputs,
         verbose: verbose,
         nnbdMode: nnbdMode);
@@ -339,7 +353,7 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         target,
         fileSystem,
         parsedArgs['enable-experiment'] as List<String>,
-        environmentDefines,
+        nullableEnvironmentDefines,
         verbose: verbose,
         nnbdMode: nnbdMode);
   }

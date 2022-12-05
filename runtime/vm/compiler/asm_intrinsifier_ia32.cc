@@ -1073,70 +1073,6 @@ void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
   __ jmp(&is_false, Assembler::kNearJump);
 }
 
-// Input: tagged integer in EAX
-// Output: tagged hash code value in EAX
-//  - il_(x64/arm64/...).cc HashIntegerOpInstr,
-//  - asm_intrinsifier(...).cc Multiply64Hash
-//  - integers.cc Multiply64Hash
-static void Multiply64Hash(Assembler* assembler) {
-  __ SmiUntag(EAX);
-  __ cdq();           // // sign-extend EAX to EDX
-  __ movl(ECX, EDX);  // save "value_hi" in ECX
-  __ movl(EDX, compiler::Immediate(0x2d51));
-  __ mull(EDX);       // (EDX:EAX) = value_lo * 0x2d51
-  __ movl(EBX, EAX);  // save lo32 in EBX
-  __ movl(EAX, ECX);  // get saved value_hi
-  __ movl(ECX, EDX);  // save hi32 in ECX
-  __ movl(EDX, compiler::Immediate(0x2d51));
-  __ mull(EDX);       // (EDX:EAX) = value_hi * 0x2d51
-  __ addl(EAX, ECX);  // EAX has prod_hi32, EDX has prod_hi64_lo32
-
-  __ xorl(EAX, EDX);  // EAX = prod_hi32 ^ prod_hi64_lo32
-  __ xorl(EAX, EBX);  // result = prod_hi32 ^ prod_hi64_lo32 ^ prod_lo32
-  __ andl(EAX, compiler::Immediate(0x3fffffff));
-  __ SmiTag(EAX);
-}
-
-void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
-                                      Label* normal_ir_body) {
-  // TODO(dartbug.com/31174): Convert this to a graph intrinsic.
-
-  // Convert double value to signed 32-bit int in EAX and
-  // back to a double in XMM1.
-  __ movl(ECX, Address(ESP, +1 * target::kWordSize));
-  __ movsd(XMM0, FieldAddress(ECX, target::Double::value_offset()));
-  __ cvttsd2si(EAX, XMM0);
-  __ cvtsi2sd(XMM1, EAX);
-
-  // Tag the int as a Smi, making sure that it fits; this checks for
-  // overflow and NaN in the conversion from double to int. Conversion
-  // overflow from cvttsd2si is signalled with an INT32_MIN value.
-  ASSERT(kSmiTag == 0 && kSmiTagShift == 1);
-  __ addl(EAX, EAX);
-  __ j(OVERFLOW, normal_ir_body, Assembler::kNearJump);
-
-  // Compare the two double values. If they are equal, we return the
-  // Smi tagged result immediately as the hash code.
-  Label double_hash;
-  __ comisd(XMM0, XMM1);
-  __ j(NOT_EQUAL, &double_hash, Assembler::kNearJump);
-
-  Multiply64Hash(assembler);
-  __ ret();
-
-  // Convert the double bits to a hash code that fits in a Smi.
-  __ Bind(&double_hash);
-  __ movl(EAX, FieldAddress(ECX, target::Double::value_offset()));
-  __ movl(ECX, FieldAddress(ECX, target::Double::value_offset() + 4));
-  __ xorl(EAX, ECX);
-  __ andl(EAX, Immediate(target::kSmiMax));
-  __ SmiTag(EAX);
-  __ ret();
-
-  // Fall into the native C++ implementation.
-  __ Bind(normal_ir_body);
-}
-
 // Identity comparison.
 void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
                                    Label* normal_ir_body) {
@@ -1691,7 +1627,12 @@ static void TryAllocateString(Assembler* assembler,
   // next object start and initialize the object.
   __ movl(Address(THR, target::Thread::top_offset()), EBX);
   __ addl(EAX, Immediate(kHeapObjectTag));
-
+  // Clear last double word to ensure string comparison doesn't need to
+  // specially handle remainder of strings with lengths not factors of double
+  // offsets.
+  ASSERT(target::kWordSize == 4);
+  __ movl(Address(EBX, -1 * target::kWordSize), Immediate(0));
+  __ movl(Address(EBX, -2 * target::kWordSize), Immediate(0));
   // Initialize the tags.
   // EAX: new object start as a tagged pointer.
   // EBX: new object end address.
@@ -1841,7 +1782,7 @@ static void StringEquality(Assembler* assembler,
   __ cmpl(EAX, EBX);
   __ j(EQUAL, &is_true, Assembler::kNearJump);
 
-  // Is other OneByteString?
+  // Is other same kind of string?
   __ testl(EBX, Immediate(kSmiTagMask));
   __ j(ZERO, &is_false);  // Smi
   __ CompareClassId(EBX, string_cid, EDI);
@@ -1852,27 +1793,28 @@ static void StringEquality(Assembler* assembler,
   __ cmpl(EDI, FieldAddress(EBX, target::String::length_offset()));
   __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
 
-  // Check contents, no fall-through possible.
-  // TODO(srdjan): write a faster check.
-  __ SmiUntag(EDI);
+  if (string_cid == kOneByteStringCid) {
+    __ SmiUntag(EDI);
+  }
+
+  // Round up number of bytes to compare to word boundary since we
+  // are doing comparison in word chunks.
+  __ addl(EDI, Immediate(target::kWordSize - 1));
+  __ sarl(EDI, Immediate(target::kWordSizeLog2));
   __ Bind(&loop);
   __ decl(EDI);
-  __ cmpl(EDI, Immediate(0));
   __ j(LESS, &is_true, Assembler::kNearJump);
-  if (string_cid == kOneByteStringCid) {
-    __ movzxb(ECX, FieldAddress(EAX, EDI, TIMES_1,
-                                target::OneByteString::data_offset()));
-    __ movzxb(EDX, FieldAddress(EBX, EDI, TIMES_1,
-                                target::OneByteString::data_offset()));
-  } else if (string_cid == kTwoByteStringCid) {
-    __ movzxw(ECX, FieldAddress(EAX, EDI, TIMES_2,
-                                target::TwoByteString::data_offset()));
-    __ movzxw(EDX, FieldAddress(EBX, EDI, TIMES_2,
-                                target::TwoByteString::data_offset()));
-  } else {
-    UNIMPLEMENTED();
-  }
-  __ cmpl(ECX, EDX);
+  ASSERT(target::OneByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  ASSERT(target::TwoByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  COMPILE_ASSERT(target::kWordSize == 4);
+  __ movl(ECX, FieldAddress(EAX, EDI, TIMES_4,
+                            target::String::length_offset() +
+                                target::kWordSize));  // word with length itself
+  __ cmpl(ECX, FieldAddress(EBX, EDI, TIMES_4,
+                            target::String::length_offset() +
+                                target::kWordSize));  // word with length itself
   __ j(NOT_EQUAL, &is_false, Assembler::kNearJump);
   __ jmp(&loop, Assembler::kNearJump);
 

@@ -251,7 +251,6 @@ class Scavenger {
     if (UNLIKELY(remaining < size)) {
       return 0;
     }
-
     ASSERT(to_->Contains(result));
     ASSERT((result & kObjectAlignmentMask) == kNewObjectAlignmentOffset);
     thread->set_top(result + size);

@@ -13,6 +13,7 @@ import 'add_diagnostic_property_reference_test.dart'
     as add_diagnostic_property_reference;
 import 'add_enum_constant_test.dart' as add_enum_constant_test;
 import 'add_eol_at_end_of_file_test.dart' as add_eol_at_end_of_file;
+import 'add_explicit_call_test.dart' as add_explicit_call;
 import 'add_explicit_cast_test.dart' as add_explicit_cast;
 import 'add_extension_override_test.dart' as add_extension_override;
 import 'add_field_formal_parameters_test.dart' as add_field_formal_parameters;
@@ -40,6 +41,7 @@ import 'add_return_type_test.dart' as add_return_type;
 import 'add_static_test.dart' as add_static;
 import 'add_super_constructor_invocation_test.dart'
     as add_super_constructor_invocation;
+import 'add_super_parameter_test.dart' as add_super_parameter;
 import 'add_switch_case_break_test.dart' as add_switch_case_break;
 import 'add_trailing_comma_test.dart' as add_trailing_comma;
 import 'add_type_annotation_test.dart' as add_type_annotation;
@@ -129,6 +131,10 @@ import 'make_final_test.dart' as make_final;
 import 'make_return_type_nullable_test.dart' as make_return_type_nullable;
 import 'make_variable_not_final_test.dart' as make_variable_not_final;
 import 'make_variable_nullable_test.dart' as make_variable_nullable;
+import 'move_annotation_to_library_directive_test.dart'
+    as move_annotation_to_library_directive;
+import 'move_doc_comment_to_library_directive_test.dart'
+    as move_doc_comment_to_library_directive;
 import 'move_type_arguments_to_class_test.dart' as move_type_arguments_to_class;
 import 'organize_imports_test.dart' as organize_imports;
 import 'pubspec/test_all.dart' as pubspec;
@@ -158,6 +164,8 @@ import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
 import 'remove_leading_underscore_test.dart' as remove_leading_underscore;
 import 'remove_method_declaration_test.dart' as remove_method_declaration;
 import 'remove_name_from_combinator_test.dart' as remove_name_from_combinator;
+import 'remove_name_from_declaration_clause_test.dart'
+    as remove_name_from_declaration_clause;
 import 'remove_non_null_assertion_test.dart' as remove_non_null_assertion_test;
 import 'remove_operator_test.dart' as remove_operator;
 import 'remove_parameters_in_getter_declaration_test.dart'
@@ -175,6 +183,8 @@ import 'remove_unnecessary_cast_test.dart' as remove_unnecessary_cast;
 import 'remove_unnecessary_const_test.dart' as remove_unnecessary_const;
 import 'remove_unnecessary_final_test.dart' as remove_unnecessary_final;
 import 'remove_unnecessary_late_test.dart' as remove_unnecessary_late;
+import 'remove_unnecessary_library_directive_test.dart'
+    as remove_unnecessary_library_directive;
 import 'remove_unnecessary_new_test.dart' as remove_unnecessary_new;
 import 'remove_unnecessary_parentheses_test.dart'
     as remove_unnecessary_parentheses;
@@ -253,6 +263,7 @@ void main() {
     add_diagnostic_property_reference.main();
     add_enum_constant_test.main();
     add_eol_at_end_of_file.main();
+    add_explicit_call.main();
     add_explicit_cast.main();
     add_extension_override.main();
     add_field_formal_parameters.main();
@@ -273,6 +284,7 @@ void main() {
     add_return_type.main();
     add_static.main();
     add_super_constructor_invocation.main();
+    add_super_parameter.main();
     add_switch_case_break.main();
     add_trailing_comma.main();
     add_type_annotation.main();
@@ -353,6 +365,8 @@ void main() {
     make_return_type_nullable.main();
     make_variable_not_final.main();
     make_variable_nullable.main();
+    move_annotation_to_library_directive.main();
+    move_doc_comment_to_library_directive.main();
     move_type_arguments_to_class.main();
     organize_imports.main();
     pubspec.main();
@@ -380,6 +394,7 @@ void main() {
     remove_leading_underscore.main();
     remove_method_declaration.main();
     remove_name_from_combinator.main();
+    remove_name_from_declaration_clause.main();
     remove_non_null_assertion_test.main();
     remove_operator.main();
     remove_parameters_in_getter_declaration.main();
@@ -395,6 +410,7 @@ void main() {
     remove_unnecessary_const.main();
     remove_unnecessary_final.main();
     remove_unnecessary_late.main();
+    remove_unnecessary_library_directive.main();
     remove_unnecessary_new.main();
     remove_unnecessary_parentheses.main();
     remove_unnecessary_raw_string.main();

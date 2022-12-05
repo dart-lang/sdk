@@ -6,17 +6,17 @@
 
 // Error when attempting to mix in a sealed class outside of library.
 
-import 'sealed_class_as_mixin_lib.dart';
+import 'sealed_class_as_mixin_in_lib_error_test.dart';
 
 abstract class OutsideA with SealedClass {}
-// ^
+//             ^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
 
 class OutsideB with SealedClass {
-// ^
+//    ^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
   @override
   int foo = 2;
 
@@ -25,6 +25,6 @@ class OutsideB with SealedClass {
 }
 
 abstract class OutsideC = Object with SealedClass;
-// ^
+//             ^
 // [analyzer] unspecified
-// [cfe] unspecified
+// [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.

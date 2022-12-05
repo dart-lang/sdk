@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/parser/assert.dart';
 import 'package:_fe_analyzer_shared/src/parser/block_kind.dart';
 import 'package:_fe_analyzer_shared/src/parser/constructor_reference_context.dart';
@@ -54,9 +55,8 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleExtractorPatternFields(
-      int count, Token beginToken, Token endToken) {
-    ExtractorPatternFieldsHandle data = new ExtractorPatternFieldsHandle(
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
+    ObjectPatternFieldsHandle data = new ObjectPatternFieldsHandle(
         ParserAstType.HANDLE,
         count: count,
         beginToken: beginToken,
@@ -176,13 +176,20 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     ClassDeclarationBegin data = new ClassDeclarationBegin(ParserAstType.BEGIN,
         begin: begin,
         abstractToken: abstractToken,
         macroToken: macroToken,
         viewToken: viewToken,
+        sealedToken: sealedToken,
         augmentToken: augmentToken,
         name: name);
     seen(data);
@@ -237,9 +244,12 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
     MixinDeclarationBegin data = new MixinDeclarationBegin(ParserAstType.BEGIN,
-        augmentToken: augmentToken, mixinKeyword: mixinKeyword, name: name);
+        augmentToken: augmentToken,
+        sealedToken: sealedToken,
+        mixinKeyword: mixinKeyword,
+        name: name);
     seen(data);
   }
 
@@ -942,14 +952,21 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
+  void beginNamedMixinApplication(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     NamedMixinApplicationBegin data = new NamedMixinApplicationBegin(
         ParserAstType.BEGIN,
         begin: begin,
         abstractToken: abstractToken,
         macroToken: macroToken,
         viewToken: viewToken,
+        sealedToken: sealedToken,
         augmentToken: augmentToken,
         name: name);
     seen(data);
@@ -1641,6 +1658,20 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void beginSwitchExpression(Token token) {
+    SwitchExpressionBegin data =
+        new SwitchExpressionBegin(ParserAstType.BEGIN, token: token);
+    seen(data);
+  }
+
+  @override
+  void endSwitchExpression(Token switchKeyword, Token endToken) {
+    SwitchExpressionEnd data = new SwitchExpressionEnd(ParserAstType.END,
+        switchKeyword: switchKeyword, endToken: endToken);
+    seen(data);
+  }
+
+  @override
   void beginSwitchBlock(Token token) {
     SwitchBlockBegin data =
         new SwitchBlockBegin(ParserAstType.BEGIN, token: token);
@@ -1651,6 +1682,24 @@ abstract class AbstractParserAstListener implements Listener {
   void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
     SwitchBlockEnd data = new SwitchBlockEnd(ParserAstType.END,
         caseCount: caseCount, beginToken: beginToken, endToken: endToken);
+    seen(data);
+  }
+
+  @override
+  void beginSwitchExpressionBlock(Token token) {
+    SwitchExpressionBlockBegin data =
+        new SwitchExpressionBlockBegin(ParserAstType.BEGIN, token: token);
+    seen(data);
+  }
+
+  @override
+  void endSwitchExpressionBlock(
+      int caseCount, Token beginToken, Token endToken) {
+    SwitchExpressionBlockEnd data = new SwitchExpressionBlockEnd(
+        ParserAstType.END,
+        caseCount: caseCount,
+        beginToken: beginToken,
+        endToken: endToken);
     seen(data);
   }
 
@@ -2216,6 +2265,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleRestPattern(Token dots, {required bool hasSubPattern}) {
+    RestPatternHandle data = new RestPatternHandle(ParserAstType.HANDLE,
+        dots: dots, hasSubPattern: hasSubPattern);
+    seen(data);
+  }
+
+  @override
   void beginFunctionTypedFormalParameter(Token token) {
     FunctionTypedFormalParameterBegin data =
         new FunctionTypedFormalParameterBegin(ParserAstType.BEGIN,
@@ -2559,10 +2615,9 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleExtractorPattern(
+  void handleObjectPattern(
       Token firstIdentifier, Token? dot, Token? secondIdentifier) {
-    ExtractorPatternHandle data = new ExtractorPatternHandle(
-        ParserAstType.HANDLE,
+    ObjectPatternHandle data = new ObjectPatternHandle(ParserAstType.HANDLE,
         firstIdentifier: firstIdentifier,
         dot: dot,
         secondIdentifier: secondIdentifier);
@@ -2626,6 +2681,23 @@ abstract class AbstractParserAstListener implements Listener {
         colonAfterDefault: colonAfterDefault,
         statementCount: statementCount,
         firstToken: firstToken,
+        endToken: endToken);
+    seen(data);
+  }
+
+  @override
+  void beginSwitchExpressionCase() {
+    SwitchExpressionCaseBegin data =
+        new SwitchExpressionCaseBegin(ParserAstType.BEGIN);
+    seen(data);
+  }
+
+  @override
+  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+    SwitchExpressionCaseEnd data = new SwitchExpressionCaseEnd(
+        ParserAstType.END,
+        when: when,
+        arrow: arrow,
         endToken: endToken);
     seen(data);
   }
@@ -2751,6 +2823,17 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    ExperimentNotEnabledHandle data = new ExperimentNotEnabledHandle(
+        ParserAstType.HANDLE,
+        experimentalFlag: experimentalFlag,
+        startToken: startToken,
+        endToken: endToken);
+    seen(data);
+  }
+
+  @override
   void handleErrorToken(ErrorToken token) {
     ErrorTokenHandle data =
         new ErrorTokenHandle(ParserAstType.HANDLE, token: token);
@@ -2832,6 +2915,22 @@ abstract class AbstractParserAstListener implements Listener {
         new NewAsIdentifierHandle(ParserAstType.HANDLE, token: token);
     seen(data);
   }
+
+  @override
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {
+    PatternVariableDeclarationStatementHandle data =
+        new PatternVariableDeclarationStatementHandle(ParserAstType.HANDLE,
+            keyword: keyword, equals: equals, semicolon: semicolon);
+    seen(data);
+  }
+
+  @override
+  void handlePatternAssignment(Token equals) {
+    PatternAssignmentHandle data =
+        new PatternAssignmentHandle(ParserAstType.HANDLE, equals: equals);
+    seen(data);
+  }
 }
 
 class ArgumentsBegin extends ParserAstNode {
@@ -2863,14 +2962,14 @@ class ArgumentsEnd extends ParserAstNode {
       };
 }
 
-class ExtractorPatternFieldsHandle extends ParserAstNode {
+class ObjectPatternFieldsHandle extends ParserAstNode {
   final int count;
   final Token beginToken;
   final Token endToken;
 
-  ExtractorPatternFieldsHandle(ParserAstType type,
+  ObjectPatternFieldsHandle(ParserAstType type,
       {required this.count, required this.beginToken, required this.endToken})
-      : super("ExtractorPatternFields", type);
+      : super("ObjectPatternFields", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -3091,6 +3190,7 @@ class ClassDeclarationBegin extends ParserAstNode {
   final Token? abstractToken;
   final Token? macroToken;
   final Token? viewToken;
+  final Token? sealedToken;
   final Token? augmentToken;
   final Token name;
 
@@ -3099,6 +3199,7 @@ class ClassDeclarationBegin extends ParserAstNode {
       this.abstractToken,
       this.macroToken,
       this.viewToken,
+      this.sealedToken,
       this.augmentToken,
       required this.name})
       : super("ClassDeclaration", type);
@@ -3109,6 +3210,7 @@ class ClassDeclarationBegin extends ParserAstNode {
         "abstractToken": abstractToken,
         "macroToken": macroToken,
         "viewToken": viewToken,
+        "sealedToken": sealedToken,
         "augmentToken": augmentToken,
         "name": name,
       };
@@ -3208,16 +3310,21 @@ class ClassDeclarationEnd extends ParserAstNode {
 
 class MixinDeclarationBegin extends ParserAstNode {
   final Token? augmentToken;
+  final Token? sealedToken;
   final Token mixinKeyword;
   final Token name;
 
   MixinDeclarationBegin(ParserAstType type,
-      {this.augmentToken, required this.mixinKeyword, required this.name})
+      {this.augmentToken,
+      this.sealedToken,
+      required this.mixinKeyword,
+      required this.name})
       : super("MixinDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "augmentToken": augmentToken,
+        "sealedToken": sealedToken,
         "mixinKeyword": mixinKeyword,
         "name": name,
       };
@@ -4479,6 +4586,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
   final Token? abstractToken;
   final Token? macroToken;
   final Token? viewToken;
+  final Token? sealedToken;
   final Token? augmentToken;
   final Token name;
 
@@ -4487,6 +4595,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
       this.abstractToken,
       this.macroToken,
       this.viewToken,
+      this.sealedToken,
       this.augmentToken,
       required this.name})
       : super("NamedMixinApplication", type);
@@ -4497,6 +4606,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
         "abstractToken": abstractToken,
         "macroToken": macroToken,
         "viewToken": viewToken,
+        "sealedToken": sealedToken,
         "augmentToken": augmentToken,
         "name": name,
       };
@@ -5757,6 +5867,33 @@ class SwitchStatementEnd extends ParserAstNode {
       };
 }
 
+class SwitchExpressionBegin extends ParserAstNode {
+  final Token token;
+
+  SwitchExpressionBegin(ParserAstType type, {required this.token})
+      : super("SwitchExpression", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
+class SwitchExpressionEnd extends ParserAstNode {
+  final Token switchKeyword;
+  final Token endToken;
+
+  SwitchExpressionEnd(ParserAstType type,
+      {required this.switchKeyword, required this.endToken})
+      : super("SwitchExpression", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "switchKeyword": switchKeyword,
+        "endToken": endToken,
+      };
+}
+
 class SwitchBlockBegin extends ParserAstNode {
   final Token token;
 
@@ -5779,6 +5916,37 @@ class SwitchBlockEnd extends ParserAstNode {
       required this.beginToken,
       required this.endToken})
       : super("SwitchBlock", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "caseCount": caseCount,
+        "beginToken": beginToken,
+        "endToken": endToken,
+      };
+}
+
+class SwitchExpressionBlockBegin extends ParserAstNode {
+  final Token token;
+
+  SwitchExpressionBlockBegin(ParserAstType type, {required this.token})
+      : super("SwitchExpressionBlock", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
+class SwitchExpressionBlockEnd extends ParserAstNode {
+  final int caseCount;
+  final Token beginToken;
+  final Token endToken;
+
+  SwitchExpressionBlockEnd(ParserAstType type,
+      {required this.caseCount,
+      required this.beginToken,
+      required this.endToken})
+      : super("SwitchExpressionBlock", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -6776,6 +6944,21 @@ class SpreadExpressionHandle extends ParserAstNode {
       };
 }
 
+class RestPatternHandle extends ParserAstNode {
+  final Token dots;
+  final bool hasSubPattern;
+
+  RestPatternHandle(ParserAstType type,
+      {required this.dots, required this.hasSubPattern})
+      : super("RestPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "dots": dots,
+        "hasSubPattern": hasSubPattern,
+      };
+}
+
 class FunctionTypedFormalParameterBegin extends ParserAstNode {
   final Token token;
 
@@ -7401,14 +7584,14 @@ class ConstantPatternHandle extends ParserAstNode {
       };
 }
 
-class ExtractorPatternHandle extends ParserAstNode {
+class ObjectPatternHandle extends ParserAstNode {
   final Token firstIdentifier;
   final Token? dot;
   final Token? secondIdentifier;
 
-  ExtractorPatternHandle(ParserAstType type,
+  ObjectPatternHandle(ParserAstType type,
       {required this.firstIdentifier, this.dot, this.secondIdentifier})
-      : super("ExtractorPattern", type);
+      : super("ObjectPattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7522,6 +7705,31 @@ class SwitchCaseEnd extends ParserAstNode {
         "colonAfterDefault": colonAfterDefault,
         "statementCount": statementCount,
         "firstToken": firstToken,
+        "endToken": endToken,
+      };
+}
+
+class SwitchExpressionCaseBegin extends ParserAstNode {
+  SwitchExpressionCaseBegin(ParserAstType type)
+      : super("SwitchExpressionCase", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {};
+}
+
+class SwitchExpressionCaseEnd extends ParserAstNode {
+  final Token? when;
+  final Token arrow;
+  final Token endToken;
+
+  SwitchExpressionCaseEnd(ParserAstType type,
+      {this.when, required this.arrow, required this.endToken})
+      : super("SwitchExpressionCase", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "when": when,
+        "arrow": arrow,
         "endToken": endToken,
       };
 }
@@ -7726,6 +7934,25 @@ class RecoverableErrorHandle extends ParserAstNode {
       };
 }
 
+class ExperimentNotEnabledHandle extends ParserAstNode {
+  final ExperimentalFlag experimentalFlag;
+  final Token startToken;
+  final Token endToken;
+
+  ExperimentNotEnabledHandle(ParserAstType type,
+      {required this.experimentalFlag,
+      required this.startToken,
+      required this.endToken})
+      : super("ExperimentNotEnabled", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "experimentalFlag": experimentalFlag,
+        "startToken": startToken,
+        "endToken": endToken,
+      };
+}
+
 class ErrorTokenHandle extends ParserAstNode {
   final ErrorToken token;
 
@@ -7860,5 +8087,34 @@ class NewAsIdentifierHandle extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
+      };
+}
+
+class PatternVariableDeclarationStatementHandle extends ParserAstNode {
+  final Token keyword;
+  final Token equals;
+  final Token semicolon;
+
+  PatternVariableDeclarationStatementHandle(ParserAstType type,
+      {required this.keyword, required this.equals, required this.semicolon})
+      : super("PatternVariableDeclarationStatement", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "keyword": keyword,
+        "equals": equals,
+        "semicolon": semicolon,
+      };
+}
+
+class PatternAssignmentHandle extends ParserAstNode {
+  final Token equals;
+
+  PatternAssignmentHandle(ParserAstType type, {required this.equals})
+      : super("PatternAssignment", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "equals": equals,
       };
 }

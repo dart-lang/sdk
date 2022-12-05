@@ -143,8 +143,9 @@ class RefType extends ValueType {
 
   const RefType._(this.heapType, this.nullable);
 
-  /// Internal top type above any, func and extern. Not a real Wasm ref type.
-  const RefType.top({required bool nullable}) : this._(HeapType.top, nullable);
+  /// Internal supertype above any, func and extern. Not a real Wasm ref type.
+  const RefType.common({required bool nullable})
+      : this._(HeapType.common, nullable);
 
   /// A (possibly nullable) reference to the `any` heap type.
   const RefType.extern({required bool nullable})
@@ -166,6 +167,18 @@ class RefType extends ValueType {
 
   /// A (possibly nullable) reference to the `i31` heap type.
   const RefType.i31({required bool nullable}) : this._(HeapType.i31, nullable);
+
+  /// A (possibly nullable) reference to the `none` heap type.
+  const RefType.none({required bool nullable})
+      : this._(HeapType.none, nullable);
+
+  /// A (possibly nullable) reference to the `noextern` heap type.
+  const RefType.noextern({required bool nullable})
+      : this._(HeapType.noextern, nullable);
+
+  /// A (possibly nullable) reference to the `nofunc` heap type.
+  const RefType.nofunc({required bool nullable})
+      : this._(HeapType.nofunc, nullable);
 
   /// A (possibly nullable) reference to a custom heap type.
   RefType.def(DefType defType, {required bool nullable})
@@ -195,7 +208,9 @@ class RefType extends ValueType {
 
   @override
   String toString() {
-    if (nullable == heapType.nullableByDefault) return "${heapType}ref";
+    if (nullable == heapType.nullableByDefault) {
+      return "${heapType.shorthandName}ref";
+    }
     return "ref${nullable ? " null " : " "}$heapType";
   }
 
@@ -213,8 +228,8 @@ class RefType extends ValueType {
 abstract class HeapType implements Serializable {
   const HeapType();
 
-  /// Internal top type above any, func and extern. Not a real Wasm heap type.
-  static const top = TopHeapType._();
+  /// Internal supertype above any, func and extern. Not a real Wasm heap type.
+  static const common = CommonHeapType._();
 
   /// The `extern` heap type.
   static const extern = ExternHeapType._();
@@ -234,37 +249,61 @@ abstract class HeapType implements Serializable {
   /// The `i31` heap type.
   static const i31 = I31HeapType._();
 
+  /// The `none` heap type.
+  static const none = NoneHeapType._();
+
+  /// The `noextern` heap type.
+  static const noextern = NoExternHeapType._();
+
+  /// The `nofunc` heap type.
+  static const nofunc = NoFuncHeapType._();
+
   /// Whether this heap type is nullable by default, i.e. when written with the
   /// -`ref` shorthand. A `null` value here means the heap type has no default
   /// nullability, so the nullability of a reference has to be specified
   /// explicitly.
   bool? get nullableByDefault;
 
+  /// The top type of the hierarchy containing this type.
+  HeapType get topType;
+
+  /// The bottom type of the hierarchy containing this type.
+  HeapType get bottomType;
+
   /// Whether this heap type is a declared subtype of the other heap type.
   bool isSubtypeOf(HeapType other);
 
   /// Whether this heap type is a structural subtype of the other heap type.
   bool isStructuralSubtypeOf(HeapType other) => isSubtypeOf(other);
+
+  String get shorthandName => toString();
 }
 
-/// Internal top type above any, func and extern. This is only used to specify
+/// Internal supertype above any, func and extern. This is only used to specify
 /// input constraints for instructions that are polymorphic across the three
 /// type hierarchies. It's not a real Wasm heap type.
-class TopHeapType extends HeapType {
-  const TopHeapType._();
+class CommonHeapType extends HeapType {
+  const CommonHeapType._();
 
   @override
   bool? get nullableByDefault => null;
 
   @override
-  bool isSubtypeOf(HeapType other) => other == HeapType.top;
+  HeapType get topType => throw "No top type of internal common supertype";
+
+  @override
+  HeapType get bottomType =>
+      throw "No bottom type of internal common supertype";
+
+  @override
+  bool isSubtypeOf(HeapType other) => other == HeapType.common;
 
   @override
   void serialize(Serializer s) =>
-      throw "Attempt to serialize internal top type";
+      throw "Attempt to serialize internal common supertype";
 
   @override
-  String toString() => "#top";
+  String toString() => "#common";
 }
 
 /// The `extern` heap type.
@@ -277,8 +316,14 @@ class ExternHeapType extends HeapType {
   bool? get nullableByDefault => defaultNullability;
 
   @override
+  HeapType get topType => HeapType.extern;
+
+  @override
+  HeapType get bottomType => HeapType.noextern;
+
+  @override
   bool isSubtypeOf(HeapType other) =>
-      other == HeapType.top || other == HeapType.extern;
+      other == HeapType.common || other == HeapType.extern;
 
   @override
   void serialize(Serializer s) => s.writeByte(0x6F);
@@ -297,8 +342,14 @@ class AnyHeapType extends HeapType {
   bool? get nullableByDefault => defaultNullability;
 
   @override
+  HeapType get topType => HeapType.any;
+
+  @override
+  HeapType get bottomType => HeapType.none;
+
+  @override
   bool isSubtypeOf(HeapType other) =>
-      other == HeapType.top || other == HeapType.any;
+      other == HeapType.common || other == HeapType.any;
 
   @override
   void serialize(Serializer s) => s.writeByte(0x6E);
@@ -317,8 +368,14 @@ class EqHeapType extends HeapType {
   bool? get nullableByDefault => defaultNullability;
 
   @override
+  HeapType get topType => HeapType.any;
+
+  @override
+  HeapType get bottomType => HeapType.none;
+
+  @override
   bool isSubtypeOf(HeapType other) =>
-      other == HeapType.top || other == HeapType.any || other == HeapType.eq;
+      other == HeapType.common || other == HeapType.any || other == HeapType.eq;
 
   @override
   void serialize(Serializer s) => s.writeByte(0x6D);
@@ -337,8 +394,14 @@ class FuncHeapType extends HeapType {
   bool? get nullableByDefault => defaultNullability;
 
   @override
+  HeapType get topType => HeapType.func;
+
+  @override
+  HeapType get bottomType => HeapType.nofunc;
+
+  @override
   bool isSubtypeOf(HeapType other) =>
-      other == HeapType.top || other == HeapType.func;
+      other == HeapType.common || other == HeapType.func;
 
   @override
   void serialize(Serializer s) => s.writeByte(0x70);
@@ -357,8 +420,14 @@ class DataHeapType extends HeapType {
   bool? get nullableByDefault => defaultNullability;
 
   @override
+  HeapType get topType => HeapType.any;
+
+  @override
+  HeapType get bottomType => HeapType.none;
+
+  @override
   bool isSubtypeOf(HeapType other) =>
-      other == HeapType.top ||
+      other == HeapType.common ||
       other == HeapType.any ||
       other == HeapType.eq ||
       other == HeapType.data;
@@ -380,8 +449,14 @@ class I31HeapType extends HeapType {
   bool? get nullableByDefault => defaultNullability;
 
   @override
+  HeapType get topType => HeapType.any;
+
+  @override
+  HeapType get bottomType => HeapType.none;
+
+  @override
   bool isSubtypeOf(HeapType other) =>
-      other == HeapType.top ||
+      other == HeapType.common ||
       other == HeapType.any ||
       other == HeapType.eq ||
       other == HeapType.i31;
@@ -391,6 +466,93 @@ class I31HeapType extends HeapType {
 
   @override
   String toString() => "i31";
+}
+
+/// The `none` heap type.
+class NoneHeapType extends HeapType {
+  const NoneHeapType._();
+
+  static const defaultNullability = true;
+
+  @override
+  bool? get nullableByDefault => defaultNullability;
+
+  @override
+  HeapType get topType => HeapType.any;
+
+  @override
+  HeapType get bottomType => HeapType.none;
+
+  @override
+  bool isSubtypeOf(HeapType other) =>
+      other == HeapType.common || other.bottomType == HeapType.none;
+
+  @override
+  void serialize(Serializer s) => s.writeByte(0x65);
+
+  @override
+  String toString() => "none";
+
+  @override
+  String get shorthandName => "null";
+}
+
+/// The `noextern` heap type.
+class NoExternHeapType extends HeapType {
+  const NoExternHeapType._();
+
+  static const defaultNullability = true;
+
+  @override
+  bool? get nullableByDefault => defaultNullability;
+
+  @override
+  HeapType get topType => HeapType.extern;
+
+  @override
+  HeapType get bottomType => HeapType.noextern;
+
+  @override
+  bool isSubtypeOf(HeapType other) =>
+      other == HeapType.common || other.bottomType == HeapType.noextern;
+
+  @override
+  void serialize(Serializer s) => s.writeByte(0x69);
+
+  @override
+  String toString() => "extern";
+
+  @override
+  String get shorthandName => "nullextern";
+}
+
+/// The `nofunc` heap type.
+class NoFuncHeapType extends HeapType {
+  const NoFuncHeapType._();
+
+  static const defaultNullability = true;
+
+  @override
+  bool? get nullableByDefault => defaultNullability;
+
+  @override
+  HeapType get topType => HeapType.func;
+
+  @override
+  HeapType get bottomType => HeapType.nofunc;
+
+  @override
+  bool isSubtypeOf(HeapType other) =>
+      other == HeapType.common || other.bottomType == HeapType.nofunc;
+
+  @override
+  void serialize(Serializer s) => s.writeByte(0x68);
+
+  @override
+  String toString() => "nofunc";
+
+  @override
+  String get shorthandName => "nullfunc";
 }
 
 /// A custom heap type.
@@ -454,11 +616,17 @@ class FunctionType extends DefType {
   HeapType get abstractSuperType => HeapType.func;
 
   @override
+  HeapType get topType => HeapType.func;
+
+  @override
+  HeapType get bottomType => HeapType.nofunc;
+
+  @override
   Iterable<StorageType> get constituentTypes => [...inputs, ...outputs];
 
   @override
   bool isStructuralSubtypeOf(HeapType other) {
-    if (other == HeapType.top || other == HeapType.func) return true;
+    if (other == HeapType.common || other == HeapType.func) return true;
     if (other is! FunctionType) return false;
     if (inputs.length != other.inputs.length) return false;
     if (outputs.length != other.outputs.length) return false;
@@ -491,6 +659,12 @@ abstract class DataType extends DefType {
   DataType(this.name, {super.superType});
 
   @override
+  HeapType get topType => HeapType.any;
+
+  @override
+  HeapType get bottomType => HeapType.none;
+
+  @override
   String toString() => name;
 }
 
@@ -512,7 +686,7 @@ class StructType extends DataType {
 
   @override
   bool isStructuralSubtypeOf(HeapType other) {
-    if (other == HeapType.top ||
+    if (other == HeapType.common ||
         other == HeapType.any ||
         other == HeapType.eq ||
         other == HeapType.data) {
@@ -550,7 +724,7 @@ class ArrayType extends DataType {
 
   @override
   bool isStructuralSubtypeOf(HeapType other) {
-    if (other == HeapType.top ||
+    if (other == HeapType.common ||
         other == HeapType.any ||
         other == HeapType.eq ||
         other == HeapType.data) {

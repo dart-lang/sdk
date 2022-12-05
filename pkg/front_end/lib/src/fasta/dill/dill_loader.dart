@@ -143,7 +143,8 @@ class DillLoader extends Loader {
       _unparsedLibraries.addLast(libraryBuilder);
     }
     if (accessor != null) {
-      libraryBuilder.recordAccess(charOffset, noLength, accessor.fileUri);
+      libraryBuilder.recordAccess(
+          accessor, charOffset, noLength, accessor.fileUri);
       if (!accessor.isPatch &&
           !accessor.isPart &&
           !target.backendTarget

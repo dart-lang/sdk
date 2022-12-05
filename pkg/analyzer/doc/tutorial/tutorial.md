@@ -13,6 +13,9 @@ What capabilities does the analyzer package support?
 [Performing Analysis][analysis]
 How to set up the objects used to analyze code.
 
+[The Token Model][tokens]
+How are tokens represented?
+
 [The AST][ast]
 What is an AST?
 
@@ -26,4 +29,5 @@ What is the type model?
 [ast]: ast.md
 [element]: element.md
 [introduction]: introduction.md
+[tokens]: tokens.md
 [type]: type.md

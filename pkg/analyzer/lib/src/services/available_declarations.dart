@@ -138,8 +138,8 @@ class DeclarationsContext {
   /// Packages are sorted so that inner packages are before outer.
   final List<_Package> _packages = [];
 
-  /// The list of paths of all files inside the context.
-  final List<String> _contextPathList = [];
+  /// The set of paths of all files inside the context.
+  final Set<String> _contextPathSet = {};
 
   /// The list of paths of all SDK libraries.
   final List<String> _sdkLibraryPathList = [];
@@ -210,7 +210,7 @@ class DeclarationsContext {
       _addKnownLibraries(dependencyLibraries);
     }
 
-    var contextPathList = <String>[];
+    Iterable<String> contextPaths;
     if (!_analysisContext.contextRoot.workspace.isBlaze) {
       _Package? package;
       for (var candidatePackage in _packages) {
@@ -221,9 +221,10 @@ class DeclarationsContext {
       }
 
       if (package != null) {
+        List<String> contextPathList = contextPaths = [];
         var containingFolder = package.folderInRootContaining(path);
         if (containingFolder != null) {
-          for (var contextPath in _contextPathList) {
+          for (var contextPath in _contextPathSet) {
             // `lib/` can see only libraries in `lib/`.
             // `test/` can see libraries in `lib/` and in `test/`.
             if (package.containsInLib(contextPath) ||
@@ -234,17 +235,17 @@ class DeclarationsContext {
         }
       } else {
         // Not in a package, include all libraries of the context.
-        contextPathList = _contextPathList;
+        contextPaths = _contextPathSet;
       }
     } else {
       // In Blaze workspaces, consider declarations from the entire context
-      contextPathList = _contextPathList;
+      contextPaths = _contextPathSet;
     }
 
     var contextLibraries = <Library>[];
     _addLibrariesWithPaths(
       contextLibraries,
-      contextPathList,
+      contextPaths,
       excludingLibraryOfPath: path,
     );
 
@@ -291,18 +292,15 @@ class DeclarationsContext {
   }
 
   void _addContextFile(String path) {
-    if (!_contextPathList.contains(path)) {
-      _contextPathList.add(path);
-    }
+    _contextPathSet.add(path);
   }
 
   /// Add known libraries, other then in the context itself, or the SDK.
   void _addKnownLibraries(List<Library> libraries) {
-    var contextPathSet = _contextPathList.toSet();
     var sdkPathSet = _sdkLibraryPathList.toSet();
 
     for (var path in _knownPathList) {
-      if (contextPathSet.contains(path) || sdkPathSet.contains(path)) {
+      if (_contextPathSet.contains(path) || sdkPathSet.contains(path)) {
         continue;
       }
 
@@ -316,12 +314,12 @@ class DeclarationsContext {
     }
   }
 
-  void _addLibrariesWithPaths(List<Library> libraries, List<String> pathList,
+  void _addLibrariesWithPaths(List<Library> libraries, Iterable<String> paths,
       {String? excludingLibraryOfPath}) {
     var excludedFile = _tracker._pathToFile[excludingLibraryOfPath];
     var excludedLibraryPath = (excludedFile?.library ?? excludedFile)?.path;
 
-    for (var path in pathList) {
+    for (var path in paths) {
       if (path == excludedLibraryPath) continue;
 
       var file = _tracker._pathToFile[path];
@@ -415,7 +413,7 @@ class DeclarationsContext {
   void _scheduleContextFiles() {
     var contextFiles = _analysisContext.contextRoot.analyzedFiles();
     for (var path in contextFiles) {
-      _contextPathList.add(path);
+      _contextPathSet.add(path);
       _tracker._addFile(this, path);
     }
   }

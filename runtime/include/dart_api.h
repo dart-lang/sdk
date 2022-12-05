@@ -1105,7 +1105,7 @@ Dart_CreateIsolateGroup(const char* script_uri,
  *   shutdown (may be NULL).
  * \param cleanup_callback A callback to be called when the isolate is being
  *   cleaned up (may be NULL).
- * \param isolate_data The embedder-specific data associated with this isolate.
+ * \param child_isolate_data The embedder-specific data associated with this isolate.
  * \param error Set to NULL if creation is successful, set to an error
  *   message otherwise. The caller is responsible for calling free() on the
  *   error message.
@@ -1269,6 +1269,52 @@ DART_EXPORT void Dart_KillIsolate(Dart_Isolate isolate);
  * Requires there to be a current isolate.
  */
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline);
+
+typedef void (*Dart_HeapSamplingCallback)(void* isolate_group_data,
+                                          Dart_Handle cls_name,
+                                          Dart_WeakPersistentHandle obj,
+                                          uintptr_t size);
+
+/**
+ * Starts the heap sampling profiler for each thread in the VM.
+ */
+DART_EXPORT void Dart_EnableHeapSampling();
+
+/*
+ * Stops the heap sampling profiler for each thread in the VM.
+ */
+DART_EXPORT void Dart_DisableHeapSampling();
+
+/*
+ * Registers a callback that is invoked once per sampled allocation.
+ *
+ * Important notes:
+ *
+ * - When invoked, |cls_name| will be a handle to a Dart String representing
+ *   the class name of the allocated object. This handle is stable and can be
+ *   used as an identifier as it has the lifetime of its isolate group.
+ *
+ * - |obj| is a weak persistent handle to the object which caused the
+ *   allocation. The value of this handle will be set to null when the object is
+ *   garbage collected. |obj| should only be used to determine whether the
+ *   object has been collected as there is no guarantee that it has been fully
+ *   initialized. This handle should eventually be freed with
+ *   Dart_DeleteWeakPersistentHandle once the embedder no longer needs it.
+ *
+ * - The provided callback must not call into the VM and should do as little
+ *   work as possible to avoid performance penalities.
+ */
+DART_EXPORT void Dart_RegisterHeapSamplingCallback(
+    Dart_HeapSamplingCallback callback);
+
+/*
+ * Sets the average heap sampling rate based on a number of |bytes| for each
+ * thread.
+ *
+ * In other words, approximately every |bytes| allocated will create a sample.
+ * Defaults to 512 KiB.
+ */
+DART_EXPORT void Dart_SetHeapSamplingPeriod(intptr_t bytes);
 
 /**
  * Notifies the VM that the embedder expects the application's working set has

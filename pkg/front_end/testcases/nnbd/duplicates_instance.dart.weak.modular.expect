@@ -104,106 +104,6 @@ library /*isNonNullableByDefault*/;
 //   void set instanceMethodAndSetter2(int value) {
 //            ^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:86:5: Error: Can't use 'instanceMethod' because it is declared more than once.
-//   c.instanceMethod();
-//     ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:86:5: Error: The method 'instanceMethod' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-// Try correcting the name to the name of an existing method, or defining a method named 'instanceMethod'.
-//   c.instanceMethod();
-//     ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:87:6: Error: Can't use 'instanceMethod' because it is declared more than once.
-//   (c.instanceMethod)();
-//      ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:87:6: Error: The getter 'instanceMethod' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceMethod'.
-//   (c.instanceMethod)();
-//      ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:88:5: Error: Can't use 'instanceGetter' because it is declared more than once.
-//   c.instanceGetter;
-//     ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:88:5: Error: The getter 'instanceGetter' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceGetter'.
-//   c.instanceGetter;
-//     ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:89:5: Error: Can't use 'instanceSetter' because it is declared more than once.
-//   c.instanceSetter = 0;
-//     ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:89:5: Error: The setter 'instanceSetter' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceSetter'.
-//   c.instanceSetter = 0;
-//     ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:90:5: Error: Can't use 'instanceField' because it is declared more than once.
-//   c.instanceField;
-//     ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:90:5: Error: The getter 'instanceField' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceField'.
-//   c.instanceField;
-//     ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:91:5: Error: Can't use 'instanceField' because it is declared more than once.
-//   c.instanceField = 0;
-//     ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:91:5: Error: The setter 'instanceField' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceField'.
-//   c.instanceField = 0;
-//     ^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:92:5: Error: Can't use 'instanceDuplicateFieldAndSetter' because it is declared more than once.
-//   c.instanceDuplicateFieldAndSetter;
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:92:5: Error: The getter 'instanceDuplicateFieldAndSetter' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceDuplicateFieldAndSetter'.
-//   c.instanceDuplicateFieldAndSetter;
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:95:5: Error: Can't use 'instanceFieldAndDuplicateSetter' because it is declared more than once.
-//   c.instanceFieldAndDuplicateSetter = 0;
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:95:5: Error: The setter 'instanceFieldAndDuplicateSetter' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceFieldAndDuplicateSetter'.
-//   c.instanceFieldAndDuplicateSetter = 0;
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:96:5: Error: Can't use 'instanceDuplicateFieldAndDuplicateSetter' because it is declared more than once.
-//   c.instanceDuplicateFieldAndDuplicateSetter;
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:96:5: Error: The getter 'instanceDuplicateFieldAndDuplicateSetter' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceDuplicateFieldAndDuplicateSetter'.
-//   c.instanceDuplicateFieldAndDuplicateSetter;
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:97:5: Error: Can't use 'instanceDuplicateFieldAndDuplicateSetter' because it is declared more than once.
-//   c.instanceDuplicateFieldAndDuplicateSetter = 0;
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/nnbd/duplicates_instance.dart:97:5: Error: The setter 'instanceDuplicateFieldAndDuplicateSetter' isn't defined for the class 'Class'.
-//  - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-// Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceDuplicateFieldAndDuplicateSetter'.
-//   c.instanceDuplicateFieldAndDuplicateSetter = 0;
-//     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -249,58 +149,18 @@ class Class extends core::Object {
 static field dynamic result;
 static method test() → dynamic {
   self::Class c = new self::Class::•();
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:86:5: Error: The method 'instanceMethod' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-Try correcting the name to the name of an existing method, or defining a method named 'instanceMethod'.
-  c.instanceMethod();
-    ^^^^^^^^^^^^^^" in c{<unresolved>}.instanceMethod();
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:87:6: Error: The getter 'instanceMethod' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceMethod'.
-  (c.instanceMethod)();
-     ^^^^^^^^^^^^^^" in c{<unresolved>}.instanceMethod{dynamic}.call();
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:88:5: Error: The getter 'instanceGetter' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceGetter'.
-  c.instanceGetter;
-    ^^^^^^^^^^^^^^" in c{<unresolved>}.instanceGetter;
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:89:5: Error: The setter 'instanceSetter' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceSetter'.
-  c.instanceSetter = 0;
-    ^^^^^^^^^^^^^^" in c{<unresolved>}.instanceSetter = 0;
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:90:5: Error: The getter 'instanceField' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceField'.
-  c.instanceField;
-    ^^^^^^^^^^^^^" in c{<unresolved>}.instanceField;
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:91:5: Error: The setter 'instanceField' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceField'.
-  c.instanceField = 0;
-    ^^^^^^^^^^^^^" in c{<unresolved>}.instanceField = 0;
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:92:5: Error: The getter 'instanceDuplicateFieldAndSetter' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceDuplicateFieldAndSetter'.
-  c.instanceDuplicateFieldAndSetter;
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceDuplicateFieldAndSetter;
+  c.{self::Class::instanceMethod}(){() → core::int};
+  c.{self::Class::instanceMethod}{() → core::int}(){() → core::int};
+  c.{self::Class::instanceGetter}{core::int};
+  c.{self::Class::instanceSetter} = 0;
+  c.{self::Class::instanceField}{core::int};
+  c.{self::Class::instanceField} = 0;
+  c.{self::Class::instanceDuplicateFieldAndSetter}{core::int};
   c.{self::Class::instanceDuplicateFieldAndSetter} = 0;
   c.{self::Class::instanceFieldAndDuplicateSetter}{core::int};
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:95:5: Error: The setter 'instanceFieldAndDuplicateSetter' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceFieldAndDuplicateSetter'.
-  c.instanceFieldAndDuplicateSetter = 0;
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceFieldAndDuplicateSetter = 0;
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:96:5: Error: The getter 'instanceDuplicateFieldAndDuplicateSetter' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceDuplicateFieldAndDuplicateSetter'.
-  c.instanceDuplicateFieldAndDuplicateSetter;
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceDuplicateFieldAndDuplicateSetter;
-  invalid-expression "pkg/front_end/testcases/nnbd/duplicates_instance.dart:97:5: Error: The setter 'instanceDuplicateFieldAndDuplicateSetter' isn't defined for the class 'Class'.
- - 'Class' is from 'pkg/front_end/testcases/nnbd/duplicates_instance.dart'.
-Try correcting the name to the name of an existing setter, or defining a setter or field named 'instanceDuplicateFieldAndDuplicateSetter'.
-  c.instanceDuplicateFieldAndDuplicateSetter = 0;
-    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" in c{<unresolved>}.instanceDuplicateFieldAndDuplicateSetter = 0;
+  c.{self::Class::instanceFieldAndDuplicateSetter} = 0;
+  c.{self::Class::instanceDuplicateFieldAndDuplicateSetter}{core::int};
+  c.{self::Class::instanceDuplicateFieldAndDuplicateSetter} = 0;
 }
 static method main() → dynamic {
   self::Class c = new self::Class::•();

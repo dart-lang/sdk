@@ -31,20 +31,30 @@ static bool IsCurrentApiNativeScope(Zone* zone) {
 
 uword VMHandles::AllocateHandle(Zone* zone) {
   DEBUG_ASSERT(!IsCurrentApiNativeScope(zone));
-  return Handles<kVMHandleSizeInWords, kVMHandlesPerChunk,
-                 kOffsetOfRawPtr>::AllocateHandle(zone);
+  uword handle = Handles<kVMHandleSizeInWords, kVMHandlesPerChunk,
+                         kOffsetOfRawPtr>::AllocateHandle(zone);
+#if defined(DEBUG)
+  *reinterpret_cast<uword*>(handle + kOffsetOfIsZoneHandle * kWordSize) = 0;
+#endif
+  return handle;
 }
 
 uword VMHandles::AllocateZoneHandle(Zone* zone) {
   DEBUG_ASSERT(!IsCurrentApiNativeScope(zone));
-  return Handles<kVMHandleSizeInWords, kVMHandlesPerChunk,
-                 kOffsetOfRawPtr>::AllocateZoneHandle(zone);
+  uword handle = Handles<kVMHandleSizeInWords, kVMHandlesPerChunk,
+                         kOffsetOfRawPtr>::AllocateZoneHandle(zone);
+#if defined(DEBUG)
+  *reinterpret_cast<uword*>(handle + kOffsetOfIsZoneHandle * kWordSize) = 1;
+#endif
+  return handle;
 }
 
+#if defined(DEBUG)
 bool VMHandles::IsZoneHandle(uword handle) {
-  return Handles<kVMHandleSizeInWords, kVMHandlesPerChunk,
-                 kOffsetOfRawPtr>::IsZoneHandle(handle);
+  return *reinterpret_cast<uword*>(handle +
+                                   kOffsetOfIsZoneHandle * kWordSize) != 0;
 }
+#endif
 
 int VMHandles::ScopedHandleCount() {
   Thread* thread = Thread::Current();
@@ -80,11 +90,18 @@ HandleScope::~HandleScope() {
   ASSERT(thread()->zone() != NULL);
   VMHandles* handles = thread()->zone()->handles();
   ASSERT(handles != NULL);
+#if defined(DEBUG)
+  VMHandles::HandlesBlock* last = handles->scoped_blocks_;
+#endif
   handles->scoped_blocks_ = saved_handle_block_;
   handles->scoped_blocks_->set_next_handle_slot(saved_handle_slot_);
 #if defined(DEBUG)
-  handles->VerifyScopedHandleState();
-  handles->ZapFreeScopedHandles();
+  VMHandles::HandlesBlock* block = handles->scoped_blocks_;
+  for (;;) {
+    block->ZapFreeHandles();
+    if (block == last) break;
+    block = block->next_block();
+  }
   ASSERT(thread()->top_handle_scope() == this);
   thread()->set_top_handle_scope(link_);
 #endif

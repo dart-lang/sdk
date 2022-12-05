@@ -16,7 +16,7 @@ import 'package:compiler/src/universe/class_hierarchy.dart';
 import 'package:compiler/src/universe/selector.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import '../helpers/element_lookup.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 void main() {
   asyncTest(() async {

@@ -1,0 +1,13 @@
+include: package:lints/recommended.yaml
+
+analyzer:
+  errors:
+    # Until the protobuf package generates the right code - or the right ignores
+    constant_identifier_names: ignore
+
+linter:
+  rules:
+  - always_declare_return_types
+  # Enable once we update protobuf generation
+  #- directives_ordering
+  - unawaited_futures

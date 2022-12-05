@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -53,6 +54,28 @@ class RemoveDeadCode extends CorrectionProducer {
             builder.addDeletion(range.endEnd(parent.leftOperand, coveredNode));
           });
         }
+      } else if (parent is ForParts) {
+        var forStatement = parent.parent;
+        if (forStatement is! ForStatement) return;
+
+        var updaters = parent.updaters;
+        if (updaters.contains(coveredNode)) {
+          var isFirstNode = updaters.first == coveredNode;
+          var rightParenthesis = forStatement.rightParenthesis;
+          var isComma = !isFirstNode &&
+              rightParenthesis.previous?.type == TokenType.COMMA;
+
+          var previous = coveredNode.beginToken.previous!;
+
+          var deletionRange = isComma
+              ? range.endStart(previous, rightParenthesis)
+              : range.startStart(
+                  isFirstNode ? coveredNode : previous, rightParenthesis);
+
+          await builder.addDartFileEdit(file, (builder) {
+            builder.addDeletion(deletionRange);
+          });
+        }
       }
     } else if (coveredNode is Block) {
       var block = coveredNode;
@@ -94,6 +117,22 @@ class RemoveDeadCode extends CorrectionProducer {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.endEnd(previous, coveredNode));
       });
+    } else if (coveredNode is ForParts) {
+      var forStatement = coveredNode.parent;
+      if (forStatement is! ForStatement) return;
+
+      var problemMessage = diagnostic?.problemMessage;
+      if (problemMessage == null) return;
+
+      var updaters = coveredNode.updaters;
+      var beginOffset = updaters.beginToken!.offset;
+      if (problemMessage.offset == beginOffset &&
+          problemMessage.length == updaters.endToken!.end - beginOffset) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addDeletion(range.startOffsetEndOffset(
+              beginOffset, forStatement.rightParenthesis.offset));
+        });
+      }
     }
   }
 

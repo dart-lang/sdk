@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
@@ -287,8 +288,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleExtractorPatternFields(
-      int count, Token beginToken, Token endToken) {
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
     _unsupported();
   }
 
@@ -488,8 +488,14 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     _unexpected();
   }
 
@@ -796,7 +802,7 @@ class _MacroListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
     _unexpected();
   }
 
@@ -806,8 +812,14 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
+  void beginNamedMixinApplication(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
     _unexpected();
   }
 
@@ -857,12 +869,27 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void beginSwitchExpressionBlock(Token token) {
+    _unsupported();
+  }
+
+  @override
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     _unsupported();
   }
 
   @override
+  void beginSwitchExpressionCase() {
+    _unsupported();
+  }
+
+  @override
   void beginSwitchStatement(Token token) {
+    _unsupported();
+  }
+
+  @override
+  void beginSwitchExpression(Token token) {
     _unsupported();
   }
 
@@ -1452,6 +1479,12 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void endSwitchExpressionBlock(
+      int caseCount, Token beginToken, Token endToken) {
+    _unsupported();
+  }
+
+  @override
   void endSwitchCase(
       int labelCount,
       int expressionCount,
@@ -1464,7 +1497,17 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+    _unsupported();
+  }
+
+  @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
+    _unsupported();
+  }
+
+  @override
+  void endSwitchExpression(Token switchKeyword, Token endToken) {
     _unsupported();
   }
 
@@ -2033,7 +2076,7 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleExtractorPattern(
+  void handleObjectPattern(
       Token firstIdentifier, Token? dot, Token? secondIdentifier) {
     _unsupported();
   }
@@ -2076,6 +2119,11 @@ class _MacroListener implements Listener {
 
   @override
   void handleSpreadExpression(Token spreadToken) {
+    _unsupported();
+  }
+
+  @override
+  void handleRestPattern(Token dots, {required bool hasSubPattern}) {
     _unsupported();
   }
 
@@ -2167,10 +2215,27 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {
+    _unsupported();
+  }
+
+  @override
+  void handlePatternAssignment(Token equals) {
+    _unsupported();
+  }
+
+  @override
   void logEvent(String name) {}
 
   @override
   void reportVarianceModifierNotEnabled(Token? variance) {
+    _unsupported();
+  }
+
+  @override
+  void handleExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
     _unsupported();
   }
 }

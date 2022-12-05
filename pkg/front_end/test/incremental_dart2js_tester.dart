@@ -184,6 +184,7 @@ class Dart2jsTester {
     CompilerOptions options = helper.getOptions();
     options.explicitExperimentalFlags[ExperimentalFlag
         .alternativeInvalidationStrategy] = useExperimentalInvalidation;
+    options.omitPlatform = false;
     helper.TestIncrementalCompiler compiler =
         new helper.TestIncrementalCompiler(options, input);
     IncrementalCompilerResult compilerResult = await compiler.computeDelta();

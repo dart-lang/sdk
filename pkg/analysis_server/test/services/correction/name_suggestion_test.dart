@@ -18,8 +18,7 @@ void main() {
 class VariableNameSuggestionTest extends AbstractSingleUnitTest {
   Future<void> test_forExpression_cast() async {
     await resolveTestCode('''
-void f() {
-  var sortedNodes;
+void f(Object sortedNodes) {
   var res = sortedNodes as String;
 }
 ''');

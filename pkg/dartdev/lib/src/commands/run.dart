@@ -21,6 +21,7 @@ import '../resident_frontend_utils.dart';
 import '../sdk.dart';
 import '../utils.dart';
 import '../vm_interop_handler.dart';
+import 'compile_server_shutdown.dart';
 
 class RunCommand extends DartdevCommand {
   static const bool isProductMode = bool.fromEnvironment('dart.vm.product');
@@ -52,17 +53,18 @@ class RunCommand extends DartdevCommand {
         'resident',
         abbr: 'r',
         negatable: false,
-        help: 'Enable faster startup times with the '
-            'Resident Frontend Compiler.',
+        help:
+            'Enable faster startup times with the resident frontend compiler.\n'
+            "See 'dart ${CompileServerShutdownCommand.commandName} -h' for more information.",
       )
       ..addOption(
-        'resident-server-info-file',
+        CompileServerShutdownCommand.residentServerInfoFileFlag,
         hide: !verbose,
-        help: 'Specify the file that the Dart CLI uses to communicate with '
-            'the Resident Frontend Compiler. Passing this flag results in '
-            'having one unique resident frontend compiler per file. '
-            'This is needed when writing unit '
-            'tests that utilize resident mode in order to maintain isolation.',
+        help: 'Specify the file that the Dart CLI uses to communicate with the '
+            'resident frontend compiler. Passing this flag results in having '
+            'one unique resident frontend compiler per file. This is needed '
+            'when writing unit tests that utilize resident mode in order to '
+            'maintain isolation.',
       );
     // NOTE: When updating this list of flags, be sure to add any VM flags to
     // the list of flags in Options::ProcessVMDebuggingOptions in
@@ -210,6 +212,10 @@ class RunCommand extends DartdevCommand {
                 'functionality. Note: Disabling DDS may break some '
                 'functionality in IDEs and other tooling.',
             defaultsTo: true)
+        ..addFlag('serve-observatory',
+            hide: !verbose,
+            help: 'Enable hosting Observatory through the VM Service.',
+            defaultsTo: true)
         ..addFlag(
           'debug-dds',
           hide: true,
@@ -274,9 +280,7 @@ class RunCommand extends DartdevCommand {
       }
     }
 
-    final hasServerInfoOption = args.wasParsed(
-      serverInfoOption,
-    );
+    final hasServerInfoOption = args.wasParsed(serverInfoOption);
     final useResidentServer =
         args.wasParsed(residentOption) || hasServerInfoOption;
     DartExecutableWithPackageConfig executable;
@@ -290,31 +294,37 @@ class RunCommand extends DartdevCommand {
       return errorExitCode;
     }
 
-    if (useResidentServer) {
-      final serverInfoFile = hasServerInfoOption
-          ? File(maybeUriToFilename(args[serverInfoOption]))
-          : File(defaultResidentServerInfoFile);
+    final residentServerInfoFile = hasServerInfoOption
+        ? File(maybeUriToFilename(args[serverInfoOption]))
+        : defaultResidentServerInfoFile;
+
+    if (useResidentServer && residentServerInfoFile != null) {
       try {
+        // Ensure the parent directory exists.
+        if (!residentServerInfoFile.parent.existsSync()) {
+          residentServerInfoFile.parent.createSync();
+        }
+
         // TODO(#49694) handle the case when executable is a kernel file
         executable = await generateKernel(
           executable,
-          serverInfoFile,
+          residentServerInfoFile,
           args,
           createCompileJitJson,
         );
       } on FrontendCompilerException catch (e) {
-        log.stderr('${ansi.yellow}Failed to build '
-            '${executable.executable}:${ansi.none}');
+        log.stderr(
+            '${ansi.yellow}Failed to build ${executable.executable}:${ansi.none}');
         log.stderr(e.message);
         if (e.issue == CompilationIssue.serverError) {
           try {
             await sendAndReceiveResponse(
               residentServerShutdownCommand,
-              serverInfoFile,
+              residentServerInfoFile,
             );
           } catch (_) {
           } finally {
-            cleanupResidentServerInfo(serverInfoFile);
+            cleanupResidentServerInfo(residentServerInfoFile);
           }
         }
         return errorExitCode;

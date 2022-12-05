@@ -2686,6 +2686,9 @@ void KernelReaderHelper::SkipExpression() {
     case kAwaitExpression:
       ReadPosition();    // read position.
       SkipExpression();  // read operand.
+      if (ReadTag() == kSomething) {
+        SkipDartType();  // read runtime check type.
+      }
       return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
@@ -3379,6 +3382,9 @@ void TypeTranslator::BuildRecordType() {
     field_types.SetAt(pos++, result_);
     helper_->ReadFlags();
   }
+  if (named_count != 0) {
+    field_names.MakeImmutable();
+  }
 
   finalize_ = finalize;
 
@@ -3726,6 +3732,9 @@ static void SetupUnboxingInfoOfParameter(const Function& function,
           function.set_unboxed_double_parameter_at(param_pos);
         }
         break;
+      case UnboxingInfoMetadata::kUnboxedRecordCandidate:
+        UNREACHABLE();
+        break;
       case UnboxingInfoMetadata::kUnboxingCandidate:
         UNREACHABLE();
         break;
@@ -3749,6 +3758,9 @@ static void SetupUnboxingInfoOfReturnValue(
       if (FlowGraphCompiler::SupportsUnboxedDoubles()) {
         function.set_unboxed_double_return();
       }
+      break;
+    case UnboxingInfoMetadata::kUnboxedRecordCandidate:
+      function.set_unboxed_record_return();
       break;
     case UnboxingInfoMetadata::kUnboxingCandidate:
       UNREACHABLE();

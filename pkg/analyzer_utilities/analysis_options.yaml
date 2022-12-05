@@ -1,12 +1,21 @@
 include: package:lints/recommended.yaml
 
 analyzer:
-  strong-mode:
-    implicit-casts: false
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
 
 linter:
   rules:
-    - empty_constructor_bodies
-    - empty_statements
-    - unnecessary_brace_in_string_interps
-    - valid_regexps
+    - collection_methods_unrelated_type
+    # Enable when we require Dart 2.19.0.
+    #- dangling_library_doc_comments
+    - depend_on_referenced_packages
+    - enable_null_safety
+    - implicit_call_tearoffs
+    - library_annotations
+    - unawaited_futures
+    - unnecessary_library_directive
+    - unnecessary_parenthesis
+    - unreachable_from_main

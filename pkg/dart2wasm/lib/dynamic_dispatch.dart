@@ -10,7 +10,6 @@ import 'package:dart2wasm/dispatch_table.dart';
 import 'package:dart2wasm/param_info.dart';
 import 'package:dart2wasm/translator.dart';
 import 'package:kernel/ast.dart';
-import 'package:vm/metadata/procedure_attributes.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 enum DynamicSelectorType {
@@ -31,15 +30,6 @@ class DynamicDispatcher {
   DynamicDispatcher(this.translator);
 
   TranslatorOptions get options => translator.options;
-
-  /// Returns true if there is a chance that [member] may be invoked
-  /// dynamically. We err on the side of caution because it is not always
-  /// possible to tell statically when a given class may flow to dynamic.
-  bool maybeCalledDynamically(
-          Member member, ProcedureAttributesMetadata metadata) =>
-      metadata.getterCalledDynamically ||
-      metadata.methodOrSetterCalledDynamically ||
-      member == translator.objectNoSuchMethod;
 
   w.ValueType _callDynamic(CodeGenerator codeGen, DynamicInvocation node) {
     // Handle general dynamic invocation.
@@ -123,7 +113,6 @@ class DynamicDispatcher {
     // all we care about is code size, we might do best to use constant maps or
     // one function per selector. On the other hand, we could also try a hybrid
     // IC like approach using globals, rewiring logic, and a state machine.
-    // TODO(joshualitt): Handle the case of a null receiver.
     w.Local cidLocal = addLocal(w.NumType.i32);
 
     // Outer block searches through the methods and invokes the method if it
@@ -165,28 +154,26 @@ class DynamicDispatcher {
       }
       translator.functions.activateSelector(selector);
       for (int classID in selector.classIds) {
+        final Reference target = selector.targets[classID]!;
+        if (target.asMember.isAbstract) {
+          continue;
+        }
+
         b.local_get(cidLocal);
         b.i32_const(classID);
         b.i32_eq();
         b.if_();
 
-        // TODO(joshualitt): We should be able to make this a direct
-        // invocation. However, there appear to be corner cases today where we
-        // still need to do the actual invocation as an indirect call, for
-        // example if the procedure we are invoking is abstract.
         b.comment("Dynamic invocation of '${selector.name}'");
         b.local_get(receiverVar);
         translator.convertType(function, translator.topInfo.nullableType,
             selector.signature.inputs[0]);
 
         pushArguments(selector);
-        b.local_get(cidLocal);
-        int offset = selector.offset!;
-        if (offset != 0) {
-          b.i32_const(offset);
-          b.i32_add();
-        }
-        b.call_indirect(selector.signature);
+
+        final w.BaseFunction targetFunction =
+            translator.functions.getFunction(target);
+        b.call(targetFunction);
 
         w.ValueType result =
             translator.outputOrVoid(selector.signature.outputs);
@@ -226,19 +213,19 @@ class DynamicDispatcher {
     Class cls = translator.fixedLengthListClass;
     ClassInfo info = translator.classInfo[cls]!;
     translator.functions.allocateClass(info.classId);
-    w.RefType refType = info.struct.fields.last.type.unpacked as w.RefType;
-    w.ArrayType arrayType = refType.heapType as w.ArrayType;
+    w.ArrayType arrayType = translator.listArrayType;
 
     // Initialize array struct.
-    w.Label arrayFillBlock = b.block();
     b.local_get(currentParameterCountLocal);
     b.array_new_default(arrayType);
-    w.Local arrayLocal = function.addLocal(refType);
+    w.Local arrayLocal =
+        function.addLocal(w.RefType.def(arrayType, nullable: false));
     b.local_set(arrayLocal);
 
     // Fill the array up to min(maxParameterCount, currentParameterCountLocal).
     // Furthermore, currentParameterCountLocal should be < maxParameterCount
     // based on how maxParameterCount is computed.
+    w.Label arrayFillBlock = b.block();
     b.local_get(currentParameterCountLocal);
     b.i32_eqz();
     b.br_if(arrayFillBlock);
@@ -265,9 +252,6 @@ class DynamicDispatcher {
     b.local_get(currentParameterCountLocal);
     b.i64_extend_i32_u();
     b.local_get(arrayLocal);
-    if (arrayLocal.type.nullable) {
-      b.ref_as_non_null();
-    }
     b.struct_new(info.struct);
   }
 
@@ -507,7 +491,7 @@ class DynamicDispatcher {
     // `noSuchMethod` if the supplied number of arguments is less than the
     // number required for any given selector.
     for (int i = positionalArguments.length; i < maxParameterCount; i++) {
-      b.ref_null(translator.topInfo.nullableType.heapType);
+      b.ref_null(w.HeapType.none);
     }
     b.call(dynamicTrampolines[type]![name]!);
     return translator.topInfo.nullableType;

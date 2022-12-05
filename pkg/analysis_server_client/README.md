@@ -1,7 +1,21 @@
-[![pub package](https://img.shields.io/pub/v/analysis_server_client.svg)](https://pub.dev/packages/analysis_server_client)
-[![package publisher](https://img.shields.io/pub/publisher/analysis_server_client.svg)](https://pub.dev/packages/analysis_server_client/publisher)
-
 `package:analysis_server_client` is a client wrapper over the Analysis Server.
+
+## Update: this package has been discontinued
+
+This package has been discontinued and will not receive further updates.
+
+People who need similar functionality could:
+
+- continue to use the last published version; it should continue to be able to
+  talk to the analysis server for the foreseeable future
+- fork the package and maintain that fork (we don't expect that the analysis
+  server protocol will evolve significantly)
+- see if their use case could instead be satisfied by talking to the analysis
+  server over the LSP protocol (`dart language-server --protocol=lsp`)
+
+We welcome feedback about this at
+[#50262](https://github.com/dart-lang/sdk/issues/50262); that would also be a
+good place to discuss alternatives.
 
 ## Overview
 

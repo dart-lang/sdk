@@ -165,17 +165,17 @@ class A {
       test_checkFinalConditions_shadows_classMember_namedParameter() async {
     await indexTestUnit('''
 class A {
-  foo({test: 1}) { // in A
+  foo({test = 1}) { // in A
   }
 }
 class B extends A {
   var newName = 1;
-  foo({test: 1}) {
+  foo({test = 1}) {
     print(newName);
   }
 }
 ''');
-    createRenameRefactoringAtString('test: 1}) { // in A');
+    createRenameRefactoringAtString('test = 1}) { // in A');
     // check status
     refactoring.newName = 'newName';
     var status = await refactoring.checkFinalConditions();

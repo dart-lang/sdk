@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// ignore_for_file: avoid_dynamic_calls
+
 /// Converters and codecs for converting between JSON and [Info] classes.
 import 'dart:collection';
 import 'dart:convert';
@@ -413,17 +415,30 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     };
   }
 
-  Map visitDependencyInfo(DependencyInfo info) =>
-      {'id': idFor(info.target).serializedId, 'mask': info.mask};
+  Map visitDependencyInfo(DependencyInfo info) => {
+        'id': idFor(info.target).serializedId,
+        if (info.mask != null) 'mask': info.mask,
+      };
 
   Map _visitAllInfoHolding(AllInfo allInfo) {
     var map = SplayTreeMap<String, List>(compareNatural);
     void helper(CodeInfo info) {
       if (info.uses.isEmpty) return;
-      map[idFor(info).serializedId] = info.uses
-          .map(visitDependencyInfo)
-          .toList()
-        ..sort((a, b) => a['id'].compareTo(b['id']));
+      map[idFor(info).serializedId] =
+          info.uses.map(visitDependencyInfo).toList()
+            ..sort((a, b) {
+              final value = a['id'].compareTo(b['id']);
+              if (value != 0) return value;
+              final aMask = a['mask'] as String?;
+              final bMask = b['mask'] as String?;
+              if (aMask == null) {
+                return bMask == null ? 0 : 1;
+              }
+              if (bMask == null) {
+                return -1;
+              }
+              return aMask.compareTo(bMask);
+            });
     }
 
     allInfo.functions.forEach(helper);
@@ -445,14 +460,14 @@ class AllInfoToJsonConverter extends Converter<AllInfo, Map>
     var jsonHolding = _visitAllInfoHolding(info);
     var jsonDependencies = _visitAllInfoDependencies(info);
     return {
+      'dump_version': isBackwardCompatible ? 5 : info.version,
+      'dump_minor_version': isBackwardCompatible ? 1 : info.minorVersion,
+      'program': info.program!.accept(this),
       'elements': elements,
       'holding': jsonHolding,
       'dependencies': jsonDependencies,
       'outputUnits': info.outputUnits.map((u) => u.accept(this)).toList(),
-      'dump_version': isBackwardCompatible ? 5 : info.version,
       'deferredFiles': info.deferredFiles,
-      'dump_minor_version': isBackwardCompatible ? 1 : info.minorVersion,
-      'program': info.program!.accept(this)
     };
   }
 

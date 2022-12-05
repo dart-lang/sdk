@@ -283,6 +283,7 @@ class BinarySink extends AbstractDataSink {
 
   @override
   void _writeEnumInternal(dynamic value) {
+    // ignore: avoid_dynamic_calls
     _writeIntInternal(value.index);
   }
 

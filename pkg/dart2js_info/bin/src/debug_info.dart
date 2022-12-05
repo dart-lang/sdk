@@ -176,9 +176,10 @@ class _SizeTracker extends RecursiveInfoVisitor {
     }
   }
 
-  void _handleCodeInfo(info) {
+  void _handleCodeInfo(BasicInfo info) {
     discovered.add(info);
-    var code = info.code;
+    // ignore: avoid_dynamic_calls
+    var code = (info as dynamic).code as String?;
     if (_debug && code != null) {
       bool isClosureClass = info.name.endsWith('.call');
       if (isClosureClass) {
@@ -191,7 +192,7 @@ class _SizeTracker extends RecursiveInfoVisitor {
         _debugCode.write('...\n');
       }
 
-      print('$info $isClosureClass \n${info.code}');
+      print('$info $isClosureClass \n$code');
       _debugCode.write(' ' * _indent);
       var endsInNewLine = code.endsWith('\n');
       if (endsInNewLine) code = code.substring(0, code.length - 1);
@@ -203,8 +204,8 @@ class _SizeTracker extends RecursiveInfoVisitor {
         _debugCode.write('},\n');
       }
     }
-    stack.last._totalSize += (info.size as int);
-    stack.last._bodySize += (info.size as int);
+    stack.last._totalSize += info.size;
+    stack.last._bodySize += info.size;
     stack.last._count++;
   }
 

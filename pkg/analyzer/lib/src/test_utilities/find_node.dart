@@ -27,6 +27,55 @@ class FindNode {
     return result;
   }
 
+  /// Returns the [GuardedPattern], there must be only one.
+  GuardedPattern get singleGuardedPattern {
+    var nodes = <GuardedPattern>[];
+    unit.accept(
+      FunctionAstVisitor(
+        guardedPattern: (node) {
+          nodes.add(node);
+        },
+      ),
+    );
+    return nodes.single;
+  }
+
+  /// Returns the [IfStatement], there must be only one.
+  IfStatement get singleIfStatement {
+    var nodes = <IfStatement>[];
+    unit.accept(
+      FunctionAstVisitor(
+        ifStatement: (node) {
+          nodes.add(node);
+        },
+      ),
+    );
+    return nodes.single;
+  }
+
+  /// Returns the [PatternVariableDeclaration], there must be only one.
+  PatternVariableDeclaration get singlePatternVariableDeclaration {
+    var nodes = <PatternVariableDeclaration>[];
+    unit.accept(
+      FunctionAstVisitor(
+        patternVariableDeclaration: nodes.add,
+      ),
+    );
+    return nodes.single;
+  }
+
+  /// Returns the [PatternVariableDeclarationStatement], there must be only one.
+  PatternVariableDeclarationStatement
+      get singlePatternVariableDeclarationStatement {
+    var nodes = <PatternVariableDeclarationStatement>[];
+    unit.accept(
+      FunctionAstVisitor(
+        patternVariableDeclarationStatement: nodes.add,
+      ),
+    );
+    return nodes.single;
+  }
+
   AdjacentStrings adjacentStrings(String search) {
     return _node(search, (n) => n is AdjacentStrings);
   }
@@ -221,10 +270,6 @@ class FindNode {
 
   ExtensionOverride extensionOverride(String search) {
     return _node(search, (n) => n is ExtensionOverride);
-  }
-
-  ExtractorPattern extractorPattern(String search) {
-    return _node(search, (n) => n is ExtractorPattern);
   }
 
   FieldDeclaration fieldDeclaration(String search) {
@@ -439,6 +484,10 @@ class FindNode {
     return _node(search, (n) => n is NullLiteral);
   }
 
+  ObjectPattern objectPattern(String search) {
+    return _node(search, (n) => n is ObjectPattern);
+  }
+
   /// Return the unique offset where the [search] string occurs in [content].
   /// Throws if not found, or if not unique.
   int offset(String search) {
@@ -470,10 +519,6 @@ class FindNode {
 
   PatternAssignment patternAssignment(String search) {
     return _node(search, (n) => n is PatternAssignment);
-  }
-
-  PatternAssignmentStatement patternAssignmentStatement(String search) {
-    return _node(search, (n) => n is PatternAssignmentStatement);
   }
 
   PatternVariableDeclaration patternVariableDeclaration(String search) {
@@ -608,10 +653,6 @@ class FindNode {
 
   SwitchExpressionCase switchExpressionCase(String search) {
     return _node(search, (n) => n is SwitchExpressionCase);
-  }
-
-  SwitchExpressionDefault switchExpressionDefault(String search) {
-    return _node(search, (n) => n is SwitchExpressionDefault);
   }
 
   SwitchPatternCase switchPatternCase(String search) {

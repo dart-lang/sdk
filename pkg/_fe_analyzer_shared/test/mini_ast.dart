@@ -10,11 +10,15 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
     show EqualityInfo, FlowAnalysis, Operations;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    hide NamedType, RecordType;
+    hide MapPatternEntry, NamedType, RecordPatternField, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
+    as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:test/test.dart';
 
@@ -24,7 +28,8 @@ import 'mini_types.dart';
 final RegExp _locationRegExp =
     RegExp('(file:)?[a-zA-Z0-9_./]+.dart:[0-9]+:[0-9]+');
 
-CaseHead get default_ => _Default(location: computeLocation());
+_SwitchHeadDefault get default_ =>
+    _SwitchHeadDefault(location: computeLocation());
 
 Expression get nullLiteral => new _NullLiteral(location: computeLocation());
 
@@ -81,14 +86,22 @@ String computeLocation() {
   var callStack = StackTrace.current.toString().split('\n');
   assert(callStack[0].contains('mini_ast.dart'));
   assert(callStack[1].contains('mini_ast.dart'));
-  assert(
-      callStack[2].contains('type_inference_test.dart') ||
-          callStack[2].contains('flow_analysis_test.dart'),
-      'Unexpected file: ${callStack[2]}');
-  var match = _locationRegExp.firstMatch(callStack[2]);
+
+  String stackLine;
+  if (callStack[3].contains('joinPatternVariables')) {
+    stackLine = callStack[3];
+  } else {
+    stackLine = callStack[2];
+    assert(
+        stackLine.contains('type_inference_test.dart') ||
+            stackLine.contains('flow_analysis_test.dart'),
+        'Unexpected file: $stackLine');
+  }
+
+  var match = _locationRegExp.firstMatch(stackLine);
   if (match == null) {
     throw AssertionError(
-        '_locationRegExp failed to match ${callStack[2]} in $callStack');
+        '_locationRegExp failed to match $stackLine in $callStack');
   }
   return match.group(0)!;
 }
@@ -190,16 +203,45 @@ Statement if_(Expression condition, List<Statement> ifTrue,
 }
 
 Statement ifCase(
-    Expression expression, CaseHead caseHead, List<Statement> ifTrue,
-    {List<Statement>? else_}) {
+  Expression expression,
+  PossiblyGuardedPattern pattern, {
+  List<Statement>? ifTrue,
+  List<Statement>? ifFalse,
+}) {
   var location = computeLocation();
-  return new _IfCase(
-      expression,
-      caseHead._pattern!,
-      caseHead._guard,
-      _Block(ifTrue, location: location),
-      else_ == null ? null : _Block(else_, location: location),
-      location: location);
+  var guardedPattern = pattern._asGuardedPattern;
+  return _IfCase(
+    expression,
+    guardedPattern.pattern,
+    guardedPattern.guard,
+    _Block(ifTrue ?? [], location: location),
+    ifFalse != null ? _Block(ifFalse, location: location) : null,
+    location: location,
+  );
+}
+
+CollectionElement ifCaseElement(
+  Expression expression,
+  PossiblyGuardedPattern pattern,
+  CollectionElement ifTrue, {
+  CollectionElement? ifFalse,
+}) {
+  var location = computeLocation();
+  var guardedPattern = pattern._asGuardedPattern;
+  return new _IfCaseElement(
+    expression,
+    guardedPattern.pattern,
+    guardedPattern.guard,
+    ifTrue,
+    ifFalse,
+    location: location,
+  );
+}
+
+CollectionElement ifElement(Expression condition, CollectionElement ifTrue,
+    [CollectionElement? ifFalse]) {
+  var location = computeLocation();
+  return new _IfElement(condition, ifTrue, ifFalse, location: location);
 }
 
 Expression intLiteral(int value, {bool? expectConversionToDouble}) =>
@@ -207,13 +249,44 @@ Expression intLiteral(int value, {bool? expectConversionToDouble}) =>
         expectConversionToDouble: expectConversionToDouble,
         location: computeLocation());
 
-Pattern listPattern(List<Pattern> elements, {String? elementType}) =>
+Pattern listPattern(List<ListPatternElement> elements, {String? elementType}) =>
     _ListPattern(elementType == null ? null : Type(elementType), elements,
         location: computeLocation());
+
+ListPatternElement listPatternRestElement([Pattern? pattern]) =>
+    _RestPatternElement(pattern, location: computeLocation());
 
 Statement localFunction(List<Statement> body) {
   var location = computeLocation();
   return _LocalFunction(_Block(body, location: location), location: location);
+}
+
+Pattern mapPattern(List<MapPatternElement> elements) {
+  var location = computeLocation();
+  return _MapPattern(null, elements, location: location);
+}
+
+MapPatternElement mapPatternEntry(Expression key, Pattern value) {
+  return _MapPatternEntry(key, value, location: computeLocation());
+}
+
+MapPatternElement mapPatternRestElement([Pattern? pattern]) =>
+    _RestPatternElement(pattern, location: computeLocation());
+
+Pattern mapPatternWithTypeArguments({
+  required String keyType,
+  required String valueType,
+  required List<MapPatternElement> elements,
+}) {
+  var location = computeLocation();
+  return _MapPattern(
+    shared.MapPatternTypeArguments<Type>(
+      keyType: Type(keyType),
+      valueType: Type(valueType),
+    ),
+    elements,
+    location: location,
+  );
 }
 
 Statement match(Pattern pattern, Expression initializer,
@@ -221,18 +294,38 @@ Statement match(Pattern pattern, Expression initializer,
     new _Declare(pattern, initializer,
         isLate: isLate, isFinal: isFinal, location: computeLocation());
 
-CaseHeads mergedCase(List<CaseHead> cases) => _CaseHeads(cases, const []);
+Pattern objectPattern({
+  required String requiredType,
+  required List<RecordPatternField> fields,
+}) {
+  var parsedType = Type(requiredType);
+  if (parsedType is! PrimaryType) {
+    fail('Expected a primary type, got $parsedType');
+  }
+  return _ObjectPattern(
+    requiredType: parsedType,
+    fields: fields,
+    location: computeLocation(),
+  );
+}
 
-Pattern recordPattern(List<RecordPatternField<Pattern>> fields) =>
+Pattern recordPattern(List<RecordPatternField> fields) =>
     _RecordPattern(fields, location: computeLocation());
 
 Pattern relationalPattern(
-        RelationalOperatorResolution<Type>? operator, Expression operand) =>
-    _RelationalPattern(operator, operand, location: computeLocation());
+    RelationalOperatorResolution<Type>? operator, Expression operand,
+    {String? errorId}) {
+  var result =
+      _RelationalPattern(operator, operand, location: computeLocation());
+  if (errorId != null) {
+    result.errorId = errorId;
+  }
+  return result;
+}
 
 Statement return_() => new _Return(location: computeLocation());
 
-Statement switch_(Expression expression, List<StatementCase> cases,
+Statement switch_(Expression expression, List<_SwitchStatementMember> cases,
         {required bool isExhaustive,
         bool? expectHasDefault,
         bool? expectIsExhaustive,
@@ -247,6 +340,20 @@ Statement switch_(Expression expression, List<StatementCase> cases,
 
 Expression switchExpr(Expression expression, List<ExpressionCase> cases) =>
     new _SwitchExpression(expression, cases, location: computeLocation());
+
+_SwitchStatementMember switchStatementMember(
+  List<SwitchHead> cases,
+  List<Statement> body, {
+  bool hasLabels = false,
+}) {
+  var location = computeLocation();
+  return _SwitchStatementMember._(
+    cases,
+    _Block(body, location: location),
+    hasLabels: hasLabels,
+    location: computeLocation(),
+  );
+}
 
 PromotableLValue thisOrSuperProperty(String name) =>
     new _ThisOrSuperProperty(name, location: computeLocation());
@@ -266,44 +373,41 @@ Statement while_(Expression condition, List<Statement> body) {
       location: location);
 }
 
-Pattern wildcard(
-        {String? type, String? expectInferredType, bool isFinal = false}) =>
+Pattern wildcard({String? type, String? expectInferredType}) =>
     _VariablePattern(type == null ? null : Type(type), null, expectInferredType,
-        isFinal: isFinal, location: computeLocation());
+        location: computeLocation());
 
-mixin CaseHead implements CaseHeads, Node {
-  @override
-  List<CaseHead> get _caseHeads => [this];
+typedef SharedMatchContext
+    = shared.MatchContext<Node, Expression, Pattern, Type, Var>;
 
-  Expression? get _guard;
+typedef SharedRecordPatternField = shared.RecordPatternField<Node, Pattern>;
 
-  @override
-  List<Label> get _labels => const [];
+/// Representation of a collection element in the pseudo-Dart language used for
+/// type analysis testing.
+abstract class CollectionElement extends Node {
+  CollectionElement({required super.location}) : super._();
 
-  Pattern? get _pattern;
+  /// Wraps `this` in such a way that, when the test is run, it will verify that
+  /// the IR produced matches [expectedIr].
+  CollectionElement checkIr(String expectedIr) =>
+      _CheckCollectionElementIr(this, expectedIr, location: computeLocation());
 
-  ExpressionCase thenExpr(Expression body) =>
-      ExpressionCase._(_pattern, _guard, body, location: computeLocation());
+  /// Creates a [Statement] that, when analyzed, will analyze `this`, supplying
+  /// [type] as the context (for `List` and `Set` literals).
+  Statement inContextElementType(String type) =>
+      _CollectionElementInContext(this, _CollectionElementContextType(type),
+          location: computeLocation());
 
-  void _preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
-    variableBinder.startAlternative(this);
-    _pattern?.preVisit(visitor, variableBinder);
-    variableBinder.finishAlternative();
-    _guard?.preVisit(visitor);
-  }
-}
+  /// Creates a [Statement] that, when analyzed, will analyze `this`, supplying
+  /// [keyType] and [valueType] as the context (for `Map` literals).
+  Statement inContextMapEntry(String keyType, String valueType) =>
+      _CollectionElementInContext(
+          this, _CollectionElementContextMapEntry(keyType, valueType),
+          location: computeLocation());
 
-mixin CaseHeads {
-  List<CaseHead> get _caseHeads;
+  void preVisit(PreVisitor visitor);
 
-  List<Label> get _labels;
-
-  StatementCase then(List<Statement> body) {
-    var location = computeLocation();
-    return StatementCase._(this, _Block(body, location: location),
-        location: location);
-  }
+  void visit(Harness h, _CollectionElementContext context);
 }
 
 /// Representation of an expression in the pseudo-Dart language used for flow
@@ -311,6 +415,10 @@ mixin CaseHeads {
 /// expressions based on this one.
 abstract class Expression extends Node {
   Expression({required super.location}) : super._();
+
+  /// Creates a [CollectionElement] that, when analyzed, will analyze `this`.
+  CollectionElement get asCollectionElement =>
+      _ExpressionCollectionElement(this, location: computeLocation());
 
   /// If `this` is an expression `x`, creates the expression `x!`.
   Expression get nonNullAssert =>
@@ -417,38 +525,43 @@ abstract class Expression extends Node {
 
 /// Representation of a single case clause in a switch expression.  Use
 /// [caseExpr] to create instances of this class.
-class ExpressionCase extends Node
-    implements
-        SwitchExpressionMemberInfo<Node, Expression>,
-        CaseHeadOrDefaultInfo<Node, Expression> {
-  @override
-  final Pattern? pattern;
-
-  @override
-  final Expression? guard;
-
-  @override
+class ExpressionCase extends Node {
+  final GuardedPattern? guardedPattern;
   final Expression expression;
 
-  ExpressionCase._(this.pattern, this.guard, this.expression,
+  ExpressionCase._(this.guardedPattern, this.expression,
       {required super.location})
       : super._();
 
   @override
-  CaseHeadOrDefaultInfo<Node, Expression> get head => this;
-
   String toString() => [
-        pattern == null ? 'default' : 'case $pattern',
-        if (guard != null) ' when $guard',
+        guardedPattern == null ? 'default' : 'case $guardedPattern',
         ': $expression'
       ].join('');
 
   void _preVisit(PreVisitor visitor) {
-    var variableBinder = VariableBinder<Node, Var, Type>(visitor);
-    pattern?.preVisit(visitor, variableBinder);
+    var variableBinder = _VariableBinder(errors: visitor.errors);
+    variableBinder.casePatternStart();
+    guardedPattern?.pattern.preVisit(visitor, variableBinder);
+    variableBinder.casePatternFinish();
     variableBinder.finish();
     expression.preVisit(visitor);
   }
+}
+
+class GuardedPattern extends Node with PossiblyGuardedPattern {
+  final Pattern pattern;
+  late final Map<String, Var> variables;
+  final Expression? guard;
+
+  GuardedPattern._({
+    required this.pattern,
+    required this.guard,
+    required super.location,
+  }) : super._();
+
+  @override
+  GuardedPattern get _asGuardedPattern => this;
 }
 
 class Harness {
@@ -499,6 +612,19 @@ class Harness {
   set thisType(String type) {
     assert(!_started);
     _thisType = Type(type);
+  }
+
+  /// Updates the harness with a new result for [downwardInfer].
+  void addDownwardInfer({
+    required String name,
+    required String context,
+    required String result,
+  }) {
+    _operations.addDownwardInfer(
+      name: name,
+      context: context,
+      result: result,
+    );
   }
 
   /// Updates the harness so that when a [factor] query is invoked on types
@@ -583,9 +709,6 @@ class Label extends Node {
 
   Label(this._name) : super._(location: computeLocation());
 
-  CaseHeads then(CaseHeads caseHeads) =>
-      _CaseHeads(caseHeads._caseHeads, [this, ...caseHeads._labels]);
-
   Statement thenStmt(Statement statement) {
     if (statement is! _LabeledStatement) {
       statement = _LabeledStatement(statement, location: computeLocation());
@@ -598,6 +721,8 @@ class Label extends Node {
   @override
   String toString() => _name;
 }
+
+abstract class ListPatternElement implements _ListOrMapPatternElement {}
 
 /// Representation of an expression that can appear on the left hand side of an
 /// assignment (or as the target of `++` or `--`).  Methods in this class may be
@@ -615,6 +740,8 @@ abstract class LValue extends Expression {
   void _visitWrite(Harness h, Expression assignmentExpression, Type writtenType,
       Expression? rhs);
 }
+
+abstract class MapPatternElement implements _ListOrMapPatternElement {}
 
 class MiniAstOperations
     with TypeOperations<Type>
@@ -659,6 +786,7 @@ class MiniAstOperations
     'int? <: Object': false,
     'int? <: Object?': true,
     'List<int> <: Object': true,
+    'Never <: Object': true,
     'Never <: Object?': true,
     'Null <: double?': true,
     'Null <: int': false,
@@ -689,7 +817,14 @@ class MiniAstOperations
     'List <: int': false,
     'List <: Iterable': true,
     'List <: Object': true,
+    'List<dynamic> <: Object': true,
+    'List<Object?> <: Object': true,
+    'List<int> <: dynamic': true,
+    'List<int> <: Iterable<double>': false,
+    'List<int> <: Iterable<int>': true,
     'List<int> <: List<num>': true,
+    'List<int> <: String': false,
+    'Map<bool, int> <: Map<Object, num>': true,
     'Never <: int': true,
     'Never <: int?': true,
     'Never <: Null': true,
@@ -714,6 +849,7 @@ class MiniAstOperations
     'String <: int': false,
     'String <: int?': false,
     'String <: List<num>': false,
+    'String <: Map<bool, int>': false,
     'String <: num': false,
     'String <: num?': false,
     'String <: Object': true,
@@ -761,6 +897,8 @@ class MiniAstOperations
   };
 
   static final Map<String, Type> _coreGlbs = {
+    'Object?, double': Type('double'),
+    'Object?, int': Type('int'),
     'double, int': Type('Never'),
     'double?, int?': Type('Null'),
     'int?, num': Type('int'),
@@ -777,6 +915,30 @@ class MiniAstOperations
     '?, Null': Type('Null'),
   };
 
+  static final Map<String, Type> _coreDownwardInferenceResults = {
+    'dynamic <: int': Type('dynamic'),
+    'int <: num': Type('int'),
+    'List <: Iterable<int>': Type('List<int>'),
+    'Never <: int': Type('Never'),
+    'num <: int': Type('num'),
+  };
+
+  static final Map<String, Type> _coreNormalizeResults = {
+    'Object': Type('Object'),
+    'FutureOr<Object>': Type('Object'),
+    'int': Type('int'),
+    'num': Type('num'),
+    'List<int>': Type('List<int>'),
+  };
+
+  static final Map<String, bool> _coreAreStructurallyEqualResults = {
+    'Object == FutureOr<Object>': false,
+    'int == Object': false,
+    'int == num': false,
+    'num == int': false,
+    'List<int> == int': false,
+  };
+
   bool? _legacy;
 
   final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
@@ -787,7 +949,15 @@ class MiniAstOperations
 
   final Map<String, Type> _lubs = Map.of(_coreLubs);
 
+  final Map<String, Type> _downwardInferenceResults =
+      Map.of(_coreDownwardInferenceResults);
+
   Map<String, Map<String, String>> _promotionExceptions = {};
+
+  Map<String, Type> _normalizeResults = Map.of(_coreNormalizeResults);
+
+  Map<String, bool> _areStructurallyEqualResults =
+      Map.of(_coreAreStructurallyEqualResults);
 
   final Set<_PropertyElement> promotableFields = {};
 
@@ -795,6 +965,16 @@ class MiniAstOperations
 
   set legacy(bool value) {
     _legacy = value;
+  }
+
+  /// Updates the harness with a new result for [downwardInfer].
+  void addDownwardInfer({
+    required String name,
+    required String context,
+    required String result,
+  }) {
+    var query = '$name <: $context';
+    _downwardInferenceResults[query] = Type(result);
   }
 
   /// Updates the harness so that when a [factor] query is invoked on types
@@ -816,6 +996,15 @@ class MiniAstOperations
   }
 
   @override
+  bool areStructurallyEqual(Type type1, Type type2) {
+    if ('$type1' == '$type2') {
+      return true;
+    }
+    var query = '$type1 == $type2';
+    return _areStructurallyEqualResults[query] ?? fail('Unknown query: $query');
+  }
+
+  @override
   TypeClassification classifyType(Type type) {
     if (isSubtypeOf(type, Type('Object'))) {
       return TypeClassification.nonNullable;
@@ -824,6 +1013,14 @@ class MiniAstOperations
     } else {
       return TypeClassification.potentiallyNullable;
     }
+  }
+
+  /// Returns the downward inference result of a type with the given [name],
+  /// in the [context]. For example infer `List<int>` from `Iterable<int>`.
+  Type downwardInfer(String name, Type context) {
+    var query = '$name <: $context';
+    return _downwardInferenceResults[query] ??
+        fail('Unknown downward inference query: $query');
   }
 
   @override
@@ -850,7 +1047,7 @@ class MiniAstOperations
 
   @override
   bool isDynamic(Type type) =>
-      type is NonFunctionType && type.name == 'dynamic' && type.args.isEmpty;
+      type is PrimaryType && type.name == 'dynamic' && type.args.isEmpty;
 
   @override
   bool isNever(Type type) {
@@ -889,13 +1086,38 @@ class MiniAstOperations
   Type makeNullable(Type type) => lub(type, Type('Null'));
 
   @override
-  Type? matchListType(Type type) {
-    if (type is NonFunctionType) {
-      if (type.args.length == 1) {
-        return type.args[0];
-      }
+  Type? matchIterableType(Type type) {
+    if (type is PrimaryType &&
+        type.name == 'Iterable' &&
+        type.args.length == 1) {
+      return type.args[0];
     }
     return null;
+  }
+
+  @override
+  Type? matchListType(Type type) {
+    if (type is PrimaryType && type.name == 'List' && type.args.length == 1) {
+      return type.args[0];
+    }
+    return null;
+  }
+
+  @override
+  shared.MapPatternTypeArguments<Type>? matchMapType(Type type) {
+    if (type is PrimaryType && type.name == 'Map' && type.args.length == 2) {
+      return shared.MapPatternTypeArguments<Type>(
+        keyType: type.args[0],
+        valueType: type.args[1],
+      );
+    }
+    return null;
+  }
+
+  @override
+  Type normalize(Type type) {
+    var query = '$type';
+    return _normalizeResults[query] ?? fail('Unknown query: $query');
   }
 
   @override
@@ -979,10 +1201,13 @@ class Node {
     _errorId = value;
   }
 
+  @override
   String toString() => 'Node#$id';
 }
 
-abstract class Pattern extends Node with CaseHead, CaseHeads {
+abstract class Pattern extends Node
+    with PossiblyGuardedPattern
+    implements ListPatternElement {
   Pattern._({required super.location}) : super._();
 
   Pattern get nullAssert =>
@@ -992,10 +1217,13 @@ abstract class Pattern extends Node with CaseHead, CaseHeads {
       _NullCheckOrAssertPattern(this, false, location: computeLocation());
 
   @override
-  Expression? get _guard => null;
-
-  @override
-  Pattern? get _pattern => this;
+  GuardedPattern get _asGuardedPattern {
+    return GuardedPattern._(
+      pattern: this,
+      guard: null,
+      location: location,
+    );
+  }
 
   Pattern and(Pattern other) =>
       _LogicalPattern(this, other, isAnd: true, location: computeLocation());
@@ -1008,31 +1236,101 @@ abstract class Pattern extends Node with CaseHead, CaseHeads {
   Pattern or(Pattern other) =>
       _LogicalPattern(this, other, isAnd: false, location: computeLocation());
 
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder);
+  RecordPatternField recordField([String? name]) {
+    return RecordPatternField(
+      name: name,
+      pattern: this,
+      location: computeLocation(),
+    );
+  }
 
   @override
   String toString() => _debugString(needsKeywordOrType: true);
 
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context);
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  );
 
-  CaseHead when(Expression guard) =>
-      _GuardedCaseHead(this, guard, location: location);
+  GuardedPattern when(Expression? guard) {
+    return GuardedPattern._(
+      pattern: this,
+      guard: guard,
+      location: location,
+    );
+  }
+}
 
-  String _debugString({required bool needsKeywordOrType});
+class PatternVariableJoin extends Var {
+  final List<Var> components;
+
+  @override
+  bool isConsistent;
+
+  PatternVariableJoin(
+    super.name, {
+    required this.components,
+    required this.isConsistent,
+  });
+
+  @override
+  String get stringToCheckVariables {
+    return toString();
+  }
+
+  @override
+  String toString() {
+    var isConsistent = this.isConsistent;
+    var declarationStr = <String>[
+      if (_type != null) ...[
+        if (!isConsistent) 'notConsistent',
+        if (isFinal) 'final',
+        type.type,
+      ],
+      name,
+    ].join(' ');
+    var componentsStr = components.map((v) => v._errorId ?? v).join(', ');
+    return '$declarationStr = [$componentsStr]';
+  }
+}
+
+/// Mixin containing logic shared by [Pattern] and [GuardedPattern].  Both of
+/// these types can be used in a case where a pattern with an optional guard is
+/// expected.
+mixin PossiblyGuardedPattern on Node {
+  SwitchHead get switchCase {
+    return _SwitchHeadCase._(
+      _asGuardedPattern,
+      location: location,
+    );
+  }
+
+  /// Converts `this` to a [GuardedPattern], including a `null` guard if
+  /// necessary.
+  GuardedPattern get _asGuardedPattern;
+
+  _SwitchStatementMember then(List<Statement> body) {
+    return _SwitchStatementMember._(
+      [
+        _SwitchHeadCase._(_asGuardedPattern, location: location),
+      ],
+      _Block(body, location: location),
+      hasLabels: false,
+      location: location,
+    );
+  }
+
+  ExpressionCase thenExpr(Expression body) =>
+      ExpressionCase._(_asGuardedPattern, body, location: computeLocation());
 }
 
 /// Data structure holding information needed during the "pre-visit" phase of
 /// type analysis.
-class PreVisitor implements VariableBindingCallbacks<Node, Var, Type> {
+class PreVisitor {
   final AssignedVariables<Node, Var> _assignedVariables =
       AssignedVariables<Node, Var>();
 
-  @override
   final VariableBinderErrors<Node, Var>? errors;
 
   PreVisitor(this.errors);
@@ -1054,6 +1352,24 @@ abstract class Promotable {
 /// might not be promoted.
 abstract class PromotableLValue extends LValue implements Promotable {
   PromotableLValue._({required super.location}) : super._();
+}
+
+/// A field in object and record patterns.
+class RecordPatternField extends Node
+    implements shared.RecordPatternField<Node, Pattern> {
+  @override
+  final String? name;
+  @override
+  final Pattern pattern;
+
+  RecordPatternField({
+    required this.name,
+    required this.pattern,
+    required super.location,
+  }) : super._();
+
+  @override
+  Node get node => this;
 }
 
 /// Representation of a statement in the pseudo-Dart language used for flow
@@ -1078,15 +1394,20 @@ abstract class Statement extends Node {
   void visit(Harness h);
 }
 
-/// Representation of a single case clause in a switch statement.  Use [case_]
-/// to create instances of this class.
-class StatementCase extends Node {
-  final CaseHeads _caseHeads;
+abstract class SwitchHead extends Node {
+  SwitchHead._({required super.location}) : super._();
 
-  final _Block _body;
+  _SwitchStatementMember then(List<Statement> body) {
+    return _SwitchStatementMember._(
+      [this],
+      _Block(body, location: location),
+      hasLabels: false,
+      location: location,
+    );
+  }
 
-  StatementCase._(this._caseHeads, this._body, {required super.location})
-      : super._();
+  ExpressionCase thenExpr(Expression body) =>
+      ExpressionCase._(null, body, location: computeLocation());
 }
 
 abstract class TryBuilder {
@@ -1104,15 +1425,26 @@ abstract class TryStatement extends Statement implements TryBuilder {
 /// analysis testing.
 class Var extends Node implements Promotable {
   final String name;
+  bool isFinal;
 
   /// The type of the variable, or `null` if it is not yet known.
   Type? _type;
 
-  Var(this.name) : super._(location: computeLocation());
+  Var(this.name, {this.isFinal = false, String? errorId})
+      : super._(location: computeLocation()) {
+    if (errorId != null) {
+      this.errorId = errorId;
+    }
+  }
 
   /// Creates an L-value representing a reference to this variable.
   LValue get expr =>
       new _VariableReference(this, null, location: computeLocation());
+
+  bool get isConsistent => true;
+
+  /// The string that should be used to check variables in a set.
+  String get stringToCheckVariables => errorId;
 
   /// Gets the type if known; otherwise throws an exception.
   Type get type {
@@ -1130,11 +1462,10 @@ class Var extends Node implements Promotable {
     _type = value;
   }
 
-  Pattern pattern(
-          {String? type, String? expectInferredType, bool isFinal = false}) =>
+  Pattern pattern({String? type, String? expectInferredType}) =>
       new _VariablePattern(
           type == null ? null : Type(type), this, expectInferredType,
-          isFinal: isFinal, location: computeLocation());
+          location: computeLocation());
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -1269,16 +1600,6 @@ class _Break extends Statement {
   }
 }
 
-class _CaseHeads with CaseHeads {
-  @override
-  final List<CaseHead> _caseHeads;
-
-  @override
-  final List<Label> _labels;
-
-  _CaseHeads(this._caseHeads, this._labels);
-}
-
 class _CastPattern extends Pattern {
   final Pattern _inner;
 
@@ -1286,22 +1607,21 @@ class _CastPattern extends Pattern {
 
   _CastPattern(this._inner, this._type, {required super.location}) : super._();
 
+  @override
   Type computeSchema(Harness h) => h.typeAnalyzer.analyzeCastPatternSchema();
 
   @override
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
     _inner.preVisit(visitor, variableBinder);
   }
 
   @override
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
-    h.typeAnalyzer
-        .analyzeCastPattern(matchedType, typeInfos, context, _inner, _type);
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
+    h.typeAnalyzer.analyzeCastPattern(matchedType, context, _inner, _type);
     h.irBuilder.atom(_type.type, Kind.type, location: location);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -1324,6 +1644,7 @@ class _CatchClause {
 
   _CatchClause(this._body, this._exception, this._stackTrace);
 
+  @override
   String toString() {
     String initialPart;
     if (_stackTrace != null) {
@@ -1359,8 +1680,32 @@ class _CheckAssigned extends Statement {
 
   @override
   void visit(Harness h) {
-    expect(h.flow.isAssigned(variable), expectedAssignedState);
+    expect(h.flow.isAssigned(variable), expectedAssignedState,
+        reason: 'at $location');
     h.irBuilder.atom('null', Kind.statement, location: location);
+  }
+}
+
+class _CheckCollectionElementIr extends CollectionElement {
+  final CollectionElement inner;
+
+  final String expectedIr;
+
+  _CheckCollectionElementIr(this.inner, this.expectedIr,
+      {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    inner.preVisit(visitor);
+  }
+
+  @override
+  String toString() => '$inner (should produce IR $expectedIr)';
+
+  @override
+  void visit(Harness h, _CollectionElementContext context) {
+    h.typeAnalyzer.dispatchCollectionElement(inner, context);
+    h.irBuilder.check(expectedIr, Kind.collectionElement, location: location);
   }
 }
 
@@ -1530,6 +1875,48 @@ class _CheckUnassigned extends Statement {
   }
 }
 
+abstract class _CollectionElementContext {}
+
+class _CollectionElementContextMapEntry extends _CollectionElementContext {
+  final Type keyType;
+  final Type valueType;
+
+  _CollectionElementContextMapEntry(String keyType, String valueType)
+      : keyType = Type(keyType),
+        valueType = Type(valueType);
+}
+
+class _CollectionElementContextType extends _CollectionElementContext {
+  final Type elementType;
+
+  _CollectionElementContextType(String type) : elementType = Type(type);
+}
+
+/// TODO(scheglov) This is a weird statement. We need `ListLiteral`, etc.
+class _CollectionElementInContext extends Statement {
+  final CollectionElement element;
+
+  final _CollectionElementContext context;
+
+  _CollectionElementInContext(this.element, this.context,
+      {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    element.preVisit(visitor);
+  }
+
+  @override
+  String toString() => '$element (in context $context);';
+
+  @override
+  void visit(Harness h) {
+    h.typeAnalyzer.dispatchCollectionElement(element, context);
+    h.irBuilder.apply('stmt', [Kind.collectionElement], Kind.statement,
+        location: location);
+  }
+}
+
 class _Conditional extends Expression {
   final Expression condition;
   final Expression ifTrue;
@@ -1566,22 +1953,22 @@ class _ConstantPattern extends Pattern {
 
   _ConstantPattern(this.constant, {required super.location}) : super._();
 
+  @override
   Type computeSchema(Harness h) =>
       h.typeAnalyzer.analyzeConstantPatternSchema();
 
   @override
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
     constant.preVisit(visitor);
   }
 
+  @override
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
-    h.typeAnalyzer.analyzeConstantPattern(
-        matchedType, typeInfos, context, this, constant);
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
+    h.typeAnalyzer.analyzeConstantPattern(matchedType, context, this, constant);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply('const', [Kind.expression, Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
@@ -1618,8 +2005,10 @@ class _Declare extends Statement {
 
   @override
   void preVisit(PreVisitor visitor) {
-    var variableBinder = VariableBinder<Node, Var, Type>(visitor);
+    var variableBinder = _VariableBinder(errors: visitor.errors);
+    variableBinder.casePatternStart();
     pattern.preVisit(visitor, variableBinder);
+    variableBinder.casePatternFinish();
     variableBinder.finish();
     if (isLate) {
       visitor._assignedVariables.beginNode();
@@ -1656,7 +2045,7 @@ class _Declare extends Statement {
       irName = 'declare';
       argKinds = [Kind.pattern];
     } else {
-      h.typeAnalyzer.analyzeInitializedVariableDeclaration(
+      h.typeAnalyzer.analyzePatternVariableDeclarationStatement(
           this, pattern, initializer,
           isFinal: isFinal, isLate: isLate);
       irName = 'match';
@@ -1668,16 +2057,6 @@ class _Declare extends Statement {
         Kind.statement,
         location: location);
   }
-}
-
-class _Default extends Node with CaseHead, CaseHeads {
-  _Default({required super.location}) : super._();
-
-  @override
-  Expression? get _guard => null;
-
-  @override
-  Pattern? get _pattern => null;
 }
 
 class _Do extends Statement {
@@ -1730,6 +2109,30 @@ class _Equal extends Expression {
         operatorName, [Kind.expression, Kind.expression], Kind.expression,
         location: location);
     return result;
+  }
+}
+
+class _ExpressionCollectionElement extends CollectionElement {
+  final Expression expression;
+
+  _ExpressionCollectionElement(this.expression, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    expression.preVisit(visitor);
+  }
+
+  @override
+  String toString() => '$expression;';
+
+  @override
+  void visit(Harness h, _CollectionElementContext context) {
+    Type contextType = context is _CollectionElementContextType
+        ? context.elementType
+        : h.typeAnalyzer.unknownType;
+    h.typeAnalyzer.dispatchExpression(expression, contextType);
+    h.irBuilder.apply('celt', [Kind.expression], Kind.collectionElement,
+        location: location);
   }
 }
 
@@ -1902,17 +2305,6 @@ class _ForEach extends Statement {
   }
 }
 
-class _GuardedCaseHead extends Node with CaseHead, CaseHeads {
-  @override
-  final Pattern _pattern;
-
-  @override
-  final Expression _guard;
-
-  _GuardedCaseHead(this._pattern, this._guard, {required super.location})
-      : super._();
-}
-
 class _If extends _IfBase {
   final Expression condition;
 
@@ -1963,6 +2355,11 @@ class _IfCase extends _IfBase {
   final Pattern _pattern;
   final Expression? _guard;
 
+  /// These variables are set during pre-visit, and some of them are joins of
+  /// pattern variable declarations. We don't know their types until we do
+  /// type analysis. So, some of these variables might become unavailable.
+  late final Map<String, Var> _candidateVariables;
+
   _IfCase(
       this._expression, this._pattern, this._guard, super.ifTrue, super.ifFalse,
       {required super.location});
@@ -1973,8 +2370,10 @@ class _IfCase extends _IfBase {
   @override
   void preVisit(PreVisitor visitor) {
     _expression.preVisit(visitor);
-    var variableBinder = VariableBinder<Node, Var, Type>(visitor);
+    var variableBinder = _VariableBinder(errors: visitor.errors);
+    variableBinder.casePatternStart();
     _pattern.preVisit(visitor, variableBinder);
+    _candidateVariables = variableBinder.casePatternFinish();
     variableBinder.finish();
     _guard?.preVisit(visitor);
     super.preVisit(visitor);
@@ -1982,20 +2381,128 @@ class _IfCase extends _IfBase {
 
   @override
   void visit(Harness h) {
-    h.typeAnalyzer.analyzeIfCaseStatement(
-        this, _expression, _pattern, _guard, ifTrue, ifFalse);
+    h.typeAnalyzer.analyzeIfCaseStatement(this, _expression, _pattern, _guard,
+        ifTrue, ifFalse, _candidateVariables);
     h.irBuilder.apply(
-        'ifCase',
-        [
-          Kind.expression,
-          Kind.pattern,
-          Kind.expression,
-          Kind.statement,
-          Kind.statement
-        ],
+      'ifCase',
+      [
+        Kind.expression,
+        Kind.pattern,
+        Kind.variables,
+        Kind.expression,
         Kind.statement,
-        location: location);
+        Kind.statement,
+      ],
+      Kind.statement,
+      location: location,
+    );
   }
+}
+
+class _IfCaseElement extends _IfElementBase {
+  final Expression _expression;
+  final Pattern _pattern;
+  final Expression? _guard;
+
+  _IfCaseElement(
+      this._expression, this._pattern, this._guard, super.ifTrue, super.ifFalse,
+      {required super.location});
+
+  @override
+  String get _conditionPartString => '$_expression case $_pattern';
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    _expression.preVisit(visitor);
+    var variableBinder = _VariableBinder(errors: visitor.errors);
+    variableBinder.casePatternStart();
+    _pattern.preVisit(visitor, variableBinder);
+    variableBinder.casePatternFinish();
+    variableBinder.finish();
+    _guard?.preVisit(visitor);
+    super.preVisit(visitor);
+  }
+
+  @override
+  void visit(Harness h, Object context) {
+    h.typeAnalyzer.analyzeIfCaseElement(
+      node: this,
+      expression: _expression,
+      pattern: _pattern,
+      guard: _guard,
+      ifTrue: ifTrue,
+      ifFalse: ifFalse,
+      context: context,
+    );
+    h.irBuilder.apply(
+      'if',
+      [
+        Kind.expression,
+        Kind.pattern,
+        Kind.expression,
+        Kind.collectionElement,
+        Kind.collectionElement,
+      ],
+      Kind.collectionElement,
+      names: ['expression', 'pattern', 'guard', 'ifTrue', 'ifFalse'],
+      location: location,
+    );
+  }
+}
+
+class _IfElement extends _IfElementBase {
+  final Expression condition;
+
+  _IfElement(this.condition, super.ifTrue, super.ifFalse,
+      {required super.location});
+
+  @override
+  String get _conditionPartString => condition.toString();
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    condition.preVisit(visitor);
+    super.preVisit(visitor);
+  }
+
+  @override
+  void visit(Harness h, Object context) {
+    h.typeAnalyzer.analyzeIfElement(
+      node: this,
+      condition: condition,
+      ifTrue: ifTrue,
+      ifFalse: ifFalse,
+      context: context,
+    );
+    h.irBuilder.apply(
+      'if',
+      [Kind.expression, Kind.collectionElement, Kind.collectionElement],
+      Kind.collectionElement,
+      location: location,
+    );
+  }
+}
+
+abstract class _IfElementBase extends CollectionElement {
+  final CollectionElement ifTrue;
+  final CollectionElement? ifFalse;
+
+  _IfElementBase(this.ifTrue, this.ifFalse, {required super.location});
+
+  String get _conditionPartString;
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    visitor._assignedVariables.beginNode();
+    ifTrue.preVisit(visitor);
+    visitor._assignedVariables.endNode(this);
+    ifFalse?.preVisit(visitor);
+  }
+
+  @override
+  String toString() =>
+      'if ($_conditionPartString) $ifTrue' +
+      (ifFalse == null ? '' : 'else $ifFalse');
 }
 
 class _IfNull extends Expression {
@@ -2096,32 +2603,39 @@ class _LabeledStatement extends Statement {
   }
 }
 
+abstract class _ListOrMapPatternElement implements Node {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder);
+
+  String _debugString({required bool needsKeywordOrType});
+}
+
 class _ListPattern extends Pattern {
   final Type? _elementType;
 
-  final List<Pattern> _elements;
+  final List<ListPatternElement> _elements;
 
   _ListPattern(this._elementType, this._elements, {required super.location})
       : super._();
 
+  @override
   Type computeSchema(Harness h) => h.typeAnalyzer
       .analyzeListPatternSchema(elementType: _elementType, elements: _elements);
 
   @override
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
     for (var element in _elements) {
       element.preVisit(visitor, variableBinder);
     }
   }
 
+  @override
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
     var requiredType = h.typeAnalyzer.analyzeListPattern(
-        matchedType, typeInfos, context, this,
+        matchedType, context, this,
         elementType: _elementType, elements: _elements);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
@@ -2208,35 +2722,31 @@ class _LogicalPattern extends Pattern {
       {required this.isAnd, required super.location})
       : super._();
 
+  @override
   Type computeSchema(Harness h) =>
       h.typeAnalyzer.analyzeLogicalPatternSchema(_lhs, _rhs, isAnd: isAnd);
 
   @override
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
-    if (!isAnd) {
-      variableBinder.startAlternatives();
-      variableBinder.startAlternative(_lhs);
-    }
-    _lhs.preVisit(visitor, variableBinder);
-    if (!isAnd) {
-      variableBinder.finishAlternative();
-      variableBinder.startAlternative(_rhs);
-    }
-    _rhs.preVisit(visitor, variableBinder);
-    if (!isAnd) {
-      variableBinder.finishAlternative();
-      variableBinder.finishAlternatives();
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
+    if (isAnd) {
+      _lhs.preVisit(visitor, variableBinder);
+      _rhs.preVisit(visitor, variableBinder);
+    } else {
+      variableBinder.logicalOrPatternStart();
+      _lhs.preVisit(visitor, variableBinder);
+      variableBinder.logicalOrPatternFinishLeft();
+      _rhs.preVisit(visitor, variableBinder);
+      variableBinder.logicalOrPatternFinish(this);
     }
   }
 
+  @override
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
-    h.typeAnalyzer.analyzeLogicalPattern(
-        matchedType, typeInfos, context, this, _lhs, _rhs,
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
+    h.typeAnalyzer.analyzeLogicalPattern(matchedType, context, this, _lhs, _rhs,
         isAnd: isAnd);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(isAnd ? 'logicalAndPattern' : 'logicalOrPattern',
@@ -2268,9 +2778,75 @@ enum _LValueDisposition {
   readWrite,
 }
 
+class _MapPattern extends Pattern {
+  final shared.MapPatternTypeArguments<Type>? _typeArguments;
+
+  final List<MapPatternElement> _elements;
+
+  _MapPattern(this._typeArguments, this._elements, {required super.location})
+      : super._();
+
+  @override
+  Type computeSchema(Harness h) => h.typeAnalyzer.analyzeMapPatternSchema(
+      typeArguments: _typeArguments, elements: _elements);
+
+  @override
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
+    for (var element in _elements) {
+      element.preVisit(visitor, variableBinder);
+    }
+  }
+
+  @override
+  void visit(Harness h, Type matchedType, SharedMatchContext context) {
+    var requiredType = h.typeAnalyzer.analyzeMapPattern(
+        matchedType, context, this,
+        typeArguments: _typeArguments, elements: _elements);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.atom(requiredType.type, Kind.type, location: location);
+    h.irBuilder.apply(
+      'mapPattern',
+      [
+        ...List.filled(_elements.length, Kind.mapPatternElement),
+        Kind.type,
+        Kind.type,
+      ],
+      Kind.pattern,
+      names: ['matchedType', 'requiredType'],
+      location: location,
+    );
+  }
+
+  @override
+  String _debugString({required bool needsKeywordOrType}) {
+    var elements = [
+      for (var element in _elements)
+        element._debugString(needsKeywordOrType: needsKeywordOrType)
+    ];
+    return '[${elements.join(', ')}]';
+  }
+}
+
+class _MapPatternEntry extends Node implements MapPatternElement {
+  final Expression key;
+  final Pattern value;
+
+  _MapPatternEntry(this.key, this.value, {required super.location}) : super._();
+
+  @override
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
+    value.preVisit(visitor, variableBinder);
+  }
+
+  @override
+  String _debugString({required bool needsKeywordOrType}) {
+    return '$key: $value';
+  }
+}
+
 class _MiniAstErrors
     implements
-        TypeAnalyzerErrors<Node, Statement, Expression, Var, Type>,
+        TypeAnalyzerErrors<Node, Statement, Expression, Var, Type, Pattern>,
         VariableBinderErrors<Node, Var> {
   final Set<String> _accumulatedErrors = {};
 
@@ -2315,34 +2891,51 @@ class _MiniAstErrors
   }
 
   @override
-  void inconsistentMatchVar(
-      {required Node pattern,
-      required Type type,
-      required Node previousPattern,
-      required Type previousType}) {
+  void duplicateRecordPatternField({
+    required String name,
+    required covariant RecordPatternField original,
+    required covariant RecordPatternField duplicate,
+  }) {
     _recordError(
-        'inconsistentMatchVar(pattern: ${pattern.errorId}, type: ${type.type}, '
-        'previousPattern: ${previousPattern.errorId}, '
-        'previousType: ${previousType.type})');
+      'duplicateRecordPatternField(name: $name, '
+      'original: ${original.errorId}, duplicate: ${duplicate.errorId})',
+    );
   }
 
   @override
-  void inconsistentMatchVarExplicitness(
-      {required Node pattern, required Node previousPattern}) {
+  void duplicateVariablePattern({
+    required String name,
+    required Var original,
+    required Var duplicate,
+  }) {
     _recordError(
-        'inconsistentMatchVarExplicitness(pattern: ${pattern.errorId}, '
-        'previousPattern: ${previousPattern.errorId})');
+      'duplicateVariablePattern(name: $name, original: ${original.errorId}, '
+      'duplicate: ${duplicate.errorId})',
+    );
   }
 
   @override
-  void matchVarOverlap({required Node pattern, required Node previousPattern}) {
-    _recordError('matchVarOverlap(pattern: ${pattern.errorId}, '
-        'previousPattern: ${previousPattern.errorId})');
+  void inconsistentJoinedPatternVariable({
+    required covariant PatternVariableJoin variable,
+    required Var component,
+  }) {
+    _recordError(
+      'inconsistentJoinedPatternVariable(variable: $variable, '
+      'component: ${component.errorId})',
+    );
   }
 
   @override
-  void missingMatchVar(Node alternative, Var variable) {
-    _recordError('missingMatchVar(${alternative.errorId}, ${variable.name})');
+  void logicalOrPatternBranchMissingVariable({
+    required Node node,
+    required bool hasInLeft,
+    required String name,
+    required Var variable,
+  }) {
+    _recordError(
+      'logicalOrPatternBranchMissingVariable(node: ${node.errorId}, '
+      'hasInLeft: $hasInLeft, name: $name, variable: ${variable.errorId})',
+    );
   }
 
   @override
@@ -2401,7 +2994,7 @@ class _MiniAstErrors
 }
 
 class _MiniAstTypeAnalyzer
-    with TypeAnalyzer<Node, Statement, Expression, Var, Type> {
+    with TypeAnalyzer<Node, Statement, Expression, Var, Type, Pattern> {
   final Harness _harness;
 
   @override
@@ -2715,17 +3308,22 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  void dispatchCollectionElement(
+    covariant CollectionElement element,
+    covariant _CollectionElementContext context,
+  ) {
+    _irBuilder.guard(element, () => element.visit(_harness, context));
+  }
+
+  @override
   ExpressionTypeAnalysisResult<Type> dispatchExpression(
           Expression expression, Type context) =>
       _irBuilder.guard(expression, () => expression.visit(_harness, context));
 
   @override
   void dispatchPattern(
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context,
-      covariant Pattern node) {
-    return node.visit(_harness, matchedType, typeInfos, context);
+      Type matchedType, SharedMatchContext context, covariant Pattern node) {
+    return node.visit(_harness, matchedType, context);
   }
 
   @override
@@ -2736,6 +3334,19 @@ class _MiniAstTypeAnalyzer
   @override
   void dispatchStatement(Statement statement) =>
       _irBuilder.guard(statement, () => statement.visit(_harness));
+
+  @override
+  Type downwardInferObjectPatternRequiredType({
+    required Type matchedType,
+    required covariant _ObjectPattern pattern,
+  }) {
+    var requiredType = pattern.requiredType;
+    if (requiredType.args.isNotEmpty) {
+      return requiredType;
+    } else {
+      return typeOperations.downwardInfer(requiredType.name, matchedType);
+    }
+  }
 
   void finish() {
     flow.finish();
@@ -2749,32 +3360,133 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  SwitchExpressionMemberInfo<Node, Expression> getSwitchExpressionMemberInfo(
-          covariant _SwitchExpression node, int index) =>
-      node.cases[index];
+  void finishJoinedPatternVariable(
+    covariant PatternVariableJoin variable, {
+    required bool isConsistent,
+    required bool isFinal,
+    required Type type,
+  }) {
+    variable.isFinal = isFinal;
+    variable.type = type;
+    if (!isConsistent) {
+      variable.isConsistent = false;
+    }
+  }
 
   @override
-  SwitchStatementMemberInfo<Node, Statement, Expression>
+  List<Var>? getJoinedVariableComponents(Var variable) {
+    if (variable is PatternVariableJoin) {
+      return variable.components;
+    }
+    return null;
+  }
+
+  @override
+  shared.MapPatternEntry<Expression, Pattern>? getMapPatternEntry(
+      Node element) {
+    if (element is _MapPatternEntry) {
+      return shared.MapPatternEntry<Expression, Pattern>(
+        key: element.key,
+        value: element.value,
+      );
+    }
+    return null;
+  }
+
+  @override
+  Pattern? getRestPatternElementPattern(Node element) {
+    return element is _RestPatternElement ? element._pattern : null;
+  }
+
+  @override
+  SwitchExpressionMemberInfo<Node, Expression, Var>
+      getSwitchExpressionMemberInfo(
+          covariant _SwitchExpression node, int index) {
+    var case_ = node.cases[index];
+    return SwitchExpressionMemberInfo(
+      head: CaseHeadOrDefaultInfo(
+        pattern: case_.guardedPattern?.pattern,
+        variables: {}, // TODO(scheglov) provide it
+        guard: case_.guardedPattern?.guard,
+      ),
+      expression: case_.expression,
+    );
+  }
+
+  @override
+  SwitchStatementMemberInfo<Node, Statement, Expression, Var>
       getSwitchStatementMemberInfo(
           covariant _SwitchStatement node, int caseIndex) {
-    StatementCase case_ = node.cases[caseIndex];
-    return SwitchStatementMemberInfo([
-      for (var caseHead in case_._caseHeads._caseHeads)
-        CaseHeadOrDefaultInfo(
-            pattern: caseHead._pattern, guard: caseHead._guard)
-    ], case_._body.statements, labels: case_._caseHeads._labels);
+    _SwitchStatementMember case_ = node.cases[caseIndex];
+    return SwitchStatementMemberInfo(
+      [
+        for (var element in case_.elements)
+          if (element is _SwitchHeadCase)
+            CaseHeadOrDefaultInfo(
+              pattern: element.guardedPattern.pattern,
+              variables: element.guardedPattern.variables,
+              guard: element.guardedPattern.guard,
+            )
+          else
+            CaseHeadOrDefaultInfo(
+              pattern: null,
+              variables: {},
+              guard: null,
+            )
+      ],
+      case_._body.statements,
+      case_._candidateVariables,
+      hasLabels: case_.hasLabels,
+    );
+  }
+
+  @override
+  Type getVariableType(Var node) {
+    return node.type;
+  }
+
+  @override
+  void handle_ifCaseStatement_afterPattern({
+    required covariant _IfCase node,
+    required Iterable<Var> variables,
+  }) {
+    var variableList = variables.toList();
+    for (var variable in variableList) {
+      _irBuilder.atom(variable.stringToCheckVariables, Kind.variable,
+          location: variable.location);
+    }
+    _irBuilder.apply(
+      'variables',
+      List.filled(variableList.length, Kind.variable),
+      Kind.variables,
+      location: node.location,
+    );
   }
 
   @override
   void handleCase_afterCaseHeads(
-      covariant _SwitchStatement node, int caseIndex, int numHeads) {
-    var labels = node.cases[caseIndex]._caseHeads._labels;
-    for (var label in labels) {
-      _irBuilder.atom(label._name, Kind.caseHead, location: node.location);
+      covariant _SwitchStatement node, int caseIndex, Iterable<Var> variables) {
+    var case_ = node.cases[caseIndex];
+
+    for (var variable in variables) {
+      _irBuilder.atom(variable.stringToCheckVariables, Kind.variable,
+          location: variable.location);
     }
-    _irBuilder.apply('heads',
-        List.filled(numHeads + labels.length, Kind.caseHead), Kind.caseHeads,
-        location: node.location);
+    _irBuilder.apply(
+      'variables',
+      List.filled(variables.length, Kind.variable),
+      Kind.variables,
+      location: node.location,
+    );
+    _irBuilder.apply(
+      'heads',
+      [
+        ...List.filled(case_.elements.length, Kind.caseHead),
+        Kind.variables,
+      ],
+      Kind.caseHeads,
+      location: node.location,
+    );
   }
 
   @override
@@ -2790,16 +3502,56 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handleMergedStatementCase(Statement node,
-      {required int caseIndex,
-      required int executionPathIndex,
-      required int numStatements}) {
+  void handleListPatternRestElement(
+    Pattern container,
+    covariant _RestPatternElement restElement,
+  ) {
+    if (restElement._pattern != null) {
+      _irBuilder.apply('...', [Kind.pattern], Kind.pattern,
+          location: restElement.location);
+    } else {
+      _irBuilder.atom('...', Kind.pattern, location: restElement.location);
+    }
+  }
+
+  @override
+  void handleMapPatternEntry(Pattern container, Node entryElement) {
+    _irBuilder.apply('mapPatternEntry', [Kind.expression, Kind.pattern],
+        Kind.mapPatternElement,
+        location: entryElement.location);
+  }
+
+  @override
+  void handleMapPatternRestElement(
+    Pattern container,
+    covariant _RestPatternElement restElement,
+  ) {
+    if (restElement._pattern != null) {
+      _irBuilder.apply('...', [Kind.pattern], Kind.mapPatternElement,
+          location: restElement.location);
+    } else {
+      _irBuilder.atom('...', Kind.mapPatternElement,
+          location: restElement.location);
+    }
+  }
+
+  @override
+  void handleMergedStatementCase(
+    covariant _SwitchStatement node, {
+    required int caseIndex,
+  }) {
+    var numStatements = node.cases[caseIndex]._body.statements.length;
     _irBuilder.apply(
         'block', List.filled(numStatements, Kind.statement), Kind.statement,
         location: node.location);
     _irBuilder.apply(
         'case', [Kind.caseHeads, Kind.statement], Kind.statementCase,
         location: node.location);
+  }
+
+  @override
+  void handleNoCollectionElement(Node node) {
+    _irBuilder.atom('noop', Kind.collectionElement, location: node.location);
   }
 
   void handleNoCondition(Node node) {
@@ -2843,9 +3595,19 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
+  bool isRestPatternElement(Node element) {
+    return element is _RestPatternElement;
+  }
+
+  @override
   bool isSwitchExhaustive(
       covariant _SwitchStatement node, Type expressionType) {
     return node.isExhaustive;
+  }
+
+  @override
+  bool isVariableFinal(Var node) {
+    return node.isFinal;
   }
 
   @override
@@ -2854,8 +3616,7 @@ class _MiniAstTypeAnalyzer
   Type leastUpperBound(Type t1, Type t2) => _harness._operations._lub(t1, t2);
 
   @override
-  Type listType(Type elementType) =>
-      NonFunctionType('List', args: [elementType]);
+  Type listType(Type elementType) => PrimaryType('List', args: [elementType]);
 
   _PropertyElement lookupInterfaceMember(
       Node node, Type receiverType, String memberName) {
@@ -2863,11 +3624,29 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  RecordType recordType(shared.RecordType<Type> type) {
+  Type mapType({
+    required Type keyType,
+    required Type valueType,
+  }) {
+    return PrimaryType('Map', args: [keyType, valueType]);
+  }
+
+  @override
+  RecordType recordType(
+      {required List<Type> positional,
+      required List<shared.NamedType<Type>> named}) {
     return RecordType(
-      positional: type.positional,
-      named: type.named.map((e) => NamedType(e.name, e.type)).toList(),
+      positional: positional,
+      named: named.map((e) => NamedType(e.name, e.type)).toList(),
     );
+  }
+
+  @override
+  Type resolveObjectPatternPropertyGet({
+    required Type receiverType,
+    required shared.RecordPatternField<Node, Pattern> field,
+  }) {
+    return _harness.getMember(receiverType, field.name!)._type;
   }
 
   @override
@@ -2992,22 +3771,23 @@ class _NullCheckOrAssertPattern extends Pattern {
       {required super.location})
       : super._();
 
+  @override
   Type computeSchema(Harness h) => h.typeAnalyzer
       .analyzeNullCheckOrAssertPatternSchema(_inner, isAssert: _isAssert);
 
   @override
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
     _inner.preVisit(visitor, variableBinder);
   }
 
+  @override
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
     h.typeAnalyzer.analyzeNullCheckOrAssertPattern(
-        matchedType, typeInfos, context, this, _inner,
+        matchedType, context, this, _inner,
         isAssert: _isAssert);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(_isAssert ? 'nullAssertPattern' : 'nullCheckPattern',
@@ -3034,6 +3814,61 @@ class _NullLiteral extends Expression {
     var result = h.typeAnalyzer.analyzeNullLiteral(this);
     h.irBuilder.atom('null', Kind.expression, location: location);
     return result;
+  }
+}
+
+class _ObjectPattern extends Pattern {
+  final PrimaryType requiredType;
+  final List<RecordPatternField> fields;
+
+  _ObjectPattern({
+    required this.requiredType,
+    required this.fields,
+    required super.location,
+  }) : super._();
+
+  @override
+  Type computeSchema(Harness h) {
+    return h.typeAnalyzer.analyzeObjectPatternSchema(requiredType);
+  }
+
+  @override
+  void preVisit(
+    PreVisitor visitor,
+    VariableBinder<Node, Var> variableBinder,
+  ) {
+    for (var field in fields) {
+      field.pattern.preVisit(visitor, variableBinder);
+    }
+  }
+
+  @override
+  void visit(
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
+    var requiredType = h.typeAnalyzer
+        .analyzeObjectPattern(matchedType, context, this, fields: fields);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.atom(requiredType.type, Kind.type, location: location);
+    h.irBuilder.apply(
+      'objectPattern',
+      [...List.filled(fields.length, Kind.pattern), Kind.type, Kind.type],
+      Kind.pattern,
+      names: ['matchedType', 'requiredType'],
+      location: location,
+    );
+  }
+
+  @override
+  String _debugString({required bool needsKeywordOrType}) {
+    var fieldStrings = [
+      for (var field in fields)
+        field.pattern._debugString(needsKeywordOrType: needsKeywordOrType)
+    ];
+    final requiredType = this.requiredType;
+    return '$requiredType(${fieldStrings.join(', ')})';
   }
 }
 
@@ -3120,10 +3955,11 @@ class _PropertyElement {
 }
 
 class _RecordPattern extends Pattern {
-  final List<RecordPatternField<Pattern>> fields;
+  final List<RecordPatternField> fields;
 
   _RecordPattern(this.fields, {required super.location}) : super._();
 
+  @override
   Type computeSchema(Harness h) {
     return h.typeAnalyzer.analyzeRecordPatternSchema(
       fields: fields,
@@ -3133,22 +3969,21 @@ class _RecordPattern extends Pattern {
   @override
   void preVisit(
     PreVisitor visitor,
-    VariableBinder<Node, Var, Type> variableBinder,
+    VariableBinder<Node, Var> variableBinder,
   ) {
     for (var field in fields) {
       field.pattern.preVisit(visitor, variableBinder);
     }
   }
 
+  @override
   void visit(
     Harness h,
     Type matchedType,
-    Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
-    MatchContext<Node, Expression> context,
+    SharedMatchContext context,
   ) {
-    var requiredType = h.typeAnalyzer.analyzeRecordPattern(
-        matchedType, typeInfos, context, this,
-        fields: fields);
+    var requiredType = h.typeAnalyzer
+        .analyzeRecordPattern(matchedType, context, this, fields: fields);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -3177,22 +4012,23 @@ class _RelationalPattern extends Pattern {
   _RelationalPattern(this.operator, this.operand, {required super.location})
       : super._();
 
+  @override
   Type computeSchema(Harness h) =>
       h.typeAnalyzer.analyzeRelationalPatternSchema();
 
   @override
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
     operand.preVisit(visitor);
   }
 
+  @override
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
     h.typeAnalyzer.analyzeRelationalPattern(
-        matchedType, typeInfos, context, this, operator, operand);
+        matchedType, context, this, operator, operand);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(
         'relationalPattern', [Kind.expression, Kind.type], Kind.pattern,
@@ -3201,6 +4037,28 @@ class _RelationalPattern extends Pattern {
 
   @override
   _debugString({required bool needsKeywordOrType}) => '$operator $operand';
+}
+
+class _RestPatternElement extends Node
+    implements ListPatternElement, MapPatternElement {
+  final Pattern? _pattern;
+
+  _RestPatternElement(this._pattern, {required super.location}) : super._();
+
+  @override
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
+    _pattern?.preVisit(visitor, variableBinder);
+  }
+
+  @override
+  String _debugString({required bool needsKeywordOrType}) {
+    var pattern = _pattern;
+    if (pattern == null) {
+      return '...';
+    } else {
+      return '...${pattern._debugString(needsKeywordOrType: false)}';
+    }
+  }
 }
 
 class _Return extends Statement {
@@ -3259,10 +4117,20 @@ class _SwitchExpression extends Expression {
   }
 }
 
+class _SwitchHeadCase extends SwitchHead {
+  final GuardedPattern guardedPattern;
+
+  _SwitchHeadCase._(this.guardedPattern, {required super.location}) : super._();
+}
+
+class _SwitchHeadDefault extends SwitchHead {
+  _SwitchHeadDefault({required super.location}) : super._();
+}
+
 class _SwitchStatement extends Statement {
   final Expression scrutinee;
 
-  final List<StatementCase> cases;
+  final List<_SwitchStatementMember> cases;
 
   final bool isExhaustive;
 
@@ -3285,27 +4153,8 @@ class _SwitchStatement extends Statement {
   void preVisit(PreVisitor visitor) {
     scrutinee.preVisit(visitor);
     visitor._assignedVariables.beginNode();
-    VariableBinder<Node, Var, Type>? variableBinder;
     for (var case_ in cases) {
-      variableBinder ??= VariableBinder<Node, Var, Type>(visitor)
-        ..startAlternatives();
-      for (var label in case_._caseHeads._labels) {
-        variableBinder.startAlternative(label);
-        variableBinder.finishAlternative();
-      }
-      for (var caseHead in case_._caseHeads._caseHeads) {
-        caseHead._preVisit(visitor, variableBinder);
-      }
-      if (case_._body.statements.isNotEmpty) {
-        variableBinder.finishAlternatives();
-        variableBinder.finish();
-        variableBinder = null;
-      }
-      case_._body.preVisit(visitor);
-    }
-    if (variableBinder != null) {
-      variableBinder.finishAlternatives();
-      variableBinder.finish();
+      case_._preVisit(visitor);
     }
     visitor._assignedVariables.endNode(this);
   }
@@ -3336,17 +4185,60 @@ class _SwitchStatement extends Statement {
     expect(analysisResult.lastCaseTerminates,
         expectLastCaseTerminates ?? anything);
     expect(analysisResult.scrutineeType.type, expectScrutineeType ?? anything);
-    var numExecutionPaths = analysisResult.numExecutionPaths;
     h.irBuilder.apply(
-        'switch',
-        [
-          Kind.expression,
-          ...List.filled(numExecutionPaths, Kind.statementCase)
-        ],
-        Kind.statement,
-        location: location);
+      'switch',
+      [
+        Kind.expression,
+        ...List.filled(cases.length, Kind.statementCase),
+      ],
+      Kind.statement,
+      location: location,
+    );
     h.typeAnalyzer._currentBreakTarget = previousBreakTarget;
     h.typeAnalyzer._currentContinueTarget = previousContinueTarget;
+  }
+}
+
+/// Representation of a single case clause in a switch statement.  Use [case_]
+/// to create instances of this class.
+class _SwitchStatementMember extends Node {
+  final bool hasLabels;
+  final List<SwitchHead> elements;
+  final _Block _body;
+
+  /// These variables are set during pre-visit, and some of them are joins of
+  /// pattern variable declarations. We don't know their types until we do
+  /// type analysis. So, some of these variables might become unavailable.
+  late final Map<String, Var> _candidateVariables;
+
+  _SwitchStatementMember._(
+    this.elements,
+    this._body, {
+    required super.location,
+    required this.hasLabels,
+  }) : super._();
+
+  void _preVisit(PreVisitor visitor) {
+    var variableBinder = _VariableBinder(errors: visitor.errors);
+    variableBinder.switchStatementSharedCaseScopeStart(this);
+    for (SwitchHead element in elements) {
+      if (element is _SwitchHeadCase) {
+        variableBinder.casePatternStart();
+        element.guardedPattern.pattern.preVisit(visitor, variableBinder);
+        element.guardedPattern.guard?.preVisit(visitor);
+        element.guardedPattern.variables = variableBinder.casePatternFinish(
+          sharedCaseScopeKey: this,
+        );
+      } else {
+        variableBinder.switchStatementSharedCaseScopeEmpty(this);
+      }
+    }
+    if (hasLabels) {
+      variableBinder.switchStatementSharedCaseScopeEmpty(this);
+    }
+    _candidateVariables =
+        variableBinder.switchStatementSharedCaseScopeFinish(this);
+    _body.preVisit(visitor);
   }
 }
 
@@ -3486,6 +4378,31 @@ class _TryStatement extends TryStatement {
   }
 }
 
+class _VariableBinder extends VariableBinder<Node, Var> {
+  _VariableBinder({
+    required super.errors,
+  });
+
+  @override
+  Var joinPatternVariables({
+    required Object? key,
+    required List<Var> components,
+    required bool isConsistent,
+  }) {
+    return PatternVariableJoin(
+      components.first.name,
+      components: [
+        for (var variable in components)
+          if (key is _LogicalPattern && variable is PatternVariableJoin)
+            ...variable.components
+          else
+            variable
+      ],
+      isConsistent: isConsistent && components.every((e) => e.isConsistent),
+    );
+  }
+}
+
 class _VariablePattern extends Pattern {
   final Type? declaredType;
 
@@ -3493,32 +4410,30 @@ class _VariablePattern extends Pattern {
 
   final String? expectInferredType;
 
-  final bool isFinal;
-
   _VariablePattern(this.declaredType, this.variable, this.expectInferredType,
-      {this.isFinal = false, required super.location})
+      {required super.location})
       : super._();
 
+  @override
   Type computeSchema(Harness h) =>
       h.typeAnalyzer.analyzeVariablePatternSchema(declaredType);
 
   @override
-  void preVisit(
-      PreVisitor visitor, VariableBinder<Node, Var, Type> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
     var variable = this.variable;
-    if (variable != null && variableBinder.add(this, variable)) {
+    if (variable != null && variableBinder.add(variable.name, variable)) {
       visitor._assignedVariables.declare(variable);
     }
   }
 
+  @override
   void visit(
-      Harness h,
-      Type matchedType,
-      Map<Var, VariableTypeInfo<Node, Type>> typeInfos,
-      MatchContext<Node, Expression> context) {
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
     var staticType = h.typeAnalyzer.analyzeVariablePattern(
-        matchedType, typeInfos, context, this, variable, declaredType,
-        isFinal: isFinal);
+        matchedType, context, this, variable, variable?.name, declaredType);
     h.typeAnalyzer.handleVariablePattern(this,
         matchedType: matchedType, staticType: staticType);
   }

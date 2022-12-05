@@ -45,9 +45,12 @@ class VarianceParserTest extends FastaParserTestCase {
   void test_class_disabled_multiple() {
     parseCompilationUnit('class A<in T, inout U, out V> { }',
         errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 2),
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 14, 5),
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 23, 3)
+          expectedError(
+              ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT, 8, 2),
+          expectedError(
+              ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT, 14, 5),
+          expectedError(
+              ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT, 23, 3)
         ],
         featureSet: _disabledFeatureSet);
   }
@@ -55,7 +58,8 @@ class VarianceParserTest extends FastaParserTestCase {
   void test_class_disabled_single() {
     parseCompilationUnit('class A<out T> { }',
         errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 3),
+          expectedError(
+              ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT, 8, 3),
         ],
         featureSet: _disabledFeatureSet);
   }
@@ -157,8 +161,10 @@ class VarianceParserTest extends FastaParserTestCase {
   void test_mixin_disabled_multiple() {
     parseCompilationUnit('mixin A<inout T, out U> { }',
         errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 5),
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 17, 3),
+          expectedError(
+              ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT, 8, 5),
+          expectedError(
+              ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT, 17, 3),
         ],
         featureSet: _disabledFeatureSet);
   }
@@ -166,7 +172,8 @@ class VarianceParserTest extends FastaParserTestCase {
   void test_mixin_disabled_single() {
     parseCompilationUnit('mixin A<inout T> { }',
         errors: [
-          expectedError(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 8, 5),
+          expectedError(
+              ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT, 8, 5),
         ],
         featureSet: _disabledFeatureSet);
   }

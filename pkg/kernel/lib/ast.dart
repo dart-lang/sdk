@@ -1025,6 +1025,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   static const int FlagMixinDeclaration = 1 << 4;
   static const int FlagHasConstConstructor = 1 << 5;
   static const int FlagMacro = 1 << 6;
+  static const int FlagSealed = 1 << 7;
 
   int flags = 0;
 
@@ -1046,6 +1047,13 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
 
   void set isMacro(bool value) {
     flags = value ? (flags | FlagMacro) : (flags & ~FlagMacro);
+  }
+
+  /// Whether this class is a macro class.
+  bool get isSealed => flags & FlagSealed != 0;
+
+  void set isSealed(bool value) {
+    flags = value ? (flags | FlagSealed) : (flags & ~FlagSealed);
   }
 
   /// Whether this class is a synthetic implementation created for each
@@ -1880,7 +1888,7 @@ class ExtensionTypeShowHideClause {
   final List<Reference> hiddenOperators = <Reference>[];
 
   Reference? findShownReference(Name name,
-      CallSiteAccessKind callSiteAccessKind, ClassHierarchy hierarchy) {
+      CallSiteAccessKind callSiteAccessKind, ClassHierarchyMembers hierarchy) {
     List<Reference> shownReferences;
     List<Reference> hiddenReferences;
     switch (callSiteAccessKind) {
@@ -1918,7 +1926,7 @@ class ExtensionTypeShowHideClause {
       Name name,
       List<Reference> references,
       List<Supertype> interfaces,
-      ClassHierarchy hierarchy,
+      ClassHierarchyMembers hierarchy,
       CallSiteAccessKind callSiteAccessKind) {
     for (Reference reference in references) {
       if (reference.asMember.name == name) {
@@ -3207,6 +3215,7 @@ class Procedure extends Member {
       bool isConst = false,
       bool isExtensionMember = false,
       bool isSynthetic = false,
+      bool isAbstractFieldAccessor = false,
       int transformerFlags = 0,
       required Uri fileUri,
       Reference? reference,
@@ -3219,6 +3228,7 @@ class Procedure extends Member {
             isConst: isConst,
             isExtensionMember: isExtensionMember,
             isSynthetic: isSynthetic,
+            isAbstractFieldAccessor: isAbstractFieldAccessor,
             transformerFlags: transformerFlags,
             fileUri: fileUri,
             reference: reference,
@@ -3233,6 +3243,7 @@ class Procedure extends Member {
       bool isConst = false,
       bool isExtensionMember = false,
       bool isSynthetic = false,
+      bool isAbstractFieldAccessor = false,
       int transformerFlags = 0,
       required Uri fileUri,
       Reference? reference,
@@ -3250,6 +3261,7 @@ class Procedure extends Member {
     this.isConst = isConst;
     this.isExtensionMember = isExtensionMember;
     this.isSynthetic = isSynthetic;
+    this.isAbstractFieldAccessor = isAbstractFieldAccessor;
     setTransformerFlagsWithoutLazyLoading(transformerFlags);
     assert(!(isMemberSignature && stubTargetReference == null),
         "No member signature origin for member signature $this.");
@@ -3300,6 +3312,7 @@ class Procedure extends Member {
   static const int FlagNonNullableByDefault = 1 << 6;
   static const int FlagSynthetic = 1 << 7;
   static const int FlagInternalImplementation = 1 << 8;
+  static const int FlagIsAbstractFieldAccessor = 1 << 9;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3365,6 +3378,15 @@ class Procedure extends Member {
     flags = value
         ? (flags | FlagInternalImplementation)
         : (flags & ~FlagInternalImplementation);
+  }
+
+  /// If `true` this procedure was generated from an abstract field.
+  bool get isAbstractFieldAccessor => flags & FlagIsAbstractFieldAccessor != 0;
+
+  void set isAbstractFieldAccessor(bool value) {
+    flags = value
+        ? (flags | FlagIsAbstractFieldAccessor)
+        : (flags & ~FlagIsAbstractFieldAccessor);
   }
 
   @override
@@ -8807,6 +8829,7 @@ class RecordLiteral extends Expression {
   RecordLiteral(this.positional, this.named, this.recordType,
       {this.isConst = false})
       : assert(positional.length == recordType.positional.length &&
+            named.length == recordType.named.length &&
             recordType.named
                 .map((f) => f.name)
                 .toSet()
@@ -8900,6 +8923,34 @@ class RecordLiteral extends Expression {
 class AwaitExpression extends Expression {
   Expression operand;
 
+  /// If non-null, the runtime should check whether the value of [operand] is a
+  /// subtype of [runtimeCheckType], and if _not_ so, wrap the value in a call
+  /// to the `Future.value()` constructor.
+  ///
+  /// For instance
+  ///
+  ///     FutureOr<Object> future1 = Future<Object?>.value();
+  ///     var x = await future1; // Check against `Future<Object>`.
+  ///
+  ///     Object object = Future<Object?>.value();
+  ///     var y = await object; // Check against `Future<Object>`.
+  ///
+  ///     Future<Object?> future2 = Future<Object?>.value();
+  ///     var z = await future2; // No check.
+  ///
+  /// This runtime checks is necessary to ensure that we don't evaluate the
+  /// await expression to `null` when the static type of the expression is
+  /// non-nullable.
+  ///
+  /// The [runtimeCheckType] is computed as `Future<T>` where `T = flatten(S)`
+  /// and `S` is the static type of [operand]. To avoid unnecessary runtime
+  /// checks, the [runtimeCheckType] is not set if the static type of the
+  /// [operand] is a subtype of `Future<T>`.
+  ///
+  /// See https://github.com/dart-lang/sdk/issues/49396 for further discussion
+  /// of which the check is needed.
+  DartType? runtimeCheckType;
+
   AwaitExpression(this.operand) {
     operand.parent = this;
   }
@@ -8928,6 +8979,9 @@ class AwaitExpression extends Expression {
       operand = v.transform(operand);
       operand.parent = this;
     }
+    if (runtimeCheckType != null) {
+      runtimeCheckType = v.visitDartType(runtimeCheckType!);
+    }
   }
 
   @override
@@ -8936,6 +8990,9 @@ class AwaitExpression extends Expression {
     if (operand != null) {
       operand = v.transform(operand);
       operand.parent = this;
+    }
+    if (runtimeCheckType != null) {
+      runtimeCheckType = v.visitDartType(runtimeCheckType!, null);
     }
   }
 
@@ -12328,7 +12385,7 @@ class ExtensionType extends DartType {
 
   final List<DartType> typeArguments;
 
-  final DartType onType;
+  DartType? _onType;
 
   ExtensionType(Extension extensionNode, Nullability declaredNullability,
       [List<DartType>? typeArguments])
@@ -12338,10 +12395,12 @@ class ExtensionType extends DartType {
   ExtensionType.byReference(
       this.extensionReference, this.declaredNullability, this.typeArguments)
       // ignore: unnecessary_null_comparison
-      : assert(declaredNullability != null),
-        onType = _computeOnType(extensionReference, typeArguments);
+      : assert(declaredNullability != null);
 
   Extension get extension => extensionReference.asExtension;
+
+  DartType get onType =>
+      _onType ??= _computeOnType(extensionReference, typeArguments);
 
   @override
   Nullability get nullability {
@@ -12468,10 +12527,7 @@ class ViewType extends DartType {
           viewReference, typeArguments, declaredNullability);
 
   @override
-  Nullability get nullability {
-    return uniteNullabilities(
-        declaredNullability, view.representationType.nullability);
-  }
+  Nullability get nullability => declaredNullability;
 
   @override
   DartType get resolveTypeParameterType =>
@@ -14064,11 +14120,35 @@ class SetConstant extends Constant {
 }
 
 class RecordConstant extends Constant {
+  /// Positional field values.
   final List<Constant> positional;
+
+  /// Named field values, sorted by name.
   final Map<String, Constant> named;
+
+  /// The static type of the constant.
   final RecordType recordType;
 
-  RecordConstant(this.positional, this.named, this.recordType);
+  RecordConstant(this.positional, this.named, this.recordType)
+      : assert(positional.length == recordType.positional.length &&
+            named.length == recordType.named.length &&
+            recordType.named
+                .map((f) => f.name)
+                .toSet()
+                .containsAll(named.keys)),
+        assert(() {
+          // Assert that the named fields are sorted.
+          String? previous;
+          for (String name in named.keys) {
+            if (previous != null && name.compareTo(previous) < 0) {
+              return false;
+            }
+            previous = name;
+          }
+          return true;
+        }(),
+            "Named fields of a RecordConstant aren't sorted lexicographically: "
+            "${named.keys.join(", ")}");
 
   @override
   void visitChildren(Visitor v) {

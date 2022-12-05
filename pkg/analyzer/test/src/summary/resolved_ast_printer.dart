@@ -512,14 +512,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitExtractorPattern(ExtractorPattern node) {
-    _writeln('ExtractorPattern');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
-    });
-  }
-
-  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _writeln('FieldDeclaration');
     _withIndent(() {
@@ -692,6 +684,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       if (_withResolution) {
         _writeElement('declaredElement', node.declaredElement);
       }
+    });
+  }
+
+  @override
+  void visitGuardedPattern(GuardedPattern node) {
+    _writeln('GuardedPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -958,6 +958,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitObjectPattern(ObjectPattern node) {
+    _writeln('ObjectPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitOnClause(OnClause node) {
     _writeln('OnClause');
     _withIndent(() {
@@ -998,6 +1006,23 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       _writeElement('element', node.element);
+    });
+  }
+
+  @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    _writeln('PatternVariableDeclaration');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitPatternVariableDeclarationStatement(
+      PatternVariableDeclarationStatement node) {
+    _writeln('PatternVariableDeclarationStatement');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1155,6 +1180,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitRestPatternElement(RestPatternElement node) {
+    _writeln('RestPatternElement');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitReturnStatement(ReturnStatement node) {
     _writeln('ReturnStatement');
     _withIndent(() {
@@ -1279,6 +1312,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitSwitchDefault(SwitchDefault node) {
     _writeln('SwitchDefault');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitSwitchExpression(SwitchExpression node) {
+    _writeln('SwitchExpression');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitSwitchExpressionCase(SwitchExpressionCase node) {
+    _writeln('SwitchExpressionCase');
     _withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -1413,26 +1462,21 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitVariablePattern(VariablePattern node) {
+  void visitVariablePattern(covariant VariablePatternImpl node) {
     _writeln('VariablePattern');
     _withIndent(() {
       _writeNamedChildEntities(node);
       if (_withResolution) {
         final element = node.declaredElement;
         if (element != null) {
-          element as VariablePatternElementImpl;
           _sink.write(_indent);
           _sink.write('declaredElement: ');
-          if (node.name.offset == element.nameOffset) {
-            _writeIf(element.hasImplicitType, 'hasImplicitType ');
-            _writeIf(element.isFinal, 'isFinal ');
-            _sink.writeln('${element.name}@${element.nameOffset}');
-            _withIndent(() {
-              _writeType('type', element.type);
-            });
-          } else {
-            _sink.writeln('${element.name}@${element.nameOffset}');
-          }
+          _writeIf(element.hasImplicitType, 'hasImplicitType ');
+          _writeIf(element.isFinal, 'isFinal ');
+          _sink.writeln('${element.name}@${element.nameOffset}');
+          _withIndent(() {
+            _writeType('type', element.type);
+          });
         }
       }
     });
@@ -1553,6 +1597,15 @@ Expected parent: (${parent.runtimeType}) $parent
           ? _elementToReferenceString(enclosingElement)
           : 'root';
       return '$enclosingStr::@parameter::${element.name}';
+    } else if (element is VariablePatternJoinElementImpl) {
+      return [
+        if (!element.isConsistent) 'notConsistent ',
+        if (element.isFinal) 'final ',
+        element.name,
+        '[',
+        element.components.map(_elementToReferenceString).join(', '),
+        ']',
+      ].join('');
     } else {
       return '${element.name}@${element.nameOffset}';
     }

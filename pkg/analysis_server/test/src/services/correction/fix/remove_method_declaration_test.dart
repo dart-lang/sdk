@@ -97,7 +97,6 @@ class B extends A {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/1997')
   Future<void> test_method_generic() async {
     await resolveTestCode('''
 class A<T> {
@@ -123,7 +122,6 @@ class B extends A<int> {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/1997')
   Future<void> test_method_nullSafety_optIn_fromOptOut() async {
     createAnalysisOptionsFile(lints: [lintCode]);
     newFile('$testPackageLibPath/a.dart', r'''

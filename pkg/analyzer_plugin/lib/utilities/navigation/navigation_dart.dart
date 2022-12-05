@@ -22,7 +22,11 @@ NavigationCollector computeDartNavigation(
     int? offset,
     int? length) {
   var dartCollector = _DartNavigationCollector(collector, offset, length);
-  var visitor = _DartNavigationComputerVisitor(resourceProvider, dartCollector);
+  var visitor = _DartNavigationComputerVisitor(
+    resourceProvider: resourceProvider,
+    computer: dartCollector,
+    unitElement: unit.declaredElement!,
+  );
   if (offset == null || length == null) {
     unit.accept(visitor);
   } else {
@@ -96,9 +100,9 @@ class _DartNavigationCollector {
         targetElement: targetElement);
   }
 
-  void _addRegionForElement(int offset, int length, Element? element) {
-    element = element?.nonSynthetic;
-    if (element == null || element == DynamicElementImpl.instance) {
+  void _addRegionForElement(int offset, int length, Element element) {
+    element = element.nonSynthetic;
+    if (element == DynamicElementImpl.instance) {
       return;
     }
     if (element.location == null) {
@@ -108,18 +112,17 @@ class _DartNavigationCollector {
     if (!_isWithinRequestedRange(offset, length)) {
       return;
     }
-    var converter = AnalyzerConverter();
-    var kind = converter.convertElementKind(element.kind);
-    var location = converter.locationFromElement(element);
+    var location = element.toLocation();
     if (location == null) {
       return;
     }
 
-    _addRegion(offset, length, kind, location, targetElement: element);
+    _addRegion(offset, length, element.kind.toPluginElementKind, location,
+        targetElement: element);
   }
 
   void _addRegionForNode(AstNode? node, Element? element) {
-    if (node == null) {
+    if (node == null || element == null) {
       return;
     }
     var offset = node.offset;
@@ -128,6 +131,9 @@ class _DartNavigationCollector {
   }
 
   void _addRegionForToken(Token token, Element? element) {
+    if (element == null) {
+      return;
+    }
     var offset = token.offset;
     var length = token.length;
     _addRegionForElement(offset, length, element);
@@ -156,10 +162,29 @@ class _DartNavigationCollector {
 
 class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   final ResourceProvider resourceProvider;
+  final CompilationUnitElement unitElement;
   final _DartNavigationCollector computer;
-  String? _examplesApiPath;
 
-  _DartNavigationComputerVisitor(this.resourceProvider, this.computer);
+  /// The directory that contains `examples/api`, `null` if not found.
+  late final Folder? folderWithExamplesApi = () {
+    var filePath = unitElement.source.fullName;
+    var file = resourceProvider.getFile(filePath);
+    for (var parent in file.parent.withAncestors) {
+      var apiFolder = parent
+          .getChildAssumingFolder('examples')
+          .getChildAssumingFolder('api');
+      if (apiFolder.exists) {
+        return parent;
+      }
+    }
+    return null;
+  }();
+
+  _DartNavigationComputerVisitor({
+    required this.resourceProvider,
+    required this.unitElement,
+    required this.computer,
+  });
 
   @override
   void visitAnnotation(Annotation node) {
@@ -213,12 +238,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
       super.visitComment(node);
       return;
     }
-    _examplesApiPath ??= _computeParentWithExamplesAPI(node, resourceProvider);
-    if (_examplesApiPath == null) {
-      // Examples directory doesn't exist.
-      super.visitComment(node);
-      return;
-    }
 
     for (var commentReference in node.references) {
       commentReference.accept(this);
@@ -241,14 +260,22 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
           var seeCodeIn = '** See code in ';
           var startIndex = strValue.indexOf('${seeCodeIn}examples/api/');
           if (startIndex != -1) {
+            final folderWithExamplesApi = this.folderWithExamplesApi;
+            if (folderWithExamplesApi == null) {
+              // Examples directory doesn't exist.
+              super.visitComment(node);
+              return;
+            }
             startIndex += seeCodeIn.length;
             var endIndex = strValue.indexOf('.dart') + 5;
             var pathSnippet = strValue.substring(startIndex, endIndex);
             // Split on '/' because that's what the comment syntax uses, but
             // re-join it using the resource provider to get the right separator
             // for the platform.
-            var examplePath = resourceProvider.pathContext
-                .joinAll([_examplesApiPath!, ...pathSnippet.split('/')]);
+            var examplePath = resourceProvider.pathContext.joinAll([
+              folderWithExamplesApi.path,
+              ...pathSnippet.split('/'),
+            ]);
             var start = token.offset + startIndex;
             var end = token.offset + endIndex;
             computer._addRegion(
@@ -275,9 +302,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit unit) {
-    // Reset the examples path for this compilation unit.
-    _examplesApiPath = null;
-
     // prepare top-level nodes sorted by their offsets
     var nodes = <AstNode>[];
     nodes.addAll(unit.directives);
@@ -392,7 +416,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitExportDirective(ExportDirective node) {
     var exportElement = node.element;
     if (exportElement != null) {
-      Element? libraryElement = exportElement.exportedLibrary;
+      var libraryElement = exportElement.exportedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
     }
     super.visitExportDirective(node);
@@ -421,7 +445,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitImportDirective(ImportDirective node) {
     var importElement = node.element;
     if (importElement != null) {
-      Element? libraryElement = importElement.importedLibrary;
+      var libraryElement = importElement.importedLibrary;
       _addUriDirectiveRegion(node, libraryElement);
     }
     super.visitImportDirective(node);
@@ -594,40 +618,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
 
   /// If the source of the given [element] (referenced by the [node]) exists,
   /// then add the navigation region from the [node] to the [element].
-  void _addUriDirectiveRegion(UriBasedDirective node, Element? element) {
+  void _addUriDirectiveRegion(UriBasedDirective node, LibraryElement? element) {
     var source = element?.source;
     if (source != null) {
       if (resourceProvider.getResource(source.fullName).exists) {
         computer._addRegionForNode(node.uri, element);
       }
     }
-  }
-
-  /// Given some [AstNode], compute and return the parent directory absolute
-  /// path which contains the directories 'examples/api/'.
-  ///
-  /// Null is returned if such directories are not found.
-  String? _computeParentWithExamplesAPI(
-      AstNode node, ResourceProvider resourceProvider) {
-    var source =
-        node.thisOrAncestorOfType<CompilationUnit>()?.declaredElement?.source;
-    if (source == null) {
-      return null;
-    }
-
-    var file = resourceProvider.getFile(source.fullName);
-    if (!file.exists) {
-      return null;
-    }
-    var parent = file.parent;
-    while (parent != parent.parent) {
-      var examplesFolder = parent.getChildAssumingFolder('examples');
-      if (examplesFolder.exists &&
-          examplesFolder.getChildAssumingFolder('api').exists) {
-        return resourceProvider.pathContext.absolute(parent.path);
-      }
-      parent = parent.parent;
-    }
-    return null;
   }
 }

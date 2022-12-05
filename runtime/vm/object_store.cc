@@ -228,9 +228,9 @@ void ObjectStore::InitKnownObjects() {
   Zone* zone = thread->zone();
   Class& cls = Class::Handle(zone);
   const Library& collection_lib = Library::Handle(zone, collection_library());
-  cls = collection_lib.LookupClassAllowPrivate(Symbols::_LinkedHashSet());
+  cls = collection_lib.LookupClassAllowPrivate(Symbols::_Set());
   ASSERT(!cls.IsNull());
-  set_linked_hash_set_class(cls);
+  set_set_impl_class(cls);
 
 #ifdef DART_PRECOMPILED_RUNTIME
   // The rest of these objects are only needed for code generation.
@@ -581,7 +581,7 @@ void ObjectStore::LazyInitIsolateMembers() {
     ASSERT(!cls.IsNull());
     transferable_class_.store(cls.ptr());
 
-    cls = isolate_lib.LookupClassAllowPrivate(Symbols::_RawReceivePortImpl());
+    cls = isolate_lib.LookupClassAllowPrivate(Symbols::_RawReceivePort());
     ASSERT(!cls.IsNull());
     const auto& error = cls.EnsureIsFinalized(thread);
     ASSERT(error == Error::null());

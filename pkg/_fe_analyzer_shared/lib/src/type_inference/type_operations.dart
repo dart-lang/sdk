@@ -2,6 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// Type arguments for a map pattern, which exist or not exist only together.
+class MapPatternTypeArguments<Type extends Object> {
+  final Type keyType;
+  final Type valueType;
+
+  MapPatternTypeArguments({
+    required this.keyType,
+    required this.valueType,
+  });
+}
+
 /// Enum representing the different classifications of types that can be
 /// returned by [TypeOperations.classifyType].
 enum TypeClassification {
@@ -21,6 +32,9 @@ enum TypeClassification {
 /// This mixin provides default implementations for some members that won't need
 /// to be overridden very frequently.
 mixin TypeOperations<Type extends Object> {
+  /// Returns `true` if [type1] and [type2] are structurally equal.
+  bool areStructurallyEqual(Type type1, Type type2);
+
   /// Classifies the given type into one of the three categories defined by
   /// the [TypeClassification] enum.
   TypeClassification classifyType(Type type);
@@ -72,9 +86,22 @@ mixin TypeOperations<Type extends Object> {
   /// of [type] and `Null`.
   Type makeNullable(Type type);
 
+  /// If [type] is a subtype of the type `Iterable<T>` for some `T`, returns
+  /// the type `T`.  Otherwise returns `null`.
+  Type? matchIterableType(Type type);
+
   /// If [type] is a subtype of the type `List<T>` for some `T`, returns the
   /// type `T`.  Otherwise returns `null`.
   Type? matchListType(Type type);
+
+  /// If [type] is a subtype of the type `Map<K, V>` for some `K` and `V`,
+  /// returns these `K` and `V`.  Otherwise returns `null`.
+  MapPatternTypeArguments<Type>? matchMapType(Type type);
+
+  /// Computes `NORM` of [type].
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/normalization.md`
+  Type normalize(Type type);
 
   /// Returns the non-null promoted version of [type].
   ///

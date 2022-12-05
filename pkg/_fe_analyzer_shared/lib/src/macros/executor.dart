@@ -164,6 +164,7 @@ class Arguments implements Serializable {
     }
   }
 
+  @override
   void serialize(Serializer serializer) {
     serializer.startList();
     for (Object? arg in positional) {

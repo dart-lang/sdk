@@ -164,6 +164,7 @@ constexpr Register CALLEE_SAVED_TEMP = S8;
 constexpr Register CALLEE_SAVED_TEMP2 = S7;
 constexpr Register WRITE_BARRIER_STATE = S11;
 constexpr Register NULL_REG = S10;  // Caches NullObject() value.
+#define DART_ASSEMBLER_HAS_NULL_REG 1
 
 // ABI for catch-clause entry point.
 constexpr Register kExceptionObjectReg = A0;
@@ -326,8 +327,8 @@ struct RangeErrorABI {
 // ABI for AllocateObjectStub.
 struct AllocateObjectABI {
   static constexpr Register kResultReg = A0;
-  static constexpr Register kTypeArgumentsReg = T1;
-  static const Register kTagsReg = T2;
+  static constexpr Register kTypeArgumentsReg = A1;
+  static constexpr Register kTagsReg = T2;
 };
 
 // ABI for AllocateClosureStub.
@@ -457,7 +458,7 @@ struct CloneSuspendStateStubABI {
 // register). This ABI is added to distinguish memory corruption errors from
 // null errors.
 struct DispatchTableNullErrorABI {
-  static constexpr Register kClassIdReg = T1;
+  static constexpr Register kClassIdReg = A2;
 };
 
 typedef uint32_t RegList;
@@ -652,6 +653,8 @@ enum ScaleFactor {
 #else
   TIMES_COMPRESSED_WORD_SIZE = TIMES_HALF_WORD_SIZE,
 #endif
+  // Used for Smi-boxed indices.
+  TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
 
 const uword kBreakInstructionFiller = 0;  // trap or c.trap
@@ -778,11 +781,36 @@ enum Funct3 {
   J = 0b000,
   JN = 0b001,
   JX = 0b010,
-  MIN = 0b000,
-  MAX = 0b001,
+  FMIN = 0b000,
+  FMAX = 0b001,
   FEQ = 0b010,
   FLT = 0b001,
   FLE = 0b000,
+
+  SH1ADD = 0b010,
+  SH2ADD = 0b100,
+  SH3ADD = 0b110,
+
+  F3_COUNT = 0b001,
+
+  MAX = 0b110,
+  MAXU = 0b111,
+  MIN = 0b100,
+  MINU = 0b101,
+  CLMUL = 0b001,
+  CLMULH = 0b011,
+  CLMULR = 0b010,
+
+  SEXT = 0b001,
+  ZEXT = 0b100,
+
+  ROL = 0b001,
+  ROR = 0b101,
+
+  BCLR = 0b001,
+  BEXT = 0b101,
+  F3_BINV = 0b001,
+  F3_BSET = 0b001,
 };
 
 enum Funct7 {
@@ -820,6 +848,16 @@ enum Funct7 {
   FCVTDint = 0b1101001,
   FMVXD = 0b1110001,
   FMVDX = 0b1111001,
+
+  ADDUW = 0b0000100,
+  SHADD = 0b0010000,
+  SLLIUW = 0b0000100,
+  COUNT = 0b0110000,
+  MINMAXCLMUL = 0b0000101,
+  ROTATE = 0b0110000,
+  BCLRBEXT = 0b0100100,
+  BINV = 0b0110100,
+  BSET = 0b0010100,
 };
 
 enum Funct5 {
@@ -1513,6 +1551,12 @@ static constexpr Extension RV_D(4);  // Double-precision floating point
 static constexpr Extension RV_C(5);  // Compressed instructions
 static constexpr ExtensionSet RV_G = RV_I | RV_M | RV_A | RV_F | RV_D;
 static constexpr ExtensionSet RV_GC = RV_G | RV_C;
+static constexpr Extension RV_Zba(6);  // Address generation
+static constexpr Extension RV_Zbb(7);  // Basic bit-manipulation
+static constexpr Extension RV_Zbc(8);  // Carry-less multiplicatio
+static constexpr Extension RV_Zbs(9);  // Single-bit instructions
+static constexpr ExtensionSet RV_B = RV_Zba | RV_Zbb | RV_Zbc | RV_Zbs;
+static constexpr ExtensionSet RV_GCB = RV_GC | RV_B;
 
 #undef R
 

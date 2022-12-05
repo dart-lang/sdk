@@ -63,7 +63,20 @@ num pow(num x, num exponent) {
   if ((x is int) && (exponent is int) && (exponent >= 0)) {
     return _intPow(x, exponent);
   }
-  return _doublePow(x.toDouble(), exponent.toDouble());
+
+  double xDouble = x.toDouble();
+
+  if (xDouble == 1.0) {
+    return 1.0;
+  }
+
+  double exponentDouble = exponent.toDouble();
+
+  if (xDouble == -1.0 && exponent.isInfinite) {
+    return 1.0;
+  }
+
+  return _doublePow(xDouble, exponentDouble);
 }
 
 @pragma("wasm:import", "Math.pow")

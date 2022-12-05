@@ -67,4 +67,4 @@ worlds:
           b();
         }
     expectedLibraryCount: 3
-    advancedInvalidation: outlineChange
+    advancedInvalidation: problemsInLibrary

@@ -18,7 +18,19 @@ main() {
 @reflectiveTest
 class CaseExpressionTypeIsNotSwitchExpressionSubtypeTest
     extends PubPackageResolutionTest
-    with CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases {}
+    with CaseExpressionTypeIsNotSwitchExpressionSubtypeTestCases {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_notSubtype() {
+    return super.test_notSubtype();
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_subtype() {
+    return super.test_subtype();
+  }
+}
 
 @reflectiveTest
 class CaseExpressionTypeIsNotSwitchExpressionSubtypeTest_Language218

@@ -11,6 +11,7 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(NonFinalFieldInEnumTest);
     defineReflectiveTests(PreferFinalFieldsBulkTest);
     defineReflectiveTests(PreferFinalFieldsTest);
     defineReflectiveTests(PreferFinalFieldsWithNullSafetyTest);
@@ -19,6 +20,42 @@ void main() {
     defineReflectiveTests(PreferFinalParametersTest);
     defineReflectiveTests(PreferFinalParametersBulkTest);
   });
+}
+
+@reflectiveTest
+class NonFinalFieldInEnumTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.MAKE_FINAL;
+
+  Future<void> test_field_type() async {
+    await resolveTestCode('''
+enum E {
+  one, two;
+  int f = 2;
+}
+''');
+    await assertHasFix('''
+enum E {
+  one, two;
+  final int f = 2;
+}
+''');
+  }
+
+  Future<void> test_field_var() async {
+    await resolveTestCode('''
+enum E {
+  one, two;
+  var f = 2;
+}
+''');
+    await assertHasFix('''
+enum E {
+  one, two;
+  final f = 2;
+}
+''');
+  }
 }
 
 @reflectiveTest

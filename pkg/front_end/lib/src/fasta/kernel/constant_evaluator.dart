@@ -1566,7 +1566,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // ignore: unnecessary_null_comparison
     assert(named != null);
 
-    return new RecordConstant(positional, named, node.recordType);
+    return canonicalize(new RecordConstant(positional, named, node.recordType));
   }
 
   @override
@@ -3634,6 +3634,24 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   bool hasPrimitiveEqual(Constant constant) {
     if (intFolder.isInt(constant)) return true;
+    if (constant is RecordConstant) {
+      bool nonPrimitiveEqualsFound = false;
+      for (Constant field in constant.positional) {
+        if (!hasPrimitiveEqual(field)) {
+          nonPrimitiveEqualsFound = true;
+          break;
+        }
+      }
+      for (Constant field in constant.named.values) {
+        if (!hasPrimitiveEqual(field)) {
+          nonPrimitiveEqualsFound = true;
+          break;
+        }
+      }
+      if (nonPrimitiveEqualsFound) {
+        return false;
+      }
+    }
     DartType type = constant.getType(_staticTypeContext!);
     return !(type is InterfaceType && !classHasPrimitiveEqual(type.classNode));
   }

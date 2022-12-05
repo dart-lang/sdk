@@ -1434,8 +1434,8 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
       var typeArguments = decoratedType.typeArguments;
       if (typeArguments.length == 1) {
         var typeArgument = typeArguments[0]!;
-        if ((_typeIsNaturallyNullable(typeArgument.type!) ||
-            typeArgument.node.isNullable)) {
+        if (_typeIsNaturallyNullable(typeArgument.type!) ||
+            typeArgument.node.isNullable) {
           // FutureOr<T?>? is equivalent to FutureOr<T?>, so there is no need to
           // make this type nullable.
           makeNullable = false;

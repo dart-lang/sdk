@@ -485,6 +485,7 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
     }
   }
 
+  @override
   Token ensureIdentifierPotentiallyRecovered(
       Token token, Parser parser, bool isRecovered) {
     // Fast path good case.
@@ -1018,6 +1019,7 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
     }
   }
 
+  @override
   Token ensureIdentifierPotentiallyRecovered(
       Token token, Parser parser, bool isRecovered) {
     // Fast path good case.
@@ -1159,6 +1161,7 @@ class TopLevelDeclarationIdentifierContext extends IdentifierContext {
     return identifier;
   }
 
+  @override
   Token ensureIdentifierPotentiallyRecovered(
       Token token, Parser parser, bool isRecovered) {
     // Fast path good case.
@@ -1228,6 +1231,7 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
     return identifier;
   }
 
+  @override
   Token ensureIdentifierPotentiallyRecovered(
       Token token, Parser parser, bool isRecovered) {
     // Fast path good case.

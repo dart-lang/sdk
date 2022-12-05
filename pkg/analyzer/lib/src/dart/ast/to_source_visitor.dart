@@ -150,8 +150,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitCaseClause(CaseClause node) {
     sink.write('case ');
-    _visitNode(node.pattern);
-    _visitNode(node.whenClause, prefix: ' ');
+    _visitNode(node.guardedPattern);
   }
 
   @override
@@ -445,14 +444,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitExtractorPattern(ExtractorPattern node) {
-    _visitNode(node.type);
-    sink.write('(');
-    _visitNodeList(node.fields, separator: ', ');
-    sink.write(')');
-  }
-
-  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
@@ -655,6 +646,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitGuardedPattern(GuardedPattern node) {
+    _visitNode(node.pattern);
+    _visitNode(node.whenClause, prefix: ' ');
+  }
+
+  @override
   void visitHideCombinator(HideCombinator node) {
     sink.write('hide ');
     _visitNodeList(node.hiddenNames, separator: ', ');
@@ -821,7 +818,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitMapPattern(MapPattern node) {
     _visitNode(node.typeArguments);
     sink.write('{');
-    _visitNodeList(node.entries, separator: ', ');
+    _visitNodeList(node.elements, separator: ', ');
     sink.write('}');
   }
 
@@ -904,6 +901,14 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitObjectPattern(ObjectPattern node) {
+    _visitNode(node.type);
+    sink.write('(');
+    _visitNodeList(node.fields, separator: ', ');
+    sink.write(')');
+  }
+
+  @override
   void visitOnClause(OnClause node) {
     sink.write('on ');
     _visitNodeList(node.superclassConstraints, separator: ', ');
@@ -948,13 +953,8 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitPatternAssignmentStatement(PatternAssignmentStatement node) {
-    _visitNode(node.assignment);
-    sink.write(';');
-  }
-
-  @override
   void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     sink.write(node.keyword.lexeme);
     sink.write(' ');
     _visitNode(node.pattern);
@@ -1096,6 +1096,12 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitRestPatternElement(RestPatternElement node) {
+    sink.write(node.operator.lexeme);
+    _visitNode(node.pattern);
+  }
+
+  @override
   void visitRethrowExpression(RethrowExpression node) {
     sink.write('rethrow');
   }
@@ -1212,22 +1218,15 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write('switch (');
     _visitNode(node.expression);
     sink.write(') {');
-    _visitNodeList(node.members, separator: ' ');
+    _visitNodeList(node.cases, separator: ', ');
     sink.write('}');
   }
 
   @override
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     sink.write('case ');
-    _visitNode(node.pattern);
-    _visitNode(node.whenClause, prefix: ' ');
+    _visitNode(node.guardedPattern);
     sink.write(' => ');
-    _visitNode(node.expression);
-  }
-
-  @override
-  void visitSwitchExpressionDefault(SwitchExpressionDefault node) {
-    sink.write('default => ');
     _visitNode(node.expression);
   }
 
@@ -1235,8 +1234,7 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitSwitchPatternCase(SwitchPatternCase node) {
     _visitNodeList(node.labels, separator: ' ', suffix: ' ');
     sink.write('case ');
-    _visitNode(node.pattern);
-    _visitNode(node.whenClause, prefix: ' ');
+    _visitNode(node.guardedPattern);
     sink.write(': ');
     _visitNodeList(node.statements, separator: ' ');
   }

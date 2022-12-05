@@ -52,7 +52,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 
   const Function& function = parsed_function_->function();
 
-  // Setup a [ActiveClassScope] and a [ActiveMemberScope] which will be used
+  // Setup an [ActiveClassScope] and an [ActiveMemberScope] which will be used
   // e.g. for type translation.
   const Class& klass = Class::Handle(Z, function.Owner());
 
@@ -837,6 +837,7 @@ void ScopeBuilder::VisitExpression() {
       return;
     }
     case kIsExpression:
+      needs_expr_temp_ = true;
       helper_.ReadPosition();  // read position.
       helper_.ReadFlags();     // read flags.
       VisitExpression();  // read operand.
@@ -981,6 +982,9 @@ void ScopeBuilder::VisitExpression() {
     case kAwaitExpression:
       helper_.ReadPosition();  // read position.
       VisitExpression();       // read operand.
+      if (helper_.ReadTag() == kSomething) {
+        helper_.SkipDartType();  // read runtime check type.
+      }
       return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:

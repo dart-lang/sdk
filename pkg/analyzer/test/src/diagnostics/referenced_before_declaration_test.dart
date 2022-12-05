@@ -15,6 +15,37 @@ main() {
 
 @reflectiveTest
 class ReferencedBeforeDeclarationTest extends PubPackageResolutionTest {
+  test_block_patternVariable_after() async {
+    await assertErrorsInCode(r'''
+var v = 0;
+void f() {
+  v;
+  var [var v] = [0];
+}
+''', [
+      error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 24, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 38, 1)]),
+    ]);
+
+    var node = findNode.simple('v;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: v
+  staticElement: v@38
+  staticType: dynamic
+''');
+  }
+
+  test_block_patternVariable_before() async {
+    await assertNoErrorsInCode(r'''
+var v = 0;
+void f() {
+  var [var v] = [0];
+  v;
+}
+''');
+  }
+
   test_cascade_after_declaration() async {
     await assertNoErrorsInCode(r'''
 testRequestHandler() {}
@@ -85,6 +116,7 @@ print(x) {}
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   test_hideInSwitchCase_function() async {
     await assertErrorsInCode(r'''
 var v = 0;
@@ -124,6 +156,7 @@ void f(int a) {
     assertElement(findNode.simple('v;'), findElement.localFunction('v'));
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   test_hideInSwitchCase_local() async {
     await assertErrorsInCode(r'''
 var v = 0;

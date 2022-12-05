@@ -136,7 +136,6 @@ abstract class DartObject {
   /// or `null` if
   /// * this object is not of type 'Symbol', or
   /// * the value of the object being represented is `null`.
-  /// (We return the string
   String? toSymbolValue();
 
   /// Return the representation of the type corresponding to the value of the

@@ -343,9 +343,11 @@ class LocalsHandler {
   /// Returns an [HInstruction] for the given element. If the element is
   /// boxed or stored in a closure then the method generates code to retrieve
   /// the value.
-  HInstruction readLocal(Local local, {SourceInformation sourceInformation}) {
+  HInstruction /*!*/ readLocal(Local local,
+      {SourceInformation sourceInformation}) {
     if (isAccessedDirectly(local)) {
-      if (directLocals[local] == null) {
+      HInstruction value = directLocals[local];
+      if (value == null) {
         if (local is TypeVariableLocal) {
           failedAt(
               CURRENT_ELEMENT_SPANNABLE,
@@ -358,7 +360,6 @@ class LocalsHandler {
               "$executableContext.");
         }
       }
-      HInstruction value = directLocals[local];
       if (sourceInformation != null) {
         value = HRef(value, sourceInformation);
         builder.add(value);
@@ -372,8 +373,9 @@ class LocalsHandler {
       AbstractValue type = local is BoxLocal
           ? _abstractValueDomain.nonNullType
           : getTypeOfCapturedVariable(redirect);
-      HInstruction fieldGet =
-          HFieldGet(redirect, receiver, type, sourceInformation);
+      HInstruction fieldGet = HFieldGet(
+          redirect, receiver, type, sourceInformation,
+          isAssignable: redirect.isAssignable);
       builder.add(fieldGet);
       return fieldGet;
     } else if (isBoxed(local)) {
@@ -390,8 +392,9 @@ class LocalsHandler {
       assert(localBox != null);
 
       HInstruction box = readLocal(localBox);
-      HInstruction lookup = HFieldGet(redirect, box,
-          getTypeOfCapturedVariable(redirect), sourceInformation);
+      HInstruction lookup = HFieldGet(
+          redirect, box, getTypeOfCapturedVariable(redirect), sourceInformation,
+          isAssignable: redirect.isAssignable);
       builder.add(lookup);
       return lookup;
     } else {

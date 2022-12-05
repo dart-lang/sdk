@@ -53,6 +53,7 @@ class FeatureSets {
       EnableString.named_arguments_anywhere,
       EnableString.patterns,
       EnableString.records,
+      EnableString.sealed_class,
       EnableString.super_parameters,
       EnableString.unnamed_libraries,
       EnableString.views,

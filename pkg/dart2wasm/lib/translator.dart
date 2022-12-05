@@ -14,6 +14,7 @@ import 'package:dart2wasm/dispatch_table.dart';
 import 'package:dart2wasm/dynamic_dispatch.dart';
 import 'package:dart2wasm/functions.dart';
 import 'package:dart2wasm/globals.dart';
+import 'package:dart2wasm/kernel_nodes.dart';
 import 'package:dart2wasm/param_info.dart';
 import 'package:dart2wasm/reference_extensions.dart';
 import 'package:dart2wasm/types.dart';
@@ -39,7 +40,6 @@ class TranslatorOptions {
   bool printKernel = false;
   bool printWasm = false;
   int? sharedMemoryMaxPages;
-  bool stringDataSegments = false;
   List<int>? watchPoints = null;
 }
 
@@ -48,7 +48,7 @@ class TranslatorOptions {
 ///
 /// This class also contains utility methods for types and code generation used
 /// throughout the compiler.
-class Translator {
+class Translator with KernelNodes {
   // Options for the translation.
   final TranslatorOptions options;
 
@@ -59,86 +59,6 @@ class Translator {
   final TypeEnvironment typeEnvironment;
   final ClosedWorldClassHierarchy hierarchy;
   late final ClassHierarchySubtypes subtypes;
-
-  // Classes and members referenced specifically by the compiler.
-  late final Class wasmTypesBaseClass;
-  late final Class wasmArrayBaseClass;
-  late final Class wasmAnyRefClass;
-  late final Class wasmExternRefClass;
-  late final Class wasmFuncRefClass;
-  late final Class wasmEqRefClass;
-  late final Class wasmDataRefClass;
-  late final Class wasmFunctionClass;
-  late final Class wasmTableClass;
-  late final Class boxedBoolClass;
-  late final Class boxedIntClass;
-  late final Class boxedDoubleClass;
-  late final Class functionClass;
-  late final Class listBaseClass;
-  late final Class fixedLengthListClass;
-  late final Class growableListClass;
-  late final Class immutableListClass;
-  late final Class immutableMapClass;
-  late final Class immutableSetClass;
-  late final Class hashFieldBaseClass;
-  late final Class stringBaseClass;
-  late final Class oneByteStringClass;
-  late final Class twoByteStringClass;
-  late final Class typeClass;
-  late final Class neverTypeClass;
-  late final Class dynamicTypeClass;
-  late final Class voidTypeClass;
-  late final Class nullTypeClass;
-  late final Class futureOrTypeClass;
-  late final Class interfaceTypeClass;
-  late final Class functionTypeClass;
-  late final Class genericFunctionTypeClass;
-  late final Class interfaceTypeParameterTypeClass;
-  late final Class genericFunctionTypeParameterTypeClass;
-  late final Class namedParameterClass;
-  late final Class stackTraceClass;
-  late final Class ffiCompoundClass;
-  late final Class ffiPointerClass;
-  late final Class typedListBaseClass;
-  late final Class typedListClass;
-  late final Class typedListViewClass;
-  late final Class byteDataViewClass;
-  late final Class unmodifiableByteDataViewClass;
-  late final Class typeErrorClass;
-  late final Class typeUniverseClass;
-  late final Class symbolClass;
-  late final Class invocationClass;
-  late final Class noSuchMethodErrorClass;
-  late final Procedure wasmFunctionCall;
-  late final Procedure wasmTableCallIndirect;
-  late final Procedure stackTraceCurrent;
-  late final Procedure asyncHelper;
-  late final Procedure awaitHelper;
-  late final Procedure stringEquals;
-  late final Procedure stringInterpolate;
-  late final Procedure throwNullCheckError;
-  late final Procedure throwThrowNullError;
-  late final Procedure throwAsCheckError;
-  late final Procedure throwWasmRefError;
-  late final Procedure mapFactory;
-  late final Procedure mapPut;
-  late final Procedure setFactory;
-  late final Procedure setAdd;
-  late final Procedure hashImmutableIndexNullable;
-  late final Procedure isSubtype;
-  late final Procedure objectRuntimeType;
-  late final Procedure typeAsNullable;
-  late final Procedure objectNoSuchMethod;
-  late final Procedure invocationGetterFactory;
-  late final Procedure invocationSetterFactory;
-  late final Procedure invocationMethodFactory;
-  late final Procedure invocationGenericMethodFactory;
-  late final Procedure nullToString;
-  late final Procedure nullNoSuchMethod;
-  late final Procedure createNormalizedFutureOrType;
-  late final Procedure noSuchMethodErrorThrowWithInvocation;
-  late final Map<Class, w.StorageType> builtinTypes;
-  late final Map<w.ValueType, Class> boxedClasses;
 
   // Other parts of the global compiler state.
   late final ClosureLayouter closureLayouter;
@@ -181,9 +101,44 @@ class Translator {
   final Map<w.BaseFunction, w.DefinedGlobal> functionRefCache = {};
   final Map<Procedure, ClosureImplementation> tearOffFunctionCache = {};
 
-  ClassInfo get topInfo => classes[0];
-  ClassInfo get objectInfo => classInfo[coreTypes.objectClass]!;
-  ClassInfo get stackTraceInfo => classInfo[stackTraceClass]!;
+  // Some convenience accessors for commonly used values.
+  late final ClassInfo topInfo = classes[0];
+  late final ClassInfo objectInfo = classInfo[coreTypes.objectClass]!;
+  late final ClassInfo stackTraceInfo = classInfo[stackTraceClass]!;
+  late final w.ArrayType listArrayType = (classInfo[listBaseClass]!
+          .struct
+          .fields[FieldIndex.listArray]
+          .type as w.RefType)
+      .heapType as w.ArrayType;
+
+  /// Dart types that have specialized Wasm representations.
+  late final Map<Class, w.StorageType> builtinTypes = {
+    coreTypes.boolClass: w.NumType.i32,
+    coreTypes.intClass: w.NumType.i64,
+    coreTypes.doubleClass: w.NumType.f64,
+    boxedBoolClass: w.NumType.i32,
+    boxedIntClass: w.NumType.i64,
+    boxedDoubleClass: w.NumType.f64,
+    ffiPointerClass: w.NumType.i32,
+    wasmI8Class: w.PackedType.i8,
+    wasmI16Class: w.PackedType.i16,
+    wasmI32Class: w.NumType.i32,
+    wasmI64Class: w.NumType.i64,
+    wasmF32Class: w.NumType.f32,
+    wasmF64Class: w.NumType.f64,
+    wasmAnyRefClass: const w.RefType.any(nullable: false),
+    wasmExternRefClass: const w.RefType.extern(nullable: false),
+    wasmFuncRefClass: const w.RefType.func(nullable: false),
+    wasmEqRefClass: const w.RefType.eq(nullable: false),
+    wasmDataRefClass: const w.RefType.data(nullable: false),
+  };
+
+  /// The box classes corresponding to each of the value types.
+  late final Map<w.ValueType, Class> boxedClasses = {
+    w.NumType.i32: boxedBoolClass,
+    w.NumType.i64: boxedIntClass,
+    w.NumType.f64: boxedDoubleClass,
+  };
 
   Translator(this.component, this.coreTypes, this.typeEnvironment, this.options)
       : libraries = component.libraries,
@@ -196,167 +151,6 @@ class Translator {
     functions = FunctionCollector(this);
     types = Types(this);
     dynamics = DynamicDispatcher(this);
-
-    Library lookupLibrary(String importUriString) => component.libraries
-        .firstWhere((l) => l.importUri == Uri.parse(importUriString));
-
-    Class Function(String) makeLookup(String importUriString) {
-      return (name) => lookupLibrary(importUriString)
-          .classes
-          .firstWhere((c) => c.name == name);
-    }
-
-    Class Function(String) lookupCore = makeLookup("dart:core");
-    Class Function(String) lookupCollection = makeLookup("dart:collection");
-    Class Function(String) lookupFfi = makeLookup("dart:ffi");
-    Class Function(String) lookupInternal = makeLookup("dart:_internal");
-    Class Function(String) lookupTypedData = makeLookup("dart:typed_data");
-    Class Function(String) lookupWasm = makeLookup("dart:wasm");
-
-    wasmTypesBaseClass = lookupWasm("_WasmBase");
-    wasmArrayBaseClass = lookupWasm("_WasmArray");
-    wasmAnyRefClass = lookupWasm("WasmAnyRef");
-    wasmExternRefClass = lookupWasm("WasmExternRef");
-    wasmFuncRefClass = lookupWasm("WasmFuncRef");
-    wasmEqRefClass = lookupWasm("WasmEqRef");
-    wasmDataRefClass = lookupWasm("WasmDataRef");
-    wasmFunctionClass = lookupWasm("WasmFunction");
-    wasmTableClass = lookupWasm("WasmTable");
-    boxedBoolClass = lookupCore("_BoxedBool");
-    boxedIntClass = lookupCore("_BoxedInt");
-    boxedDoubleClass = lookupCore("_BoxedDouble");
-    functionClass = lookupCore("_Function");
-    fixedLengthListClass = lookupCore("_List");
-    listBaseClass = lookupCore("_ListBase");
-    growableListClass = lookupCore("_GrowableList");
-    immutableListClass = lookupCore("_ImmutableList");
-    immutableMapClass = lookupCollection("_WasmImmutableLinkedHashMap");
-    immutableSetClass = lookupCollection("_WasmImmutableLinkedHashSet");
-    hashFieldBaseClass = lookupCollection("_HashFieldBase");
-    stringBaseClass = lookupCore("_StringBase");
-    oneByteStringClass = lookupCore("_OneByteString");
-    twoByteStringClass = lookupCore("_TwoByteString");
-    typeClass = lookupCore("_Type");
-    neverTypeClass = lookupCore("_NeverType");
-    dynamicTypeClass = lookupCore("_DynamicType");
-    voidTypeClass = lookupCore("_VoidType");
-    nullTypeClass = lookupCore("_NullType");
-    futureOrTypeClass = lookupCore("_FutureOrType");
-    interfaceTypeClass = lookupCore("_InterfaceType");
-    functionTypeClass = lookupCore("_FunctionType");
-    genericFunctionTypeClass = lookupCore("_GenericFunctionType");
-    interfaceTypeParameterTypeClass = lookupCore("_InterfaceTypeParameterType");
-    genericFunctionTypeParameterTypeClass =
-        lookupCore("_GenericFunctionTypeParameterType");
-    namedParameterClass = lookupCore("_NamedParameter");
-    stackTraceClass = lookupCore("StackTrace");
-    typeUniverseClass = lookupCore("_TypeUniverse");
-    ffiCompoundClass = lookupFfi("_Compound");
-    ffiPointerClass = lookupFfi("Pointer");
-    typeErrorClass = lookupCore("_TypeError");
-    typedListBaseClass = lookupTypedData("_TypedListBase");
-    typedListClass = lookupTypedData("_TypedList");
-    typedListViewClass = lookupTypedData("_TypedListView");
-    byteDataViewClass = lookupTypedData("_ByteDataView");
-    unmodifiableByteDataViewClass =
-        lookupTypedData("_UnmodifiableByteDataView");
-    symbolClass = lookupInternal("Symbol");
-    wasmFunctionCall =
-        wasmFunctionClass.procedures.firstWhere((p) => p.name.text == "call");
-    wasmTableCallIndirect = wasmTableClass.procedures
-        .firstWhere((p) => p.name.text == "callIndirect");
-    stackTraceCurrent =
-        stackTraceClass.procedures.firstWhere((p) => p.name.text == "current");
-    asyncHelper = lookupLibrary("dart:async")
-        .procedures
-        .firstWhere((p) => p.name.text == "_asyncHelper");
-    awaitHelper = lookupLibrary("dart:async")
-        .procedures
-        .firstWhere((p) => p.name.text == "_awaitHelper");
-    stringEquals =
-        stringBaseClass.procedures.firstWhere((p) => p.name.text == "==");
-    stringInterpolate = stringBaseClass.procedures
-        .firstWhere((p) => p.name.text == "_interpolate");
-    throwNullCheckError = typeErrorClass.procedures
-        .firstWhere((p) => p.name.text == "_throwNullCheckError");
-    throwThrowNullError = typeErrorClass.procedures
-        .firstWhere((p) => p.name.text == "_throwThrowNullError");
-    throwAsCheckError = typeErrorClass.procedures
-        .firstWhere((p) => p.name.text == "_throwAsCheckError");
-    throwWasmRefError = typeErrorClass.procedures
-        .firstWhere((p) => p.name.text == "_throwWasmRefError");
-    mapFactory = lookupCollection("LinkedHashMap").procedures.firstWhere(
-        (p) => p.kind == ProcedureKind.Factory && p.name.text == "_default");
-    mapPut = lookupCollection("_CompactLinkedCustomHashMap")
-        .superclass! // _LinkedHashMapMixin<K, V>
-        .procedures
-        .firstWhere((p) => p.name.text == "[]=");
-    setFactory = lookupCollection("LinkedHashSet").procedures.firstWhere(
-        (p) => p.kind == ProcedureKind.Factory && p.name.text == "_default");
-    setAdd = lookupCollection("_CompactLinkedCustomHashSet")
-        .superclass! // _LinkedHashSetMixin<K, V>
-        .procedures
-        .firstWhere((p) => p.name.text == "add");
-    hashImmutableIndexNullable = lookupCollection("_HashAbstractImmutableBase")
-        .procedures
-        .firstWhere((p) => p.name.text == "_indexNullable");
-    isSubtype = lookupLibrary("dart:core")
-        .procedures
-        .firstWhere((p) => p.name.text == "_isSubtype");
-    objectRuntimeType = lookupCore("Object")
-        .procedures
-        .firstWhere((p) => p.name.text == "_runtimeType");
-    typeAsNullable = lookupCore("_Type")
-        .procedures
-        .firstWhere((p) => p.name.text == "asNullable");
-    objectNoSuchMethod = lookupCore("Object")
-        .procedures
-        .firstWhere((p) => p.name.text == "noSuchMethod");
-    invocationClass = lookupCore('Invocation');
-    invocationGetterFactory =
-        invocationClass.procedures.firstWhere((p) => p.name.text == "getter");
-    invocationSetterFactory =
-        invocationClass.procedures.firstWhere((p) => p.name.text == "setter");
-    invocationMethodFactory =
-        invocationClass.procedures.firstWhere((p) => p.name.text == "method");
-    invocationGenericMethodFactory = invocationClass.procedures
-        .firstWhere((p) => p.name.text == "genericMethod");
-    nullToString = lookupCore("Object")
-        .procedures
-        .firstWhere((p) => p.name.text == "_nullToString");
-    nullNoSuchMethod = lookupCore("Object")
-        .procedures
-        .firstWhere((p) => p.name.text == "_nullNoSuchMethod");
-    createNormalizedFutureOrType = typeUniverseClass.procedures
-        .firstWhere((p) => p.name.text == "createNormalizedFutureOrType");
-    builtinTypes = {
-      coreTypes.boolClass: w.NumType.i32,
-      coreTypes.intClass: w.NumType.i64,
-      coreTypes.doubleClass: w.NumType.f64,
-      wasmAnyRefClass: const w.RefType.any(nullable: false),
-      wasmExternRefClass: const w.RefType.extern(nullable: false),
-      wasmFuncRefClass: const w.RefType.func(nullable: false),
-      wasmEqRefClass: const w.RefType.eq(nullable: false),
-      wasmDataRefClass: const w.RefType.data(nullable: false),
-      boxedBoolClass: w.NumType.i32,
-      boxedIntClass: w.NumType.i64,
-      boxedDoubleClass: w.NumType.f64,
-      lookupWasm("WasmI8"): w.PackedType.i8,
-      lookupWasm("WasmI16"): w.PackedType.i16,
-      lookupWasm("WasmI32"): w.NumType.i32,
-      lookupWasm("WasmI64"): w.NumType.i64,
-      lookupWasm("WasmF32"): w.NumType.f32,
-      lookupWasm("WasmF64"): w.NumType.f64,
-      ffiPointerClass: w.NumType.i32,
-    };
-    boxedClasses = {
-      w.NumType.i32: boxedBoolClass,
-      w.NumType.i64: boxedIntClass,
-      w.NumType.f64: boxedDoubleClass,
-    };
-    noSuchMethodErrorClass = lookupCore("NoSuchMethodError");
-    noSuchMethodErrorThrowWithInvocation = noSuchMethodErrorClass.procedures
-        .firstWhere((p) => p.name.text == "_throwWithInvocation");
   }
 
   // Finds the `main` method for a given library which is assumed to contain
@@ -384,12 +178,11 @@ class Translator {
   Uint8List translate() {
     m = w.Module(watchPoints: options.watchPoints);
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
-
-    closureLayouter.collect();
-    classInfoCollector.collect();
-
-    functions.collectImportsAndExports();
     mainFunction = _findMainMethod(libraries.first);
+
+    closureLayouter.collect([mainFunction.function]);
+    classInfoCollector.collect();
+    functions.collectImportsAndExports();
 
     initFunction =
         m.addFunction(m.addFunctionType(const [], const []), "#init");
@@ -400,10 +193,11 @@ class Translator {
 
     dispatchTable.build();
 
-    m.exportFunction("\$main", generateEntryFunction(mainFunction.reference));
+    m.exportFunction("\$getMain", generateGetMain(mainFunction));
+
     functions.initialize();
-    while (functions.worklist.isNotEmpty) {
-      Reference reference = functions.worklist.removeLast();
+    while (!functions.isWorkListEmpty()) {
+      Reference reference = functions.popWorkList();
       Member member = reference.asMember;
       var function =
           functions.getExistingFunction(reference) as w.DefinedFunction;
@@ -421,7 +215,7 @@ class Translator {
           ? canonicalName
           : "${member.enclosingLibrary.importUri} $canonicalName";
 
-      String? exportName = functions.exports[reference];
+      String? exportName = functions.getExport(reference);
 
       if (options.printKernel || options.printWasm) {
         if (exportName != null) {
@@ -497,42 +291,14 @@ class Translator {
     }
   }
 
-  w.DefinedFunction generateEntryFunction(Reference mainReference) {
-    final ParameterInfo paramInfo = paramInfoFor(mainReference);
-    assert(paramInfo.typeParamCount == 0);
-    final w.BaseFunction mainFunction = functions.getFunction(mainReference);
-    final w.DefinedFunction entry =
-        m.addFunction(m.addFunctionType(const [], const []), "\$main");
-    final w.Instructions b = entry.body;
+  w.DefinedFunction generateGetMain(Procedure mainFunction) {
+    w.DefinedFunction getMain = m.addFunction(
+        m.addFunctionType(const [], const [w.RefType.extern(nullable: true)]));
+    constants.instantiateConstant(getMain, getMain.body,
+        StaticTearOffConstant(mainFunction), getMain.type.outputs.single);
+    getMain.body.end();
 
-    if (paramInfo.positional.isNotEmpty) {
-      // Supply dummy commandline arguments
-      constants.instantiateConstant(
-          entry,
-          b,
-          ListConstant(coreTypes.stringNonNullableRawType, const []),
-          mainFunction.type.inputs[0]);
-    }
-    if (paramInfo.positional.length > 1) {
-      // Supply dummy isolate
-      constants.instantiateConstant(
-          entry, b, NullConstant(), mainFunction.type.inputs[1]);
-    }
-    for (int i = 2; i < paramInfo.positional.length; i++) {
-      // Supply default values for positional parameters
-      constants.instantiateConstant(
-          entry, b, paramInfo.positional[i]!, mainFunction.type.inputs[i]);
-    }
-    for (String name in paramInfo.names) {
-      // Supply default values for named parameters
-      constants.instantiateConstant(entry, b, paramInfo.named[name]!,
-          mainFunction.type.inputs[paramInfo.nameIndex[name]!]);
-    }
-    b.call(mainFunction);
-    convertType(entry, outputOrVoid(mainFunction.type.outputs), voidMarker);
-    b.end();
-
-    return entry;
+    return getMain;
   }
 
   Class classForType(DartType type) {
@@ -568,7 +334,8 @@ class Translator {
     return false;
   }
 
-  bool isWasmType(Class cls) => _hasSuperclass(cls, wasmTypesBaseClass);
+  bool isWasmType(Class cls) =>
+      cls == wasmTypesBaseClass || _hasSuperclass(cls, wasmTypesBaseClass);
 
   bool isFfiCompound(Class cls) => _hasSuperclass(cls, ffiCompoundClass);
 
@@ -633,10 +400,8 @@ class Translator {
     if (type is DynamicType || type is VoidType) {
       return topInfo.nullableType;
     }
-    // TODO(joshualitt): When we add support to `wasm_builder` for bottom heap
-    // types, we should return bottom heap type here.
     if (type is NullType || type is NeverType) {
-      return topInfo.nullableType;
+      return const w.RefType.none(nullable: true);
     }
     if (type is TypeParameterType) {
       return translateStorageType(type.isPotentiallyNullable
@@ -851,17 +616,11 @@ class Translator {
         return;
       }
       if (to != voidMarker) {
-        if (to is w.RefType && to.nullable) {
-          // This can happen when a void method has its return type overridden
-          // to return a value, in which case the selector signature will have a
-          // non-void return type to encompass all possible return values.
-          b.ref_null(to.heapType);
-        } else {
-          // This only happens in invalid but unreachable code produced by the
-          // TFA dead-code elimination.
-          b.comment("Non-nullable void conversion");
-          b.unreachable();
-        }
+        assert(to is w.RefType && to.nullable);
+        // This can happen when a void method has its return type overridden
+        // to return a value, in which case the selector signature will have a
+        // non-void return type to encompass all possible return values.
+        b.ref_null((to as w.RefType).heapType.bottomType);
         return;
       }
     }
@@ -908,31 +667,35 @@ class Translator {
         var heapType = (to as w.RefType).heapType;
         if (heapType is w.FunctionType) {
           b.ref_cast(heapType);
-          return;
-        }
-        w.Label? nullLabel = null;
-        if (!(from as w.RefType).heapType.isSubtypeOf(w.HeapType.data)) {
-          if (from.nullable && to.nullable) {
-            // Nullable cast from above dataref. Since ref.as_data is not
-            // null-polymorphic, we need to check explicitly for null.
-            w.Local temp = function.addLocal(from);
-            b.local_set(temp);
-            nullLabel = b.block(const [], [to]);
-            w.Label nonNullLabel =
-                b.block(const [], [from.withNullability(false)]);
-            b.local_get(temp);
-            b.br_on_non_null(nonNullLabel);
-            b.ref_null(to.heapType);
-            b.br(nullLabel);
-            b.end(); // nonNullLabel
+        } else if (heapType == w.HeapType.none) {
+          assert(to.nullable);
+          b.drop();
+          b.ref_null(w.HeapType.none);
+        } else {
+          w.Label? nullLabel = null;
+          if (!(from as w.RefType).heapType.isSubtypeOf(w.HeapType.data)) {
+            if (from.nullable && to.nullable) {
+              // Nullable cast from above dataref. Since ref.as_data is not
+              // null-polymorphic, we need to check explicitly for null.
+              w.Local temp = function.addLocal(from);
+              b.local_set(temp);
+              nullLabel = b.block(const [], [to]);
+              w.Label nonNullLabel =
+                  b.block(const [], [from.withNullability(false)]);
+              b.local_get(temp);
+              b.br_on_non_null(nonNullLabel);
+              b.ref_null(w.HeapType.none);
+              b.br(nullLabel);
+              b.end(); // nonNullLabel
+            }
+            b.ref_as_data();
           }
-          b.ref_as_data();
-        }
-        if (heapType is w.DefType) {
-          b.ref_cast(heapType);
-        }
-        if (nullLabel != null) {
-          b.end(); // nullLabel
+          if (heapType is w.DefType) {
+            b.ref_cast(heapType);
+          }
+          if (nullLabel != null) {
+            b.end(); // nullLabel
+          }
         }
       }
     }

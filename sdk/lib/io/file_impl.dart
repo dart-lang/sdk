@@ -626,7 +626,7 @@ class _File extends FileSystemEntity implements File {
 
   static throwIfError(Object result, String msg, String path) {
     if (result is OSError) {
-      throw new FileSystemException(msg, path, result);
+      throw FileSystemException._fromOSError(result, msg, path);
     }
   }
 

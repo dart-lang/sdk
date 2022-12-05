@@ -1,8 +1,8 @@
 ## Running dart2wasm
 
-You don't need to build the Dart SDK to run dart2wasm, as long as you have a Dart SDK installed.
+You don't need to build the Dart SDK to run dart2wasm, as long as you have a Dart SDK installed and have the [Dart SDK repository checked out](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source).
 
-To compile a Dart file to Wasm, run:
+To compile a Dart file to Wasm, in a checkout of the Dart SDK repository, run:
 
 `dart --enable-asserts pkg/dart2wasm/bin/dart2wasm.dart` *options* *infile*`.dart` *outfile*`.wasm`
 
@@ -20,12 +20,11 @@ where *options* include:
 | `--`[`no-`]`print-kernel`               | no      | Print IR for each function before compiling it.
 | `--`[`no-`]`print-wasm`                 | no      | Print Wasm instructions of each compiled function.
 | `--shared-memory-max-pages` *pagecount* |         | Max size of the imported memory buffer. If `--shared-import-memory` is specified, this must also be specified.
-| `--`[`no-`]`string-data-segments`       | no      | Use experimental array init from data segment for string constants.
 | `--watch` *offset*                      |         | Print stack trace leading to the byte at offset *offset* in the `.wasm` output file. Can be specified multiple times.
 
 The resulting `.wasm` file can be run with:
 
-`d8 --experimental-wasm-gc --wasm-gc-js-interop --experimental-wasm-stack-switching --experimental-wasm-type-reflection pkg/dart2wasm/bin/run_wasm.js -- `*outfile*`.wasm`
+`d8 --experimental-wasm-gc --experimental-wasm-stack-switching --experimental-wasm-type-reflection pkg/dart2wasm/bin/run_wasm.js -- `*outfile*`.wasm`
 
 ## Imports and exports
 

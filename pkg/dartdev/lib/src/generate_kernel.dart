@@ -9,6 +9,7 @@ import 'package:package_config/package_config.dart';
 import 'package:path/path.dart' as p;
 import 'package:pub/pub.dart';
 
+import 'analytics.dart';
 import 'resident_frontend_constants.dart';
 import 'resident_frontend_utils.dart';
 import 'sdk.dart';
@@ -134,14 +135,14 @@ Future<void> _ensureCompileServerIsRunning(
   }
   try {
     Directory(p.dirname(serverInfoFile.path)).createSync(recursive: true);
-    // TODO replace this with the AOT executable when that is built.
+    // TODO: replace this with the AOT executable when that is built.
     final frontendServerProcess = await Process.start(
       sdk.dart,
       [
         sdk.frontendServerSnapshot,
         '--resident-info-file-name=${serverInfoFile.path}'
       ],
-      workingDirectory: home,
+      workingDirectory: homeDir?.path,
       mode: ProcessStartMode.detachedWithStdio,
     );
 
@@ -215,6 +216,7 @@ enum CompilationIssue {
 class FrontendCompilerException implements Exception {
   final String message;
   final CompilationIssue issue;
+
   FrontendCompilerException._(this.message, this.issue);
 
   @override

@@ -20,7 +20,7 @@ class E extends self::_E&_Enum&M1 /*isEnum*/  {
   enum-element static const field self::E e3 = const self::E::•(2, "e3");
   const constructor •(core::int #index, core::String #name) → self::E
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic

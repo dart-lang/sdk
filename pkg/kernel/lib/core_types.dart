@@ -253,9 +253,6 @@ class CoreTypes {
 
   late final Class typeClass = index.getClass('dart:core', 'Type');
 
-  late final Constructor fallThroughErrorUrlAndLineConstructor =
-      index.getConstructor('dart:core', 'FallThroughError', '_create');
-
   late final Procedure boolFromEnvironment =
       index.getProcedure('dart:core', 'bool', 'fromEnvironment');
 

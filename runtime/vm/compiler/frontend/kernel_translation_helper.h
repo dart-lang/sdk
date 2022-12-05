@@ -749,6 +749,7 @@ class ClassHelper {
     kFlagMixinDeclaration = 1 << 4,
     kHasConstConstructor = 1 << 5,
     kIsMacro = 1 << 6,
+    kisSealed = 1 << 7,
   };
 
   explicit ClassHelper(KernelReaderHelper* helper)
@@ -1169,7 +1170,9 @@ class UnboxingInfoMetadata : public ZoneAllocated {
     kBoxed = 0,
     kUnboxedIntCandidate = 1 << 0,
     kUnboxedDoubleCandidate = 1 << 1,
-    kUnboxingCandidate = kUnboxedIntCandidate | kUnboxedDoubleCandidate,
+    kUnboxedRecordCandidate = 1 << 2,
+    kUnboxingCandidate = kUnboxedIntCandidate | kUnboxedDoubleCandidate |
+                         kUnboxedRecordCandidate,
   };
 
   UnboxingInfoMetadata() : unboxed_args_info(0) { return_info = kBoxed; }

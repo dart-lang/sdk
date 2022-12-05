@@ -463,13 +463,6 @@ mixin ControlFlowMapEntry implements MapLiteralEntry {
 
   @override
   String toStringInternal() => toText(defaultAstTextStrategy);
-
-  @override
-  String toText(AstTextStrategy strategy) {
-    AstPrinter state = new AstPrinter(strategy);
-    toTextInternal(state);
-    return state.getText();
-  }
 }
 
 /// A spread element in a map literal.
@@ -520,8 +513,9 @@ class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 
   @override
-  void toTextInternal(AstPrinter state) {
-    // TODO(johnniwinther): Implement this.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('...');
+    expression.toTextInternal(printer);
   }
 }
 
@@ -590,8 +584,15 @@ class IfMapEntry extends TreeNode with ControlFlowMapEntry {
   }
 
   @override
-  void toTextInternal(AstPrinter state) {
-    // TODO(johnniwinther): Implement this.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('if (');
+    condition.toTextInternal(printer);
+    printer.write(') ');
+    then.toTextInternal(printer);
+    if (otherwise != null) {
+      printer.write(' else ');
+      otherwise!.toTextInternal(printer);
+    }
   }
 }
 

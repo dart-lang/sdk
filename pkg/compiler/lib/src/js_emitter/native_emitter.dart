@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.js_emitter.native_emitter;
 
 import '../common.dart';
@@ -17,11 +15,10 @@ import '../js_backend/native_data.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../native/enqueue.dart' show NativeCodegenEnqueuer;
 
-import 'interfaces.dart' show CodeEmitterTask;
+import 'js_emitter.dart' show CodeEmitterTask;
 import 'model.dart';
-import 'interfaces.dart' as interfaces;
 
-class NativeEmitter implements interfaces.NativeEmitter {
+class NativeEmitter {
   final CodeEmitterTask _emitterTask;
   final JClosedWorld _closedWorld;
   final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
@@ -30,15 +27,12 @@ class NativeEmitter implements interfaces.NativeEmitter {
   bool hasNativeClasses = false;
 
   // Caches the native subtypes of a native class.
-  @override
   Map<ClassEntity, List<ClassEntity>> subtypes = {};
 
-  @override
   // Caches the direct native subtypes of a native class.
   Map<ClassEntity, List<ClassEntity>> directSubtypes = {};
 
   // Caches the methods that have a native body.
-  @override
   Set<FunctionEntity> nativeMethods = {};
 
   // Type metadata redirections, where the key is the class type data being
@@ -88,8 +82,6 @@ class NativeEmitter implements interfaces.NativeEmitter {
       List<Class> classes,
       Set<ClassEntity> interceptorClassesNeededByConstants,
       Iterable<ClassEntity> classesNeededForRti) {
-    assert(classes.every((Class cls) => cls != null));
-
     hasNativeClasses = classes.isNotEmpty;
 
     // Compute a pre-order traversal of the subclass forest.  We actually want a
@@ -98,9 +90,9 @@ class NativeEmitter implements interfaces.NativeEmitter {
     List<Class> preOrder = [];
     Set<Class> seen = {};
 
-    Class objectClass = null;
-    Class jsInterceptorClass = null;
-    Class jsJavaScriptObjectClass = null;
+    Class? objectClass;
+    Class? jsInterceptorClass;
+    Class? jsJavaScriptObjectClass;
 
     void walk(Class cls) {
       if (cls.element == _commonElements.objectClass) {
@@ -118,7 +110,9 @@ class NativeEmitter implements interfaces.NativeEmitter {
       }
       if (seen.contains(cls)) return;
       seen.add(cls);
-      walk(cls.superclass);
+      // Note: only the superclass of `Object` is expected to be null, but that
+      // would already be handled in line 102.
+      walk(cls.superclass!);
       preOrder.add(cls);
     }
 
@@ -134,7 +128,7 @@ class NativeEmitter implements interfaces.NativeEmitter {
 
     Map<Class, List<Class>> extensionPoints = computeExtensionPoints(preOrder);
 
-    neededClasses.add(objectClass);
+    if (objectClass != null) neededClasses.add(objectClass!);
 
     for (Class cls in preOrder.reversed) {
       ClassEntity classElement = cls.element;
@@ -166,8 +160,8 @@ class NativeEmitter implements interfaces.NativeEmitter {
 
       if (needed || neededClasses.contains(cls)) {
         neededClasses.add(cls);
-        neededClasses.add(cls.superclass);
-        nonLeafClasses.add(cls.superclass);
+        neededClasses.add(cls.superclass!);
+        nonLeafClasses.add(cls.superclass!);
       } else if (!cls.typeData.isTriviallyChecked(_commonElements) ||
           cls.typeData.namedTypeVariables.isNotEmpty) {
         // The class is not marked 'needed', but we still need it in the type
@@ -180,7 +174,7 @@ class NativeEmitter implements interfaces.NativeEmitter {
         List<ClassTypeData> redirectedClasses =
             typeRedirections[cls.typeData] ?? [];
         redirectedClasses.add(cls.typeData);
-        typeRedirections[cls.superclass.typeData] = redirectedClasses;
+        typeRedirections[cls.superclass!.typeData] = redirectedClasses;
         typeRedirections.remove(cls.typeData);
       }
     }
@@ -199,12 +193,14 @@ class NativeEmitter implements interfaces.NativeEmitter {
       if (nonLeafClasses.contains(cls) || extensionPoints.containsKey(cls)) {
         nonleafTags.putIfAbsent(cls, () => {}).addAll(nativeTags);
       } else {
-        Class sufficingInterceptor = cls;
-        while (!neededClasses.contains(sufficingInterceptor)) {
+        Class? sufficingInterceptor = cls;
+        while (sufficingInterceptor != null &&
+            !neededClasses.contains(sufficingInterceptor)) {
           sufficingInterceptor = sufficingInterceptor.superclass;
         }
-        if (sufficingInterceptor == objectClass) {
-          sufficingInterceptor = jsInterceptorClass;
+        if (sufficingInterceptor == null ||
+            sufficingInterceptor == objectClass) {
+          sufficingInterceptor = jsInterceptorClass!;
         }
         leafTags.putIfAbsent(sufficingInterceptor, () => {}).addAll(nativeTags);
       }
@@ -215,10 +211,10 @@ class NativeEmitter implements interfaces.NativeEmitter {
           cls.nativeNonLeafTags == null &&
           cls.nativeExtensions == null);
       if (leafTags[cls] != null) {
-        cls.nativeLeafTags = leafTags[cls].toList(growable: false);
+        cls.nativeLeafTags = leafTags[cls]!.toList(growable: false);
       }
       if (nonleafTags[cls] != null) {
-        cls.nativeNonLeafTags = nonleafTags[cls].toList(growable: false);
+        cls.nativeNonLeafTags = nonleafTags[cls]!.toList(growable: false);
       }
       cls.nativeExtensions = extensionPoints[cls];
     }
@@ -226,9 +222,9 @@ class NativeEmitter implements interfaces.NativeEmitter {
     // Add properties containing the information needed to construct maps used
     // by getNativeInterceptor and custom elements.
     if (_nativeCodegenEnqueuer.hasInstantiatedNativeClasses) {
-      fillNativeInfo(jsInterceptorClass);
+      fillNativeInfo(jsInterceptorClass!);
       if (jsJavaScriptObjectClass != null) {
-        fillNativeInfo(jsJavaScriptObjectClass);
+        fillNativeInfo(jsJavaScriptObjectClass!);
       }
       for (Class cls in classes) {
         if (!cls.isNative || neededClasses.contains(cls)) {
@@ -251,13 +247,13 @@ class NativeEmitter implements interfaces.NativeEmitter {
   /// classes and the set non-mative classes that extend them.  (A List is used
   /// instead of a Set for out stability).
   Map<Class, List<Class>> computeExtensionPoints(List<Class> classes) {
-    Class nativeSuperclassOf(Class cls) {
+    Class? nativeSuperclassOf(Class? cls) {
       if (cls == null) return null;
       if (cls.isNative) return cls;
       return nativeSuperclassOf(cls.superclass);
     }
 
-    Class nativeAncestorOf(Class cls) {
+    Class? nativeAncestorOf(Class cls) {
       return nativeSuperclassOf(cls.superclass);
     }
 
@@ -265,7 +261,7 @@ class NativeEmitter implements interfaces.NativeEmitter {
 
     for (Class cls in classes) {
       if (cls.isNative) continue;
-      Class nativeAncestor = nativeAncestorOf(cls);
+      Class? nativeAncestor = nativeAncestorOf(cls);
       if (nativeAncestor != null) {
         map.putIfAbsent(nativeAncestor, () => []).add(cls);
       }
@@ -283,15 +279,15 @@ class NativeEmitter implements interfaces.NativeEmitter {
     return cls.methods.isEmpty &&
         cls.isChecks.isEmpty &&
         cls.callStubs.isEmpty &&
-        !cls.superclass.isSimpleMixinApplication &&
+        !cls.superclass!.isSimpleMixinApplication &&
         !cls.fields.any(needsAccessor);
   }
 
   void potentiallyConvertDartClosuresToJs(List<jsAst.Statement> statements,
       FunctionEntity member, List<jsAst.Parameter> stubParameters) {
-    jsAst.Expression closureConverter;
+    jsAst.Expression? closureConverter;
     _elementEnvironment.forEachParameter(member,
-        (DartType type, String name, _) {
+        (DartType type, String? name, _) {
       type = type.withoutNullability;
 
       // If [name] is not in [stubParameters], then the parameter is an optional
@@ -314,7 +310,6 @@ class NativeEmitter implements interfaces.NativeEmitter {
     });
   }
 
-  @override
   List<jsAst.Statement> generateParameterStubStatements(
       FunctionEntity member,
       bool isInterceptedMethod,
@@ -334,14 +329,14 @@ class NativeEmitter implements interfaces.NativeEmitter {
     List<jsAst.Statement> statements = [];
     potentiallyConvertDartClosuresToJs(statements, member, stubParameters);
 
-    String target;
     jsAst.Expression receiver;
     List<jsAst.Expression> arguments;
 
     assert(nativeMethods.contains(member), failedAt(member));
+
     // When calling a JS method, we call it with the native name, and only the
     // arguments up until the last one provided.
-    target = _nativeData.getFixedBackendName(member);
+    final target = _nativeData.getFixedBackendName(member)!;
 
     if (isInterceptedMethod) {
       receiver = argumentsBuffer[0];
@@ -361,8 +356,8 @@ class NativeEmitter implements interfaces.NativeEmitter {
         // unique template.
         receiver = js
             .uncachedExpressionTemplate(
-                _nativeData.getFixedBackendMethodPath(member))
-            .instantiate([]);
+                _nativeData.getFixedBackendMethodPath(member)!)
+            .instantiate([]) as jsAst.Expression;
       } else {
         receiver = js('this');
       }

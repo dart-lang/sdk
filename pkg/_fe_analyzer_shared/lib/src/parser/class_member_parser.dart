@@ -47,9 +47,11 @@ class ClassMemberParser extends Parser {
   // This method is overridden for two reasons:
   // 1. Avoid generating events for arguments.
   // 2. Avoid calling skip expression for each argument (which doesn't work).
+  @override
   Token parseArgumentsOpt(Token token, {bool forPattern = false}) =>
       skipArgumentsOpt(token);
 
+  @override
   Token parseFunctionBody(Token token, bool isExpression, bool allowAbstract) {
     return skipFunctionBody(token, isExpression, allowAbstract);
   }

@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:math';
 
-import 'package:compiler/src/dart2js.dart' as dart2js_main;
+import '../../../pkg/vm/bin/gen_kernel.dart' as gen_kernel;
 
 class SpawnLatency {
   SpawnLatency(this.name);
@@ -144,9 +144,9 @@ $toExitUs''';
 Future<void> isolateCompiler(StartMessageLatency start) async {
   final timeRunningCodeUs = DateTime.now();
   await runZoned(
-      () => dart2js_main.internalMain(<String>[
+      () => gen_kernel.compile(<String>[
             'benchmarks/IsolateSpawn/dart/helloworld.dart',
-            '--libraries-spec=sdk/lib/libraries.json'
+            'benchmarks/IsolateSpawn/dart/helloworld.dart.dill',
           ]),
       zoneSpecification: ZoneSpecification(
           print: (Zone self, ZoneDelegate parent, Zone zone, String line) {}));

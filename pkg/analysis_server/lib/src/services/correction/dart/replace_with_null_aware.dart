@@ -13,6 +13,9 @@ class ReplaceWithNullAware extends CorrectionProducer {
   /// The kind of correction to be made.
   final _CorrectionKind _correctionKind;
 
+  /// The operator to replace.
+  String _operator = '.';
+
   ReplaceWithNullAware.inChain() : _correctionKind = _CorrectionKind.inChain;
 
   ReplaceWithNullAware.single() : _correctionKind = _CorrectionKind.single;
@@ -28,6 +31,9 @@ class ReplaceWithNullAware extends CorrectionProducer {
   // application, there are other options and a null-aware replacement is not
   // predictably correct.
   bool get canBeAppliedToFile => false;
+
+  @override
+  List<Object> get fixArguments => [_operator, '?$_operator'];
 
   @override
   FixKind get fixKind => DartFixKind.REPLACE_WITH_NULL_AWARE;
@@ -67,21 +73,42 @@ class ReplaceWithNullAware extends CorrectionProducer {
 
   Future<void> _computeSingle(ChangeBuilder builder) async {
     var node = coveredNode?.parent;
+    if (node is CascadeExpression) {
+      node = node.cascadeSections.first;
+    } else {
+      var parent = node?.parent;
+      if (parent is CascadeExpression) {
+        node = parent.cascadeSections.first;
+      }
+    }
     if (node is MethodInvocation) {
       var operator = node.operator;
       if (operator != null) {
+        _operator = operator.lexeme;
         await builder.addDartFileEdit(file, (builder) {
-          builder.addSimpleReplacement(range.token(operator), '?.');
+          builder.addSimpleReplacement(range.token(operator), '?$_operator');
         });
       }
     } else if (node is PrefixedIdentifier) {
+      var operator = node.period;
+      _operator = operator.lexeme;
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.token(node.period), '?.');
+        builder.addSimpleReplacement(range.token(operator), '?$_operator');
       });
     } else if (node is PropertyAccess) {
+      var operator = node.operator;
+      _operator = operator.lexeme;
       await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(range.token(node.operator), '?.');
+        builder.addSimpleReplacement(range.token(operator), '?$_operator');
       });
+    } else if (node is IndexExpression) {
+      var period = node.period;
+      if (period != null) {
+        _operator = period.lexeme;
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addSimpleReplacement(range.token(period), '?$_operator');
+        });
+      }
     }
   }
 }

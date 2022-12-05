@@ -75,19 +75,9 @@ library /*isNonNullableByDefault*/;
 //   @AbstractClass()
 //    ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various2.dart:99:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   @AbstractClass()
-//    ^
-//
 // pkg/front_end/testcases/general/constants/various2.dart:102:4: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
 //   @AbstractClassWithConstructor()
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/constants/various2.dart:102:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   @AbstractClassWithConstructor()
-//    ^
 //
 // pkg/front_end/testcases/general/constants/various2.dart:118:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
@@ -121,15 +111,9 @@ abstract class AbstractClassWithConstructor extends core::Object /*hasConstConst
   abstract method foo() → core::int;
 }
 class NotAbstractClass extends core::Object {
-  @throw invalid-expression "pkg/front_end/testcases/general/constants/various2.dart:99:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  @AbstractClass()
-   ^"
+  @invalid-expression "The class 'AbstractClass' is abstract and can't be instantiated."
   field core::Object foo;
-  @throw invalid-expression "pkg/front_end/testcases/general/constants/various2.dart:102:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  @AbstractClassWithConstructor()
-   ^"
+  @invalid-expression "The class 'AbstractClassWithConstructor' is abstract and can't be instantiated."
   field core::Object bar;
   synthetic constructor •() → self::NotAbstractClass
     ;
@@ -377,4 +361,4 @@ Evaluated: ConditionalExpression @ org-dartlang-testcase:///various2.dart:212:25
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various2.dart:213:40 -> BoolConstant(false)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various2.dart:214:25 -> NullConstant(null)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various2.dart:215:40 -> BoolConstant(false)
-Extra constant evaluation: evaluated: 149, effectively constant: 66
+Extra constant evaluation: evaluated: 147, effectively constant: 66

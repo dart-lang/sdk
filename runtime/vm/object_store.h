@@ -103,6 +103,7 @@ class ObjectPointerVisitor;
   RW(TypeArguments, type_argument_int)                                         \
   RW(TypeArguments, type_argument_legacy_int)                                  \
   RW(TypeArguments, type_argument_double)                                      \
+  RW(TypeArguments, type_argument_never)                                       \
   RW(TypeArguments, type_argument_string)                                      \
   RW(TypeArguments, type_argument_legacy_string)                               \
   RW(TypeArguments, type_argument_string_dynamic)                              \
@@ -123,10 +124,10 @@ class ObjectPointerVisitor;
   RW(Type, array_type)                                                         \
   RW(Class, immutable_array_class)                                             \
   RW(Class, growable_object_array_class)                                       \
-  RW(Class, linked_hash_map_class)                                             \
-  RW(Class, immutable_linked_hash_map_class)                                   \
-  RW(Class, linked_hash_set_class)                                             \
-  RW(Class, immutable_linked_hash_set_class)                                   \
+  RW(Class, map_impl_class)                                                    \
+  RW(Class, const_map_impl_class)                                              \
+  RW(Class, set_impl_class)                                                    \
+  RW(Class, const_set_impl_class)                                              \
   RW(Class, float32x4_class)                                                   \
   RW(Class, int32x4_class)                                                     \
   RW(Class, float64x2_class)                                                   \

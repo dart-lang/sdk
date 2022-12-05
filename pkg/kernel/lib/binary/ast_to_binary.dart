@@ -2119,6 +2119,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeByte(Tag.AwaitExpression);
     writeOffset(node.fileOffset);
     writeNode(node.operand);
+    writeOptionalNode(node.runtimeCheckType);
   }
 
   @override

@@ -1,0 +1,9 @@
+f(x) {
+late var (_) = x;
+}
+
+
+f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+late[KeywordToken] var[KeywordToken] ([BeginToken]_[StringToken])[SimpleToken] =[SimpleToken] x[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

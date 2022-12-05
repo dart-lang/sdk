@@ -31,20 +31,20 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(CapabilityImpl_factory, 0, 1) {
+DEFINE_NATIVE_ENTRY(Capability_factory, 0, 1) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   uint64_t id = isolate->random()->NextUInt64();
   return Capability::New(id);
 }
 
-DEFINE_NATIVE_ENTRY(CapabilityImpl_equals, 0, 2) {
+DEFINE_NATIVE_ENTRY(Capability_equals, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Capability, recv, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Capability, other, arguments->NativeArgAt(1));
   return (recv.Id() == other.Id()) ? Bool::True().ptr() : Bool::False().ptr();
 }
 
-DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 0, 1) {
+DEFINE_NATIVE_ENTRY(Capability_get_hashcode, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Capability, cap, arguments->NativeArgAt(0));
   int64_t id = cap.Id();
   int32_t hi = static_cast<int32_t>(id >> 32);
@@ -53,7 +53,7 @@ DEFINE_NATIVE_ENTRY(CapabilityImpl_get_hashcode, 0, 1) {
   return Smi::New(hash);
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 0, 2) {
+DEFINE_NATIVE_ENTRY(RawReceivePort_factory, 0, 2) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, debug_name, arguments->NativeArgAt(1));
@@ -61,24 +61,24 @@ DEFINE_NATIVE_ENTRY(RawReceivePortImpl_factory, 0, 2) {
   return ReceivePort::New(port_id, debug_name, false /* not control port */);
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_id, 0, 1) {
+DEFINE_NATIVE_ENTRY(RawReceivePort_get_id, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   return Integer::New(port.Id());
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_get_sendport, 0, 1) {
+DEFINE_NATIVE_ENTRY(RawReceivePort_get_sendport, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   return port.send_port();
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_closeInternal, 0, 1) {
+DEFINE_NATIVE_ENTRY(RawReceivePort_closeInternal, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   Dart_Port id = port.Id();
   PortMap::ClosePort(id);
   return Integer::New(id);
 }
 
-DEFINE_NATIVE_ENTRY(RawReceivePortImpl_setActive, 0, 2) {
+DEFINE_NATIVE_ENTRY(RawReceivePort_setActive, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, active, arguments->NativeArgAt(1));
   Dart_Port id = port.Id();
@@ -87,12 +87,12 @@ DEFINE_NATIVE_ENTRY(RawReceivePortImpl_setActive, 0, 2) {
   return Object::null();
 }
 
-DEFINE_NATIVE_ENTRY(SendPortImpl_get_id, 0, 1) {
+DEFINE_NATIVE_ENTRY(SendPort_get_id, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   return Integer::New(port.Id());
 }
 
-DEFINE_NATIVE_ENTRY(SendPortImpl_get_hashcode, 0, 1) {
+DEFINE_NATIVE_ENTRY(SendPort_get_hashcode, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   int64_t id = port.Id();
   int32_t hi = static_cast<int32_t>(id >> 32);
@@ -109,7 +109,7 @@ static bool InSameGroup(Isolate* sender, const SendPort& receiver) {
   return sender->origin_id() == receiver.origin_id();
 }
 
-DEFINE_NATIVE_ENTRY(SendPortImpl_sendInternal_, 0, 2) {
+DEFINE_NATIVE_ENTRY(SendPort_sendInternal_, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Instance, obj, arguments->NativeArgAt(1));
 

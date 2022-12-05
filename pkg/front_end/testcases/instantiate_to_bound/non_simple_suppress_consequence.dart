@@ -6,10 +6,18 @@
 // non-simple bounds, the implied errors on other classes that reference the
 // erroneous one in the bounds of their type variables is not reported.
 
-class Hest<TypeX extends Hest<TypeX>> {}
+class A<TypeX extends A<TypeX>> {}
 
-class Fisk<TypeY extends Hest> {}
+class B<TypeY extends A> {}
 
-class Naebdyr<TypeZ extends Fisk> {}
+class C<TypeZ extends B> {}
+
+extension D<TypeY extends A> on int {}
+
+extension E<TypeZ extends B> on int {}
+
+typedef F<TypeY extends A> = int;
+
+typedef G<TypeZ extends B> = int;
 
 main() {}

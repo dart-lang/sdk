@@ -189,7 +189,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void generateTearOffGetter(Procedure procedure) {
     _initializeThis(member);
     DartType functionType =
-        procedure.function.computeThisFunctionType(Nullability.nonNullable);
+        procedure.function.computeFunctionType(Nullability.nonNullable);
     ClosureImplementation closure = translator.getTearOffClosure(procedure);
     w.StructType struct = closure.representation.closureStruct;
 
@@ -198,7 +198,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
-    b.local_get(paramLocals[0]);
+    b.local_get(paramLocals[0]); // `this` as context
     b.global_get(closure.vtable);
     types.makeType(this, functionType);
     b.struct_new(struct);
@@ -547,7 +547,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       w.ValueType returnType = function.type.outputs[0];
       if (returnType is w.RefType && returnType.nullable) {
         // Dart body may have an implicit return null.
-        b.ref_null(returnType.heapType);
+        b.ref_null(returnType.heapType.bottomType);
       } else {
         // This point is unreachable, but the Wasm validator still expects the
         // stack to contain a value matching the Wasm function return type.
@@ -1601,22 +1601,22 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     pushReceiver(selector.signature);
 
+    if (selector.targetCount == 1) {
+      pushArguments(selector.signature);
+      return call(selector.singularTarget!);
+    }
+
     int? offset = selector.offset;
     if (offset == null) {
-      // Singular target or unreachable call
-      assert(selector.targetCount <= 1);
-      if (selector.targetCount == 1) {
-        pushArguments(selector.signature);
-        return call(selector.singularTarget!);
-      } else {
-        b.comment("Virtual call of ${selector.name} with no targets"
-            " at ${node.location}");
-        b.drop();
-        b.block(const [], selector.signature.outputs);
-        b.unreachable();
-        b.end();
-        return translator.outputOrVoid(selector.signature.outputs);
-      }
+      // Unreachable call
+      assert(selector.targetCount == 0);
+      b.comment("Virtual call of ${selector.name} with no targets"
+          " at ${node.location}");
+      b.drop();
+      b.block(const [], selector.signature.outputs);
+      b.unreachable();
+      b.end();
+      return translator.outputOrVoid(selector.signature.outputs);
     }
 
     // Receiver is already on stack.
@@ -1826,7 +1826,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // Super tear-off
       w.StructType closureStruct = _pushClosure(
           translator.getTearOffClosure(target),
-          target.function.computeThisFunctionType(Nullability.nonNullable),
+          target.function.computeFunctionType(Nullability.nonNullable),
           () => visitThis(w.RefType.data(nullable: false)));
       return w.RefType.def(closureStruct, nullable: false);
     }
@@ -2066,7 +2066,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         "closure wrapper at ${functionNode.location}");
     return _pushClosure(
         closure,
-        functionNode.computeThisFunctionType(Nullability.nonNullable),
+        functionNode.computeFunctionType(Nullability.nonNullable),
         () => _pushContext(functionNode));
   }
 
@@ -2401,8 +2401,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         : translator.fixedLengthListClass;
     ClassInfo info = translator.classInfo[cls]!;
     translator.functions.allocateClass(info.classId);
-    w.RefType refType = info.struct.fields.last.type.unpacked as w.RefType;
-    w.ArrayType arrayType = refType.heapType as w.ArrayType;
+    w.ArrayType arrayType = translator.listArrayType;
     w.ValueType elementType = arrayType.elementType.type.unpacked;
 
     b.i32_const(info.classId);
@@ -2414,7 +2413,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.i32_const(length);
       b.array_new_default(arrayType);
       if (length > 0) {
-        w.Local arrayLocal = addLocal(refType.withNullability(false));
+        w.Local arrayLocal =
+            addLocal(w.RefType.def(arrayType, nullable: false));
         b.local_set(arrayLocal);
         for (int i = 0; i < length; i++) {
           b.local_get(arrayLocal);

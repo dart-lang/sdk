@@ -2118,7 +2118,7 @@ class DebuggerPageElement extends CustomElement implements Renderable {
         app.vm.listenEventStream(S.VM.kStdoutStream, _debugger.onStdout);
     if (_stdoutSubscriptionFuture != null) {
       // TODO(turnidge): How do we want to handle this in general?
-      _stdoutSubscriptionFuture!.catchError((e, st) {
+      _stdoutSubscriptionFuture!.then((_) {}, onError: (e, st) {
         Logger.root.info('Failed to subscribe to stdout: $e\n$st\n');
         _stdoutSubscriptionFuture = null;
       });
@@ -2127,7 +2127,7 @@ class DebuggerPageElement extends CustomElement implements Renderable {
         app.vm.listenEventStream(S.VM.kStderrStream, _debugger.onStderr);
     if (_stderrSubscriptionFuture != null) {
       // TODO(turnidge): How do we want to handle this in general?
-      _stderrSubscriptionFuture!.catchError((e, st) {
+      _stderrSubscriptionFuture!.then((_) {}, onError: (e, st) {
         Logger.root.info('Failed to subscribe to stderr: $e\n$st\n');
         _stderrSubscriptionFuture = null;
       });

@@ -155,6 +155,7 @@ const Register CALLEE_SAVED_TEMP = R19;
 const Register CALLEE_SAVED_TEMP2 = R20;
 const Register HEAP_BITS = R28;  // write_barrier_mask << 32 | heap_base >> 32
 const Register NULL_REG = R22;   // Caches NullObject() value.
+#define DART_ASSEMBLER_HAS_NULL_REG 1
 
 // ABI for catch-clause entry point.
 const Register kExceptionObjectReg = R0;
@@ -577,7 +578,7 @@ class CallingConventions {
   static constexpr ExtensionStrategy kArgumentStackExtension = kNotExtended;
 
   static constexpr Register kReturnReg = R0;
-  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr Register kSecondReturnReg = R1;
   static constexpr FpuRegister kReturnFpuReg = V0;
 
   static constexpr Register kFfiAnyNonAbiRegister = R19;
@@ -1262,6 +1263,8 @@ enum ScaleFactor {
 #else
   TIMES_COMPRESSED_WORD_SIZE = TIMES_HALF_WORD_SIZE,
 #endif
+  // Used for Smi-boxed indices.
+  TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
 
 // The class Instr enables access to individual fields defined in the ARM

@@ -6066,6 +6066,66 @@ ASSEMBLER_TEST_RUN(ImmediateMacros, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(ImmediateMacros64, assembler) {
+  const intptr_t kTrillion = 1000000000000;
+  {
+    __ LoadImmediate(RAX, kTrillion);
+    Label ok;
+    __ CompareImmediate(RAX, kTrillion);
+    __ j(EQUAL, &ok);
+    __ int3();
+    __ Bind(&ok);
+  }
+  {
+    __ LoadImmediate(RAX, 3);
+    __ AddImmediate(RAX, kTrillion);
+    Label ok;
+    __ CompareImmediate(RAX, 3 + kTrillion);
+    __ j(EQUAL, &ok);
+    __ int3();
+    __ Bind(&ok);
+  }
+  {
+    __ LoadImmediate(RAX, 5);
+    __ AddImmediate(RCX, RAX, kTrillion);
+    Label ok;
+    __ CompareImmediate(RCX, 5 + kTrillion);
+    __ j(EQUAL, &ok);
+    __ int3();
+    __ Bind(&ok);
+  }
+  __ LoadImmediate(RAX, 42);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(ImmediateMacros64, test) {
+  typedef int (*ImmediateMacrosCode)();
+  int res = reinterpret_cast<ImmediateMacrosCode>(test->entry())();
+  EXPECT_EQ(42, res);
+  EXPECT_DISASSEMBLY(
+      "movq rax,0x000000e8d4a51000\n"
+      "movq tmp,0x000000e8d4a51000\n"
+      "cmpq rax,tmp\n"
+      "jz +7\n"
+      "int3\n"
+      "movl rax,3\n"
+      "movq tmp,0x000000e8d4a51000\n"
+      "addq rax,tmp\n"
+      "movq tmp,0x000000e8d4a51003\n"
+      "cmpq rax,tmp\n"
+      "jz +7\n"
+      "int3\n"
+      "movl rax,5\n"
+      "movq rcx,0x000000e8d4a51000\n"
+      "addq rcx,rax\n"
+      "movq tmp,0x000000e8d4a51005\n"
+      "cmpq rcx,tmp\n"
+      "jz +7\n"
+      "int3\n"
+      "movl rax,0x2a\n"
+      "ret\n");
+}
+
 // clang-format off
 #define ALU_TEST(NAME, WIDTH, INTRO, LHS, RHS, OUTRO)                          \
   ASSEMBLER_TEST_GENERATE(NAME, assembler) {                                   \

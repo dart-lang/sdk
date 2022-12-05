@@ -193,9 +193,8 @@ void callbackParamImplicitDowncast1() {
   final callback = ffiTestFunctions.lookupFunction<CallbackNaTyPointerParamOp,
       CallbackNaTyPointerParamOpDart>(callbackParamOpName);
   final fp = Pointer.fromFunction<Int64PointerParamOp>(int64PointerParamOp);
-  Expect.throws(() {
-    callback(fp as Pointer<NativeFunction<NaTyPointerParamOp>>);
-  });
+  // Pointer type arguments are not reified, any cast will succeed.
+  callback(fp as Pointer<NativeFunction<NaTyPointerParamOp>>);
 }
 
 void callbackParamSubtype1() {

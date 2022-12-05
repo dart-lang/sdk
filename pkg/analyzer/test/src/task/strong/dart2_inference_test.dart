@@ -289,8 +289,29 @@ var y = {null: null};
     assertType(yElement.type, 'Map<Null, Null>');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
   test_switchExpression_asContext_forCases() async {
     var code = r'''
+class C<T> {
+  const C();
+}
+
+void test(C<int> x) {
+  switch (x) {
+    case const C():
+      break;
+    default:
+      break;
+  }
+}''';
+    await resolveTestCode(code);
+    var node = findNode.instanceCreation('const C():');
+    assertType(node, 'C<int>');
+  }
+
+  test_switchExpression_asContext_forCases_language218() async {
+    var code = r'''
+// @dart = 2.18
 class C<T> {
   const C();
 }

@@ -81,6 +81,7 @@ class _SingleIsolatedMacroExecutor extends ExternalMacroExecutorBase {
 
   /// Sends the [Serializer.result] to [sendPort], possibly wrapping it in a
   /// [TransferableTypedData] object.
+  @override
   void sendResult(Serializer serializer) {
     if (serializationMode == SerializationMode.byteDataServer) {
       sendPort.send(

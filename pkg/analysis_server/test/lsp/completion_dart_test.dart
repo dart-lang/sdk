@@ -38,16 +38,16 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CompletionTest);
+    defineReflectiveTests(CompletionDocumentationResolutionTest);
     defineReflectiveTests(DartSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionTest);
     defineReflectiveTests(FlutterSnippetCompletionWithoutNullSafetyTest);
   });
 }
 
-@reflectiveTest
-class CompletionTest extends AbstractLspAnalysisServerTest
+abstract class AbstractCompletionTest extends AbstractLspAnalysisServerTest
     with CompletionTestMixin {
-  CompletionTest() {
+  AbstractCompletionTest() {
     defaultInitializationOptions = {
       // Default to a high budget for tests because everything is cold and
       // may take longer to return.
@@ -55,6 +55,174 @@ class CompletionTest extends AbstractLspAnalysisServerTest
     };
   }
 
+  void expectDocumentation(CompletionItem completion, Matcher matcher) {
+    final docs = completion.documentation?.map(
+      (markup) => markup.value,
+      (string) => string,
+    );
+    expect(docs, matcher);
+  }
+}
+
+@reflectiveTest
+class CompletionDocumentationResolutionTest extends AbstractCompletionTest {
+  late String content;
+
+  Future<CompletionItem> getCompletionItem(String label) async {
+    final completions =
+        await getCompletion(mainFileUri, positionFromMarker(content));
+    return completions.singleWhere((c) => c.label == label);
+  }
+
+  Future<void> initializeServer() async {
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+        workspaceCapabilities:
+            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+  }
+
+  Future<void> test_class() async {
+    newFile(
+      join(projectFolderPath, 'my_class.dart'),
+      '''
+/// Class.
+class MyClass {}
+      ''',
+    );
+
+    content = '''
+void f() {
+  MyClass^
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyClass');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Class.'));
+  }
+
+  Future<void> test_class_constructor() async {
+    newFile(
+      join(projectFolderPath, 'my_class.dart'),
+      '''
+class MyClass {
+  /// Constructor.
+  MyClass();
+}
+      ''',
+    );
+
+    content = '''
+void f() {
+  MyClass^
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyClass()');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Constructor.'));
+  }
+
+  Future<void> test_class_constructorNamed() async {
+    newFile(
+      join(projectFolderPath, 'my_class.dart'),
+      '''
+class MyClass {
+  /// Named Constructor.
+  MyClass.named();
+}
+      ''',
+    );
+
+    content = '''
+void f() {
+  MyClass^
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyClass.named()');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Named Constructor.'));
+  }
+
+  Future<void> test_enum() async {
+    newFile(
+      join(projectFolderPath, 'my_enum.dart'),
+      '''
+/// Enum.
+enum MyEnum {}
+      ''',
+    );
+
+    content = '''
+void f() {
+  MyEnum^
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyEnum');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Enum.'));
+  }
+
+  Future<void> test_enum_member() async {
+    // Function used to provide type context in main file without importing
+    // the enum.
+    newFile(
+      join(projectFolderPath, 'lib', 'func.dart'),
+      '''
+import 'my_enum.dart';
+void enumFunc(MyEnum e) {}
+      ''',
+    );
+
+    newFile(
+      join(projectFolderPath, 'lib', 'my_enum.dart'),
+      '''
+enum MyEnum {
+  /// Enum Member.
+  one,
+}
+      ''',
+    );
+
+    content = '''
+import 'func.dart';
+void f() {
+  enumFunc(MyEnum^)
+}
+    ''';
+
+    await initializeServer();
+
+    final completion = await getCompletionItem('MyEnum.one');
+    expectDocumentation(completion, isNull);
+
+    final resolved = await resolveCompletion(completion);
+    expectDocumentation(resolved, contains('Enum Member.'));
+  }
+}
+
+@reflectiveTest
+class CompletionTest extends AbstractCompletionTest {
   /// Checks whether the correct types of documentation are returned for
   /// completions based on [preference].
   Future<void> assertDocumentation(
@@ -85,21 +253,17 @@ A^
 
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final completion = res.singleWhere((c) => c.label == 'A');
-    final docs = completion.documentation?.map(
-      (markup) => markup.value,
-      (string) => string,
-    );
 
     if (includesSummary) {
-      expect(docs, contains('Summary.'));
+      expectDocumentation(completion, contains('Summary.'));
     } else {
-      expect(docs, isNot(contains('Summary.')));
+      expectDocumentation(completion, isNot(contains('Summary.')));
     }
 
     if (includesFull) {
-      expect(docs, contains('Full.'));
+      expectDocumentation(completion, contains('Full.'));
     } else {
-      expect(docs, isNot(contains('Full.')));
+      expectDocumentation(completion, isNot(contains('Full.')));
     }
   }
 
@@ -143,23 +307,19 @@ void f() {
 
     // Expect no docs in original response and correct type of docs added
     // during resolve.
-    expect(completion.documentation, isNull);
+    expectDocumentation(completion, isNull);
     final resolved = await resolveCompletion(completion);
-    final docs = resolved.documentation?.map(
-      (markup) => markup.value,
-      (string) => string,
-    );
 
     if (includesSummary) {
-      expect(docs, contains('Summary.'));
+      expectDocumentation(resolved, contains('Summary.'));
     } else {
-      expect(docs, isNot(contains('Summary.')));
+      expectDocumentation(resolved, isNot(contains('Summary.')));
     }
 
     if (includesFull) {
-      expect(docs, contains('Full.'));
+      expectDocumentation(resolved, contains('Full.'));
     } else {
-      expect(docs, isNot(contains('Full.')));
+      expectDocumentation(resolved, isNot(contains('Full.')));
     }
   }
 
@@ -486,7 +646,7 @@ class _MyWidgetState extends State<MyWidget> {
   @override
   Widget build(BuildContext context) {
     [[setSt^]]
-    return Container();
+    return const Placeholder();
   }
 }
     ''';
@@ -1000,6 +1160,57 @@ final a = Stri^
     expect(fromPlugin.kind, equals(CompletionItemKind.Method));
   }
 
+  Future<void> test_fromPlugin_dartFile_withImports() async {
+    final content = '''
+void f() {
+  ^
+}
+    ''';
+
+    final pluginResult = plugin.CompletionGetSuggestionsResult(
+      content.indexOf('^'),
+      0,
+      [
+        plugin.CompletionSuggestion(
+          plugin.CompletionSuggestionKind.IDENTIFIER,
+          100,
+          'fooFromDartIO',
+          -1,
+          -1,
+          false,
+          false,
+          libraryUri: 'dart:io',
+          isNotImported: true,
+        ),
+      ],
+    );
+    configureTestPlugin(respondWith: pluginResult);
+
+    await initialize();
+    await openFile(mainFileUri, withoutMarkers(content));
+
+    final items = await getCompletion(mainFileUri, positionFromMarker(content));
+    final item = items.singleWhere((c) => c.label == 'fooFromDartIO');
+    final resolved = await resolveCompletion(item);
+
+    // Apply both the main completion edit and the additionalTextEdits atomically.
+    final newContent = applyTextEdits(
+      withoutMarkers(content),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
+    );
+
+    // Ensure the plugin-supplied import was added.
+    expect(newContent, equals('''
+import 'dart:io';
+
+void f() {
+  fooFromDartIO
+}
+    '''));
+  }
+
   Future<void> test_fromPlugin_nonDartFile() async {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
     final pluginAnalyzedFileUri = Uri.file(pluginAnalyzedFilePath);
@@ -1156,7 +1367,7 @@ final a = Stri^
       @override
       Widget build(BuildContext context) {
         [[setSt^]]
-        return Container();
+        return const Placeholder();
       }
     }
     ''';
@@ -1455,7 +1666,7 @@ void f(String a, {String? b}) {
       @override
       Widget build(BuildContext context) {
         [[setSt^]]
-        return Container();
+        return const Placeholder();
       }
     }
     ''';
@@ -1982,7 +2193,7 @@ void f() {
     final originalTextEdit = completion.textEdit;
 
     // Expect no docs, this is added during resolve.
-    expect(completion.documentation, isNull);
+    expectDocumentation(completion, isNull);
 
     // Resolve the completion item (via server) to get any additional edits.
     // This is LSP's equiv of getSuggestionDetails() and is invoked by LSP
@@ -1998,10 +2209,7 @@ void f() {
     );
 
     // Ensure the doc comment was added.
-    expect(
-      resolved.documentation!.valueEquals('This class is in another file.'),
-      isTrue,
-    );
+    expectDocumentation(resolved, equals('This class is in another file.'));
 
     // Ensure the edit did not change.
     expect(resolved.textEdit, originalTextEdit);
@@ -2485,7 +2693,7 @@ void f() {
     final originalTextEdit = completion.textEdit;
 
     // Expect no docs, this is added during resolve.
-    expect(completion.documentation, isNull);
+    expectDocumentation(completion, isNull);
 
     // Resolve the completion item (via server) to get any additional edits.
     // This is LSP's equiv of getSuggestionDetails() and is invoked by LSP
@@ -2501,10 +2709,7 @@ void f() {
     );
 
     // Ensure the doc comment was added.
-    expect(
-      resolved.documentation!.valueEquals('This class is in another file.'),
-      isTrue,
-    );
+    expectDocumentation(resolved, equals('This class is in another file.'));
 
     // Ensure the edit did not change.
     expect(resolved.textEdit, originalTextEdit);
@@ -2762,7 +2967,7 @@ void f() {
     expect(completion.textEdit, isNotNull);
 
     // Expect no docs, this is added during resolve.
-    expect(completion.documentation, isNull);
+    expectDocumentation(completion, isNull);
 
     // Resolve the completion item (via server) to get any additional edits.
     // This is LSP's equiv of getSuggestionDetails() and is invoked by LSP
@@ -2785,6 +2990,76 @@ import '../other_file.dart';
 
 void f() {
   var a = InOtherFile.fromJson
+}
+    '''));
+  }
+
+  Future<void> test_unimportedSymbols_overrides() async {
+    newFile(join(projectFolderPath, 'lib', 'a.dart'), 'class A {}');
+    newFile(join(projectFolderPath, 'lib', 'b.dart'), 'class B {}');
+    newFile(join(projectFolderPath, 'lib', 'c.dart'), 'class C {}');
+    newFile(join(projectFolderPath, 'lib', 'd.dart'), 'class D {}');
+
+    newFile(
+      join(projectFolderPath, 'lib', 'base.dart'),
+      '''
+import 'a.dart';
+import 'b.dart';
+import 'c.dart';
+import 'd.dart';
+
+abstract class Base {
+  D? myMethod(A a, B b, C c) => null;
+}
+      ''',
+    );
+
+    // A will already be imported
+    // B will already be imported but with a prefix
+    // C & D are not imported and need importing (return + parameter types)
+    final content = '''
+import 'package:test/a.dart';
+import 'package:test/b.dart' as b;
+import 'package:test/base.dart';
+
+class BaseImpl extends Base {
+  myMet^
+}
+    ''';
+
+    final initialAnalysis = waitForAnalysisComplete();
+    await initialize(
+      workspaceCapabilities:
+          withApplyEditSupport(emptyWorkspaceClientCapabilities),
+    );
+    await openFile(mainFileUri, withoutMarkers(content));
+    await initialAnalysis;
+    final res = await getCompletion(mainFileUri, positionFromMarker(content));
+
+    final completion =
+        res.singleWhere((c) => c.label == 'myMethod(A a, b.B b, C c) { … }');
+    final resolved = await resolveCompletion(completion);
+
+    final newContent = applyTextEdits(
+      withoutMarkers(content),
+      [toTextEdit(resolved.textEdit!)]
+          .followedBy(resolved.additionalTextEdits!)
+          .toList(),
+    );
+
+    expect(newContent, equals('''
+import 'package:test/a.dart';
+import 'package:test/b.dart' as b;
+import 'package:test/base.dart';
+import 'package:test/c.dart';
+import 'package:test/d.dart';
+
+class BaseImpl extends Base {
+  @override
+  D? myMethod(A a, b.B b, C c) {
+    // TODO: implement myMethod
+    return super.myMethod(a, b, c);
+  }
 }
     '''));
   }
@@ -2887,6 +3162,7 @@ void f() {
     );
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
+
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
 
     // Ensure the item doesn't appear in the results (because we might not
@@ -3450,8 +3726,8 @@ void f() {
 class FlutterSnippetCompletionTest extends SnippetCompletionTest {
   /// Standard import statements expected for basic Widgets.
   String get expectedImports => '''
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';''';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/placeholder.dart';''';
 
   /// Nullability suffix expected in this test class.
   ///
@@ -3505,7 +3781,7 @@ class \${1:MyWidget} extends StatefulWidget {
 class _\${1:MyWidget}State extends State<\${1:MyWidget}> {
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 
@@ -3561,7 +3837,7 @@ class _\${1:MyWidget}State extends State<\${1:MyWidget}>
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 
@@ -3597,7 +3873,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 
@@ -3631,7 +3907,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 
@@ -3659,7 +3935,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 ''');
@@ -3685,7 +3961,7 @@ class \${1:MyWidget} extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return \${0:Container()};
+    return \${0:const Placeholder()};
   }
 }
 ''');
@@ -3727,8 +4003,8 @@ class FlutterSnippetCompletionWithoutNullSafetyTest
   @override
   String get expectedImports => '''
 import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';''';
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/placeholder.dart';''';
 
   @override
   String get expectedNullableSuffix => '';

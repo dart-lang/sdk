@@ -704,7 +704,7 @@ class CodegenWorldImpl implements CodegenWorld {
   }
 
   @override
-  void forEachGenericMethod(Function f) {
+  void forEachGenericMethod(void Function(FunctionEntity e) f) {
     _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (member is FunctionEntity &&
           _closedWorld.elementEnvironment
@@ -716,7 +716,7 @@ class CodegenWorldImpl implements CodegenWorld {
   }
 
   @override
-  void forEachGenericInstanceMethod(Function f) {
+  void forEachGenericInstanceMethod(void Function(FunctionEntity e) f) {
     _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (member is FunctionEntity &&
           member.isInstanceMember &&
@@ -729,7 +729,7 @@ class CodegenWorldImpl implements CodegenWorld {
   }
 
   @override
-  void forEachGenericClosureCallMethod(Function f) {
+  void forEachGenericClosureCallMethod(void Function(FunctionEntity e) f) {
     _liveMemberUsage.forEach((MemberEntity member, MemberUsage usage) {
       if (member.name == Identifiers.call &&
           member.isInstanceMember &&

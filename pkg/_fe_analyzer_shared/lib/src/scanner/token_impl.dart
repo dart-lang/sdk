@@ -243,20 +243,28 @@ abstract class _LazySubstring {
  * The file html_dart2js.dart is currently around 1MB.
  */
 class _CompactLazySubstring extends _LazySubstring {
+  @override
   final dynamic data;
   final int fields;
 
   _CompactLazySubstring(this.data, this.fields) : super.internal();
 
+  @override
   int get start => fields >> 10;
+  @override
   int get length => (fields >> 1) & 0x1ff;
+  @override
   bool get boolValue => (fields & 1) == 1;
 }
 
 class _FullLazySubstring extends _LazySubstring {
+  @override
   final dynamic data;
+  @override
   final int start;
+  @override
   final int length;
+  @override
   final bool boolValue;
   _FullLazySubstring(this.data, this.start, this.length, this.boolValue)
       : super.internal();

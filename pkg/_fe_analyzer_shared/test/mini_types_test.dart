@@ -10,22 +10,22 @@ main() {
   group('parse', () {
     var throwsParseError = throwsA(TypeMatcher<ParseError>());
 
-    group('non-function type:', () {
+    group('primary type:', () {
       test('no type args', () {
-        var t = Type('int') as NonFunctionType;
+        var t = Type('int') as PrimaryType;
         expect(t.name, 'int');
         expect(t.args, isEmpty);
       });
 
       test('type arg', () {
-        var t = Type('List<int>') as NonFunctionType;
+        var t = Type('List<int>') as PrimaryType;
         expect(t.name, 'List');
         expect(t.args, hasLength(1));
         expect(t.args[0].type, 'int');
       });
 
       test('type args', () {
-        var t = Type('Map<int, String>') as NonFunctionType;
+        var t = Type('Map<int, String>') as PrimaryType;
         expect(t.name, 'Map');
         expect(t.args, hasLength(2));
         expect(t.args[0].type, 'int');

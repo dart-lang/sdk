@@ -35,7 +35,7 @@ worlds:
         }
     expectInitializeFromDill: false
     expectedLibraryCount: 2
-    advancedInvalidation: problemsInLibrary
+    advancedInvalidation: outlineChange
 
   - entry: main.dart
     errors: true
@@ -70,7 +70,7 @@ worlds:
         }
     expectInitializeFromDill: false
     expectedLibraryCount: 3
-    advancedInvalidation: problemsInLibrary
+    advancedInvalidation: outlineChange
 
   - entry: main.dart
     errors: false
@@ -82,4 +82,4 @@ worlds:
         foo() {}
     expectInitializeFromDill: false
     expectedLibraryCount: 3
-    advancedInvalidation: outlineChange
+    advancedInvalidation: problemsInLibrary

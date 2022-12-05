@@ -42,7 +42,7 @@ void main(List<String> args) async {
   argParser.addFlag('include-migrated', abbr: 'i');
   final argResults = argParser.parse(args);
   final sortByBlocking = argResults['sort-blocking'];
-  final includeMigrated = argResults['include-migrated'];
+  final includeMigrated = argResults['include-migrated'] as bool;
 
   var prefix =
       argResults.rest.isEmpty ? 'pkg/compiler/' : argResults.rest.first;

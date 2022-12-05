@@ -24,4 +24,9 @@ class JSClass {
 @staticInterop
 class SyntheticConstructor {}
 
-void main() {}
+void main() {
+  // Error on use only for synthetic constructors.
+  SyntheticConstructor();
+//^
+// [web] Synthetic constructors on `@staticInterop` classes can not be used.
+}

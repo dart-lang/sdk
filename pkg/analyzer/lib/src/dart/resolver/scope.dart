@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -23,7 +24,11 @@ class BlockScope {
       if (statement is LabeledStatement) {
         statement = statement.statement;
       }
-      if (statement is VariableDeclarationStatement) {
+      if (statement is PatternVariableDeclarationStatementImpl) {
+        for (var variable in statement.declaration.elements) {
+          yield variable;
+        }
+      } else if (statement is VariableDeclarationStatement) {
         NodeList<VariableDeclaration> variables = statement.variables.variables;
         int variableCount = variables.length;
         for (int j = 0; j < variableCount; j++) {

@@ -355,7 +355,7 @@ class FunctionElementLinkedData extends ElementLinkedData<FunctionElementImpl> {
   }
 }
 
-/// Not a [ElementLinkedData], just a bundle with data.
+/// Not an [ElementLinkedData], just a bundle with data.
 class LibraryAugmentationElementLinkedData {
   final int offset;
   ApplyConstantOffsets? applyConstantOffsets;

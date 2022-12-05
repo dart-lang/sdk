@@ -470,6 +470,7 @@ struct InstrAttrs {
   M(CloneContext, _)                                                           \
   M(BinarySmiOp, kNoGC)                                                        \
   M(BinaryInt32Op, kNoGC)                                                      \
+  M(HashDoubleOp, kNoGC)                                                       \
   M(HashIntegerOp, kNoGC)                                                      \
   M(UnarySmiOp, kNoGC)                                                         \
   M(UnaryDoubleOp, kNoGC)                                                      \
@@ -521,6 +522,7 @@ struct InstrAttrs {
   M(TestSmi, kNoGC)                                                            \
   M(TestCids, kNoGC)                                                           \
   M(ExtractNthOutput, kNoGC)                                                   \
+  M(MakePair, kNoGC)                                                           \
   M(BinaryUint32Op, kNoGC)                                                     \
   M(ShiftUint32Op, kNoGC)                                                      \
   M(SpeculativeShiftUint32Op, kNoGC)                                           \
@@ -677,7 +679,7 @@ struct TargetInfo : public CidRange {
         target(target_arg),
         count(count_arg),
         exactness(exactness) {
-    ASSERT(target->IsZoneHandle());
+    DEBUG_ASSERT(target->IsNotTemporaryScopedHandle());
   }
   const Function* target;
   intptr_t count;
@@ -2296,6 +2298,8 @@ class CatchBlockEntryInstr : public BlockEntryWithInitialDefs {
   // corresponds.
   intptr_t catch_try_index() const { return catch_try_index_; }
 
+  const Array& catch_handler_types() const { return catch_handler_types_; }
+
   PRINT_TO_SUPPORT
   DECLARE_CUSTOM_SERIALIZATION(CatchBlockEntryInstr)
 
@@ -3197,16 +3201,12 @@ inline Definition* Instruction::ArgumentAt(intptr_t index) const {
 
 class ReturnInstr : public TemplateInstruction<1, NoThrow> {
  public:
-  // The [yield_index], if provided, will cause the instruction to emit extra
-  // yield_index -> pc offset into the [PcDescriptors].
   ReturnInstr(const InstructionSource& source,
               Value* value,
               intptr_t deopt_id,
-              intptr_t yield_index = UntaggedPcDescriptors::kInvalidYieldIndex,
               Representation representation = kTagged)
       : TemplateInstruction(source, deopt_id),
         token_pos_(source.token_pos),
-        yield_index_(yield_index),
         representation_(representation) {
     SetInputAt(0, value);
   }
@@ -3215,7 +3215,6 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
 
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* value() const { return inputs_[0]; }
-  intptr_t yield_index() const { return yield_index_; }
 
   virtual bool CanBecomeDeoptimizationTarget() const {
     // Return instruction might turn into a Goto instruction after inlining.
@@ -3229,8 +3228,7 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
 
   virtual bool AttributesEqual(const Instruction& other) const {
     auto const other_return = other.AsReturn();
-    return token_pos() == other_return->token_pos() &&
-           yield_index() == other_return->yield_index();
+    return token_pos() == other_return->token_pos();
   }
 
   virtual SpeculativeMode SpeculativeModeOfInput(intptr_t index) const {
@@ -3247,11 +3245,8 @@ class ReturnInstr : public TemplateInstruction<1, NoThrow> {
     return representation_;
   }
 
-  PRINT_OPERANDS_TO_SUPPORT
-
 #define FIELD_LIST(F)                                                          \
   F(const TokenPosition, token_pos_)                                           \
-  F(const intptr_t, yield_index_)                                              \
   F(const Representation, representation_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ReturnInstr,
@@ -4284,7 +4279,7 @@ class TemplateDartCall : public VariadicDefinition {
         type_args_len_(type_args_len),
         argument_names_(argument_names),
         token_pos_(source.token_pos) {
-    ASSERT(argument_names.IsZoneHandle() || argument_names.InVMIsolateHeap());
+    DEBUG_ASSERT(argument_names.IsNotTemporaryScopedHandle());
     ASSERT(InputCount() >= kExtraInputs);
   }
 
@@ -4421,9 +4416,9 @@ class InstanceCallBaseInstr : public TemplateDartCall<0> {
         entry_kind_(Code::EntryKind::kNormal),
         receiver_is_not_smi_(false),
         is_call_on_this_(false) {
-    ASSERT(function_name.IsNotTemporaryScopedHandle());
-    ASSERT(interface_target.IsNotTemporaryScopedHandle());
-    ASSERT(tearoff_interface_target.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(function_name.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(interface_target.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(tearoff_interface_target.IsNotTemporaryScopedHandle());
     ASSERT(InputCount() > 0);
     ASSERT(Token::IsBinaryOperator(token_kind) ||
            Token::IsEqualityOperator(token_kind) ||
@@ -4759,7 +4754,7 @@ class DispatchTableCallInstr : public TemplateDartCall<1> {
         interface_target_(interface_target),
         selector_(selector) {
     ASSERT(selector != nullptr);
-    ASSERT(interface_target_.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(interface_target_.IsNotTemporaryScopedHandle());
     ASSERT(InputCount() > 0);
   }
 
@@ -5191,7 +5186,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
         is_known_list_constructor_(false),
         entry_kind_(Code::EntryKind::kNormal),
         identity_(AliasIdentity::Unknown()) {
-    ASSERT(function.IsZoneHandle());
+    DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
     ASSERT(!function.IsNull());
   }
 
@@ -5216,7 +5211,7 @@ class StaticCallInstr : public TemplateDartCall<0> {
         is_known_list_constructor_(false),
         entry_kind_(Code::EntryKind::kNormal),
         identity_(AliasIdentity::Unknown()) {
-    ASSERT(function.IsZoneHandle());
+    DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
     ASSERT(!function.IsNull());
   }
 
@@ -5569,8 +5564,8 @@ class NativeCallInstr : public TemplateDartCall<0> {
         function_(function),
         token_pos_(source.token_pos),
         link_lazily_(link_lazily) {
-    ASSERT(name.IsZoneHandle());
-    ASSERT(function.IsZoneHandle());
+    DEBUG_ASSERT(name.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
   }
 
   DECLARE_INSTRUCTION(NativeCall)
@@ -6193,7 +6188,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
       : TemplateDefinition(source),
         field_(field),
         token_pos_(source.token_pos) {
-    ASSERT(field.IsZoneHandle());
+    DEBUG_ASSERT(field.IsNotTemporaryScopedHandle());
     SetInputAt(kValuePos, value);
     CheckField(field);
   }
@@ -6837,7 +6832,7 @@ class AllocateObjectInstr : public AllocationInstr {
         has_type_arguments_(type_arguments != nullptr),
         type_arguments_slot_(nullptr),
         type_arguments_(type_arguments) {
-    ASSERT(cls.IsZoneHandle());
+    DEBUG_ASSERT(cls.IsNotTemporaryScopedHandle());
     ASSERT(!cls.IsNull());
     ASSERT((cls.NumTypeArguments() > 0) == has_type_arguments_);
     if (has_type_arguments_) {
@@ -7064,6 +7059,11 @@ class AllocateSmallRecordInstr : public TemplateAllocation<4> {
 
   intptr_t num_fields() const { return num_fields_; }
   bool has_named_fields() const { return has_named_fields_; }
+
+  Value* field_names() const {
+    ASSERT(has_named_fields_);
+    return InputAt(0);
+  }
 
   virtual intptr_t InputCount() const {
     return (has_named_fields_ ? 1 : 0) + num_fields_;
@@ -7496,7 +7496,7 @@ class InstantiateTypeInstr : public TemplateDefinition<2, Throws> {
       : TemplateDefinition(source, deopt_id),
         token_pos_(source.token_pos),
         type_(type) {
-    ASSERT(type.IsZoneHandle() || type.IsReadOnlyHandle());
+    DEBUG_ASSERT(type.IsNotTemporaryScopedHandle());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
   }
@@ -7546,9 +7546,8 @@ class InstantiateTypeArgumentsInstr : public TemplateDefinition<3, Throws> {
         token_pos_(source.token_pos),
         instantiator_class_(instantiator_class),
         function_(function) {
-    ASSERT(instantiator_class.IsReadOnlyHandle() ||
-           instantiator_class.IsZoneHandle());
-    ASSERT(function.IsReadOnlyHandle() || function.IsZoneHandle());
+    DEBUG_ASSERT(instantiator_class.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(function.IsNotTemporaryScopedHandle());
     SetInputAt(0, instantiator_type_arguments);
     SetInputAt(1, function_type_arguments);
     SetInputAt(2, type_arguments);
@@ -8449,6 +8448,46 @@ class DoubleTestOpInstr : public TemplateComparison<1, NoThrow, Pure> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DoubleTestOpInstr);
+};
+
+class HashDoubleOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
+ public:
+  HashDoubleOpInstr(Value* value, intptr_t deopt_id)
+      : TemplateDefinition(deopt_id) {
+    SetInputAt(0, value);
+  }
+
+  static HashDoubleOpInstr* Create(Value* value, intptr_t deopt_id) {
+    return new HashDoubleOpInstr(value, deopt_id);
+  }
+
+  Value* value() const { return inputs_[0]; }
+
+  virtual intptr_t DeoptimizationTarget() const {
+    // Direct access since this instruction cannot deoptimize, and the deopt-id
+    // was inherited from another instruction that could deoptimize.
+    return GetDeoptId();
+  }
+
+  virtual Representation representation() const { return kUnboxedInt64; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT(idx == 0);
+    return kUnboxedDouble;
+  }
+
+  DECLARE_INSTRUCTION(HashDoubleOp)
+
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual CompileType ComputeType() const { return CompileType::Smi(); }
+
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
+
+  DECLARE_EMPTY_SERIALIZATION(HashDoubleOpInstr, TemplateDefinition)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(HashDoubleOpInstr);
 };
 
 class HashIntegerOpInstr : public TemplateDefinition<1, NoThrow, Pure> {
@@ -9602,6 +9641,7 @@ class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
   Value* value() const { return inputs_[0]; }
 
   DECLARE_INSTRUCTION(ExtractNthOutput)
+  DECLARE_ATTRIBUTES(index())
 
   virtual CompileType ComputeType() const;
   virtual bool ComputeCanDeoptimize() const { return false; }
@@ -9639,6 +9679,34 @@ class ExtractNthOutputInstr : public TemplateDefinition<1, NoThrow, Pure> {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ExtractNthOutputInstr);
+};
+
+// Combines 2 values into a pair with kPairOfTagged representation.
+class MakePairInstr : public TemplateDefinition<2, NoThrow, Pure> {
+ public:
+  MakePairInstr(Value* x, Value* y) {
+    SetInputAt(0, x);
+    SetInputAt(1, y);
+  }
+
+  DECLARE_INSTRUCTION(MakePair)
+
+  virtual CompileType ComputeType() const;
+  virtual bool ComputeCanDeoptimize() const { return false; }
+
+  virtual Representation representation() const { return kPairOfTagged; }
+
+  virtual Representation RequiredInputRepresentation(intptr_t idx) const {
+    ASSERT((0 <= idx) && (idx < InputCount()));
+    return kTagged;
+  }
+
+  virtual bool AttributesEqual(const Instruction& other) const { return true; }
+
+  DECLARE_EMPTY_SERIALIZATION(MakePairInstr, TemplateDefinition)
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(MakePairInstr);
 };
 
 class TruncDivModInstr : public TemplateDefinition<2, NoThrow, Pure> {
@@ -9810,7 +9878,7 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
         token_pos_(source.token_pos),
         function_name_(function_name),
         exception_type_(exception_type) {
-    ASSERT(function_name.IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(function_name.IsNotTemporaryScopedHandle());
     ASSERT(function_name.IsSymbol());
     SetInputAt(0, value);
   }

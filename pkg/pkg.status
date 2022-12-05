@@ -219,6 +219,12 @@ js_ast/test/string_escape_test: Slow, Pass
 async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
 
+[ $runtime == vm && $system != linux ]
+dartdev/test/commands/bug_linux_test: SkipByDesign
+
+[ $runtime == vm && $system != macos ]
+dartdev/test/commands/bug_macos_test: SkipByDesign
+
 [ $runtime == vm && $system == windows ]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
 analysis_server/test/src/plugin/plugin_manager_test: Slow, Pass # Issue 34231

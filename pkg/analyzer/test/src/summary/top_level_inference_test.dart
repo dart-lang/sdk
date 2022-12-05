@@ -1170,9 +1170,11 @@ library
     topLevelVariables
       static a @4
         typeInferenceError: dependencyCycle
+          arguments: [a, b]
         type: dynamic
       static b @21
         typeInferenceError: dependencyCycle
+          arguments: [a, b]
         type: dynamic
     accessors
       synthetic static get a @-1
@@ -1202,6 +1204,7 @@ library
     topLevelVariables
       static a @4
         typeInferenceError: dependencyCycle
+          arguments: [a]
         type: dynamic
     accessors
       synthetic static get a @-1
@@ -2038,6 +2041,7 @@ library
         fields
           static a @23
             typeInferenceError: dependencyCycle
+              arguments: [a, b]
             type: dynamic
         constructors
           synthetic @-1
@@ -2053,6 +2057,7 @@ library
         fields
           static b @57
             typeInferenceError: dependencyCycle
+              arguments: [a, b]
             type: dynamic
         constructors
           synthetic @-1
@@ -2094,6 +2099,7 @@ library
         fields
           static a @23
             typeInferenceError: dependencyCycle
+              arguments: [a, b]
             type: dynamic
         constructors
           synthetic @-1
@@ -2108,6 +2114,7 @@ library
     topLevelVariables
       static b @36
         typeInferenceError: dependencyCycle
+          arguments: [a, b]
         type: dynamic
       static c @49
         type: dynamic
@@ -2131,55 +2138,38 @@ library
 
   test_initializer_identifier_error_cycle_topLevel() async {
     var library = await _encodeDecodeLibrary(r'''
-var a = b;
-var b = c;
-var c = a;
-var d = a;
+final a = b;
+final b = c;
+final c = a;
+final d = a;
 ''');
     checkElementText(library, r'''
 library
   definingUnit
     topLevelVariables
-      static a @4
+      static final a @6
         typeInferenceError: dependencyCycle
+          arguments: [a, b, c]
         type: dynamic
-      static b @15
+      static final b @19
         typeInferenceError: dependencyCycle
+          arguments: [a, b, c]
         type: dynamic
-      static c @26
+      static final c @32
         typeInferenceError: dependencyCycle
+          arguments: [a, b, c]
         type: dynamic
-      static d @37
+      static final d @45
         type: dynamic
     accessors
       synthetic static get a @-1
         returnType: dynamic
-      synthetic static set a @-1
-        parameters
-          requiredPositional _a @-1
-            type: dynamic
-        returnType: void
       synthetic static get b @-1
         returnType: dynamic
-      synthetic static set b @-1
-        parameters
-          requiredPositional _b @-1
-            type: dynamic
-        returnType: void
       synthetic static get c @-1
         returnType: dynamic
-      synthetic static set c @-1
-        parameters
-          requiredPositional _c @-1
-            type: dynamic
-        returnType: void
       synthetic static get d @-1
         returnType: dynamic
-      synthetic static set d @-1
-        parameters
-          requiredPositional _d @-1
-            type: dynamic
-        returnType: void
 ''');
   }
 

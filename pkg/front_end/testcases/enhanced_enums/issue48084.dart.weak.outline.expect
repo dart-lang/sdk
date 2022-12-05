@@ -10,9 +10,11 @@ class E extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name, core::String field) → self::E
     : self::E::field = field, super core::_Enum::•(#index, #name)
     ;
+  method _enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
   @core::override
   method toString() → core::String
-    return "E.${this.{core::_Enum::_name}{core::String}}";
+    ;
 }
 static method expectEquals(dynamic a, dynamic b) → dynamic
   ;

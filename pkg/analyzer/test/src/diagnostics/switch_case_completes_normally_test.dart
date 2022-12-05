@@ -16,7 +16,13 @@ main() {
 
 @reflectiveTest
 class SwitchCaseCompletesNormallyTest extends PubPackageResolutionTest
-    with SwitchCaseCompletesNormallyTestCases {}
+    with SwitchCaseCompletesNormallyTestCases {
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
+  @override
+  test_completes() {
+    return super.test_completes();
+  }
+}
 
 @reflectiveTest
 class SwitchCaseCompletesNormallyTest_Language218

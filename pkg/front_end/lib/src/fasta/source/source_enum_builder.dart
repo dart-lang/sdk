@@ -30,10 +30,13 @@ import '../fasta_codes.dart'
     show
         LocatedMessage,
         Severity,
+        messageConflictsWithTypeVariableCause,
         messageEnumContainsValuesDeclaration,
         messageEnumNonConstConstructor,
+        messageEnumWithNameValues,
         messageNoUnnamedConstructorInObject,
         noLength,
+        templateConflictsWithTypeVariable,
         templateConstructorNotFound,
         templateDuplicatedDeclaration,
         templateDuplicatedDeclarationCause,
@@ -138,7 +141,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
       int charEndOffset,
       IndexedClass? referencesFromIndexed,
       Scope scope,
-      ConstructorScope constructorScope) {
+      ConstructorScope constructorScope,
+      LibraryBuilder coreLibrary) {
     assert(enumConstantInfos == null || enumConstantInfos.isNotEmpty);
 
     Uri fileUri = libraryBuilder.fileUri;
@@ -193,7 +197,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     //   ...
     //   static const E id${n-1} = const E(n - 1, 'idn-1');
     //   static const List<E> values = const <E>[id0, ..., id${n-1}];
-    //   String toString() {
+    //   String _enumToString() {
     //     return "E.${_Enum::_name}";
     //   }
     // }
@@ -204,13 +208,6 @@ class SourceEnumBuilder extends SourceClassBuilder {
 
     NameScheme staticFieldNameScheme = new NameScheme(
         isInstanceMember: false,
-        className: name,
-        isExtensionMember: false,
-        extensionName: null,
-        libraryName: libraryName);
-
-    NameScheme procedureNameScheme = new NameScheme(
-        isInstanceMember: true,
         className: name,
         isExtensionMember: false,
         extensionName: null,
@@ -227,8 +224,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
           referencesFromIndexed.lookupConstructorReference(new Name(""));
       tearOffReference = referencesFromIndexed.lookupGetterReference(
           new Name(constructorTearOffName(""), referencesFromIndexed.library));
-      toStringReference =
-          referencesFromIndexed.lookupGetterReference(new Name("toString"));
+      toStringReference = referencesFromIndexed.lookupGetterReference(
+          new Name("_enumToString", coreLibrary.library));
       Name valuesName = new Name("values");
       valuesFieldReference =
           referencesFromIndexed.lookupFieldReference(valuesName);
@@ -373,29 +370,32 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
     }
 
-    if (scope.lookupLocalMember("toString", setter: false) == null) {
-      ProcedureBuilder toStringBuilder = new SourceProcedureBuilder(
-          /* metadata = */ null,
-          0,
-          stringType,
-          "toString",
-          /* typeVariables = */ null,
-          /* formals = */ null,
-          ProcedureKind.Method,
-          libraryBuilder,
-          charOffset,
-          charOffset,
-          charOffset,
-          charEndOffset,
-          toStringReference,
-          /* tearOffReference = */ null,
-          AsyncMarker.Sync,
-          procedureNameScheme,
-          isExtensionMember: false,
-          isInstanceMember: true,
-          isSynthetic: true);
-      members["toString"] = toStringBuilder;
-    }
+    ProcedureBuilder toStringBuilder = new SourceProcedureBuilder(
+        /* metadata = */ null,
+        0,
+        stringType,
+        "_enumToString",
+        /* typeVariables = */ null,
+        /* formals = */ null,
+        ProcedureKind.Method,
+        libraryBuilder,
+        charOffset,
+        charOffset,
+        charOffset,
+        charEndOffset,
+        toStringReference,
+        /* tearOffReference = */ null,
+        AsyncMarker.Sync,
+        new NameScheme(
+            isInstanceMember: true,
+            className: name,
+            isExtensionMember: false,
+            extensionName: null,
+            libraryName: new LibraryName(coreLibrary.library.reference)),
+        isExtensionMember: false,
+        isInstanceMember: true,
+        isSynthetic: true);
+    members["_enumToString"] = toStringBuilder;
     String className = name;
     final int startCharOffsetComputed =
         metadata == null ? startCharOffset : metadata.first.charOffset;
@@ -525,7 +525,32 @@ class SourceEnumBuilder extends SourceClassBuilder {
       }
     }
 
-    members.forEach(setParent);
+    Map<String, TypeVariableBuilder>? typeVariablesByName;
+    if (typeVariables != null) {
+      typeVariablesByName = {};
+      for (TypeVariableBuilder typeVariable in typeVariables) {
+        typeVariablesByName[typeVariable.name] = typeVariable;
+      }
+    }
+
+    void setParentAndCheckConflicts(String name, Builder member) {
+      if (typeVariablesByName != null) {
+        TypeVariableBuilder? tv = typeVariablesByName[name];
+        if (tv != null) {
+          enumBuilder.addProblem(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset,
+              name.length,
+              context: [
+                messageConflictsWithTypeVariableCause.withLocation(
+                    tv.fileUri!, tv.charOffset, name.length)
+              ]);
+        }
+      }
+      setParent(name, member as MemberBuilder);
+    }
+
+    members.forEach(setParentAndCheckConflicts);
     constructorScope
         .filteredNameIterator(
             includeDuplicates: false, includeAugmentations: true)
@@ -540,6 +565,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
         libraryBuilder.addProblem(messageEnumNonConstConstructor,
             constructorBuilder.charOffset, noLength, fileUri);
       }
+    }
+
+    if (enumBuilder.name == "values") {
+      libraryBuilder.addProblem(messageEnumWithNameValues,
+          enumBuilder.charOffset, enumBuilder.name.length, fileUri);
     }
 
     return enumBuilder;
@@ -670,6 +700,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         enumConstantInfo.constructorReferenceBuilder?.fullNameForErrors ?? name;
     int fileOffset = enumConstantInfo.constructorReferenceBuilder?.charOffset ??
         enumConstantInfo.charOffset;
+    constructorName = constructorName == "new" ? "" : constructorName;
     MemberBuilder? constructorBuilder =
         constructorScope.lookupLocalMember(constructorName);
 
@@ -813,9 +844,10 @@ class SourceEnumBuilder extends SourceClassBuilder {
     _delayedActionPerformers.clear();
 
     SourceProcedureBuilder toStringBuilder =
-        firstMemberNamed("toString") as SourceProcedureBuilder;
+        firstMemberNamed("_enumToString") as SourceProcedureBuilder;
 
-    Name toStringName = new Name("toString");
+    Name toStringName =
+        new Name("_enumToString", classHierarchy.coreTypes.coreLibrary);
     Member? superToString = cls.superclass != null
         ? classHierarchy.getDispatchTarget(cls.superclass!, toStringName)
         : null;

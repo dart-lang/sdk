@@ -16,7 +16,7 @@ import 'package:compiler/src/dart2js.dart' as dart2js;
 import 'package:_fe_analyzer_shared/src/util/filenames.dart';
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/stacktrace_helper.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 Future createTemp(Uri entryPoint, Map<String, String> memorySourceFiles,
     {bool printSteps = false}) async {

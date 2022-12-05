@@ -2,21 +2,26 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    as shared;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:collection/collection.dart';
 
-/// Implementation of [TypeAnalyzerErrors] that reports errors using the
+typedef SharedRecordPatternField
+    = shared.RecordPatternField<RecordPatternFieldImpl, DartPattern>;
+
+/// Implementation of [shared.TypeAnalyzerErrors] that reports errors using the
 /// analyzer's [ErrorReporter] class.
 class SharedTypeAnalyzerErrors
     implements
-        TypeAnalyzerErrors<AstNode, Statement, Expression, PromotableElement,
-            DartType> {
+        shared.TypeAnalyzerErrors<AstNode, Statement, Expression,
+            PromotableElement, DartType, DartPattern> {
   final ErrorReporter _errorReporter;
 
   SharedTypeAnalyzerErrors(this._errorReporter);
@@ -71,18 +76,31 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void inconsistentMatchVar(
-      {required AstNode pattern,
-      required DartType type,
-      required AstNode previousPattern,
-      required DartType previousType}) {
-    throw UnimplementedError('TODO(paulberry)');
+  void duplicateRecordPatternField({
+    required String name,
+    required covariant SharedRecordPatternField original,
+    required covariant SharedRecordPatternField duplicate,
+  }) {
+    _errorReporter.reportError(
+      DiagnosticFactory().duplicateRecordPatternField(
+        source: _errorReporter.source,
+        name: name,
+        duplicateField: duplicate.node,
+        originalField: original.node,
+      ),
+    );
   }
 
   @override
-  void inconsistentMatchVarExplicitness(
-      {required AstNode pattern, required AstNode previousPattern}) {
-    throw UnimplementedError('TODO(paulberry)');
+  void inconsistentJoinedPatternVariable({
+    required PromotableElement variable,
+    required PromotableElement component,
+  }) {
+    _errorReporter.reportErrorForElement(
+      CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN,
+      component,
+      [variable.name],
+    );
   }
 
   @override

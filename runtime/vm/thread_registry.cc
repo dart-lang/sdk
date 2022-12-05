@@ -59,6 +59,16 @@ void ThreadRegistry::VisitObjectPointers(
   }
 }
 
+void ThreadRegistry::ForEachThread(
+    std::function<void(Thread* thread)> callback) {
+  MonitorLocker ml(threads_lock());
+  Thread* thread = active_list_;
+  while (thread != nullptr) {
+    callback(thread);
+    thread = thread->next_;
+  }
+}
+
 void ThreadRegistry::ReleaseStoreBuffers() {
   MonitorLocker ml(threads_lock());
   Thread* thread = active_list_;

@@ -14,6 +14,7 @@ abbreviate
 abc
 abcdef
 abs
+accepting
 accounting
 accounts
 accumulated
@@ -78,6 +79,7 @@ asserting
 assigning
 assigns
 association
+assured
 ast
 asy
 atm
@@ -93,6 +95,7 @@ augments
 auto
 automagically
 auxiliary
+averages
 awaited
 awaiting
 awaits
@@ -242,6 +245,7 @@ compared
 compares
 compilations
 complement
+complementary
 completers
 completes
 complicating
@@ -396,6 +400,7 @@ dispatched
 distribute
 diverged
 divided
+divides
 dm
 doc
 docs
@@ -466,6 +471,7 @@ establishes
 estimate
 et
 eval
+evar
 exchanging
 execute
 executor
@@ -492,6 +498,7 @@ ext
 extenders
 extracted
 extracts
+extras
 f
 faced
 factor
@@ -521,6 +528,7 @@ fieldformal
 file's
 filenames
 fileuri
+finality
 finally's
 finv
 fire
@@ -560,6 +568,7 @@ function's
 fuse
 futured
 futureor
+fvar
 g
 gardening
 gb
@@ -607,6 +616,7 @@ harness
 hashes
 hashing
 havoc
+headline
 heads
 heap
 height
@@ -679,6 +689,7 @@ inferable
 influence
 informative
 infos
+inhibit
 init
 initializations
 initializer's
@@ -819,6 +830,7 @@ lu
 lub
 lv
 lvalue
+lvar
 lx
 ly
 lz
@@ -873,6 +885,7 @@ msdn
 msg
 murmur
 mus
+mvar
 n
 na
 nameless
@@ -979,6 +992,7 @@ particularly
 partof
 patchup
 path
+pattern's
 patterns
 paulberry
 pay
@@ -987,6 +1001,7 @@ payloads
 pdf
 pedantic
 per
+percentages
 perf
 permanently
 permit
@@ -1022,6 +1037,7 @@ precompilations
 precompile
 precompiled
 precompiling
+precomputed
 preexisted
 preexisting
 preferably
@@ -1047,8 +1063,10 @@ processes
 processor
 producers
 product
+productions
 profile
 progresses
+prohibited
 promo
 promotability
 proof
@@ -1222,8 +1240,10 @@ rparen
 rpc
 rs
 runnable
+rvar
 s
 safer
+sampled
 sandboxed
 sanitizing
 saw
@@ -1270,6 +1290,7 @@ shas
 shelf
 shifts
 shl
+shortening
 showing
 shr
 shrinking
@@ -1397,6 +1418,7 @@ suggests
 suite
 sum
 summarizing
+summed
 superclasses
 superinitializer
 superinterface
@@ -1447,6 +1469,7 @@ tex
 textualize
 textualized
 th
+thereby
 therein
 thereof
 they'll
@@ -1507,6 +1530,7 @@ un
 unaffected
 unaligned
 unaltered
+unavailable
 unbound
 uncategorized
 uncomment
@@ -1558,6 +1582,7 @@ unreachable
 unregister
 unregistered
 unregisters
+unreversed
 unseen
 unset
 unshadowed
@@ -1611,6 +1636,7 @@ vm's
 vn
 vs
 vtab
+vvar
 w
 waiting
 walker

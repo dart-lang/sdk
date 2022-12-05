@@ -615,6 +615,10 @@ class FlowGraph : public ZoneAllocated {
                         Value* use,
                         bool is_environment_use);
 
+  // Insert allocation of a record instance for [def]
+  // which returns an unboxed record.
+  void InsertRecordBoxing(Definition* def);
+
   void ComputeIsReceiver(PhiInstr* phi) const;
   void ComputeIsReceiverRecursive(PhiInstr* phi,
                                   GrowableArray<PhiInstr*>* unmark) const;

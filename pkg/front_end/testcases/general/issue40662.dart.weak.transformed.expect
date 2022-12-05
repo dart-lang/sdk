@@ -9,7 +9,7 @@ static method bar(core::int* a, core::List<core::int*>* b) → dynamic {
 static method foo(core::int* x) → dynamic async /* futureValueType= dynamic */ 
   return self::bar(x.{core::num::-}(1){(core::num*) →* core::int*}, !(x == null) ?{core::List<core::int*>*} core::_GrowableList::_literal3<core::int*>(x.{core::num::+}(1){(core::num*) →* core::int*}, x.{core::num::+}(2){(core::num*) →* core::int*}, await null) : null);
 static method main() → void async /* futureValueType= void */ 
-  return await self::foo(0);
+  return await self::foo(0) /* runtimeCheckType= dart.async::Future<dynamic>* */ ;
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object*) →* core::bool*} actual))
     throw "Expected ${expected}, actual ${actual}";

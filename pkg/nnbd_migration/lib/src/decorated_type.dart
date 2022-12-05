@@ -477,7 +477,7 @@ class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
       var undecoratedParameterType =
           undecoratedResult.namedParameterTypes[name];
       newNamedParameters[name] =
-          (entry.value._substitute(substitution, undecoratedParameterType));
+          entry.value._substitute(substitution, undecoratedParameterType);
     }
     return DecoratedType(undecoratedResult, node,
         returnType:

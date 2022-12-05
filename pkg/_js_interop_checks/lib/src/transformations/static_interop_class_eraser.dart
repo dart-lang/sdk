@@ -33,6 +33,10 @@ class StaticInteropClassEraser extends Transformer {
   late final _TypeSubstitutor _typeSubstitutor;
   Component? currentComponent;
   ReferenceFromIndex? referenceFromIndex;
+  // Visiting core libraries that don't contain `@staticInterop` adds overhead.
+  // To avoid this, we use an allowlist that contains libraries that we know use
+  // `@staticInterop`.
+  static const Set<String> _erasableCoreLibraries = {'ui', '_engine'};
 
   StaticInteropClassEraser(CoreTypes coreTypes, this.referenceFromIndex,
       {String libraryForJavaScriptObject = 'dart:_interceptors',
@@ -91,6 +95,10 @@ class StaticInteropClassEraser extends Transformer {
 
   @override
   TreeNode visitLibrary(Library node) {
+    if (node.importUri.isScheme('dart') &&
+        !_erasableCoreLibraries.contains(node.importUri.path)) {
+      return node;
+    }
     currentComponent = node.enclosingComponent;
     return super.visitLibrary(node);
   }

@@ -6,7 +6,8 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
+import 'package:kernel/class_hierarchy.dart'
+    show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/type_environment.dart';
 
@@ -18,6 +19,7 @@ import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/implicit_field_type.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
+import '../kernel/redirecting_factory_body.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import 'factor_type.dart';
@@ -133,8 +135,6 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
 /// (e.g. DietListener).  Derived classes should derive from
 /// [TypeInferenceEngineImpl].
 abstract class TypeInferenceEngine {
-  late ClassHierarchy classHierarchy;
-
   late ClassHierarchyBuilder hierarchyBuilder;
 
   late ClassMembersBuilder membersBuilder;
@@ -187,7 +187,7 @@ abstract class TypeInferenceEngine {
     // Field types have all been inferred so we don't need to guard against
     // cyclic dependency.
     for (SourceConstructorBuilder builder in toBeInferred.values) {
-      builder.inferFormalTypes(classHierarchy);
+      builder.inferFormalTypes(hierarchyBuilder);
     }
     toBeInferred.clear();
     for (TypeDependency typeDependency in typeDependencies.values) {
@@ -200,13 +200,12 @@ abstract class TypeInferenceEngine {
   /// given [hierarchy], using the given [coreTypes].
   void prepareTopLevel(CoreTypes coreTypes, ClassHierarchy hierarchy) {
     this.coreTypes = coreTypes;
-    this.classHierarchy = hierarchy;
     this.typeSchemaEnvironment =
         new TypeSchemaEnvironment(coreTypes, hierarchy);
   }
 
   static Member? resolveInferenceNode(
-      Member? member, ClassHierarchy hierarchy) {
+      Member? member, ClassHierarchyBase hierarchy) {
     if (member is Field) {
       DartType type = member.type;
       if (type is InferredType) {
@@ -214,6 +213,118 @@ abstract class TypeInferenceEngine {
       }
     }
     return member;
+  }
+
+  Procedure? _addMethod;
+
+  /// Returns the [Procedure] for the [Set.add] method.
+  ///
+  /// This is used for lowering set literals for targets that don't support the
+  /// [SetLiteral] node.
+  Procedure get setAddMethod => _addMethod ??= _findAddMethod();
+
+  Procedure _findAddMethod() {
+    return coreTypes.index.getProcedure('dart:core', 'Set', 'add');
+  }
+
+  FunctionType? _addMethodFunctionType;
+
+  /// Returns the [FunctionType] for the [Set.add] method.
+  ///
+  /// This is used for lowering set literals for targets that don't support the
+  /// [SetLiteral] node.
+  FunctionType get setAddMethodFunctionType =>
+      _addMethodFunctionType ??= setAddMethod.getterType as FunctionType;
+
+  Procedure? _listAdd;
+  Procedure get listAdd =>
+      _listAdd ??= coreTypes.index.getProcedure('dart:core', 'List', 'add');
+
+  FunctionType? _listAddFunctionType;
+  FunctionType get listAddFunctionType =>
+      _listAddFunctionType ??= listAdd.getterType as FunctionType;
+
+  Procedure? _listAddAll;
+  Procedure get listAddAll => _listAddAll ??=
+      coreTypes.index.getProcedure('dart:core', 'List', 'addAll');
+
+  FunctionType? _listAddAllFunctionType;
+  FunctionType get listAddAllFunctionType =>
+      _listAddAllFunctionType ??= listAddAll.getterType as FunctionType;
+
+  Procedure? _listOf;
+  Procedure get listOf =>
+      _listOf ??= coreTypes.index.getProcedure('dart:core', 'List', 'of');
+
+  Procedure? _setFactory;
+  Procedure get setFactory => _setFactory ??= _findSetFactory(coreTypes, '');
+
+  Procedure? _setAdd;
+  Procedure get setAdd =>
+      _setAdd ??= coreTypes.index.getProcedure('dart:core', 'Set', 'add');
+
+  FunctionType? _setAddFunctionType;
+  FunctionType get setAddFunctionType =>
+      _setAddFunctionType ??= setAdd.getterType as FunctionType;
+
+  Procedure? _setAddAll;
+  Procedure get setAddAll =>
+      _setAddAll ??= coreTypes.index.getProcedure('dart:core', 'Set', 'addAll');
+
+  FunctionType? _setAddAllFunctionType;
+  FunctionType get setAddAllFunctionType =>
+      _setAddAllFunctionType ??= setAddAll.getterType as FunctionType;
+
+  Procedure? _setOf;
+  Procedure get setOf => _setOf ??= _findSetFactory(coreTypes, 'of');
+
+  Procedure? _mapEntries;
+  Procedure get mapEntries => _mapEntries ??=
+      coreTypes.index.getProcedure('dart:core', 'Map', 'get:entries');
+
+  Procedure? _mapPut;
+  Procedure get mapPut =>
+      _mapPut ??= coreTypes.index.getProcedure('dart:core', 'Map', '[]=');
+
+  FunctionType? _mapPutFunctionType;
+  FunctionType get mapPutFunctionType =>
+      _mapPutFunctionType ??= mapPut.getterType as FunctionType;
+
+  Class? _mapEntryClass;
+  Class get mapEntryClass =>
+      _mapEntryClass ??= coreTypes.index.getClass('dart:core', 'MapEntry');
+
+  Field? _mapEntryKey;
+  Field get mapEntryKey =>
+      _mapEntryKey ??= coreTypes.index.getField('dart:core', 'MapEntry', 'key');
+
+  Field? _mapEntryValue;
+  Field get mapEntryValue => _mapEntryValue ??=
+      coreTypes.index.getField('dart:core', 'MapEntry', 'value');
+
+  Procedure? _mapAddAll;
+  Procedure get mapAddAll =>
+      _mapAddAll ??= coreTypes.index.getProcedure('dart:core', 'Map', 'addAll');
+
+  FunctionType? _mapAddAllFunctionType;
+  FunctionType get mapAddAllFunctionType =>
+      _mapAddAllFunctionType ??= mapAddAll.getterType as FunctionType;
+
+  Procedure? _mapOf;
+  Procedure get mapOf => _mapOf ??= _findMapFactory(coreTypes, 'of');
+
+  static Procedure _findSetFactory(CoreTypes coreTypes, String name) {
+    Procedure factory = coreTypes.index.getProcedure('dart:core', 'Set', name);
+    RedirectingFactoryBody body =
+        factory.function.body as RedirectingFactoryBody;
+    return body.target as Procedure;
+  }
+
+  static Procedure _findMapFactory(CoreTypes coreTypes, String name) {
+    Procedure factory = coreTypes.index.getProcedure('dart:core', 'Map', name);
+    RedirectingFactoryBody body =
+        factory.function.body as RedirectingFactoryBody;
+    return body.target as Procedure;
   }
 }
 
@@ -349,7 +460,10 @@ class OperationsCfe
     Set<String>? unpromotablePrivateFieldNames =
         this.unpromotablePrivateFieldNames;
     if (unpromotablePrivateFieldNames == null) return false;
-    if (property is! Field) return false;
+    if (property is Procedure && !property.isAbstractFieldAccessor) {
+      // We don't promote methods or explicit abstract getters.
+      return false;
+    }
     String name = property.name.text;
     if (!name.startsWith('_')) return false;
     return !unpromotablePrivateFieldNames.contains(name);
@@ -440,6 +554,30 @@ class OperationsCfe
   @override
   DartType? matchListType(DartType type) {
     throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
+    // TODO: implement matchMapType
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  bool areStructurallyEqual(DartType type1, DartType type2) {
+    // TODO(scheglov): implement areStructurallyEqual
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  DartType normalize(DartType type) {
+    // TODO(scheglov): implement normalize
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  DartType? matchIterableType(DartType type) {
+    // TODO(scheglov): implement matchIterableType
+    throw new UnimplementedError('TODO(scheglov)');
   }
 }
 

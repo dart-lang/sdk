@@ -359,14 +359,15 @@ TypeInfo computeVariablePatternType(Token token) {
   if (!identical(afterType, token)) {
     Token next = afterType.next!;
     if (next.isIdentifier) {
-      if (optional('as', next)) {
-        // We've seen `TYPE as`.  `as` is a built-in identifier, so this
-        // *could* be a variable pattern.  Or it could be that TYPE should
-        // have been parsed as a pattern.  It's probably not a variable
-        // pattern (since `as` is an unusual variable name), so we'll only
-        // treat it as a variable pattern if the token following `as` is
-        // something that could legitimately follow a variable pattern (and
-        // hence couldn't introduce a type).
+      if (optional('as', next) || optional('when', next)) {
+        // We've seen `TYPE as` or `TYPE when`.  `as` is a built-in identifier
+        // and `when` is a pseudo-keyword, so this *could* be a variable
+        // pattern.  Or it could be that TYPE should have been parsed as a
+        // pattern.  It's probably not a variable pattern (since `as` and `when`
+        // are unusual variable names), so we'll only treat it as a variable
+        // pattern if the token following `as` or `when` is something that could
+        // legitimately follow a variable pattern (and hence couldn't introduce
+        // a type).
         if (!mayFollowVariablePattern(next.next!)) {
           return noType;
         }
@@ -448,6 +449,7 @@ const Set<String> _allowedTokensAfterVariablePattern = {
   '}',
   ']',
   'as',
+  'when',
   '?',
   '!'
 };

@@ -49,7 +49,9 @@
   be used for library-level annotations (such as `@deprecated`) and for
   library-level documentation comments, and with this new feature, you don't
   have to provide a unique name for each library directive. Instead, a name can
-  simply be omitted.
+  simply be omitted (see [#1073][]).
+
+[#1073]: https://github.com/dart-lang/language/issues/1073
 
 ### Libraries
 
@@ -66,6 +68,11 @@
 - Deprecated `FallThroughError`. Has not been thrown since Dart 2.0
   (see [#49529]).
 - Added `copyWith` extension method on `DateTime` (see [#24644]).
+- Deprecated `RangeError.checkValidIndex` in favor of `IndexError.check`.
+- Deprecated `IndexError` constructor in favor of `IndexError.withLength`
+  constructor.
+- Deprecated `NullThrownError` and `CyclicInitializationError`.
+  Neither error is thrown by null safe code.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [#24644]: https://github.com/dart-lang/sdk/issues/24644
@@ -82,6 +89,13 @@
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
 [`ServiceExtensionResponse`]: https://api.dart.dev/stable/2.17.6/dart-developer/ServiceExtensionResponse-class.html#constants
 
+#### `dart:ffi`
+
+- **Breaking change** [#49935][]:  The runtime type argument of `Pointer` has
+  changed to `Never` in preparation of completely removing the runtime type
+  argument. `Pointer.toString` has changed to not report any type argument.
+
+[#49935]: https://github.com/dart-lang/sdk/issues/49935
 
 #### `dart:html`
 
@@ -110,6 +124,12 @@
 
 [#49878]: https://github.com/dart-lang/sdk/issues/49878
 
+- When a `dart:io` operation fails because a file is not found, throw
+  `PathNotFoundException`, a `FileSystemException` subclass, to make it
+  easier to handle "file not found" errors.
+
+[#12461]: https://github.com/dart-lang/sdk/issues/12461
+
 #### `dart:isolate`
 
 - Add `Isolate.run` to run a function in a new isolate.
@@ -131,38 +151,83 @@
 - **Breaking changes to the preview feature `@staticInterop`**:
   - Classes with this annotation are now disallowed from using `external`
   generative constructors. Use `external factory`s for these classes instead,
-  and the behavior should be identical. See [#48730][] for more details.
+  and the behavior should be identical. This includes use of synthetic
+  constructors. See [#48730][] and [#49941][] for more details.
   - Classes with this annotation's external extension members are now disallowed
   from using type parameters e.g. `external void method<T>(T t)`. Use a
   non-`external` extension method for type parameters instead. See [#49350][]
   for more details.
+  - Classes with this annotation should also have the `@JS` annotation. You can
+  also have the `@anonymous` annotation with these two annotations for an object
+  literal constructor, but it isn't required.
+  - Classes with this annotation can not be implemented by classes without this
+  annotation. This is to avoid confusing type behavior.
 
 [#48730]: https://github.com/dart-lang/sdk/issues/48730
+[#49941]: https://github.com/dart-lang/sdk/issues/49941
 [#49350]: https://github.com/dart-lang/sdk/issues/49350
 
 ### Tools
 
 #### Analyzer
 
-- add static enforcement of new `mustBeOverridden` annotation
-- add quick fixes for diagnostics:
-  `abstract_field_initializer`,
-  `ambiguous_extension_member_access`,
-  `argument_type_not_assignable`,
-  `assert_in_redirecting_constructor`,
-  `combinators_ordering`,
-  `default_value_on_required_parameter`,
-  `initializing_formal_for_non_existent_field`,
-  `missing_default_value_for_parameter_positional`,
-  `super_formal_parameter_without_associated_named`,
-  `undefined_identifier`
-- add new hints: `cast_from_null_always_fails`, `duplicate_export`
+- add static enforcement of new `mustBeOverridden` annotation, and quick fixes
+- add quick fixes for many diagnostics including compile-time errors, hints, and
+  lints. There are now quick fixes for over 300 diagnostic codes. These lint
+  rules have new fixes: `combinators_ordering`, `dangling_library_doc_comments`,
+  `implicit_call_tearoffs`, `library_annotations`, and
+  `unnecessary_library_directive`.
+- add new hints: `body_might_complete_normally_catch_error`,
+  `cast_from_null_always_fails`, `cast_from_nullable_always_fails`,
+  `deprecated_colon_for_default_value`, and `duplicate_export`
 - remove hint: `invalid_override_different_default_values`
 
 #### Linter
 
-Updated the Linter to `1.28.0`, which includes changes that
+Updated the Linter to `1.30.0`, which includes changes that
 
+- add new lint: `enable_null_safety`.
+- add new lint: `library_annotations`.
+- add new lint: `dangling_library_doc_comments`.
+- fix `no_leading_underscores_for_local_identifiers` to not report super formals
+  as local variables.
+- fix `unnecessary_overrides` false negatives.
+- fix `cancel_subscriptions` for nullable fields.
+- add new lint: `collection_methods_unrelated_type`.
+- update `library_names` to support unnamed libraries.
+- fix `unnecessary_parenthesis` support for as-expressions.
+- fix `use_build_context_synchronously` to check for context property accesses.
+- fix false positive in `comment_references`.
+- improved unrelated type checks to handle enums and cascades.
+- fix `unnecessary_brace_in_string_interps` for `this` expressions .
+- update `use_build_context_synchronously` for `BuildContext.mounted`.
+- improve `flutter_style_todos` to handle more cases.
+- fix `use_build_context_synchronously` to check for `BuildContext`s in named
+  expressions.
+- fix `exhaustive_cases` to check parenthesized expressions
+- improves performance for:
+  - `avoid_null_checks_in_equality_operators`.
+  - `join_return_with_statement`.
+  - `recursive_getters`.
+  - `unnecessary_lambdas`.
+  - `diagnostic_describe_all_properties`.
+  - `prefer_foreach`.
+  - `avoid_escaping_inner_quotes`.
+  - `cascade_invocations`.
+  - `tighten_type_of_initializing_formals`.
+  - `prefer_interpolation_to_compose_strings`.
+  - `prefer_constructors_over_static_methods`.
+  - `avoid_returning_null`.
+  - `parameter_assignments`.
+  - `prefer_constructors_over_static_methods`.
+  - `prefer_interpolation_to_compose_strings`.
+  - `avoid_returning_null`.
+  - `avoid_returning_this`.
+  - `flutter_style_todos`.
+  - `avoid_positional_boolean_parameters`.
+  - `prefer_const_constructors`.
+- add new lint: `implicit_call_tearoffs`.
+- add new lint: `unnecessary_library_directive`.
 - update `avoid_redundant_argument_values` to work with enum declarations.
 - improve performance for `prefer_contains`.
 - add new lint: `unreachable_from_main`.
@@ -201,20 +266,29 @@ Updated the Linter to `1.28.0`, which includes changes that
   These will show up in the lock file on the first run of `dart pub get`.
 
   See https://dart.dev/go/content-hashes for more details.
+- New flag `dart pub get --enforce-lockfile` will fetch dependencies, but fail
+  if anything deviates from `pubspec.lock`. Useful for ensuring reproducible runs
+  in CI and production.
 - Remove remaining support for `.packages` files. The flag
   `--legacy-packages-file` is no longer supported.
 - The client will now default to the `pub.dev` repository instead of `pub.dartlang.org`.
-  This will cause a change in pubspec.lock.
-- Support a new field [`funding`](https://dart.dev/tools/pub/pubspec#funding) in pubspec.yaml.
+  This will cause a change in `pubspec.lock`.
+- Support a new field [`funding`](https://dart.dev/tools/pub/pubspec#funding) in `pubspec.yaml`.
 - Validate the CRC32c checksum of downloaded archives and retry on failure.
 - `dart pub add foo:<constraint>` with an existing dependency will now update
   the constraint rather than fail.
-- Update `dart pub publish` to allow `dependency_overrides` in pubspec.yaml.
+- Update `dart pub publish` to allow `dependency_overrides` in `pubspec.yaml`.
   They will still cause a publication warning.
   Note that only `dependency_overrides` from the root package effect resolution.
 - Update `dart pub publish` to require a working resolution.
   If publishing a breaking release of mutually dependent packages use `dependency_overrides`
   to obtain a resolution.
+- `dart pub add` will now allow adding multiple packages from any source using the same YAML syntax as in `pubspec.yaml`.
+
+  For example:
+  ```
+  $ dart pub add retry:^1.0.0 'dev:foo{"git":"https://github.com/foo/foo"}'
+  ```
 - `dart pub publish` will now give a warning if `dart analyze` reports any diagnostics.
 - `dart pub get` now fails gracefully when run from inside the pub-cache.
 - `dart pub publish` now shows the file sizes of large files in your package to

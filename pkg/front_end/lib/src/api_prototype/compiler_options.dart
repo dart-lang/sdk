@@ -231,6 +231,10 @@ class CompilerOptions {
   /// diagnostic, but do not stop the compilation.
   int skipForDebugging = 0;
 
+  /// If `true`, messages from the OS will be omitted from error messages in
+  /// order to ensure a stable output for testing.
+  bool omitOsMessageForTesting = false;
+
   /// Whether to write a file (e.g. a dill file) when reporting a crash.
   bool writeFileOnCrashReport = true;
 

@@ -167,9 +167,9 @@ class UntaggedObject {
     kReservedBit = 7,
 
     kSizeTagPos = kReservedBit + 1,  // = 8
-    kSizeTagSize = 8,
-    kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 16
-    kClassIdTagSize = 16,
+    kSizeTagSize = 4,
+    kClassIdTagPos = kSizeTagPos + kSizeTagSize,  // = 12
+    kClassIdTagSize = 20,
     kHashTagPos = kClassIdTagPos + kClassIdTagSize,  // = 32
     kHashTagSize = 32,
   };
@@ -230,7 +230,8 @@ class UntaggedObject {
                                      ClassIdTagType,
                                      kClassIdTagPos,
                                      kClassIdTagSize> {};
-  COMPILE_ASSERT(kBitsPerByte * sizeof(ClassIdTagType) == kClassIdTagSize);
+  COMPILE_ASSERT(kBitsPerByte * sizeof(ClassIdTagType) >= kClassIdTagSize);
+  COMPILE_ASSERT(kClassIdTagMax == (1 << kClassIdTagSize) - 1);
 
 #if defined(HASH_IN_OBJECT_HEADER)
   class HashTag : public BitField<uword, uint32_t, kHashTagPos, kHashTagSize> {
@@ -468,8 +469,7 @@ class UntaggedObject {
 
   // This variant ensures that we do not visit the extra slot created from
   // rounding up instance sizes up to the allocation unit.
-  void VisitPointersPrecise(IsolateGroup* isolate_group,
-                            ObjectPointerVisitor* visitor);
+  void VisitPointersPrecise(ObjectPointerVisitor* visitor);
 
   static ObjectPtr FromAddr(uword addr) {
     // We expect the untagged address here.
@@ -1212,17 +1212,22 @@ class UntaggedFunction : public UntaggedObject {
   };
 
   // Wraps a 64-bit integer to represent the bitmap for unboxed parameters and
-  // return value. Two bits are used for each of them - the first one indicates
-  // whether this value is unboxed or not, and the second one says whether it is
-  // an integer or a double. It includes the two bits for the receiver, even
-  // though currently we do not have information from TFA that allows the
-  // receiver to be unboxed.
+  // return value. Two bits are used for each of them to denote if it is boxed,
+  // unboxed integer, unboxed double or unboxed record.
+  // It includes the two bits for the receiver, even though currently we
+  // do not have information from TFA that allows the receiver to be unboxed.
   class alignas(8) UnboxedParameterBitmap {
    public:
-    static constexpr intptr_t kBitsPerParameter = 2;
-    static constexpr intptr_t kParameterBitmask = (1 << kBitsPerParameter) - 1;
+    enum UnboxedState {
+      kBoxed,
+      kUnboxedInt,
+      kUnboxedDouble,
+      kUnboxedRecord,
+    };
+    static constexpr intptr_t kBitsPerElement = 2;
+    static constexpr uint64_t kElementBitmask = (1 << kBitsPerElement) - 1;
     static constexpr intptr_t kCapacity =
-        (kBitsPerByte * sizeof(uint64_t)) / kBitsPerParameter;
+        (kBitsPerByte * sizeof(uint64_t)) / kBitsPerElement;
 
     UnboxedParameterBitmap() : bitmap_(0) {}
     explicit UnboxedParameterBitmap(uint64_t bitmap) : bitmap_(bitmap) {}
@@ -1230,49 +1235,48 @@ class UntaggedFunction : public UntaggedObject {
     UnboxedParameterBitmap& operator=(const UnboxedParameterBitmap&) = default;
 
     DART_FORCE_INLINE bool IsUnboxed(intptr_t position) const {
-      if (position >= kCapacity) {
-        return false;
-      }
-      ASSERT(Utils::TestBit(bitmap_, kBitsPerParameter * position) ||
-             !Utils::TestBit(bitmap_, kBitsPerParameter * position + 1));
-      return Utils::TestBit(bitmap_, kBitsPerParameter * position);
+      return At(position) != kBoxed;
     }
     DART_FORCE_INLINE bool IsUnboxedInteger(intptr_t position) const {
-      if (position >= kCapacity) {
-        return false;
-      }
-      return Utils::TestBit(bitmap_, kBitsPerParameter * position) &&
-             !Utils::TestBit(bitmap_, kBitsPerParameter * position + 1);
+      return At(position) == kUnboxedInt;
     }
     DART_FORCE_INLINE bool IsUnboxedDouble(intptr_t position) const {
-      if (position >= kCapacity) {
-        return false;
-      }
-      return Utils::TestBit(bitmap_, kBitsPerParameter * position) &&
-             Utils::TestBit(bitmap_, kBitsPerParameter * position + 1);
+      return At(position) == kUnboxedDouble;
+    }
+    DART_FORCE_INLINE bool IsUnboxedRecord(intptr_t position) const {
+      return At(position) == kUnboxedRecord;
     }
     DART_FORCE_INLINE void SetUnboxedInteger(intptr_t position) {
-      ASSERT(position < kCapacity);
-      bitmap_ |= Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position);
-      ASSERT(!Utils::TestBit(bitmap_, kBitsPerParameter * position + 1));
+      SetAt(position, kUnboxedInt);
     }
     DART_FORCE_INLINE void SetUnboxedDouble(intptr_t position) {
-      ASSERT(position < kCapacity);
-      bitmap_ |= Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position);
-      bitmap_ |=
-          Utils::Bit<decltype(bitmap_)>(kBitsPerParameter * position + 1);
+      SetAt(position, kUnboxedDouble);
+    }
+    DART_FORCE_INLINE void SetUnboxedRecord(intptr_t position) {
+      SetAt(position, kUnboxedRecord);
     }
     DART_FORCE_INLINE uint64_t Value() const { return bitmap_; }
     DART_FORCE_INLINE bool IsEmpty() const { return bitmap_ == 0; }
     DART_FORCE_INLINE void Reset() { bitmap_ = 0; }
     DART_FORCE_INLINE bool HasUnboxedParameters() const {
-      return (bitmap_ >> kBitsPerParameter) != 0;
-    }
-    DART_FORCE_INLINE bool HasUnboxedReturnValue() const {
-      return (bitmap_ & kParameterBitmask) != 0;
+      return (bitmap_ >> kBitsPerElement) != 0;
     }
 
    private:
+    DART_FORCE_INLINE UnboxedState At(intptr_t position) const {
+      if (position >= kCapacity) {
+        return kBoxed;
+      }
+      return static_cast<UnboxedState>(
+          (bitmap_ >> (kBitsPerElement * position)) & kElementBitmask);
+    }
+    DART_FORCE_INLINE void SetAt(intptr_t position, UnboxedState state) {
+      ASSERT(position < kCapacity);
+      const intptr_t shift = kBitsPerElement * position;
+      bitmap_ = (bitmap_ & ((~kElementBitmask) << shift)) |
+                (static_cast<decltype(bitmap_)>(state) << shift);
+    }
+
     uint64_t bitmap_;
   };
 
@@ -1400,9 +1404,12 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData);
 
+  // Not traced. We don't need this info after precompilation, and FFI
+  // trampolines are not supported in JIT snapshots.
+  COMPRESSED_POINTER_FIELD(FunctionTypePtr, c_signature)
+
   COMPRESSED_POINTER_FIELD(TypePtr, signature_type)
   VISIT_FROM(signature_type)
-  COMPRESSED_POINTER_FIELD(FunctionTypePtr, c_signature)
 
   // Target Dart method for callbacks, otherwise null.
   COMPRESSED_POINTER_FIELD(FunctionPtr, callback_target)
@@ -2642,10 +2649,8 @@ class UntaggedAbstractType : public UntaggedInstance {
 class UntaggedType : public UntaggedAbstractType {
  public:
   static constexpr intptr_t kTypeClassIdShift = TypeStateBits::kNextBit;
-  using TypeClassIdBits = BitField<uint32_t,
-                                   ClassIdTagType,
-                                   kTypeClassIdShift,
-                                   sizeof(ClassIdTagType) * kBitsPerByte>;
+  using TypeClassIdBits =
+      BitField<uint32_t, ClassIdTagType, kTypeClassIdShift, kClassIdTagSize>;
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Type);
@@ -2851,14 +2856,15 @@ class UntaggedString : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(String);
 
  protected:
-  COMPRESSED_SMI_FIELD(SmiPtr, length)
-  VISIT_FROM(length)
-#if defined(HASH_IN_OBJECT_HEADER)
-  VISIT_TO(length)
-#else
+#if !defined(HASH_IN_OBJECT_HEADER)
   COMPRESSED_SMI_FIELD(SmiPtr, hash)
-  VISIT_TO(hash);
+  VISIT_FROM(hash)
 #endif
+  COMPRESSED_SMI_FIELD(SmiPtr, length)
+#if defined(HASH_IN_OBJECT_HEADER)
+  VISIT_FROM(length)
+#endif
+  VISIT_TO(length)
 
  private:
   friend class Library;
@@ -2983,6 +2989,7 @@ class UntaggedTypedData : public UntaggedTypedDataBase {
 
   friend class Api;
   friend class Instance;
+  friend class DeltaEncodedTypedDataDeserializationCluster;
   friend class NativeEntryData;
   friend class Object;
   friend class ObjectPool;
@@ -3090,19 +3097,19 @@ class UntaggedArray : public UntaggedInstance {
   // Variable length data follows here.
   COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
 
-  friend class LinkedHashMapSerializationCluster;
-  friend class LinkedHashMapDeserializationCluster;
-  friend class LinkedHashSetSerializationCluster;
-  friend class LinkedHashSetDeserializationCluster;
+  friend class MapSerializationCluster;
+  friend class MapDeserializationCluster;
+  friend class SetSerializationCluster;
+  friend class SetDeserializationCluster;
   friend class CodeSerializationCluster;
   friend class CodeDeserializationCluster;
   friend class Deserializer;
   friend class UntaggedCode;
   friend class UntaggedImmutableArray;
   friend class GrowableObjectArray;
-  friend class LinkedHashMap;
-  friend class UntaggedLinkedHashMap;
-  friend class UntaggedImmutableLinkedHashMap;
+  friend class Map;
+  friend class UntaggedMap;
+  friend class UntaggedConstMap;
   friend class Object;
   friend class ICData;            // For high performance access.
   friend class SubtypeTestCache;  // For high performance access.
@@ -3149,24 +3156,24 @@ class UntaggedLinkedHashBase : public UntaggedInstance {
   }
 };
 
-class UntaggedLinkedHashMap : public UntaggedLinkedHashBase {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashMap);
+class UntaggedMap : public UntaggedLinkedHashBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Map);
 
-  friend class UntaggedImmutableLinkedHashMap;
+  friend class UntaggedConstMap;
 };
 
-class UntaggedImmutableLinkedHashMap : public UntaggedLinkedHashMap {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableLinkedHashMap);
+class UntaggedConstMap : public UntaggedMap {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ConstMap);
 };
 
-class UntaggedLinkedHashSet : public UntaggedLinkedHashBase {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(LinkedHashSet);
+class UntaggedSet : public UntaggedLinkedHashBase {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Set);
 
-  friend class UntaggedImmutableLinkedHashSet;
+  friend class UntaggedConstSet;
 };
 
-class UntaggedImmutableLinkedHashSet : public UntaggedLinkedHashSet {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(ImmutableLinkedHashSet);
+class UntaggedConstSet : public UntaggedSet {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(ConstSet);
 };
 
 class UntaggedFloat32x4 : public UntaggedInstance {
@@ -3219,9 +3226,9 @@ COMPILE_ASSERT(sizeof(UntaggedFloat64x2) == 24);
 class UntaggedRecord : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Record);
 
-  int32_t num_fields_;
+  COMPRESSED_SMI_FIELD(SmiPtr, num_fields)
   COMPRESSED_POINTER_FIELD(ArrayPtr, field_names)
-  VISIT_FROM(field_names)
+  VISIT_FROM(num_fields)
   // Variable length data follows here.
   COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, field, data)
 
@@ -3475,7 +3482,7 @@ class UntaggedFinalizerBase : public UntaggedInstance {
 
   COMPRESSED_POINTER_FIELD(ObjectPtr, detachments)
   VISIT_FROM(detachments)
-  COMPRESSED_POINTER_FIELD(LinkedHashSetPtr, all_entries)
+  COMPRESSED_POINTER_FIELD(SetPtr, all_entries)
   COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, entries_collected)
 
   template <typename GCVisitorType>

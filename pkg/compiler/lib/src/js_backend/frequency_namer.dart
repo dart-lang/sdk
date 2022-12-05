@@ -2,15 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 part of js_backend.namer;
 
 class FrequencyBasedNamer extends Namer
     with _MinifiedFieldNamer, _MinifiedOneShotInterceptorNamer
     implements jsAst.TokenFinalizer {
   @override
-  _FieldNamingRegistry fieldRegistry;
+  late final _FieldNamingRegistry fieldRegistry = _FieldNamingRegistry(this);
   List<TokenName> tokens = [];
 
   final Map<NamingScope, TokenScope> _tokenScopes = {};
@@ -18,10 +16,7 @@ class FrequencyBasedNamer extends Namer
   @override
   String get genericInstantiationPrefix => r'$I';
 
-  FrequencyBasedNamer(JClosedWorld closedWorld, FixedNames fixedNames)
-      : super(closedWorld, fixedNames) {
-    fieldRegistry = _FieldNamingRegistry(this);
-  }
+  FrequencyBasedNamer(super.closedWorld, super.fixedNames);
 
   TokenScope newScopeFor(NamingScope scope) {
     if (scope == instanceScope) {
@@ -57,7 +52,7 @@ class FrequencyBasedNamer extends Namer
 
   @override
   jsAst.Name instanceFieldPropertyName(FieldEntity element) {
-    jsAst.Name proposed = _minifiedInstanceFieldPropertyName(element);
+    jsAst.Name? proposed = _minifiedInstanceFieldPropertyName(element);
     if (proposed != null) {
       return proposed;
     }

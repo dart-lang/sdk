@@ -4,13 +4,14 @@
 
 library dart.wasm;
 
-// A collection a special Dart tytpes that are mapped directly to Wasm types
+// A collection a special Dart types that are mapped directly to Wasm types
 // by the dart2wasm compiler. These types have a number of constraints:
 //
 // - They can only be used directly as types of local variables, fields, or
 //   parameter/return of static functions. No other uses of the types are valid.
 // - They are not assignable to or from any ordinary Dart types.
 // - The integer and float types can't be nullable.
+// - Their instance methods cannot be called virtually or dynamically.
 //
 // TODO(askesc): Give an error message if any of these constraints are violated.
 
@@ -177,7 +178,7 @@ class WasmFunction<F extends Function> extends WasmFuncRef {
 
 /// A Wasm table.
 @pragma("wasm:entry-point")
-class WasmTable<T> {
+class WasmTable<T> extends _WasmBase {
   /// Declare a table with the given size.
   ///
   /// Must be an initializer for a static field. The [size] argument must be

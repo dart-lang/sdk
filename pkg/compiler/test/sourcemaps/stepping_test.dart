@@ -15,7 +15,7 @@ import 'package:compiler/src/dart2js.dart' as entry;
 import 'package:expect/expect.dart';
 import 'package:sourcemap_testing/src/stepping_helper.dart';
 
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 void main(List<String> args) {
   ArgParser argParser = new ArgParser(allowTrailingOptions: true);

@@ -64,7 +64,7 @@ class Hashing {
     if (list != null) {
       int length = list.length;
       for (int i = 0; i < length; i++) {
-        h = mixHashCodeBits(h, list[i].hashCode);
+        h = mixHashCodeBits(h, (list[i] as Object?).hashCode);
       }
     }
     return h;
@@ -103,7 +103,7 @@ class Hashing {
     int h = existing;
     for (var key in map.keys) {
       h = mixHashCodeBits(h, key.hashCode);
-      h = mixHashCodeBits(h, map[key].hashCode);
+      h = mixHashCodeBits(h, (map[key] as Object?).hashCode);
     }
     return h;
   }

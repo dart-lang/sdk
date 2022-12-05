@@ -72,7 +72,8 @@ class InferrerEngine {
 
   final WorkQueue _workQueue = WorkQueue();
 
-  final _InferrerEngineMetrics metrics = _InferrerEngineMetrics();
+  late final _InferrerEngineMetrics metrics =
+      _InferrerEngineMetrics(closedWorld.abstractValueDomain.metrics);
 
   final Set<MemberEntity> _analyzedElements = {};
 
@@ -316,95 +317,98 @@ class InferrerEngine {
     _buildWorkQueue();
     metrics.refine1.measure(_refine);
 
-    // Try to infer element types of lists and compute their escape information.
-    types.allocatedLists.values.forEach((ListTypeInformation info) {
-      analyzeListAndEnqueue(info);
-    });
+    metrics.trace.measure(() {
+      // Try to infer element types of lists and compute their escape information.
+      types.allocatedLists.values.forEach((ListTypeInformation info) {
+        analyzeListAndEnqueue(info);
+      });
 
-    // Try to infer element types of sets and compute their escape information.
-    types.allocatedSets.values.forEach((SetTypeInformation info) {
-      analyzeSetAndEnqueue(info);
-    });
+      // Try to infer element types of sets and compute their escape information.
+      types.allocatedSets.values.forEach((SetTypeInformation info) {
+        analyzeSetAndEnqueue(info);
+      });
 
-    // Try to infer the key and value types for maps and compute the values'
-    // escape information.
-    types.allocatedMaps.values.forEach((MapTypeInformation info) {
-      analyzeMapAndEnqueue(info);
-    });
+      // Try to infer the key and value types for maps and compute the values'
+      // escape information.
+      types.allocatedMaps.values.forEach((MapTypeInformation info) {
+        analyzeMapAndEnqueue(info);
+      });
 
-    Set<FunctionEntity> bailedOutOn = Set<FunctionEntity>();
+      Set<FunctionEntity> bailedOutOn = Set<FunctionEntity>();
 
-    // Trace closures to potentially infer argument types.
-    types.allocatedClosures.forEach((dynamic info) {
-      void trace(
-          Iterable<FunctionEntity> elements, ClosureTracerVisitor tracer) {
-        tracer.run();
-        if (!tracer.continueAnalyzing) {
-          elements.forEach((FunctionEntity element) {
-            inferredDataBuilder.registerMightBePassedToApply(element);
-            if (debug.VERBOSE) {
-              print("traced closure $element as ${true} (bail)");
-            }
-            types.strategy.forEachParameter(element, (Local parameter) {
-              types
-                  .getInferredTypeOfParameter(parameter)
-                  .giveUp(this, clearInputs: false);
+      // Trace closures to potentially infer argument types.
+      types.allocatedClosures.forEach((dynamic info) {
+        void trace(
+            Iterable<FunctionEntity> elements, ClosureTracerVisitor tracer) {
+          tracer.run();
+          if (!tracer.continueAnalyzing) {
+            elements.forEach((FunctionEntity element) {
+              inferredDataBuilder.registerMightBePassedToApply(element);
+              if (debug.VERBOSE) {
+                print("traced closure $element as ${true} (bail)");
+              }
+              types.strategy.forEachParameter(element, (Local parameter) {
+                types
+                    .getInferredTypeOfParameter(parameter)
+                    .giveUp(this, clearInputs: false);
+              });
             });
+            bailedOutOn.addAll(elements);
+            return;
+          }
+          elements
+              .where((e) => !bailedOutOn.contains(e))
+              .forEach((FunctionEntity element) {
+            types.strategy.forEachParameter(element, (Local parameter) {
+              ParameterTypeInformation info =
+                  types.getInferredTypeOfParameter(parameter);
+              info.maybeResume();
+              _workQueue.add(info);
+            });
+            if (tracer.tracedType.mightBePassedToFunctionApply) {
+              inferredDataBuilder.registerMightBePassedToApply(element);
+            }
+            if (debug.VERBOSE) {
+              print("traced closure $element as "
+                  "${inferredDataBuilder.getCurrentlyKnownMightBePassedToApply(element)}");
+            }
           });
-          bailedOutOn.addAll(elements);
-          return;
         }
-        elements
-            .where((e) => !bailedOutOn.contains(e))
-            .forEach((FunctionEntity element) {
-          types.strategy.forEachParameter(element, (Local parameter) {
-            ParameterTypeInformation info =
-                types.getInferredTypeOfParameter(parameter);
-            info.maybeResume();
-            _workQueue.add(info);
-          });
-          if (tracer.tracedType.mightBePassedToFunctionApply) {
-            inferredDataBuilder.registerMightBePassedToApply(element);
-          }
-          if (debug.VERBOSE) {
-            print("traced closure $element as "
-                "${inferredDataBuilder.getCurrentlyKnownMightBePassedToApply(element)}");
-          }
-        });
-      }
 
-      if (info is ClosureTypeInformation) {
-        Iterable<FunctionEntity> elements = [info.closure];
-        trace(elements, ClosureTracerVisitor(elements, info, this));
-      } else if (info is CallSiteTypeInformation) {
-        final selector = info.selector;
-        if (info is StaticCallSiteTypeInformation &&
-            selector != null &&
-            selector.isCall) {
-          // This is a constructor call to a class with a call method. So we
-          // need to trace the call method here.
-          final calledElement = info.calledElement;
-          assert(calledElement is ConstructorEntity &&
-              calledElement.isGenerativeConstructor);
-          final cls = calledElement.enclosingClass!;
-          final callMethod = _lookupCallMethod(cls)!;
-          Iterable<FunctionEntity> elements = [callMethod];
+        if (info is ClosureTypeInformation) {
+          Iterable<FunctionEntity> elements = [info.closure];
           trace(elements, ClosureTracerVisitor(elements, info, this));
-        } else {
-          // We only are interested in functions here, as other targets
-          // of this closure call are not a root to trace but an intermediate
-          // for some other function.
-          Iterable<FunctionEntity> elements = List<FunctionEntity>.from(
-              info.callees.where((e) => e.isFunction));
-          trace(elements, ClosureTracerVisitor(elements, info, this));
+        } else if (info is CallSiteTypeInformation) {
+          final selector = info.selector;
+          if (info is StaticCallSiteTypeInformation &&
+              selector != null &&
+              selector.isCall) {
+            // This is a constructor call to a class with a call method. So we
+            // need to trace the call method here.
+            final calledElement = info.calledElement;
+            assert(calledElement is ConstructorEntity &&
+                calledElement.isGenerativeConstructor);
+            final cls = calledElement.enclosingClass!;
+            final callMethod = _lookupCallMethod(cls)!;
+            Iterable<FunctionEntity> elements = [callMethod];
+            trace(elements, ClosureTracerVisitor(elements, info, this));
+          } else {
+            // We only are interested in functions here, as other targets
+            // of this closure call are not a root to trace but an intermediate
+            // for some other function.
+            Iterable<FunctionEntity> elements = List<FunctionEntity>.from(
+                info.callees.where((e) => e.isFunction));
+            trace(elements, ClosureTracerVisitor(elements, info, this));
+          }
+        } else if (info is MemberTypeInformation) {
+          final member = info.member as FunctionEntity;
+          trace(
+              [member], StaticTearOffClosureTracerVisitor(member, info, this));
+        } else if (info is ParameterTypeInformation) {
+          failedAt(NO_LOCATION_SPANNABLE,
+              'Unexpected closure allocation info $info');
         }
-      } else if (info is MemberTypeInformation) {
-        final member = info.member as FunctionEntity;
-        trace([member], StaticTearOffClosureTracerVisitor(member, info, this));
-      } else if (info is ParameterTypeInformation) {
-        failedAt(
-            NO_LOCATION_SPANNABLE, 'Unexpected closure allocation info $info');
-      }
+      });
     });
 
     dump?.beforeTracing();
@@ -1137,22 +1141,25 @@ class _InferrerEngineMetrics extends MetricsBase {
   final time = DurationMetric('time');
   final analyze = DurationMetric('time.analyze');
   final refine1 = DurationMetric('time.refine1');
+  final trace = DurationMetric('time.trace');
   final refine2 = DurationMetric('time.refine2');
   final elementsInGraph = CountMetric('count.elementsInGraph');
   final allTypesCount = CountMetric('count.allTypes');
   final exceededMaxChangeCount = CountMetric('count.exceededMaxChange');
   final overallRefineCount = CountMetric('count.overallRefines');
 
-  _InferrerEngineMetrics() {
-    primary = [time];
+  _InferrerEngineMetrics(Metrics subMetrics) {
+    primary = [time, ...subMetrics.primary];
     secondary = [
       analyze,
       refine1,
+      trace,
       refine2,
       elementsInGraph,
       allTypesCount,
       exceededMaxChangeCount,
-      overallRefineCount
+      overallRefineCount,
+      ...subMetrics.secondary,
     ];
   }
 }

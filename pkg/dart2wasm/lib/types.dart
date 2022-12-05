@@ -12,20 +12,71 @@ import 'package:kernel/core_types.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 class InterfaceTypeEnvironment {
-  final Map<TypeParameter, int> typeOffsets = {};
+  final Map<TypeParameter, int> _typeOffsets = {};
 
   void _add(InterfaceType type) {
     Class cls = type.classNode;
-    if (typeOffsets.containsKey(cls)) {
+    if (_typeOffsets.containsKey(cls)) {
       return;
     }
     int i = 0;
     for (TypeParameter typeParameter in cls.typeParameters) {
-      typeOffsets[typeParameter] = i++;
+      _typeOffsets[typeParameter] = i++;
     }
   }
 
-  int lookup(TypeParameter typeParameter) => typeOffsets[typeParameter]!;
+  int lookup(TypeParameter typeParameter) => _typeOffsets[typeParameter]!;
+}
+
+/// Environment that maps function type parameters to their runtime
+/// representation when inside a generic function type.
+class FunctionTypeEnvironment {
+  /// Mapping from function type parameters to their runtime representation.
+  late final Map<TypeParameter, FunctionTypeParameterType> _typeOffsets = {};
+
+  /// Current nesting depth of function types (number of function types
+  /// enclosing the current function type), or -1 if currently not inside a
+  /// function type.
+  int _depth = -1;
+
+  FunctionTypeEnvironment();
+
+  /// Enter the scope of a function type and add its type parameters to the
+  /// environment.
+  void enterFunctionType(FunctionType type) {
+    _depth++;
+    for (int i = 0; i < type.typeParameters.length; i++) {
+      _typeOffsets[type.typeParameters[i]] =
+          FunctionTypeParameterType(_depth, i);
+    }
+  }
+
+  /// Leave the scope of a function type.
+  void leaveFunctionType() {
+    if (--_depth == -1) {
+      // This clear is not strictly necessary, since type parameters for
+      // different function types are distinct, but it avoids bloating the
+      // map throughout the compilation.
+      _typeOffsets.clear();
+    }
+  }
+
+  /// Look up a function type parameter in the environment.
+  FunctionTypeParameterType lookup(TypeParameter typeParameter) =>
+      _typeOffsets[typeParameter]!;
+}
+
+/// Description of the runtime representation of a function type parameter.
+class FunctionTypeParameterType {
+  /// The nesting depth of the function type declaring this type parameter,
+  /// i.e. the number of function types it is embedded inside.
+  final int depth;
+
+  /// The index of this type parameter in the function type's list of type
+  /// parameters.
+  final int index;
+
+  FunctionTypeParameterType(this.depth, this.index);
 }
 
 /// Helper class for building runtime types.
@@ -72,6 +123,10 @@ class Types {
 
   /// A list which maps class ID to the classes [String] name.
   late final List<String> typeNames = _buildTypeNames();
+
+  /// Environment that maps function type parameters to their runtime
+  /// representation when inside a generic function type.
+  FunctionTypeEnvironment _env = FunctionTypeEnvironment();
 
   Types(this.translator);
 
@@ -211,16 +266,8 @@ class Types {
     for (List<List<DartType>> substitutionsL1 in typeRulesSubstitutions) {
       List<ListConstant> substitutionsConstantL1 = [];
       for (List<DartType> substitutionsL2 in substitutionsL1) {
-        substitutionsConstantL1.add(ListConstant(
-            listTypeType,
-            substitutionsL2.map((t) {
-              // TODO(joshualitt): implement generic functions
-              if (t is FunctionType && isGenericFunction(t)) {
-                return TypeLiteralConstant(DynamicType());
-              } else {
-                return TypeLiteralConstant(t);
-              }
-            }).toList()));
+        substitutionsConstantL1.add(ListConstant(listTypeType,
+            substitutionsL2.map((t) => TypeLiteralConstant(t)).toList()));
       }
       substitutionsConstantL0
           .add(ListConstant(listListTypeType, substitutionsConstantL1));
@@ -252,9 +299,7 @@ class Types {
     return expectedType;
   }
 
-  bool isGenericFunction(FunctionType type) => type.typeParameters.isNotEmpty;
-
-  bool isGenericFunctionTypeParameter(TypeParameterType type) =>
+  bool isFunctionTypeParameter(TypeParameterType type) =>
       type.parameter.parent == null;
 
   bool _isTypeConstant(DartType type) {
@@ -264,11 +309,12 @@ class Types {
         type is NullType ||
         type is FutureOrType && _isTypeConstant(type.typeArgument) ||
         (type is FunctionType &&
-            type.typeParameters.isEmpty && // TODO(joshualitt) generic functions
+            type.typeParameters.every((p) => _isTypeConstant(p.bound)) &&
             _isTypeConstant(type.returnType) &&
             type.positionalParameters.every(_isTypeConstant) &&
             type.namedParameters.every((n) => _isTypeConstant(n.type))) ||
-        type is InterfaceType && type.typeArguments.every(_isTypeConstant);
+        type is InterfaceType && type.typeArguments.every(_isTypeConstant) ||
+        type is TypeParameterType && isFunctionTypeParameter(type);
   }
 
   Class classForType(DartType type) {
@@ -291,14 +337,10 @@ class Types {
     } else if (type is InterfaceType) {
       return translator.interfaceTypeClass;
     } else if (type is FunctionType) {
-      if (isGenericFunction(type)) {
-        return translator.genericFunctionTypeClass;
-      } else {
-        return translator.functionTypeClass;
-      }
+      return translator.functionTypeClass;
     } else if (type is TypeParameterType) {
-      if (isGenericFunctionTypeParameter(type)) {
-        return translator.genericFunctionTypeParameterTypeClass;
+      if (isFunctionTypeParameter(type)) {
+        return translator.functionTypeParameterTypeClass;
       } else {
         return translator.interfaceTypeParameterTypeClass;
       }
@@ -313,8 +355,7 @@ class Types {
     translator.convertType(codeGen.function, listType, typeListExpectedType);
   }
 
-  void _makeInterfaceType(
-      CodeGenerator codeGen, ClassInfo info, InterfaceType type) {
+  void _makeInterfaceType(CodeGenerator codeGen, InterfaceType type) {
     w.Instructions b = codeGen.b;
     ClassInfo typeInfo = translator.classInfo[type.classNode]!;
     b.i32_const(encodedNullability(type));
@@ -322,7 +363,11 @@ class Types {
     _makeTypeList(codeGen, type.typeArguments);
   }
 
-  DartType _normalizeFutureOrType(FutureOrType type) {
+  /// Normalizes a Dart type. Many rules are already applied for us, but we
+  /// still have to manually normalize [FutureOr].
+  DartType normalize(DartType type) {
+    if (type is! FutureOrType) return type;
+
     final s = normalize(type.typeArgument);
 
     // `coreTypes.isTope` and `coreTypes.isObject` take into account the
@@ -345,34 +390,6 @@ class Types {
     return FutureOrType(s, declaredNullability);
   }
 
-  /// Normalizes a Dart type. Many rules are already applied for us, but some we
-  /// have to apply manually, particularly to [FutureOr].
-  DartType normalize(DartType type) {
-    if (type is InterfaceType) {
-      return InterfaceType(type.classNode, type.nullability,
-          type.typeArguments.map(normalize).toList());
-    } else if (type is FunctionType) {
-      return FunctionType(type.positionalParameters.map(normalize).toList(),
-          normalize(type.returnType), type.nullability,
-          namedParameters: type.namedParameters
-              .map((namedType) => NamedType(
-                  namedType.name, normalize(namedType.type),
-                  isRequired: namedType.isRequired))
-              .toList(),
-          typeParameters: type.typeParameters
-              .map((typeParameter) => TypeParameter(
-                  typeParameter.name,
-                  normalize(typeParameter.bound),
-                  normalize(typeParameter.defaultType)))
-              .toList(),
-          requiredParameterCount: type.requiredParameterCount);
-    } else if (type is FutureOrType) {
-      return _normalizeFutureOrType(type);
-    } else {
-      return type;
-    }
-  }
-
   void _makeFutureOrType(CodeGenerator codeGen, FutureOrType type) {
     w.Instructions b = codeGen.b;
     b.i32_const(encodedNullability(type));
@@ -380,27 +397,22 @@ class Types {
     codeGen.call(translator.createNormalizedFutureOrType.reference);
   }
 
-  void _makeFunctionType(
-      CodeGenerator codeGen, ClassInfo info, FunctionType type) {
+  void _makeFunctionType(CodeGenerator codeGen, FunctionType type) {
     w.Instructions b = codeGen.b;
     b.i32_const(encodedNullability(type));
+    _env.enterFunctionType(type);
+    _makeTypeList(codeGen, type.typeParameters.map((p) => p.bound).toList());
     makeType(codeGen, type.returnType);
     if (type.positionalParameters.every(_isTypeConstant)) {
-      translator.constants.instantiateConstant(
-          codeGen.function,
-          b,
-          translator.constants.makeTypeList(type.positionalParameters),
-          typeListExpectedType);
+      translator.constants.instantiateTypeConstant(codeGen.function, b,
+          translator.constants.makeTypeList(type.positionalParameters), _env);
     } else {
       _makeTypeList(codeGen, type.positionalParameters);
     }
     b.i64_const(type.requiredParameterCount);
     if (type.namedParameters.every((n) => _isTypeConstant(n.type))) {
-      translator.constants.instantiateConstant(
-          codeGen.function,
-          b,
-          translator.constants.makeNamedParametersList(type),
-          namedParametersExpectedType);
+      translator.constants.instantiateTypeConstant(codeGen.function, b,
+          translator.constants.makeNamedParametersList(type), _env);
     } else {
       Class namedParameterClass = translator.namedParameterClass;
       Constructor namedParameterConstructor =
@@ -424,6 +436,7 @@ class Types {
       translator.convertType(codeGen.function, namedParametersListType,
           namedParametersExpectedType);
     }
+    _env.leaveFunctionType();
   }
 
   /// Makes a `_Type` object on the stack.
@@ -434,8 +447,8 @@ class Types {
     type = normalize(type);
     w.Instructions b = codeGen.b;
     if (_isTypeConstant(type)) {
-      translator.constants.instantiateConstant(
-          codeGen.function, b, TypeLiteralConstant(type), nonNullableTypeType);
+      translator.constants.instantiateTypeConstant(
+          codeGen.function, b, TypeLiteralConstant(type), _env);
       return nonNullableTypeType;
     }
     // All of the singleton types represented by canonical objects should be
@@ -445,6 +458,7 @@ class Types {
         type is FutureOrType ||
         type is FunctionType);
     if (type is TypeParameterType) {
+      assert(!isFunctionTypeParameter(type));
       codeGen.instantiateTypeParameter(type.parameter);
       if (type.declaredNullability == Nullability.nullable) {
         codeGen.call(translator.typeAsNullable.reference);
@@ -462,16 +476,9 @@ class Types {
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
     if (type is InterfaceType) {
-      _makeInterfaceType(codeGen, info, type);
+      _makeInterfaceType(codeGen, type);
     } else if (type is FunctionType) {
-      if (isGenericFunction(type)) {
-        // TODO(joshualitt): Implement generic function types and share most of
-        // the logic with _makeFunctionType.
-        print("Not implemented: RTI ${type}");
-        b.i32_const(encodedNullability(type));
-      } else {
-        _makeFunctionType(codeGen, info, type);
-      }
+      _makeFunctionType(codeGen, type);
     } else {
       throw '`$type` should have already been handled.';
     }
@@ -485,14 +492,6 @@ class Types {
   void emitTypeTest(CodeGenerator codeGen, DartType type, DartType operandType,
       TreeNode node) {
     w.Instructions b = codeGen.b;
-    if (type is FunctionType && isGenericFunction(type)) {
-      // TODO(joshualitt): Finish generic function types.
-      print("Not implemented: Type test with generic function type $type"
-          " at ${node.location}");
-      b.drop();
-      b.i32_const(1);
-      return;
-    }
     if (type is! InterfaceType) {
       makeType(codeGen, type);
       codeGen.call(translator.isSubtype.reference);

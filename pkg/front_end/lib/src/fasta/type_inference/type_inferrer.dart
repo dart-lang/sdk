@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
@@ -116,8 +115,6 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   final bool isTopLevel;
 
-  final ClassHierarchy classHierarchy;
-
   final Instrumentation? instrumentation;
 
   @override
@@ -140,7 +137,6 @@ class TypeInferrerImpl implements TypeInferrer {
       : assert(libraryBuilder != null),
         unknownFunction = new FunctionType(
             const [], const DynamicType(), libraryBuilder.nonNullable),
-        classHierarchy = engine.classHierarchy,
         instrumentation = isTopLevel ? null : engine.instrumentation,
         typeSchemaEnvironment = engine.typeSchemaEnvironment,
         operations = new OperationsCfe(engine.typeSchemaEnvironment,
@@ -158,9 +154,8 @@ class TypeInferrerImpl implements TypeInferrer {
   DartType inferImplicitFieldType(
       InferenceHelper helper, Expression initializer) {
     InferenceVisitorBase visitor = _createInferenceVisitor(helper);
-    ExpressionInferenceResult result = visitor.inferExpression(
-        initializer, const UnknownType(), true,
-        isVoidAllowed: true);
+    ExpressionInferenceResult result = visitor
+        .inferExpression(initializer, const UnknownType(), isVoidAllowed: true);
     DartType type = visitor.inferDeclarationType(result.inferredType);
     visitor.checkCleanState();
     return type;
@@ -171,8 +166,8 @@ class TypeInferrerImpl implements TypeInferrer {
       InferenceHelper helper, DartType declaredType, Expression initializer) {
     assert(!isTopLevel);
     InferenceVisitorBase visitor = _createInferenceVisitor(helper);
-    ExpressionInferenceResult initializerResult = visitor
-        .inferExpression(initializer, declaredType, true, isVoidAllowed: true);
+    ExpressionInferenceResult initializerResult =
+        visitor.inferExpression(initializer, declaredType, isVoidAllowed: true);
     initializerResult = visitor.ensureAssignableResult(
         declaredType, initializerResult,
         isVoidAllowed: declaredType is VoidType);
@@ -285,7 +280,7 @@ class TypeInferrerImpl implements TypeInferrer {
     assert(declaredType != null);
     InferenceVisitorBase visitor = _createInferenceVisitor(helper);
     ExpressionInferenceResult result =
-        visitor.inferExpression(initializer, declaredType, true);
+        visitor.inferExpression(initializer, declaredType);
     if (hasDeclaredInitializer) {
       initializer =
           visitor.ensureAssignableResult(declaredType, result).expression;

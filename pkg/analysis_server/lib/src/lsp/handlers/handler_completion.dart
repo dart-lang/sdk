@@ -13,6 +13,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';
 import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/dart_completion_suggestion.dart';
 import 'package:analysis_server/src/services/completion/filtering/fuzzy_matcher.dart';
 import 'package:analysis_server/src/services/completion/yaml/analysis_options_generator.dart';
 import 'package:analysis_server/src/services/completion/yaml/fix_data_generator.dart';
@@ -334,6 +335,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       isIncomplete: false,
       items: _pluginResultsToItems(
         capabilities,
+        path,
         lineInfo,
         offset,
         pluginResults,
@@ -450,18 +452,21 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
         final insertionRange =
             toRange(unit.lineInfo, itemReplacementOffset, itemInsertLength);
 
-        // For not-imported items, we need to include the file+uri to be able
-        // to compute the import-inserting edits in the `completionItem/resolve`
-        // call later.
+        // For items that need imports, we'll round-trip some additional info
+        // to allow their additional edits (and documentation) to be handled
+        // lazily to reduce the payload.
         CompletionItemResolutionInfo? resolutionInfo;
-        final libraryUri = item.libraryUri;
-        if (useNotImportedCompletions &&
-            libraryUri != null &&
-            (item.isNotImported ?? false)) {
-          resolutionInfo = DartNotImportedCompletionResolutionInfo(
-            file: unit.path,
-            libraryUri: libraryUri,
-          );
+        if (item is DartCompletionSuggestion) {
+          final dartElement = item.dartElement;
+          final importUris = item.requiredImports;
+
+          if (importUris.isNotEmpty) {
+            resolutionInfo = DartCompletionResolutionInfo(
+              file: unit.path,
+              importUris: importUris.map((uri) => uri.toString()).toList(),
+              ref: dartElement?.location?.encoding,
+            );
+          }
         }
 
         return toCompletionItem(
@@ -635,6 +640,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
 
   Iterable<CompletionItem> _pluginResultsToItems(
     LspClientCapabilities capabilities,
+    String path,
     LineInfo lineInfo,
     int offset,
     List<plugin.CompletionGetSuggestionsResult> pluginResults,
@@ -650,8 +656,19 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
       final insertionRange =
           toRange(lineInfo, result.replacementOffset, insertLength);
 
-      return result.results.map(
-        (item) => toCompletionItem(
+      return result.results.map((item) {
+        final isNotImported = item.isNotImported ?? false;
+        final importUri = item.libraryUri;
+
+        DartCompletionResolutionInfo? resolutionInfo;
+        if (isNotImported && importUri != null) {
+          resolutionInfo = DartCompletionResolutionInfo(
+            file: path,
+            importUris: [importUri],
+          );
+        }
+
+        return toCompletionItem(
           capabilities,
           lineInfo,
           item,
@@ -664,8 +681,9 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
           // completions.
           commitCharactersEnabled: false,
           completeFunctionCalls: false,
-        ),
-      );
+          resolutionData: resolutionInfo,
+        );
+      });
     });
   }
 

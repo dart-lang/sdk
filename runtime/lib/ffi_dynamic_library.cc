@@ -180,8 +180,6 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_executableLibrary, 0, 0) {
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_dl_lookup, 1, 2) {
-  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
-
   GET_NON_NULL_NATIVE_ARGUMENT(DynamicLibrary, dlib, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, argSymbolName,
                                arguments->NativeArgAt(1));
@@ -197,7 +195,7 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_lookup, 1, 2) {
     free(error);
     Exceptions::ThrowArgumentError(msg);
   }
-  return Pointer::New(type_arg, pointer);
+  return Pointer::New(pointer);
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_dl_getHandle, 0, 1) {
@@ -291,8 +289,7 @@ static intptr_t FfiResolve(Dart_Handle asset_handle,
 
 // Bootstrap to get the FFI Native resolver through a `native` call.
 DEFINE_NATIVE_ENTRY(Ffi_GetFfiNativeResolver, 1, 0) {
-  GET_NATIVE_TYPE_ARGUMENT(type_arg, arguments->NativeTypeArgAt(0));
-  return Pointer::New(type_arg, reinterpret_cast<intptr_t>(FfiResolve));
+  return Pointer::New(reinterpret_cast<intptr_t>(FfiResolve));
 }
 
 #endif  // defined(USING_SIMULATOR) ||                                         \

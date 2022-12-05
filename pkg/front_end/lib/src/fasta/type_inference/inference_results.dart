@@ -17,8 +17,15 @@ class StatementInferenceResult {
       SingleStatementInferenceResult;
 
   factory StatementInferenceResult.multiple(
-          int fileOffset, List<Statement> statements) =
-      MultipleStatementInferenceResult;
+      int fileOffset, List<Statement> statements) {
+    if (statements.length == 0) {
+      return const StatementInferenceResult();
+    } else if (statements.length == 1) {
+      return new SingleStatementInferenceResult(statements.single);
+    } else {
+      return new MultipleStatementInferenceResult(fileOffset, statements);
+    }
+  }
 
   bool get hasChanged => false;
 
@@ -54,13 +61,25 @@ class MultipleStatementInferenceResult implements StatementInferenceResult {
   @override
   final List<Statement> statements;
 
-  MultipleStatementInferenceResult(this.fileOffset, this.statements);
+  MultipleStatementInferenceResult(this.fileOffset, this.statements)
+      : assert(statements.isNotEmpty,
+            "The multi-statement result shouldn't be empty."),
+        assert(
+            statements.length != 1,
+            "For the results containing a single statement,"
+            "use SingleStatementInferenceResult.");
 
   @override
   bool get hasChanged => true;
 
   @override
-  Statement get statement => new Block(statements)..fileOffset = fileOffset;
+  Statement get statement {
+    if (statements.length == 1) {
+      return statements.single;
+    } else {
+      return new Block(statements)..fileOffset = fileOffset;
+    }
+  }
 
   @override
   int get statementCount => statements.length;

@@ -39,15 +39,15 @@ class FlutterStatelessWidgetTest extends FlutterSnippetProducerTest {
     }
     expect(code, '''
 import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/placeholder.dart';
 
 class MyWidget extends StatelessWidget {
   const MyWidget({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return const Placeholder();
   }
 }''');
   }
@@ -70,25 +70,25 @@ class MyWidget extends StatelessWidget {
       code = SourceEdit.applySequence(code, edit.edits);
     }
     expect(code, '''
-import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:flutter/src/widgets/placeholder.dart';
 
 class MyWidget extends StatelessWidget {
   const MyWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return const Placeholder();
   }
 }''');
     expect(snippet.change.selection!.file, testFile);
-    expect(snippet.change.selection!.offset, 242);
-    expect(snippet.change.selectionLength, 11);
+    expect(snippet.change.selection!.offset, 244);
+    expect(snippet.change.selectionLength, 19);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
-          {'file': testFile, 'offset': 113},
-          {'file': testFile, 'offset': 156},
+          {'file': testFile, 'offset': 115},
+          {'file': testFile, 'offset': 158},
         ],
         'length': 8,
         'suggestions': []

@@ -27,12 +27,12 @@ abstract class RefactoringProducer {
   /// [CodeActionKind.RefactorInline], or [CodeActionKind.RefactorRewrite].
   CodeActionKind get kind => CodeActionKind.Refactor;
 
+  /// Return the result of resolving the library in which the refactoring was
+  /// invoked.
+  ResolvedLibraryResult get libraryResult => _context.resolvedLibraryResult;
+
   /// Return a list of the parameters to send to the client.
   List<CommandParameter> get parameters;
-
-  /// Return the result of resolving the file in which the refactoring was
-  /// invoked.
-  ResolvedUnitResult get result => _context.resolvedUnitResult;
 
   /// Return the node that was selected, or `null` if the selection is not
   /// valid.
@@ -59,6 +59,10 @@ abstract class RefactoringProducer {
 
   /// Return the title of this refactoring.
   String get title;
+
+  /// Return the result of resolving the file in which the refactoring was
+  /// invoked.
+  ResolvedUnitResult get unitResult => _context.resolvedUnitResult;
 
   /// Return the correction utilities for this refactoring.
   CorrectionUtils get utils => _context.utils;

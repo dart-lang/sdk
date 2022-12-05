@@ -54,7 +54,7 @@ class ParsedFunction;
 #define NULLABLE_BOXED_NATIVE_SLOTS_LIST(V)                                    \
   V(Array, UntaggedArray, type_arguments, TypeArguments, FINAL)                \
   V(Finalizer, UntaggedFinalizer, type_arguments, TypeArguments, FINAL)        \
-  V(FinalizerBase, UntaggedFinalizerBase, all_entries, LinkedHashSet, VAR)     \
+  V(FinalizerBase, UntaggedFinalizerBase, all_entries, Set, VAR)               \
   V(FinalizerBase, UntaggedFinalizerBase, detachments, Dynamic, VAR)           \
   V(FinalizerBase, UntaggedFinalizer, entries_collected, FinalizerEntry, VAR)  \
   V(FinalizerEntry, UntaggedFinalizerEntry, value, Dynamic, VAR)               \
@@ -125,7 +125,8 @@ class ParsedFunction;
   V(ArgumentsDescriptor, UntaggedArray, positional_count, Smi, FINAL)          \
   V(ArgumentsDescriptor, UntaggedArray, count, Smi, FINAL)                     \
   V(ArgumentsDescriptor, UntaggedArray, size, Smi, FINAL)                      \
-  V(Record, UntaggedRecord, field_names, Array, FINAL)                         \
+  V(Record, UntaggedRecord, field_names, ImmutableArray, FINAL)                \
+  V(Record, UntaggedRecord, num_fields, Smi, FINAL)                            \
   V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL)                  \
   V(TypeParameters, UntaggedTypeParameters, names, Array, FINAL)               \
   V(TypeParameter, UntaggedTypeParameter, bound, Dynamic, FINAL)               \
@@ -182,8 +183,7 @@ NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
     FINAL)                                                                     \
   V(FunctionType, UntaggedFunctionType, packed_type_parameter_counts, Uint16,  \
     FINAL)                                                                     \
-  V(PointerBase, UntaggedPointerBase, data, IntPtr, VAR)                       \
-  V(Record, UntaggedRecord, num_fields, Int32, FINAL)
+  V(PointerBase, UntaggedPointerBase, data, IntPtr, VAR)
 
 // For uses that do not need the exact_type (boxed) or representation (unboxed)
 // or whether a boxed native slot is nullable. (Generally, such users only need

@@ -21,7 +21,7 @@ class E extends self::_E&_Enum&M1 /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::E
     : super self::_E&_Enum&M1::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic {
@@ -30,7 +30,7 @@ static method expectEquals(dynamic x, dynamic y) → dynamic {
   }
 }
 static method main() → dynamic {
-  self::expectEquals(#C3.{self::E::toString}(){() → core::String}, "E.e1");
+  self::expectEquals(#C3.{core::_Enum::toString}(){() → core::String}, "E.e1");
 }
 
 constants  {

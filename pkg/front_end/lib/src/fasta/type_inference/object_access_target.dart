@@ -61,6 +61,18 @@ enum ObjectAccessTargetKind {
   /// An access to multiple extension members, none of which are most specific.
   /// This is an erroneous case and a compile-time error is reported.
   ambiguous,
+
+  /// An access to a positional record field.
+  recordIndexed,
+
+  /// An access to a named record field.
+  recordNamed,
+
+  /// A potentially nullable access to a positional record field.
+  nullableRecordIndexed,
+
+  /// A potentially nullable access to a named record field.
+  nullableRecordNamed,
 }
 
 /// Result for performing an access on an object, like `o.foo`, `o.foo()` and
@@ -130,6 +142,14 @@ abstract class ObjectAccessTarget {
 
   Member? get member;
 
+  /// The access index, if this is an access to a positional record field.
+  /// Otherwise null.
+  int? get recordFieldIndex => null;
+
+  /// The access name, if this is an access to a named record field.
+  /// Otherwise null.
+  String? get recordFieldName => null;
+
   /// Returns `true` if this is an access to an instance member.
   bool get isInstanceMember => kind == ObjectAccessTargetKind.instanceMember;
 
@@ -171,6 +191,16 @@ abstract class ObjectAccessTarget {
   bool get isNullableInstanceMember =>
       kind == ObjectAccessTargetKind.nullableInstanceMember;
 
+  /// Returns `true` if this is an access to a record index on a potentially
+  /// nullable receiver.
+  bool get isNullableRecordIndexedAccess =>
+      kind == ObjectAccessTargetKind.nullableRecordIndexed;
+
+  /// Returns `true` if this is an access to a named record field on a
+  /// potentially nullable receiver.
+  bool get isNullableRecordNamedAccess =>
+      kind == ObjectAccessTargetKind.nullableRecordNamed;
+
   /// Returns `true` if this is an access to an instance member on a potentially
   /// nullable receiver.
   bool get isNullableExtensionMember =>
@@ -181,7 +211,9 @@ abstract class ObjectAccessTarget {
   bool get isNullable =>
       isNullableInstanceMember ||
       isNullableCallFunction ||
-      isNullableExtensionMember;
+      isNullableExtensionMember ||
+      isNullableRecordIndexedAccess ||
+      isNullableRecordNamedAccess;
 
   /// Returns the candidates for an ambiguous extension access.
   List<ExtensionAccessCandidate> get candidates =>
@@ -419,7 +451,7 @@ class InstanceAccessTarget extends ObjectAccessTarget {
       if (resolvedReceiverType is InterfaceType) {
         setterType = Substitution.fromPairs(
                 memberClass.typeParameters,
-                base.classHierarchy.getTypeArgumentsAsInstanceOf(
+                base.hierarchyBuilder.getTypeArgumentsAsInstanceOf(
                     resolvedReceiverType, memberClass)!)
             .substituteType(setterType);
       }
@@ -521,7 +553,8 @@ class FunctionAccessTarget extends ObjectAccessTarget {
 
   @override
   DartType getSetterType(InferenceVisitorBase base) {
-    throw unexpected(runtimeType.toString(), 'getSetterType', -1, null);
+    assert(false, "Unexpected call to ${runtimeType}.getSetterType");
+    return const DynamicType();
   }
 
   @override
@@ -943,4 +976,81 @@ class ExtensionAccessCandidate {
     // Neither is more specific than the other.
     return null;
   }
+}
+
+abstract class RecordAccessTarget extends ObjectAccessTarget {
+  @override
+  final RecordType receiverType;
+
+  final DartType fieldType;
+
+  RecordAccessTarget(
+      this.receiverType, this.fieldType, ObjectAccessTargetKind kind)
+      : super.internal(kind);
+
+  @override
+  DartType getBinaryOperandType(InferenceVisitorBase base) {
+    return const DynamicType();
+  }
+
+  @override
+  FunctionType getFunctionType(InferenceVisitorBase base) {
+    return _getFunctionType(base, getGetterType(base));
+  }
+
+  @override
+  DartType getGetterType(InferenceVisitorBase base) {
+    return fieldType;
+  }
+
+  @override
+  DartType getIndexKeyType(InferenceVisitorBase base) {
+    throw unexpected(runtimeType.toString(), 'getIndexKeyType', -1, null);
+  }
+
+  @override
+  DartType getIndexSetValueType(InferenceVisitorBase base) {
+    throw unexpected(runtimeType.toString(), 'getIndexSetValueType', -1, null);
+  }
+
+  @override
+  DartType getReturnType(InferenceVisitorBase base) {
+    return getFunctionType(base).returnType;
+  }
+
+  @override
+  DartType getSetterType(InferenceVisitorBase base) {
+    throw unexpected(runtimeType.toString(), 'getSetterType', -1, null);
+  }
+
+  @override
+  Member? get member => null;
+}
+
+class RecordIndexTarget extends RecordAccessTarget {
+  @override
+  final int recordFieldIndex;
+
+  RecordIndexTarget.nonNullable(
+      RecordType receiverType, DartType fieldType, this.recordFieldIndex)
+      : super(receiverType, fieldType, ObjectAccessTargetKind.recordIndexed);
+
+  RecordIndexTarget.nullable(
+      RecordType receiverType, DartType fieldType, this.recordFieldIndex)
+      : super(receiverType, fieldType,
+            ObjectAccessTargetKind.nullableRecordIndexed);
+}
+
+class RecordNameTarget extends RecordAccessTarget {
+  @override
+  final String recordFieldName;
+
+  RecordNameTarget.nonNullable(
+      RecordType receiverType, DartType fieldType, this.recordFieldName)
+      : super(receiverType, fieldType, ObjectAccessTargetKind.recordNamed);
+
+  RecordNameTarget.nullable(
+      RecordType receiverType, DartType fieldType, this.recordFieldName)
+      : super(receiverType, fieldType,
+            ObjectAccessTargetKind.nullableRecordNamed);
 }

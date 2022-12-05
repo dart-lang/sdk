@@ -49,6 +49,7 @@ accumulate
 accurate
 accurately
 achieve
+achieved
 act
 acting
 action
@@ -568,6 +569,7 @@ computer
 computes
 computing
 concatenated
+concatenating
 concatenation
 concepts
 conclude
@@ -1083,6 +1085,7 @@ evolution
 exact
 exactly
 examine
+examined
 examining
 example
 examples
@@ -1601,6 +1604,7 @@ interests
 interface
 interfaces
 interferes
+intermediary
 intern
 internal
 internally
@@ -1672,6 +1676,7 @@ join
 joined
 joining
 joins
+joint
 judgment
 judgments
 jump
@@ -1899,6 +1904,7 @@ millisecond
 milliseconds
 mimics
 minimal
+minimize
 minimum
 minor
 minus
@@ -2126,6 +2132,7 @@ outgoing
 outline
 outlines
 outlining
+outmost
 output
 outside
 over
@@ -2776,6 +2783,7 @@ similarly
 simple
 simpler
 simplicity
+simplification
 simplified
 simplifies
 simplifying
@@ -2912,6 +2920,7 @@ subclasses
 subclassing
 subject
 sublist
+subpattern
 subsequence
 subsequent
 subset
@@ -3175,6 +3184,7 @@ typedef
 typedef's
 typedefs
 types
+typical
 typically
 typing
 ultimate

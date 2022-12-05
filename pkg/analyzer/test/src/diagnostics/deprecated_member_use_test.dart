@@ -265,7 +265,28 @@ void f(A a) {
   a.foo();
 }
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 48, 3),
+      error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 48, 3,
+          text: "'foo' is deprecated and shouldn't be used. 0.9."),
+    ]);
+  }
+
+  test_methodInvocation_withMessage_dot() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A {
+  @Deprecated('0.9.')
+  void foo() {}
+}
+''');
+
+    await assertErrorsInCode(r'''
+import 'package:aaa/a.dart';
+
+void f(A a) {
+  a.foo();
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE, 48, 3,
+          text: "'foo' is deprecated and shouldn't be used. 0.9."),
     ]);
   }
 
@@ -932,7 +953,63 @@ class A {
 }
 ''', [
       error(
-          HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE, 47, 1),
+          HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE, 47, 1,
+          text: "'m' is deprecated and shouldn't be used. 0.9."),
+    ]);
+  }
+
+  test_methodInvocation_constructor_dot() async {
+    await assertErrorsInCode(r'''
+class A {
+  @Deprecated('0.9.')
+  m() {}
+  n() {m();}
+}
+''', [
+      error(
+          HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE, 48, 1,
+          text: "'m' is deprecated and shouldn't be used. 0.9."),
+    ]);
+  }
+
+  test_methodInvocation_constructor_exclamationMark() async {
+    await assertErrorsInCode(r'''
+class A {
+  @Deprecated(' Really! ')
+  m() {}
+  n() {m();}
+}
+''', [
+      error(
+          HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE, 53, 1,
+          text: "'m' is deprecated and shouldn't be used. Really!"),
+    ]);
+  }
+
+  test_methodInvocation_constructor_onlyDot() async {
+    await assertErrorsInCode(r'''
+class A {
+  @Deprecated('.')
+  m() {}
+  n() {m();}
+}
+''', [
+      error(HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE, 45, 1,
+          text: "'m' is deprecated and shouldn't be used."),
+    ]);
+  }
+
+  test_methodInvocation_constructor_questionMark() async {
+    await assertErrorsInCode(r'''
+class A {
+  @Deprecated('Are you sure?')
+  m() {}
+  n() {m();}
+}
+''', [
+      error(
+          HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE, 57, 1,
+          text: "'m' is deprecated and shouldn't be used. Are you sure?"),
     ]);
   }
 

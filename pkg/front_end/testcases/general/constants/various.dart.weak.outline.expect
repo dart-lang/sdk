@@ -51,19 +51,9 @@ library;
 //   @AbstractClass()
 //    ^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:101:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   @AbstractClass()
-//    ^
-//
 // pkg/front_end/testcases/general/constants/various.dart:104:4: Error: The class 'AbstractClassWithConstructor' is abstract and can't be instantiated.
 //   @AbstractClassWithConstructor()
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/general/constants/various.dart:104:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   @AbstractClassWithConstructor()
-//    ^
 //
 // pkg/front_end/testcases/general/constants/various.dart:120:39: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 // Try using a constructor or factory that is 'const'.
@@ -117,15 +107,9 @@ abstract class AbstractClassWithConstructor extends core::Object /*hasConstConst
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class NotAbstractClass extends core::Object {
-  @throw invalid-expression "pkg/front_end/testcases/general/constants/various.dart:101:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  @AbstractClass()
-   ^"
+  @invalid-expression "The class 'AbstractClass' is abstract and can't be instantiated."
   field core::Object* foo;
-  @throw invalid-expression "pkg/front_end/testcases/general/constants/various.dart:104:4: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  @AbstractClassWithConstructor()
-   ^"
+  @invalid-expression "The class 'AbstractClassWithConstructor' is abstract and can't be instantiated."
   field core::Object* bar;
   synthetic constructor •() → self::NotAbstractClass*
     ;
@@ -453,4 +437,4 @@ Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:214:25 
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:215:40 -> BoolConstant(false)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:216:25 -> NullConstant(null)
 Evaluated: ConditionalExpression @ org-dartlang-testcase:///various.dart:217:40 -> BoolConstant(false)
-Extra constant evaluation: evaluated: 135, effectively constant: 84
+Extra constant evaluation: evaluated: 133, effectively constant: 84

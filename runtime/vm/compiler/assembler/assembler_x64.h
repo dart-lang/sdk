@@ -566,8 +566,8 @@ class Assembler : public AssemblerBase {
                         const Immediate& imm,
                         OperandSize width = kEightBytes);
   void CompareImmediate(Register reg,
-                        int32_t immediate,
-                        OperandSize width = kEightBytes) {
+                        int64_t immediate,
+                        OperandSize width = kEightBytes) override {
     return CompareImmediate(reg, Immediate(immediate), width);
   }
 
@@ -583,11 +583,14 @@ class Assembler : public AssemblerBase {
                      OperandSize width = kEightBytes);
 
   void AndImmediate(Register dst, const Immediate& imm);
-  void AndImmediate(Register dst, int32_t value) {
+  void AndImmediate(Register dst, int64_t value) {
     AndImmediate(dst, Immediate(value));
   }
+  void AndRegisters(Register dst,
+                    Register src1,
+                    Register src2 = kNoRegister) override;
   void OrImmediate(Register dst, const Immediate& imm);
-  void OrImmediate(Register dst, int32_t value) {
+  void OrImmediate(Register dst, int64_t value) {
     OrImmediate(dst, Immediate(value));
   }
   void XorImmediate(Register dst, const Immediate& imm);
@@ -767,7 +770,7 @@ class Assembler : public AssemblerBase {
                     const Immediate& imm,
                     OperandSize width = kEightBytes);
   void AddImmediate(Register reg,
-                    int32_t value,
+                    int64_t value,
                     OperandSize width = kEightBytes) {
     AddImmediate(reg, Immediate(value), width);
   }
@@ -780,7 +783,7 @@ class Assembler : public AssemblerBase {
                  int32_t value) {
     leaq(dest, Address(src, scale, value));
   }
-  void AddImmediate(Register dest, Register src, int32_t value);
+  void AddImmediate(Register dest, Register src, int64_t value);
   void AddImmediate(const Address& address, const Immediate& imm);
   void SubImmediate(Register reg,
                     const Immediate& imm,
@@ -797,7 +800,7 @@ class Assembler : public AssemblerBase {
 
   // Unlike movq this can affect the flags or use the constant pool.
   void LoadImmediate(Register reg, const Immediate& imm);
-  void LoadImmediate(Register reg, int32_t immediate) {
+  void LoadImmediate(Register reg, int64_t immediate) {
     LoadImmediate(reg, Immediate(immediate));
   }
   void LoadDImmediate(FpuRegister dst, double immediate);
@@ -833,7 +836,7 @@ class Assembler : public AssemblerBase {
   void CompareObject(Register reg, const Object& object);
 
   void LoadCompressed(Register dest, const Address& slot);
-  void LoadCompressedSmi(Register dest, const Address& slot);
+  void LoadCompressedSmi(Register dest, const Address& slot) override;
 
   // Store into a heap object and apply the generational and incremental write
   // barriers. All stores into heap objects must pass through this function or,
@@ -1181,7 +1184,9 @@ class Assembler : public AssemblerBase {
   void TsanStoreRelease(Address addr);
 #endif
 
-  void LoadAcquire(Register dst, Register address, int32_t offset = 0) {
+  void LoadAcquire(Register dst,
+                   Register address,
+                   int32_t offset = 0) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     movq(dst, Address(address, offset));
@@ -1191,7 +1196,7 @@ class Assembler : public AssemblerBase {
   }
   void LoadAcquireCompressed(Register dst,
                              Register address,
-                             int32_t offset = 0) {
+                             int32_t offset = 0) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     LoadCompressed(dst, Address(address, offset));
@@ -1394,6 +1399,12 @@ class Assembler : public AssemblerBase {
     static_assert(kSmiTagShift == 1, "adjust scale factor");
     leaq(address, FieldAddress(instance, offset_in_words_as_smi,
                                TIMES_COMPRESSED_HALF_WORD_SIZE, 0));
+  }
+
+  void LoadFieldAddressForOffset(Register address,
+                                 Register instance,
+                                 int32_t offset) override {
+    leaq(address, FieldAddress(instance, offset));
   }
 
   static Address VMTagAddress();

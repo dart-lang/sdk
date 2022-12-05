@@ -16,7 +16,7 @@ import 'package:compiler/src/js_model/element_map.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:expect/expect.dart';
 import 'package:kernel/ast.dart' as ir;
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const String source = '''
 import 'package:expect/expect.dart' deferred as expect;

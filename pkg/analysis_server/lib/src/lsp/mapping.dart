@@ -854,8 +854,9 @@ lsp.CodeActionKind toCodeActionKind(
       .replaceAll('dart.fix', lsp.CodeActionKind.QuickFix.toString())
       .replaceAll(
           'analysisOptions.assist', lsp.CodeActionKind.Refactor.toString())
-      .replaceAll(
-          'analysisOptions.fix', lsp.CodeActionKind.QuickFix.toString());
+      .replaceAll('analysisOptions.fix', lsp.CodeActionKind.QuickFix.toString())
+      .replaceAll('pubspec.assist', lsp.CodeActionKind.Refactor.toString())
+      .replaceAll('pubspec.fix', lsp.CodeActionKind.QuickFix.toString());
 
   // If the ID does not start with either of the kinds above, prefix it as
   // it will be an unqualified ID from a plugin.

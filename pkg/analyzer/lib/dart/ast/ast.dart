@@ -451,8 +451,6 @@ abstract class AstVisitor<R> {
 
   R? visitExtensionOverride(ExtensionOverride node);
 
-  R? visitExtractorPattern(ExtractorPattern node);
-
   R? visitFieldDeclaration(FieldDeclaration node);
 
   R? visitFieldFormalParameter(FieldFormalParameter node);
@@ -492,6 +490,8 @@ abstract class AstVisitor<R> {
   R? visitGenericFunctionType(GenericFunctionType node);
 
   R? visitGenericTypeAlias(GenericTypeAlias node);
+
+  R? visitGuardedPattern(GuardedPattern node);
 
   R? visitHideCombinator(HideCombinator node);
 
@@ -553,6 +553,8 @@ abstract class AstVisitor<R> {
 
   R? visitNullLiteral(NullLiteral node);
 
+  R? visitObjectPattern(ObjectPattern node);
+
   R? visitOnClause(OnClause node);
 
   R? visitParenthesizedExpression(ParenthesizedExpression node);
@@ -564,8 +566,6 @@ abstract class AstVisitor<R> {
   R? visitPartOfDirective(PartOfDirective node);
 
   R? visitPatternAssignment(PatternAssignment node);
-
-  R? visitPatternAssignmentStatement(PatternAssignmentStatement node);
 
   R? visitPatternVariableDeclaration(PatternVariableDeclaration node);
 
@@ -604,6 +604,8 @@ abstract class AstVisitor<R> {
 
   R? visitRelationalPattern(RelationalPattern node);
 
+  R? visitRestPatternElement(RestPatternElement node);
+
   R? visitRethrowExpression(RethrowExpression node);
 
   R? visitReturnStatement(ReturnStatement node);
@@ -637,8 +639,6 @@ abstract class AstVisitor<R> {
   R? visitSwitchExpression(SwitchExpression node);
 
   R? visitSwitchExpressionCase(SwitchExpressionCase node);
-
-  R? visitSwitchExpressionDefault(SwitchExpressionDefault node);
 
   R? visitSwitchPatternCase(SwitchPatternCase node);
 
@@ -861,7 +861,7 @@ abstract class CascadeExpression
 /// The `case` clause that can optionally appear in an `if` statement.
 ///
 ///    caseClause ::=
-///        'case' [DartPattern] [WhenClause]?
+///        'case' [GuardedPattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
@@ -870,10 +870,7 @@ abstract class CaseClause implements AstNode {
   Token get caseKeyword;
 
   /// Return the pattern controlling whether the statements will be executed.
-  DartPattern get pattern;
-
-  /// Return the clause controlling whether the statements will be executed.
-  WhenClause? get whenClause;
+  GuardedPattern get guardedPattern;
 }
 
 /// A cast pattern.
@@ -1649,27 +1646,31 @@ abstract class ContinueStatement implements Statement {
 ///
 ///    pattern ::=
 ///        [BinaryPattern]
-///      | [ExpressionPattern]
 ///      | [CastPattern]
-///      | [ExtractorPattern]
+///      | [ConstantPattern]
 ///      | [ListPattern]
-///      | [LiteralPattern]
 ///      | [MapPattern]
-///      | [RecordPattern]
-///      | [RelationalPattern]
+///      | [ObjectPattern]
 ///      | [ParenthesizedPattern]
 ///      | [PostfixPattern]
+///      | [RecordPattern]
+///      | [RelationalPattern]
 ///      | [VariablePattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class DartPattern implements AstNode {
+abstract class DartPattern implements AstNode, ListPatternElement {
   /// Return the precedence of this pattern.
   ///
   /// The precedence is a positive integer value that defines how the source
   /// code is parsed into an AST. For example `a | b & c` is parsed as `a | (b
   /// & c)` because the precedence of `&` is greater than the precedence of `|`.
   Precedence get precedence;
+
+  /// If this pattern is a parenthesized pattern, return the result of
+  /// unwrapping the pattern inside the parentheses. Otherwise, return this
+  /// pattern.
+  DartPattern get unParenthesized;
 }
 
 /// A node that represents the declaration of one or more names.
@@ -2165,27 +2166,6 @@ abstract class ExtensionOverride implements Expression {
   ///
   /// Return `null` if the AST structure has not been resolved.
   List<DartType>? get typeArgumentTypes;
-}
-
-/// An extractor pattern.
-///
-///    extractorPattern ::=
-///        [Identifier] [TypeArgumentList]? '(' [RecordPatternField] ')'
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class ExtractorPattern implements DartPattern {
-  /// Return the patterns matching the properties of the object.
-  NodeList<RecordPatternField> get fields;
-
-  /// Return the left parenthesis.
-  Token get leftParenthesis;
-
-  /// Return the right parenthesis.
-  Token get rightParenthesis;
-
-  /// The name of the type of object from which values will be extracted.
-  NamedType get type;
 }
 
 /// The declaration of one or more fields of the same type.
@@ -2902,6 +2882,21 @@ abstract class GenericTypeAlias implements TypeAlias {
   TypeParameterList? get typeParameters;
 }
 
+/// The pattern with an optional [WhenClause].
+///
+///    guardedPattern ::=
+///        [DartPattern] [WhenClause]?
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class GuardedPattern implements AstNode {
+  /// Return the pattern controlling whether the statements will be executed.
+  DartPattern get pattern;
+
+  /// Return the clause controlling whether the statements will be executed.
+  WhenClause? get whenClause;
+}
+
 /// A combinator that restricts the names being imported to those that are not
 /// in a given list.
 ///
@@ -3441,7 +3436,7 @@ abstract class ListPattern implements DartPattern {
   DartType? requiredType;
 
   /// Return the elements in this pattern.
-  NodeList<DartPattern> get elements;
+  NodeList<ListPatternElement> get elements;
 
   /// Return the left square bracket.
   Token get leftBracket;
@@ -3453,6 +3448,12 @@ abstract class ListPattern implements DartPattern {
   /// type arguments were declared.
   TypeArgumentList? get typeArguments;
 }
+
+/// An element of a list pattern.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class ListPatternElement implements AstNode {}
 
 /// A node that represents a literal expression.
 ///
@@ -3496,8 +3497,8 @@ abstract class MapLiteralEntry implements CollectionElement {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class MapPattern implements DartPattern {
-  /// Return the entries in this pattern.
-  NodeList<MapPatternEntry> get entries;
+  /// Return the elements in this pattern.
+  NodeList<MapPatternElement> get elements;
 
   /// Return the left curly bracket.
   Token get leftBracket;
@@ -3510,6 +3511,12 @@ abstract class MapPattern implements DartPattern {
   TypeArgumentList? get typeArguments;
 }
 
+/// An element of a map pattern.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class MapPatternElement implements AstNode {}
+
 /// An entry in a map pattern.
 ///
 ///    mapPatternEntry ::=
@@ -3517,7 +3524,7 @@ abstract class MapPattern implements DartPattern {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class MapPatternEntry implements AstNode {
+abstract class MapPatternEntry implements AstNode, MapPatternElement {
   /// Return the expression computing the key of the entry to be matched.
   Expression get key;
 
@@ -3969,6 +3976,27 @@ abstract class NullShortableExpression implements Expression {
   Expression get nullShortingTermination;
 }
 
+/// An object pattern.
+///
+///    objectPattern ::=
+///        [Identifier] [TypeArgumentList]? '(' [RecordPatternField] ')'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class ObjectPattern implements DartPattern {
+  /// Return the patterns matching the properties of the object.
+  NodeList<RecordPatternField> get fields;
+
+  /// Return the left parenthesis.
+  Token get leftParenthesis;
+
+  /// Return the right parenthesis.
+  Token get rightParenthesis;
+
+  /// The name of the type of object from which values will be extracted.
+  NamedType get type;
+}
+
 /// The "on" clause in a mixin declaration.
 ///
 ///    onClause ::=
@@ -4083,20 +4111,6 @@ abstract class PatternAssignment implements Expression {
   DartPattern get pattern;
 }
 
-/// A pattern assignment used as a statement.
-///
-///    patternAssignmentStatement ::=
-///        [PatternAssignment] ';'
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class PatternAssignmentStatement implements Statement {
-  /// Return the pattern assignment that comprises the statement.
-  PatternAssignment get assignment;
-
-  /// Return the semicolon terminating the statement.
-  Token get semicolon;
-}
-
 /// A pattern variable declaration.
 ///
 ///    patternDeclaration ::=
@@ -4104,7 +4118,7 @@ abstract class PatternAssignmentStatement implements Statement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class PatternVariableDeclaration implements AstNode {
+abstract class PatternVariableDeclaration implements AnnotatedNode {
   /// Return the equal sign separating the pattern from the expression.
   Token get equals;
 
@@ -4455,6 +4469,21 @@ abstract class RelationalPattern implements DartPattern {
 
   /// Return the relational operator being applied.
   Token get operator;
+}
+
+/// A rest pattern element.
+///
+///    restPatternElement ::= '...' [DartPattern]?
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class RestPatternElement
+    implements ListPatternElement, MapPatternElement {
+  /// The operator token '...'.
+  Token get operator;
+
+  /// The optional pattern.
+  DartPattern? get pattern;
 }
 
 /// A rethrow expression.
@@ -4876,13 +4905,16 @@ abstract class SwitchDefault implements SwitchMember {}
 /// A switch expression.
 ///
 ///    switchExpression ::=
-///        'switch' '(' [Expression] ')' '{' [SwitchExpressionCase]*
-///        [SwitchExpressionDefault]? '}'
+///        'switch' '(' [Expression] ')' '{' [SwitchExpressionCase]
+///        (',' [SwitchExpressionCase])* ','? '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class SwitchExpression implements Expression {
-  /// Return the expression used to determine which of the switch members will
+  /// Return the cases that can be selected by the expression.
+  NodeList<SwitchExpressionCase> get cases;
+
+  /// Return the expression used to determine which of the switch cases will
   /// be selected.
   Expression get expression;
 
@@ -4891,10 +4923,6 @@ abstract class SwitchExpression implements Expression {
 
   /// Return the left parenthesis.
   Token get leftParenthesis;
-
-  /// Return the switch expression members that can be selected by the
-  /// expression.
-  NodeList<SwitchExpressionMember> get members;
 
   /// Return the right curly bracket.
   Token get rightBracket;
@@ -4909,50 +4937,21 @@ abstract class SwitchExpression implements Expression {
 /// A case in a switch expression.
 ///
 ///    switchExpressionCase ::=
-///        'case' [DartPattern] [WhenClause]? '=>' [Expression]
+///        [GuardedPattern] '=>' [Expression]
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class SwitchExpressionCase implements SwitchExpressionMember {
-  /// Return the refutable pattern that must match for the [expression] to be executed.
-  DartPattern get pattern;
-
-  /// Return the clause containing the condition that is evaluated when the
-  /// [pattern] matches, that must evaluate to `true` in order for the
-  /// [expression] to be executed.
-  WhenClause? get whenClause;
-}
-
-/// The default case in a switch expression.
-///
-///    switchDefault ::=
-///        'default' '=>' [Expression]
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class SwitchExpressionDefault implements SwitchExpressionMember {}
-
-/// A member within a switch expression.
-///
-///    switchExpressionMember ::=
-///        [SwitchExpressionCase]
-///      | [SwitchExpressionDefault]
-///
-/// Clients may not extend, implement or mix-in this class.
-// TODO(brianwilkerson) Consider renaming `SwitchMember`, `SwitchCase`, and
-//  `SwitchDefault` to start with `SwitchStatement` for consistency.
-@experimental
-abstract class SwitchExpressionMember implements AstNode {
-  /// Return the arrow separating the keyword or the expression from the
-  /// expression.
+abstract class SwitchExpressionCase implements AstNode {
+  /// Return the arrow separating the pattern from the expression.
   Token get arrow;
 
   /// Return the expression whose value will be returned from the switch
-  /// expression if this member is selected.
+  /// expression if the pattern matches.
   Expression get expression;
 
-  /// Return the token representing the 'case' or 'default' keyword.
-  Token get keyword;
+  /// Return the refutable pattern that must match for the [expression] to
+  /// be executed.
+  GuardedPattern get guardedPattern;
 }
 
 /// An element within a switch statement.
@@ -4971,6 +4970,8 @@ abstract class SwitchExpressionMember implements AstNode {
 /// tokens.
 ///
 /// Clients may not extend, implement or mix-in this class.
+// TODO(brianwilkerson) Consider renaming `SwitchMember`, `SwitchCase`, and
+//  `SwitchDefault` to start with `SwitchStatement` for consistency.
 abstract class SwitchMember implements AstNode {
   /// Return the colon separating the keyword or the expression from the
   /// statements.
@@ -4996,10 +4997,7 @@ abstract class SwitchMember implements AstNode {
 @experimental
 abstract class SwitchPatternCase implements SwitchMember {
   /// Return the pattern controlling whether the statements will be executed.
-  DartPattern get pattern;
-
-  /// Return the clause controlling whether the statements will be executed.
-  WhenClause? get whenClause;
+  GuardedPattern get guardedPattern;
 }
 
 /// A switch statement.

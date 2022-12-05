@@ -7,6 +7,11 @@ library /*isNonNullableByDefault*/;
 //   C._circular(this.f);
 //   ^^^^^^^^^^^
 //
+// pkg/front_end/testcases/general/circularity-via-initializing-formal2.dart:11:25: Error: The value 'null' can't be assigned to the parameter type 'C' because 'C' is not nullable.
+//  - 'C' is from 'pkg/front_end/testcases/general/circularity-via-initializing-formal2.dart'.
+// var x = new C._circular(null);
+//                         ^
+//
 import self as self;
 import "dart:core" as core;
 

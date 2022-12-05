@@ -516,6 +516,11 @@ Type _canonicalizeNormalizedTypeObject(type) {
   if (_jsInstanceOf(type, GenericFunctionTypeIdentifier)) {
     return wrapType(type, true);
   }
+  if (_jsInstanceOf(type, RecordType)) {
+    var normTypes = type.types.map(normalizeHelper).toList();
+    var normType = recordType(type.shape, normTypes);
+    return wrapType(normType, true);
+  }
   if (_jsInstanceOf(type, FunctionType)) {
     var normReturnType = normalizeHelper(type.returnType);
     var normArgs = type.args.map(normalizeHelper).toList();
@@ -1226,6 +1231,38 @@ String typeName(type) {
   return 'JSObject<' + JS<String>('!', '#.name', type) + '>';
 }
 
+/// Returns true if [t1] <: [t2].
+@notNull
+bool _isRecordSubtype(
+    @notNull RecordType t1, @notNull RecordType t2, @notNull bool strictMode) {
+  if (t1.shape != t2.shape) {
+    return false;
+  }
+  var positionals = t1.shape.positionals;
+  var types1 = t1.types;
+  var types2 = t2.types;
+  for (var i = 0; i < positionals; i++) {
+    var type1 = JS('!', '#[#]', types1, i);
+    var type2 = JS('!', '#[#]', types2, i);
+    if (!_isSubtype(type1, type2, strictMode)) {
+      return false;
+    }
+  }
+
+  var named = t1.shape.named;
+  if (named != null) {
+    for (var i = 0; i < named.length; i++) {
+      var index = positionals + i;
+      var type1 = JS('!', '#[#]', types1, index);
+      var type2 = JS('!', '#[#]', types2, index);
+      if (!_isSubtype(type1, type2, strictMode)) {
+        return false;
+      }
+    }
+  }
+  return true;
+}
+
 /// Returns true if [ft1] <: [ft2].
 @notNull
 bool _isFunctionSubtype(@notNull FunctionType ft1, @notNull FunctionType ft2,
@@ -1528,6 +1565,19 @@ bool _isSubtype(t1, t2, @notNull bool strictMode) {
   if (_jsInstanceOf(t2, NullableType)) {
     return _isSubtype(t1, JS<NullableType>('!', '#', t2).type, strictMode) ||
         _isSubtype(t1, typeRep<Null>(), strictMode);
+  }
+
+  // Abstract Record.
+  if (_equalType(t2, Record)) {
+    return _equalType(t1, Record) || _jsInstanceOf(t1, RecordType);
+  }
+
+  // Concrete record.
+  if (_jsInstanceOf(t2, RecordType)) {
+    if (_jsInstanceOf(t1, RecordType)) {
+      return _isRecordSubtype(t1, t2, strictMode);
+    }
+    return false;
   }
 
   // "Traditional" name-based subtype check.  Avoid passing
@@ -2200,4 +2250,246 @@ Object? _getMatchingSupertype(Object? subtype, Object supertype) {
   }
 
   return null;
+}
+
+/// Shapes consist of a count of positional elements and a sorted list of
+/// named elements' names.
+class Shape {
+  int positionals;
+  List<String>? named;
+  Shape(this.positionals, this.named);
+
+  String toString() {
+    return 'Shape($positionals, [${named?.join(", ")}])';
+  }
+}
+
+/// Internal base class for all concrete records.
+class _RecordImpl implements Record {
+  Shape shape;
+  List values;
+
+  int? _hashCode;
+  String? _printed;
+
+  _RecordImpl(this.shape, this.values);
+
+  @override
+  bool operator ==(Object? other) {
+    if (!(other is _RecordImpl)) return false;
+    if (shape != other.shape) return false;
+    if (values.length != other.values.length) {
+      return false;
+    }
+    for (var i = 0; i < values.length; i++) {
+      if (values[i] != other.values[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  int get hashCode {
+    if (_hashCode == null) {
+      _hashCode = Object.hashAll([shape, ...values]);
+    }
+    return _hashCode!;
+  }
+
+  @override
+  String toString() {
+    if (_printed == null) {
+      var buffer = StringBuffer();
+      var posCount = shape.positionals;
+      var count = values.length;
+
+      buffer.write('(');
+      for (var i = 0; i < count; i++) {
+        if (i >= posCount) {
+          buffer.write('${shape.named![i - posCount]}');
+          buffer.write(': ');
+        }
+        buffer.write('${values[i]}');
+        if (i < count - 1) buffer.write(', ');
+      }
+      buffer.write(')');
+      _printed = buffer.toString();
+    }
+    return _printed!;
+  }
+}
+
+/// Cache for Record shapes. These are keyed by a distinct shape recipe,
+/// which consists of an integer followed by space-separated named labels.
+final _shapes = JS<Map<String, Shape>>('', 'new Map()');
+final _records = JS('', 'new Map()');
+
+Shape registerShape(@notNull String shapeRecipe, @notNull int positionals,
+    List<String>? named) {
+  var cached = JS<Shape?>('', '#.get(#)', _shapes, shapeRecipe);
+  if (cached != null) {
+    return cached;
+  }
+
+  var shape = Shape(positionals, named);
+  JS('', '#.set(#, #)', _shapes, shapeRecipe, shape);
+  return shape;
+}
+
+Object registerRecord(@notNull String shapeRecipe, @notNull int positionals,
+    List<String>? named) {
+  var cached = JS('', '#.get(#)', _records, shapeRecipe);
+  if (cached != null) {
+    return cached;
+  }
+
+  Object recordClass = JS('!', 'class _Record extends # {}', _RecordImpl);
+  // Add a 'new' function to be used instead of a constructor
+  // (which is disallowed on dart objects).
+  Object newRecord = JS(
+      '!',
+      '''
+    #.new = function (shape, values) {
+      #.__proto__.new.call(this, shape, values);
+    }
+  ''',
+      recordClass,
+      recordClass);
+
+  JS('!', '#.prototype = #.prototype', newRecord, recordClass);
+  var recordPrototype = JS('', '#.prototype', recordClass);
+
+  _recordGet(@notNull int index) =>
+      JS('!', 'function recordGet() {return this.values[#];}', index);
+
+  // Add convenience getters for accessing the record's field values.
+  var count = 0;
+  while (count < positionals) {
+    var name = '\$$count';
+    defineAccessor(recordPrototype, name,
+        get: _recordGet(count), enumerable: true);
+    count++;
+  }
+  if (named != null) {
+    for (final name in named) {
+      defineAccessor(recordPrototype, name,
+          get: _recordGet(count), enumerable: true);
+      count++;
+    }
+  }
+
+  JS('', '#.set(#, #)', _records, shapeRecipe, newRecord);
+  return newRecord;
+}
+
+/// Creates a record type.
+RecordType recordType(@notNull Shape shape, @notNull List types) =>
+    RecordType.create(shape, types);
+
+/// Creates a shape and binds it to [values].
+///
+/// [shapeRecipe] consists of a space-separated list of elements, where the
+/// first element is the number of positional elements, followed by every
+/// named element in sorted order.
+Object recordLiteral(@notNull String shapeRecipe, @notNull int positionals,
+    List<String>? named, @notNull List values) {
+  var shape = registerShape(shapeRecipe, positionals, named);
+  var record = registerRecord(shapeRecipe, positionals, named);
+  return JS('!', 'new #(#, #)', record, shape, values);
+}
+
+/// Creates a shape and binds it to [types].
+///
+/// [shapeRecipe] consists of a space-separated list of elements, where the
+/// first element is the number of positional elements, followed by every
+/// named element in sorted order.
+RecordType recordTypeLiteral(@notNull String shapeRecipe,
+    @notNull int positionals, List<String>? named, @notNull List types) {
+  var shape = registerShape(shapeRecipe, positionals, named);
+  return recordType(shape, types);
+}
+
+/// Memo table for positional record field groups. A positional field packet
+/// [type1, ..., typen] corresponds to the path n, type1, ...., typen.  The
+/// element reached via this path (if any) is the canonical representative
+/// for this packet.
+/// TODO: unify with function argument types?
+final _recordTypeArrayFieldMap = JS('', 'new Map()');
+
+/// Memo table for function types. The index path consists of the
+/// path length - 1, the returnType, the canonical positional argument
+/// packet, and if present, the canonical optional or named argument
+/// packet.  A level of indirection could be avoided here if desired.
+final _recordTypeTypeMap = JS('', 'new Map()');
+
+class RecordType extends DartType {
+  final Shape shape;
+  final List types;
+
+  String? _printed;
+
+  RecordType._(this.shape, this.types);
+
+  /// Construct a record type.
+  ///
+  /// We eagerly normalize the field types to avoid having to deal with this
+  /// logic in multiple places.
+  ///
+  /// Note: Generic record subtype checks assume types have been canonicalized
+  /// when testing if type bounds are equal.
+  static RecordType create(@notNull Shape shape, @notNull List types) {
+    var canonicalized =
+        _canonicalizeArray(JS('', '#', types), _recordTypeArrayFieldMap);
+    var keys = JS('', '[#, #]', shape, canonicalized);
+    var createType = () => RecordType._(shape, canonicalized);
+    return _memoizeArray(_recordTypeTypeMap, keys, createType);
+  }
+
+  String toString() {
+    if (_printed != null) return _printed!;
+
+    var named = shape.named;
+    var posCount = shape.positionals;
+    var count = types.length;
+
+    var buffer = StringBuffer();
+    buffer.write('RecordType(');
+    for (var i = 0; i < count; i++) {
+      if (i < posCount) {
+        buffer.write('${types[i]}');
+      } else {
+        if (i == posCount) {
+          buffer.write('{');
+        }
+        buffer.write('${types[i]} ${named![i - posCount]}');
+        if (i == count - 1) {
+          buffer.write('}');
+        }
+      }
+      if (i < count - 1) {
+        buffer.write(', ');
+      }
+    }
+    buffer.write(')');
+    _printed = buffer.toString();
+    return _printed!;
+  }
+
+  @JSExportName('is')
+  bool is_T(obj) {
+    if (JS('!', '# instanceof #', obj, _RecordImpl)) {
+      var actual = getReifiedType(obj);
+      return actual != null && isSubtypeOf(actual, this);
+    }
+    return false;
+  }
+
+  @JSExportName('as')
+  as_T(obj) {
+    if (is_T(obj)) return obj;
+    // TODO(annagrin) This could directly call castError after we no longer
+    // allow a cast of null to succeed in weak mode.
+    return cast(obj, this);
+  }
 }

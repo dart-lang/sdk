@@ -1330,11 +1330,11 @@ void StubCodeCompiler::GenerateAllocateMintSharedWithoutFPURegsStub(
 void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   __ Comment("InvokeDartCodeStub");
 
-  __ EnterFrame(0);
+  __ EnterFrame(1 * target::kWordSize);
 
   // Push code object to PC marker slot.
   __ lx(TMP2, Address(A3, target::Thread::invoke_dart_code_stub_offset()));
-  __ PushRegister(TMP2);
+  __ sx(TMP2, Address(SP, 0 * target::kWordSize));
 
 #if defined(DART_TARGET_OS_FUCHSIA)
   __ sx(S2, Address(A3, target::Thread::saved_shadow_call_stack_offset()));
@@ -1354,23 +1354,20 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
   // Refresh pinned registers values (inc. write barrier mask and null object).
   __ RestorePinnedRegisters();
 
-  // Save the current VMTag on the stack.
-  __ LoadFromOffset(TMP, THR, target::Thread::vm_tag_offset());
-  __ PushRegister(TMP);
-
-  // Save top resource and top exit frame info. Use R6 as a temporary register.
+  // Save the current VMTag, top resource and top exit frame info on the stack.
   // StackFrameIterator reads the top exit frame info saved in this frame.
-  __ LoadFromOffset(TMP, THR, target::Thread::top_resource_offset());
-  __ StoreToOffset(ZR, THR, target::Thread::top_resource_offset());
-  __ PushRegister(TMP);
-
-  __ LoadFromOffset(TMP, THR, target::Thread::exit_through_ffi_offset());
-  __ StoreToOffset(ZR, THR, target::Thread::exit_through_ffi_offset());
-  __ PushRegister(TMP);
-
-  __ LoadFromOffset(TMP, THR, target::Thread::top_exit_frame_info_offset());
-  __ StoreToOffset(ZR, THR, target::Thread::top_exit_frame_info_offset());
-  __ PushRegister(TMP);
+  __ subi(SP, SP, 4 * target::kWordSize);
+  __ lx(TMP, Address(THR, target::Thread::vm_tag_offset()));
+  __ sx(TMP, Address(SP, 3 * target::kWordSize));
+  __ lx(TMP, Address(THR, target::Thread::top_resource_offset()));
+  __ sx(ZR, Address(THR, target::Thread::top_resource_offset()));
+  __ sx(TMP, Address(SP, 2 * target::kWordSize));
+  __ lx(TMP, Address(THR, target::Thread::exit_through_ffi_offset()));
+  __ sx(ZR, Address(THR, target::Thread::exit_through_ffi_offset()));
+  __ sx(TMP, Address(SP, 1 * target::kWordSize));
+  __ lx(TMP, Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ sx(ZR, Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ sx(TMP, Address(SP, 0 * target::kWordSize));
   // target::frame_layout.exit_link_slot_from_entry_fp must be kept in sync
   // with the code below.
 #if XLEN == 32
@@ -1437,18 +1434,17 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
       SP, FP,
       target::frame_layout.exit_link_slot_from_entry_fp * target::kWordSize);
 
-  // Restore the saved top exit frame info and top resource back into the
-  // Isolate structure. Uses R6 as a temporary register for this.
-  __ PopRegister(TMP);
-  __ StoreToOffset(TMP, THR, target::Thread::top_exit_frame_info_offset());
-  __ PopRegister(TMP);
-  __ StoreToOffset(TMP, THR, target::Thread::exit_through_ffi_offset());
-  __ PopRegister(TMP);
-  __ StoreToOffset(TMP, THR, target::Thread::top_resource_offset());
-
-  // Restore the current VMTag from the stack.
-  __ PopRegister(TMP);
-  __ StoreToOffset(TMP, THR, target::Thread::vm_tag_offset());
+  // Restore the current VMTag, the saved top exit frame info and top resource
+  // back into the Thread structure.
+  __ lx(TMP, Address(SP, 0 * target::kWordSize));
+  __ sx(TMP, Address(THR, target::Thread::top_exit_frame_info_offset()));
+  __ lx(TMP, Address(SP, 1 * target::kWordSize));
+  __ sx(TMP, Address(THR, target::Thread::exit_through_ffi_offset()));
+  __ lx(TMP, Address(SP, 2 * target::kWordSize));
+  __ sx(TMP, Address(THR, target::Thread::top_resource_offset()));
+  __ lx(TMP, Address(SP, 3 * target::kWordSize));
+  __ sx(TMP, Address(THR, target::Thread::vm_tag_offset()));
+  __ addi(SP, SP, 4 * target::kWordSize);
 
   __ PopNativeCalleeSavedRegisters();
 
@@ -3467,113 +3463,6 @@ void StubCodeCompiler::GenerateSingleTargetCallStub(Assembler* assembler) {
   __ lx(TMP, FieldAddress(CODE_REG, target::Code::entry_point_offset(
                                         CodeEntryKind::kMonomorphic)));
   __ jr(TMP);
-}
-
-// Instantiate type arguments from instantiator and function type args.
-// T1 uninstantiated type arguments.
-// T2 instantiator type arguments.
-// T3: function type arguments.
-// Returns instantiated type arguments in T5.
-void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub(
-    Assembler* assembler) {
-  // Lookup cache before calling runtime.
-  __ LoadCompressedFieldFromOffset(
-      A1, InstantiationABI::kUninstantiatedTypeArgumentsReg,
-      target::TypeArguments::instantiations_offset());
-  __ AddImmediate(A1, Array::data_offset() - kHeapObjectTag);
-  // The instantiations cache is initialized with Object::zero_array() and is
-  // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  compiler::Label loop, next, found, call_runtime;
-  __ Bind(&loop);
-
-  // Use load-acquire to test for sentinel, if we found non-sentinel it is safe
-  // to access the other entries. If we found a sentinel we go to runtime.
-  __ LoadAcquireCompressed(
-      A6, A1,
-      TypeArguments::Instantiation::kInstantiatorTypeArgsIndex *
-          target::kCompressedWordSize);
-  __ CompareImmediate(A6, Smi::RawValue(TypeArguments::kNoInstantiator),
-                      kObjectBytes);
-  __ BranchIf(EQ, &call_runtime);
-
-  __ CompareRegisters(A6, InstantiationABI::kInstantiatorTypeArgumentsReg);
-  __ BranchIf(NE, &next);
-  __ LoadCompressedFromOffset(
-      A7, A1,
-      TypeArguments::Instantiation::kFunctionTypeArgsIndex *
-          target::kCompressedWordSize);
-  __ CompareRegisters(A7, InstantiationABI::kFunctionTypeArgumentsReg);
-  __ BranchIf(EQ, &found);
-  __ Bind(&next);
-  __ AddImmediate(A1, TypeArguments::Instantiation::kSizeInWords *
-                          target::kCompressedWordSize);
-  __ j(&loop);
-
-  // Instantiate non-null type arguments.
-  // A runtime call to instantiate the type arguments is required.
-  __ Bind(&call_runtime);
-  __ EnterStubFrame();
-  __ PushRegistersInOrder({NULL_REG,
-                           InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                           InstantiationABI::kInstantiatorTypeArgumentsReg,
-                           InstantiationABI::kFunctionTypeArgumentsReg});
-  __ CallRuntime(kInstantiateTypeArgumentsRuntimeEntry, 3);
-  __ Drop(3);  // Drop 2 type vectors, and uninstantiated type.
-  __ PopRegister(InstantiationABI::kResultTypeArgumentsReg);
-  __ LeaveStubFrame();
-  __ Ret();
-
-  __ Bind(&found);
-  __ LoadCompressedFromOffset(
-      InstantiationABI::kResultTypeArgumentsReg, A1,
-      TypeArguments::Instantiation::kInstantiatedTypeArgsIndex *
-          target::kCompressedWordSize);
-  __ Ret();
-}
-
-void StubCodeCompiler::
-    GenerateInstantiateTypeArgumentsMayShareInstantiatorTAStub(
-        Assembler* assembler) {
-  // Return the instantiator type arguments if its nullability is compatible for
-  // sharing, otherwise proceed to instantiation cache lookup.
-  compiler::Label cache_lookup;
-  __ LoadCompressedSmi(
-      A6, FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                       target::TypeArguments::nullability_offset()));
-  __ LoadCompressedSmi(
-      A7, FieldAddress(InstantiationABI::kInstantiatorTypeArgumentsReg,
-                       target::TypeArguments::nullability_offset()));
-  __ and_(A7, A7, A6);
-  __ CompareRegisters(A7, A6);
-  __ BranchIf(NE, &cache_lookup);
-  __ mv(InstantiationABI::kResultTypeArgumentsReg,
-        InstantiationABI::kInstantiatorTypeArgumentsReg);
-  __ Ret();
-
-  __ Bind(&cache_lookup);
-  GenerateInstantiateTypeArgumentsStub(assembler);
-}
-
-void StubCodeCompiler::GenerateInstantiateTypeArgumentsMayShareFunctionTAStub(
-    Assembler* assembler) {
-  // Return the function type arguments if its nullability is compatible for
-  // sharing, otherwise proceed to instantiation cache lookup.
-  compiler::Label cache_lookup;
-  __ LoadCompressedSmi(
-      A6, FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                       target::TypeArguments::nullability_offset()));
-  __ LoadCompressedSmi(
-      A7, FieldAddress(InstantiationABI::kFunctionTypeArgumentsReg,
-                       target::TypeArguments::nullability_offset()));
-  __ and_(A7, A7, A6);
-  __ CompareRegisters(A7, A6);
-  __ BranchIf(NE, &cache_lookup);
-  __ mv(InstantiationABI::kResultTypeArgumentsReg,
-        InstantiationABI::kFunctionTypeArgumentsReg);
-  __ Ret();
-
-  __ Bind(&cache_lookup);
-  GenerateInstantiateTypeArgumentsStub(assembler);
 }
 
 static int GetScaleFactor(intptr_t size) {

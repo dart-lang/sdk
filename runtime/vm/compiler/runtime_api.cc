@@ -85,9 +85,11 @@ bool IsSmiType(const AbstractType& type) {
   return type.IsSmiType();
 }
 
+#if defined(DEBUG)
 bool IsNotTemporaryScopedHandle(const Object& obj) {
   return obj.IsNotTemporaryScopedHandle();
 }
+#endif
 
 #define DO(clazz)                                                              \
   bool Is##clazz##Handle(const Object& obj) { return obj.Is##clazz(); }
@@ -449,10 +451,10 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return Closure::InstanceSize();
     case kTypedDataBaseCid:
       return TypedDataBase::InstanceSize();
-    case kLinkedHashMapCid:
-      return LinkedHashMap::InstanceSize();
-    case kLinkedHashSetCid:
-      return LinkedHashSet::InstanceSize();
+    case kMapCid:
+      return Map::InstanceSize();
+    case kSetCid:
+      return Set::InstanceSize();
     case kUnhandledExceptionCid:
       return UnhandledException::InstanceSize();
     case kWeakPropertyCid:
@@ -1034,6 +1036,11 @@ intptr_t Array::index_at_offset(intptr_t offset_in_bytes) {
       TranslateOffsetInWordsToHost(offset_in_bytes));
 }
 
+intptr_t Record::field_index_at_offset(intptr_t offset_in_bytes) {
+  return dart::Record::field_index_at_offset(
+      TranslateOffsetInWordsToHost(offset_in_bytes));
+}
+
 word String::InstanceSize(word payload_size) {
   return RoundedAllocationSize(String::InstanceSize() + payload_size);
 }
@@ -1109,6 +1116,7 @@ namespace target {
 
 const word Array::kMaxElements = Array_kMaxElements;
 const word Context::kMaxElements = Context_kMaxElements;
+const word Record::kMaxElements = Record_kMaxElements;
 
 }  // namespace target
 }  // namespace compiler

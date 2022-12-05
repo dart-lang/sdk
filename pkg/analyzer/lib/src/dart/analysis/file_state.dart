@@ -92,7 +92,7 @@ class AugmentationImportWithFile
     importedFile.referencingFiles.add(container.file);
   }
 
-  /// If [importedFile] is a [AugmentationFileKind], and it confirms that
+  /// If [importedFile] is an [AugmentationFileKind], and it confirms that
   /// it is an augmentation of the [container], returns the [importedFile].
   AugmentationFileKind? get importedAugmentation {
     final kind = importedFile.kind;
@@ -1242,6 +1242,10 @@ class FileSystemState {
 
   FileState? getExisting(File file) {
     return _pathToFile[file.path];
+  }
+
+  FileState? getExistingFromPath(String path) {
+    return _pathToFile[path];
   }
 
   /// Return the [FileState] for the given absolute [path]. The returned file

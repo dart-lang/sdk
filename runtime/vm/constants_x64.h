@@ -484,6 +484,7 @@ enum ScaleFactor {
 #else
   TIMES_COMPRESSED_WORD_SIZE = TIMES_HALF_WORD_SIZE,
 #endif
+  // Used for Smi-boxed indices.
   TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
 
@@ -537,7 +538,7 @@ class CallingConventions {
   static const size_t kRegisterTransferLimit = 16;
 
   static constexpr Register kReturnReg = RAX;
-  static constexpr Register kSecondReturnReg = kNoRegister;
+  static constexpr Register kSecondReturnReg = RDX;
   static constexpr FpuRegister kReturnFpuReg = XMM0;
   static constexpr Register kPointerToReturnStructRegisterReturn = kReturnReg;
 

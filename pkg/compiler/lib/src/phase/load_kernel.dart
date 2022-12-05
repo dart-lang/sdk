@@ -133,10 +133,17 @@ class _LoadFromKernelResult {
 
 void _doGlobalTransforms(Component component) {
   transformMixins.transformLibraries(component.libraries);
-  // referenceFromIndex is only necessary in the case where a module containing
-  // a stub definition is invalidated, and then reloaded, because we need to
-  // keep existing references to that stub valid. Here, we have the whole
-  // program, and therefore do not need it.
+}
+
+// Perform any backend-specific transforms here that can be done on both
+// serialized components and components from source.
+// TODO(srujzs): Can we combine this with the above?
+void _doTransformsOnKernelLoad(Component? component) {
+  if (component == null) return;
+  // referenceFromIndex is only necessary in the case where a module
+  // containing a stub definition is invalidated, and then reloaded, because
+  // we need to keep existing references to that stub valid. Here, we have the
+  // whole program, and therefore do not need it.
   StaticInteropClassEraser(ir.CoreTypes(component), null)
       .visitComponent(component);
 }
@@ -205,7 +212,7 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
   if (options.cfeOnly) {
     _doGlobalTransforms(component);
   }
-
+  _doTransformsOnKernelLoad(component);
   registerSources(component, compilerInput);
   return _LoadFromKernelResult(component, entryLibrary, moduleLibraries);
 }
@@ -292,6 +299,8 @@ Future<_LoadFromSourceResult> _loadFromSource(
   ir.Component? component = await fe.compile(initializedCompilerState, verbose,
       fileSystem, onDiagnostic, sources, isModularCompile);
   _validateNullSafetyMode(options);
+
+  _doTransformsOnKernelLoad(component);
 
   // We have to compute canonical names on the component here to avoid missing
   // canonical names downstream.

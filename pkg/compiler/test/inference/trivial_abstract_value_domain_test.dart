@@ -9,7 +9,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/commandline_options.dart';
 
 import '../helpers/args_helper.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 main(List<String> args) {
   ArgParser argParser = createArgParser();

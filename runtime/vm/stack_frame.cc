@@ -169,9 +169,10 @@ const char* StackFrame::ToCString() const {
   ASSERT(thread_ == Thread::Current());
   Zone* zone = Thread::Current()->zone();
   const Code& code = Code::Handle(zone, GetCodeObject());
-  ASSERT(!code.IsNull());
   const char* name =
-      code.QualifiedName(NameFormattingParams(Object::kInternalName));
+      code.IsNull()
+          ? "Cannot find code object"
+          : code.QualifiedName(NameFormattingParams(Object::kInternalName));
   return zone->PrintToString("  pc 0x%" Pp " fp 0x%" Pp " sp 0x%" Pp " %s",
                              pc(), fp(), sp(), name);
 }

@@ -98,13 +98,6 @@ library /*isNonNullableByDefault*/;
 // enum Enum {
 //      ^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:97:3: Error: 'toString' is already declared in this scope.
-//   toString,
-//   ^^^^^^^^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:91:6: Context: Previous declaration of 'toString' is implied by this definition.
-// enum AnotherEnum {
-//      ^^^^^^^^^^^
-//
 // pkg/front_end/testcases/general/duplicated_declarations.dart:98:3: Error: 'values' is already declared in this scope.
 //   values,
 //   ^^^^^^
@@ -299,6 +292,13 @@ library /*isNonNullableByDefault*/;
 //   final int index;
 //             ^^^^^
 //
+// pkg/front_end/testcases/general/duplicated_declarations.dart:97:3: Error: Can't declare a member that conflicts with an inherited one.
+//   toString,
+//   ^^^^^^^^
+// sdk/lib/core/enum.dart:113:10: Context: This is the inherited member.
+//   String toString() => _enumToString();
+//          ^^^^^^^^
+//
 // pkg/front_end/testcases/general/duplicated_declarations.dart:36:3: Error: Can't use 'main' because it is declared more than once.
 //   main();
 //   ^
@@ -340,10 +340,6 @@ library /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/general/duplicated_declarations.dart:71:16: Error: Superclass has no method named 'm'.
 //   m() => super.m();
 //                ^
-//
-// pkg/front_end/testcases/general/duplicated_declarations.dart:108:41: Error: Can't use 'toString' because it is declared more than once.
-//     "AnotherEnum.toString": AnotherEnum.toString,
-//                                         ^^^^^^^^
 //
 // pkg/front_end/testcases/general/duplicated_declarations.dart:109:39: Error: Can't use 'values' because it is declared more than once.
 //     "AnotherEnum.values": AnotherEnum.values,
@@ -431,7 +427,7 @@ class Enum#4#0 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:/
   const constructor •(core::int #index, core::String #name) → self::Enum#4#0
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "Enum#4#0.${this.{core::_Enum::_name}{core::String}}";
 }
 class Enum#3#0 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
@@ -442,7 +438,7 @@ class Enum#3#0 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:/
   const constructor •(core::int #index, core::String #name) → self::Enum#3#0
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "Enum#3#0.${this.{core::_Enum::_name}{core::String}}";
 }
 class Enum#2#0 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:///duplicated_declarations_part.dart
@@ -453,7 +449,7 @@ class Enum#2#0 extends core::_Enum /*isEnum*/  { // from org-dartlang-testcase:/
   const constructor •(core::int #index, core::String #name) → self::Enum#2#0
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "Enum#2#0.${this.{core::_Enum::_name}{core::String}}";
 }
 class Enum#1#0 extends core::_Enum /*isEnum*/  {
@@ -464,7 +460,7 @@ class Enum#1#0 extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::Enum#1#0
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "Enum#1#0.${this.{core::_Enum::_name}{core::String}}";
 }
 class Enum extends core::_Enum /*isEnum*/  {
@@ -475,20 +471,21 @@ class Enum extends core::_Enum /*isEnum*/  {
   const constructor •(core::int #index, core::String #name) → self::Enum
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "Enum.${this.{core::_Enum::_name}{core::String}}";
 }
 class AnotherEnum extends core::_Enum /*isEnum*/  {
-  static const field core::List<self::AnotherEnum> values = #C35;
+  static const field core::List<self::AnotherEnum> values = #C38;
   enum-element static const field self::AnotherEnum a = #C26;
   enum-element static const field self::AnotherEnum b = #C27;
   enum-element static const field self::AnotherEnum c = #C28;
   enum-element static const field self::AnotherEnum _name = #C31;
   enum-element static const field self::AnotherEnum index = #C34;
+  enum-element static const field self::AnotherEnum toString = #C37;
   const constructor •(core::int #index, core::String #name) → self::AnotherEnum
     : super core::_Enum::•(#index, #name)
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "AnotherEnum.${this.{core::_Enum::_name}{core::String}}";
 }
 static field core::String field;
@@ -514,9 +511,7 @@ Try inserting an identifier before '('.
     ^";
 }
 static method useAnotherEnum() → dynamic {
-  <core::String, core::Object>{"AnotherEnum.a": #C26, "AnotherEnum.b": #C27, "AnotherEnum.c": #C28, "AnotherEnum._name": #C31, "AnotherEnum.index": #C34, "AnotherEnum.toString": invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:108:41: Error: Can't use 'toString' because it is declared more than once.
-    \"AnotherEnum.toString\": AnotherEnum.toString,
-                                        ^^^^^^^^", "AnotherEnum.values": invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:109:39: Error: Can't use 'values' because it is declared more than once.
+  <core::String, core::Object>{"AnotherEnum.a": #C26, "AnotherEnum.b": #C27, "AnotherEnum.c": #C28, "AnotherEnum._name": #C31, "AnotherEnum.index": #C34, "AnotherEnum.toString": #C37, "AnotherEnum.values": invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:109:39: Error: Can't use 'values' because it is declared more than once.
     \"AnotherEnum.values\": AnotherEnum.values,
                                       ^^^^^^"};
 }
@@ -560,7 +555,10 @@ constants  {
   #C32 = 4
   #C33 = "index"
   #C34 = self::AnotherEnum {index:#C32, _name:#C33}
-  #C35 = <self::AnotherEnum*>[#C26, #C27, #C28, #C31, #C34]
+  #C35 = 5
+  #C36 = "toString"
+  #C37 = self::AnotherEnum {index:#C35, _name:#C36}
+  #C38 = <self::AnotherEnum*>[#C26, #C27, #C28, #C31, #C34, #C37]
 }
 
 

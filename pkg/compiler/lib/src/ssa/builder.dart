@@ -35,7 +35,7 @@ import '../js_backend/field_analysis.dart'
     show FieldAnalysisData, JFieldAnalysis;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/inferred_data.dart';
-import '../js_backend/namer_interfaces.dart' show ModularNamer;
+import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/native_data.dart';
 import '../js_backend/runtime_types_resolution.dart';
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
@@ -105,7 +105,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// A stack of instructions.
   ///
   /// We build the SSA graph by simulating a stack machine.
-  List<HInstruction> stack = [];
+  List<HInstruction /*!*/ > stack = [];
 
   /// The count of nested loops we are currently building.
   ///
@@ -233,7 +233,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     stack.add(instruction);
   }
 
-  HInstruction pop() {
+  HInstruction /*!*/ pop() {
     return stack.removeLast();
   }
 
@@ -534,7 +534,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
       if (_tracer.isEnabled) {
         MemberEntity member = _initialTargetElement;
-        String name = member.name;
+        String name = member.name ?? '<null>';
         if (member.isInstanceMember ||
             member is ConstructorEntity ||
             member.isStatic) {
@@ -1719,9 +1719,17 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         _elementMap.getSpannable(targetElement, loadLibrary),
         _elementMap.getImport(loadLibrary.import));
     // TODO(efortuna): Source information!
+
+    final priority =
+        closedWorld.annotationsData.getLoadLibraryPriorityAt(loadLibrary);
+    final flag = priority.index;
+
     push(HInvokeStatic(
         _commonElements.loadDeferredLibrary,
-        [graph.addConstantString(loadId, closedWorld)],
+        [
+          graph.addConstantString(loadId, closedWorld),
+          graph.addConstantInt(flag, closedWorld)
+        ],
         _abstractValueDomain.nonNullType,
         const <DartType>[],
         targetCanThrow: false));
@@ -1905,7 +1913,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     SyntheticLocal indexVariable = localsHandler.createLocal('_i');
 
     // These variables are shared by initializer, condition, body and update.
-    HInstruction array; // Set in buildInitializer.
+    /*late final*/ HInstruction array; // Set in buildInitializer.
     bool isFixed; // Set in buildInitializer.
     HInstruction originalLength = null; // Set for growable lists.
 
@@ -2042,7 +2050,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     //   }
 
     // The iterator is shared between initializer, condition and body.
-    HInstruction iterator;
+    /*late final*/ HInstruction iterator;
     StaticType iteratorType = _getStaticForInIteratorType(node);
 
     void buildInitializer() {
@@ -3638,7 +3646,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   /// Generate instructions to evaluate the positional arguments in source
   /// order.
-  List<HInstruction> _visitPositionalArguments(ir.Arguments arguments) {
+  List<HInstruction /*!*/ > _visitPositionalArguments(ir.Arguments arguments) {
     List<HInstruction> result = [];
     for (ir.Expression argument in arguments.positional) {
       argument.accept(this);
@@ -3649,7 +3657,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   /// Generate instructions to evaluate the named arguments in source order.
   /// Returns a fresh map from parameter name to evaluated argument.
-  Map<String, HInstruction> _visitNamedArguments(ir.Arguments arguments) {
+  Map<String, HInstruction /*!*/ > _visitNamedArguments(
+      ir.Arguments arguments) {
     Map<String, HInstruction> values = {};
     for (ir.NamedExpression argument in arguments.named) {
       argument.value.accept(this);
@@ -3662,7 +3671,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// dynamic target (member function).  Dynamic targets use stubs to add
   /// defaulted arguments, so (unlike static targets) we do not add the default
   /// values.
-  List<HInstruction> _visitArgumentsForDynamicTarget(
+  List<HInstruction /*!*/ > _visitArgumentsForDynamicTarget(
       Selector selector, ir.Arguments arguments, List<DartType> typeArguments,
       [SourceInformation sourceInformation]) {
     List<HInstruction> values = _visitPositionalArguments(arguments);
@@ -3684,7 +3693,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// of named arguments. Return null if the arguments could not be correctly
   /// parsed because the user provided code with named parameters in a JS (non
   /// factory) function.
-  List<HInstruction> _visitArgumentsForNativeStaticTarget(
+  List<HInstruction /*!*/ > _visitArgumentsForNativeStaticTarget(
       ir.FunctionNode target, ir.Arguments arguments) {
     // Visit arguments in source order, then re-order and fill in defaults.
     var values = _visitPositionalArguments(arguments);
@@ -4458,19 +4467,18 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     argument.accept(this);
     HInstruction instruction = pop();
 
-    if (!instruction.isConstantString()) {
-      reporter.reportErrorMessage(
-          _elementMap.getSpannable(targetElement, argument),
-          MessageKind.GENERIC, {
-        'text': "Error: Expected String constant as ${adjective}argument "
-            "to '$methodName'."
-      });
-      return null;
+    if (instruction is HConstant) {
+      ConstantValue constant = instruction.constant;
+      if (constant is StringConstantValue) return constant.stringValue;
     }
 
-    HConstant hConstant = instruction;
-    StringConstantValue stringConstant = hConstant.constant;
-    return stringConstant.stringValue;
+    reporter.reportErrorMessage(
+        _elementMap.getSpannable(targetElement, argument),
+        MessageKind.GENERIC, {
+      'text': "Error: Expected String constant as ${adjective}argument "
+          "to '$methodName'."
+    });
+    return null;
   }
 
   void _handleForeignDartClosureToJs(

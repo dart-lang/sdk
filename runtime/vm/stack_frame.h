@@ -246,7 +246,7 @@ class StackFrameIterator {
   // Checks if a next frame exists.
   bool HasNextFrame() const { return frames_.fp_ != 0; }
 
-  // Get next frame.
+  // Get next frame. Becomes invalid after the next call to NextFrame.
   StackFrame* NextFrame();
 
   bool validate() const { return validate_; }

@@ -217,7 +217,7 @@ void defineCompileTests() {
         p.relativeFilePath,
       ],
     );
-    expect(result.stderr, isEmpty);
+    expect(result.stderr, contains(soundNullSafetyMessage));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -247,7 +247,7 @@ void defineCompileTests() {
       '-v',
       inFile,
     ]);
-    expect(result.stderr, isEmpty);
+    expect(result.stderr, contains(soundNullSafetyMessage));
     expect(result.exitCode, 0);
     final file = File(outFile);
     expect(file.existsSync(), true, reason: 'File not found: $outFile');
@@ -401,7 +401,7 @@ void defineCompileTests() {
     );
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
-    expect(result.stderr, isEmpty);
+    expect(result.stderr, contains(soundNullSafetyMessage));
     expect(result.exitCode, 0);
 
     result = await p.run(['run', 'main.dill']);
@@ -563,8 +563,8 @@ void main() {}
       ],
     );
 
-    expect(result.stderr, isEmpty);
     expect(result.stdout, contains(soundNullSafetyMessage));
+    expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -597,8 +597,8 @@ void main() {}
       ],
     );
 
-    expect(result.stderr, isEmpty);
     expect(result.stdout, contains(unsoundNullSafetyMessage));
+    expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -932,8 +932,7 @@ void main() {
       ],
     );
 
-    expect(result.stdout, contains(soundNullSafetyMessage));
-    expect(result.stderr, isEmpty);
+    expect(result.stderr, contains(soundNullSafetyMessage));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -957,8 +956,7 @@ void main() {}
       ],
     );
 
-    expect(result.stdout, contains(unsoundNullSafetyMessage));
-    expect(result.stderr, isEmpty);
+    expect(result.stderr, contains(unsoundNullSafetyMessage));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -982,8 +980,7 @@ void main() {}
       ],
     );
 
-    expect(result.stderr, isEmpty);
-    expect(result.stdout, contains(soundNullSafetyMessage));
+    expect(result.stderr, contains(soundNullSafetyMessage));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1007,8 +1004,7 @@ void main() {}
       ],
     );
 
-    expect(result.stderr, isEmpty);
-    expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
+    expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1058,7 +1054,7 @@ void main() {
       ],
     );
 
-    expect(result.stdout,
+    expect(result.stderr,
         predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('must be assigned before it can be used'));
     expect(result.exitCode, 254);
@@ -1084,7 +1080,7 @@ void main() {
       ],
     );
 
-    expect(result.stdout,
+    expect(result.stderr,
         predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('Warning:'));
     expect(result.exitCode, 0);
@@ -1105,8 +1101,7 @@ void main() {
       ],
     );
 
-    expect(result.stdout, contains(soundNullSafetyMessage));
-    expect(result.stderr, isEmpty);
+    expect(result.stderr, contains(soundNullSafetyMessage));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1130,8 +1125,7 @@ void main() {}
       ],
     );
 
-    expect(result.stdout, contains(unsoundNullSafetyMessage));
-    expect(result.stderr, isEmpty);
+    expect(result.stderr, contains(unsoundNullSafetyMessage));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1155,8 +1149,7 @@ void main() {}
       ],
     );
 
-    expect(result.stderr, isEmpty);
-    expect(result.stdout, contains(soundNullSafetyMessage));
+    expect(result.stderr, contains(soundNullSafetyMessage));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1180,8 +1173,7 @@ void main() {}
       ],
     );
 
-    expect(result.stderr, isEmpty);
-    expect(result.stdout, isNot(contains(soundNullSafetyMessage)));
+    expect(result.stderr, isNot(contains(soundNullSafetyMessage)));
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1208,9 +1200,9 @@ void main() {}
       ],
     );
 
+    expect(result.stderr, contains(soundNullSafetyMessage));
     expect(result.stdout,
         predicate((dynamic o) => '$o'.contains('[foo, -e, --foobar=bar]')));
-    expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1232,9 +1224,8 @@ void main() {}
       ],
     );
 
-    expect(result.stdout,
+    expect(result.stderr,
         predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
-    expect(result.stderr, isEmpty);
     expect(result.exitCode, 0);
     expect(File(outFile).existsSync(), true,
         reason: 'File not found: $outFile');
@@ -1260,7 +1251,7 @@ void main() {
       ],
     );
 
-    expect(result.stdout,
+    expect(result.stderr,
         predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('must be assigned before it can be used'));
     expect(result.exitCode, 254);
@@ -1286,7 +1277,7 @@ void main() {
       ],
     );
 
-    expect(result.stdout,
+    expect(result.stderr,
         predicate((dynamic o) => !'$o'.contains(soundNullSafetyMessage)));
     expect(result.stderr, contains('Warning:'));
     expect(result.exitCode, 0);

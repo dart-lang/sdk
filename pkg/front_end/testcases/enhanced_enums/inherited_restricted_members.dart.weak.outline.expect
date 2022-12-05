@@ -93,7 +93,7 @@ class E1 extends self::_E1&_Enum&A1 /*isEnum*/  {
   enum-element static const field self::E1 element = const self::E1::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::E1
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E1.${this.{core::_Enum::_name}{core::String}}";
 }
 class A2 extends core::Object {
@@ -114,7 +114,7 @@ class E2 extends self::_E2&_Enum&A2 /*isEnum*/  {
   enum-element static const field self::E2 element = const self::E2::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::E2
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E2.${this.{core::_Enum::_name}{core::String}}";
 }
 class A3 extends core::Object {
@@ -135,7 +135,7 @@ class E3 extends self::_E3&_Enum&A3 /*isEnum*/  {
   enum-element static const field self::E3 element = const self::E3::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::E3
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E3.${this.{core::_Enum::_name}{core::String}}";
 }
 class A4 extends core::Object {
@@ -156,7 +156,7 @@ class E4 extends self::_E4&_Enum&A4 /*isEnum*/  {
   enum-element static const field self::E4 element = const self::E4::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::E4
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E4.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M5 extends core::Object /*isMixinDeclaration*/  {
@@ -175,7 +175,7 @@ class E5 extends self::_E5&_Enum&M5 /*isEnum*/  {
   enum-element static const field self::E5 element = const self::E5::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::E5
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E5.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M6 extends core::Object /*isMixinDeclaration*/  {
@@ -194,7 +194,7 @@ class E6 extends self::_E6&_Enum&M6 /*isEnum*/  {
   enum-element static const field self::E6 element = const self::E6::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::E6
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E6.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M7 extends core::Object /*isMixinDeclaration*/  {
@@ -213,7 +213,7 @@ class E7 extends self::_E7&_Enum&M7 /*isEnum*/  {
   enum-element static const field self::E7 element = const self::E7::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::E7
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E7.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M8 extends core::Object /*isMixinDeclaration*/  {
@@ -232,7 +232,7 @@ class E8 extends self::_E8&_Enum&M8 /*isEnum*/  {
   enum-element static const field self::E8 element = const self::E8::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::E8
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E8.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class A9 extends core::Object {
@@ -255,7 +255,7 @@ class E9 extends self::_E9&_Enum&A9 /*isEnum*/  {
   enum-element static const field self::E9 element = const self::E9::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::E9
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E9.${this.{core::_Enum::_name}{core::String}}";
 }
 abstract class M10 extends core::Object /*isMixinDeclaration*/  {
@@ -276,7 +276,7 @@ class E10 extends self::_E10&_Enum&M10 /*isEnum*/  {
   enum-element static const field self::E10 element = const self::E10::•(0, "element");
   const constructor •(core::int #index, core::String #name) → self::E10
     ;
-  method toString() → core::String
+  method _enumToString() → core::String
     return "E10.${this.{core::_Enum::_name}{core::String}}";
 }
 static method main() → dynamic

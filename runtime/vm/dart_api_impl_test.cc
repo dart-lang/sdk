@@ -10494,6 +10494,96 @@ TEST_CASE(DartAPI_UserTags) {
       "Dart_SetCurrentUserTag expects argument 'user_tag' to be non-null");
 }
 
+void* last_isolate_group_data = nullptr;
+Dart_PersistentHandle last_allocation_cls = nullptr;
+intptr_t heap_samples = 0;
+
+void HeapSamplingCallback(void* isolate_group_data,
+                          Dart_PersistentHandle cls_type,
+                          Dart_WeakPersistentHandle obj,
+                          uintptr_t size) {
+  last_isolate_group_data = isolate_group_data;
+  last_allocation_cls = cls_type;
+  heap_samples++;
+}
+
+TEST_CASE(DartAPI_HeapSampling) {
+  Dart_RegisterHeapSamplingCallback(HeapSamplingCallback);
+
+  Dart_EnableHeapSampling();
+  // Start with sampling on every byte allocated.
+  Dart_SetHeapSamplingPeriod(1);
+
+  auto isolate_group_data = Dart_CurrentIsolateGroupData();
+  // Some simple allocations
+  USE(Dart_NewList(100));
+
+  const char* name = nullptr;
+  Dart_Handle result = Dart_StringToCString(last_allocation_cls, &name);
+  EXPECT_VALID(result);
+
+  EXPECT(heap_samples > 0);
+  EXPECT_STREQ("List", name);
+  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
+
+  heap_samples = 0;
+  USE(Dart_NewStringFromCString("Foo"));
+  result = Dart_StringToCString(last_allocation_cls, &name);
+  EXPECT_VALID(result);
+  EXPECT(heap_samples > 0);
+  EXPECT_STREQ("String", name);
+  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
+
+  // Increase the sampling period and check that we don't sample each
+  // allocation. This should cause samples to be collected for approximately
+  // every 1KiB allocated.
+  Dart_SetHeapSamplingPeriod(1 << 10);
+  heap_samples = 0;
+
+  const intptr_t kNumAllocations = 1000;
+  for (intptr_t i = 0; i < kNumAllocations; ++i) {
+    USE(Dart_NewList(10));
+  }
+  EXPECT(heap_samples > 0);
+  EXPECT(heap_samples < kNumAllocations);
+
+  heap_samples = 0;
+  last_allocation_cls = nullptr;
+  const char* kScriptChars = R"(
+    foo() {
+      final list = [];
+      for (int i = 0; i < 1000; ++i) {
+        list.add(List.filled(100, 0));
+      }
+    }
+    )";
+  Dart_DisableHeapSampling();
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID(lib);
+  Dart_EnableHeapSampling();
+  result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
+  EXPECT_VALID(result);
+  EXPECT(heap_samples > 0);
+  EXPECT(heap_samples < kNumAllocations);
+
+  Dart_DisableHeapSampling();
+
+  // Sampling on every byte allocated.
+  Dart_SetHeapSamplingPeriod(1);
+
+  // Ensure no more samples are collected.
+  heap_samples = 0;
+  last_allocation_cls = nullptr;
+  last_isolate_group_data = nullptr;
+  USE(Dart_NewList(10));
+  EXPECT_EQ(heap_samples, 0);
+  EXPECT_NULLPTR(last_allocation_cls);
+  EXPECT_NULLPTR(last_isolate_group_data);
+
+  // Clear heap sampling callback state.
+  Dart_RegisterHeapSamplingCallback(nullptr);
+}
+
 #endif  // !PRODUCT
 
 }  // namespace dart

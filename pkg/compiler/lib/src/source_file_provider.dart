@@ -14,12 +14,19 @@ import '../compiler_api.dart' as api;
 import 'colors.dart' as colors;
 import 'io/source_file.dart';
 
+abstract class SourceFileByteReader {
+  List<int> getBytes(String filename, {bool zeroTerminated = true});
+}
+
 abstract class SourceFileProvider implements api.CompilerInput {
   bool isWindows = (Platform.operatingSystem == 'windows');
   Uri cwd = Uri.base;
   Map<Uri, SourceFile<List<int>>> utf8SourceFiles = {};
   Map<Uri, api.Input<List<int>>> binarySourceFiles = {};
   int dartCharactersRead = 0;
+  SourceFileByteReader byteReader;
+
+  SourceFileProvider(this.byteReader);
 
   Future<api.Input<List<int>>> readBytesFromUri(
       Uri resourceUri, api.InputKind inputKind) {
@@ -85,7 +92,7 @@ abstract class SourceFileProvider implements api.CompilerInput {
     assert(resourceUri.isScheme('file'));
     List<int> source;
     try {
-      source = readAll(resourceUri.toFilePath(),
+      source = byteReader.getBytes(resourceUri.toFilePath(),
           zeroTerminated: inputKind == api.InputKind.UTF8);
     } on FileSystemException catch (ex) {
       String? message = ex.osError?.message;
@@ -133,7 +140,15 @@ abstract class SourceFileProvider implements api.CompilerInput {
   }
 }
 
-List<int> readAll(String filename, {bool zeroTerminated = true}) {
+class MemoryCopySourceFileByteReader implements SourceFileByteReader {
+  const MemoryCopySourceFileByteReader();
+  @override
+  List<int> getBytes(String filename, {bool zeroTerminated = true}) {
+    return readAll(filename, zeroTerminated: zeroTerminated);
+  }
+}
+
+Uint8List readAll(String filename, {bool zeroTerminated = true}) {
   RandomAccessFile file = File(filename).openSync();
   int length = file.lengthSync();
   int bufferLength = length;
@@ -148,6 +163,11 @@ List<int> readAll(String filename, {bool zeroTerminated = true}) {
 }
 
 class CompilerSourceFileProvider extends SourceFileProvider {
+  CompilerSourceFileProvider(
+      {SourceFileByteReader byteReader =
+          const MemoryCopySourceFileByteReader()})
+      : super(byteReader);
+
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,
           {api.InputKind inputKind = api.InputKind.UTF8}) =>
@@ -155,7 +175,7 @@ class CompilerSourceFileProvider extends SourceFileProvider {
 }
 
 class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
-  final SourceFileProvider provider;
+  late final SourceFileProvider provider;
   bool showWarnings = true;
   bool showHints = true;
   bool verbose = false;
@@ -170,8 +190,11 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
   final int INFO =
       api.Diagnostic.INFO.ordinal | api.Diagnostic.VERBOSE_INFO.ordinal;
 
-  FormattingDiagnosticHandler([SourceFileProvider? provider])
-      : this.provider = provider ?? CompilerSourceFileProvider();
+  FormattingDiagnosticHandler();
+
+  void registerFileProvider(SourceFileProvider provider) {
+    this.provider = provider;
+  }
 
   void info(var message, [api.Diagnostic kind = api.Diagnostic.VERBOSE_INFO]) {
     if (!verbose && kind == api.Diagnostic.VERBOSE_INFO) return;
@@ -526,7 +549,7 @@ class _BinaryOutputSinkWrapper extends api.BinaryOutputSink {
 class BazelInputProvider extends SourceFileProvider {
   final List<Uri> dirs;
 
-  BazelInputProvider(List<String> searchPaths)
+  BazelInputProvider(List<String> searchPaths, super.byteReader)
       : dirs = searchPaths.map(_resolve).toList();
 
   static Uri _resolve(String path) => Uri.base.resolve(path);
@@ -580,7 +603,7 @@ class MultiRootInputProvider extends SourceFileProvider {
   final List<Uri> roots;
   final String markerScheme;
 
-  MultiRootInputProvider(this.markerScheme, this.roots);
+  MultiRootInputProvider(this.markerScheme, this.roots, super.byteReader);
 
   @override
   Future<api.Input<List<int>>> readFromUri(Uri uri,

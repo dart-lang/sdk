@@ -268,6 +268,7 @@ class ResolutionWorldBuilder extends WorldBuilder
   bool _closed = false;
   KClosedWorld? _closedWorldCache;
   final Set<MemberEntity> _liveInstanceMembers = {};
+  final Set<MemberEntity> _liveAbstractInstanceMembers = {};
 
   final Set<ConstantValue> _constantValues = {};
 
@@ -451,9 +452,10 @@ class ResolutionWorldBuilder extends WorldBuilder
         EnumSet<MemberUse> action(MemberUsage usage),
         bool shouldBeRemoved(MemberUsage usage)) {
       _processSet(memberMap, methodName, (MemberUsage usage) {
-        if (selector.appliesUnnamed(usage.entity) &&
-            _selectorConstraintsStrategy.appliedUnnamed(
-                dynamicUse, usage.entity, this)) {
+        if (usage.entity.isAbstract ||
+            selector.appliesUnnamed(usage.entity) &&
+                (_selectorConstraintsStrategy.appliedUnnamed(
+                    dynamicUse, usage.entity, this))) {
           memberUsed(usage.entity, action(usage));
           return shouldBeRemoved(usage);
         }
@@ -680,8 +682,20 @@ class ResolutionWorldBuilder extends WorldBuilder
       {bool checkEnqueuerConsistency = false}) {
     _elementEnvironment.forEachClassMember(cls,
         (ClassEntity cls, MemberEntity member) {
-      _processInstantiatedClassMember(cls, member, memberUsed,
+      _processMemberInUsedClass(cls, member, memberUsed,
           checkEnqueuerConsistency: checkEnqueuerConsistency);
+    });
+  }
+
+  @override
+  void processAbstractClassMembers(
+      ClassEntity cls, MemberUsedCallback memberUsed) {
+    _elementEnvironment.forEachLocalClassMember(cls, (MemberEntity member) {
+      if (member.isAbstract) {
+        // Check for potential usages of abstract members (i.e. of their
+        // overrides) and save them if they are used.
+        _processMemberInUsedClass(cls, member, memberUsed);
+      }
     });
   }
 
@@ -785,7 +799,13 @@ class ResolutionWorldBuilder extends WorldBuilder
     return usage;
   }
 
-  void _processInstantiatedClassMember(
+  /// Determines whether [member] is potentially used and calls the [memberUsed]
+  /// callback on it if it is.
+  ///
+  /// [member] can be concrete or abstract and in either case potential usage
+  /// is determined by comparing the signature of [member] to the selector
+  /// structure (including arguments) at call sites.
+  void _processMemberInUsedClass(
       ClassEntity cls, MemberEntity member, MemberUsedCallback memberUsed,
       {bool checkEnqueuerConsistency = false}) {
     if (!member.isInstanceMember) return;
@@ -851,8 +871,12 @@ class ResolutionWorldBuilder extends WorldBuilder
 
   @override
   void registerUsedElement(MemberEntity element) {
-    if (element.isInstanceMember && !element.isAbstract) {
-      _liveInstanceMembers.add(element);
+    if (element.isInstanceMember) {
+      if (element.isAbstract) {
+        _liveAbstractInstanceMembers.add(element);
+      } else {
+        _liveInstanceMembers.add(element);
+      }
     }
   }
 
@@ -997,6 +1021,7 @@ class ResolutionWorldBuilder extends WorldBuilder
         implementedClasses: _implementedClasses,
         liveNativeClasses: _nativeResolutionEnqueuer.liveNativeClasses,
         liveInstanceMembers: _liveInstanceMembers,
+        liveAbstractInstanceMembers: _liveAbstractInstanceMembers,
         assignedInstanceMembers: computeAssignedInstanceMembers(),
         liveMemberUsage: liveMemberUsage,
         mixinUses: _classHierarchyBuilder.mixinUses,

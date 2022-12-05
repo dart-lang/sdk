@@ -157,12 +157,12 @@ class Expando<T> {
 @patch
 class WeakReference<T extends Object> {
   @patch
-  factory WeakReference(T target) = _WeakReferenceImpl<T>;
+  factory WeakReference(T target) = _WeakReference<T>;
 }
 
 @pragma("vm:entry-point")
-class _WeakReferenceImpl<T extends Object> implements WeakReference<T> {
-  _WeakReferenceImpl(T target) {
+class _WeakReference<T extends Object> implements WeakReference<T> {
+  _WeakReference(T target) {
     checkValidWeakTarget(target, 'target');
     _target = target;
   }

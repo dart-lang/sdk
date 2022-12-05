@@ -386,17 +386,20 @@ class BlazeSearchInfo {
 
 class BlazeWatcherError implements BlazeWatcherMessage {
   final String message;
+
   BlazeWatcherError(this.message);
 }
 
 class BlazeWatcherEvents implements BlazeWatcherMessage {
   final List<WatchEvent> events;
+
   BlazeWatcherEvents(this.events);
 }
 
 /// Sent by the watcher isolate to transfer the [SendPort] to the main isolate.
 class BlazeWatcherIsolateStarted implements BlazeWatcherMessage {
   final SendPort sendPort;
+
   BlazeWatcherIsolateStarted(this.sendPort);
 }
 
@@ -407,24 +410,28 @@ class BlazeWatcherShutdownIsolate implements BlazeWatcherMessage {}
 class BlazeWatcherStartWatching implements BlazeWatcherMessage {
   final String workspace;
   final BlazeSearchInfo info;
+
   BlazeWatcherStartWatching(this.workspace, this.info);
 }
 
 class BlazeWatcherStopWatching implements BlazeWatcherMessage {
   final String workspace;
   final String requestedPath;
+
   BlazeWatcherStopWatching(this.workspace, this.requestedPath);
 }
 
 class FileInfo {
   String path;
   _ModifiedInfo modified;
+
   FileInfo(this.path, this.modified);
 }
 
 /// Triggers polling every time something appears in the [stream].
 abstract class PollTrigger {
   Stream<Object> get stream;
+
   void cancel();
 }
 

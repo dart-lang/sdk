@@ -26,17 +26,6 @@ static void AddNameProperties(JSONObject* jsobj,
   }
 }
 
-static inline void AddValuePropertyToBoundField(const JSONObject& field,
-                                                const Object& value) {
-  if (value.IsBool() || value.IsSmi() || value.IsMint() || value.IsDouble()) {
-    // If the value is a bool, int, or double, we directly add the value to the
-    // response instead of adding an @Instance.
-    field.AddPropertyNoEscape("value", value.ToCString());
-  } else {
-    field.AddProperty("value", value);
-  }
-}
-
 void Object::AddCommonObjectProperties(JSONObject* jsobj,
                                        const char* protocol_type,
                                        bool ref) const {
@@ -234,23 +223,19 @@ void TypeArguments::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
   if (!IsInstantiated()) {
     JSONArray jsarr(&jsobj, "_instantiations");
-    Array& prior_instantiations = Array::Handle(instantiations());
-    ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
-    TypeArguments& type_args = TypeArguments::Handle();
-    intptr_t i = 0;
-    while (prior_instantiations.At(i) !=
-           Smi::New(TypeArguments::kNoInstantiator)) {
+    Array& prior_instantiations = Array::Handle(zone, instantiations());
+    TypeArguments& type_args = TypeArguments::Handle(zone);
+    InstantiationsCacheTable table(prior_instantiations);
+    for (const auto& tuple : table) {
+      // Skip unoccupied entries.
+      if (tuple.Get<Cache::kSentinelIndex>() == Cache::Sentinel()) continue;
       JSONObject instantiation(&jsarr);
-      type_args ^= prior_instantiations.At(
-          i + TypeArguments::Instantiation::kInstantiatorTypeArgsIndex);
+      type_args ^= tuple.Get<Cache::kInstantiatorTypeArgsIndex>();
       instantiation.AddProperty("instantiatorTypeArguments", type_args, true);
-      type_args ^= prior_instantiations.At(
-          i + TypeArguments::Instantiation::kFunctionTypeArgsIndex);
+      type_args = tuple.Get<Cache::kFunctionTypeArgsIndex>();
       instantiation.AddProperty("functionTypeArguments", type_args, true);
-      type_args ^= prior_instantiations.At(
-          i + TypeArguments::Instantiation::kInstantiatedTypeArgsIndex);
+      type_args = tuple.Get<Cache::kInstantiatedTypeArgsIndex>();
       instantiation.AddProperty("instantiated", type_args, true);
-      i += TypeArguments::Instantiation::kSizeInWords;
     }
   }
 }
@@ -1128,7 +1113,7 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
 
   Array& field_array = Array::Handle();
   Field& field = Field::Handle();
-  Instance& field_value = Instance::Handle();
+  Object& field_value = Object::Handle();
   {
     JSONArray jsarr(jsobj, "fields");
     for (intptr_t i = classes.length() - 1; i >= 0; i--) {
@@ -1137,7 +1122,7 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
         for (intptr_t j = 0; j < field_array.Length(); j++) {
           field ^= field_array.At(j);
           if (!field.is_static()) {
-            field_value ^= GetField(field);
+            field_value = GetField(field);
             JSONObject jsfield(&jsarr);
             jsfield.AddProperty("type", "BoundField");
             jsfield.AddProperty("decl", field);
@@ -1426,7 +1411,7 @@ void GrowableObjectArray::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
-void LinkedHashMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
+void Map::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "Map");
@@ -1448,7 +1433,7 @@ void LinkedHashMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
   {
     JSONArray jsarr(&jsobj, "associations");
     Object& object = Object::Handle();
-    LinkedHashMap::Iterator iterator(*this);
+    Map::Iterator iterator(*this);
     int i = 0;
     while (iterator.MoveNext() && i < limit) {
       if (i >= offset) {
@@ -1463,10 +1448,10 @@ void LinkedHashMap::PrintJSONImpl(JSONStream* stream, bool ref) const {
   }
 }
 
-void LinkedHashSet::PrintJSONImpl(JSONStream* stream, bool ref) const {
+void Set::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
-  jsobj.AddProperty("kind", "PlainInstance");
+  jsobj.AddProperty("kind", "Set");
   jsobj.AddProperty("length", Length());
   if (ref) {
     return;
@@ -1485,7 +1470,7 @@ void LinkedHashSet::PrintJSONImpl(JSONStream* stream, bool ref) const {
   {
     JSONArray jsarr(&jsobj, "elements");
     Object& object = Object::Handle();
-    LinkedHashSet::Iterator iterator(*this);
+    Set::Iterator iterator(*this);
     int i = 0;
     while (iterator.MoveNext() && i < limit) {
       if (i >= offset) {
@@ -1668,7 +1653,7 @@ void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
         jsfield.AddProperty("name", name.ToCString());
       }
       value = FieldAt(index);
-      AddValuePropertyToBoundField(jsfield, value);
+      jsfield.AddProperty("value", value);
     }
   }
 }

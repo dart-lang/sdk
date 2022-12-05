@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import '../experiments/flags.dart';
 import '../messages/codes.dart';
 import '../scanner/scanner.dart';
 import 'parser.dart';
@@ -66,10 +67,16 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginClassDeclaration(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
-    listener?.beginClassDeclaration(
-        begin, abstractToken, macroToken, viewToken, augmentToken, name);
+  void beginClassDeclaration(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
+    listener?.beginClassDeclaration(begin, abstractToken, macroToken, viewToken,
+        sealedToken, augmentToken, name);
   }
 
   @override
@@ -379,8 +386,9 @@ class ForwardingListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token mixinKeyword, Token name) {
-    listener?.beginMixinDeclaration(augmentToken, mixinKeyword, name);
+      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
+    listener?.beginMixinDeclaration(
+        augmentToken, sealedToken, mixinKeyword, name);
   }
 
   @override
@@ -389,10 +397,16 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginNamedMixinApplication(Token begin, Token? abstractToken,
-      Token? macroToken, Token? viewToken, Token? augmentToken, Token name) {
-    listener?.beginNamedMixinApplication(
-        begin, abstractToken, macroToken, viewToken, augmentToken, name);
+  void beginNamedMixinApplication(
+      Token begin,
+      Token? abstractToken,
+      Token? macroToken,
+      Token? viewToken,
+      Token? sealedToken,
+      Token? augmentToken,
+      Token name) {
+    listener?.beginNamedMixinApplication(begin, abstractToken, macroToken,
+        viewToken, sealedToken, augmentToken, name);
   }
 
   @override
@@ -441,13 +455,28 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginSwitchExpressionBlock(Token token) {
+    listener?.beginSwitchExpressionBlock(token);
+  }
+
+  @override
   void beginSwitchCase(int labelCount, int expressionCount, Token firstToken) {
     listener?.beginSwitchCase(labelCount, expressionCount, firstToken);
   }
 
   @override
+  void beginSwitchExpressionCase() {
+    listener?.beginSwitchExpressionCase();
+  }
+
+  @override
   void beginSwitchStatement(Token token) {
     listener?.beginSwitchStatement(token);
+  }
+
+  @override
+  void beginSwitchExpression(Token token) {
+    listener?.beginSwitchExpression(token);
   }
 
   @override
@@ -528,9 +557,8 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleExtractorPatternFields(
-      int count, Token beginToken, Token endToken) {
-    listener?.handleExtractorPatternFields(count, beginToken, endToken);
+  void handleObjectPatternFields(int count, Token beginToken, Token endToken) {
+    listener?.handleObjectPatternFields(count, beginToken, endToken);
   }
 
   @override
@@ -1134,6 +1162,12 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endSwitchExpressionBlock(
+      int caseCount, Token beginToken, Token endToken) {
+    listener?.endSwitchExpressionBlock(caseCount, beginToken, endToken);
+  }
+
+  @override
   void endSwitchCase(
       int labelCount,
       int expressionCount,
@@ -1147,8 +1181,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
+    listener?.endSwitchExpressionCase(when, arrow, endToken);
+  }
+
+  @override
   void endSwitchStatement(Token switchKeyword, Token endToken) {
     listener?.endSwitchStatement(switchKeyword, endToken);
+  }
+
+  @override
+  void endSwitchExpression(Token switchKeyword, Token endToken) {
+    listener?.endSwitchExpression(switchKeyword, endToken);
   }
 
   @override
@@ -1517,6 +1561,7 @@ class ForwardingListener implements Listener {
     listener?.handleInvalidStatement(token, message);
   }
 
+  @override
   void handleInvalidTopLevelBlock(Token token) {
     listener?.handleInvalidTopLevelBlock(token);
   }
@@ -1802,9 +1847,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleExtractorPattern(
+  void handleObjectPattern(
       Token firstIdentifier, Token? dot, Token? secondIdentifier) {
-    listener?.handleExtractorPattern(firstIdentifier, dot, secondIdentifier);
+    listener?.handleObjectPattern(firstIdentifier, dot, secondIdentifier);
   }
 
   @override
@@ -1848,6 +1893,11 @@ class ForwardingListener implements Listener {
   @override
   void handleSpreadExpression(Token spreadToken) {
     listener?.handleSpreadExpression(spreadToken);
+  }
+
+  @override
+  void handleRestPattern(Token dots, {required bool hasSubPattern}) {
+    listener?.handleRestPattern(dots, hasSubPattern: hasSubPattern);
   }
 
   @override
@@ -1938,6 +1988,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {
+    listener?.handlePatternVariableDeclarationStatement(
+        keyword, equals, semicolon);
+  }
+
+  @override
+  void handlePatternAssignment(Token equals) {
+    listener?.handlePatternAssignment(equals);
+  }
+
+  @override
   void logEvent(String name) {
     listener?.logEvent(name);
   }
@@ -1945,6 +2007,13 @@ class ForwardingListener implements Listener {
   @override
   void reportVarianceModifierNotEnabled(Token? variance) {
     listener?.reportVarianceModifierNotEnabled(variance);
+  }
+
+  @override
+  void handleExperimentNotEnabled(
+      ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
+    listener?.handleExperimentNotEnabled(
+        experimentalFlag, startToken, endToken);
   }
 }
 

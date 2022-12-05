@@ -153,7 +153,6 @@ class KernelTarget extends TargetImplementation {
   /// Shared with [CompilerContext].
   final Map<Uri, Source> uriToSource = CompilerContext.current.uriToSource;
 
-  MemberBuilder? _cachedAbstractClassInstantiationError;
   MemberBuilder? _cachedCompileTimeError;
   MemberBuilder? _cachedDuplicatedFieldInitializerError;
   MemberBuilder? _cachedNativeAnnotation;
@@ -186,17 +185,6 @@ class KernelTarget extends TargetImplementation {
   }
 
   Uri? translateUri(Uri uri) => uriTranslator.translate(uri);
-
-  /// Returns a reference to the constructor of
-  /// `AbstractClassInstantiationError` error.  The constructor is expected to
-  /// accept a single argument of type String, which is the name of the
-  /// abstract class.
-  // TODO: Use some other error before `AbstractClassInstantiationError`
-  // is removed.
-  MemberBuilder getAbstractClassInstantiationError(Loader loader) {
-    return _cachedAbstractClassInstantiationError ??=
-        loader.coreLibrary.getConstructor("AbstractClassInstantiationError");
-  }
 
   /// Returns a reference to the constructor used for creating a compile-time
   /// error. The constructor is expected to accept a single argument of type
@@ -942,7 +930,11 @@ class KernelTarget extends TargetImplementation {
       bool isConstructorAdded = false;
       Map<TypeParameter, DartType>? substitutionMap;
 
-      void addSyntheticConstructor(String name, MemberBuilder memberBuilder) {
+      NameIterator<MemberBuilder> iterator =
+          superclassBuilder.fullConstructorNameIterator;
+      while (iterator.moveNext()) {
+        String name = iterator.name;
+        MemberBuilder memberBuilder = iterator.current;
         if (memberBuilder.member is Constructor) {
           substitutionMap ??= builder.getSubstitutionMap(superclassBuilder.cls);
           Reference? constructorReference;
@@ -972,14 +964,12 @@ class KernelTarget extends TargetImplementation {
               builder,
               builder.cls.mixin,
               memberBuilder as MemberBuilderImpl,
-              substitutionMap!,
+              substitutionMap,
               constructorReference,
               tearOffReference));
           isConstructorAdded = true;
         }
       }
-
-      superclassBuilder.forEachConstructor(addSyntheticConstructor);
 
       if (!isConstructorAdded) {
         builder.addSyntheticConstructor(_makeDefaultConstructor(
@@ -1547,11 +1537,12 @@ class KernelTarget extends TargetImplementation {
           isSynthesized: fieldBuilder.isLateLowered,
         ));
       });
-      builder.forEach((String name, Builder builder) {
-        if (builder is FieldBuilder) {
-          patchFieldNames.remove(name);
+      NameIterator<Builder> fieldIterator = builder.fullMemberNameIterator;
+      while (fieldIterator.moveNext()) {
+        if (fieldIterator.current is FieldBuilder) {
+          patchFieldNames.remove(fieldIterator.name);
         }
-      });
+      }
       Set<String> kernelFieldNames = cls.fields.map((f) => f.name.text).toSet();
       return kernelFieldNames.containsAll(patchFieldNames);
     }(),

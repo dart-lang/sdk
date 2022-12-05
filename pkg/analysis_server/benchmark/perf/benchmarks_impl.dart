@@ -115,8 +115,13 @@ class AnalysisBenchmark extends Benchmark {
         path.join(analysisServerSrcPath, 'lib/src/analysis_server.dart');
     var contents = File(filePath).readAsStringSync();
 
+    // Get the future for `analysisFinished` *before* the call to [openFile]
+    // as the analysis triggered by opening is sometimes so fast that it
+    // finishes before starting to listen if only starting *after* the call to
+    // [openFile].
+    Future<void> analysisFinished = test.analysisFinished;
     await test.openFile(filePath, contents);
-    await test.analysisFinished;
+    await analysisFinished;
 
     var stopwatch = Stopwatch()..start();
 

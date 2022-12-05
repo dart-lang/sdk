@@ -4,6 +4,7 @@
 
 library dart._foreign_helper;
 
+import 'dart:_interceptors' show JSArray;
 import 'dart:_js_helper' show notNull;
 import 'dart:_js_shared_embedded_names' show JsBuiltin, JsGetName;
 import 'dart:_rti' show Rti;
@@ -298,12 +299,23 @@ external JS_BUILTIN(String typeDescription, JsBuiltin builtin,
 /// Returns the interceptor for [object].
 ///
 // TODO(nshahan) Replace calls at compile time?
-external getInterceptor(object);
+Object getInterceptor(obj) {
+  var classRef;
+  if (obj == null) {
+    classRef = JS_CLASS_REF(Null);
+  } else if (JS<String>('!', 'typeof #', obj) == 'function') {
+    var signature = JS('', '#[#]', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
+    // Dart functions are always tagged with a signature.
+    if (signature != null) classRef = JS_CLASS_REF(Function);
+  }
+  if (classRef == null) throw 'Unknown interceptor for object: ($obj)';
+  return JS<Object>('!', '#.prototype', classRef);
+}
 
 /// Returns the Rti object for the type for JavaScript arrays via JS-interop.
 ///
 // TODO(nshahan) Replace calls at compile time?
-external Object getJSArrayInteropRti();
+Object getJSArrayInteropRti() => TYPE_REF<JSArray>();
 
 /// Returns a raw reference to the JavaScript function which implements
 /// [function].

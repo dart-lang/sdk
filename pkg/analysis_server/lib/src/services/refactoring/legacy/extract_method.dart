@@ -1375,7 +1375,7 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor {
       // remember information for conflicts checking
       if (element is LocalElement) {
         // declared local elements
-        var range = ref._visibleRangeMap[element];
+        var range = ref._visibleRangeMap[element as LocalElement];
         if (range != null) {
           final name = node.name.lexeme;
           var ranges = ref._localNames.putIfAbsent(name, () => <SourceRange>[]);

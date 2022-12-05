@@ -709,6 +709,12 @@ class AssemblerBase : public StackResource {
     kRelaxedNonAtomic,
   };
 
+  virtual void LoadAcquire(Register reg, Register address, int32_t offset) = 0;
+
+  virtual void LoadFieldAddressForOffset(Register reg,
+                                         Register base,
+                                         int32_t offset) = 0;
+
   virtual void LoadField(Register dst, const FieldAddress& address) = 0;
   virtual void LoadFieldFromOffset(Register reg,
                                    Register base,
@@ -732,10 +738,17 @@ class AssemblerBase : public StackResource {
   void StoreToSlot(Register src, Register base, const Slot& slot);
   void StoreToSlotNoBarrier(Register src, Register base, const Slot& slot);
 
+  // Loads a Smi, handling sign extension appropriately when compressed.
+  // In DEBUG mode, also checks that the loaded value is a Smi and halts if not.
+  virtual void LoadCompressedSmi(Register dst, const Address& slot) = 0;
+
   // Install pure virtual methods if using compressed pointers, to ensure that
   // these methods are overridden. If there are no compressed pointers, forward
   // to the uncompressed version.
 #if defined(DART_COMPRESSED_POINTERS)
+  virtual void LoadAcquireCompressed(Register dst,
+                                     Register address,
+                                     int32_t offset) = 0;
   virtual void LoadCompressedField(Register dst,
                                    const FieldAddress& address) = 0;
   virtual void LoadCompressedFieldFromOffset(Register dst,
@@ -753,6 +766,11 @@ class AssemblerBase : public StackResource {
       Register value,       // Value we are storing.
       MemoryOrder memory_order = kRelaxedNonAtomic) = 0;
 #else
+  virtual void LoadAcquireCompressed(Register dst,
+                                     Register address,
+                                     int32_t offset) {
+    LoadAcquire(dst, address, offset);
+  }
   virtual void LoadCompressedField(Register dst, const FieldAddress& address) {
     LoadField(dst, address);
   }
@@ -790,7 +808,15 @@ class AssemblerBase : public StackResource {
                                                   /*Nullability*/ int8_t value,
                                                   Register scratch) = 0;
 
+  virtual void CompareImmediate(Register reg,
+                                target::word imm,
+                                OperandSize width = kWordBytes) = 0;
   virtual void LsrImmediate(Register dst, int32_t shift) = 0;
+
+  // If src2 == kNoRegister, dst = dst & src1, otherwise dst = src1 & src2.
+  virtual void AndRegisters(Register dst,
+                            Register src1,
+                            Register src2 = kNoRegister) = 0;
 
   void LoadTypeClassId(Register dst, Register src) {
 #if !defined(TARGET_ARCH_IA32)

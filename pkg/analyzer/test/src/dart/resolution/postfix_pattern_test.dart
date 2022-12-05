@@ -20,7 +20,7 @@ void f(int? x) {
   if (x case var y!) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: VariablePattern
@@ -41,7 +41,7 @@ void f(int? x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: VariablePattern
@@ -53,13 +53,40 @@ PostfixPattern
 ''');
   }
 
+  test_nullAssert_variableDeclaration() async {
+    await assertNoErrorsInCode(r'''
+void f(int? x) {
+  var (a!) = x;
+}
+''');
+    final node = findNode.singlePatternVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclaration
+  keyword: var
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: PostfixPattern
+      operand: VariablePattern
+        name: a
+        declaredElement: hasImplicitType a@24
+          type: int
+      operator: !
+    rightParenthesis: )
+  equals: =
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: int?
+''');
+  }
+
   test_nullCheck_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(int? x) {
   if (x case var y?) {}
 }
 ''');
-    final node = findNode.caseClause('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: VariablePattern
@@ -80,7 +107,7 @@ void f(int? x) {
   }
 }
 ''');
-    final node = findNode.switchPatternCase('case').pattern;
+    final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
   operand: VariablePattern
@@ -89,6 +116,35 @@ PostfixPattern
     declaredElement: hasImplicitType y@45
       type: int
   operator: ?
+''');
+  }
+
+  /// TODO(scheglov) finish
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50066')
+  test_nullCheck_variableDeclaration() async {
+    await assertNoErrorsInCode(r'''
+void f(int? x) {
+  var (a?) = x;
+}
+''');
+    final node = findNode.singlePatternVariableDeclaration;
+    assertResolvedNodeText(node, r'''
+PatternVariableDeclaration
+  keyword: var
+  pattern: ParenthesizedPattern
+    leftParenthesis: (
+    pattern: PostfixPattern
+      operand: VariablePattern
+        name: a
+        declaredElement: hasImplicitType a@24
+          type: int
+      operator: !
+    rightParenthesis: )
+  equals: =
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: int?
 ''');
   }
 }

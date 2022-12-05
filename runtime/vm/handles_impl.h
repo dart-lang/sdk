@@ -104,6 +104,7 @@ uword Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   return address;
 }
 
+#if defined(DEBUG)
 // Figure out the current zone using the current Thread and
 // check if the specified handle has been allocated in this zone.
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
@@ -118,6 +119,7 @@ bool Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   ASSERT(handles != NULL);
   return handles->IsValidZoneHandle(handle);
 }
+#endif
 
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
@@ -204,32 +206,6 @@ void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
   }
   zone_blocks_ = new HandlesBlock(zone_blocks_);
 }
-
-#if defined(DEBUG)
-template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
-void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
-    VerifyScopedHandleState() {
-  HandlesBlock* block = &first_scoped_block_;
-  const intptr_t end_index = (kHandleSizeInWords * kHandlesPerChunk);
-  do {
-    if (scoped_blocks_ == block && block->next_handle_slot() <= end_index) {
-      return;
-    }
-    block = block->next_block();
-  } while (block != NULL);
-  ASSERT(false);
-}
-
-template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
-void Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::
-    ZapFreeScopedHandles() {
-  HandlesBlock* block = scoped_blocks_;
-  while (block != NULL) {
-    block->ZapFreeHandles();
-    block = block->next_block();
-  }
-}
-#endif
 
 template <int kHandleSizeInWords, int kHandlesPerChunk, int kOffsetOfRawPtr>
 int Handles<kHandleSizeInWords, kHandlesPerChunk, kOffsetOfRawPtr>::

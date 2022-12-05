@@ -860,6 +860,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitGuardedPattern(covariant GuardedPatternImpl node) {
+    _withHiddenElementsGuardedPattern(node, () {
+      node.pattern.accept(this);
+    });
+    node.whenClause?.accept(this);
+  }
+
+  @override
   void visitImplementsClause(ImplementsClause node) {
     node.interfaces.forEach(_checkForImplicitDynamicType);
     super.visitImplementsClause(node);
@@ -1042,6 +1050,16 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitNativeFunctionBody(NativeFunctionBody node) {
     _checkForNativeFunctionBodyInNonSdkCode(node);
     super.visitNativeFunctionBody(node);
+  }
+
+  @override
+  void visitPatternVariableDeclarationStatement(
+    covariant PatternVariableDeclarationStatementImpl node,
+  ) {
+    super.visitPatternVariableDeclarationStatement(node);
+    for (var variable in node.declaration.elements) {
+      _hiddenElements?.declare(variable);
+    }
   }
 
   @override
@@ -1242,6 +1260,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _withHiddenElements(node.statements, () {
       _duplicateDefinitionVerifier.checkStatements(node.statements);
       super.visitSwitchDefault(node);
+    });
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    _withHiddenElements(node.statements, () {
+      _duplicateDefinitionVerifier.checkStatements(node.statements);
+      super.visitSwitchPatternCase(node);
     });
   }
 
@@ -1576,13 +1602,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void _checkForAmbiguousImport(SimpleIdentifier node) {
     var element = node.writeOrReadElement;
     if (element is MultiplyDefinedElementImpl) {
-      String name = element.displayName;
-      List<Element> conflictingMembers = element.conflictingElements;
+      var conflictingMembers = element.conflictingElements;
       var libraryNames =
           conflictingMembers.map((e) => _getLibraryName(e)).toList();
       libraryNames.sort();
       errorReporter.reportErrorForNode(CompileTimeErrorCode.AMBIGUOUS_IMPORT,
-          node, [name, libraryNames.quotedAndCommaSeparatedWithAnd]);
+          node, [node.name, libraryNames.quotedAndCommaSeparatedWithAnd]);
     }
   }
 
@@ -3308,8 +3333,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
             .toSet();
 
         for (var member in statement.members) {
+          Expression? caseConstant;
           if (member is SwitchCase) {
-            var expression = member.expression.unParenthesized;
+            caseConstant = member.expression;
+          } else if (member is SwitchPatternCase) {
+            var guardedPattern = member.guardedPattern;
+            if (guardedPattern.whenClause == null) {
+              var pattern = guardedPattern.pattern.unParenthesized;
+              if (pattern is ConstantPattern) {
+                caseConstant = pattern.expression;
+              }
+            }
+          }
+          if (caseConstant != null) {
+            var expression = caseConstant.unParenthesized;
             if (expression is NullLiteral) {
               hasCaseNull = true;
             } else {
@@ -5252,6 +5289,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     }
   }
 
+  void _withHiddenElementsGuardedPattern(
+      GuardedPatternImpl guardedPattern, void Function() f) {
+    _hiddenElements =
+        HiddenElements.forGuardedPattern(_hiddenElements, guardedPattern);
+    try {
+      f();
+    } finally {
+      _hiddenElements = _hiddenElements!.outerElements;
+    }
+  }
+
   /// Return [FieldElement]s that are declared in the [ClassDeclaration] with
   /// the given [constructor], but are not initialized.
   static List<FieldElement> computeNotInitializedFields(
@@ -5306,6 +5354,16 @@ class HiddenElements {
   /// declared in the given [statements].
   HiddenElements(this.outerElements, List<Statement> statements) {
     _initializeElements(statements);
+  }
+
+  /// Initialize a newly created set of hidden elements to include all of the
+  /// elements defined in the set of [outerElements] and all of the elements
+  /// declared in the given [guardedPattern].
+  HiddenElements.forGuardedPattern(
+    this.outerElements,
+    GuardedPatternImpl guardedPattern,
+  ) {
+    _elements.addAll(guardedPattern.variables.values);
   }
 
   /// Return `true` if this set of elements contains the given [element].

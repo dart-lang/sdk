@@ -580,8 +580,7 @@ Fragment FlowGraphBuilder::NativeCall(const String& name,
 }
 
 Fragment FlowGraphBuilder::Return(TokenPosition position,
-                                  bool omit_result_type_check,
-                                  intptr_t yield_index) {
+                                  bool omit_result_type_check) {
   Fragment instructions;
   const Function& function = parsed_function_->function();
 
@@ -597,7 +596,7 @@ Fragment FlowGraphBuilder::Return(TokenPosition position,
     instructions += DebugStepCheck(position);
   }
 
-  instructions += BaseFlowGraphBuilder::Return(position, yield_index);
+  instructions += BaseFlowGraphBuilder::Return(position);
 
   return instructions;
 }
@@ -1023,6 +1022,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kExtensionStreamHasListener:
     case MethodRecognizer::kSmi_hashCode:
     case MethodRecognizer::kMint_hashCode:
+    case MethodRecognizer::kDouble_hashCode:
 #define CASE(method, slot) case MethodRecognizer::k##method:
       LOAD_NATIVE_FIELD(CASE)
       STORE_NATIVE_FIELD(CASE)
@@ -1324,29 +1324,15 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body +=
           Box(LoadIndexedInstr::RepresentationOfArrayElement(typed_data_cid));
       if (kind == MethodRecognizer::kFfiLoadPointer) {
-        const auto class_table = thread_->isolate_group()->class_table();
-        ASSERT(class_table->HasValidClassAt(kPointerCid));
         const auto& pointer_class =
-            Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
+            Class::ZoneHandle(Z, IG->object_store()->ffi_pointer_class());
+        const auto& type_arguments = TypeArguments::ZoneHandle(
+            Z, IG->object_store()->type_argument_never());
 
-        // We find the reified type to use for the pointer allocation.
-        //
-        // Call sites to this recognized method are guaranteed to pass a
-        // Pointer<Pointer<X>> as RawParameterVariable(0). This function
-        // will return a Pointer<X> object - for which we inspect the
-        // reified type on the argument.
-        //
-        // The following is safe to do, as (1) we are guaranteed to have a
-        // Pointer<Pointer<X>> as argument, and (2) the bound on the pointer
-        // type parameter guarantees X is an interface type.
+        // We do not reify Pointer type arguments
         ASSERT(function.NumTypeParameters() == 1);
         LocalVariable* address = MakeTemporary();
-        body += LoadLocal(parsed_function_->RawParameterVariable(0));
-        body += LoadNativeField(
-            Slot::GetTypeArgumentsSlotFor(thread_, pointer_class));
-        body += LoadNativeField(Slot::GetTypeArgumentsIndexSlot(
-            thread_, Pointer::kNativeTypeArgPos));
-        body += LoadNativeField(Slot::Type_arguments());
+        body += Constant(type_arguments);
         body += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
         LocalVariable* pointer = MakeTemporary();
         body += LoadLocal(pointer);
@@ -1380,37 +1366,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       LocalVariable* arg_pointer = parsed_function_->RawParameterVariable(0);
       LocalVariable* arg_offset = parsed_function_->RawParameterVariable(1);
       LocalVariable* arg_value = parsed_function_->RawParameterVariable(2);
-
-      if (kind == MethodRecognizer::kFfiStorePointer) {
-        // Do type check before anything untagged is on the stack.
-        const auto class_table = thread_->isolate_group()->class_table();
-        ASSERT(class_table->HasValidClassAt(kPointerCid));
-        const auto& pointer_class =
-            Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
-        const auto& pointer_type_param =
-            TypeParameter::ZoneHandle(pointer_class.TypeParameterAt(0));
-
-        // But we type check it as a method on a generic class at runtime.
-        body += LoadLocal(arg_value);          // value.
-        body += Constant(pointer_type_param);  // dst_type.
-        // We pass the Pointer type argument as instantiator_type_args.
-        //
-        // Call sites to this recognized method are guaranteed to pass a
-        // Pointer<Pointer<X>> as RawParameterVariable(0). This function
-        // will takes a Pointer<X> object - for which we inspect the
-        // reified type on the argument.
-        //
-        // The following is safe to do, as (1) we are guaranteed to have a
-        // Pointer<Pointer<X>> as argument, and (2) the bound on the pointer
-        // type parameter guarantees X is an interface type.
-        body += LoadLocal(arg_pointer);
-        body += CheckNullOptimized(String::ZoneHandle(Z, function.name()));
-        body += LoadNativeField(
-            Slot::GetTypeArgumentsSlotFor(thread_, pointer_class));
-        body += NullConstant();  // function_type_args.
-        body += AssertAssignable(TokenPosition::kNoSource, Symbols::Empty());
-        body += Drop();
-      }
 
       ASSERT_EQUAL(function.NumParameters(), 3);
       body += LoadLocal(arg_offset);
@@ -1448,14 +1403,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += NullConstant();
     } break;
     case MethodRecognizer::kFfiFromAddress: {
-      const auto class_table = thread_->isolate_group()->class_table();
-      ASSERT(class_table->HasValidClassAt(kPointerCid));
       const auto& pointer_class =
-          Class::ZoneHandle(H.zone(), class_table->At(kPointerCid));
+          Class::ZoneHandle(Z, IG->object_store()->ffi_pointer_class());
+      const auto& type_arguments = TypeArguments::ZoneHandle(
+          Z, IG->object_store()->type_argument_never());
 
       ASSERT(function.NumTypeParameters() == 1);
       ASSERT_EQUAL(function.NumParameters(), 1);
-      body += LoadLocal(parsed_function_->RawTypeArgumentsVariable());
+      body += Constant(type_arguments);
       body += AllocateObject(TokenPosition::kNoSource, pointer_class, 1);
       body += LoadLocal(MakeTemporary());  // Duplicate Pointer.
       body += LoadLocal(parsed_function_->RawParameterVariable(0));  // Address.
@@ -1491,16 +1446,27 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
 #endif  // PRODUCT
     } break;
     case MethodRecognizer::kSmi_hashCode: {
+      // TODO(dartbug.com/38985): We should make this LoadLocal+Unbox+
+      // IntegerHash+Box. Though  this would make use of unboxed values on stack
+      // which isn't allowed in unoptimized mode.
+      // Once force-optimized functions can be inlined, we should change this
+      // code to the above.
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += BuildHashCode(/*smi=*/true);
+      body += BuildIntegerHashCode(/*smi=*/true);
     } break;
     case MethodRecognizer::kMint_hashCode: {
       ASSERT_EQUAL(function.NumParameters(), 1);
       body += LoadLocal(parsed_function_->RawParameterVariable(0));
-      body += BuildHashCode(/*smi=*/false);
+      body += BuildIntegerHashCode(/*smi=*/false);
     } break;
-    // case MethodRecognizer::kDouble_hashCode:
+    case MethodRecognizer::kDouble_hashCode: {
+      ASSERT_EQUAL(function.NumParameters(), 1);
+      body += LoadLocal(parsed_function_->RawParameterVariable(0));
+      body += UnboxTruncate(kUnboxedDouble);
+      body += BuildDoubleHashCode();
+      body += Box(kUnboxedInt64);
+    } break;
     case MethodRecognizer::kFfiAsExternalTypedDataInt8:
     case MethodRecognizer::kFfiAsExternalTypedDataInt16:
     case MethodRecognizer::kFfiAsExternalTypedDataInt32:
@@ -2310,7 +2276,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
     // num_positional = num_fields - field_names.length
     body += LoadLocal(parsed_function_->receiver_var());
     body += LoadNativeField(Slot::Record_num_fields());
-    body += Box(Slot::Record_num_fields().representation());
     body += LoadLocal(parsed_function_->receiver_var());
     body += LoadNativeField(Slot::Record_field_names());
     body += LoadNativeField(Slot::Array_length());
@@ -2390,7 +2355,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecordFieldGetter(
 
   body += LoadLocal(parsed_function_->receiver_var());
   body += LoadNativeField(Slot::Record_num_fields());
-  body += Box(Slot::Record_num_fields().representation());
   body += LoadLocal(num_named);
   body += SmiBinaryOp(Token::kSUB);
   body += LoadLocal(index);
@@ -4005,6 +3969,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfDynamicInvocationForwarder(
     body += Box(kUnboxedInt64);
   } else if (target.has_unboxed_double_return()) {
     body += Box(kUnboxedDouble);
+  } else if (target.has_unboxed_record_return()) {
+    // Handled in SelectRepresentations pass in optimized mode.
+    ASSERT(optimizing_);
   }
 
   // Later optimization passes assume that result of a x.[]=(...) call is not
@@ -4297,15 +4264,17 @@ Fragment FlowGraphBuilder::NativeReturn(
   return Fragment(instr).closed();
 }
 
-Fragment FlowGraphBuilder::FfiPointerFromAddress(const Type& result_type) {
+Fragment FlowGraphBuilder::FfiPointerFromAddress() {
   LocalVariable* address = MakeTemporary();
   LocalVariable* result = parsed_function_->expression_temp_var();
 
-  Class& result_class = Class::ZoneHandle(Z, result_type.type_class());
+  Class& result_class =
+      Class::ZoneHandle(Z, IG->object_store()->ffi_pointer_class());
   // This class might only be instantiated as a return type of ffi calls.
   result_class.EnsureIsFinalized(thread_);
 
-  TypeArguments& args = TypeArguments::ZoneHandle(Z, result_type.arguments());
+  TypeArguments& args =
+      TypeArguments::ZoneHandle(Z, IG->object_store()->type_argument_never());
 
   // A kernel transform for FFI in the front-end ensures that type parameters
   // do not appear in the type arguments to a any Pointer classes in an FFI
@@ -4647,8 +4616,7 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToDart(
   Fragment body;
   if (marshaller.IsPointer(arg_index)) {
     body += Box(kUnboxedFfiIntPtr);
-    body += FfiPointerFromAddress(
-        Type::CheckedHandle(Z, marshaller.CType(arg_index)));
+    body += FfiPointerFromAddress();
   } else if (marshaller.IsHandle(arg_index)) {
     body += UnwrapHandle();
   } else if (marshaller.IsVoid(arg_index)) {
@@ -5098,13 +5066,23 @@ const Function& FlowGraphBuilder::PrependTypeArgumentsFunction() {
   return prepend_type_arguments_;
 }
 
-Fragment FlowGraphBuilder::BuildHashCode(bool smi) {
+Fragment FlowGraphBuilder::BuildIntegerHashCode(bool smi) {
   Fragment body;
   Value* unboxed_value = Pop();
   HashIntegerOpInstr* hash =
       new HashIntegerOpInstr(unboxed_value, smi, DeoptId::kNone);
   Push(hash);
   body <<= hash;
+  return body;
+}
+
+Fragment FlowGraphBuilder::BuildDoubleHashCode() {
+  Fragment body;
+  Value* double_value = Pop();
+  HashDoubleOpInstr* hash = new HashDoubleOpInstr(double_value, DeoptId::kNone);
+  Push(hash);
+  body <<= hash;
+  body += Box(kUnboxedInt64);
   return body;
 }
 

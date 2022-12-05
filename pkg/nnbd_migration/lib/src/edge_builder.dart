@@ -489,11 +489,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
     }
 
+    var isInjectorGetAssignment = _isInjectorGetCall(node.rightHandSide);
+
     var expressionType = _handleAssignment(node.rightHandSide,
         assignmentExpression: node,
         compoundOperatorInfo: isCompound ? node : null,
         questionAssignNode: isQuestionAssign ? node : null,
-        sourceIsSetupCall: sourceIsSetupCall);
+        sourceIsSetupCall: sourceIsSetupCall,
+        isInjectorGetAssignment: isInjectorGetAssignment);
     var conditionalNode = _conditionalNodes[node.leftHandSide];
     if (conditionalNode != null) {
       expressionType = expressionType!.withNode(
@@ -701,7 +704,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
               _variables.getLateHint(source, member.fields) == null)
             for (var field in member.fields.variables)
               if (!field.declaredElement!.isStatic && field.initializer == null)
-                (field.declaredElement as FieldElement?)
+                field.declaredElement as FieldElement?
       };
       if (_currentInterfaceOrExtension is ClassElement &&
           (_currentInterfaceOrExtension as ClassElement)
@@ -2461,14 +2464,15 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// proper time.
   ///
   /// Set [wrapFuture] to true to handle assigning Future<flatten(T)> to R.
-  DecoratedType? _handleAssignment(Expression? expression,
+  DecoratedType? _handleAssignment(Expression expression,
       {DecoratedType? destinationType,
       AssignmentExpression? assignmentExpression,
       AssignmentExpression? compoundOperatorInfo,
       AssignmentExpression? questionAssignNode,
       bool fromDefaultValue = false,
       bool wrapFuture = false,
-      bool sourceIsSetupCall = false}) {
+      bool sourceIsSetupCall = false,
+      bool isInjectorGetAssignment = false}) {
     assert(
         (assignmentExpression == null) != (destinationType == null),
         'Either assignmentExpression or destinationType should be supplied, '
@@ -2490,6 +2494,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         destinationType = _dispatch(destinationExpression);
       }
     }
+    if (sourceIsSetupCall &&
+        isInjectorGetAssignment &&
+        destinationType != null) {
+      _graph.makeNonNullable(
+          destinationType.node,
+          AssignmentFromAngularInjectorGetOrigin(
+              source, assignmentExpression!.leftHandSide as SimpleIdentifier));
+    }
 
     if (questionAssignNode != null) {
       _guards.add(destinationType!.node);
@@ -2504,7 +2516,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       if (sourceType == null) {
         throw StateError('No type computed for ${expression.runtimeType} '
-            '(${expression!.toSource()}) offset=${expression.offset}');
+            '(${expression.toSource()}) offset=${expression.offset}');
       }
       EdgeOrigin edgeOrigin = _makeEdgeOrigin(sourceType, expression,
           isSetupAssignment: sourceIsSetupCall);
@@ -2525,7 +2537,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           _checkAssignment(edgeOrigin, FixReasonTarget.root,
               source: sourceType,
               destination: compoundOperatorType.positionalParameters![0],
-              hard: _shouldUseHardEdge(expression!),
+              hard: _shouldUseHardEdge(expression),
               sourceIsFunctionLiteral: expression is FunctionExpression);
           sourceType = _fixNumericTypes(compoundOperatorType.returnType!,
               compoundOperatorInfo.staticType);
@@ -2544,7 +2556,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
                 expression, edgeOrigin, sourceType, destinationType!)) {
           // Nothing further to do.
         } else {
-          var hard = _shouldUseHardEdge(expression!,
+          var hard = _shouldUseHardEdge(expression,
               isConditionallyExecuted: questionAssignNode != null);
           _checkAssignment(edgeOrigin, FixReasonTarget.root,
               source: sourceType,
@@ -3090,7 +3102,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var suppliedNamedParameters = <String>{};
     for (var argument in arguments) {
       String? name;
-      Expression? expression;
+      Expression expression;
       if (argument is NamedExpression) {
         name = argument.name.label.name;
         expression = argument.expression;
@@ -3099,7 +3111,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           name = argument.name!.lexeme;
         }
         // TODO(scheglov) This is a hack.
-        expression = (argument as FormalParameterImpl).identifierForMigration;
+        expression = (argument as FormalParameterImpl).identifierForMigration!;
       } else {
         expression = argument as Expression;
       }
@@ -3364,7 +3376,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     }
   }
 
-  EdgeOrigin _makeEdgeOrigin(DecoratedType sourceType, Expression? expression,
+  EdgeOrigin _makeEdgeOrigin(DecoratedType sourceType, Expression expression,
       {bool isSetupAssignment = false}) {
     if (sourceType.type!.isDynamic) {
       return DynamicAssignmentOrigin(source, expression);
@@ -3373,7 +3385,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           source, expression, ExpressionChecks(),
           isSetupAssignment: isSetupAssignment);
       _variables.recordExpressionChecks(
-          source, expression!, expressionChecksOrigin);
+          source, expression, expressionChecksOrigin);
       return expressionChecksOrigin;
     }
   }
@@ -3644,6 +3656,38 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     } else {
       return null;
     }
+  }
+
+  /// Whether `expression` is a call to Angular's [Injector.get], with exactly
+  /// one argument.
+  static bool _isInjectorGetCall(Expression expression) {
+    if (expression is! MethodInvocation) {
+      return false;
+    }
+
+    if (expression.methodName.name != 'get') {
+      return false;
+    }
+    if (expression.argumentList.arguments.length != 1) {
+      // If a second argument is passed, which may indicate that a non-null
+      // value isn't necessarily expected, don't count this call.
+      return false;
+    }
+
+    var target = expression.target;
+    if (target is! Identifier) {
+      return false;
+    }
+
+    var receiver = target.staticType?.element;
+    if (receiver?.name != 'Injector') {
+      return false;
+    }
+
+    var uri = receiver?.library?.source.uri;
+    return uri != null &&
+        uri.isScheme('package') &&
+        uri.path.startsWith('angular/');
   }
 }
 

@@ -1,0 +1,9 @@
+void f(x) {
+[] = x;
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]x[StringToken])[SimpleToken] {[BeginToken]
+[][SimpleToken] =[SimpleToken] x[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

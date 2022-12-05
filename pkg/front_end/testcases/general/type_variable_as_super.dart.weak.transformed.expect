@@ -41,7 +41,7 @@ class C<T extends core::Object? = dynamic> extends core::Object {
     ;
 }
 static method main() → dynamic {
-  throw new core::AbstractClassInstantiationError::•("A");
-  throw new core::AbstractClassInstantiationError::•("B");
+  invalid-expression "The class 'A' is abstract and can't be instantiated.";
+  invalid-expression "The class 'B' is abstract and can't be instantiated.";
   new self::C::•<dynamic>();
 }

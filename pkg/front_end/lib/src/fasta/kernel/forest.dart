@@ -243,14 +243,15 @@ class Forest {
 
   Expression createAsExpression(
       int fileOffset, Expression expression, DartType type,
-      {required bool forNonNullableByDefault}) {
+      {required bool forNonNullableByDefault, bool forDynamic = false}) {
     // ignore: unnecessary_null_comparison
     assert(forNonNullableByDefault != null);
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     return new AsExpression(expression, type)
       ..fileOffset = fileOffset
-      ..isForNonNullableByDefault = forNonNullableByDefault;
+      ..isForNonNullableByDefault = forNonNullableByDefault
+      ..isForDynamic = forDynamic;
   }
 
   Expression createSpreadElement(int fileOffset, Expression expression,
@@ -412,8 +413,11 @@ class Forest {
   /// [fileOffset]. The [condition] is the expression preceding the question
   /// mark. The [thenExpression] is the expression following the question mark.
   /// The [elseExpression] is the expression following the colon.
-  Expression createConditionalExpression(int fileOffset, Expression condition,
-      Expression thenExpression, Expression elseExpression) {
+  ConditionalExpression createConditionalExpression(
+      int fileOffset,
+      Expression condition,
+      Expression thenExpression,
+      Expression elseExpression) {
     return new ConditionalExpression(
         condition, thenExpression, elseExpression, const UnknownType())
       ..fileOffset = fileOffset;

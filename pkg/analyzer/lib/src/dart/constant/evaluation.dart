@@ -695,7 +695,10 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
 
   @override
   DartObjectImpl? visitConstructorReference(ConstructorReference node) {
-    var constructorFunctionType = node.typeOrThrow as FunctionType;
+    var constructorFunctionType = node.typeOrThrow;
+    if (constructorFunctionType is! FunctionType) {
+      return null;
+    }
     var classType = constructorFunctionType.returnType as InterfaceType;
     var typeArguments = classType.typeArguments;
     // The result is already instantiated during resolution;

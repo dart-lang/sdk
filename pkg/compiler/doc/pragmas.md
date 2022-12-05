@@ -10,6 +10,8 @@
 | `dart2js:prefer-inline` | Alias for `dart2js:tryInline` |
 | `dart2js:disable-inlining` | [Disable inlining within a method](#disabling-inlining) |
 | `dart2js:noElision` | Disables an optimization whereby unused fields or unused parameters are removed |
+| `dart2js:load-priority:normal` | [Affects deferred library loading](#load-priority) |
+| `dart2js:load-priority:high` | [Affects deferred library loading](#load-priority) |
 
 ## Unsafe pragmas for general use
 
@@ -209,3 +211,40 @@ there are multiple annotations, the one nearest the late field wins.
 
 In the future this annotation might be extended to apply to `late` local
 variables, static variables, and top-level variables.
+
+
+### Annotations related to deferred library loading
+
+#### Load priority
+
+**This is not fully implemented.** The annotation exists but **has no effect**.
+
+
+```dart
+@pragma('dart2js:load-priority:normal')
+@pragma('dart2js:load-priority:high)
+```
+
+By default, a call to `prefix.loadLibrary()` loads the library with 'normal'
+priority.  These annotations may be placed on the import specification to change
+the priority for all calls to `prefix.loadLibrary()`.
+
+The annotation my also be placed closer to the `loadLibrary()` call.  When
+placed on a method, the annotation affects all calls to
+`prefix.loadLibrary()` inside the method.
+
+When placed on a local variable, the annotation affects all calls to
+`prefix.loadLibrary()` in the initializer of the local variable. In the
+following example, only `prefix2` is loaded with high priority because of the
+annotation on the variable called "`_`":
+
+```dart
+    await prefix1.loadLibrary();
+    @pragma('dart2js:load-priority:high')
+    final _ = await prefix2.loadLibrary();
+    await prefix3.loadLibrary();
+```
+
+`dart2js:load-priority` annotations are _scoped_: when there are multiple
+annotations, the one on the nearest element enclosing the call to `loadLibary()`
+is in effect.

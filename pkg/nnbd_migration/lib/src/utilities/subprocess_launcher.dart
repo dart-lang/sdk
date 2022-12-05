@@ -9,6 +9,8 @@
 /// This is a modified version of dartdoc's
 /// SubprocessLauncher from test/src/utils.dart, for use with the
 /// nnbd_migration script.
+library;
+
 import 'dart:convert';
 import 'dart:io';
 

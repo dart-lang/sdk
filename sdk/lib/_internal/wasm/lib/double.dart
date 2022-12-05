@@ -49,14 +49,23 @@ class double {
     }
     return result;
   }
+
+  /// Wasm i64.trunc_sat_f64_s instruction
+  external int _toInt();
 }
 
 @pragma("wasm:entry-point")
-class _BoxedDouble implements double {
+class _BoxedDouble extends double {
   // A boxed double contains an unboxed double.
   @pragma("wasm:entry-point")
   double value = 0.0;
 
+  /// Dummy factory to silence error about missing superclass constructor.
+  external factory _BoxedDouble();
+
+  static const int _mantissaBits = 52;
+  static const int _exponentBits = 11;
+  static const int _exponentBias = 1023;
   static const int _signMask = 0x8000000000000000;
   static const int _exponentMask = 0x7FF0000000000000;
   static const int _mantissaMask = 0x000FFFFFFFFFFFFF;
@@ -66,7 +75,7 @@ class _BoxedDouble implements double {
 
   static int _doubleHashCode(double value) {
     const int maxInt = 0x7FFFFFFFFFFFFFFF;
-    int intValue = _toInt(value);
+    int intValue = value._toInt();
     if (intValue.toDouble() == value && intValue != maxInt) {
       return _BoxedInt._intHashCode(intValue);
     }
@@ -166,7 +175,34 @@ class _BoxedDouble implements double {
   int ceil() => ceilToDouble().toInt();
   int truncate() => truncateToDouble().toInt();
 
-  external double roundToDouble();
+  double roundToDouble() {
+    return _roundToDouble(this);
+  }
+
+  static double _roundToDouble(final double d) {
+    final int bits = doubleToIntBits(d);
+    final int exponent = (bits >> _mantissaBits) & ((1 << _exponentBits) - 1);
+
+    if (exponent < _exponentBias) {
+      // The exponent is less than 0, which means the absolute value of the
+      // number is less than 1.
+      return (d * 2.0).truncateToDouble();
+    }
+
+    if (exponent >= _exponentBias + _mantissaBits) {
+      // The exponent is so big that the number is already an integer,
+      // or it is +/- infinity or NaN.
+      return d;
+    }
+
+    // Add 0.5 to the absolute value of the number and truncate the result.
+    final int shift = (_exponentBias + _mantissaBits - 1) - exponent;
+    final int adjust = (1)._shl(shift);
+    final int mask = (-2)._shl(shift);
+    final int rounded = (bits + adjust) & mask;
+    return intBitsToDouble(rounded);
+  }
+
   external double floorToDouble();
   external double ceilToDouble();
   external double truncateToDouble();
@@ -185,11 +221,8 @@ class _BoxedDouble implements double {
     if (!isFinite) {
       throw UnsupportedError("Infinity or NaN toInt");
     }
-    return _toInt(this);
+    return _toInt();
   }
-
-  /// Wasm i64.trunc_sat_f64_s instruction
-  external static int _toInt(double a);
 
   double toDouble() {
     return this;
@@ -356,7 +389,7 @@ class _BoxedDouble implements double {
             return GREATER;
           }
         }
-        return _toInt(this).compareTo(other);
+        return _toInt().compareTo(other);
       } else {
         return EQUAL;
       }

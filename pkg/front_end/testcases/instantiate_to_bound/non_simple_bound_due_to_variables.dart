@@ -12,4 +12,8 @@ class B<TypeU extends A> {}
 
 B b = throw '';
 
+extension C<TypeU extends A> on int {}
+
+typedef D<TypeU extends A> = int;
+
 main() {}

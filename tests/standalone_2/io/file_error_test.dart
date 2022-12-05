@@ -17,7 +17,7 @@ Directory tempDir() {
 }
 
 bool checkCannotOpenFileException(e) {
-  Expect.isTrue(e is FileSystemException);
+  Expect.isTrue(e is PathNotFoundException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Cannot open file") != -1);
   if (Platform.operatingSystem == "linux") {
@@ -31,7 +31,7 @@ bool checkCannotOpenFileException(e) {
 }
 
 bool checkNonExistentFileSystemException(e, str) {
-  Expect.isTrue(e is FileSystemException);
+  Expect.isTrue(e is PathNotFoundException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf(str) != -1);
   // File not not found has error code 2 on all supported platforms.

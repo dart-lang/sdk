@@ -271,14 +271,14 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT_EQUAL(Finalizer::InstanceSize(), cls.host_instance_size());
   cls = object_store->finalizer_entry_class();
   ASSERT_EQUAL(FinalizerEntry::InstanceSize(), cls.host_instance_size());
-  cls = object_store->linked_hash_map_class();
-  ASSERT_EQUAL(LinkedHashMap::InstanceSize(), cls.host_instance_size());
-  cls = object_store->immutable_linked_hash_map_class();
-  ASSERT_EQUAL(LinkedHashMap::InstanceSize(), cls.host_instance_size());
-  cls = object_store->linked_hash_set_class();
-  ASSERT_EQUAL(LinkedHashSet::InstanceSize(), cls.host_instance_size());
-  cls = object_store->immutable_linked_hash_set_class();
-  ASSERT_EQUAL(LinkedHashSet::InstanceSize(), cls.host_instance_size());
+  cls = object_store->map_impl_class();
+  ASSERT_EQUAL(Map::InstanceSize(), cls.host_instance_size());
+  cls = object_store->const_map_impl_class();
+  ASSERT_EQUAL(Map::InstanceSize(), cls.host_instance_size());
+  cls = object_store->set_impl_class();
+  ASSERT_EQUAL(Set::InstanceSize(), cls.host_instance_size());
+  cls = object_store->const_set_impl_class();
+  ASSERT_EQUAL(Set::InstanceSize(), cls.host_instance_size());
 #endif  // defined(DEBUG)
 
   // Remember the currently pending classes.

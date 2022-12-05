@@ -13,7 +13,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/transformations/export_creator.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
-import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
@@ -169,17 +168,10 @@ class Dart2jsTarget extends Target {
       // in the single pass in `transformations/lowering.dart`.
       jsUtilOptimizer.visitLibrary(library);
     }
-    var staticInteropClassEraser =
-        StaticInteropClassEraser(coreTypes, referenceFromIndex);
     lowering.transformLibraries(libraries, coreTypes, hierarchy, options);
     logger?.call("Lowering transformations performed");
     if (canPerformGlobalTransforms) {
       transformMixins.transformLibraries(libraries);
-      // Do the erasure after any possible mock creation to avoid erasing types
-      // that need to be used during mock conformance checking.
-      for (var library in libraries) {
-        staticInteropClassEraser.visitLibrary(library);
-      }
       logger?.call("Mixin transformations performed");
     }
   }
@@ -277,6 +269,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:_js_primitives',
     'dart:_js_shared_embedded_names',
     'dart:_late_helper',
+    'dart:_load_library_priority',
     'dart:_metadata',
     'dart:_native_typed_data',
     'dart:_recipe_syntax',
@@ -313,6 +306,7 @@ const requiredLibraries = <String, List<String>>{
     'dart:_js_primitives',
     'dart:_js_shared_embedded_names',
     'dart:_late_helper',
+    'dart:_load_library_priority',
     'dart:_native_typed_data',
     'dart:_recipe_syntax',
     'dart:_rti',

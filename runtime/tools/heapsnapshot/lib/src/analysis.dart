@@ -25,7 +25,7 @@ class Analysis {
   late final _nonGrowableListCid = _findClassId('_List');
   late final _immutableListCid = _findClassId('_ImmutableList');
   late final _weakPropertyCid = _findClassId('_WeakProperty');
-  late final _weakReferenceCid = _findClassId('_WeakReferenceImpl');
+  late final _weakReferenceCid = _findClassId('_WeakReference');
   late final _patchClassCid = _findClassId('PatchClass');
   late final _finalizerEntryCid = _findClassId('FinalizerEntry');
 

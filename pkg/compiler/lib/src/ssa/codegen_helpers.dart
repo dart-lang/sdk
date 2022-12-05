@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../inferrer/abstract_value_domain.dart';
@@ -30,11 +28,11 @@ bool canUseAliasedSuperMember(MemberEntity member, Selector selector) {
 ///
 /// - Combine read/modify/write sequences into HReadModifyWrite instructions to
 ///   simplify codegen of expressions like `a.x += y`.
-class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
+class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
     with CodegenPhase {
   final JClosedWorld _closedWorld;
   final CompilerOptions _options;
-  HGraph graph;
+  late final HGraph graph;
 
   SsaInstructionSelection(this._options, this._closedWorld);
 
@@ -49,10 +47,10 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.first;
+    HInstruction? instruction = block.first;
     while (instruction != null) {
-      HInstruction next = instruction.next;
-      HInstruction replacement = instruction.accept(this);
+      HInstruction? next = instruction.next;
+      HInstruction? replacement = instruction.accept(this);
       if (replacement != instruction && replacement != null) {
         block.rewrite(instruction, replacement);
 
@@ -84,7 +82,7 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
   @override
   HInstruction visitNullCheck(HNullCheck node) {
     // If we remove this NullCheck, does the program behave the same?
-    HInstruction faultingInstruction = _followingSameFaultInstruction(node);
+    HInstruction? faultingInstruction = _followingSameFaultInstruction(node);
     if (faultingInstruction != null) {
       // Force [faultingInstruction] to appear in same source location as
       // [node]. This avoids the source-mapped stack trace containing an
@@ -103,13 +101,13 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
   /// Searches the instructions following [nullCheck] to see if the first
   /// instruction with an effect or exception will fault on a `null` input just
   /// like the [nullCheck].
-  HInstruction _followingSameFaultInstruction(HNullCheck nullCheck) {
-    HInstruction current = nullCheck.next;
+  HInstruction? _followingSameFaultInstruction(HNullCheck nullCheck) {
+    HInstruction? current = nullCheck.next;
     do {
       // The instructionType of [nullCheck] is not nullable (since it is the
       // (not) null check!) This means that if we do need to check the type, we
       // should test against nullCheck.checkedInput, not the direct input.
-      if (current.getDartReceiver(_closedWorld) == nullCheck) {
+      if (current!.getDartReceiver(_closedWorld) == nullCheck) {
         if (current is HFieldGet) return current;
         if (current is HFieldSet) return current;
         if (current is HGetLength) return current;
@@ -148,13 +146,13 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
         return null;
       }
 
-      HInstruction next = current.next;
+      HInstruction? next = current.next;
       if (next == null) {
         // We do not merge blocks in our SSA graph, so if this block just jumps
         // to a single successor, visit the successor, avoiding back-edges.
-        HBasicBlock successor;
+        HBasicBlock? successor;
         if (current is HGoto) {
-          successor = current.block.successors.single;
+          successor = current.block!.successors.single;
         } else if (current is HIf) {
           // We also leave HIf nodes in place when one branch is dead.
           HInstruction condition = current.inputs.first;
@@ -164,7 +162,7 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
                 : current.elseBlock;
           }
         }
-        if (successor != null && successor.id > current.block.id) {
+        if (successor != null && successor.id > current.block!.id) {
           next = successor.first;
         }
       }
@@ -182,7 +180,7 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
   /// Returns the single JavaScript comparison (`==` or `===`) if that
   /// implements `identical(left, right)`, or returns `null` if the more complex
   /// ternary `left == null ? right == null : left === right` is required.
-  String simpleOp(HInstruction left, HInstruction right) {
+  String? simpleOp(HInstruction left, HInstruction right) {
     AbstractValue leftType = left.instructionType;
     AbstractValue rightType = right.instructionType;
     if (_abstractValueDomain.isNull(leftType).isDefinitelyFalse) {
@@ -225,12 +223,12 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
       .isPotentiallyTrue;
 
   @override
-  HInstruction visitFieldSet(HFieldSet setter) {
+  HInstruction? visitFieldSet(HFieldSet setter) {
     // Pattern match
     //     t1 = x.f; t2 = t1 + 1; x.f = t2; use(t2)   -->  ++x.f
     //     t1 = x.f; t2 = t1 op y; x.f = t2; use(t2)  -->  x.f op= y
     //     t1 = x.f; t2 = t1 + 1; x.f = t2; use(t1)   -->  x.f++
-    HBasicBlock block = setter.block;
+    HBasicBlock block = setter.block!;
     HInstruction op = setter.value;
     HInstruction receiver = setter.receiver;
 
@@ -249,12 +247,12 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
       return false;
     }
 
-    HInstruction noMatchingRead() {
+    HInstruction? noMatchingRead() {
       // If we have other HFieldSet optimizations, they go here.
       return null;
     }
 
-    HInstruction replaceOp(HInstruction replacement, HInstruction getter) {
+    HInstruction? replaceOp(HInstruction replacement, HInstruction getter) {
       block.addBefore(setter, replacement);
       block.remove(setter);
       block.rewrite(op, replacement);
@@ -263,10 +261,8 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
       return null;
     }
 
-    HInstruction plusOrMinus(String assignOp, String incrementOp) {
-      HInvokeBinary binary = op;
-      HInstruction left = binary.left;
-      HInstruction right = binary.right;
+    HInstruction? plusOrMinus(String assignOp, String incrementOp,
+        HInstruction left, HInstruction right) {
       if (isMatchingRead(left)) {
         if (left.usedBy.length == 1) {
           if (right is HConstant && right.constant.isOne) {
@@ -294,7 +290,7 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
       return noMatchingRead();
     }
 
-    HInstruction simple(
+    HInstruction? simple(
         String assignOp, HInstruction left, HInstruction right) {
       if (isMatchingRead(left)) {
         if (left.usedBy.length == 1) {
@@ -306,31 +302,26 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
       return noMatchingRead();
     }
 
-    HInstruction simpleBinary(String assignOp) {
-      HInvokeBinary binary = op;
-      return simple(assignOp, binary.left, binary.right);
-    }
-
-    HInstruction bitop(String assignOp) {
+    HInstruction? bitop(String assignOp, HInvokeBinary binary) {
       // HBitAnd, HBitOr etc. are more difficult because HBitAnd(a.x, y)
       // sometimes needs to be forced to unsigned: a.x = (a.x & y) >>> 0.
       if (op.isUInt31(_abstractValueDomain).isDefinitelyTrue) {
-        return simpleBinary(assignOp);
+        return simple(assignOp, binary.left, binary.right);
       }
       return noMatchingRead();
     }
 
-    if (op is HAdd) return plusOrMinus('+', '++');
-    if (op is HSubtract) return plusOrMinus('-', '--');
+    if (op is HAdd) return plusOrMinus('+', '++', op.left, op.right);
+    if (op is HSubtract) return plusOrMinus('-', '--', op.left, op.right);
 
     if (op is HStringConcat) return simple('+', op.left, op.right);
 
-    if (op is HMultiply) return simpleBinary('*');
-    if (op is HDivide) return simpleBinary('/');
+    if (op is HMultiply) return simple('*', op.left, op.right);
+    if (op is HDivide) return simple('/', op.left, op.right);
 
-    if (op is HBitAnd) return bitop('&');
-    if (op is HBitOr) return bitop('|');
-    if (op is HBitXor) return bitop('^');
+    if (op is HBitAnd) return bitop('&', op);
+    if (op is HBitOr) return bitop('|', op);
+    if (op is HBitXor) return bitop('^', op);
 
     return noMatchingRead();
   }
@@ -349,8 +340,8 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
             !_intercepted(operand1.instructionType)) {
           if (test.usedBy.length == 1 && condition.usedBy.length == 1) {
             node.changeUse(condition, operand1);
-            condition.block.remove(condition);
-            test.block.remove(test);
+            condition.block!.remove(condition);
+            test.block!.remove(test);
           }
         }
       }
@@ -362,9 +353,9 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction /*?*/ >
       if (operand2.isNull(_abstractValueDomain).isDefinitelyTrue &&
           !_intercepted(operand1.instructionType)) {
         var not = HNot(operand1, _abstractValueDomain.boolType);
-        node.block.addBefore(node, not);
+        node.block!.addBefore(node, not);
         node.changeUse(condition, not);
-        condition.block.remove(condition);
+        condition.block!.remove(condition);
       }
     }
     return node;
@@ -383,9 +374,9 @@ class SsaTypeKnownRemover extends HBaseVisitor<void> with CodegenPhase {
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.last;
+    HInstruction? instruction = block.last;
     while (instruction != null) {
-      HInstruction previous = instruction.previous;
+      HInstruction? previous = instruction.previous;
       instruction.accept(this);
       instruction = previous;
     }
@@ -393,8 +384,8 @@ class SsaTypeKnownRemover extends HBaseVisitor<void> with CodegenPhase {
 
   @override
   void visitTypeKnown(HTypeKnown instruction) {
-    instruction.block.rewrite(instruction, instruction.checkedInput);
-    instruction.block.remove(instruction);
+    instruction.block!.rewrite(instruction, instruction.checkedInput);
+    instruction.block!.remove(instruction);
   }
 
   @override
@@ -419,9 +410,9 @@ class SsaTrustedPrimitiveCheckRemover extends HBaseVisitor<void>
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.first;
+    HInstruction? instruction = block.first;
     while (instruction != null) {
-      HInstruction next = instruction.next;
+      HInstruction? next = instruction.next;
       instruction.accept(this);
       instruction = next;
     }
@@ -429,14 +420,14 @@ class SsaTrustedPrimitiveCheckRemover extends HBaseVisitor<void>
 
   @override
   void visitPrimitiveCheck(HPrimitiveCheck instruction) {
-    instruction.block.rewrite(instruction, instruction.checkedInput);
-    instruction.block.remove(instruction);
+    instruction.block!.rewrite(instruction, instruction.checkedInput);
+    instruction.block!.remove(instruction);
   }
 
   @override
   void visitBoolConversion(HBoolConversion instruction) {
-    instruction.block.rewrite(instruction, instruction.checkedInput);
-    instruction.block.remove(instruction);
+    instruction.block!.rewrite(instruction, instruction.checkedInput);
+    instruction.block!.remove(instruction);
   }
 }
 
@@ -453,9 +444,9 @@ class SsaTrustedLateCheckRemover extends HBaseVisitor<void> with CodegenPhase {
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.first;
+    HInstruction? instruction = block.first;
     while (instruction != null) {
-      HInstruction next = instruction.next;
+      HInstruction? next = instruction.next;
       instruction.accept(this);
       instruction = next;
     }
@@ -465,14 +456,14 @@ class SsaTrustedLateCheckRemover extends HBaseVisitor<void> with CodegenPhase {
   void visitLateCheck(HLateCheck instruction) {
     if (!instruction.isTrusted) return;
     final inputs = instruction.inputs.toList();
-    instruction.block.rewrite(instruction, instruction.checkedInput);
-    instruction.block.remove(instruction);
+    instruction.block!.rewrite(instruction, instruction.checkedInput);
+    instruction.block!.remove(instruction);
     // TODO(sra): There might be a unused name.
 
     // Remove pure unused inputs.
     for (HInstruction input in inputs) {
       if (input.usedBy.isNotEmpty) continue;
-      HBasicBlock block = input.block;
+      HBasicBlock? block = input.block;
       if (block == null) continue; // Already removed.
       if (input.isPure(_abstractValueDomain)) {
         // Special cases that are removed properly by other phases.
@@ -497,7 +488,7 @@ class SsaTrustedLateCheckRemover extends HBaseVisitor<void> with CodegenPhase {
 ///     b.y = v;
 /// -->
 ///     b.y = a.x = v;
-class SsaAssignmentChaining extends HBaseVisitor<HInstruction /*?*/ >
+class SsaAssignmentChaining extends HBaseVisitor<HInstruction?>
     with CodegenPhase {
   final JClosedWorld _closedWorld;
 
@@ -508,35 +499,34 @@ class SsaAssignmentChaining extends HBaseVisitor<HInstruction /*?*/ >
 
   @override
   void visitGraph(HGraph graph) {
-    //this.graph = graph;
     visitDominatorTree(graph);
   }
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.first;
+    HInstruction? instruction = block.first;
     while (instruction != null) {
-      instruction = instruction.accept(this);
+      instruction = instruction.accept<HInstruction?>(this);
     }
   }
 
   /// Returns the next instruction.
   @override
-  HInstruction visitInstruction(HInstruction node) {
+  HInstruction? visitInstruction(HInstruction node) {
     return node.next;
   }
 
   @override
-  HInstruction visitFieldSet(HFieldSet setter) {
+  HInstruction? visitFieldSet(HFieldSet setter) {
     return tryChainAssignment(setter, setter.value);
   }
 
   @override
-  HInstruction visitStaticStore(HStaticStore store) {
+  HInstruction? visitStaticStore(HStaticStore store) {
     return tryChainAssignment(store, store.inputs.single);
   }
 
-  HInstruction tryChainAssignment(HInstruction setter, HInstruction value) {
+  HInstruction? tryChainAssignment(HInstruction setter, HInstruction value) {
     // Try to use result of field or static assignment
     //
     //     t1 = v;  x.f = t1;  ... t1 ...
@@ -551,7 +541,7 @@ class SsaAssignmentChaining extends HBaseVisitor<HInstruction /*?*/ >
     // the number of references to [value].
     HInstruction chain = setter;
     setter.instructionType = value.instructionType;
-    for (HInstruction current = setter.next;;) {
+    for (HInstruction? current = setter.next;;) {
       if (current is HFieldSet) {
         HFieldSet nextSetter = current;
         if (nextSetter.value == value && nextSetter.receiver != value) {
@@ -579,7 +569,7 @@ class SsaAssignmentChaining extends HBaseVisitor<HInstruction /*?*/ >
       break;
     }
 
-    final HInstruction next = chain.next;
+    final HInstruction? next = chain.next;
 
     if (value.usedBy.length <= 1) return next; // setter is only remaining use.
 
@@ -597,7 +587,7 @@ class SsaAssignmentChaining extends HBaseVisitor<HInstruction /*?*/ >
         // assignment.
         // TODO(sra): Better analysis to permit phis that are part of a
         // forwards-only tree.
-        if (use.block.id < chain.block.id) return next;
+        if (use.block!.id < chain.block!.id) return next;
         if (use.usedBy.any((node) => node is HPhi)) return next;
 
         // A forward phi often has a new name. We want to avoid [value] having a
@@ -670,12 +660,12 @@ class SsaInstructionMerger extends HBaseVisitor<void> with CodegenPhase {
 
   /// List of [HInstruction] that the instruction merger expects in
   /// order when visiting the inputs of an instruction.
-  List<HInstruction> expectedInputs;
+  List<HInstruction>? expectedInputs;
 
   /// Set of pure [HInstruction] that the instruction merger expects to
   /// find. The order of pure instructions do not matter, as they will
   /// not be affected by side effects.
-  Set<HInstruction> pureInputs;
+  Set<HInstruction>? pureInputs;
   Set<HInstruction> generateAtUseSite;
 
   void markAsGenerateAtUseSite(HInstruction instruction) {
@@ -708,7 +698,7 @@ class SsaInstructionMerger extends HBaseVisitor<void> with CodegenPhase {
             // Move it closer to [user], so that instructions in
             // between do not prevent making it generate at use site.
             input.moveBefore(user);
-            pureInputs.add(input);
+            pureInputs!.add(input);
             // Previous computations done on [input] are now invalid
             // because we moved [input] to another place. So all
             // non code motion invariant instructions need
@@ -723,7 +713,7 @@ class SsaInstructionMerger extends HBaseVisitor<void> with CodegenPhase {
             input.accept(this);
           }
         } else {
-          expectedInputs.add(input);
+          expectedInputs!.add(input);
         }
       }
     }
@@ -889,8 +879,8 @@ class SsaInstructionMerger extends HBaseVisitor<void> with CodegenPhase {
     // Return true if it is found, or false if not.
     bool findInInputsAndPopNonMatching(HInstruction instruction) {
       assert(!isEffectivelyPure(instruction));
-      while (!expectedInputs.isEmpty) {
-        HInstruction nextInput = expectedInputs.removeLast();
+      while (!expectedInputs!.isEmpty) {
+        HInstruction nextInput = expectedInputs!.removeLast();
         assert(!generateAtUseSite.contains(nextInput));
         assert(nextInput.usedBy.length == 1);
         if (identical(nextInput, instruction)) {
@@ -900,8 +890,8 @@ class SsaInstructionMerger extends HBaseVisitor<void> with CodegenPhase {
       return false;
     }
 
-    block.last.accept(this);
-    for (HInstruction instruction = block.last.previous;
+    block.last!.accept(this);
+    for (HInstruction? instruction = block.last!.previous;
         instruction != null;
         instruction = instruction.previous) {
       if (generateAtUseSite.contains(instruction)) {
@@ -912,7 +902,7 @@ class SsaInstructionMerger extends HBaseVisitor<void> with CodegenPhase {
         continue;
       }
       if (isEffectivelyPure(instruction)) {
-        if (pureInputs.contains(instruction)) {
+        if (pureInputs!.contains(instruction)) {
           tryGenerateAtUseSite(instruction);
         } else {
           // If the input is not in the [pureInputs] set, it has not
@@ -961,6 +951,7 @@ class SsaInstructionMerger extends HBaseVisitor<void> with CodegenPhase {
           //   f(bar(), t3);
           //   use(t3);
           //
+          final expectedInputs = this.expectedInputs!;
           int oldLength = expectedInputs.length;
           instruction.accept(this);
           if (oldLength != 0 && oldLength != expectedInputs.length) {
@@ -978,7 +969,7 @@ class SsaInstructionMerger extends HBaseVisitor<void> with CodegenPhase {
           // expected input.
           tryGenerateAtUseSite(instruction);
         } else {
-          assert(expectedInputs.isEmpty);
+          assert(expectedInputs!.isEmpty);
         }
         instruction.accept(this);
       }
@@ -1000,7 +991,7 @@ class SsaInstructionMerger extends HBaseVisitor<void> with CodegenPhase {
 ///  using these operators instead of nested ifs and boolean variables.
 class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
   Set<HInstruction> generateAtUseSite;
-  Set<HInstruction> controlFlowOperators;
+  Set<HIf> controlFlowOperators;
 
   void markAsGenerateAtUseSite(HInstruction instruction) {
     assert(!instruction.isJsStatement());
@@ -1027,16 +1018,16 @@ class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
     // before the control flow instruction, or the last instruction,
     // then we will have to emit a statement for that last instruction.
     if (instruction != block.last &&
-        !identical(instruction, block.last.previous)) return true;
+        !identical(instruction, block.last!.previous)) return true;
 
     // If one of the instructions in the block until [instruction] is
     // not generated at use site, then we will have to emit a
     // statement for it.
     // TODO(ngeoffray): we could generate a comma separated
     // list of expressions.
-    for (HInstruction temp = block.first;
+    for (HInstruction? temp = block.first;
         !identical(temp, instruction);
-        temp = temp.next) {
+        temp = temp!.next) {
       if (!generateAtUseSite.contains(temp)) return true;
     }
 
@@ -1059,8 +1050,8 @@ class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
   @override
   void visitBasicBlock(HBasicBlock block) {
     if (block.last is! HIf) return;
-    HIf startIf = block.last;
-    HBasicBlock end = startIf.joinBlock;
+    HIf startIf = block.last as HIf;
+    HBasicBlock? end = startIf.joinBlock;
 
     // We check that the structure is the following:
     //         If
@@ -1096,7 +1087,7 @@ class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
     HBasicBlock elseBlock = startIf.elseBlock;
 
     if (!identical(end.predecessors[1], elseBlock)) return;
-    HPhi phi = end.phis.first;
+    HPhi phi = end.phis.first as HPhi;
     // This useless phi should have been removed.  Do not generate-at-use if
     // there is no use. See #48383.
     if (phi.usedBy.isEmpty) return;
@@ -1118,16 +1109,16 @@ class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
     // have any statement and its join block is [end], we can emit a
     // sequence of control flow operation.
     if (controlFlowOperators.contains(thenBlock.last)) {
-      HIf otherIf = thenBlock.last;
+      HIf otherIf = thenBlock.last as HIf;
       if (!identical(otherIf.joinBlock, end)) {
         // This could be a join block that just feeds into our join block.
-        HBasicBlock otherJoin = otherIf.joinBlock;
+        HBasicBlock otherJoin = otherIf.joinBlock!;
         if (otherJoin.first != otherJoin.last) return;
         if (otherJoin.successors.length != 1) return;
         if (otherJoin.successors[0] != end) return;
         if (otherJoin.phis.isEmpty) return;
         if (!identical(otherJoin.phis.first, otherJoin.phis.last)) return;
-        HPhi otherPhi = otherJoin.phis.first;
+        HPhi otherPhi = otherJoin.phis.first as HPhi;
         if (thenInput != otherPhi) return;
         if (elseInput != otherPhi.inputs[1]) return;
       }
@@ -1143,9 +1134,9 @@ class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
     controlFlowOperators.add(startIf);
 
     // Find the next non-HGoto instruction following the phi.
-    HInstruction nextInstruction = phi.block.first;
+    HInstruction? nextInstruction = phi.block!.first;
     while (nextInstruction is HGoto) {
-      nextInstruction = nextInstruction.block.successors[0].first;
+      nextInstruction = nextInstruction.block!.successors[0].first;
     }
 
     // If the operation is only used by the first instruction
@@ -1190,9 +1181,9 @@ class SsaShareRegionConstants extends HBaseVisitor<void> with CodegenPhase {
 
   @override
   void visitBasicBlock(HBasicBlock block) {
-    HInstruction instruction = block.first;
+    HInstruction? instruction = block.first;
     while (instruction != null) {
-      HInstruction next = instruction.next;
+      HInstruction? next = instruction.next;
       instruction.accept(this);
       instruction = next;
     }
@@ -1214,7 +1205,7 @@ class SsaShareRegionConstants extends HBaseVisitor<void> with CodegenPhase {
     // entry, not the use of `this`.
     reference.sourceInformation = node.sourceInformation;
     reference.sourceElement = _ExpressionName(name);
-    node.block.addAfter(node, reference);
+    node.block!.addAfter(node, reference);
     for (HInstruction user in users) {
       if (cacheable(user)) {
         user.changeUse(node, reference);

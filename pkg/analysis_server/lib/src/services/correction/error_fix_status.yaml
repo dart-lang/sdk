@@ -24,11 +24,12 @@
 #   issue created for it.
 #
 # Stats:
-# - 713 "needsEvaluation"
-#   - 206 for ParserErrorCodes.
-# -  68 "needsFix"
-# - 287 "hasFix"
-# -  55 "noFix"
+# - 698 "needsEvaluation"
+#   - 282 for CompileTimeErrorCodes
+#   - 220 for ParserErrorCodes
+# -  73 "needsFix"
+# - 310 "hasFix"
+# -  64 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -146,19 +147,34 @@ CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY:
 CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER:
   status: needsEvaluation
 CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_EXTENSION_NAME:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The correction is to change the name.
 CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_PREFIX_NAME:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The correction is to change the name.
 CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The correction is to change the name.
 CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The correction is to change the name.
 CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_PARAMETER_NAME:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The correction is to change the name.
 CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME:
-  status: needsEvaluation
+  status: noFix
+  notes: |-
+    The correction is to change the name.
 CompileTimeErrorCode.CASE_BLOCK_NOT_TERMINATED:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The typical fix, when someone thought a termination was not needed, is to
+    add a break.
 CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS:
   status: needsEvaluation
 CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE:
@@ -354,6 +370,8 @@ CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_PART:
   status: needsEvaluation
+CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD:
+  status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN:
   status: needsEvaluation
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
@@ -361,9 +379,13 @@ CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
 CompileTimeErrorCode.ENUM_CONSTANT_WITH_NON_CONST_CONSTRUCTOR:
-  status: needsFix
+  status: noFix
   since: 2.17
-  notes: Use AddConst.new
+  notes: |-
+    This is only reported on enum constant declarations calling a factory
+    constructor. No enum factory constructor can be const. The correction is to
+    call a different constructor, or refactor the factory constructor to be
+    const and generative.
 CompileTimeErrorCode.ENUM_INSTANTIATED_TO_BOUNDS_IS_NOT_WELL_BOUNDED:
   status: noFix
   since: 2.17
@@ -405,11 +427,17 @@ CompileTimeErrorCode.EXPRESSION_IN_MAP:
 CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS:
   status: needsEvaluation
 CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Use RemoveNameFromDeclarationClause.
 CompileTimeErrorCode.EXTENDS_NON_CLASS:
   status: hasFix
+  notes: |-
+    Additionally: use RemoveNameFromDeclarationClause.
 CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Use RemoveNameFromDeclarationClause.
 CompileTimeErrorCode.EXTENSION_AS_EXPRESSION:
   status: needsEvaluation
 CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
@@ -518,15 +546,15 @@ CompileTimeErrorCode.ILLEGAL_SYNC_GENERATOR_RETURN_TYPE:
 CompileTimeErrorCode.IMPLEMENTS_DEFERRED_CLASS:
   status: needsEvaluation
 CompileTimeErrorCode.IMPLEMENTS_DISALLOWED_CLASS:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.IMPLEMENTS_NON_CLASS:
   status: hasFix
 CompileTimeErrorCode.IMPLEMENTS_REPEATED:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.IMPLEMENTS_SUPER_CLASS:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER:
   status: needsEvaluation
 CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS:
@@ -681,7 +709,7 @@ CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_POSITIONAL:
   status: hasFix
 CompileTimeErrorCode.MISSING_DEFAULT_VALUE_FOR_PARAMETER_WITH_ANNOTATION:
   status: hasFix
-CompileTimeErrorCode.MISSING_EXTRACTOR_PATTERN_GETTER_NAME:
+CompileTimeErrorCode.MISSING_OBJECT_PATTERN_GETTER_NAME:
   status: noFix
 CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT:
   status: hasFix
@@ -702,7 +730,7 @@ CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT:
 CompileTimeErrorCode.MIXIN_INSTANTIATE:
   status: needsEvaluation
 CompileTimeErrorCode.MIXIN_OF_DISALLOWED_CLASS:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.MIXIN_OF_NON_CLASS:
   status: hasFix
 CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
@@ -712,9 +740,11 @@ CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
   status: needsEvaluation
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Use RemoveNameFromDeclarationClause.
 CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS:
   status: needsEvaluation
 CompileTimeErrorCode.MIXINS_SUPER_CLASS:
@@ -789,8 +819,8 @@ CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY:
 CompileTimeErrorCode.NON_CONSTANT_SET_ELEMENT:
   status: needsEvaluation
 CompileTimeErrorCode.NON_FINAL_FIELD_IN_ENUM:
-  status: needsFix
-  notes: Use MakeFinal.new
+  status: hasFix
+  since: 2.17
 CompileTimeErrorCode.NON_GENERATIVE_CONSTRUCTOR:
   status: needsEvaluation
 CompileTimeErrorCode.NON_GENERATIVE_IMPLICIT_CONSTRUCTOR:
@@ -811,12 +841,14 @@ CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE:
   status: needsEvaluation
 CompileTimeErrorCode.NOT_BINARY_OPERATOR:
   status: needsEvaluation
-CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL:
+CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN:
   status: needsEvaluation
+CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL:
+  status: hasFix
 CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_SINGULAR:
   status: hasFix
 CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_PLURAL:
-  status: needsEvaluation
+  status: hasFix
 CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_SINGULAR:
   status: hasFix
 CompileTimeErrorCode.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD:
@@ -843,6 +875,10 @@ CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE:
   status: hasFix
 CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS:
   status: noFix
+CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE:
+  status: needsFix
+  notes: |-
+    ReplaceColonWithEquals should fix the issue, but it needs tests.
 CompileTimeErrorCode.ON_REPEATED:
   status: needsEvaluation
 CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR:
@@ -935,7 +971,7 @@ CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY:
 CompileTimeErrorCode.STATIC_ACCESS_TO_INSTANCE_MEMBER:
   status: needsEvaluation
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_TYPE_IS_NOT_SUBTYPE_OF_ASSOCIATED:
-  status: needsFix
+  status: hasFix
   since: 2.17
 CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED:
   status: hasFix
@@ -1246,17 +1282,21 @@ FfiCode.PACKED_ANNOTATION_ALIGNMENT:
 FfiCode.SIZE_ANNOTATION_DIMENSIONS:
   status: needsEvaluation
 FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Use RemoveNameFromDeclarationClause.
 FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
-  status: needsEvaluation
+  status: hasFix
 FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH:
-  status: needsEvaluation
+  status: hasFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Use RemoveNameFromDeclarationClause.
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
-  status: needsEvaluation
+  status: hasFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
-  status: needsEvaluation
+  status: hasFix
 HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
   status: noFix
   notes: |-
@@ -1273,11 +1313,15 @@ HintCode.CAN_BE_NULL_AFTER_NULL_AWARE:
   status: hasFix
 HintCode.CAST_FROM_NULL_ALWAYS_FAILS:
   status: needsEvaluation
+HintCode.CAST_FROM_NULLABLE_ALWAYS_FAILS:
+  status: needsEvaluation
 HintCode.DEAD_CODE:
   status: hasFix
 HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
   status: hasFix
 HintCode.DEAD_CODE_ON_CATCH_SUBTYPE:
+  status: hasFix
+HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE:
   status: hasFix
 HintCode.DEPRECATED_EXPORT_USE:
   status: needsEvaluation
@@ -1286,9 +1330,7 @@ HintCode.DEPRECATED_EXTENDS_FUNCTION:
   notes: |-
     The fix is to remove `Function` from where it's referenced.
 HintCode.DEPRECATED_IMPLEMENTS_FUNCTION:
-  status: needsFix
-  notes: |-
-    The fix is to remove `Function` from where it's referenced.
+  status: hasFix
 HintCode.DEPRECATED_MEMBER_USE:
   status: hasFix
 HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE:
@@ -1517,6 +1559,7 @@ HintCode.SUBTYPE_OF_SEALED_CLASS:
   status: needsFix
   notes: |-
     Remove the sealed class in the `extends` or `implements` clause.
+    Use RemoveNameFromDeclarationClause.
 HintCode.TYPE_CHECK_IS_NOT_NULL:
   status: hasFix
 HintCode.TYPE_CHECK_IS_NULL:
@@ -1761,6 +1804,8 @@ LintCode.cast_nullable_to_non_nullable:
   status: needsEvaluation
 LintCode.close_sinks:
   status: needsEvaluation
+LintCode.collection_methods_unrelated_type:
+  status: needsEvaluation
 LintCode.combinators_ordering:
   status: hasFix
 LintCode.comment_references:
@@ -1772,6 +1817,8 @@ LintCode.constant_identifier_names:
 LintCode.control_flow_in_finally:
   status: needsEvaluation
 LintCode.curly_braces_in_flow_control_structures:
+  status: hasFix
+LintCode.dangling_library_doc_comments:
   status: hasFix
 LintCode.depend_on_referenced_packages:
   status: needsFix
@@ -1791,6 +1838,10 @@ LintCode.empty_constructor_bodies:
   status: hasFix
 LintCode.empty_statements:
   status: hasFix
+LintCode.enable_null_safety:
+  status: noFix
+  notes: |-
+    The correction is to run the migration tool.
 LintCode.eol_at_end_of_file:
   status: hasFix
 LintCode.exhaustive_cases:
@@ -1803,6 +1854,8 @@ LintCode.hash_and_equals:
   status: hasFix
 LintCode.implementation_imports:
   status: needsEvaluation
+LintCode.implicit_call_tearoffs:
+  status: hasFix
 LintCode.invariant_booleans:
   status: needsEvaluation
 LintCode.iterable_contains_unrelated_type:
@@ -1810,6 +1863,8 @@ LintCode.iterable_contains_unrelated_type:
 LintCode.join_return_with_assignment:
   status: needsEvaluation
 LintCode.leading_newlines_in_multiline_strings:
+  status: hasFix
+LintCode.library_annotations:
   status: hasFix
 LintCode.library_names:
   status: needsEvaluation
@@ -2008,6 +2063,8 @@ LintCode.unnecessary_lambdas:
   status: hasFix
 LintCode.unnecessary_late:
   status: hasFix
+LintCode.unnecessary_library_directive:
+  status: hasFix
 LintCode.unnecessary_new:
   status: hasFix
 LintCode.unnecessary_null_aware_assignments:
@@ -2113,6 +2170,8 @@ ParserErrorCode.ABSTRACT_ENUM:
 ParserErrorCode.ABSTRACT_EXTERNAL_FIELD:
   status: needsEvaluation
 ParserErrorCode.ABSTRACT_LATE_FIELD:
+  status: needsEvaluation
+ParserErrorCode.ABSTRACT_SEALED_CLASS:
   status: needsEvaluation
 ParserErrorCode.ABSTRACT_STATIC_FIELD:
   status: needsEvaluation
@@ -2237,6 +2296,8 @@ ParserErrorCode.EXPECTED_TOKEN:
 ParserErrorCode.EXPECTED_TYPE_NAME:
   status: needsEvaluation
 ParserErrorCode.EXPERIMENT_NOT_ENABLED:
+  status: needsEvaluation
+ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT:
   status: needsEvaluation
 ParserErrorCode.EXPORT_DIRECTIVE_AFTER_PART_DIRECTIVE:
   status: needsEvaluation

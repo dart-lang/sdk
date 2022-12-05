@@ -13,7 +13,7 @@ import '../elements/entities.dart';
 import '../js/js.dart' as jsAst;
 import '../js/js.dart' show js;
 import '../js_backend/field_analysis.dart';
-import '../js_backend/namer_interfaces.dart' show Namer;
+import '../js_backend/namer.dart' show Namer;
 import '../js_backend/interceptor_data.dart' show InterceptorData;
 import '../js_model/elements.dart' show JField;
 import '../js_model/js_world.dart' show JClosedWorld;
@@ -22,7 +22,7 @@ import '../universe/codegen_world_builder.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/world_builder.dart' show SelectorConstraints;
 
-import 'interfaces.dart';
+import 'js_emitter.dart';
 import 'model.dart';
 
 class ClassStubGenerator {
@@ -212,7 +212,7 @@ class ClassStubGenerator {
     jsAst.Expression code;
     if (field.isElided) {
       code = js("function() { return #; }",
-          _emitter.constantReference(field.constantValue));
+          _emitter.constantReference(field.constantValue!));
     } else {
       String template;
       if (field.needsInterceptedGetterOnReceiver) {

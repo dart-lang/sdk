@@ -7,8 +7,9 @@ library dart._interceptors;
 import 'dart:collection';
 import 'dart:_internal' hide Symbol;
 import 'dart:_js_helper';
-import 'dart:_foreign_helper' show JS, JSExportName;
+import 'dart:_foreign_helper' show JS, JS_GET_FLAG, JSExportName;
 import 'dart:math' show Random, ln2;
+import 'dart:_rti' as rti show createRuntimeType, Rti;
 import 'dart:_runtime' as dart;
 
 part 'js_array.dart';
@@ -217,13 +218,26 @@ class JSFunction extends Interceptor {
           return false;
         }
         for (var i = 0; i < typeArgCount; i++) {
-          var typeArg = JS('!', '#[#]', typeArgs, i);
-          var otherTypeArg = JS('!', '#[#]', otherTypeArgs, i);
-          // TODO(nshahan) Replace wrapType() with a lighter weight legacy
-          // erasure.
-          if (JS<bool>('!', '# !== #', dart.wrapType(typeArg),
-              dart.wrapType(otherTypeArg))) {
-            return false;
+          if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
+            var typeArg = JS<rti.Rti>('!', '#[#]', typeArgs, i);
+            var otherTypeArg = JS<rti.Rti>('!', '#[#]', otherTypeArgs, i);
+            if (dart.compileTimeFlag('soundNullSafety')) {
+              if (typeArg != otherTypeArg) return false;
+            } else {
+              if (rti.Rti.getLegacyErasedRecipe(typeArg) !=
+                  rti.Rti.getLegacyErasedRecipe(otherTypeArg)) {
+                return false;
+              }
+            }
+          } else {
+            var typeArg = JS('!', '#[#]', typeArgs, i);
+            var otherTypeArg = JS('!', '#[#]', otherTypeArgs, i);
+            // TODO(nshahan) Replace wrapType() with a lighter weight legacy
+            // erasure.
+            if (JS<bool>('!', '# !== #', dart.wrapType(typeArg),
+                dart.wrapType(otherTypeArg))) {
+              return false;
+            }
           }
         }
       }
@@ -255,7 +269,9 @@ class JSFunction extends Interceptor {
     return (hash * 31 + identityHashCode(boundMethod)) & 0x1fffffff;
   }
 
-  get runtimeType => dart.wrapType(dart.getReifiedType(this));
+  Type get runtimeType => JS_GET_FLAG('NEW_RUNTIME_TYPES')
+      ? rti.createRuntimeType(JS<rti.Rti>('!', '#', dart.getReifiedType(this)))
+      : dart.wrapType(dart.getReifiedType(this));
 }
 
 /// A class used for implementing `null` tear-offs.

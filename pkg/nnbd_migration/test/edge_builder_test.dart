@@ -3686,7 +3686,7 @@ void h() {
 
   Future<void> test_functionInvocation_parameter_named() async {
     await analyze('''
-void f({int i: 0}) {}
+void f({int i = 0}) {}
 void g(int j) {
   f(i: j/*check*/);
 }
@@ -5148,7 +5148,7 @@ void g(C<int/*3*/>/*4*/ c) {
   Future<void> test_methodInvocation_parameter_named() async {
     await analyze('''
 class C {
-  void f({int i: 0}) {}
+  void f({int i = 0}) {}
 }
 void g(C c, int j) {
   c.f(i: j/*check*/);

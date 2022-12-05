@@ -6,8 +6,12 @@
 // raw generic type in their bounds in case this generic type has non-simple
 // bounds.
 
-class Hest<TypeX extends Hest<TypeX>> {}
+class A<TypeX extends A<TypeX>> {}
 
-class Fisk<TypeY extends Hest, TypeZ extends Hest> {}
+class B<TypeY extends A, TypeZ extends A> {}
+
+extension C<TypeY extends A, TypeZ extends A> on int {}
+
+typedef D<TypeY extends A, TypeZ extends A> = int;
 
 main() {}

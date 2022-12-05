@@ -282,16 +282,17 @@ final _uninitializedIndex = new Uint32List(_HashBase._UNINITIALIZED_INDEX_SIZE);
 // in maps and sets to be monomorphic.
 final _uninitializedData = new List.filled(0, null);
 
-// VM-internalized implementation of a default-constructed LinkedHashMap.
+// VM-internalized implementation of a default-constructed LinkedHashMap. Map
+// literals also create instances of this class.
 @pragma("vm:entry-point")
-class _InternalLinkedHashMap<K, V> extends _HashVMBase
+class _Map<K, V> extends _HashVMBase
     with
         MapMixin<K, V>,
         _HashBase,
         _OperatorEqualsAndHashCode,
         _LinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
-  _InternalLinkedHashMap() {
+  _Map() {
     _index = _uninitializedIndex;
     _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
     _data = _uninitializedData;
@@ -300,8 +301,8 @@ class _InternalLinkedHashMap<K, V> extends _HashVMBase
   }
 
   void addAll(Map<K, V> other) {
-    if (other is _InternalLinkedHashMap) {
-      final otherBase = other as _InternalLinkedHashMap; // manual promotion.
+    if (other is _Map) {
+      final otherBase = other as _Map; // manual promotion.
       // If this map is empty we might be able to block-copy from [other].
       if (isEmpty && _quickCopy(otherBase)) return;
       // TODO(48143): Pre-grow capacity if it will reduce rehashing.
@@ -310,11 +311,11 @@ class _InternalLinkedHashMap<K, V> extends _HashVMBase
   }
 }
 
-// This is essentially the same class as _InternalLinkedHashMap, but it does
+// This is essentially the same class as _Map, but it does
 // not permit any modification of map entries from Dart code. We use
 // this class for maps constructed from Dart constant maps.
 @pragma("vm:entry-point")
-class _InternalImmutableLinkedHashMap<K, V> extends _HashVMImmutableBase
+class _ConstMap<K, V> extends _HashVMImmutableBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -323,8 +324,8 @@ class _InternalImmutableLinkedHashMap<K, V> extends _HashVMImmutableBase
         _UnmodifiableMapMixin<K, V>,
         _ImmutableLinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
-  factory _InternalImmutableLinkedHashMap._uninstantiable() {
-    throw new UnsupportedError("ImmutableMap can only be allocated by the VM");
+  factory _ConstMap._uninstantiable() {
+    throw new UnsupportedError("_ConstMap can only be allocated by the VM");
   }
 }
 
@@ -946,16 +947,17 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
   }
 }
 
-// Set implementation, analogous to _InternalLinkedHashMap.
+// Set implementation, analogous to _Map. Set literals create instances of this
+// class.
 @pragma('vm:entry-point')
-class _InternalLinkedHashSet<E> extends _HashVMBase
+class _Set<E> extends _HashVMBase
     with
         SetMixin<E>,
         _HashBase,
         _OperatorEqualsAndHashCode,
         _LinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
-  _InternalLinkedHashSet() {
+  _Set() {
     _index = _uninitializedIndex;
     _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
     _data = _uninitializedData;
@@ -965,16 +967,16 @@ class _InternalLinkedHashSet<E> extends _HashVMBase
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 
-  static Set<R> _newEmpty<R>() => _InternalLinkedHashSet<R>();
+  static Set<R> _newEmpty<R>() => _Set<R>();
 
   // Returns a set of the same type, although this
   // is not required by the spec. (For instance, always using an identity set
   // would be technically correct, albeit surprising.)
-  Set<E> toSet() => _InternalLinkedHashSet<E>()..addAll(this);
+  Set<E> toSet() => _Set<E>()..addAll(this);
 
   void addAll(Iterable<E> other) {
-    if (other is _InternalLinkedHashSet) {
-      final otherBase = other as _InternalLinkedHashSet;
+    if (other is _Set) {
+      final otherBase = other as _Set;
       // If this set is empty we might be able to block-copy from [other].
       if (isEmpty && _quickCopy(otherBase)) return;
       // TODO(48143): Pre-grow capacity if it will reduce rehashing.
@@ -984,7 +986,7 @@ class _InternalLinkedHashSet<E> extends _HashVMBase
 }
 
 @pragma("vm:entry-point")
-class _InternalImmutableLinkedHashSet<E> extends _HashVMImmutableBase
+class _ConstSet<E> extends _HashVMImmutableBase
     with
         SetMixin<E>,
         _HashBase,
@@ -993,16 +995,16 @@ class _InternalImmutableLinkedHashSet<E> extends _HashVMImmutableBase
         _UnmodifiableSetMixin<E>,
         _ImmutableLinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
-  factory _InternalImmutableLinkedHashSet._uninstantiable() {
-    throw new UnsupportedError("ImmutableSet can only be allocated by the VM");
+  factory _ConstSet._uninstantiable() {
+    throw new UnsupportedError("_ConstSet can only be allocated by the VM");
   }
 
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 
-  static Set<R> _newEmpty<R>() => _InternalLinkedHashSet<R>();
+  static Set<R> _newEmpty<R>() => _Set<R>();
 
   // Returns a mutable set.
-  Set<E> toSet() => _InternalLinkedHashSet<E>()..addAll(this);
+  Set<E> toSet() => _Set<E>()..addAll(this);
 }
 
 mixin _ImmutableLinkedHashSetMixin<E>

@@ -15,6 +15,26 @@ main() {
 
 @reflectiveTest
 class AstBuilderTest extends ParserDiagnosticsTest {
+  void test_class_abstract_sealed() {
+    var parseResult = parseStringWithErrors(r'''
+abstract sealed class A {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.ABSTRACT_SEALED_CLASS, 9, 6),
+    ]);
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  abstractKeyword: abstract
+  sealedKeyword: sealed
+  classKeyword: class
+  name: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   void test_class_augment() {
     var parseResult = parseStringWithErrors(r'''
 augment class A {}
@@ -277,6 +297,43 @@ ClassDeclaration
 ''');
   }
 
+  void test_class_sealed() {
+    var parseResult = parseStringWithErrors(r'''
+sealed class A {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  sealedKeyword: sealed
+  classKeyword: class
+  name: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  void test_class_sealed_abstract() {
+    var parseResult = parseStringWithErrors(r'''
+sealed abstract class A {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.ABSTRACT_SEALED_CLASS, 0, 6),
+    ]);
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  abstractKeyword: abstract
+  sealedKeyword: sealed
+  classKeyword: class
+  name: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   void test_class_view() {
     var parseResult = parseStringWithErrors(r'''
 view class A {}
@@ -348,6 +405,31 @@ ClassTypeAlias
 ''');
   }
 
+  void test_classAlias_notNamedType() {
+    var parseResult = parseStringWithErrors(r'''
+class C = A Function() with M;
+''');
+    parseResult.assertErrors(
+        [error(ParserErrorCode.EXPECTED_NAMED_TYPE_EXTENDS, 10, 12)]);
+    var node = parseResult.findNode.classTypeAlias('class');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  typedefKeyword: class
+  name: C
+  equals: =
+  superclass: NamedType
+    name: SimpleIdentifier
+      token: identifier <synthetic>
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: SimpleIdentifier
+          token: M
+  semicolon: ;
+''');
+  }
+
   void test_classTypeAlias_implementsClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
 class C = Object with M implements A, (int, int), B;
@@ -386,6 +468,33 @@ ClassTypeAlias
   semicolon: ; @51
 ''',
         withOffsets: true);
+  }
+
+  void test_classTypeAlias_sealed() {
+    var parseResult = parseStringWithErrors(r'''
+mixin M {}
+sealed class A = Object with M;
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classTypeAlias('class A');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  typedefKeyword: class
+  name: A
+  equals: =
+  sealedKeyword: sealed
+  superclass: NamedType
+    name: SimpleIdentifier
+      token: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: SimpleIdentifier
+          token: M
+  semicolon: ;
+''');
   }
 
   void test_classTypeAlias_withClause_recordType() {
@@ -868,6 +977,23 @@ MixinDeclaration
         withOffsets: true);
   }
 
+  void test_mixin_sealed() {
+    var parseResult = parseStringWithErrors(r'''
+sealed mixin M {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.mixinDeclaration('mixin M');
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  sealedKeyword: sealed
+  mixinKeyword: mixin
+  name: M
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   void test_recordLiteral() {
     var parseResult = parseStringWithErrors(r'''
 final x = (0, a: 1);
@@ -1207,6 +1333,32 @@ SuperFormalParameter
   superKeyword: super
   period: .
   name: a
+''');
+  }
+
+  void test_switchStatement_withPatternCase_whenDisabled() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart = 2.18
+void f(Object value) {
+  switch (value) {
+    case (int a,) when a == 0:
+  }
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPECTED_TOKEN, 72, 1),
+    ]);
+
+    var node = parseResult.findNode.switchCase('case');
+    assertParsedNodeText(node, r'''
+SwitchCase
+  keyword: case
+  expression: ParenthesizedExpression
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: int
+    rightParenthesis: )
+  colon: :
 ''');
   }
 }

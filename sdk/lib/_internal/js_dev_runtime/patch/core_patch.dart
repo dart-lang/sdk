@@ -151,20 +151,32 @@ class Expando<T extends Object> {
 
   @patch
   T? operator [](Object object) {
-    _checkType(object); // WeakMap doesn't check on reading, only writing.
+    // JavaScript's WeakMap semantics return 'undefined' for invalid getter
+    // keys, so we must check them explicitly.
+    if (object == null ||
+        object is bool ||
+        object is num ||
+        object is String ||
+        object is Record) {
+      throw new ArgumentError.value(
+          object,
+          "Expandos are not allowed on strings, numbers, booleans, records,"
+          " or null");
+    }
     return JS('', '#.get(#)', _jsWeakMap, object);
   }
 
   @patch
   void operator []=(Object object, T? value) {
-    JS('void', '#.set(#, #)', _jsWeakMap, object, value);
-  }
-
-  static _checkType(object) {
-    if (object == null || object is bool || object is num || object is String) {
-      throw new ArgumentError.value(object,
-          "Expandos are not allowed on strings, numbers, booleans or null");
+    // JavaScript's WeakMap already throws on non-Object setter keys, so
+    // we can rely on the underlying behavior for all non-Records.
+    if (object is Record) {
+      throw new ArgumentError.value(
+          object,
+          "Expandos are not allowed on strings, numbers, booleans, records,"
+          " or null");
     }
+    JS('void', '#.set(#, #)', _jsWeakMap, object, value);
   }
 }
 

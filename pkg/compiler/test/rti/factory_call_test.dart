@@ -15,7 +15,7 @@ import 'package:compiler/src/js/js.dart' as js;
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
 import 'package:expect/expect.dart';
 import '../helpers/program_lookup.dart';
-import '../helpers/memory_compiler.dart';
+import 'package:compiler/src/util/memory_compiler.dart';
 
 const String code = '''
 class A<T> {

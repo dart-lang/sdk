@@ -496,7 +496,7 @@ class StaticUse {
 
   /// Direct invocation of a method [element] with the given [callStructure].
   factory StaticUse.directInvoke(FunctionEntity element,
-      CallStructure callStructure, List<DartType> typeArguments) {
+      CallStructure callStructure, List<DartType>? typeArguments) {
     assert(
         element.isInstanceMember,
         failedAt(element,
@@ -652,7 +652,7 @@ class StaticUse {
 
   /// Inlining of [element].
   factory StaticUse.methodInlining(
-      FunctionEntity element, List<DartType> typeArguments) {
+      FunctionEntity element, List<DartType>? typeArguments) {
     return StaticUse.internal(element, StaticUseKind.INLINING,
         typeArguments: typeArguments);
   }

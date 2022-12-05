@@ -1,10 +1,3 @@
-//
-// Problems outside component:
-//
-// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:9:8: Error: Not found: 'dart:_foreign_helper'
-// import 'dart:_foreign_helper' show JS; // error
-//        ^
-//
 library test /*isNonNullableByDefault*/;
 //
 // Problems in library:
@@ -12,6 +5,14 @@ library test /*isNonNullableByDefault*/;
 // pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:9:8: Error: Can't access platform private library.
 // import 'dart:_foreign_helper' show JS; // error
 //        ^
+//
+// pkg/front_end/testcases/inference/generic_methods_infer_js_builtin.dart:9:8: Error: Dart library 'dart:_foreign_helper' is not available on this platform.
+// import 'dart:_foreign_helper' show JS; // error
+//        ^
+// Context: The unavailable library 'dart:_foreign_helper' is imported through these paths:
+//
+//     generic_methods_infer_js_builtin.dart => dart:_foreign_helper
+//
 //
 import self as self;
 

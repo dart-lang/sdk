@@ -1253,13 +1253,6 @@ void NativeEntryInstr::PrintTo(BaseTextBuffer* f) const {
   BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(f);
 }
 
-void ReturnInstr::PrintOperandsTo(BaseTextBuffer* f) const {
-  Instruction::PrintOperandsTo(f);
-  if (yield_index() != UntaggedPcDescriptors::kInvalidYieldIndex) {
-    f->Printf(", yield_index = %" Pd "", yield_index());
-  }
-}
-
 void FfiCallInstr::PrintOperandsTo(BaseTextBuffer* f) const {
   f->AddString(" pointer=");
   InputAt(TargetAddressIndex())->PrintTo(f);

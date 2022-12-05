@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.61.0';
+const String vmServiceVersion = '3.62.0';
 
 /// @optional
 const String optional = 'optional';
@@ -709,7 +709,7 @@ abstract class VmServiceInterface {
   /// collected, then an [Obj] will be returned.
   ///
   /// The `offset` and `count` parameters are used to request subranges of
-  /// Instance objects with the kinds: String, List, Map, Uint8ClampedList,
+  /// Instance objects with the kinds: String, List, Map, Set, Uint8ClampedList,
   /// Uint8List, Uint16List, Uint32List, Uint64List, Int8List, Int16List,
   /// Int32List, Int64List, Flooat32List, Float64List, Inst32x3List,
   /// Float32x4List, and Float64x2List. These parameters are otherwise ignored.
@@ -2691,6 +2691,10 @@ class InstanceKind {
   /// be PlainInstance.
   static const String kMap = 'Map';
 
+  /// An instance of the built-in VM Set implementation. User-defined Sets will
+  /// be PlainInstance.
+  static const String kSet = 'Set';
+
   /// Vector instance kinds.
   static const String kFloat32x4 = 'Float32x4';
   static const String kFloat64x2 = 'Float64x2';
@@ -2728,6 +2732,9 @@ class InstanceKind {
 
   /// An instance of the Dart class WeakProperty.
   static const String kWeakProperty = 'WeakProperty';
+
+  /// An instance of the Dart class WeakReference.
+  static const String kWeakReference = 'WeakReference';
 
   /// An instance of the Dart class Type.
   static const String kType = 'Type';
@@ -4898,6 +4905,7 @@ class InstanceRef extends ObjRef {
   ///  - String
   ///  - List
   ///  - Map
+  ///  - Set
   ///  - Uint8ClampedList
   ///  - Uint8List
   ///  - Uint16List
@@ -5149,6 +5157,7 @@ class Instance extends Obj implements InstanceRef {
   ///  - String
   ///  - List
   ///  - Map
+  ///  - Set
   ///  - Uint8ClampedList
   ///  - Uint8List
   ///  - Uint16List
@@ -5173,6 +5182,7 @@ class Instance extends Obj implements InstanceRef {
   ///  - String
   ///  - List
   ///  - Map
+  ///  - Set
   ///  - Uint8ClampedList
   ///  - Uint8List
   ///  - Uint16List
@@ -5197,6 +5207,7 @@ class Instance extends Obj implements InstanceRef {
   ///  - String
   ///  - List
   ///  - Map
+  ///  - Set
   ///  - Uint8ClampedList
   ///  - Uint8List
   ///  - Uint16List
@@ -5260,10 +5271,11 @@ class Instance extends Obj implements InstanceRef {
   @optional
   List<BoundField>? fields;
 
-  /// The elements of a List instance.
+  /// The elements of a List or Set instance.
   ///
   /// Provided for instance kinds:
   ///  - List
+  ///  - Set
   @optional
   List<dynamic>? elements;
 
@@ -5301,7 +5313,7 @@ class Instance extends Obj implements InstanceRef {
   /// Provided for instance kinds:
   ///  - MirrorReference
   @optional
-  InstanceRef? mirrorReferent;
+  ObjRef? mirrorReferent;
 
   /// The pattern of a RegExp instance.
   ///
@@ -5343,14 +5355,21 @@ class Instance extends Obj implements InstanceRef {
   /// Provided for instance kinds:
   ///  - WeakProperty
   @optional
-  InstanceRef? propertyKey;
+  ObjRef? propertyKey;
 
   /// The key for a WeakProperty instance.
   ///
   /// Provided for instance kinds:
   ///  - WeakProperty
   @optional
-  InstanceRef? propertyValue;
+  ObjRef? propertyValue;
+
+  /// The target for a WeakReference instance.
+  ///
+  /// Provided for instance kinds:
+  ///  - WeakReference
+  @optional
+  ObjRef? target;
 
   /// The type arguments for this type.
   ///
@@ -5438,6 +5457,7 @@ class Instance extends Obj implements InstanceRef {
     this.isMultiLine,
     this.propertyKey,
     this.propertyValue,
+    this.target,
     this.typeArguments,
     this.parameterIndex,
     this.targetType,
@@ -5492,8 +5512,8 @@ class Instance extends Obj implements InstanceRef {
             _createSpecificObject(json['associations'], MapAssociation.parse));
     bytes = json['bytes'];
     mirrorReferent =
-        createServiceObject(json['mirrorReferent'], const ['InstanceRef'])
-            as InstanceRef?;
+        createServiceObject(json['mirrorReferent'], const ['ObjRef'])
+            as ObjRef?;
     pattern = createServiceObject(json['pattern'], const ['InstanceRef'])
         as InstanceRef?;
     closureFunction =
@@ -5505,11 +5525,10 @@ class Instance extends Obj implements InstanceRef {
     isCaseSensitive = json['isCaseSensitive'];
     isMultiLine = json['isMultiLine'];
     propertyKey =
-        createServiceObject(json['propertyKey'], const ['InstanceRef'])
-            as InstanceRef?;
+        createServiceObject(json['propertyKey'], const ['ObjRef']) as ObjRef?;
     propertyValue =
-        createServiceObject(json['propertyValue'], const ['InstanceRef'])
-            as InstanceRef?;
+        createServiceObject(json['propertyValue'], const ['ObjRef']) as ObjRef?;
+    target = createServiceObject(json['target'], const ['ObjRef']) as ObjRef?;
     typeArguments =
         createServiceObject(json['typeArguments'], const ['TypeArgumentsRef'])
             as TypeArgumentsRef?;
@@ -5563,6 +5582,7 @@ class Instance extends Obj implements InstanceRef {
     _setIfNotNull(json, 'isMultiLine', isMultiLine);
     _setIfNotNull(json, 'propertyKey', propertyKey?.toJson());
     _setIfNotNull(json, 'propertyValue', propertyValue?.toJson());
+    _setIfNotNull(json, 'target', target?.toJson());
     _setIfNotNull(json, 'typeArguments', typeArguments?.toJson());
     _setIfNotNull(json, 'parameterIndex', parameterIndex);
     _setIfNotNull(json, 'targetType', targetType?.toJson());
@@ -7120,15 +7140,18 @@ class RetainingObject {
   /// An object that is part of a retaining path.
   ObjRef? value;
 
-  /// The offset of the retaining object in a containing list.
+  /// If `value` is a List, `parentListIndex` is the index where the previous
+  /// object on the retaining path is located.
   @optional
   int? parentListIndex;
 
-  /// The key mapping to the retaining object in a containing map.
+  /// If `value` is a Map, `parentMapKey` is the key mapping to the previous
+  /// object on the retaining path.
   @optional
   ObjRef? parentMapKey;
 
-  /// The name of the field containing the retaining object within an object.
+  /// If `value` is a non-List, non-Map object, `parentField` is the name of the
+  /// field containing the previous object on the retaining path.
   @optional
   String? parentField;
 

@@ -255,8 +255,7 @@ SearchResultKind newSearchResultKind_fromEngine(engine.MatchKind kind) {
       kind == engine.MatchKind.INVOCATION_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS) {
     return SearchResultKind.INVOCATION;
   }
-  if (kind == engine.MatchKind.REFERENCE ||
-      kind == engine.MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF) {
+  if (kind.isReference) {
     return SearchResultKind.REFERENCE;
   }
   return SearchResultKind.UNKNOWN;

@@ -809,9 +809,8 @@ class ScriptInsetElement extends CustomElement implements Renderable {
       busy = true;
       if (line.breakpoints == null) {
         // No breakpoint.  Add it.
-        line.script.isolate!
-            .addBreakpoint(line.script, line.line)
-            .catchError((e, st) {
+        line.script.isolate!.addBreakpoint(line.script, line.line).then((_) {},
+            onError: (e, st) {
           if (e is! S.ServerRpcException ||
               (e as S.ServerRpcException).code !=
                   S.ServerRpcException.kCannotAddBreakpoint) {

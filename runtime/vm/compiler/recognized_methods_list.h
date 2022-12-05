@@ -262,8 +262,8 @@ namespace dart {
   V(_WeakProperty, set:key, WeakProperty_setKey, 0x963a095f)                   \
   V(_WeakProperty, get:value, WeakProperty_getValue, 0xd2f28aae)               \
   V(_WeakProperty, set:value, WeakProperty_setValue, 0x8b2bafab)               \
-  V(_WeakReferenceImpl, get:target, WeakReference_getTarget, 0xc990118a)       \
-  V(_WeakReferenceImpl, set:_target, WeakReference_setTarget, 0xc729697a)      \
+  V(_WeakReference, get:target, WeakReference_getTarget, 0xc990118a)           \
+  V(_WeakReference, set:_target, WeakReference_setTarget, 0xc729697a)          \
   V(::, _classRangeCheck, ClassRangeCheck, 0x09f5fc7a)                         \
   V(::, _abi, FfiAbi, 0x7c4ab3b4)                                              \
   V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x631b1071)                \
@@ -322,6 +322,7 @@ namespace dart {
   V(::, get:extensionStreamHasListener, ExtensionStreamHasListener, 0xfab46343)\
   V(_Smi, get:hashCode, Smi_hashCode, 0x75e0ccd2)                              \
   V(_Mint, get:hashCode, Mint_hashCode, 0x75e0ccd2)                            \
+  V(_Double, get:hashCode, Double_hashCode, 0x75e0ccd2)                        \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).
@@ -345,8 +346,6 @@ namespace dart {
   V(_Double, -, Double_sub, 0xb8343210)                                        \
   V(_Double, *, Double_mul, 0xf9bb3c0d)                                        \
   V(_Double, /, Double_div, 0xefe9ca49)                                        \
-  V(_Double, get:hashCode, Double_hashCode, 0x75e0d093)                        \
-  V(_Double, get:_identityHashCode, Double_identityHash, 0x47a56551)           \
   V(_Double, get:isNaN, Double_getIsNaN, 0xd4890713)                           \
   V(_Double, get:isInfinite, Double_getIsInfinite, 0xc4facbd2)                 \
   V(_Double, get:isNegative, Double_getIsNegative, 0xd4715091)                 \
@@ -384,40 +383,40 @@ namespace dart {
   V(_IntegerImplementation, <<, Integer_shl, 0x4a95c65b)                       \
 
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                    \
-  V(_Int8List, [], Int8ArrayGetIndexed, 0x35f3fab6)                            \
-  V(_Int8List, []=, Int8ArraySetIndexed, 0x6e4fdaa7)                           \
-  V(_Uint8List, [], Uint8ArrayGetIndexed, 0x9b6c7e76)                          \
-  V(_Uint8List, []=, Uint8ArraySetIndexed, 0xbadee66b)                         \
-  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 0x9b6c7e76)         \
-  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 0xbadee66b)        \
-  V(_Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, 0x9b6c7e76)            \
-  V(_Uint8ClampedList, []=, Uint8ClampedArraySetIndexed, 0xb0de9c0b)           \
+  V(_Int8List, [], Int8ArrayGetIndexed, 0x3cf7f9ce)                            \
+  V(_Int8List, []=, Int8ArraySetIndexed, 0xf6867b8f)                           \
+  V(_Uint8List, [], Uint8ArrayGetIndexed, 0xa2707d8e)                          \
+  V(_Uint8List, []=, Uint8ArraySetIndexed, 0x43158753)                         \
+  V(_ExternalUint8Array, [], ExternalUint8ArrayGetIndexed, 0xa2707d8e)         \
+  V(_ExternalUint8Array, []=, ExternalUint8ArraySetIndexed, 0x43158753)        \
+  V(_Uint8ClampedList, [], Uint8ClampedArrayGetIndexed, 0xa2707d8e)            \
+  V(_Uint8ClampedList, []=, Uint8ClampedArraySetIndexed, 0x39153cf3)           \
   V(_ExternalUint8ClampedArray, [], ExternalUint8ClampedArrayGetIndexed,       \
-    0x9b6c7e76)                                                                \
+    0xa2707d8e)                                                                \
   V(_ExternalUint8ClampedArray, []=, ExternalUint8ClampedArraySetIndexed,      \
-    0xb0de9c0b)                                                                \
-  V(_Int16List, [], Int16ArrayGetIndexed, 0x15f25a16)                          \
-  V(_Int16List, []=, Int16ArraySetIndexed, 0xfecf9e32)                         \
-  V(_Uint16List, [], Uint16ArrayGetIndexed, 0xf9cb3616)                        \
-  V(_Uint16List, []=, Uint16ArraySetIndexed, 0xe71245a9)                       \
-  V(_Int32List, [], Int32ArrayGetIndexed, 0x178fffb5)                          \
-  V(_Int32List, []=, Int32ArraySetIndexed, 0xdd041ad1)                         \
-  V(_Uint32List, [], Uint32ArrayGetIndexed, 0x66e26555)                        \
-  V(_Uint32List, []=, Uint32ArraySetIndexed, 0xc8a78f51)                       \
-  V(_Int64List, [], Int64ArrayGetIndexed, 0x505859f5)                          \
-  V(_Int64List, []=, Int64ArraySetIndexed, 0x5a2e23b7)                         \
-  V(_Uint64List, [], Uint64ArrayGetIndexed, 0x8d1cbf75)                        \
-  V(_Uint64List, []=, Uint64ArraySetIndexed, 0x258f94ef)                       \
-  V(_Float64List, [], Float64ArrayGetIndexed, 0x6d778ebc)                      \
-  V(_Float64List, []=, Float64ArraySetIndexed, 0xed47a595)                     \
-  V(_Float32List, [], Float32ArrayGetIndexed, 0x43758fdc)                      \
-  V(_Float32List, []=, Float32ArraySetIndexed, 0x489602c3)                     \
-  V(_Float32x4List, [], Float32x4ArrayGetIndexed, 0xed5d8d35)                  \
-  V(_Float32x4List, []=, Float32x4ArraySetIndexed, 0x0b093d30)                 \
-  V(_Int32x4List, [], Int32x4ArrayGetIndexed, 0x834607ad)                      \
-  V(_Int32x4List, []=, Int32x4ArraySetIndexed, 0x17a2cbc0)                     \
-  V(_Float64x2List, [], Float64x2ArrayGetIndexed, 0xea0577df)                  \
-  V(_Float64x2List, []=, Float64x2ArraySetIndexed, 0x8af8aa58)                 \
+    0x39153cf3)                                                                \
+  V(_Int16List, [], Int16ArrayGetIndexed, 0x1cf6592e)                          \
+  V(_Int16List, []=, Int16ArraySetIndexed, 0x87063f1a)                         \
+  V(_Uint16List, [], Uint16ArrayGetIndexed, 0x00cf352e)                        \
+  V(_Uint16List, []=, Uint16ArraySetIndexed, 0x6f48e691)                       \
+  V(_Int32List, [], Int32ArrayGetIndexed, 0x1e93fecd)                          \
+  V(_Int32List, []=, Int32ArraySetIndexed, 0x653abbb9)                         \
+  V(_Uint32List, [], Uint32ArrayGetIndexed, 0x6de6646d)                        \
+  V(_Uint32List, []=, Uint32ArraySetIndexed, 0x50de3039)                       \
+  V(_Int64List, [], Int64ArrayGetIndexed, 0x575c590d)                          \
+  V(_Int64List, []=, Int64ArraySetIndexed, 0x905d6bcf)                         \
+  V(_Uint64List, [], Uint64ArrayGetIndexed, 0x9420be8d)                        \
+  V(_Uint64List, []=, Uint64ArraySetIndexed, 0x5bbedd07)                       \
+  V(_Float64List, [], Float64ArrayGetIndexed, 0x91192954)                      \
+  V(_Float64List, []=, Float64ArraySetIndexed, 0x8f1ba92d)                     \
+  V(_Float32List, [], Float32ArrayGetIndexed, 0x67172a74)                      \
+  V(_Float32List, []=, Float32ArraySetIndexed, 0xea6a065b)                     \
+  V(_Float32x4List, [], Float32x4ArrayGetIndexed, 0x68d7290d)                  \
+  V(_Float32x4List, []=, Float32x4ArraySetIndexed, 0x6eb9f208)                 \
+  V(_Int32x4List, [], Int32x4ArrayGetIndexed, 0x7e4ff185)                      \
+  V(_Int32x4List, []=, Int32x4ArraySetIndexed, 0x58084e98)                     \
+  V(_Float64x2List, [], Float64x2ArrayGetIndexed, 0xb2996c37)                  \
+  V(_Float64x2List, []=, Float64x2ArraySetIndexed, 0x5e8f97b0)                 \
   V(_TypedListBase, get:length, TypedListBaseLength, 0x5850f06b)               \
   V(_ByteDataView, get:length, ByteDataViewLength, 0x5850f06b)                 \
   V(_Float32x4, get:x, Float32x4GetX, 0x3a398530)                              \

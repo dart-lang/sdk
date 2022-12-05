@@ -885,8 +885,6 @@ static void UpdateTypeTestCache(
   if (instance.IsRecord()) {
     // Do not add record instances to cache as they don't have a valid
     // key (type of a record depends on types of all its fields).
-    // TODO(dartbug.com/49719): consider testing each record field using
-    // SubtypeTestCache.
     if (FLAG_trace_type_checks) {
       THR_Print("Not updating subtype test cache for the record instance.\n");
     }
@@ -3389,6 +3387,18 @@ static void CopySavedRegisters(uword saved_registers_address,
   *cpu_registers = cpu_registers_copy;
 }
 #endif
+
+DEFINE_LEAF_RUNTIME_ENTRY(bool, TryDoubleAsInteger, 1, Thread* thread) {
+  double value = thread->unboxed_double_runtime_arg();
+  int64_t int_value = static_cast<int64_t>(value);
+  double converted_double = static_cast<double>(int_value);
+  if (converted_double != value) {
+    return false;
+  }
+  thread->set_unboxed_int64_runtime_arg(int_value);
+  return true;
+}
+END_LEAF_RUNTIME_ENTRY
 
 // Copies saved registers and caller's frame into temporary buffers.
 // Returns the stack size of unoptimized frame.

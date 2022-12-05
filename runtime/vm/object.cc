@@ -40,6 +40,7 @@
 #include "vm/hash_table.h"
 #include "vm/heap/become.h"
 #include "vm/heap/heap.h"
+#include "vm/heap/sampler.h"
 #include "vm/heap/weak_code.h"
 #include "vm/image_snapshot.h"
 #include "vm/isolate_reload.h"
@@ -621,7 +622,7 @@ void Object::InitVtables() {
 
 #define INIT_VTABLE(clazz)                                                     \
   {                                                                            \
-    LinkedHashMap fake_handle;                                                 \
+    Map fake_handle;                                                           \
     builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
   }
   CLASS_LIST_MAPS(INIT_VTABLE)
@@ -629,7 +630,7 @@ void Object::InitVtables() {
 
 #define INIT_VTABLE(clazz)                                                     \
   {                                                                            \
-    LinkedHashSet fake_handle;                                                 \
+    Set fake_handle;                                                           \
     builtin_vtables_[k##clazz##Cid] = fake_handle.vtable();                    \
   }
   CLASS_LIST_SETS(INIT_VTABLE)
@@ -742,11 +743,11 @@ void Object::Init(IsolateGroup* isolate_group) {
   *bool_true_ = true_;
   *bool_false_ = false_;
 
-  // Initialize the empty and zero array handles to null_ in order to be able to
-  // check if the empty and zero arrays were allocated (RAW_NULL is not
-  // available).
+  // Initialize the empty array and empty instantiations cache array handles to
+  // null_ in order to be able to check if the empty and zero arrays were
+  // allocated (RAW_NULL is not available).
   *empty_array_ = Array::null();
-  *zero_array_ = Array::null();
+  *empty_instantiations_cache_array_ = Array::null();
 
   Class& cls = Class::Handle();
 
@@ -1000,17 +1001,32 @@ void Object::Init(IsolateGroup* isolate_group) {
   }
 
   Smi& smi = Smi::Handle();
-  // Allocate and initialize the zero_array instance.
+  // Allocate and initialize the empty instantiations cache array instance,
+  // which contains metadata as the first element and a sentinel value
+  // at the start of the first entry.
   {
-    uword address = heap->Allocate(thread, Array::InstanceSize(1), Heap::kOld);
-    InitializeObject(address, kImmutableArrayCid, Array::InstanceSize(1),
+    const intptr_t array_size =
+        TypeArguments::Cache::kHeaderSize + TypeArguments::Cache::kEntrySize;
+    uword address =
+        heap->Allocate(thread, Array::InstanceSize(array_size), Heap::kOld);
+    InitializeObject(address, kImmutableArrayCid,
+                     Array::InstanceSize(array_size),
                      Array::ContainsCompressedPointers());
-    Array::initializeHandle(zero_array_,
+    Array::initializeHandle(empty_instantiations_cache_array_,
                             static_cast<ArrayPtr>(address + kHeapObjectTag));
-    zero_array_->untag()->set_length(Smi::New(1));
+    empty_instantiations_cache_array_->untag()->set_length(
+        Smi::New(array_size));
+    // The empty cache has no occupied entries.
     smi = Smi::New(0);
-    zero_array_->SetAt(0, smi);
-    zero_array_->SetCanonical();
+    empty_instantiations_cache_array_->SetAt(
+        TypeArguments::Cache::kOccupiedEntriesIndex, smi);
+    // Make the first (and only) entry unoccupied by setting its first element
+    // to the sentinel value.
+    smi = TypeArguments::Cache::Sentinel();
+    InstantiationsCacheTable table(*empty_instantiations_cache_array_);
+    table.At(0).Set<TypeArguments::Cache::kSentinelIndex>(smi);
+    // The other contents of the array are immaterial.
+    empty_instantiations_cache_array_->SetCanonical();
   }
 
   // Allocate and initialize the canonical empty context scope object.
@@ -1256,8 +1272,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(null_compressed_stackmaps_->IsCompressedStackMaps());
   ASSERT(!empty_array_->IsSmi());
   ASSERT(empty_array_->IsArray());
-  ASSERT(!zero_array_->IsSmi());
-  ASSERT(zero_array_->IsArray());
+  ASSERT(!empty_instantiations_cache_array_->IsSmi());
+  ASSERT(empty_instantiations_cache_array_->IsArray());
   ASSERT(!empty_type_arguments_->IsSmi());
   ASSERT(empty_type_arguments_->IsTypeArguments());
   ASSERT(!empty_context_scope_->IsSmi());
@@ -1718,8 +1734,8 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     object_store->set_array_class(cls);
 
     // VM classes that are parameterized (Array, ImmutableArray,
-    // GrowableObjectArray, LinkedHashMap, ImmutableLinkedHashMap,
-    // LinkedHashSet, ImmutableLinkedHashSet) are also pre-finalized, so
+    // GrowableObjectArray, Map, ConstMap,
+    // Set, ConstSet) are also pre-finalized, so
     // CalculateFieldOffsets() is not called, so we need to set the offset
     // of their type_arguments_ field, which is explicitly
     // declared in their respective Raw* classes.
@@ -1873,15 +1889,15 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     ASSERT(isolate_lib.ptr() == Library::IsolateLibrary());
 
     cls = Class::New<Capability, RTN::Capability>(isolate_group);
-    RegisterPrivateClass(cls, Symbols::_CapabilityImpl(), isolate_lib);
+    RegisterPrivateClass(cls, Symbols::_Capability(), isolate_lib);
     pending_classes.Add(cls);
 
     cls = Class::New<ReceivePort, RTN::ReceivePort>(isolate_group);
-    RegisterPrivateClass(cls, Symbols::_RawReceivePortImpl(), isolate_lib);
+    RegisterPrivateClass(cls, Symbols::_RawReceivePort(), isolate_lib);
     pending_classes.Add(cls);
 
     cls = Class::New<SendPort, RTN::SendPort>(isolate_group);
-    RegisterPrivateClass(cls, Symbols::_SendPortImpl(), isolate_lib);
+    RegisterPrivateClass(cls, Symbols::_SendPort(), isolate_lib);
     pending_classes.Add(cls);
 
     cls = Class::New<TransferableTypedData, RTN::TransferableTypedData>(
@@ -2007,7 +2023,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
         RTN::WeakReference::type_arguments_offset());
     cls.set_num_type_arguments_unsafe(1);
     object_store->set_weak_reference_class(cls);
-    RegisterPrivateClass(cls, Symbols::_WeakReferenceImpl(), core_lib);
+    RegisterPrivateClass(cls, Symbols::_WeakReference(), core_lib);
 
     // Pre-register the mirrors library so we can place the vm class
     // MirrorReference there rather than the core library.
@@ -2025,7 +2041,7 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
 
     // Pre-register the collection library so we can place the vm class
-    // LinkedHashMap there rather than the core library.
+    // Map there rather than the core library.
     lib = Library::LookupLibrary(thread, Symbols::DartCollection());
     if (lib.IsNull()) {
       lib = Library::NewLibraryHelper(Symbols::DartCollection(), true);
@@ -2036,44 +2052,38 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     object_store->set_bootstrap_library(ObjectStore::kCollection, lib);
     ASSERT(!lib.IsNull());
     ASSERT(lib.ptr() == Library::CollectionLibrary());
-    cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(isolate_group);
-    object_store->set_linked_hash_map_class(cls);
-    cls.set_type_arguments_field_offset(
-        LinkedHashMap::type_arguments_offset(),
-        RTN::LinkedHashMap::type_arguments_offset());
+    cls = Class::New<Map, RTN::Map>(isolate_group);
+    object_store->set_map_impl_class(cls);
+    cls.set_type_arguments_field_offset(Map::type_arguments_offset(),
+                                        RTN::Map::type_arguments_offset());
     cls.set_num_type_arguments_unsafe(2);
-    RegisterPrivateClass(cls, Symbols::_LinkedHashMap(), lib);
+    RegisterPrivateClass(cls, Symbols::_Map(), lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(
-        kImmutableLinkedHashMapCid, isolate_group);
-    object_store->set_immutable_linked_hash_map_class(cls);
-    cls.set_type_arguments_field_offset(
-        LinkedHashMap::type_arguments_offset(),
-        RTN::LinkedHashMap::type_arguments_offset());
+    cls = Class::New<Map, RTN::Map>(kConstMapCid, isolate_group);
+    object_store->set_const_map_impl_class(cls);
+    cls.set_type_arguments_field_offset(Map::type_arguments_offset(),
+                                        RTN::Map::type_arguments_offset());
     cls.set_num_type_arguments_unsafe(2);
     cls.set_is_prefinalized();
-    RegisterPrivateClass(cls, Symbols::_ImmutableLinkedHashMap(), lib);
+    RegisterPrivateClass(cls, Symbols::_ConstMap(), lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<LinkedHashSet, RTN::LinkedHashSet>(isolate_group);
-    object_store->set_linked_hash_set_class(cls);
-    cls.set_type_arguments_field_offset(
-        LinkedHashSet::type_arguments_offset(),
-        RTN::LinkedHashSet::type_arguments_offset());
+    cls = Class::New<Set, RTN::Set>(isolate_group);
+    object_store->set_set_impl_class(cls);
+    cls.set_type_arguments_field_offset(Set::type_arguments_offset(),
+                                        RTN::Set::type_arguments_offset());
     cls.set_num_type_arguments_unsafe(1);
-    RegisterPrivateClass(cls, Symbols::_LinkedHashSet(), lib);
+    RegisterPrivateClass(cls, Symbols::_Set(), lib);
     pending_classes.Add(cls);
 
-    cls = Class::New<LinkedHashSet, RTN::LinkedHashSet>(
-        kImmutableLinkedHashSetCid, isolate_group);
-    object_store->set_immutable_linked_hash_set_class(cls);
-    cls.set_type_arguments_field_offset(
-        LinkedHashSet::type_arguments_offset(),
-        RTN::LinkedHashSet::type_arguments_offset());
+    cls = Class::New<Set, RTN::Set>(kConstSetCid, isolate_group);
+    object_store->set_const_set_impl_class(cls);
+    cls.set_type_arguments_field_offset(Set::type_arguments_offset(),
+                                        RTN::Set::type_arguments_offset());
     cls.set_num_type_arguments_unsafe(1);
     cls.set_is_prefinalized();
-    RegisterPrivateClass(cls, Symbols::_ImmutableLinkedHashSet(), lib);
+    RegisterPrivateClass(cls, Symbols::_ConstSet(), lib);
     pending_classes.Add(cls);
 
     // Pre-register the async library so we can place the vm class
@@ -2335,6 +2345,10 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     type.SetIsFinalized();
     type ^= type.Canonicalize(thread, nullptr);
     object_store->set_never_type(type);
+    type_args = TypeArguments::New(1);
+    type_args.SetTypeAt(0, type);
+    type_args = type_args.Canonicalize(thread, nullptr);
+    object_store->set_type_argument_never(type_args);
 
     // Create and cache commonly used type arguments <int>, <double>,
     // <String>, <String, dynamic> and <String, String>.
@@ -2518,19 +2532,17 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
         isolate_group);
     object_store->set_growable_object_array_class(cls);
 
-    cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(isolate_group);
-    object_store->set_linked_hash_map_class(cls);
+    cls = Class::New<Map, RTN::Map>(isolate_group);
+    object_store->set_map_impl_class(cls);
 
-    cls = Class::New<LinkedHashMap, RTN::LinkedHashMap>(
-        kImmutableLinkedHashMapCid, isolate_group);
-    object_store->set_immutable_linked_hash_map_class(cls);
+    cls = Class::New<Map, RTN::Map>(kConstMapCid, isolate_group);
+    object_store->set_const_map_impl_class(cls);
 
-    cls = Class::New<LinkedHashSet, RTN::LinkedHashSet>(isolate_group);
-    object_store->set_linked_hash_set_class(cls);
+    cls = Class::New<Set, RTN::Set>(isolate_group);
+    object_store->set_set_impl_class(cls);
 
-    cls = Class::New<LinkedHashSet, RTN::LinkedHashSet>(
-        kImmutableLinkedHashSetCid, isolate_group);
-    object_store->set_immutable_linked_hash_set_class(cls);
+    cls = Class::New<Set, RTN::Set>(kConstSetCid, isolate_group);
+    object_store->set_const_set_impl_class(cls);
 
     cls = Class::New<Float32x4, RTN::Float32x4>(isolate_group);
     object_store->set_float32x4_class(cls);
@@ -2758,6 +2770,10 @@ void Object::CheckHandle() const {
 #endif
 }
 
+#if !defined(PRODUCT)
+static void NoopFinalizer(void* isolate_callback_data, void* peer) {}
+#endif
+
 ObjectPtr Object::Allocate(intptr_t cls_id,
                            intptr_t size,
                            Heap::Space space,
@@ -2787,8 +2803,9 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
       OUT_OF_MEMORY();
     }
   }
-  NoSafepointScope no_safepoint(thread);
+
   ObjectPtr raw_obj;
+  NoSafepointScope no_safepoint(thread);
   InitializeObject(address, cls_id, size, compressed);
   raw_obj = static_cast<ObjectPtr>(address + kHeapObjectTag);
   ASSERT(cls_id == UntaggedObject::ClassIdTag::decode(raw_obj->untag()->tags_));
@@ -2802,14 +2819,38 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
     raw_obj->untag()->SetMarkBitRelease();
     heap->old_space()->AllocateBlack(size);
   }
-#ifndef PRODUCT
+
+#if !defined(PRODUCT)
+  HeapProfileSampler& heap_sampler = thread->heap_sampler();
   auto class_table = thread->isolate_group()->class_table();
+  if (heap_sampler.HasOutstandingSample()) {
+    IsolateGroup* isolate_group = thread->isolate_group();
+    Api::Scope api_scope(thread);
+    PersistentHandle* type_name = class_table->UserVisibleNameFor(cls_id);
+    if (type_name == nullptr) {
+      // Try the vm-isolate's class table for core types.
+      type_name =
+          Dart::vm_isolate_group()->class_table()->UserVisibleNameFor(cls_id);
+    }
+    // If type_name is still null, then we haven't finished initializing yet and
+    // should drop the sample.
+    if (type_name != nullptr) {
+      thread->IncrementNoCallbackScopeDepth();
+      Object& obj = Object::Handle(raw_obj);
+      auto weak_obj = FinalizablePersistentHandle::New(
+          isolate_group, obj, nullptr, NoopFinalizer, 0, /*auto_delete=*/false);
+      heap_sampler.InvokeCallbackForLastSample(
+          type_name->apiHandle(), weak_obj->ApiWeakPersistentHandle());
+      thread->DecrementNoCallbackScopeDepth();
+    }
+  }
+
   if (class_table->ShouldTraceAllocationFor(cls_id)) {
     uint32_t hash =
         HeapSnapshotWriter::GetHeapSnapshotIdentityHash(thread, raw_obj);
     Profiler::SampleAllocation(thread, cls_id, hash);
   }
-#endif  // !PRODUCT
+#endif  // !defined(PRODUCT)
   return raw_obj;
 }
 
@@ -2867,6 +2908,11 @@ class WriteBarrierUpdateVisitor : public ObjectPointerVisitor {
   DISALLOW_COPY_AND_ASSIGN(WriteBarrierUpdateVisitor);
 };
 
+#if defined(DEBUG)
+bool Object::IsZoneHandle() const {
+  return VMHandles::IsZoneHandle(reinterpret_cast<uword>(this));
+}
+
 bool Object::IsReadOnlyHandle() const {
   return Dart::IsReadOnlyHandle(reinterpret_cast<uword>(this));
 }
@@ -2874,6 +2920,7 @@ bool Object::IsReadOnlyHandle() const {
 bool Object::IsNotTemporaryScopedHandle() const {
   return (IsZoneHandle() || IsReadOnlyHandle());
 }
+#endif
 
 ObjectPtr Object::Clone(const Object& orig,
                         Heap::Space space,
@@ -5131,6 +5178,11 @@ void Class::set_name(const String& value) const {
     const String& user_name = String::Handle(
         Symbols::New(Thread::Current(), GenerateUserVisibleName()));
     set_user_name(user_name);
+    IsolateGroup* isolate_group = IsolateGroup::Current();
+    PersistentHandle* type_name =
+        isolate_group->api_state()->AllocatePersistentHandle();
+    type_name->set_ptr(UserVisibleName());
+    isolate_group->class_table()->SetUserVisibleNameFor(id(), type_name);
   }
 #endif  // !defined(PRODUCT)
 }
@@ -6702,23 +6754,294 @@ bool TypeArguments::IsDynamicTypes(bool raw_instantiated,
   return true;
 }
 
-bool TypeArguments::HasInstantiations() const {
-  const Array& prior_instantiations = Array::Handle(instantiations());
-  ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
-  return prior_instantiations.Length() > 1;
+TypeArguments::Cache::Cache(Zone* zone, const TypeArguments& source)
+    : zone_(ASSERT_NOTNULL(zone)),
+      cache_container_(&source),
+      data_(Array::Handle(source.instantiations())),
+      smi_handle_(Smi::Handle(zone)) {
+  ASSERT(IsolateGroup::Current()
+             ->type_arguments_canonicalization_mutex()
+             ->IsOwnedByCurrentThread());
 }
 
-intptr_t TypeArguments::NumInstantiations() const {
-  const Array& prior_instantiations = Array::Handle(instantiations());
-  ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
-  intptr_t num = 0;
-  intptr_t i = 0;
-  while (prior_instantiations.At(i) !=
-         Smi::New(TypeArguments::kNoInstantiator)) {
-    i += TypeArguments::Instantiation::kSizeInWords;
-    num++;
+TypeArguments::Cache::Cache(Zone* zone, const Array& array)
+    : zone_(ASSERT_NOTNULL(zone)),
+      cache_container_(nullptr),
+      data_(Array::Handle(array.ptr())),
+      smi_handle_(Smi::Handle(zone)) {
+  ASSERT(IsolateGroup::Current()
+             ->type_arguments_canonicalization_mutex()
+             ->IsOwnedByCurrentThread());
+}
+
+bool TypeArguments::Cache::IsHash(const Array& array) {
+  return array.Length() > kMaxLinearCacheSize;
+}
+
+intptr_t TypeArguments::Cache::NumOccupied(const Array& array) {
+  return RawSmiValue(Smi::RawCast(array.AtAcquire(kOccupiedEntriesIndex)));
+}
+
+#if defined(DEBUG)
+bool TypeArguments::Cache::IsValidStorageLocked(const Array& array) {
+  // We only require the mutex be held so we don't need to use acquire/release
+  // semantics to access and set the number of occupied entries in the header.
+  ASSERT(IsolateGroup::Current()
+             ->type_arguments_canonicalization_mutex()
+             ->IsOwnedByCurrentThread());
+  // Quick check against the empty linear cache.
+  if (array.ptr() == EmptyStorage().ptr()) return true;
+  const intptr_t num_occupied = NumOccupied(array);
+  // We should be using the same shared value for an empty cache.
+  if (num_occupied == 0) return false;
+  const intptr_t storage_len = array.Length();
+  // All caches have the metadata followed by a series of entries.
+  if ((storage_len % kEntrySize) != kHeaderSize) return false;
+  const intptr_t num_entries = NumEntries(array);
+  // Linear caches contain at least one unoccupied entry, and hash-based caches
+  // grow prior to hitting 100% occupancy.
+  if (num_occupied >= num_entries) return false;
+  // In a linear cache, all entries with indexes smaller than [num_occupied]
+  // should be occupied and ones greater than or equal should be unoccupied.
+  const bool is_linear_cache = IsLinear(array);
+  // The capacity of a hash-based cache must be a power of two (see
+  // EnsureCapacityLocked as to why).
+  if (!is_linear_cache && !Utils::IsPowerOfTwo(num_entries)) return false;
+  for (intptr_t i = 0; i < num_entries; i++) {
+    const intptr_t index = kHeaderSize + i * kEntrySize;
+    if (array.At(index + kSentinelIndex) == Sentinel()) {
+      if (is_linear_cache && i < num_occupied) return false;
+      continue;
+    }
+    if (is_linear_cache && i >= num_occupied) return false;
+    // The elements of an occupied entry are all TypeArguments values.
+    for (intptr_t j = index; j < index + kEntrySize; j++) {
+      if (!array.At(j)->IsHeapObject()) return false;
+      if (array.At(j) == Object::null()) continue;  // null is a valid TAV.
+      if (!array.At(j)->IsTypeArguments()) return false;
+    }
   }
-  return num;
+  return true;
+}
+#endif
+
+bool TypeArguments::Cache::IsOccupied(intptr_t entry) const {
+  InstantiationsCacheTable table(data_);
+  ASSERT(entry >= 0 && entry < table.Length());
+  return table.At(entry).Get<kSentinelIndex>() != Sentinel();
+}
+
+TypeArgumentsPtr TypeArguments::Cache::Retrieve(intptr_t entry) const {
+  ASSERT(IsOccupied(entry));
+  InstantiationsCacheTable table(data_);
+  return table.At(entry).Get<kInstantiatedTypeArgsIndex>();
+}
+
+intptr_t TypeArguments::Cache::NumEntries(const Array& array) {
+  InstantiationsCacheTable table(array);
+  return table.Length();
+}
+
+TypeArguments::Cache::KeyLocation TypeArguments::Cache::FindKeyOrUnused(
+    const Array& array,
+    const TypeArguments& instantiator_tav,
+    const TypeArguments& function_tav) {
+  const bool is_hash = IsHash(array);
+  InstantiationsCacheTable table(array);
+  const intptr_t num_entries = table.Length();
+  // For a linear cache, start at the first entry and probe linearly. This can
+  // be done because a linear cache always has at least one unoccupied entry
+  // after all the occupied ones.
+  intptr_t probe = 0;
+  intptr_t probe_distance = 1;
+  if (is_hash) {
+    // For a hash-based cache, instead start at an entry determined by the hash
+    // of the keys.
+    auto hash = FinalizeHash(
+        CombineHashes(instantiator_tav.Hash(), function_tav.Hash()));
+    probe = hash & (num_entries - 1);
+  }
+  while (true) {
+    const auto& tuple = table.At(probe);
+    if (tuple.Get<kSentinelIndex>() == Sentinel()) break;
+    if ((tuple.Get<kInstantiatorTypeArgsIndex>() == instantiator_tav.ptr()) &&
+        (tuple.Get<kFunctionTypeArgsIndex>() == function_tav.ptr())) {
+      return {probe, true};
+    }
+    // Advance probe by the current probing distance.
+    probe = probe + probe_distance;
+    if (is_hash) {
+      // Wrap around if the probe goes off the end of the entries array.
+      probe = probe & (num_entries - 1);
+      // We had a collision, so increase the probe distance. See comment in
+      // EnsureCapacityLocked for an explanation of how this hits all slots.
+      probe_distance++;
+    }
+  }
+  // We should always get the next slot for a linear cache.
+  ASSERT(is_hash || probe == NumOccupied(array));
+  return {probe, false};
+}
+
+TypeArguments::Cache::KeyLocation TypeArguments::Cache::AddEntry(
+    intptr_t entry,
+    const TypeArguments& instantiator_tav,
+    const TypeArguments& function_tav,
+    const TypeArguments& instantiated_tav) const {
+  // We don't do mutating operations in tests without a TypeArguments object.
+  ASSERT(cache_container_ != nullptr);
+#if defined(DEBUG)
+  auto loc = FindKeyOrUnused(instantiator_tav, function_tav);
+  ASSERT_EQUAL(loc.entry, entry);
+  ASSERT(!loc.present);
+#endif
+  // Double-check we got the expected entry index when adding to a linear array.
+  ASSERT(!IsLinear() || entry == NumOccupied());
+  const intptr_t new_occupied = NumOccupied() + 1;
+  const bool storage_changed = EnsureCapacity(new_occupied);
+  // Note that this call to IsLinear() may return a different result than the
+  // earlier, since EnsureCapacity() may have swapped to hash-based storage.
+  if (storage_changed && !IsLinear()) {
+    // The capacity of the array has changed, and the capacity is used when
+    // probing further into the array due to collisions. Thus, we need to redo
+    // the entry index calculation.
+    auto loc = FindKeyOrUnused(instantiator_tav, function_tav);
+    ASSERT(!loc.present);
+    entry = loc.entry;
+  }
+
+  // Increment the number of occupied entries prior to adding the entry.
+  // Only the Cache class uses the information, and Cache objects are only
+  // created when holding the type arguments canonicalization mutex, so we
+  // don't need a store-release barrier for this.
+  smi_handle_ = Smi::New(new_occupied);
+  data_.SetAt(kOccupiedEntriesIndex, smi_handle_);
+
+  InstantiationsCacheTable table(data_);
+  const auto& tuple = table.At(entry);
+  // The parts of the tuple that aren't used for sentinel checking are only
+  // retrieved if the entry is occupied. Entries in the cache are never deleted,
+  // so once the entry is marked as occupied, the contents of that entry never
+  // change. Thus, we don't need store-release barriers here.
+  tuple.Set<kFunctionTypeArgsIndex>(function_tav);
+  tuple.Set<kInstantiatedTypeArgsIndex>(instantiated_tav);
+  // For the sentinel position, though, we do.
+  static_assert(
+      kSentinelIndex == kInstantiatorTypeArgsIndex,
+      "the sentinel position is not protected with a store-release barrier");
+  tuple.Set<kInstantiatorTypeArgsIndex, std::memory_order_release>(
+      instantiator_tav);
+
+  if (storage_changed) {
+    // Only check for validity on growth, just to keep the overhead on DEBUG
+    // builds down.
+    DEBUG_ASSERT(IsValidStorageLocked(data_));
+    // Update the container of the original cache to point to the new one.
+    cache_container_->set_instantiations(data_);
+  }
+
+  return {entry, true};
+}
+
+SmiPtr TypeArguments::Cache::Sentinel() {
+  return Smi::New(kSentinelValue);
+}
+
+bool TypeArguments::Cache::EnsureCapacity(intptr_t new_occupied) const {
+  ASSERT(new_occupied > NumOccupied());
+  // How many entries are in the current array (including unoccupied entries).
+  const intptr_t current_capacity = NumEntries();
+
+  // Early returns for cases where no growth is needed.
+  const bool is_linear = IsLinear();
+  if (is_linear) {
+    // We need at least one unoccupied entry in addition to the occupied ones.
+    if (current_capacity > new_occupied) return false;
+  } else {
+    if (LoadFactor(new_occupied, current_capacity) < kMaxLoadFactor) {
+      return false;
+    }
+  }
+
+  if (new_occupied <= kMaxLinearCacheEntries) {
+    ASSERT(is_linear);
+    // Not enough room for both the new entry and at least one unoccupied
+    // entry, so grow the tuple capacity of the linear cache by about 50%,
+    // ensuring that space for at least one new tuple is added, capping the
+    // total number of occupied entries to the max allowed.
+    const intptr_t new_capacity =
+        Utils::Minimum(current_capacity + (current_capacity >> 1),
+                       kMaxLinearCacheEntries) +
+        1;
+    const intptr_t cache_size = kHeaderSize + new_capacity * kEntrySize;
+    ASSERT(cache_size <= kMaxLinearCacheSize);
+    data_ = Array::Grow(data_, cache_size, Heap::kOld);
+    ASSERT(!data_.IsNull());
+    // No need to adjust the number of occupied entries or old entries, as they
+    // are copied over by Array::Grow. Just mark any new entries as unoccupied.
+    smi_handle_ = Sentinel();
+    InstantiationsCacheTable table(data_);
+    for (intptr_t i = current_capacity; i < new_capacity; i++) {
+      const auto& tuple = table.At(i);
+      tuple.Set<kSentinelIndex>(smi_handle_);
+    }
+    return true;
+  }
+
+  // Either we're converting a linear cache into a hash-based cache, or the
+  // load factor of the hash-based cache has increased to the point where we
+  // need to grow it.
+  const intptr_t new_capacity =
+      is_linear ? kNumInitialHashCacheEntries : 2 * current_capacity;
+  // Because we use quadratic (actually triangle number) probing it is
+  // important that the size is a power of two (otherwise we could fail to
+  // find an empty slot).  This is described in Knuth's The Art of Computer
+  // Programming Volume 2, Chapter 6.4, exercise 20 (solution in the
+  // appendix, 2nd edition).
+  ASSERT(Utils::IsPowerOfTwo(new_capacity));
+  ASSERT(LoadFactor(new_occupied, new_capacity) < kMaxLoadFactor);
+  const intptr_t new_size = kHeaderSize + new_capacity * kEntrySize;
+  const auto& new_data =
+      Array::Handle(zone_, Array::NewUninitialized(new_size, Heap::kOld));
+  ASSERT(!new_data.IsNull());
+  // First copy over the metadata.
+  auto& object = Object::Handle(zone_);
+  for (intptr_t i = 0; i < kHeaderSize; i++) {
+    object = data_.At(i);
+    new_data.SetAt(i, object);
+  }
+  // Then mark all the entries in new_data as unoccupied.
+  smi_handle_ = Sentinel();
+  InstantiationsCacheTable to_table(new_data);
+  for (const auto& tuple : to_table) {
+    tuple.Set<kSentinelIndex>(smi_handle_);
+  }
+  // Finally, copy over the entries.
+  auto& function_tav = TypeArguments::Handle(zone_);
+  auto& result_tav = TypeArguments::Handle(zone_);
+  const InstantiationsCacheTable from_table(data_);
+  for (const auto& from_tuple : from_table) {
+    // Skip unoccupied entries.
+    if (from_tuple.Get<kSentinelIndex>() == Sentinel()) continue;
+    object = from_tuple.Get<kInstantiatorTypeArgsIndex>();
+    const auto& instantiator_tav = TypeArguments::Cast(object);
+    function_tav = from_tuple.Get<kFunctionTypeArgsIndex>();
+    result_tav = from_tuple.Get<kInstantiatedTypeArgsIndex>();
+    // Since new_data has a different total capacity, we can't use the old
+    // entry indexes, but must recalculate them.
+    auto loc = FindKeyOrUnused(new_data, instantiator_tav, function_tav);
+    ASSERT(!loc.present);
+    const auto& to_tuple = to_table.At(loc.entry);
+    to_tuple.Set<kInstantiatorTypeArgsIndex>(instantiator_tav);
+    to_tuple.Set<kFunctionTypeArgsIndex>(function_tav);
+    to_tuple.Set<kInstantiatedTypeArgsIndex>(result_tav);
+  }
+  data_ = new_data.ptr();
+  return true;
+}
+
+bool TypeArguments::HasInstantiations() const {
+  return instantiations() != Cache::EmptyStorage().ptr();
 }
 
 ArrayPtr TypeArguments::instantiations() const {
@@ -7041,28 +7364,11 @@ TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
   ASSERT(function_type_arguments.IsNull() ||
          function_type_arguments.IsCanonical());
   // Lookup instantiators and if found, return instantiated result.
-  Array& prior_instantiations = Array::Handle(zone, instantiations());
-  ASSERT(!prior_instantiations.IsNull() && prior_instantiations.IsArray());
-  // The instantiations cache is initialized with Object::zero_array() and is
-  // therefore guaranteed to contain kNoInstantiator. No length check needed.
-  ASSERT(prior_instantiations.Length() > 0);  // Always at least a sentinel.
-  intptr_t index = 0;
-  while (true) {
-    if ((prior_instantiations.At(
-             index +
-             TypeArguments::Instantiation::kInstantiatorTypeArgsIndex) ==
-         instantiator_type_arguments.ptr()) &&
-        (prior_instantiations.At(
-             index + TypeArguments::Instantiation::kFunctionTypeArgsIndex) ==
-         function_type_arguments.ptr())) {
-      return TypeArguments::RawCast(prior_instantiations.At(
-          index + TypeArguments::Instantiation::kInstantiatedTypeArgsIndex));
-    }
-    if (prior_instantiations.At(index) ==
-        Smi::New(TypeArguments::kNoInstantiator)) {
-      break;
-    }
-    index += TypeArguments::Instantiation::kSizeInWords;
+  Cache cache(zone, *this);
+  auto const loc = cache.FindKeyOrUnused(instantiator_type_arguments,
+                                         function_type_arguments);
+  if (loc.present) {
+    return cache.Retrieve(loc.entry);
   }
   // Cache lookup failed. Instantiate the type arguments.
   TypeArguments& result = TypeArguments::Handle(zone);
@@ -7072,44 +7378,9 @@ TypeArgumentsPtr TypeArguments::InstantiateAndCanonicalizeFrom(
   result = result.Canonicalize(thread, nullptr);
   // InstantiateAndCanonicalizeFrom is not reentrant. It cannot have been called
   // indirectly, so the prior_instantiations array cannot have grown.
-  ASSERT(prior_instantiations.ptr() == instantiations());
-  // Add instantiator and function type args and result to instantiations array.
-  intptr_t length = prior_instantiations.Length();
-  if ((index + TypeArguments::Instantiation::kSizeInWords) >= length) {
-    // TODO(regis): Should we limit the number of cached instantiations?
-    // Grow the instantiations array by about 50%, but at least by 1.
-    // The initial array is Object::zero_array() of length 1.
-    intptr_t entries =
-        (length - 1) / TypeArguments::Instantiation::kSizeInWords;
-    intptr_t new_entries = entries + (entries >> 1) + 1;
-    length = new_entries * TypeArguments::Instantiation::kSizeInWords + 1;
-    prior_instantiations =
-        Array::Grow(prior_instantiations, length, Heap::kOld);
-    set_instantiations(prior_instantiations);
-    ASSERT((index + TypeArguments::Instantiation::kSizeInWords) < length);
-  }
-
-  // Set sentinel marker at next position.
-  prior_instantiations.SetAt(
-      index + TypeArguments::Instantiation::kSizeInWords +
-          TypeArguments::Instantiation::kInstantiatorTypeArgsIndex,
-      Smi::Handle(zone, Smi::New(TypeArguments::kNoInstantiator)));
-
-  prior_instantiations.SetAt(
-      index + TypeArguments::Instantiation::kFunctionTypeArgsIndex,
-      function_type_arguments);
-  prior_instantiations.SetAt(
-      index + TypeArguments::Instantiation::kInstantiatedTypeArgsIndex, result);
-
-  // We let any concurrently running mutator thread now see the new entry by
-  // using a store-release barrier.
-  ASSERT(
-      prior_instantiations.At(
-          index + TypeArguments::Instantiation::kInstantiatorTypeArgsIndex) ==
-      Smi::New(TypeArguments::kNoInstantiator));
-  prior_instantiations.SetAtRelease(
-      index + TypeArguments::Instantiation::kInstantiatorTypeArgsIndex,
-      instantiator_type_arguments);
+  ASSERT(cache.data_.ptr() == instantiations());
+  cache.AddEntry(loc.entry, instantiator_type_arguments,
+                 function_type_arguments, result);
   return result.ptr();
 }
 
@@ -7130,10 +7401,9 @@ TypeArgumentsPtr TypeArguments::New(intptr_t len, Heap::Space space) {
     result.SetHash(0);
     result.set_nullability(0);
   }
-  // The zero array should have been initialized.
-  ASSERT(Object::zero_array().ptr() != Array::null());
-  COMPILE_ASSERT(TypeArguments::kNoInstantiator == 0);
-  result.set_instantiations(Object::zero_array());
+  // The array used as storage for an empty linear cache should be initialized.
+  ASSERT(Cache::EmptyStorage().ptr() != Array::null());
+  result.set_instantiations(Cache::EmptyStorage());
   return result.ptr();
 }
 
@@ -8383,6 +8653,7 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kGetNativeField:
     case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kUtf8DecoderScan:
+    case MethodRecognizer::kDouble_hashCode:
     // Prevent the GC from running so that the operation is atomic from
     // a GC point of view. Always double check implementation in
     // kernel_to_il.cc that no GC can happen in between the relevant IL
@@ -12168,13 +12439,12 @@ GrowableObjectArrayPtr Script::GenerateLineNumberArray() const {
   int token_index = 0;
 
   kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
-  intptr_t previous_start = 0;
   for (int line_index = 0; line_index < line_count; ++line_index) {
-    intptr_t start = previous_start + line_starts_reader.DeltaAt(line_index);
+    intptr_t start = line_starts_reader.At(line_index);
     // Output the rest of the tokens if we have no next line.
     intptr_t end = TokenPosition::kMaxSourcePos;
     if (line_index + 1 < line_count) {
-      end = start + line_starts_reader.DeltaAt(line_index + 1);
+      end = line_starts_reader.At(line_index + 1);
     }
     bool first = true;
     while (token_index < token_count) {
@@ -12195,7 +12465,6 @@ GrowableObjectArrayPtr Script::GenerateLineNumberArray() const {
       info.Add(value);
       ++token_index;
     }
-    previous_start = start;
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return info.ptr();
@@ -19528,7 +19797,7 @@ void Instance::CanonicalizeFieldsLocked(Thread* thread) const {
     // Make sure that we are not missing any fields.
     IsolateGroup* group = IsolateGroup::Current();
     CheckForPointers has_pointers(group);
-    this->ptr()->untag()->VisitPointersPrecise(group, &has_pointers);
+    this->ptr()->untag()->VisitPointersPrecise(&has_pointers);
     ASSERT(!has_pointers.has_pointers());
 #endif  // DEBUG
   }
@@ -20464,8 +20733,8 @@ AbstractTypePtr AbstractType::OnlyBuddyInTrail(TrailPtr trail) const {
   const intptr_t len = trail->length();
   ASSERT((len % 2) == 0);
   for (intptr_t i = 0; i < len; i += 2) {
-    ASSERT(trail->At(i).IsZoneHandle());
-    ASSERT(trail->At(i + 1).IsZoneHandle());
+    DEBUG_ASSERT(trail->At(i).IsNotTemporaryScopedHandle());
+    DEBUG_ASSERT(trail->At(i + 1).IsNotTemporaryScopedHandle());
     if (trail->At(i).ptr() == this->ptr()) {
       ASSERT(!trail->At(i + 1).IsNull());
       return trail->At(i + 1).ptr();
@@ -21836,8 +22105,7 @@ TypePtr Type::New(const Class& clazz,
 }
 
 void Type::set_type_class_id(intptr_t id) const {
-  COMPILE_ASSERT(std::is_unsigned<ClassIdTagType>::value);
-  ASSERT(Utils::IsUint(sizeof(ClassIdTagType) * kBitsPerByte, id));
+  ASSERT(Utils::IsUint(UntaggedObject::kClassIdTagSize, id));
   // We should never need a Type object for a top-level class.
   ASSERT(!ClassTable::IsTopLevelCid(id));
   ASSERT(id != kIllegalCid);
@@ -24251,10 +24519,26 @@ OneByteStringPtr OneByteString::New(intptr_t len, Heap::Space space) {
         OneByteString::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     OneByteStringPtr result = static_cast<OneByteStringPtr>(raw);
+#if DART_COMPRESSED_POINTERS
+    // Gap caused by less-than-a-word length_ smi sitting before data_.
+    const intptr_t length_offset =
+        reinterpret_cast<intptr_t>(&result->untag()->length_);
+    const intptr_t data_offset =
+        reinterpret_cast<intptr_t>(result->untag()->data());
+    const intptr_t length_with_gap = data_offset - length_offset;
+    ASSERT(length_with_gap > kCompressedWordSize);
+    ASSERT(length_with_gap == kWordSize);
+    memset(reinterpret_cast<void*>(length_offset), 0, length_with_gap);
+#endif
     result->untag()->set_length(Smi::New(len));
 #if !defined(HASH_IN_OBJECT_HEADER)
     result->untag()->set_hash(Smi::New(0));
 #endif
+    OneByteStringPtr s = static_cast<OneByteStringPtr>(result);
+    intptr_t size = OneByteString::UnroundedSize(s);
+    ASSERT(size <= s->untag()->HeapSize());
+    memset(reinterpret_cast<void*>(UntaggedObject::ToAddr(s) + size), 0,
+           s->untag()->HeapSize() - size);
     return result;
   }
 }
@@ -24445,10 +24729,25 @@ TwoByteStringPtr TwoByteString::New(intptr_t len, Heap::Space space) {
         TwoByteString::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
+    TwoByteStringPtr s = static_cast<TwoByteStringPtr>(raw);
+#if DART_COMPRESSED_POINTERS
+    // Gap caused by less-than-a-word length_ smi sitting before data_.
+    const intptr_t length_offset =
+        reinterpret_cast<intptr_t>(&s->untag()->length_);
+    const intptr_t data_offset = reinterpret_cast<intptr_t>(s->untag()->data());
+    const intptr_t length_with_gap = data_offset - length_offset;
+    ASSERT(length_with_gap > kCompressedWordSize);
+    ASSERT(length_with_gap == kWordSize);
+    memset(reinterpret_cast<void*>(length_offset), 0, length_with_gap);
+#endif
     result.SetLength(len);
 #if !defined(HASH_IN_OBJECT_HEADER)
     result.ptr()->untag()->set_hash(Smi::New(0));
 #endif
+    intptr_t size = TwoByteString::UnroundedSize(s);
+    ASSERT(size <= s->untag()->HeapSize());
+    memset(reinterpret_cast<void*>(UntaggedObject::ToAddr(s) + size), 0,
+           s->untag()->HeapSize() - size);
   }
   return TwoByteString::raw(result);
 }
@@ -25025,8 +25324,7 @@ class DefaultHashTraits {
   }
 };
 
-LinkedHashMapPtr LinkedHashMap::NewDefault(intptr_t class_id,
-                                           Heap::Space space) {
+MapPtr Map::NewDefault(intptr_t class_id, Heap::Space space) {
   const Array& data = Array::Handle(Array::New(kInitialIndexSize, space));
   const TypedData& index = TypedData::Handle(
       TypedData::New(kTypedDataUint32ArrayCid, kInitialIndexSize, space));
@@ -25034,23 +25332,20 @@ LinkedHashMapPtr LinkedHashMap::NewDefault(intptr_t class_id,
   static const intptr_t kAvailableBits = (kSmiBits >= 32) ? 32 : kSmiBits;
   static const intptr_t kInitialHashMask =
       (1 << (kAvailableBits - kInitialIndexBits)) - 1;
-  return LinkedHashMap::New(class_id, data, index, kInitialHashMask, 0, 0,
-                            space);
+  return Map::New(class_id, data, index, kInitialHashMask, 0, 0, space);
 }
 
-LinkedHashMapPtr LinkedHashMap::New(intptr_t class_id,
-                                    const Array& data,
-                                    const TypedData& index,
-                                    intptr_t hash_mask,
-                                    intptr_t used_data,
-                                    intptr_t deleted_keys,
-                                    Heap::Space space) {
-  ASSERT(class_id == kLinkedHashMapCid ||
-         class_id == kImmutableLinkedHashMapCid);
-  ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
+MapPtr Map::New(intptr_t class_id,
+                const Array& data,
+                const TypedData& index,
+                intptr_t hash_mask,
+                intptr_t used_data,
+                intptr_t deleted_keys,
+                Heap::Space space) {
+  ASSERT(class_id == kMapCid || class_id == kConstMapCid);
+  ASSERT(IsolateGroup::Current()->object_store()->map_impl_class() !=
          Class::null());
-  LinkedHashMap& result =
-      LinkedHashMap::Handle(LinkedHashMap::NewUninitialized(class_id, space));
+  Map& result = Map::Handle(Map::NewUninitialized(class_id, space));
   result.set_data(data);
   result.set_index(index);
   result.set_hash_mask(hash_mask);
@@ -25059,26 +25354,24 @@ LinkedHashMapPtr LinkedHashMap::New(intptr_t class_id,
   return result.ptr();
 }
 
-LinkedHashMapPtr LinkedHashMap::NewUninitialized(intptr_t class_id,
-                                                 Heap::Space space) {
-  ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
+MapPtr Map::NewUninitialized(intptr_t class_id, Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->map_impl_class() !=
          Class::null());
-  LinkedHashMap& result = LinkedHashMap::Handle();
+  Map& result = Map::Handle();
   {
-    ObjectPtr raw =
-        Object::Allocate(class_id, LinkedHashMap::InstanceSize(), space,
-                         LinkedHashMap::ContainsCompressedPointers());
+    ObjectPtr raw = Object::Allocate(class_id, Map::InstanceSize(), space,
+                                     Map::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
   return result.ptr();
 }
 
-const char* LinkedHashMap::ToCString() const {
+const char* Map::ToCString() const {
   Zone* zone = Thread::Current()->zone();
   return zone->PrintToString(
-      "_%sLinkedHashMap len:%" Pd,
-      GetClassId() == kImmutableLinkedHashMapCid ? "Immutable" : "", Length());
+      "%s len:%" Pd, GetClassId() == kConstMapCid ? "_ConstMap" : "_Map",
+      Length());
 }
 
 void LinkedHashBase::ComputeAndSetHashMask() const {
@@ -25089,7 +25382,7 @@ void LinkedHashBase::ComputeAndSetHashMask() const {
 
   const auto& data_array = Array::Handle(zone, data());
   const intptr_t data_length = Utils::RoundUpToPowerOfTwo(data_array.Length());
-  const intptr_t index_size_mult = IsLinkedHashMap() ? 1 : 2;
+  const intptr_t index_size_mult = IsMap() ? 1 : 2;
   const intptr_t index_size = Utils::Maximum(LinkedHashBase::kInitialIndexSize,
                                              data_length * index_size_mult);
   ASSERT(Utils::IsPowerOfTwo(index_size));
@@ -25184,37 +25477,29 @@ void LinkedHashBase::CanonicalizeFieldsLocked(Thread* thread) const {
   ASSERT(index_td.IsNull());
 }
 
-ImmutableLinkedHashMapPtr ImmutableLinkedHashMap::NewDefault(
-    Heap::Space space) {
-  ASSERT(IsolateGroup::Current()
-             ->object_store()
-             ->immutable_linked_hash_map_class() != Class::null());
-  return static_cast<ImmutableLinkedHashMapPtr>(
-      LinkedHashMap::NewDefault(kClassId, space));
-}
-
-ImmutableLinkedHashMapPtr ImmutableLinkedHashMap::NewUninitialized(
-    Heap::Space space) {
-  ASSERT(IsolateGroup::Current()
-             ->object_store()
-             ->immutable_linked_hash_map_class() != Class::null());
-  return static_cast<ImmutableLinkedHashMapPtr>(
-      LinkedHashMap::NewUninitialized(kClassId, space));
-}
-
-LinkedHashSetPtr LinkedHashSet::New(intptr_t class_id,
-                                    const Array& data,
-                                    const TypedData& index,
-                                    intptr_t hash_mask,
-                                    intptr_t used_data,
-                                    intptr_t deleted_keys,
-                                    Heap::Space space) {
-  ASSERT(class_id == kLinkedHashSetCid ||
-         class_id == kImmutableLinkedHashSetCid);
-  ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
+ConstMapPtr ConstMap::NewDefault(Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->const_map_impl_class() !=
          Class::null());
-  LinkedHashSet& result =
-      LinkedHashSet::Handle(LinkedHashSet::NewUninitialized(class_id, space));
+  return static_cast<ConstMapPtr>(Map::NewDefault(kClassId, space));
+}
+
+ConstMapPtr ConstMap::NewUninitialized(Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->const_map_impl_class() !=
+         Class::null());
+  return static_cast<ConstMapPtr>(Map::NewUninitialized(kClassId, space));
+}
+
+SetPtr Set::New(intptr_t class_id,
+                const Array& data,
+                const TypedData& index,
+                intptr_t hash_mask,
+                intptr_t used_data,
+                intptr_t deleted_keys,
+                Heap::Space space) {
+  ASSERT(class_id == kSetCid || class_id == kConstSetCid);
+  ASSERT(IsolateGroup::Current()->object_store()->set_impl_class() !=
+         Class::null());
+  Set& result = Set::Handle(Set::NewUninitialized(class_id, space));
   result.set_data(data);
   result.set_index(index);
   result.set_hash_mask(hash_mask);
@@ -25223,8 +25508,7 @@ LinkedHashSetPtr LinkedHashSet::New(intptr_t class_id,
   return result.ptr();
 }
 
-LinkedHashSetPtr LinkedHashSet::NewDefault(intptr_t class_id,
-                                           Heap::Space space) {
+SetPtr Set::NewDefault(intptr_t class_id, Heap::Space space) {
   const Array& data = Array::Handle(Array::New(kInitialIndexSize, space));
   const TypedData& index = TypedData::Handle(
       TypedData::New(kTypedDataUint32ArrayCid, kInitialIndexSize, space));
@@ -25232,48 +25516,39 @@ LinkedHashSetPtr LinkedHashSet::NewDefault(intptr_t class_id,
   static const intptr_t kAvailableBits = (kSmiBits >= 32) ? 32 : kSmiBits;
   static const intptr_t kInitialHashMask =
       (1 << (kAvailableBits - kInitialIndexBits)) - 1;
-  return LinkedHashSet::New(class_id, data, index, kInitialHashMask, 0, 0,
-                            space);
+  return Set::New(class_id, data, index, kInitialHashMask, 0, 0, space);
 }
 
-LinkedHashSetPtr LinkedHashSet::NewUninitialized(intptr_t class_id,
-                                                 Heap::Space space) {
-  ASSERT(IsolateGroup::Current()->object_store()->linked_hash_map_class() !=
+SetPtr Set::NewUninitialized(intptr_t class_id, Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->set_impl_class() !=
          Class::null());
-  LinkedHashSet& result = LinkedHashSet::Handle();
+  Set& result = Set::Handle();
   {
-    ObjectPtr raw =
-        Object::Allocate(class_id, LinkedHashSet::InstanceSize(), space,
-                         LinkedHashSet::ContainsCompressedPointers());
+    ObjectPtr raw = Object::Allocate(class_id, Set::InstanceSize(), space,
+                                     Set::ContainsCompressedPointers());
     NoSafepointScope no_safepoint;
     result ^= raw;
   }
   return result.ptr();
 }
 
-ImmutableLinkedHashSetPtr ImmutableLinkedHashSet::NewDefault(
-    Heap::Space space) {
-  ASSERT(IsolateGroup::Current()
-             ->object_store()
-             ->immutable_linked_hash_set_class() != Class::null());
-  return static_cast<ImmutableLinkedHashSetPtr>(
-      LinkedHashSet::NewDefault(kClassId, space));
+ConstSetPtr ConstSet::NewDefault(Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->const_set_impl_class() !=
+         Class::null());
+  return static_cast<ConstSetPtr>(Set::NewDefault(kClassId, space));
 }
 
-ImmutableLinkedHashSetPtr ImmutableLinkedHashSet::NewUninitialized(
-    Heap::Space space) {
-  ASSERT(IsolateGroup::Current()
-             ->object_store()
-             ->immutable_linked_hash_map_class() != Class::null());
-  return static_cast<ImmutableLinkedHashSetPtr>(
-      LinkedHashSet::NewUninitialized(kClassId, space));
+ConstSetPtr ConstSet::NewUninitialized(Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->object_store()->const_set_impl_class() !=
+         Class::null());
+  return static_cast<ConstSetPtr>(Set::NewUninitialized(kClassId, space));
 }
 
-const char* LinkedHashSet::ToCString() const {
+const char* Set::ToCString() const {
   Zone* zone = Thread::Current()->zone();
   return zone->PrintToString(
-      "_%sLinkedHashSet len:%" Pd,
-      GetClassId() == kImmutableLinkedHashSetCid ? "Immutable" : "", Length());
+      "%s len:%" Pd, GetClassId() == kConstSetCid ? "_ConstSet" : "_Set",
+      Length());
 }
 
 const char* FutureOr::ToCString() const {
@@ -25682,16 +25957,12 @@ const char* ExternalTypedData::ToCString() const {
   return cls.ScrubbedNameCString();
 }
 
-PointerPtr Pointer::New(const AbstractType& type_arg,
-                        uword native_address,
-                        Heap::Space space) {
+PointerPtr Pointer::New(uword native_address, Heap::Space space) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
-  TypeArguments& type_args = TypeArguments::Handle(zone);
-  type_args = TypeArguments::New(1);
-  type_args.SetTypeAt(Pointer::kNativeTypeArgPos, type_arg);
-  type_args = type_args.Canonicalize(thread, nullptr);
+  TypeArguments& type_args = TypeArguments::Handle(
+      zone, IsolateGroup::Current()->object_store()->type_argument_never());
 
   const Class& cls =
       Class::Handle(IsolateGroup::Current()->class_table()->At(kPointerCid));
@@ -25707,10 +25978,8 @@ PointerPtr Pointer::New(const AbstractType& type_arg,
 }
 
 const char* Pointer::ToCString() const {
-  TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
-  String& type_args_name = String::Handle(type_args.UserVisibleName());
-  return OS::SCreate(Thread::Current()->zone(), "Pointer%s: address=0x%" Px,
-                     type_args_name.ToCString(), NativeAddress());
+  return OS::SCreate(Thread::Current()->zone(), "Pointer: address=0x%" Px,
+                     NativeAddress());
 }
 
 DynamicLibraryPtr DynamicLibrary::New(void* handle, Heap::Space space) {
@@ -27294,6 +27563,8 @@ void RecordType::SetFieldNameAt(intptr_t index, const String& value) const {
 }
 
 void RecordType::set_field_names(const Array& value) const {
+  ASSERT(!value.IsNull());
+  ASSERT(value.IsImmutable());
   ASSERT(value.ptr() == Object::empty_array().ptr() || value.Length() > 0);
   untag()->set_field_names(value.ptr());
 }
@@ -27692,14 +27963,10 @@ intptr_t Record::NumPositionalFields() const {
   return num_fields() - NumNamedFields();
 }
 
-void Record::set_num_fields(intptr_t num_fields) const {
-  ASSERT(num_fields >= 0);
-  StoreNonPointer(&untag()->num_fields_, num_fields);
-}
-
 void Record::set_field_names(const Array& field_names) const {
   ASSERT(!field_names.IsNull());
   ASSERT(field_names.IsCanonical());
+  ASSERT(field_names.IsImmutable());
   ASSERT(field_names.ptr() == Object::empty_array().ptr() ||
          field_names.Length() > 0);
   untag()->set_field_names(field_names.ptr());
@@ -27711,12 +27978,12 @@ RecordPtr Record::New(intptr_t num_fields,
   ASSERT(num_fields >= 0);
   Record& result = Record::Handle();
   {
-    ObjectPtr raw =
+    RecordPtr raw = static_cast<RecordPtr>(
         Object::Allocate(Record::kClassId, Record::InstanceSize(num_fields),
-                         space, Record::ContainsCompressedPointers());
+                         space, Record::ContainsCompressedPointers()));
     NoSafepointScope no_safepoint;
+    raw->untag()->set_num_fields(Smi::New(num_fields));
     result ^= raw;
-    result.set_num_fields(num_fields);
   }
   result.set_field_names(field_names);
   return result.ptr();

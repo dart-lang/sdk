@@ -27,7 +27,7 @@ const char* CpuId::brand_string_ = nullptr;
 
 #if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
 
-void CpuId::GetCpuId(int32_t level, uint32_t info[4]) {
+static void GetCpuId(int32_t level, uint32_t info[4]) {
 #if defined(DART_HOST_OS_WINDOWS)
   // The documentation for __cpuid is at:
   // http://msdn.microsoft.com/en-us/library/hskdteyh(v=vs.90).aspx
@@ -57,15 +57,16 @@ void CpuId::Init() {
   GetCpuId(0x80000001, info);
   CpuId::abm_ = (info[2] & (1 << 5)) != 0;
 
-  char* brand_string =
-      reinterpret_cast<char*>(malloc(3 * 4 * sizeof(uint32_t)));
-  for (uint32_t i = 0x80000002; i <= 0x80000004; i++) {
-    uint32_t off = (i - 0x80000002U) * 4 * sizeof(uint32_t);
-    GetCpuId(i, info);
-    *reinterpret_cast<int32_t*>(brand_string + off) = info[0];
-    *reinterpret_cast<int32_t*>(brand_string + off + 4) = info[1];
-    *reinterpret_cast<int32_t*>(brand_string + off + 8) = info[2];
-    *reinterpret_cast<int32_t*>(brand_string + off + 12) = info[3];
+  // Brand string returned by CPUID is expected to be NULL-terminated,
+  // however we have seen cases in the wild which violate this assumption.
+  // To avoid going out of bounds when trying to print this string
+  // we add null-terminator ourselves, just in case.
+  //
+  // See https://github.com/flutter/flutter/issues/114346
+  char* brand_string = reinterpret_cast<char*>(calloc(3 * sizeof(info) + 1, 1));
+  for (uint32_t i = 0; i < 2; i++) {
+    GetCpuId(0x80000002U + i, info);
+    memmove(&brand_string[i * sizeof(info)], &info, sizeof(info));
   }
   CpuId::brand_string_ = brand_string;
 }

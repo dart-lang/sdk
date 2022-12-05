@@ -265,7 +265,8 @@ class SubListIterable<E> extends ListIterable<E> {
   E elementAt(int index) {
     int realIndex = _startIndex + index;
     if (index < 0 || realIndex >= _endIndex) {
-      throw RangeError.index(index, this, "index");
+      throw IndexError.withLength(index, length,
+          indexable: this, name: "index");
     }
     return _iterable.elementAt(realIndex);
   }

@@ -21,6 +21,7 @@ class FieldIndex {
   static const boxValue = 1;
   static const identityHash = 1;
   static const stringArray = 2;
+  static const listArray = 4;
   static const hashBaseIndex = 2;
   static const hashBaseData = 4;
   static const closureContext = 2;
@@ -31,7 +32,7 @@ class FieldIndex {
   static const instantiationContextTypeArgumentsBase = 1;
   static const typeIsDeclaredNullable = 2;
   static const interfaceTypeTypeArguments = 4;
-  static const functionTypeNamedParameters = 6;
+  static const functionTypeNamedParameters = 7;
   static const typedListBaseLength = 2;
   static const typedListArray = 3;
   static const typedListViewTypedData = 3;
@@ -54,6 +55,7 @@ class FieldIndex {
     check(translator.boxedDoubleClass, "value", FieldIndex.boxValue);
     check(translator.oneByteStringClass, "_array", FieldIndex.stringArray);
     check(translator.twoByteStringClass, "_array", FieldIndex.stringArray);
+    check(translator.listBaseClass, "_data", FieldIndex.listArray);
     check(translator.hashFieldBaseClass, "_index", FieldIndex.hashBaseIndex);
     check(translator.hashFieldBaseClass, "_data", FieldIndex.hashBaseData);
     check(translator.functionClass, "context", FieldIndex.closureContext);
@@ -197,15 +199,13 @@ class ClassInfoCollector {
         }
 
         // In the Wasm type hierarchy, Object, bool and num sit directly below
-        // the Top type. The implementation classes (_StringBase, _Type and the
-        // box classes) sit directly below the public classes they implement.
+        // the Top type. The implementation classes _StringBase and _Type sit
+        // directly below the public classes they implement.
         // All other classes sit below their superclass.
         ClassInfo superInfo = cls == translator.coreTypes.boolClass ||
                 cls == translator.coreTypes.numClass
             ? topInfo
-            : cls == translator.stringBaseClass ||
-                    cls == translator.typeClass ||
-                    translator.boxedClasses.values.contains(cls)
+            : cls == translator.stringBaseClass || cls == translator.typeClass
                 ? translator.classInfo[cls.implementedTypes.single.classNode]!
                 : translator.classInfo[superclass]!;
 

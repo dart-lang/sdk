@@ -23,6 +23,8 @@ heap_sources = [
   "pointer_block.h",
   "safepoint.cc",
   "safepoint.h",
+  "sampler.cc",
+  "sampler.h",
   "scavenger.cc",
   "scavenger.h",
   "spaces.h",

@@ -88,3 +88,78 @@ bool boolReturn(int a) {
         return b;
     }
 }
+
+EMSCRIPTEN_KEEPALIVE
+char incrementChar(char a) {
+    return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+unsigned char incrementUnsignedChar(unsigned char a) {
+    return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+signed char incrementSignedChar(signed char a) {
+    return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+short incrementShort(short a) {
+    return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+unsigned short incrementUnsignedShort(unsigned short a) {
+    return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+int incrementInt(int a) {
+    return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+unsigned int incrementUnsignedInt(unsigned int a) {
+    return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+long incrementLong(long a) {
+    return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+unsigned long incrementUnsignedLong(unsigned long a) {
+    return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+long long incrementLongLong(long long a) {
+    return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+unsigned long long incrementUnsignedLongLong(unsigned long long a) {
+    return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+intptr_t incrementIntPtr(intptr_t a) {
+    return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+uintptr_t incrementUintPtr(uintptr_t a) {
+    return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+size_t incrementSize(size_t a) {
+    return a + 1;
+}
+
+EMSCRIPTEN_KEEPALIVE
+wchar_t incrementWchar(wchar_t a) {
+    return a + 1;
+}

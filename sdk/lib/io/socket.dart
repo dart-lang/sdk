@@ -263,7 +263,7 @@ abstract class RawServerSocket implements Stream<RawSocket> {
 /// one for each connection made to the listening socket.
 ///
 /// See [Socket] for more info.
-abstract class ServerSocket implements Stream<Socket> {
+abstract class ServerSocket implements ServerSocketBase<Socket> {
   /// Listens on a given address and port.
   ///
   /// When the returned future completes the server socket is bound

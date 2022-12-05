@@ -378,7 +378,10 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
 
   @override
   TreeNode visitAwaitExpression(AwaitExpression node) {
-    return new AwaitExpression(clone(node.operand));
+    return new AwaitExpression(clone(node.operand))
+      ..runtimeCheckType = node.runtimeCheckType != null
+          ? visitType(node.runtimeCheckType!)
+          : null;
   }
 
   @override

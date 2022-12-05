@@ -1,6 +1,7 @@
 /// Utilities for handling parsed JSON.
 ///
 /// It is recommended to import this library with a prefix.
+library;
 
 /// Expects [map] to contain [key], a String key.
 ///

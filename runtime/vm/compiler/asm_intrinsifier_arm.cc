@@ -945,70 +945,6 @@ void AsmIntrinsifier::Double_getIsNegative(Assembler* assembler,
   __ b(&is_false);
 }
 
-// Input: tagged integer in R0
-// Output: tagged hash code value in R0
-// Should be kept in sync with
-//  - il_(x64/arm64/...).cc HashIntegerOpInstr,
-//  - asm_intrinsifier(...).cc Multiply64Hash
-//  - integers.cc Multiply64Hash
-static void Multiply64Hash(Assembler* assembler) {
-  __ SmiUntag(R0);
-  __ SignFill(R1, R0);  // sign extend R0 to R1
-  __ LoadImmediate(TMP, compiler::Immediate(0x2d51));
-  __ umull(TMP, R0, R0, TMP);  // (R0:TMP) = R0 * 0x2d51
-  //  (0:0:R0:TMP) is 128-bit product
-  __ eor(R0, TMP, compiler::Operand(R0));
-  __ eor(R0, R1, compiler::Operand(R0));
-  __ AndImmediate(R0, R0, 0x3fffffff);
-  __ SmiTag(R0);
-}
-
-void AsmIntrinsifier::Double_hashCode(Assembler* assembler,
-                                      Label* normal_ir_body) {
-  // TODO(dartbug.com/31174): Convert this to a graph intrinsic.
-
-  // Load double value and check that it isn't NaN, since ARM gives an
-  // FPU exception if you try to convert NaN to an int.
-  Label double_hash;
-  __ ldr(R1, Address(SP, 0 * target::kWordSize));
-  __ LoadDFromOffset(D0, R1, target::Double::value_offset() - kHeapObjectTag);
-  __ vcmpd(D0, D0);
-  __ vmstat();
-  __ b(&double_hash, VS);
-
-  // Convert double value to signed 32-bit int in R0.
-  __ vcvtid(S2, D0);
-  __ vmovrs(R0, S2);
-
-  // Tag the int as a Smi, making sure that it fits; this checks for
-  // overflow in the conversion from double to int. Conversion
-  // overflow is signalled by vcvt through clamping R0 to either
-  // INT32_MAX or INT32_MIN (saturation).
-  ASSERT(kSmiTag == 0 && kSmiTagShift == 1);
-  __ adds(R0, R0, Operand(R0));
-  __ b(normal_ir_body, VS);
-
-  // Compare the two double values. If they are equal, we return the
-  // Smi tagged result immediately as the hash code.
-  __ vcvtdi(D1, S2);
-  __ vcmpd(D0, D1);
-  __ vmstat();
-  __ b(&double_hash, NE);
-  Multiply64Hash(assembler);
-  __ Ret();
-  // Convert the double bits to a hash code that fits in a Smi.
-  __ Bind(&double_hash);
-  __ ldr(R0, FieldAddress(R1, target::Double::value_offset()));
-  __ ldr(R1, FieldAddress(R1, target::Double::value_offset() + 4));
-  __ eor(R0, R0, Operand(R1));
-  __ AndImmediate(R0, R0, target::kSmiMax);
-  __ SmiTag(R0);
-  __ Ret();
-
-  // Fall into the native C++ implementation.
-  __ Bind(normal_ir_body);
-}
-
 void AsmIntrinsifier::ObjectEquals(Assembler* assembler,
                                    Label* normal_ir_body) {
   __ ldr(R0, Address(SP, 0 * target::kWordSize));
@@ -1636,6 +1572,12 @@ static void TryAllocateString(Assembler* assembler,
   // next object start and initialize the object.
   __ str(R1, Address(THR, target::Thread::top_offset()));
   __ AddImmediate(R0, kHeapObjectTag);
+  // Clear last double word to ensure string comparison doesn't need to
+  // specially handle remainder of strings with lengths not factors of double
+  // offsets.
+  __ LoadImmediate(TMP, 0);
+  __ str(TMP, Address(R1, -1 * target::kWordSize));
+  __ str(TMP, Address(R1, -2 * target::kWordSize));
 
   // Initialize the tags.
   // R0: new object start as a tagged pointer.
@@ -1790,7 +1732,7 @@ static void StringEquality(Assembler* assembler,
   __ cmp(R0, Operand(R1));
   __ b(&is_true, EQ);
 
-  // Is other OneByteString?
+  // Is other same kind of string?
   __ tst(R1, Operand(kSmiTagMask));
   __ b(normal_ir_body, EQ);
   __ CompareClassId(R1, string_cid, R2);
@@ -1806,29 +1748,30 @@ static void StringEquality(Assembler* assembler,
   // TODO(zra): try out other sequences.
   ASSERT((string_cid == kOneByteStringCid) ||
          (string_cid == kTwoByteStringCid));
-  const intptr_t offset = (string_cid == kOneByteStringCid)
-                              ? target::OneByteString::data_offset()
-                              : target::TwoByteString::data_offset();
-  __ AddImmediate(R0, offset - kHeapObjectTag);
-  __ AddImmediate(R1, offset - kHeapObjectTag);
-  __ SmiUntag(R2);
+  if (string_cid == kOneByteStringCid) {
+    __ SmiUntag(R2);
+  }
+  // R2 is length of data in bytes.
+  // Round up number of bytes to compare to word boundary since we
+  // are doing comparison in word chunks.
+  __ AddImmediate(R2, target::kWordSize - 1);
+  __ LsrImmediate(R2, R2, target::kWordSizeLog2);
+  ASSERT(target::OneByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  ASSERT(target::TwoByteString::data_offset() ==
+         target::String::length_offset() + target::kWordSize);
+  COMPILE_ASSERT(target::kWordSize == 4);
+  __ AddImmediate(
+      R0, target::String::length_offset() + target::kWordSize - kHeapObjectTag);
+  __ AddImmediate(
+      R1, target::String::length_offset() + target::kWordSize - kHeapObjectTag);
+
   __ Bind(&loop);
   __ AddImmediate(R2, -1);
   __ cmp(R2, Operand(0));
   __ b(&is_true, LT);
-  if (string_cid == kOneByteStringCid) {
-    __ ldrb(R3, Address(R0));
-    __ ldrb(R4, Address(R1));
-    __ AddImmediate(R0, 1);
-    __ AddImmediate(R1, 1);
-  } else if (string_cid == kTwoByteStringCid) {
-    __ ldrh(R3, Address(R0));
-    __ ldrh(R4, Address(R1));
-    __ AddImmediate(R0, 2);
-    __ AddImmediate(R1, 2);
-  } else {
-    UNIMPLEMENTED();
-  }
+  __ ldr(R3, Address(R0, 4, Address::PostIndex));
+  __ ldr(R4, Address(R1, 4, Address::PostIndex));
   __ cmp(R3, Operand(R4));
   __ b(&is_false, NE);
   __ b(&loop);

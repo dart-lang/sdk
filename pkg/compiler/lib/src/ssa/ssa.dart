@@ -21,7 +21,7 @@ import '../js/js.dart' as js;
 import '../js/rewrite_async.dart';
 import '../js_backend/backend.dart' show FunctionCompiler;
 import '../js_backend/codegen_inputs.dart' show CodegenInputs;
-import '../js_backend/namer_interfaces.dart' show ModularNamer;
+import '../js_backend/namer.dart' show ModularNamer;
 import '../js_backend/namer.dart' show ModularNamerImpl;
 import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
@@ -37,8 +37,10 @@ import '../universe/use.dart' show StaticUse;
 import 'codegen.dart';
 import 'nodes.dart';
 import 'optimize.dart';
+import 'ssa_interfaces.dart' as interfaces;
 
-class SsaFunctionCompiler implements FunctionCompiler {
+class SsaFunctionCompiler
+    implements FunctionCompiler, interfaces.SsaFunctionCompiler {
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
   final SsaMetrics _metrics;
@@ -46,7 +48,7 @@ class SsaFunctionCompiler implements FunctionCompiler {
   final SsaBuilderTask _builder;
   final SsaOptimizerTask optimizer;
   final SourceInformationStrategy sourceInformationStrategy;
-  GlobalTypeInferenceResults _globalInferenceResults;
+  /*late*/ GlobalTypeInferenceResults _globalInferenceResults;
   CodegenInputs _codegen;
 
   SsaFunctionCompiler(

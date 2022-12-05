@@ -148,6 +148,18 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     return getNodeFromClass(cls).getInterfaceMember(name, setter);
   }
 
+  @override
+  Member? getDispatchTarget(Class cls, Name name, {bool setter = false}) {
+    return getNodeFromClass(cls)
+        .getDispatchTarget(name, setter)
+        ?.getMember(this);
+  }
+
+  ClassMember? getDispatchClassMember(Class cls, Name name,
+      {bool setter = false}) {
+    return getNodeFromClass(cls).getDispatchTarget(name, setter);
+  }
+
   static ClassMembersBuilder build(
       ClassHierarchyBuilder hierarchyBuilder, List<ClassBuilder> classes) {
     ClassMembersBuilder membersBuilder =

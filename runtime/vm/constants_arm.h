@@ -931,6 +931,8 @@ enum ScaleFactor {
 #else
 #error Cannot compress ARM32
 #endif
+  // Used for Smi-boxed indices.
+  TIMES_COMPRESSED_HALF_WORD_SIZE = TIMES_COMPRESSED_WORD_SIZE - 1,
 };
 
 // The class Instr enables access to individual fields defined in the ARM

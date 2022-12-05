@@ -12,6 +12,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
@@ -385,6 +386,11 @@ class TypeSystemOperations
   TypeSystemOperations(this.typeSystem);
 
   @override
+  bool areStructurallyEqual(DartType type1, DartType type2) {
+    return type1 == type2;
+  }
+
+  @override
   TypeClassification classifyType(DartType type) {
     if (isSubtypeOf(type, typeSystem.typeProvider.objectType)) {
       return TypeClassification.nonNullable;
@@ -402,7 +408,7 @@ class TypeSystemOperations
 
   @override
   DartType glb(DartType type1, DartType type2) {
-    throw UnimplementedError('TODO(paulberry)');
+    return typeSystem.getGreatestLowerBound(type1, type2);
   }
 
   @override
@@ -446,7 +452,14 @@ class TypeSystemOperations
 
   @override
   DartType makeNullable(DartType type) {
-    throw UnimplementedError('TODO(paulberry)');
+    return typeSystem.makeNullable(type);
+  }
+
+  @override
+  DartType? matchIterableType(DartType type) {
+    var iterableElement = typeSystem.typeProvider.iterableElement;
+    var listType = type.asInstanceOf(iterableElement);
+    return listType?.typeArguments[0];
   }
 
   @override
@@ -454,6 +467,24 @@ class TypeSystemOperations
     var listElement = typeSystem.typeProvider.listElement;
     var listType = type.asInstanceOf(listElement);
     return listType?.typeArguments[0];
+  }
+
+  @override
+  MapPatternTypeArguments<DartType>? matchMapType(DartType type) {
+    var mapElement = typeSystem.typeProvider.mapElement;
+    var mapType = type.asInstanceOf(mapElement);
+    if (mapType != null) {
+      return MapPatternTypeArguments<DartType>(
+        keyType: mapType.typeArguments[0],
+        valueType: mapType.typeArguments[1],
+      );
+    }
+    return null;
+  }
+
+  @override
+  DartType normalize(DartType type) {
+    return typeSystem.normalize(type);
   }
 
   @override
@@ -575,26 +606,28 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitIfElement(IfElement node) {
-    node.condition.accept(this);
-    assignedVariables.beginNode();
-    node.thenElement.accept(this);
-    assignedVariables.endNode(node);
-    node.elseElement?.accept(this);
+  void visitIfElement(covariant IfElementImpl node) {
+    _visitIf(node);
   }
 
   @override
-  void visitIfStatement(IfStatement node) {
-    node.condition.accept(this);
-    assignedVariables.beginNode();
-    node.thenStatement.accept(this);
-    assignedVariables.endNode(node);
-    node.elseStatement?.accept(this);
+  void visitIfStatement(covariant IfStatementImpl node) {
+    _visitIf(node);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     throw StateError('Should not visit top level declarations');
+  }
+
+  @override
+  void visitPatternVariableDeclarationStatement(
+    covariant PatternVariableDeclarationStatementImpl node,
+  ) {
+    for (var variable in node.declaration.elements) {
+      assignedVariables.declare(variable);
+    }
+    super.visitPatternVariableDeclarationStatement(node);
   }
 
   @override
@@ -730,6 +763,28 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       assignedVariables.endNode(node);
     } else {
       throw StateError('Unrecognized for loop parts');
+    }
+  }
+
+  void _visitIf(IfElementOrStatementImpl node) {
+    node.expression.accept(this);
+
+    var caseClause = node.caseClause;
+    if (caseClause != null) {
+      var guardedPattern = caseClause.guardedPattern;
+      assignedVariables.beginNode();
+      for (var variable in guardedPattern.variables.values) {
+        assignedVariables.declare(variable);
+      }
+      guardedPattern.whenClause?.accept(this);
+      node.ifTrue.accept(this);
+      assignedVariables.endNode(node);
+      node.ifFalse?.accept(this);
+    } else {
+      assignedVariables.beginNode();
+      node.ifTrue.accept(this);
+      assignedVariables.endNode(node);
+      node.ifFalse?.accept(this);
     }
   }
 }

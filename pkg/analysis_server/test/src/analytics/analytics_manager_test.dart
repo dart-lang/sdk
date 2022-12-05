@@ -262,6 +262,31 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     ]);
   }
 
+  void test_server_request_workspaceExecuteCommand() {
+    _defaultStartup();
+    var params = ExecuteCommandParams(command: 'doIt');
+    var request = RequestMessage(
+        jsonrpc: '',
+        id: Either2.t1(1),
+        method: Method.workspace_executeCommand,
+        params: params.toJson());
+    manager.startedRequestMessage(request: request, startTime: _now());
+    manager.executedCommand('doIt');
+    manager.executedCommand('doIt');
+    manager.sentResponseMessage(
+        response: ResponseMessage(jsonrpc: '', id: Either2.t1(1)));
+    manager.shutdown();
+    analytics.assertEvents([
+      _ExpectedEvent.session(),
+      _ExpectedEvent.request(parameters: {
+        'latency': _IsPercentiles(),
+        'method': Method.workspace_executeCommand.toString(),
+        'duration': _IsPercentiles(),
+        'command': '{"doIt":2}'
+      }),
+    ]);
+  }
+
   void test_shutdownWithoutStartup() {
     manager.shutdown();
     analytics.assertNoEvents();

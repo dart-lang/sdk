@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.61
+# Dart VM Service Protocol 3.62
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.61_ of the Dart VM Service Protocol. This
+This document describes of _version 3.62_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -962,7 +962,7 @@ If the object handle has not expired and the object has not been
 collected, then an [Object](#object) will be returned.
 
 The _offset_ and _count_ parameters are used to request subranges of
-Instance objects with the kinds: String, List, Map, Uint8ClampedList,
+Instance objects with the kinds: String, List, Map, Set, Uint8ClampedList,
 Uint8List, Uint16List, Uint32List, Uint64List, Int8List, Int16List,
 Int32List, Int64List, Flooat32List, Float64List, Inst32x3List,
 Float32x4List, and Float64x2List.  These parameters are otherwise
@@ -2698,6 +2698,7 @@ class @Instance extends @Object {
   //   String
   //   List
   //   Map
+  //   Set
   //   Uint8ClampedList
   //   Uint8List
   //   Uint16List
@@ -2828,6 +2829,7 @@ class Instance extends Object {
   //   String
   //   List
   //   Map
+  //   Set
   //   Uint8ClampedList
   //   Uint8List
   //   Uint16List
@@ -2851,6 +2853,7 @@ class Instance extends Object {
   //   String
   //   List
   //   Map
+  //   Set
   //   Uint8ClampedList
   //   Uint8List
   //   Uint16List
@@ -2874,6 +2877,7 @@ class Instance extends Object {
   //   String
   //   List
   //   Map
+  //   Set
   //   Uint8ClampedList
   //   Uint8List
   //   Uint16List
@@ -2929,10 +2933,11 @@ class Instance extends Object {
   // The fields of this Instance.
   BoundField[] fields [optional];
 
-  // The elements of a List instance.
+  // The elements of a List or Set instance.
   //
   // Provided for instance kinds:
   //   List
+  //   Set
   (@Instance|Sentinel)[] elements [optional];
 
   // The elements of a Map instance.
@@ -2966,7 +2971,7 @@ class Instance extends Object {
   //
   // Provided for instance kinds:
   //   MirrorReference
-  @Instance mirrorReferent [optional];
+  @Object mirrorReferent [optional];
 
   // The pattern of a RegExp instance.
   //
@@ -3002,13 +3007,19 @@ class Instance extends Object {
   //
   // Provided for instance kinds:
   //   WeakProperty
-  @Instance propertyKey [optional];
+  @Object propertyKey [optional];
 
   // The key for a WeakProperty instance.
   //
   // Provided for instance kinds:
   //   WeakProperty
-  @Instance propertyValue [optional];
+  @Object propertyValue [optional];
+
+  // The target for a WeakReference instance.
+  //
+  // Provided for instance kinds:
+  //   WeakReference
+  @Object target [optional];
 
   // The type arguments for this type.
   //
@@ -3096,6 +3107,10 @@ enum InstanceKind {
   // Maps will be PlainInstance.
   Map,
 
+  // An instance of the built-in VM Set implementation. User-defined
+  // Sets will be PlainInstance.
+  Set,
+
   // Vector instance kinds.
   Float32x4,
   Float64x2,
@@ -3133,6 +3148,9 @@ enum InstanceKind {
 
   // An instance of the Dart class WeakProperty.
   WeakProperty,
+
+  // An instance of the Dart class WeakReference.
+  WeakReference,
 
   // An instance of the Dart class Type.
   Type,
@@ -3742,13 +3760,16 @@ class RetainingObject {
   // An object that is part of a retaining path.
   @Object value;
 
-  // The offset of the retaining object in a containing list.
+  // If `value` is a List, `parentListIndex` is the index where the previous
+  // object on the retaining path is located.
   int parentListIndex [optional];
 
-  // The key mapping to the retaining object in a containing map.
+  // If `value` is a Map, `parentMapKey` is the key mapping to the previous
+  // object on the retaining path.
   @Object parentMapKey [optional];
 
-  // The name of the field containing the retaining object within an object.
+  // If `value` is a non-List, non-Map object, `parentField` is the name of the
+  // field containing the previous object on the retaining path.
   string parentField [optional];
 }
 ```
@@ -4388,10 +4409,11 @@ version | comments
 3.54 | Added `CpuSamplesEvent`, updated `cpuSamples` property on `Event` to have type `CpuSamplesEvent`.
 3.55 | Added `streamCpuSamplesWithUserTag` RPC.
 3.56 | Added optional `line` and `column` properties to `SourceLocation`. Added a new `SourceReportKind`, `BranchCoverage`, which reports branch level coverage information.
-3.57 | Added optional `libraryFilters` parameter to `getSourceReport` RPC.
+3.57 | Added optional `libraryFilters` parameter to `getSourceReport` RPC. Added `WeakReference` to `InstanceKind`.
 3.58 | Added optional `local` parameter to `lookupResolvedPackageUris` RPC.
 3.59 | Added `abstract` property to `@Function` and `Function`.
 3.60 | Added `gcType` property to `Event`.
 3.61 | Added `isolateGroupId` property to `@Isolate` and `Isolate`.
+3.62 | Added `Set` to `InstanceKind`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss
