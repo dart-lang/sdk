@@ -2304,6 +2304,9 @@ abstract class ForEachPartsWithPattern implements ForEachParts {
   /// Return the `var` or `final` keyword introducing the pattern.
   Token get keyword;
 
+  /// Returns the annotations associated with this node.
+  NodeList<Annotation> get metadata;
+
   /// The pattern that will match the expression.
   DartPattern get pattern;
 }

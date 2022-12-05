@@ -6271,7 +6271,7 @@ PostfixPattern
 ''');
   }
 
-  test_pattern_inForIn_element() {
+  test_pattern_inForIn_element_noMetadata() {
     _parse('''
 void f(x) => [for (var (a, b) in x) 0];
 ''');
@@ -6301,7 +6301,42 @@ ForElement
 ''');
   }
 
-  test_pattern_inForIn_statement() {
+  test_pattern_inForIn_element_withMetadata() {
+    _parse('''
+void f(x) => [for (@annotation var (a, b) in x) 0];
+''');
+    var node = findNode.forElement('for');
+    assertParsedNodeText(node, r'''
+ForElement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: annotation
+    keyword: var
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        RecordPatternField
+          pattern: VariablePattern
+            name: a
+        RecordPatternField
+          pattern: VariablePattern
+            name: b
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+  rightParenthesis: )
+  body: IntegerLiteral
+    literal: 0
+''');
+  }
+
+  test_pattern_inForIn_statement_noMetadata() {
     _parse('''
 void f(x) {
   for (var (a, b) in x) {}
@@ -6313,6 +6348,44 @@ ForStatement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: RecordPattern
+      leftParenthesis: (
+      fields
+        RecordPatternField
+          pattern: VariablePattern
+            name: a
+        RecordPatternField
+          pattern: VariablePattern
+            name: b
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_pattern_inForIn_statement_withMetadata() {
+    _parse('''
+void f(x) {
+  for (@annotation var (a, b) in x) {}
+}
+''');
+    var node = findNode.forStatement('for');
+    assertParsedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    metadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: annotation
     keyword: var
     pattern: RecordPattern
       leftParenthesis: (

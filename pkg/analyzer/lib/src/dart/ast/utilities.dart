@@ -599,7 +599,8 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
     var other = _other as ForEachPartsWithPattern;
-    return isEqualTokens(node.keyword, other.keyword) &&
+    return _isEqualNodeLists(node.metadata, other.metadata) &&
+        isEqualTokens(node.keyword, other.keyword) &&
         isEqualNodes(node.pattern, other.pattern) &&
         isEqualTokens(node.inKeyword, other.inKeyword) &&
         isEqualNodes(node.iterable, other.iterable);
