@@ -14,48 +14,40 @@
 #include "vm/os.h"
 #include "vm/random.h"
 #include "vm/thread.h"
+#include "vm/thread_registry.h"
 
 namespace dart {
 
-HeapProfileSampler::HeapProfileSampler(Thread* thread)
-    : lock_(new RwLock()),
-      interval_to_next_sample_(kUninitialized),
-      thread_(thread) {}
+bool HeapProfileSampler::enabled_ = false;
+Dart_HeapSamplingCallback HeapProfileSampler::callback_ = nullptr;
+RwLock* HeapProfileSampler::lock_ = new RwLock();
+intptr_t HeapProfileSampler::sampling_interval_ =
+    HeapProfileSampler::kDefaultSamplingInterval;
 
-HeapProfileSampler::~HeapProfileSampler() {
-  delete lock_;
-  lock_ = nullptr;
-}
+HeapProfileSampler::HeapProfileSampler(Thread* thread)
+    : interval_to_next_sample_(kUninitialized), thread_(thread) {}
 
 void HeapProfileSampler::Enable(bool enabled) {
   WriteRwLocker locker(Thread::Current(), lock_);
   enabled_ = enabled;
-  if (enabled) {
-    SetNextSamplingIntervalLocked(GetNextSamplingIntervalLocked());
-  } else if (!enabled) {
-    // Reset the TLAB boundaries to the true end to avoid unnecessary slow
-    // path invocations when sampling is disabled.
-    thread_->set_end(thread_->true_end());
-  }
-}
-
-void HeapProfileSampler::HandleNewTLAB(intptr_t old_tlab_remaining_space) {
-  ReadRwLocker locker(thread_, lock_);
-  if (!enabled_ || next_tlab_offset_ == kUninitialized) {
-    return;
-  }
-  thread_->set_end(next_tlab_offset_ + old_tlab_remaining_space +
-                   thread_->top());
-  next_tlab_offset_ = kUninitialized;
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->thread_registry()->ForEachThread(
+        [&](Thread* thread) { thread->heap_sampler().EnableLocked(); });
+  });
 }
 
 void HeapProfileSampler::SetSamplingInterval(intptr_t bytes_interval) {
   WriteRwLocker locker(Thread::Current(), lock_);
   ASSERT(bytes_interval >= 0);
   sampling_interval_ = bytes_interval;
-  // Force reset the next sampling point.
-  thread_->set_end(thread_->true_end());
-  SetNextSamplingIntervalLocked(GetNextSamplingIntervalLocked());
+  if (!enabled_) {
+    return;
+  }
+  IsolateGroup::ForEach([&](IsolateGroup* group) {
+    group->thread_registry()->ForEachThread([&](Thread* thread) {
+      thread->heap_sampler().SetSamplingIntervalLocked();
+    });
+  });
 }
 
 void HeapProfileSampler::SetSamplingCallback(
@@ -63,6 +55,46 @@ void HeapProfileSampler::SetSamplingCallback(
   // Protect against the callback being changed in the middle of a sample.
   WriteRwLocker locker(Thread::Current(), lock_);
   callback_ = callback;
+}
+
+void HeapProfileSampler::Initialize() {
+  ReadRwLocker locker(Thread::Current(), lock_);
+  EnableLocked();
+}
+
+void HeapProfileSampler::EnableLocked() {
+  if (enabled_) {
+    SetNextSamplingIntervalLocked(GetNextSamplingIntervalLocked());
+  } else if (!enabled_) {
+    // Reset the TLAB boundaries to the true end to avoid unnecessary slow
+    // path invocations when sampling is disabled.
+    thread_->set_end(thread_->true_end());
+    next_tlab_offset_ = kUninitialized;
+  }
+}
+
+void HeapProfileSampler::SetSamplingIntervalLocked() {
+  // Force reset the next sampling point.
+  thread_->set_end(thread_->true_end());
+  SetNextSamplingIntervalLocked(GetNextSamplingIntervalLocked());
+}
+
+void HeapProfileSampler::HandleNewTLAB(intptr_t old_tlab_remaining_space) {
+  ReadRwLocker locker(thread_, lock_);
+  if (!enabled_ || next_tlab_offset_ == kUninitialized) {
+    return;
+  }
+  intptr_t updated_offset = next_tlab_offset_ + old_tlab_remaining_space;
+  if (updated_offset + thread_->top() > thread_->true_end()) {
+    // The next sampling point isn't in this TLAB.
+    next_tlab_offset_ = updated_offset - (thread_->true_end() - thread_->top());
+    thread_->set_end(thread_->true_end());
+  } else {
+    ASSERT(updated_offset <= static_cast<intptr_t>(thread_->true_end()) -
+                                 static_cast<intptr_t>(thread_->top()));
+    thread_->set_end(updated_offset + thread_->top());
+    next_tlab_offset_ = kUninitialized;
+  }
 }
 
 void HeapProfileSampler::InvokeCallbackForLastSample(
@@ -157,6 +189,7 @@ intptr_t HeapProfileSampler::SetNextSamplingIntervalLocked(
 
   if (new_end > true_end) {
     // The next sampling point is in the next TLAB.
+    ASSERT(next_tlab_offset_ == kUninitialized);
     next_tlab_offset_ = new_end - true_end;
     new_end = true_end;
   }
