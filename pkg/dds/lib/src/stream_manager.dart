@@ -228,7 +228,7 @@ class StreamManager {
       () async {
         assert(stream.isNotEmpty);
         bool streamNewlySubscribed = false;
-        bool isCustomStream = false;
+        bool isNewCustomStream = false;
 
         if (!streamListeners.containsKey(stream) &&
             !customStreamListeners.containsKey(stream)) {
@@ -251,12 +251,12 @@ class StreamManager {
               assert(result['type'] == 'Success');
             } on json_rpc.RpcException catch (e) {
               if (e.code == RpcErrorCodes.kInvalidParams) {
-                isCustomStream = true;
+                isNewCustomStream = true;
               } else {
                 rethrow;
               }
             }
-            if (isCustomStream) {
+            if (isNewCustomStream) {
               customStreamListeners[stream] = <DartDevelopmentServiceClient>[];
             } else {
               streamListeners[stream] = <DartDevelopmentServiceClient>[];
@@ -282,7 +282,7 @@ class StreamManager {
           }
         }
         if (client != null) {
-          if (isCustomStream) {
+          if (isNewCustomStream || customStreamListeners[stream] != null) {
             customStreamListeners[stream]?.add(client);
           } else {
             streamListeners[stream]!.add(client);
