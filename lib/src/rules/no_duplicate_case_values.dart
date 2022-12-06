@@ -11,19 +11,9 @@ import '../analyzer.dart';
 const _desc = r"Don't use more than one case with same value.";
 
 const _details = r'''
-
 **DON'T** use more than one case with same value.
 
 This is usually a typo or changed value of constant.
-
-**GOOD:**
-```dart
-const int A = 1;
-switch (v) {
-  case A:
-  case 2:
-}
-```
 
 **BAD:**
 ```dart
@@ -36,12 +26,24 @@ switch (v) {
 }
 ```
 
+**GOOD:**
+```dart
+const int A = 1;
+switch (v) {
+  case A:
+  case 2:
+}
+```
+
 ''';
 
-String message(String value1, String value2) =>
-    'Do not use more than one case with same value ($value1 and $value2)';
+class NoDuplicateCaseValues extends LintRule {
+  static const LintCode code = LintCode(
+      'no_duplicate_case_values',
+      "The value of the case clause ('{0}') is equal to the value of an "
+          "earlier case clause ('{1}').",
+      correctionMessage: 'Try removing or changing the value.');
 
-class NoDuplicateCaseValues extends LintRule implements NodeLintRule {
   NoDuplicateCaseValues()
       : super(
             name: 'no_duplicate_case_values',
@@ -50,24 +52,14 @@ class NoDuplicateCaseValues extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
+  LintCode get lintCode => code;
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
     registry.addSwitchStatement(this, visitor);
   }
-
-  void reportLintWithDescription(AstNode node, String description) {
-    reporter.reportErrorForNode(_LintCode(name, description), node, []);
-  }
-}
-
-class _LintCode extends LintCode {
-  static final registry = <String, _LintCode>{};
-
-  factory _LintCode(String name, String message) =>
-      registry.putIfAbsent(name + message, () => _LintCode._(name, message));
-
-  _LintCode._(String name, String message) : super(name, message);
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
@@ -93,9 +85,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
 
         var duplicateValue = values[value];
+        // TODO(brianwilkeson) This would benefit from having a context message
+        //  pointing at the `duplicateValue`.
         if (duplicateValue != null) {
-          rule.reportLintWithDescription(member,
-              message(duplicateValue.toString(), expression.toString()));
+          rule.reportLint(expression,
+              arguments: [expression.toString(), duplicateValue.toString()]);
         } else {
           values[value] = expression;
         }

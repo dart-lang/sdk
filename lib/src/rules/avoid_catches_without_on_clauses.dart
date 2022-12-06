@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid catches without on clauses.';
 
 const _details = r'''
-
 **AVOID** catches without on clauses.
 
 Using catch clauses without on clauses make your code prone to encountering
@@ -38,13 +37,22 @@ on Exception catch(e) {
 
 ''';
 
-class AvoidCatchesWithoutOnClauses extends LintRule implements NodeLintRule {
+class AvoidCatchesWithoutOnClauses extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_catches_without_on_clauses',
+      "Catch clause needs to use 'on' to specify the type of exception being "
+          'caught.',
+      correctionMessage: "Try adding an 'on' clause before the 'catch'.");
+
   AvoidCatchesWithoutOnClauses()
       : super(
             name: 'avoid_catches_without_on_clauses',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

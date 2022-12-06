@@ -58,7 +58,7 @@ elif [ "$LINTER_BOT" = "coverage" ]; then
 
   status=$?
 
-  pub global activate coverage
+  dart pub global activate coverage
 
   echo "Collecting coverage on port $OBS_PORT..."
 
@@ -74,7 +74,6 @@ elif [ "$LINTER_BOT" = "coverage" ]; then
     --lcov \
     --in=var/coverage.json \
     --out=var/lcov.info \
-    --packages=.packages \
     --report-on=lib \
     --check-ignore
 
@@ -86,9 +85,13 @@ else
   # Verify that the libraries are error free.
   dart analyze --fatal-infos .
 
+  # Enforce some linter-specific checks.
+  dart tool/checks/driver.dart
+
   echo ""
 
   # Run tests.
-  dart --disable-analytics \
+  dart --enable-asserts \
+    --disable-analytics \
     test/all.dart
 fi

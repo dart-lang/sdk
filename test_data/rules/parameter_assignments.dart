@@ -4,6 +4,8 @@
 
 // test w/ `dart test -N parameter_assignments`
 
+// ignore_for_file: unused_local_variable
+
 void badFunction(int parameter) {
   parameter = 4; // LINT
 }
@@ -30,7 +32,7 @@ class A {
   }
 }
 
-void ok2(String parameter) {
+void ok2(String? parameter) {
   if (parameter == null) {
     int parameter = 2;
     parameter = 3;
@@ -50,33 +52,36 @@ void otherBad1(int parameter) {
   print(parameter);
 }
 
-void actuallyGood(int required, {int optional}) { // OK
+void actuallyGood(int required, {int? optional}) { // OK
   optional ??= 8;
 }
 
-void actuallyGoodPositional(int required, [int optional]) { // OK
+void actuallyGoodPositional(int required, [int? optional]) { // OK
   optional ??= 8;
 }
 
-void butNotTwice(int required, [int optional]) {
+void butNotTwice(int required, [int? optional]) {
   optional ??= 8;
+  // ignore: dead_null_aware_expression
   optional ??= 16; // LINT
 }
 
-void onceAgainBad01(int required, {int optional}) {
+void onceAgainBad01(int required, {int? optional}) {
   optional ??= 8;
   optional = 42; // LINT
 }
 
-void onceAgainBad01Positional(int required, [int optional]) {
+void onceAgainBad01Positional(int required, [int? optional]) {
   optional ??= 8;
   optional = 42; // LINT
 }
 
 void onceAgainBad02(int required, {int optional: 42}) {
+  // ignore: dead_null_aware_expression
   optional ??= 8; // LINT
 }
 
 void onceAgainBad02Positional(int required, [int optional = 42]) {
+  // ignore: dead_null_aware_expression
   optional ??= 8; // LINT
 }

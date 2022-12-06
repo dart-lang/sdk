@@ -7,21 +7,15 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Avoid using `null` in `if null` operators.';
 
 const _details = r'''
-
 **AVOID** using `null` as an operand in `if null` operators.
 
 Using `null` in an `if null` operator is redundant, regardless of which side
 `null` is used on.
-
-**GOOD:**
-```dart
-var x = a ?? 1;
-```
 
 **BAD:**
 ```dart
@@ -29,16 +23,28 @@ var x = a ?? null;
 var y = null ?? 1;
 ```
 
+**GOOD:**
+```dart
+var x = a ?? 1;
+```
+
 ''';
 
-class UnnecessaryNullInIfNullOperators extends LintRule
-    implements NodeLintRule {
+class UnnecessaryNullInIfNullOperators extends LintRule {
+  static const LintCode code = LintCode('unnecessary_null_in_if_null_operators',
+      "Unnecessary use of '??' with 'null'.",
+      correctionMessage:
+          "Try removing the '??' operator and the 'null' operand.");
+
   UnnecessaryNullInIfNullOperators()
       : super(
             name: 'unnecessary_null_in_if_null_operators',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -56,8 +62,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitBinaryExpression(BinaryExpression node) {
     if (node.operator.type == TokenType.QUESTION_QUESTION &&
-        (DartTypeUtilities.isNullLiteral(node.rightOperand) ||
-            DartTypeUtilities.isNullLiteral(node.leftOperand))) {
+        (node.rightOperand.isNullLiteral || node.leftOperand.isNullLiteral)) {
       rule.reportLint(node);
     }
   }

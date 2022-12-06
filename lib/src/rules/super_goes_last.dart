@@ -11,7 +11,6 @@ const _desc =
     r'Place the `super` call last in a constructor initialization list.';
 
 const _details = r'''
-
 From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
 
 **DO** place the `super` call last in a constructor initialization list.
@@ -30,18 +29,18 @@ Getting in the habit of placing it last improves consistency, visually
 reinforces when the superclass's constructor body is run, and may help
 performance.
 
-**GOOD:**
-```dart
-View(Style style, List children)
-    : _children = children,
-      super(style) {
-```
-
 **BAD:**
 ```dart
 View(Style style, List children)
     : super(style),
       _children = children {
+```
+
+**GOOD:**
+```dart
+View(Style style, List children)
+    : _children = children,
+      super(style) {
 ```
 
 **DEPRECATED:** In Dart 2, it is a compile-time error if a superinitializer
@@ -52,7 +51,7 @@ necessary.
 The rule will be removed in a future Linter release.
 ''';
 
-class SuperGoesLast extends LintRule implements NodeLintRule {
+class SuperGoesLast extends LintRule {
   SuperGoesLast()
       : super(
             name: 'super_goes_last',

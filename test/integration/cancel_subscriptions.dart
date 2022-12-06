@@ -35,7 +35,7 @@ void main() {
           stringContainsInOrder([
             'StreamSubscription _subscriptionA; // LINT',
             'StreamSubscription _subscriptionF; // LINT',
-            '1 file analyzed, 3 issues found, in'
+            '2 files analyzed, 3 issues found, in'
           ]));
       expect(exitCode, 1);
     });

@@ -6,14 +6,14 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Use string buffers to compose strings.';
 
 const _details = r'''
-
 **DO** use string buffers to compose strings.
 
 In most cases, using a string buffer is preferred for composing strings due to
@@ -52,7 +52,7 @@ bool _isEmptyInterpolationString(AstNode node) =>
 /// step it creates an auxiliary String that takes O(amount of chars) to be
 /// computed, in otherwise using a StringBuffer the order is reduced to O(~N)
 /// so the bad case is N times slower than the good case.
-class UseStringBuffers extends LintRule implements NodeLintRule {
+class UseStringBuffers extends LintRule {
   UseStringBuffers()
       : super(
             name: 'use_string_buffers',
@@ -121,11 +121,12 @@ class _UseStringBufferVisitor extends SimpleAstVisitor {
         node.operator.type != TokenType.EQ) return;
 
     var left = node.leftHandSide;
+    var writeType = node.writeType;
     if (left is SimpleIdentifier &&
-        DartTypeUtilities.isClass(node.writeType, 'String', 'dart.core')) {
+        writeType is InterfaceType &&
+        writeType.isDartCoreString) {
       if (node.operator.type == TokenType.PLUS_EQ &&
-          !localElements.contains(
-              DartTypeUtilities.getCanonicalElement(node.writeElement))) {
+          !localElements.contains(node.writeElement?.canonicalElement)) {
         rule.reportLint(node);
       }
       if (node.operator.type == TokenType.EQ) {

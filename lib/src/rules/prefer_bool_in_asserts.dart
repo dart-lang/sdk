@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Prefer using a boolean as the assert condition.';
 
 const _details = r'''
-
 **DO** use a boolean for assert conditions.
 
 Not using booleans in assert conditions can lead to code where it isn't clear
@@ -40,7 +39,7 @@ necessary.
 The rule will be removed in a future Linter release.
 ''';
 
-class PreferBoolInAsserts extends LintRule implements NodeLintRule {
+class PreferBoolInAsserts extends LintRule {
   PreferBoolInAsserts()
       : super(
             name: 'prefer_bool_in_asserts',

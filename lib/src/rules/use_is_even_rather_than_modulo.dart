@@ -12,7 +12,6 @@ const _desc =
     r'Prefer intValue.isOdd/isEven instead of checking the result of % 2.';
 
 const _details = r'''
-
 **PREFER** the use of intValue.isOdd/isEven to check for evenness.
 
 **BAD:**
@@ -29,7 +28,7 @@ bool isOdd = 13.isOdd;
 
 ''';
 
-class UseIsEvenRatherThanModuloCheck extends LintRule implements NodeLintRule {
+class UseIsEvenRatherThanModuloCheck extends LintRule {
   UseIsEvenRatherThanModuloCheck()
       : super(
             name: 'use_is_even_rather_than_modulo',

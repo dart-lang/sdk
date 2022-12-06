@@ -15,33 +15,16 @@ conditionals.
 
 **BAD:**
 ```dart
-Widget build(BuildContext context) {
-  return Row(
-    children: [
-      IconButton(icon: Icon(Icons.menu)),
-      Expanded(child: title),
-      isAndroid ? IconButton(icon: Icon(Icons.search)) : null,
-    ].where((child) => child != null).toList(),
-  );
-}
+var list = ['a', 'b', condition ? 'c' : null].where((e) => e != null).toList();
 ```
 
 **GOOD:**
 ```dart
-Widget build(BuildContext context) {
-  return Row(
-    children: [
-      IconButton(icon: Icon(Icons.menu)),
-      Expanded(child: title),
-      if (isAndroid) IconButton(icon: Icon(Icons.search)),
-    ]
-  );
-}
+var list = ['a', 'b', if (condition) 'c'];
 ```
 ''';
 
-class PreferIfElementsToConditionalExpressions extends LintRule
-    implements NodeLintRule {
+class PreferIfElementsToConditionalExpressions extends LintRule {
   PreferIfElementsToConditionalExpressions()
       : super(
             name: 'prefer_if_elements_to_conditional_expressions',

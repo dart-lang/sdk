@@ -7,6 +7,9 @@
 void someFunction() {
   var list = <int>[];
   if (list.contains('1')) print('someFunction'); // LINT
+  list
+    ..add(1)
+    ..contains('1'); // LINT
 }
 
 void someFunction1() {
@@ -25,49 +28,51 @@ void someFunction4() {
 }
 
 void someFunction4_1() {
-  List list;
-  if (list.contains(null)) print('someFucntion4_1');
+  List<dynamic> list = [];
+  if (list.contains(null)) print('someFunction4_1');
 }
 
 void someFunction5_1() {
   List<ClassBase> list = <ClassBase>[];
-  Object instance;
+  Object instance = '';
   if (list.contains(instance)) print('someFunction5_1'); // OK
 }
 
 void someFunction5() {
   List<ClassBase> list = <ClassBase>[];
-  DerivedClass1 instance;
+  DerivedClass1 instance = DerivedClass1();
   if (list.contains(instance)) print('someFunction5'); // OK
 }
 
 void someFunction6() {
   List<Mixin> list = <Mixin>[];
-  DerivedClass2 instance;
+  DerivedClass2 instance = DerivedClass2();
   if (list.contains(instance)) print('someFunction6'); // OK
 }
 
+class MixedIn with Mixin {}
+
 void someFunction6_1() {
   List<DerivedClass2> list = <DerivedClass2>[];
-  Mixin instance;
+  Mixin instance = MixedIn();
   if (list.contains(instance)) print('someFunction6_1'); // OK
 }
 
 void someFunction7() {
   List<Mixin> list = <Mixin>[];
-  DerivedClass3 instance;
+  DerivedClass3 instance = DerivedClass3();
   if (list.contains(instance)) print('someFunction7'); // OK
 }
 
 void someFunction7_1() {
   List<DerivedClass3> list = <DerivedClass3>[];
-  Mixin instance;
+  Mixin instance = MixedIn();
   if (list.contains(instance)) print('someFunction7_1'); // OK
 }
 
 void someFunction8() {
   List<DerivedClass2> list = <DerivedClass2>[];
-  DerivedClass3 instance;
+  DerivedClass3 instance = DerivedClass3();
   if (list.contains(instance)) print('someFunction8'); // OK
 }
 
@@ -92,7 +97,7 @@ void someFunction11(unknown) {
 
 void someFunction12() {
   List<DerivedClass4> list = <DerivedClass4>[];
-  DerivedClass5 instance;
+  DerivedClass5 instance = DerivedClass5();
   if (list.contains(instance)) print('someFunction12'); // LINT
 }
 
@@ -175,4 +180,26 @@ abstract class MyIterableMixedClass extends Object
     implements Iterable<int> {
   bool myConcreteBadMethod(String thing) => this.contains(thing); // LINT
   bool myConcreteBadMethod1(String thing) => contains(thing); // LINT
+}
+
+enum E implements List<int> {
+  one,
+  two;
+
+  @override
+  dynamic noSuchMethod(_) => throw UnsupportedError('');
+
+  void f() {
+    contains('string'); // LINT
+    this.contains('string'); // LINT
+    contains(1); // OK
+  }
+}
+
+extension on List<int> {
+  void f() {
+    contains('string'); // LINT
+    this.contains('string'); // LINT
+    contains(1); // OK
+  }
 }

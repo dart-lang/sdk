@@ -8,14 +8,20 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Specify `@required` on named parameters without defaults.';
 
 const _details = r'''
-
 **DO** specify `@required` on named parameters without a default value on which 
 an `assert(param != null)` is done.
+
+**BAD:**
+```dart
+m1({a}) {
+  assert(a != null);
+}
+```
 
 **GOOD:**
 ```dart
@@ -28,25 +34,25 @@ m2({a: 1}) {
 }
 ```
 
-**BAD:**
-```dart
-m1({a}) {
-  assert(a != null);
-}
-```
-
 NOTE: Only asserts at the start of the bodies will be taken into account.
 
 ''';
 
-class AlwaysRequireNonNullNamedParameters extends LintRule
-    implements NodeLintRule {
+class AlwaysRequireNonNullNamedParameters extends LintRule {
+  static const LintCode code = LintCode(
+      'always_require_non_null_named_parameters',
+      "Named parameters without a default value should be annotated with '@required'.",
+      correctionMessage: "Try adding the '@required' annotation.");
+
   AlwaysRequireNonNullNamedParameters()
       : super(
             name: 'always_require_non_null_named_parameters',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -99,10 +105,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkAssert(
       Expression assertExpression, List<DefaultFormalParameter> params) {
     for (var param in params) {
-      var identifier = param.identifier;
-      if (identifier != null &&
-          _hasAssertNotNull(assertExpression, identifier.name)) {
-        rule.reportLintForToken(identifier.beginToken);
+      var name = param.name;
+      if (name != null && _hasAssertNotNull(assertExpression, name.lexeme)) {
+        rule.reportLintForToken(name);
         params.remove(param);
         return;
       }
@@ -118,7 +123,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _checkParams(List<DefaultFormalParameter> params, FunctionBody? body) {
+  void _checkParams(List<DefaultFormalParameter> params, FunctionBody body) {
     if (body is BlockFunctionBody) {
       for (var statement in body.block.statements) {
         if (statement is AssertStatement) {
@@ -132,7 +137,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _hasAssertNotNull(Expression node, String name) {
-    bool _hasSameName(Expression rawExpression) {
+    bool hasSameName(Expression rawExpression) {
       var expression = rawExpression.unParenthesized;
       return expression is SimpleIdentifier && expression.name == name;
     }
@@ -145,8 +150,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
       if (expression.operator.type == TokenType.BANG_EQ) {
         var operands = [expression.leftOperand, expression.rightOperand];
-        return operands.any(DartTypeUtilities.isNullLiteral) &&
-            operands.any(_hasSameName);
+        return operands.any((e) => e.isNullLiteral) &&
+            operands.any(hasSameName);
       }
     }
     return false;

@@ -4,6 +4,8 @@
 
 // test w/ `dart test -N non_constant_identifier_names`
 
+// ignore_for_file: unused_local_variable, unused_element, unused_field
+
 void main() {
   var XYZ = 1; // LINT
   var ABC = 1, // LINT
@@ -59,7 +61,6 @@ abstract class A {
   A(this.bar_bar); //OK
   A.N(this.bar_bar); //OK
   A.Named(this.bar_bar); //LINT
-  factory A.Named2(String a) = A; //LINT
   A._Named(this.bar_bar); //LINT
   A.named_bar(this.bar_bar); //LINT
   A.namedBar(this.bar_bar); //OK
@@ -88,6 +89,11 @@ abstract class A {
   }
 }
 
+class B {
+  B(String b);
+  factory B.Named2(String b) = B; //LINT
+}
+
 foo() {
   listen((_) {}); // OK!
   listen((__) {}); // OK!
@@ -101,4 +107,5 @@ listen(void onData(Object event)) {}
 // Generic function syntax should be OK (#805).
 T scope<T>(T Function() run) {
   /* ... */
+  return run();
 }

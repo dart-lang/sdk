@@ -12,20 +12,10 @@ import '../ast.dart';
 const _desc = r'Prefer const over final for declarations.';
 
 const _details = r'''
-
 **PREFER** using `const` for const declarations.
 
 Const declarations are more hot-reload friendly and allow to use const
 constructors if an instantiation references this declaration.
-
-**GOOD:**
-```dart
-const o = <int>[];
-
-class A {
-  static const o = <int>[];
-}
-```
 
 **BAD:**
 ```dart
@@ -36,15 +26,31 @@ class A {
 }
 ```
 
+**GOOD:**
+```dart
+const o = <int>[];
+
+class A {
+  static const o = <int>[];
+}
+```
+
 ''';
 
-class PreferConstDeclarations extends LintRule implements NodeLintRule {
+class PreferConstDeclarations extends LintRule {
+  static const LintCode code = LintCode('prefer_const_declarations',
+      "Use 'const' for final variables initialized to a constant value.",
+      correctionMessage: "Try replacing 'final' with 'const'.");
+
   PreferConstDeclarations()
       : super(
             name: 'prefer_const_declarations',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

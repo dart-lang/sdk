@@ -7,12 +7,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
 
 const _desc = r'Property getter recursively returns itself.';
 
 const _details = r'''
-
 **DON'T** create recursive getters.
 
 Recursive getters are getters which return themselves as a value.  This is
@@ -37,13 +35,20 @@ int get field => _field;
 
 ''';
 
-class RecursiveGetters extends LintRule implements NodeLintRule {
+class RecursiveGetters extends LintRule {
+  static const LintCode code = LintCode(
+      'recursive_getters', "The getter '{0}' recursively returns itself.",
+      correctionMessage: 'Try changing the value being returned.');
+
   RecursiveGetters()
       : super(
             name: 'recursive_getters',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -54,66 +59,66 @@ class RecursiveGetters extends LintRule implements NodeLintRule {
   }
 }
 
-/// Tests if a simple identifier is a recursive getter by looking at its parent.
-class _RecursiveGetterParentVisitor extends SimpleAstVisitor<bool> {
-  @override
-  bool visitPropertyAccess(PropertyAccess node) =>
-      node.target is ThisExpression;
+class _BodyVisitor extends RecursiveAstVisitor {
+  final LintRule rule;
+  final ExecutableElement element;
+  _BodyVisitor(this.element, this.rule);
 
-  @override
-  bool? visitSimpleIdentifier(SimpleIdentifier node) {
+  bool isSelfReference(SimpleIdentifier node) {
+    if (node.staticElement != element) return false;
     var parent = node.parent;
-    if (parent is ArgumentList ||
-        parent is ConditionalExpression ||
-        parent is ExpressionFunctionBody ||
-        parent is ReturnStatement) {
-      return true;
+    if (parent is PrefixedIdentifier) return false;
+    if (parent is PropertyAccess && parent.target is! ThisExpression) {
+      return false;
+    }
+    return true;
+  }
+
+  @override
+  visitListLiteral(ListLiteral node) {
+    if (node.isConst) return null;
+    return super.visitListLiteral(node);
+  }
+
+  @override
+  visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (node.isConst) return null;
+    return super.visitSetOrMapLiteral(node);
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (isSelfReference(node)) {
+      rule.reportLint(node, arguments: [node.name]);
     }
 
-    if (parent is PropertyAccess) {
-      return parent.accept(this);
-    }
-
-    return false;
+    // No need to call super visit (SimpleIdentifiers have no children).
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final visitor = _RecursiveGetterParentVisitor();
-
   _Visitor(this.rule);
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     // getters have null arguments, methods have parameters, could be empty.
-    if (node.functionExpression.parameters != null) {
-      return;
-    }
+    if (node.functionExpression.parameters != null) return;
 
-    var element = node.declaredElement;
-    _verifyElement(node.functionExpression, element);
+    _verifyElement(node.functionExpression, node.declaredElement);
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     // getters have null arguments, methods have parameters, could be empty.
-    if (node.parameters != null) {
-      return;
-    }
+    if (node.parameters != null) return;
 
-    var element = node.declaredElement;
-    _verifyElement(node.body, element);
+    _verifyElement(node.body, node.declaredElement);
   }
 
   void _verifyElement(AstNode node, ExecutableElement? element) {
-    var nodes = DartTypeUtilities.traverseNodesInDFS(node);
-    nodes
-        .where((n) =>
-            n is SimpleIdentifier &&
-            element == n.staticElement &&
-            (n.accept(visitor) ?? false))
-        .forEach(rule.reportLint);
+    if (element == null) return;
+    node.accept(_BodyVisitor(element, rule));
   }
 }

@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'No default cases.';
 
@@ -22,6 +22,18 @@ Enum-like classes are defined as concrete (non-abstract) classes that have:
 
 **DO** define default behavior outside switch statements.
 
+**BAD:**
+```dart
+  switch (testEnum) {
+    case TestEnum.A:
+      return '123';
+    case TestEnum.B:
+      return 'abc';
+    default:
+      return null;
+  }
+```
+
 **GOOD:**
 ```dart
   switch (testEnum) {
@@ -34,20 +46,9 @@ Enum-like classes are defined as concrete (non-abstract) classes that have:
   return null;
 ```
 
-**BAD:**
-```dart
-  switch (testEnum) {
-    case TestEnum.A:
-      return '123';
-    case TestEnum.B:
-      return 'abc';
-    default:
-      return null;
-  }
-```
 ''';
 
-class NoDefaultCases extends LintRule implements NodeLintRule {
+class NoDefaultCases extends LintRule {
   NoDefaultCases()
       : super(
             name: 'no_default_cases',
@@ -69,17 +70,16 @@ class _Visitor extends SimpleAstVisitor {
 
   _Visitor(this.rule);
 
-  bool isEnumLikeClass(ClassElement classElement) =>
-      DartTypeUtilities.asEnumLikeClass(classElement) != null;
-
   @override
   void visitSwitchStatement(SwitchStatement statement) {
     var expressionType = statement.expression.staticType;
     if (expressionType is InterfaceType) {
       for (var member in statement.members) {
         if (member is SwitchDefault) {
-          var classElement = expressionType.element;
-          if (classElement.isEnum || isEnumLikeClass(classElement)) {
+          var interfaceElement = expressionType.element;
+          if (interfaceElement is EnumElement ||
+              interfaceElement is ClassElement &&
+                  interfaceElement.isEnumLikeClass) {
             rule.reportLint(member);
           }
           return;

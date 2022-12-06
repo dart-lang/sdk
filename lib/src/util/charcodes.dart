@@ -15,7 +15,6 @@ const int $9 = 0x39;
 const int $backslash = 0x5c;
 
 /// Character `_`.
-// ignore: constant_identifier_names
 const int $_ = 0x5f;
 
 /// Character `a`.

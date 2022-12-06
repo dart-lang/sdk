@@ -5,13 +5,13 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
 const _desc = r'Use predefined named constants.';
 
 const _details = r'''
-
 Where possible, use already defined const values.
 
 **BAD:**
@@ -27,7 +27,7 @@ Duration.zero;
 ''';
 const lintName = 'use_named_constants';
 
-class UseNamedConstants extends LintRule implements NodeLintRule {
+class UseNamedConstants extends LintRule {
   UseNamedConstants()
       : super(
           name: lintName,
@@ -53,7 +53,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      var element = node.staticType?.element;
+      var type = node.staticType;
+      if (type is! InterfaceType) return;
+      var element = type.element;
       if (element is ClassElement) {
         var nodeField =
             node.thisOrAncestorOfType<VariableDeclaration>()?.declaredElement;
@@ -67,6 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (nodeField?.enclosingElement == element) return;
 
         var library = (node.root as CompilationUnit).declaredElement?.library;
+        if (library == null) return;
         var value = context.evaluateConstant(node).value;
         for (var field
             in element.fields.where((e) => e.isStatic && e.isConst)) {
@@ -76,7 +79,8 @@ class _Visitor extends SimpleAstVisitor<void> {
                 arguments: ['${element.name}.${field.name}'],
                 errorCode: const LintCode(lintName,
                     "The constant '{0}' should be referenced instead of duplicating its value.",
-                    correction: "Try using the predefined constant '{0}'."));
+                    correctionMessage:
+                        "Try using the predefined constant '{0}'."));
             return;
           }
         }

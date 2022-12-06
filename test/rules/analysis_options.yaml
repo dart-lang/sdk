@@ -1,0 +1,6 @@
+include: ../../analysis_options.yaml
+
+linter:
+  rules:
+    # For reflective test naming
+    non_constant_identifier_names: false

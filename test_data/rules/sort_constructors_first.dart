@@ -21,11 +21,11 @@ abstract class C {
 }
 
 abstract class D {
-  final a;
+  final a = 0;
   D(); //LINT
 }
 
 abstract class E {
-  static final a;
+  static final a = 0;
   E(); //LINT
 }

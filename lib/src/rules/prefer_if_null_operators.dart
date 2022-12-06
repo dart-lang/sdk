@@ -11,8 +11,7 @@ import '../analyzer.dart';
 const _desc = r'Prefer using if null operators.';
 
 const _details = r'''
-
-Prefer using if null operators instead of null checks in conditional
+**PREFER** using if null operators instead of null checks in conditional
 expressions.
 
 **BAD:**
@@ -27,13 +26,20 @@ v = a ?? b;
 
 ''';
 
-class PreferIfNullOperators extends LintRule implements NodeLintRule {
+class PreferIfNullOperators extends LintRule {
+  static const LintCode code = LintCode('prefer_if_null_operators',
+      "Use the '??' operator rather than '?:' when testing for 'null'.",
+      correctionMessage: "Try rewriting the code to use '??'.");
+
   PreferIfNullOperators()
       : super(
             name: 'prefer_if_null_operators',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

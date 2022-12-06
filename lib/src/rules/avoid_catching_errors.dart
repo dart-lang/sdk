@@ -6,12 +6,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r"Don't explicitly catch Error or types that implement it.";
 
 const _details = r'''
-
 **DON'T** explicitly catch Error or types that implement it.
 
 Errors differ from Exceptions in that Errors can be analyzed and prevented prior
@@ -37,13 +36,24 @@ try {
 
 ''';
 
-class AvoidCatchingErrors extends LintRule implements NodeLintRule {
+class AvoidCatchingErrors extends LintRule {
+  static const LintCode classCode = LintCode(
+      'avoid_catching_errors', "The type 'Error' should not be caught.",
+      uniqueName: 'LintCode.avoid_catching_errors_class');
+
+  static const LintCode subclassCode = LintCode('avoid_catching_errors',
+      "The type '{0}' should not be caught because it is a subclass of 'Error'.",
+      uniqueName: 'LintCode.avoid_catching_errors_subclass');
+
   AvoidCatchingErrors()
       : super(
             name: 'avoid_catching_errors',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  List<LintCode> get lintCodes => [classCode, subclassCode];
 
   @override
   void registerNodeProcessors(
@@ -61,9 +71,16 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitCatchClause(CatchClause node) {
     var exceptionType = node.exceptionType?.type;
-    if (DartTypeUtilities.implementsInterface(
-        exceptionType, 'Error', 'dart.core')) {
-      rule.reportLint(node);
+    if (exceptionType.implementsInterface('Error', 'dart.core')) {
+      if (exceptionType.isSameAs('Error', 'dart.core')) {
+        rule.reportLint(node, errorCode: AvoidCatchingErrors.classCode);
+      } else {
+        rule.reportLint(node,
+            errorCode: AvoidCatchingErrors.subclassCode,
+            arguments: [
+              exceptionType!.getDisplayString(withNullability: false)
+            ]);
+      }
     }
   }
 }

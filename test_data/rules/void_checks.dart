@@ -6,7 +6,39 @@
 
 // @dart=2.9
 
+// ignore_for_file: unused_local_variable
+
 import 'dart:async';
+
+Never fail() { throw 'nope'; }
+void foo(FutureOr<void> Function() f2) {}
+
+/// https://github.com/dart-lang/linter/issues/2685
+void m3() {
+  foo(() {
+    fail(); // OK
+  });
+
+  var f = Future.value(0);
+  f.then<void>((_) {
+    fail(); // OK
+  });
+}
+
+void m2() {
+  // https://github.com/dart-lang/linter/issues/2794
+  Future<void> f = Future.value(1).then<void>((_) { // OK
+    throw 'sad';
+  });
+}
+
+void foo2(FutureOr<void> x) {}
+
+void main() {
+  FutureOr<void> x;
+  // https://github.com/dart-lang/linter/issues/1675
+  foo(x); // OK
+}
 
 var x;
 get g => null;
@@ -161,6 +193,7 @@ allow_functionWithReturnType_forFunctionWithout() {
   void Function() returnsVoidFn() {
     return nonVoidFn; // OK
   }
+  returnsVoidFn();
 }
 
 allow_functionWithReturnType_forFunctionWithout_asComplexExpr() {
@@ -174,6 +207,7 @@ allow_functionWithReturnType_forFunctionWithout_asComplexExpr() {
   void Function() returnsVoidFn() {
     return listNonVoidFn[0]; // OK
   }
+  returnsVoidFn();
 }
 
 allow_Null_for_void() {
@@ -203,11 +237,6 @@ allow_expression_function_body() {
   void Function() f;
   f = () => i; // OK
   f = () => i++; // OK
-}
-
-missing_parameter_for_argument() {
-  void foo() {}
-  foo(0);
 }
 
 void emptyFunctionExpressionReturningFutureOrVoid(FutureOr<void> Function() f) {

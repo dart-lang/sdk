@@ -11,8 +11,7 @@ import '../analyzer.dart';
 const _desc = r'Unnecessary string interpolation.';
 
 const _details = r'''
-
-Don't use string interpolation if there's only a string expression in it.
+**DON'T** use string interpolation if there's only a string expression in it.
 
 **BAD:**
 ```dart
@@ -28,13 +27,21 @@ String o = message;
 
 ''';
 
-class UnnecessaryStringInterpolations extends LintRule implements NodeLintRule {
+class UnnecessaryStringInterpolations extends LintRule {
+  static const LintCode code = LintCode('unnecessary_string_interpolations',
+      'Unnecessary use of string interpolation.',
+      correctionMessage:
+          'Try replacing the string literal with the variable name.');
+
   UnnecessaryStringInterpolations()
       : super(
             name: 'unnecessary_string_interpolations',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -53,7 +60,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitStringInterpolation(StringInterpolation node) {
     if (node.parent is AdjacentStrings) return;
     if (node.elements.length == 3) {
-      var start = node.elements[0] as InterpolationString;
+      var start = node.elements.first as InterpolationString;
       var interpolation = node.elements[1] as InterpolationExpression;
       var end = node.elements[2] as InterpolationString;
       if (start.value.isEmpty && end.value.isEmpty) {

@@ -11,7 +11,6 @@ import '../ast.dart';
 const _desc = r'Always override `hashCode` if overriding `==`.';
 
 const _details = r'''
-
 **DO** override `hashCode` if overriding `==` and prefer overriding `==` if
 overriding `hashCode`.
 
@@ -39,7 +38,10 @@ class Better {
   Better(this.value);
 
   @override
-  bool operator ==(Object other) => other is Better && other.value == value;
+  bool operator ==(Object other) =>
+      other is Better &&
+      other.runtimeType == runtimeType &&
+      other.value == value;
 
   @override
   int get hashCode => value.hashCode;
@@ -47,13 +49,20 @@ class Better {
 ```
 ''';
 
-class HashAndEquals extends LintRule implements NodeLintRule {
+class HashAndEquals extends LintRule {
+  static const LintCode code = LintCode(
+      'hash_and_equals', "Missing a corresponding override of '{0}'.",
+      correctionMessage: "Try overriding '{0}' or removing '{1}'.");
+
   HashAndEquals()
       : super(
             name: 'hash_and_equals',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -64,22 +73,19 @@ class HashAndEquals extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static const LintCode hashMemberCode = LintCode(
-      'hash_and_equals', 'Override `==` if overriding `hashCode`.',
-      correction: 'Implement `==`.');
-  static const LintCode equalsMemberCode = LintCode(
-      'hash_and_equals', 'Override `hashCode` if overriding `==`.',
-      correction: 'Implement `hashCode`.');
-
   final LintRule rule;
 
   _Visitor(this.rule);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    _check(node.members);
+  }
+
+  void _check(NodeList<ClassMember> members) {
     MethodDeclaration? eq;
     ClassMember? hash;
-    for (var member in node.members) {
+    for (var member in members) {
       if (isEquals(member)) {
         eq = member as MethodDeclaration;
       } else if (isHashCode(member)) {
@@ -88,14 +94,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     if (eq != null && hash == null) {
-      rule.reportLint(eq.name, errorCode: equalsMemberCode);
+      rule.reportLintForToken(eq.name, arguments: ['hashCode', '==']);
     }
     if (hash != null && eq == null) {
       if (hash is MethodDeclaration) {
-        rule.reportLint(hash.name, errorCode: hashMemberCode);
+        rule.reportLintForToken(hash.name, arguments: ['==', 'hashCode']);
       } else if (hash is FieldDeclaration) {
-        rule.reportLint(getFieldIdentifier(hash, 'hashCode'),
-            errorCode: hashMemberCode);
+        rule.reportLintForToken(getFieldName(hash, 'hashCode'),
+            arguments: ['==', 'hashCode']);
       }
     }
   }

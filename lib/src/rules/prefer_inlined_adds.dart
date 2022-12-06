@@ -17,23 +17,34 @@ Declare elements in list literals inline, rather than using `add` and
 **BAD:**
 ```dart
 var l = ['a']..add('b')..add('c');
-var l2 = ['a']..addAll(['b', 'c'])
+var l2 = ['a']..addAll(['b', 'c']);
 ```
 
 **GOOD:**
 ```dart
 var l = ['a', 'b', 'c'];
-var 2 = ['a', 'b', 'c'];
+var l2 = ['a', 'b', 'c'];
 ```
 ''';
 
-class PreferInlinedAdds extends LintRule implements NodeLintRule {
+class PreferInlinedAdds extends LintRule {
+  static const LintCode single = LintCode(
+      'prefer_inlined_adds', 'The addition of a list item could be inlined.',
+      correctionMessage: 'Try adding the item to the list literal directly.');
+
+  static const LintCode multiple = LintCode('prefer_inlined_adds',
+      'The addition of multiple list items could be inlined.',
+      correctionMessage: 'Try adding the items to the list literal directly.');
+
   PreferInlinedAdds()
       : super(
             name: 'prefer_inlined_adds',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  List<LintCode> get lintCodes => [multiple, single];
 
   @override
   void registerNodeProcessors(
@@ -61,16 +72,18 @@ class _Visitor extends SimpleAstVisitor {
     var sections = cascade?.cascadeSections;
     var target = cascade?.target;
     if (target is! ListLiteral ||
-        (sections != null && sections[0] != invocation)) {
+        (sections != null && sections.first != invocation)) {
       // todo (pq): consider extending to handle set literals.
       return;
     }
 
-    if (addAll && invocation.argumentList.arguments[0] is! ListLiteral) {
+    if (addAll && invocation.argumentList.arguments.first is! ListLiteral) {
       // Handled by: prefer_spread_collections
       return;
     }
 
-    rule.reportLint(invocation.methodName);
+    rule.reportLint(invocation.methodName,
+        errorCode:
+            addAll ? PreferInlinedAdds.multiple : PreferInlinedAdds.single);
   }
 }

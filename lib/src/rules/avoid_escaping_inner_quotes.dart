@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid escaping inner quotes by converting surrounding quotes.';
 
 const _details = r'''
-
 Avoid escaping inner quotes by converting surrounding quotes.
 
 **BAD:**
@@ -25,13 +24,20 @@ var s = "It's not fun";
 
 ''';
 
-class AvoidEscapingInnerQuotes extends LintRule implements NodeLintRule {
+class AvoidEscapingInnerQuotes extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_escaping_inner_quotes', "Unnecessary escape of '{0}'.",
+      correctionMessage: "Try changing the outer quotes to '{1}'.");
+
   AvoidEscapingInnerQuotes()
       : super(
             name: 'avoid_escaping_inner_quotes',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -50,26 +56,30 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     if (node.isRaw || node.isMultiline) return;
-
-    if (isChangeable(node.value, isSingleQuoted: node.isSingleQuoted)) {
-      rule.reportLint(node);
-    }
+    _check(node, node.value, node.isSingleQuoted);
   }
 
   @override
   void visitStringInterpolation(StringInterpolation node) {
     if (node.isRaw || node.isMultiline) return;
 
-    var text = node.elements
-        .whereType<InterpolationString>()
-        .map((e) => e.value)
-        .reduce((a, b) => '$a$b');
-    if (isChangeable(text, isSingleQuoted: node.isSingleQuoted)) {
-      rule.reportLint(node);
+    var text = StringBuffer();
+    for (var element in node.elements) {
+      if (element is InterpolationString) {
+        text.write(element.value);
+      }
+    }
+    _check(node, text.toString(), node.isSingleQuoted);
+  }
+
+  void _check(AstNode node, String text, bool isSingleQuoted) {
+    if (_isChangeable(text, isSingleQuoted: isSingleQuoted)) {
+      rule.reportLint(node,
+          arguments: [isSingleQuoted ? "'" : '"', isSingleQuoted ? '"' : "'"]);
     }
   }
 
-  bool isChangeable(String text, {required bool isSingleQuoted}) =>
+  bool _isChangeable(String text, {required bool isSingleQuoted}) =>
       text.contains(isSingleQuoted ? "'" : '"') &&
       !text.contains(isSingleQuoted ? '"' : "'");
 }

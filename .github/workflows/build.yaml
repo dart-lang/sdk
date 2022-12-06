@@ -7,13 +7,17 @@ on:
   pull_request:
   push:
     branches:
-      - master
+      - main
 
 env:
   PUB_ENVIRONMENT: bot.github
 
+permissions: read-all
+
 jobs:
   build:
+    permissions:
+      checks: write  # for coverallsapp/github-action to create new checks
     name: ${{ matrix.linter-bot }}
     runs-on: ubuntu-latest
     strategy:
@@ -23,13 +27,12 @@ jobs:
           - main
           - coverage
           - release
-          # re-enable when pana CI issues are resolved: https://github.com/dart-lang/linter/issues/2504
-          # - pana_baseline
+          - pana_baseline
           - benchmark
 
     steps:
-      - uses: actions/checkout@v2
-      - uses: dart-lang/setup-dart@v1
+      - uses: actions/checkout@93ea575cb5d8a053eaa0ac8fa3b40d7e05a33cc8
+      - uses: dart-lang/setup-dart@6a218f2413a3e78e9087f638a238f6b40893203d
         with:
           sdk: dev
 
@@ -41,7 +44,7 @@ jobs:
         run: ./tool/bot.sh
       - name: upload coverage
         if: matrix.linter-bot == 'coverage'
-        uses: coverallsapp/github-action@v1.1.2
+        uses: coverallsapp/github-action@9ba913c152ae4be1327bfb9085dc806cedb44057
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: var/lcov.info

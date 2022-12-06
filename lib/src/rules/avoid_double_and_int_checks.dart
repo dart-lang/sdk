@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid double and int checks.';
 
 const _details = r'''
-
 **AVOID** to check if type is double or int.
 
 When compiled to JS, integer values are represented as floats. That can lead to
@@ -42,7 +41,7 @@ f(dynamic x) {
 
 ''';
 
-class AvoidDoubleAndIntChecks extends LintRule implements NodeLintRule {
+class AvoidDoubleAndIntChecks extends LintRule {
   AvoidDoubleAndIntChecks()
       : super(
             name: 'avoid_double_and_int_checks',

@@ -1,0 +1,14 @@
+{
+  "configVersion": 2,
+  "packages": [
+    {
+      "name": "flutter",
+      "rootUri": "../../../mock_packages/flutter/",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    }
+  ],
+  "generated": "2022-06-30T01:27:31.576781Z",
+  "generator": "pub",
+  "generatorVersion": "2.17.0"
+}

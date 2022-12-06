@@ -11,7 +11,6 @@ const _desc =
     r'Prefer final for parameter declarations if they are not reassigned.';
 
 const _details = r'''
-
 **DO** prefer declaring parameters as final if they are not reassigned in
 the function body.
 
@@ -63,7 +62,7 @@ void mutableParameter(String label) { // OK
 
 ''';
 
-class PreferFinalParameters extends LintRule implements NodeLintRule {
+class PreferFinalParameters extends LintRule {
   PreferFinalParameters()
       : super(
             name: 'prefer_final_parameters',
@@ -72,7 +71,8 @@ class PreferFinalParameters extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
-  List<String> get incompatibleRules => const ['unnecessary_final'];
+  List<String> get incompatibleRules =>
+      const ['unnecessary_final', 'avoid_final_parameters'];
 
   @override
   void registerNodeProcessors(
@@ -95,11 +95,22 @@ class _Visitor extends SimpleAstVisitor<void> {
       FormalParameterList? parameters, FunctionBody body) {
     if (parameters != null) {
       for (var param in parameters.parameters) {
-        if (param.isFinal || param.isConst || param is FieldFormalParameter) {
+        if (param is DefaultFormalParameter) {
+          param = param.parameter;
+        }
+        if (param.isFinal ||
+            param.isConst ||
+            // A field formal parameter is final even without the `final`
+            // modifier.
+            param is FieldFormalParameter ||
+            // A super formal parameter is final even without the `final`
+            // modifier.
+            param is SuperFormalParameter) {
           continue;
         }
         var declaredElement = param.declaredElement;
         if (declaredElement != null &&
+            !declaredElement.isInitializingFormal &&
             !body.isPotentiallyMutatedInScope(declaredElement)) {
           rule.reportLint(param);
         }

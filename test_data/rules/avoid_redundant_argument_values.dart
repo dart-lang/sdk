@@ -7,24 +7,42 @@
 import 'package:meta/meta.dart';
 
 class A {
-  A({bool valWithDefault = true, bool val});
-  void f({bool valWithDefault = true, bool val}) {}
-  void g({int valWithDefault = 1, bool val}) {}
-  void h({String valWithDefault = 'default', bool val}) {}
+  A({bool valWithDefault = true, bool? val});
+  void f({bool valWithDefault = true, bool? val}) {}
+  void g({int valWithDefault = 1, bool? val}) {}
+  void h({String valWithDefault = 'default', bool? val}) {}
+}
+
+enum TestEnum {
+  a(test: false); // LINT
+
+  const TestEnum({this.test = false});
+
+  final bool test;
+}
+
+f(void g([bool? b])) {
+  // Function Expression Invocation.
+  g(null); // LINT
 }
 
 bool q() => true;
 
-void ff({bool valWithDefault = true, bool val}) {}
-void g({@required bool valWithDefault = true, bool val}) {}
+void ff({bool valWithDefault = true, bool? val}) {}
+void g({@required bool valWithDefault = true, bool? val}) {}
 
 void gg(int x, [int y = 0]) {}
 void ggg([int a = 1, int b = 2]) {}
-void gggg([int a = 0, int b]) {}
+void gggg([int a = 0, int? b]) {}
 
-void h([int a, int b = 1]) {}
+void h([int? a, int? b = 1]) {}
 
 void main() {
+
+  // Tear-off
+  var aCons = A.new;
+  aCons(valWithDefault: true); //LINT
+
   A(valWithDefault: true); //LINT
   A().f(valWithDefault: true); //LINT
   A().g(valWithDefault: 1); //LINT
@@ -44,7 +62,7 @@ void main() {
   ff(val: false, valWithDefault: v); //OK
   ff(val: false, valWithDefault: q()); //OK
 
-  void fff({bool valWithDefault = true, bool val}) {}
+  void fff({bool valWithDefault = true, bool? val}) {}
 
   fff(valWithDefault: true); //LINT
   fff(val: false); //OK

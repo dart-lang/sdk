@@ -39,7 +39,7 @@ class AllMatchesBenchmark extends BaseBenchmark {
 }
 
 class BaseBenchmark extends BenchmarkBase {
-  const BaseBenchmark(String name) : super(name);
+  const BaseBenchmark(super.name);
 
   @override
   void exercise() {
@@ -66,10 +66,12 @@ class DotScanBenchmark extends BaseBenchmark {
 
   @override
   void run() {
-    // ignore: prefer_foreach
-    for (var name in ['foo.dart', 'a-b.dart', 'a-b.css.dart', 'foo']) {
-      hasOneDot(name);
-    }
+    [
+      'foo.dart',
+      'a-b.dart',
+      'a-b.css.dart',
+      'foo',
+    ].forEach(hasOneDot);
   }
 }
 

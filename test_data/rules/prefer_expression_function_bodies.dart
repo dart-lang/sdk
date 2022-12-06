@@ -14,8 +14,8 @@ int good() {
 }
 
 class A {
-  int left, right;
-  bool one;
+  int left = 1, right = 1;
+  bool one = false;
 
   int bad() { // LINT
     return 1;
@@ -37,7 +37,7 @@ class A {
     return right - left;
   }
 
-  get goodWidth => right - left; // OK
+  int get goodWidth => right - left; // OK
 
   set goodWidth(int width) => right = left + width; // OK
 

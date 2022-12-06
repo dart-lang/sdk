@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
@@ -11,11 +12,21 @@ import '../analyzer.dart';
 const _desc = r'Annotate overridden members.';
 
 const _details = r'''
-
 **DO** annotate overridden methods and fields.
 
 This practice improves code readability and helps protect against
 unintentionally overriding superclass members.
+
+**BAD:**
+```dart
+class Cat {
+  int get lives => 9;
+}
+
+class Lucky extends Cat {
+  final int lives = 14;
+}
+```
 
 **GOOD:**
 ```dart
@@ -32,20 +43,15 @@ class Husky extends Dog {
 }
 ```
 
-**BAD:**
-```dart
-class Cat {
-  int get lives => 9;
-}
-
-class Lucky extends Cat {
-  final int lives = 14;
-}
-```
-
 ''';
 
-class AnnotateOverrides extends LintRule implements NodeLintRule {
+class AnnotateOverrides extends LintRule {
+  static const LintCode code = LintCode(
+      'annotate_overrides',
+      "The member '{0}' overrides an inherited member but isn't annotated "
+          "with '@override'.",
+      correctionMessage: "Try adding the '@override' annotation.");
+
   AnnotateOverrides()
       : super(
             name: 'annotate_overrides',
@@ -54,10 +60,12 @@ class AnnotateOverrides extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
+  LintCode get lintCode => code;
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
-    registry.addCompilationUnit(this, visitor);
     registry.addFieldDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
   }
@@ -69,8 +77,17 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule, this.context);
 
+  void check(Element? element, Token target) {
+    if (element == null || element.hasOverride) return;
+
+    var member = getOverriddenMember(element);
+    if (member != null) {
+      rule.reportLintForToken(target, arguments: [member.name!]);
+    }
+  }
+
   Element? getOverriddenMember(Element member) {
-    var classElement = member.thisOrAncestorOfType<ClassElement>();
+    var classElement = member.thisOrAncestorOfType<InterfaceElement>();
     if (classElement == null) {
       return null;
     }
@@ -88,25 +105,17 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
+    if (node.isStatic) return;
+
     for (var field in node.fields.variables) {
-      var element = field.declaredElement;
-      if (element != null && !element.hasOverride) {
-        var member = getOverriddenMember(element);
-        if (member != null) {
-          rule.reportLint(field);
-        }
-      }
+      check(field.declaredElement, field.name);
     }
   }
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    var element = node.declaredElement;
-    if (element != null && !element.hasOverride) {
-      var member = getOverriddenMember(element);
-      if (member != null) {
-        rule.reportLint(node.name);
-      }
-    }
+    if (node.isStatic) return;
+
+    check(node.declaredElement, node.name);
   }
 }

@@ -2,7 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:flutter/rendering.dart';
+
 import 'framework.dart';
+
+export 'package:flutter/rendering.dart';
 
 class Align extends SingleChildRenderObjectWidget {
   /// How to align the child.
@@ -116,6 +120,14 @@ class Row extends Flex {
     TextBaseline textBaseline,
     List<Widget> children = const <Widget>[],
   });
+}
+
+class SizedBox extends SingleChildRenderObjectWidget {
+  const SizedBox({Key? key, double? width, double? height, Widget? child});
+  const SizedBox.expand({Key? key, Widget? child});
+  const SizedBox.shrink({Key? key, Widget? child});
+  SizedBox.fromSize({Key? key, Widget? child, Size? size});
+  const SizedBox.square({Key? key, Widget? child, double? dimension});
 }
 
 class Transform extends SingleChildRenderObjectWidget {

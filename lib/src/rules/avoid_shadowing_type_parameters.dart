@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid shadowing type parameters.';
 
 const _details = r'''
-
 **AVOID** shadowing type parameters.
 
 **BAD:**
@@ -29,13 +28,20 @@ class A<T> {
 
 ''';
 
-class AvoidShadowingTypeParameters extends LintRule implements NodeLintRule {
+class AvoidShadowingTypeParameters extends LintRule {
+  static const LintCode code = LintCode('avoid_shadowing_type_parameters',
+      "The type parameter '{0}' shadows a type parameter from the enclosing {1}.",
+      correctionMessage: 'Try renaming one of the type parameters.');
+
   AvoidShadowingTypeParameters()
       : super(
             name: 'avoid_shadowing_type_parameters',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -64,7 +70,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitGenericTypeAlias(GenericTypeAlias node) {
     var typeParameters = node.functionType?.typeParameters;
     if (typeParameters != null) {
-      _checkForShadowing(typeParameters, node.typeParameters);
+      _checkForShadowing(typeParameters, node.typeParameters, 'typedef');
     }
   }
 
@@ -86,15 +92,19 @@ class _Visitor extends SimpleAstVisitor<void> {
     var parent = node.parent;
 
     while (parent != null) {
-      if (parent is ClassOrMixinDeclaration) {
-        _checkForShadowing(typeParameters, parent.typeParameters);
+      if (parent is ClassDeclaration) {
+        _checkForShadowing(typeParameters, parent.typeParameters, 'class');
+      } else if (parent is EnumDeclaration) {
+        _checkForShadowing(typeParameters, parent.typeParameters, 'enum');
       } else if (parent is ExtensionDeclaration) {
-        _checkForShadowing(typeParameters, parent.typeParameters);
+        _checkForShadowing(typeParameters, parent.typeParameters, 'extension');
       } else if (parent is MethodDeclaration) {
-        _checkForShadowing(typeParameters, parent.typeParameters);
+        _checkForShadowing(typeParameters, parent.typeParameters, 'method');
+      } else if (parent is MixinDeclaration) {
+        _checkForShadowing(typeParameters, parent.typeParameters, 'mixin');
       } else if (parent is FunctionDeclaration) {
-        _checkForShadowing(
-            typeParameters, parent.functionExpression.typeParameters);
+        _checkForShadowing(typeParameters,
+            parent.functionExpression.typeParameters, 'function');
       }
       parent = parent.parent;
     }
@@ -102,17 +112,20 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   // Check whether any of [typeParameters] shadow [ancestorTypeParameters].
   void _checkForShadowing(TypeParameterList? typeParameters,
-      TypeParameterList? ancestorTypeParameters) {
+      TypeParameterList? ancestorTypeParameters, String ancestorKind) {
     if (typeParameters == null || ancestorTypeParameters == null) {
       return;
     }
 
-    var typeParameterIds = typeParameters.typeParameters.map((tp) => tp.name);
-    var ancestorTypeParameterNames =
-        ancestorTypeParameters.typeParameters.map((tp) => tp.name.name);
-    var shadowingTypeParameters = typeParameterIds
-        .where((tp) => ancestorTypeParameterNames.contains(tp.name));
+    var ancestorTypeParameterNames = ancestorTypeParameters.typeParameters
+        .map((tp) => tp.name.lexeme)
+        .toSet();
 
-    shadowingTypeParameters.forEach(rule.reportLint);
+    for (var parameter in typeParameters.typeParameters) {
+      if (ancestorTypeParameterNames.contains(parameter.name.lexeme)) {
+        rule.reportLint(parameter,
+            arguments: [parameter.name.lexeme, ancestorKind]);
+      }
+    }
   }
 }

@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r"Don't declare multiple variables on a single line.";
 
 const _details = r'''
-
 **DON'T** declare multiple variables on a single line.
 
 **BAD:**
@@ -27,14 +26,21 @@ String? baz;
 
 ''';
 
-class AvoidMultipleDeclarationsPerLine extends LintRule
-    implements NodeLintRule {
+class AvoidMultipleDeclarationsPerLine extends LintRule {
+  static const LintCode code = LintCode('avoid_multiple_declarations_per_line',
+      'Multiple variables declared on a single line.',
+      correctionMessage:
+          'Try splitting the variable declarations into multiple lines.');
+
   AvoidMultipleDeclarationsPerLine()
       : super(
             name: 'avoid_multiple_declarations_per_line',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -51,11 +57,13 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList node) {
-    var variables = node.variables;
+    var parent = node.parent;
+    if (parent is ForPartsWithDeclarations && parent.variables == node) return;
 
+    var variables = node.variables;
     if (variables.length > 1) {
       var secondVariable = variables[1];
-      rule.reportLint(secondVariable.name);
+      rule.reportLintForToken(secondVariable.name);
     }
   }
 }

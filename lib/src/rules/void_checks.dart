@@ -12,8 +12,7 @@ import '../analyzer.dart';
 const _desc = r"Don't assign to void.";
 
 const _details = r'''
-
-**DO NOT** assign to void.
+**DON'T** assign to void.
 
 **BAD:**
 ```dart
@@ -30,13 +29,21 @@ void main() {
 ```
 ''';
 
-class VoidChecks extends LintRule implements NodeLintRule {
+class VoidChecks extends LintRule {
+  static const LintCode code = LintCode(
+      'void_checks', "Assignment to a variable of type 'void'.",
+      correctionMessage:
+          'Try removing the assignment or changing the type of the variable.');
+
   VoidChecks()
       : super(
             name: 'void_checks',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -52,21 +59,9 @@ class VoidChecks extends LintRule implements NodeLintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final LinterContext context;
   final TypeSystem typeSystem;
 
-  _Visitor(this.rule, this.context) : typeSystem = context.typeSystem;
-
-  bool isTypeAcceptableWhenExpectingVoid(DartType type) {
-    if (type.isVoid) return true;
-    if (type.isDartCoreNull) return true;
-    if (type.isDartAsyncFuture &&
-        type is InterfaceType &&
-        isTypeAcceptableWhenExpectingVoid(type.typeArguments.first)) {
-      return true;
-    }
-    return false;
-  }
+  _Visitor(this.rule, LinterContext context) : typeSystem = context.typeSystem;
 
   bool isTypeAcceptableWhenExpectingFutureOrVoid(DartType type) {
     if (type.isDynamic) return true;
@@ -77,6 +72,17 @@ class _Visitor extends SimpleAstVisitor<void> {
       return true;
     }
 
+    return false;
+  }
+
+  bool isTypeAcceptableWhenExpectingVoid(DartType type) {
+    if (type.isVoid) return true;
+    if (type.isDartCoreNull) return true;
+    if (type.isDartAsyncFuture &&
+        type is InterfaceType &&
+        isTypeAcceptableWhenExpectingVoid(type.typeArguments.first)) {
+      return true;
+    }
     return false;
   }
 
@@ -133,6 +139,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       {AstNode? checkedNode}) {
     checkedNode ??= node;
     if (expectedType == null || type == null) {
+      return;
+    }
+    if (expectedType.isVoid && !type.isDynamic && node is ReturnStatement) {
       return;
     }
     if (expectedType.isVoid && !isTypeAcceptableWhenExpectingVoid(type)) {

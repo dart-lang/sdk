@@ -33,6 +33,7 @@ class C implements A {
 @immutable
 class D {
   final _a;
+  Object get a => _a;
   // no lint when there's a non const expression in initializer list
   D.c1(a) : _a = a.toString(); // OK
   D.c2(a) : _a = a; // LINT
@@ -51,8 +52,6 @@ class E extends A with Mixin1 {
 class F {
   const factory F.fc1() = F.c1; // OK
   factory F.fc2() = F.c1; // LINT
-  // no lint because const leads to error : Only redirecting factory constructors can be declared to be 'const'.
-  factory F.fc3() => null; // OK
   const F.c1();
 }
 

@@ -10,7 +10,9 @@ import 'doc.dart';
 import 'rule.dart';
 
 @Deprecated('To be removed')
-void main(List<String> args) => grind(args);
+Future<void> main(List<String> args) async {
+  await grind(args);
+}
 
 Iterable<String> get sourcePaths => sources.map((dir) => dir.path);
 
@@ -26,10 +28,10 @@ Iterable<FileSystemEntity> get sources => existingSourceDirs.expand((dir) {
     });
 
 @Task('Generate lint rule docs.')
-void docs() {
+Future<void> docs() async {
   var args = context.invocation.arguments;
   var dir = args.getOption('dir');
-  generateDocs(dir);
+  await generateDocs(dir);
 }
 
 @Task('Format linter sources.')

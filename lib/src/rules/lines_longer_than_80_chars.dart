@@ -13,7 +13,6 @@ const _cr = '\r';
 const _desc = r'Avoid lines longer than 80 characters.';
 
 const _details = r'''
-
 **AVOID** lines longer than 80 characters
 
 Readability studies show that long lines of text are harder to read because your
@@ -42,7 +41,7 @@ const _lf = '\n';
 final _uriRegExp = RegExp(r'[/\\]');
 bool _looksLikeUriOrPath(String value) => _uriRegExp.hasMatch(value);
 
-class LinesLongerThan80Chars extends LintRule implements NodeLintRule {
+class LinesLongerThan80Chars extends LintRule {
   LinesLongerThan80Chars()
       : super(
             name: 'lines_longer_than_80_chars',
@@ -74,12 +73,14 @@ class _AllowedCommentVisitor extends SimpleAstVisitor {
     }
   }
 
-  Iterable<Token> _getPrecedingComments(Token token) sync* {
+  Iterable<Token> _getPrecedingComments(Token token) {
+    var tokens = <Token>[];
     Token? comment = token.precedingComments;
     while (comment != null) {
-      yield comment;
+      tokens.add(comment);
       comment = comment.next;
     }
+    return tokens;
   }
 
   void _visitComment(Token comment) {
@@ -176,9 +177,6 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     var lineInfo = node.lineInfo;
-    if (lineInfo == null) {
-      return;
-    }
     var lineCount = lineInfo.lineCount;
     var longLines = <_LineInfo>[];
     for (var i = 0; i < lineCount; i++) {

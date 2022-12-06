@@ -14,8 +14,12 @@ import '../test/test_constants.dart';
 void main(List<String> args) {
   var parser = ArgParser()
     ..addOption('out', abbr: 'o', help: 'Specifies project root.')
-    ..addOption('name',
-        abbr: 'n', help: 'Specifies lower_underscore rule name.');
+    ..addOption(
+      'name',
+      abbr: 'n',
+      help: 'Specifies lower_underscore rule name.',
+      mandatory: true,
+    );
 
   ArgResults options;
   try {
@@ -25,14 +29,11 @@ void main(List<String> args) {
     return;
   }
 
-  var outDir = options['out'];
-
-  if (outDir != null) {
-    var d = Directory(outDir as String);
-    if (!d.existsSync()) {
-      print("Directory '${d.path}' does not exist");
-      return;
-    }
+  var outDir = options['out'] ?? '.';
+  var d = Directory(outDir as String);
+  if (!d.existsSync()) {
+    print("Directory '${d.path}' does not exist");
+    return;
   }
 
   var ruleName = options['name'];
@@ -43,7 +44,7 @@ void main(List<String> args) {
   }
 
   // Generate rule stub.
-  generateRule(ruleName as String, outDir: outDir as String?);
+  generateRule(ruleName as String, outDir: outDir);
 }
 
 String get _thisYear => DateTime.now().year.toString();
@@ -62,7 +63,7 @@ void generateRule(String ruleName, {String? outDir}) {
   updateRuleRegistry(ruleName);
 }
 
-void generateStub(String ruleName, String stubPath, _Generator generator,
+void generateStub(String ruleName, String stubPath, Generator generator,
     {String? outDir}) {
   var generated = generator(ruleName, toClassName(ruleName));
   if (outDir != null) {
@@ -112,7 +113,6 @@ import '../analyzer.dart';
 const _desc = r' ';
 
 const _details = r'''
-
 **DO** ...
 
 **BAD:**
@@ -127,7 +127,7 @@ const _details = r'''
 
 ''';
 
-class $className extends LintRule implements NodeLintRule {
+class $className extends LintRule {
   $className()
       : super(
             name: '$ruleName',
@@ -163,4 +163,4 @@ String _generateTest(String libName, String className) => '''
 
 ''';
 
-typedef _Generator = String Function(String libName, String className);
+typedef Generator = String Function(String libName, String className);

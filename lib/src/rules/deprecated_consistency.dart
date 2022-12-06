@@ -11,8 +11,7 @@ import '../analyzer.dart';
 const _desc = r'Missing deprecated annotation.';
 
 const _details = r'''
-
-Do apply `@Deprecated()` consistently:
+**DO** apply `@Deprecated()` consistently:
 
 - if a class is deprecated, its constructors should also be deprecated.
 - if a field is deprecated, the constructor parameter pointing to it should also be deprecated.
@@ -49,7 +48,7 @@ class B {
 
 ''';
 
-class DeprecatedConsistency extends LintRule implements NodeLintRule {
+class DeprecatedConsistency extends LintRule {
   DeprecatedConsistency()
       : super(
           name: 'deprecated_consistency',

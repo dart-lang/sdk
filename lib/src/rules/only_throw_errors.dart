@@ -9,13 +9,13 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc =
     r'Only throw instances of classes extending either Exception or Error.';
 
 const _details = r'''
-
 **DO** throw only instances of classes that extend `dart.core.Error` or
 `dart.core.Exception`.
 
@@ -56,11 +56,10 @@ bool _isThrowable(DartType? type) {
   var typeForInterfaceCheck = type?.typeForInterfaceCheck;
   return typeForInterfaceCheck == null ||
       typeForInterfaceCheck.isDynamic ||
-      DartTypeUtilities.implementsAnyInterface(
-          typeForInterfaceCheck, _interfaceDefinitions);
+      typeForInterfaceCheck.implementsAnyInterface(_interfaceDefinitions);
 }
 
-class OnlyThrowErrors extends LintRule implements NodeLintRule {
+class OnlyThrowErrors extends LintRule {
   OnlyThrowErrors()
       : super(
             name: 'only_throw_errors',

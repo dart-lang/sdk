@@ -19,7 +19,7 @@ void foo2() {
   }
 }
 
-Function func() => null;
+Function func() => () {};
 
 void foo3() {
   for (final a in <int>[1]) { //LINT
@@ -39,7 +39,7 @@ class WithMethods {
 }
 
 class WithThirdPartyMethods {
-  WithMethods x;
+  WithMethods x = WithMethods();
 
   void foo() {
     final myList = [];
@@ -50,7 +50,7 @@ class WithThirdPartyMethods {
 }
 
 class WithElementInTarget {
-  List<WithMethods> myList;
+  List<WithMethods> myList = [];
 
   void good() {
     for (final x in myList) { // OK because x is the target

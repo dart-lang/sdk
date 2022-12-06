@@ -13,7 +13,8 @@ import '../ast.dart';
 const _desc =
     r'Avoid using web-only libraries outside Flutter web plugin packages.';
 
-const _details = r'''Avoid using web libraries, `dart:html`, `dart:js` and 
+const _details = r'''
+**AVOID** using web libraries, `dart:html`, `dart:js` and 
 `dart:js_util` in Flutter packages that are not web plugins. These libraries are 
 not supported outside a web context; functionality that depends on them will
 fail at runtime in Flutter mobile, and their use is generally discouraged in
@@ -40,7 +41,11 @@ YamlMap _parseYaml(String content) {
   return YamlMap();
 }
 
-class AvoidWebLibrariesInFlutter extends LintRule implements NodeLintRule {
+class AvoidWebLibrariesInFlutter extends LintRule {
+  static const LintCode code = LintCode('avoid_web_libraries_in_flutter',
+      "Don't use web-only libraries outside Flutter web plugin packages.",
+      correctionMessage: 'Try finding a different library for your needs.');
+
   /// Cache of most recent analysis root to parsed "hasFlutter" state.
   static final Map<String, bool> _rootHasFlutterCache = {};
 
@@ -51,6 +56,9 @@ class AvoidWebLibrariesInFlutter extends LintRule implements NodeLintRule {
             details: _details,
             maturity: Maturity.stable,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   bool hasFlutterDep(File? pubspec) {
     if (pubspec == null) {

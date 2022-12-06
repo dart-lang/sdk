@@ -9,9 +9,8 @@ import '../analyzer.dart';
 
 const _desc = r'Adhere to Effective Dart Guide directives sorting conventions.';
 const _details = r'''
-
-**DO** follow the conventions in the 
-[Effective Dart Guide](https://dart.dev/guides/language/effective-dart/style#ordering)
+**DO** follow the directive ordering conventions in
+[Effective Dart](https://dart.dev/guides/language/effective-dart/style#ordering):
 
 **DO** place `dart:` imports before other imports.
 
@@ -108,26 +107,30 @@ import 'a.dart'; // OK
 import 'a/b.dart'; // OK
 ```
 ''';
-const _directiveSectionOrderedAlphabetically =
-    'Sort directive sections alphabetically.';
-
-const _exportDirectiveAfterImportDirectives =
-    'Specify exports in a separate section after all imports.';
 
 const _exportKeyword = 'export';
 
 const _importKeyword = 'import';
 
-String _dartDirectiveGoFirst(String type) =>
-    "Place 'dart:' ${type}s before other ${type}s.";
+/// Compares directives by package then file in package.
+///
+/// Package is everything until the first `/`.
+int compareDirectives(String a, String b) {
+  var indexA = a.indexOf('/');
+  var indexB = b.indexOf('/');
+  if (indexA == -1 || indexB == -1) return a.compareTo(b);
+  var result = a.substring(0, indexA).compareTo(b.substring(0, indexB));
+  if (result != 0) return result;
+  return a.substring(indexA + 1).compareTo(b.substring(indexB + 1));
+}
 
 bool _isAbsoluteDirective(NamespaceDirective node) {
-  var uriContent = node.uriContent;
+  var uriContent = node.uri.stringValue;
   return uriContent != null && uriContent.contains(':');
 }
 
 bool _isDartDirective(NamespaceDirective node) {
-  var uriContent = node.uriContent;
+  var uriContent = node.uri.stringValue;
   return uriContent != null && uriContent.startsWith('dart:');
 }
 
@@ -136,7 +139,7 @@ bool _isExportDirective(Directive node) => node is ExportDirective;
 bool _isNotDartDirective(NamespaceDirective node) => !_isDartDirective(node);
 
 bool _isPackageDirective(NamespaceDirective node) {
-  var uriContent = node.uriContent;
+  var uriContent = node.uri.stringValue;
   return uriContent != null && uriContent.startsWith('package:');
 }
 
@@ -145,12 +148,19 @@ bool _isPartDirective(Directive node) => node is PartDirective;
 bool _isRelativeDirective(NamespaceDirective node) =>
     !_isAbsoluteDirective(node);
 
-String _packageDirectiveBeforeRelative(String type) =>
-    "Place 'package:' ${type}s before relative ${type}s.";
+class DirectivesOrdering extends LintRule {
+  static const LintCode dartDirectiveGoFirst =
+      LintCode('directives_ordering', "Place 'dart:' {0}s before other {0}s.");
 
-class DirectivesOrdering extends LintRule
-    implements ProjectVisitor, NodeLintRule {
-  DartProject? project;
+  static const LintCode directiveSectionOrderedAlphabetically = LintCode(
+      'directives_ordering', 'Sort directive sections alphabetically.');
+
+  static const LintCode exportDirectiveAfterImportDirectives = LintCode(
+      'directives_ordering',
+      'Specify exports in a separate section after all imports.');
+
+  static const LintCode packageDirectiveBeforeRelative = LintCode(
+      'directives_ordering', "Place 'package:' {0}s before relative {0}s.");
 
   DirectivesOrdering()
       : super(
@@ -160,53 +170,48 @@ class DirectivesOrdering extends LintRule
             group: Group.style);
 
   @override
-  ProjectVisitor getProjectVisitor() => this;
-
-  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
     registry.addCompilationUnit(this, visitor);
   }
 
-  @override
-  void visit(DartProject project) {
-    this.project = project;
-  }
-
   void _reportLintWithDartDirectiveGoFirstMessage(AstNode node, String type) {
-    _reportLintWithDescription(node, _dartDirectiveGoFirst(type));
-  }
-
-  void _reportLintWithDescription(AstNode node, String description) {
-    reporter.reportErrorForNode(LintCode(name, description), node, []);
+    reportLint(node,
+        errorCode: DirectivesOrdering.dartDirectiveGoFirst, arguments: [type]);
   }
 
   void _reportLintWithDirectiveSectionOrderedAlphabeticallyMessage(
       AstNode node) {
-    _reportLintWithDescription(node, _directiveSectionOrderedAlphabetically);
+    reportLint(node,
+        errorCode: DirectivesOrdering.directiveSectionOrderedAlphabetically);
   }
 
   void _reportLintWithExportDirectiveAfterImportDirectiveMessage(AstNode node) {
-    _reportLintWithDescription(node, _exportDirectiveAfterImportDirectives);
+    reportLint(node,
+        errorCode: DirectivesOrdering.exportDirectiveAfterImportDirectives);
   }
 
   void _reportLintWithPackageDirectiveBeforeRelativeMessage(
       AstNode node, String type) {
-    _reportLintWithDescription(node, _packageDirectiveBeforeRelative(type));
+    reportLint(node,
+        errorCode: DirectivesOrdering.packageDirectiveBeforeRelative,
+        arguments: [type]);
   }
 }
 
+// ignore: unused_element
 class _PackageBox {
   final String _packageName;
 
   _PackageBox(this._packageName);
 
+  // ignore: unused_element
   bool _isNotOwnPackageDirective(NamespaceDirective node) =>
       _isPackageDirective(node) && !_isOwnPackageDirective(node);
 
   bool _isOwnPackageDirective(NamespaceDirective node) {
-    var uriContent = node.uriContent;
+    var uriContent = node.uri.stringValue;
     return uriContent != null &&
         uriContent.startsWith('package:$_packageName/');
   }
@@ -216,8 +221,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   final DirectivesOrdering rule;
 
   _Visitor(this.rule);
-
-  DartProject? get project => rule.project;
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -270,33 +273,40 @@ class _Visitor extends SimpleAstVisitor<void> {
     _checkSectionInOrder(lintedNodes, relativeImports);
     _checkSectionInOrder(lintedNodes, relativeExports);
 
-    var projectName = project?.name;
-    if (projectName == null) {
-      // Not a pub package. Package directives should be sorted in one block.
-      var packageImports = importDirectives.where(_isPackageDirective);
-      var packageExports = exportDirectives.where(_isPackageDirective);
+    // See: https://github.com/dart-lang/linter/issues/3395
+    // (`DartProject` removal)
+    // The rub is that *all* projects are being treated as "not pub"
+    // packages.  We'll want to be careful when fixing this since it
+    // will have ecosystem impact.
 
-      _checkSectionInOrder(lintedNodes, packageImports);
-      _checkSectionInOrder(lintedNodes, packageExports);
-    } else {
-      var packageBox = _PackageBox(projectName);
+    // Not a pub package. Package directives should be sorted in one block.
+    var packageImports = importDirectives.where(_isPackageDirective);
+    var packageExports = exportDirectives.where(_isPackageDirective);
 
-      var thirdPartyPackageImports =
-          importDirectives.where(packageBox._isNotOwnPackageDirective);
-      var thirdPartyPackageExports =
-          exportDirectives.where(packageBox._isNotOwnPackageDirective);
+    _checkSectionInOrder(lintedNodes, packageImports);
+    _checkSectionInOrder(lintedNodes, packageExports);
 
-      var ownPackageImports =
-          importDirectives.where(packageBox._isOwnPackageDirective);
-      var ownPackageExports =
-          exportDirectives.where(packageBox._isOwnPackageDirective);
-
-      _checkSectionInOrder(lintedNodes, thirdPartyPackageImports);
-      _checkSectionInOrder(lintedNodes, thirdPartyPackageExports);
-
-      _checkSectionInOrder(lintedNodes, ownPackageImports);
-      _checkSectionInOrder(lintedNodes, ownPackageExports);
-    }
+    // The following is relying on projectName which is meant to come from
+    // a `DartProject` instance (but was not since the project was always null)
+    // else {
+    //   var packageBox = _PackageBox(projectName);
+    //
+    //   var thirdPartyPackageImports =
+    //       importDirectives.where(packageBox._isNotOwnPackageDirective);
+    //   var thirdPartyPackageExports =
+    //       exportDirectives.where(packageBox._isNotOwnPackageDirective);
+    //
+    //   var ownPackageImports =
+    //       importDirectives.where(packageBox._isOwnPackageDirective);
+    //   var ownPackageExports =
+    //       exportDirectives.where(packageBox._isOwnPackageDirective);
+    //
+    //   _checkSectionInOrder(lintedNodes, thirdPartyPackageImports);
+    //   _checkSectionInOrder(lintedNodes, thirdPartyPackageExports);
+    //
+    //   _checkSectionInOrder(lintedNodes, ownPackageImports);
+    //   _checkSectionInOrder(lintedNodes, ownPackageExports);
+    // }
   }
 
   void _checkExportDirectiveAfterImportDirective(
@@ -355,8 +365,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     NamespaceDirective? previousDirective;
     for (var directive in nodes) {
       if (previousDirective != null) {
-        var previousUri = previousDirective.uriContent;
-        var directiveUri = directive.uriContent;
+        var previousUri = previousDirective.uri.stringValue;
+        var directiveUri = directive.uri.stringValue;
         if (previousUri != null &&
             directiveUri != null &&
             compareDirectives(previousUri, directiveUri) > 0) {
@@ -372,16 +382,4 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   Iterable<ImportDirective> _getImportDirectives(CompilationUnit node) =>
       node.directives.whereType<ImportDirective>();
-}
-
-/// Compares directives by package then file in package.
-///
-/// Package is everything until the first `/`.
-int compareDirectives(String a, String b) {
-  var indexA = a.indexOf('/');
-  var indexB = b.indexOf('/');
-  if (indexA == -1 || indexB == -1) return a.compareTo(b);
-  var result = a.substring(0, indexA).compareTo(b.substring(0, indexB));
-  if (result != 0) return result;
-  return a.substring(indexA + 1).compareTo(b.substring(indexB + 1));
 }

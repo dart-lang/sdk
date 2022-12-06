@@ -10,30 +10,36 @@ import '../analyzer.dart';
 const _desc = r'Avoid return types on setters.';
 
 const _details = r'''
-
 **AVOID** return types on setters.
 
 As setters do not return a value, declaring the return type of one is redundant.
-
-**GOOD:**
-```dart
-set speed(int ms);
-```
 
 **BAD:**
 ```dart
 void set speed(int ms);
 ```
 
+**GOOD:**
+```dart
+set speed(int ms);
+```
+
 ''';
 
-class AvoidReturnTypesOnSetters extends LintRule implements NodeLintRule {
+class AvoidReturnTypesOnSetters extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_return_types_on_setters', 'Unnecessary return type on a setter.',
+      correctionMessage: 'Try removing the return type.');
+
   AvoidReturnTypesOnSetters()
       : super(
             name: 'avoid_return_types_on_setters',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

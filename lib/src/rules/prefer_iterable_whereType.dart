@@ -7,33 +7,39 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Prefer to use whereType on iterable.';
 
 const _details = r'''
-
 **PREFER** `iterable.whereType<T>()` over `iterable.where((e) => e is T)`.
 
 **BAD:**
 ```dart
-iterable.where((e) => e is MyClass)
+iterable.where((e) => e is MyClass);
 ```
 
 **GOOD:**
 ```dart
-iterable.whereType<MyClass>()
+iterable.whereType<MyClass>();
 ```
 
 ''';
 
-class PreferIterableWhereType extends LintRule implements NodeLintRule {
+class PreferIterableWhereType extends LintRule {
+  static const LintCode code = LintCode('prefer_iterable_whereType',
+      "Use 'whereType' to select elements of a given type.",
+      correctionMessage: "Try rewriting the expression to use 'whereType'.");
+
   PreferIterableWhereType()
       : super(
             name: 'prefer_iterable_whereType',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -53,8 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.methodName.name != 'where') return;
     var target = node.realTarget;
     if (target == null ||
-        !DartTypeUtilities.implementsInterface(
-            target.staticType, 'Iterable', 'dart.core')) {
+        !target.staticType.implementsInterface('Iterable', 'dart.core')) {
       return;
     }
 
@@ -81,7 +86,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (expression is IsExpression && expression.notOperator == null) {
         var target = expression.expression;
         if (target is SimpleIdentifier &&
-            target.name == arg.parameters?.parameters.first.identifier?.name) {
+            target.name == arg.parameters?.parameters.first.name?.lexeme) {
           rule.reportLint(node.methodName);
         }
       }

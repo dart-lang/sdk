@@ -11,36 +11,42 @@ import '../analyzer.dart';
 const _desc = r'Avoid using braces in interpolation when not needed.';
 
 const _details = r'''
-
 **AVOID** using braces in interpolation when not needed.
 
 If you're just interpolating a simple identifier, and it's not immediately
 followed by more alphanumeric text, the `{}` can and should be omitted.
-
-**GOOD:**
-```dart
-print("Hi, $name!");
-```
 
 **BAD:**
 ```dart
 print("Hi, ${name}!");
 ```
 
+**GOOD:**
+```dart
+print("Hi, $name!");
+```
+
 ''';
 
-final RegExp identifierPart = RegExp(r'^[a-zA-Z0-9_]');
+final RegExp identifierPart = RegExp('[a-zA-Z0-9_]');
 
 bool isIdentifierPart(Token? token) =>
     token is StringToken && token.lexeme.startsWith(identifierPart);
 
-class UnnecessaryBraceInStringInterps extends LintRule implements NodeLintRule {
+class UnnecessaryBraceInStringInterps extends LintRule {
+  static const LintCode code = LintCode('unnecessary_brace_in_string_interps',
+      'Unnecessary braces in a string interpolation.',
+      correctionMessage: 'Try removing the braces.');
+
   UnnecessaryBraceInStringInterps()
       : super(
             name: 'unnecessary_brace_in_string_interps',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -62,13 +68,19 @@ class _Visitor extends SimpleAstVisitor<void> {
       var exp = expression.expression;
       if (exp is SimpleIdentifier) {
         var identifier = exp;
-        var bracket = expression.rightBracket;
-        if (bracket != null &&
-            !isIdentifierPart(bracket.next) &&
-            !identifier.name.contains('\$')) {
-          rule.reportLint(expression);
+        if (!identifier.name.contains('\$')) {
+          _check(expression);
         }
+      } else if (exp is ThisExpression) {
+        _check(expression);
       }
+    }
+  }
+
+  void _check(InterpolationExpression expression) {
+    var bracket = expression.rightBracket;
+    if (bracket != null && !isIdentifierPart(bracket.next)) {
+      rule.reportLint(expression);
     }
   }
 }

@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Prefer generic function type aliases.';
 
 const _details = r'''
-
 **PREFER** generic function type aliases.
 
 With the introduction of generic functions, function type aliases
@@ -33,14 +32,20 @@ typedef F = void Function();
 
 ''';
 
-class PreferGenericFunctionTypeAliases extends LintRule
-    implements NodeLintRule {
+class PreferGenericFunctionTypeAliases extends LintRule {
+  static const LintCode code = LintCode('prefer_generic_function_type_aliases',
+      "Use the generic function type syntax in 'typedef's.",
+      correctionMessage: "Try using the generic function type syntax ('{0}').");
+
   PreferGenericFunctionTypeAliases()
       : super(
             name: 'prefer_generic_function_type_aliases',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -57,6 +62,19 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    rule.reportLint(node.name);
+    //https://github.com/dart-lang/linter/issues/2777
+    if (node.semicolon.isSynthetic) return;
+
+    var returnType = node.returnType;
+    var typeParameters = node.typeParameters;
+    var parameters = node.parameters;
+    var returnTypeSource =
+        returnType == null ? '' : '${returnType.toSource()} ';
+    var typeParameterSource =
+        typeParameters == null ? '' : typeParameters.toSource();
+    var parameterSource = parameters.toSource();
+    var replacement =
+        '${returnTypeSource}Function$typeParameterSource$parameterSource';
+    rule.reportLintForToken(node.name, arguments: [replacement]);
   }
 }

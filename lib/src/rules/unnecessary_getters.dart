@@ -13,7 +13,6 @@ const _desc =
     r'getter.';
 
 const _details = r'''
-
 From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
 
 **PREFER** using a public final field instead of a private field with a public
@@ -40,7 +39,7 @@ class Box {
 
 ''';
 
-class UnnecessaryGetters extends LintRule implements NodeLintRule {
+class UnnecessaryGetters extends LintRule {
   UnnecessaryGetters()
       : super(
             name: 'unnecessary_getters',
@@ -73,9 +72,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var member in members) {
       var method = member as MethodDeclaration;
       if (method.isGetter) {
-        getters[method.name.toString()] = method;
+        getters[method.name.lexeme] = method;
       } else if (method.isSetter) {
-        setters[method.name.toString()] = method;
+        setters[method.name.lexeme] = method;
       }
     }
 
@@ -86,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   void _visitGetter(MethodDeclaration? getter) {
     if (getter != null && isSimpleGetter(getter)) {
-      rule.reportLint(getter.name);
+      rule.reportLintForToken(getter.name);
     }
   }
 }

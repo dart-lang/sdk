@@ -10,30 +10,20 @@ import '../ast.dart';
 
 const _desc = r'Avoid relative imports for files in `lib/`.';
 
-const _details = r'''*DO* avoid relative imports for files in `lib/`.
+const _details = r'''
+**DO** avoid relative imports for files in `lib/`.
 
 When mixing relative and absolute imports it's possible to create confusion
 where the same member gets imported in two different ways. One way to avoid
-that is to ensure you consistently use absolute imports for files withing the
+that is to ensure you consistently use absolute imports for files within the
 `lib/` directory.
 
 This is the opposite of 'prefer_relative_imports'.
-Might be used with 'avoid_relative_lib_imports' to avoid relative imports of
-files within `lib/` directory outside of it. (for example `test/`)
 
-**GOOD:**
-
-```dart
-import 'package:foo/bar.dart';
-
-import 'package:foo/baz.dart';
-
-import 'package:foo/src/baz.dart';
-...
-```
+You can also use 'avoid_relative_lib_imports' to disallow relative imports of
+files within `lib/` directory outside of it (for example `test/`).
 
 **BAD:**
-
 ```dart
 import 'baz.dart';
 
@@ -44,9 +34,23 @@ import '../lib/baz.dart';
 ...
 ```
 
+**GOOD:**
+```dart
+import 'package:foo/bar.dart';
+
+import 'package:foo/baz.dart';
+
+import 'package:foo/src/baz.dart';
+...
+```
+
 ''';
 
-class AlwaysUsePackageImports extends LintRule implements NodeLintRule {
+class AlwaysUsePackageImports extends LintRule {
+  static const LintCode code = LintCode('always_use_package_imports',
+      "Use 'package:' imports for files in the 'lib' directory.",
+      correctionMessage: "Try converting the URI to a 'package:' URI.");
+
   AlwaysUsePackageImports()
       : super(
             name: 'always_use_package_imports',
@@ -55,25 +59,29 @@ class AlwaysUsePackageImports extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
+  LintCode get lintCode => code;
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
+    // Relative paths from outside of the lib folder are handled by the
+    // `avoid_relative_lib_imports` lint.
     if (!isInLibDir(context.currentUnit.unit, context.package)) {
       return;
     }
 
-    var visitor = _Visitor(this, context);
+    var visitor = _Visitor(this);
     registry.addImportDirective(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
-  final LinterContext context;
 
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule);
 
   bool isRelativeImport(ImportDirective node) {
-    var uriContent = node.uriContent;
+    var uriContent = node.uri.stringValue;
     if (uriContent != null) {
       var uri = Uri.tryParse(uriContent);
       return uri != null && uri.scheme.isEmpty;

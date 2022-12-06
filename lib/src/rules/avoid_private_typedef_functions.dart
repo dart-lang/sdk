@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
@@ -10,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid private typedef functions.';
 
 const _details = r'''
-
 **AVOID** private typedef functions used only once. Prefer inline function
 syntax.
 
@@ -27,13 +27,20 @@ m(void Function() f);
 
 ''';
 
-class AvoidPrivateTypedefFunctions extends LintRule implements NodeLintRule {
+class AvoidPrivateTypedefFunctions extends LintRule {
+  static const LintCode code = LintCode('avoid_private_typedef_functions',
+      'The typedef is unnecessary because it is only used in one place.',
+      correctionMessage: 'Try inlining the type or using it in other places.');
+
   AvoidPrivateTypedefFunctions()
       : super(
             name: 'avoid_private_typedef_functions',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -50,9 +57,9 @@ class _CountVisitor extends RecursiveAstVisitor {
   _CountVisitor(this.type);
 
   @override
-  void visitTypeName(TypeName node) {
+  void visitNamedType(NamedType node) {
     if (node.name.name == type) count++;
-    super.visitTypeName(node);
+    super.visitNamedType(node);
   }
 }
 
@@ -70,23 +77,22 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (node.typeParameters != null) {
-      return;
-    }
+    if (node.typeParameters != null) return;
+    if (node.type is NamedType) return;
+
     _countAndReport(node.name);
   }
 
-  void _countAndReport(SimpleIdentifier identifier) {
-    var name = identifier.name;
-    if (!Identifier.isPrivateName(name)) {
-      return;
-    }
+  void _countAndReport(Token identifier) {
+    var name = identifier.lexeme;
+    if (!Identifier.isPrivateName(name)) return;
+
     var visitor = _CountVisitor(name);
     for (var unit in context.allUnits) {
       unit.unit.accept(visitor);
     }
     if (visitor.count <= 1) {
-      rule.reportLint(identifier);
+      rule.reportLintForToken(identifier);
     }
   }
 }

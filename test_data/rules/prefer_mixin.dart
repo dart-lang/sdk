@@ -26,3 +26,12 @@ abstract class S with SetMixin {} //OK
 
 abstract class SCS with StringConversionSinkMixin {} //OK
 
+// nonfunction-type-aliases
+
+typedef AA = A;
+
+abstract class CC with AA { } // LINT
+
+typedef AAA = M;
+
+abstract class CCC with AAA { } //OK

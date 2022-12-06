@@ -10,15 +10,14 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
-const _desc = r'Use late for private members with non-nullable type.';
+const _desc = r'Use late for private members with a non-nullable type.';
 
 const _details = r'''
-
-Use late for private members with non-nullable types that are always expected to
-be non-null. Thus it's clear that the field is not expected to be `null` and it
-avoids null checks.
+Use `late` for private members with non-nullable types that are always expected
+to be non-null. Thus it's clear that the field is not expected to be `null`
+and it avoids null checks.
 
 **BAD:**
 ```dart
@@ -36,18 +35,26 @@ m() {
 }
 ```
 
+**OK:**
+```dart
+int? _i;
+m() {
+  _i?.abs();
+  _i = null;
+}
+```
+
 ''';
 
 bool _isPrivateExtension(AstNode parent) {
   if (parent is! ExtensionDeclaration) {
     return false;
   }
-  var parentName = parent.name?.name;
+  var parentName = parent.name?.lexeme;
   return parentName == null || Identifier.isPrivateName(parentName);
 }
 
-class UseLateForPrivateFieldsAndVariables extends LintRule
-    implements NodeLintRule {
+class UseLateForPrivateFieldsAndVariables extends LintRule {
   UseLateForPrivateFieldsAndVariables()
       : super(
           name: 'use_late_for_private_fields_and_variables',
@@ -65,7 +72,7 @@ class UseLateForPrivateFieldsAndVariables extends LintRule
   }
 }
 
-class _Visitor extends UnifyingAstVisitor<void> {
+class _Visitor extends RecursiveAstVisitor<void> {
   static final lateables =
       <CompilationUnitElement, List<VariableDeclaration>>{};
 
@@ -76,6 +83,25 @@ class _Visitor extends UnifyingAstVisitor<void> {
 
   CompilationUnitElement? currentUnit;
   _Visitor(this.rule, this.context);
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    var element = node.writeElement?.canonicalElement;
+    if (element != null) {
+      var assignee = node.leftHandSide;
+      var rhsType = node.rightHandSide.staticType;
+      if (assignee is SimpleIdentifier && assignee.inDeclarationContext()) {
+        // This is OK.
+      } else if (node.operator.type == TokenType.EQ &&
+          rhsType != null &&
+          context.typeSystem.isNonNullable(rhsType)) {
+        // This is OK; non-null access.
+      } else {
+        nullableAccess[currentUnit]?.add(element);
+      }
+    }
+    super.visitAssignmentExpression(node);
+  }
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
@@ -111,7 +137,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
       if (areAllLibraryUnitsVisited) {
         _checkAccess(libraryUnitsInContext);
 
-        // clean up
+        // Clean up.
         for (var unit in libraryUnitsInContext) {
           lateables.remove(unit);
           nullableAccess.remove(unit);
@@ -121,60 +147,56 @@ class _Visitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    // See: https://dart.dev/tools/diagnostic-messages#late_final_field_with_const_constructor
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    for (var variable in node.fields.variables) {
-      var parent = node.parent;
-      // see https://github.com/dart-lang/linter/pull/2189#issuecomment-660115569
-      // We could also include public members in private classes but to do that
-      // we'd need to ensure that there are no instances of either the
-      // enclosing class or any subclass of the enclosing class that are ever
-      // accessible outside this library.
-      if (parent != null &&
-          (Identifier.isPrivateName(variable.name.name) ||
-              _isPrivateExtension(parent))) {
-        _visit(variable);
+    var parent = node.parent;
+    if (parent != null) {
+      var parentIsPrivateExtension = _isPrivateExtension(parent);
+      for (var variable in node.fields.variables) {
+        // See
+        // https://github.com/dart-lang/linter/pull/2189#issuecomment-660115569.
+        // We could also include public members in private classes but to do
+        // that we'd need to ensure that there are no instances of either the
+        // enclosing class or any subclass of the enclosing class that are ever
+        // accessible outside this library.
+        if (parentIsPrivateExtension ||
+            Identifier.isPrivateName(variable.name.lexeme)) {
+          _visit(variable);
+        }
       }
     }
     super.visitFieldDeclaration(node);
   }
 
   @override
-  void visitNode(AstNode node) {
-    var parent = node.parent;
+  void visitPrefixedIdentifier(PrefixedIdentifier node) {
+    var element = node.staticElement?.canonicalElement;
+    _visitIdentifierOrPropertyAccess(node, element);
+    super.visitPrefixedIdentifier(node);
+  }
 
-    Element? element;
-    if (parent is AssignmentExpression && parent.leftHandSide == node) {
-      element = DartTypeUtilities.getCanonicalElement(parent.writeElement);
-    } else {
-      element = DartTypeUtilities.getCanonicalElementFromIdentifier(node);
-    }
+  @override
+  void visitPropertyAccess(PropertyAccess node) {
+    var element = node.propertyName.staticElement?.canonicalElement;
+    _visitIdentifierOrPropertyAccess(node, element);
+    super.visitPropertyAccess(node);
+  }
 
-    if (element != null) {
-      if (parent is Expression) {
-        parent = parent.unParenthesized;
-      }
-      if (node is SimpleIdentifier && node.inDeclarationContext()) {
-        // ok
-      } else if (parent is PostfixExpression &&
-          parent.operand == node &&
-          parent.operator.type == TokenType.BANG) {
-        // ok non-null access
-      } else if (parent is AssignmentExpression &&
-          parent.operator.type == TokenType.EQ &&
-          DartTypeUtilities.isNonNullable(
-              context, parent.rightHandSide.staticType)) {
-        // ok non-null access
-      } else {
-        nullableAccess[currentUnit]?.add(element);
-      }
-    }
-    super.visitNode(node);
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var element = node.staticElement?.canonicalElement;
+    _visitIdentifierOrPropertyAccess(node, element);
+    super.visitSimpleIdentifier(node);
   }
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     for (var variable in node.variables.variables) {
-      if (Identifier.isPrivateName(variable.name.name)) {
+      if (Identifier.isPrivateName(variable.name.lexeme)) {
         _visit(variable);
       }
     }
@@ -207,5 +229,27 @@ class _Visitor extends UnifyingAstVisitor<void> {
       return;
     }
     lateables[currentUnit]?.add(variable);
+  }
+
+  /// Checks whether [expression], which must be an [Identifier] or
+  /// [PropertyAccess], and its [canonicalElement], represent a nullable access.
+  void _visitIdentifierOrPropertyAccess(
+      Expression expression, Element? canonicalElement) {
+    assert(expression is Identifier || expression is PropertyAccess);
+    if (canonicalElement != null) {
+      var parent = expression.parent;
+      if (parent is Expression) {
+        parent = parent.unParenthesized;
+      }
+      if (expression is SimpleIdentifier && expression.inDeclarationContext()) {
+        // This is OK.
+      } else if (parent is PostfixExpression &&
+          parent.operand == expression &&
+          parent.operator.type == TokenType.BANG) {
+        // This is OK; non-null access.
+      } else {
+        nullableAccess[currentUnit]?.add(canonicalElement);
+      }
+    }
   }
 }

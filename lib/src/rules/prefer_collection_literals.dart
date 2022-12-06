@@ -7,30 +7,29 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Use collection literals when possible.';
 
 const _details = r'''
-
 **DO** use collection literals when possible.
 
 **BAD:**
 ```dart
 var points = List();
-var addresses = Map();
-var uniqueNames = Set();
-var ids = LinkedHashSet();
-var coordinates = LinkedHashMap();
+var addresses = Map<String, String>();
+var uniqueNames = Set<String>();
+var ids = LinkedHashSet<int>();
+var coordinates = LinkedHashMap<int, int>();
 ```
 
 **GOOD:**
 ```dart
 var points = [];
-var addresses = <String,String>{};
+var addresses = <String, String>{};
 var uniqueNames = <String>{};
 var ids = <int>{};
-var coordinates = <int,int>{};
+var coordinates = <int, int>{};
 ```
 
 **EXCEPTIONS:**
@@ -57,13 +56,20 @@ void printHashMap(LinkedHashMap map) => printMap(map);
 ```
 ''';
 
-class PreferCollectionLiterals extends LintRule implements NodeLintRule {
+class PreferCollectionLiterals extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_collection_literals', 'Unnecessary constructor invocation.',
+      correctionMessage: 'Try using a collection literal.');
+
   PreferCollectionLiterals()
       : super(
             name: 'prefer_collection_literals',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -77,17 +83,6 @@ class PreferCollectionLiterals extends LintRule implements NodeLintRule {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
   _Visitor(this.rule);
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    // ['foo', 'bar', 'baz'].toSet();
-    if (node.methodName.name != 'toSet') {
-      return;
-    }
-    if (node.target is ListLiteral) {
-      rule.reportLint(node);
-    }
-  }
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -127,22 +122,37 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  bool _isSet(Expression expression) => _isTypeSet(expression.staticType);
-  bool _isHashSet(Expression expression) =>
-      _isTypeHashSet(expression.staticType);
-  bool _isList(Expression expression) =>
-      DartTypeUtilities.isClass(expression.staticType, 'List', 'dart.core');
-  bool _isMap(Expression expression) => _isTypeMap(expression.staticType);
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    // ['foo', 'bar', 'baz'].toSet();
+    if (node.methodName.name != 'toSet') {
+      return;
+    }
+    if (node.target is ListLiteral) {
+      rule.reportLint(node);
+    }
+  }
+
   bool _isHashMap(Expression expression) =>
       _isTypeHashMap(expression.staticType);
-  bool _isTypeSet(DartType? type) =>
-      DartTypeUtilities.isClass(type, 'Set', 'dart.core');
-  bool _isTypeHashSet(DartType? type) =>
-      DartTypeUtilities.isClass(type, 'LinkedHashSet', 'dart.collection');
-  bool _isTypeMap(DartType? type) =>
-      DartTypeUtilities.isClass(type, 'Map', 'dart.core');
+
+  bool _isHashSet(Expression expression) =>
+      _isTypeHashSet(expression.staticType);
+
+  bool _isList(Expression expression) =>
+      expression.staticType?.isDartCoreList ?? false;
+
+  bool _isMap(Expression expression) =>
+      expression.staticType?.isDartCoreMap ?? false;
+
+  bool _isSet(Expression expression) =>
+      expression.staticType?.isDartCoreSet ?? false;
+
   bool _isTypeHashMap(DartType? type) =>
-      DartTypeUtilities.isClass(type, 'LinkedHashMap', 'dart.collection');
+      type.isSameAs('LinkedHashMap', 'dart.collection');
+
+  bool _isTypeHashSet(DartType? type) =>
+      type.isSameAs('LinkedHashSet', 'dart.collection');
 
   bool _shouldSkipLinkedHashLint(
       InstanceCreationExpression node, bool Function(DartType node) typeCheck) {
@@ -166,6 +176,15 @@ class _Visitor extends SimpleAstVisitor<void> {
           return true;
         }
       }
+
+      // Skip: void f({required LinkedHashSet<Foo> s})
+      if (parent is NamedExpression) {
+        var paramType = parent.staticParameterElement?.type;
+        if (paramType != null && typeCheck(paramType)) {
+          return true;
+        }
+      }
+
       // Skip: <int, LinkedHashSet>{}.putIfAbsent(3, () => LinkedHashSet());
       // or <int, LinkedHashMap>{}.putIfAbsent(3, () => LinkedHashMap());
       if (parent is ExpressionFunctionBody) {

@@ -4,6 +4,8 @@
 
 // test w/ `dart test -N avoid_positional_boolean_parameters`
 
+// ignore_for_file: unused_element
+
 class Library {
   void checkRegularBook(String name) {
     _checkBook(name, false);
@@ -16,7 +18,7 @@ class Library {
   void _checkBook(String name, bool isPremium) {} // OK because it is private.
 }
 
-void good({bool a}) { // OK
+void good({bool a = false}) { // OK
   _good(a);
 }
 
@@ -25,20 +27,20 @@ void bad(bool a) {} // LINT
 void _good(bool a) {} // OK because it is private.
 
 class A {
-  void good({bool a}) {} // OK
+  void good({bool a = false}) {} // OK
 
   void bad(bool a) {} // LINT
 }
 
 class B {
-  static void good({bool a}) {} // OK
+  static void good({bool a = false}) {} // OK
 
   static void bad(bool a) {} // LINT
 }
 
 class C {
-  bool value;
-  C.good({bool value}) { // OK
+  late bool value;
+  C.good({bool value = false}) { // OK
     this.value = value;
   }
 
@@ -58,13 +60,13 @@ class C {
 
 class D {
   bool value;
-  D.good({this.value}); // OK
+  D.good({this.value = false}); // OK
 
   D.bad(this.value); // LINT
 }
 
 class E {
-  void bad([bool value]) {} // LINT
+  void bad([bool value = false]) {} // LINT
 
   void good({bool value: true}) {} // OK
 }
@@ -74,17 +76,17 @@ class F {
 }
 
 class G {
-  G._internal([bool value]); // OK because is private
+  G._internal([bool value = false]); // OK because is private
 }
 
 class H extends E {
   @override
-  void bad([bool value]) {} // OK because it has inherited method.
+  void bad([bool value = false]) {} // OK because it has inherited method.
 }
 
 abstract class I implements E {
   @override
-  void bad([bool value]) {} // OK because it has inherited method.
+  void bad([bool value = false]) {} // OK because it has inherited method.
 }
 
 void closureAsArgument() {
@@ -93,9 +95,9 @@ void closureAsArgument() {
 }
 
 extension Ext on E {
-  void badBad([bool value]) {} // LINT
+  void badBad([bool value = false]) {} // LINT
 }
 
 extension on E {
-  void badBadBad([bool value]) {} // LINT
+  void badBadBad([bool value = false]) {} // LINT
 }

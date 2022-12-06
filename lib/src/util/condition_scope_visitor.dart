@@ -8,10 +8,10 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 Element? _getLeftElement(AssignmentExpression assignment) =>
-    DartTypeUtilities.getCanonicalElement(assignment.writeElement);
+    assignment.writeElement?.canonicalElement;
 
 List<Expression?> _splitConjunctions(Expression? rawExpression) {
   var expression = rawExpression?.unParenthesized;
@@ -40,18 +40,16 @@ class BreakScope {
 }
 
 class ConditionScope {
-  final environment = <_ExpressionBox>[];
+  final environment = <ExpressionBox>[];
   final ConditionScope? outer;
 
   ConditionScope(this.outer);
 
-  void add(_ExpressionBox? e) {
-    if (e != null) {
-      environment.add(e);
-    }
+  void add(ExpressionBox e) {
+    environment.add(e);
   }
 
-  void addAll(Iterable<_ExpressionBox> expressions) {
+  void addAll(Iterable<ExpressionBox> expressions) {
     environment.addAll(expressions);
   }
 
@@ -62,17 +60,20 @@ class ConditionScope {
     return expressions;
   }
 
-  Iterable<_ExpressionBox> getUndefinedExpressions() =>
+  Iterable<ExpressionBox> getUndefinedExpressions() =>
       environment.whereType<_UndefinedExpression>();
 
   void _recursiveGetExpressions(
-      List<Expression?> expressions, Iterable<Element?> elements, bool? value) {
+      List<Expression> expressions, Iterable<Element?> elements, bool? value) {
     for (var element in environment.reversed) {
       if (element.haveToStop(elements)) {
         return;
       }
       if (element is _ConditionExpression && element.value == value) {
-        expressions.add(element.expression);
+        var expression = element.expression;
+        if (expression != null) {
+          expressions.add(expression);
+        }
       }
     }
     outer?._recursiveGetExpressions(expressions, elements, value);
@@ -296,7 +297,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
     breakScope.deleteBreaksWithTarget(node);
   }
 
-  void _addElementToEnvironment(_ExpressionBox? e) {
+  void _addElementToEnvironment(ExpressionBox? e) {
     if (e != null) {
       outerScope?.add(e);
     }
@@ -322,8 +323,7 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
 
   bool _isLastStatementAnExitStatement(Statement? statement) {
     if (statement is Block) {
-      return _isLastStatementAnExitStatement(
-          DartTypeUtilities.getLastStatementInBlock(statement));
+      return _isLastStatementAnExitStatement(statement.lastStatement);
     } else {
       if (statement is BreakStatement) {
         return statement.label == null;
@@ -350,7 +350,9 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
         return false;
       }
 
-      for (var ref in DartTypeUtilities.traverseNodesInDFS(condition)) {
+      // todo(pq): migrate away from `traverseNodesInDFS` (https://github.com/dart-lang/linter/issues/3745)
+      // ignore: deprecated_member_use_from_same_package
+      for (var ref in condition.traverseNodesInDFS()) {
         if (ref is SimpleIdentifier) {
           var element = ref.staticElement;
           if (element == null) {
@@ -397,9 +399,13 @@ abstract class ConditionScopeVisitor extends RecursiveAstVisitor {
   }
 }
 
-class _ConditionExpression extends _ExpressionBox {
-  Expression? expression;
-  bool value;
+abstract class ExpressionBox {
+  bool haveToStop(Iterable<Element?> elements);
+}
+
+class _ConditionExpression extends ExpressionBox {
+  final Expression? expression;
+  final bool value;
 
   _ConditionExpression(this.expression, {this.value = true});
 
@@ -410,11 +416,7 @@ class _ConditionExpression extends _ExpressionBox {
   String toString() => '$expression is $value';
 }
 
-abstract class _ExpressionBox {
-  bool haveToStop(Iterable<Element?> elements);
-}
-
-class _UndefinedAllExpression extends _ExpressionBox {
+class _UndefinedAllExpression extends ExpressionBox {
   @override
   bool haveToStop(Iterable<Element?> elements) => true;
 
@@ -422,14 +424,8 @@ class _UndefinedAllExpression extends _ExpressionBox {
   String toString() => '*All* got undefined';
 }
 
-class _UndefinedExpression extends _ExpressionBox {
-  Element element;
-
-  static _UndefinedExpression? forElement(Element? element) {
-    var canonicalElement = DartTypeUtilities.getCanonicalElement(element);
-    if (canonicalElement == null) return null;
-    return _UndefinedExpression._internal(canonicalElement);
-  }
+class _UndefinedExpression extends ExpressionBox {
+  final Element element;
 
   _UndefinedExpression._internal(this.element);
 
@@ -438,4 +434,10 @@ class _UndefinedExpression extends _ExpressionBox {
 
   @override
   String toString() => '$element got undefined';
+
+  static _UndefinedExpression? forElement(Element? element) {
+    var canonicalElement = element?.canonicalElement;
+    if (canonicalElement == null) return null;
+    return _UndefinedExpression._internal(canonicalElement);
+  }
 }

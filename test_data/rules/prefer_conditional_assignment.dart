@@ -6,12 +6,12 @@
 
 String getFullUserName(Person person) {
   // Something expensive
-  return null;
+  return '';
 }
 
 class Person {
-  int x;
-  String _fullName;
+  int x = 1;
+  String? _fullName;
 
   void badWithBlock1() {
     if (_fullName == null) { // LINT
@@ -31,7 +31,7 @@ class Person {
     }
   }
 
-  String get badWithMultipleBlocks1 {
+  String? get badWithMultipleBlocks1 {
     if (_fullName == null) { // LINT
       {
         _fullName = getFullUserName(this);
@@ -40,7 +40,7 @@ class Person {
     return _fullName;
   }
 
-  String get badWithMultipleBlocks2 {
+  String? get badWithMultipleBlocks2 {
     if ((_fullName) == (null)) { // LINT
       {
         _fullName = getFullUserName(this);
@@ -49,7 +49,7 @@ class Person {
     return _fullName;
   }
 
-  String get badWithMultipleBlocks3 {
+  String? get badWithMultipleBlocks3 {
     if ((_fullName == null)) { // LINT
       {
         _fullName = getFullUserName(this);
@@ -58,19 +58,19 @@ class Person {
     return _fullName;
   }
 
-  String get badWithoutBlock1 {
+  String? get badWithoutBlock1 {
     if (_fullName == null) // LINT
       _fullName = getFullUserName(this);
     return _fullName;
   }
 
-  String get badWithoutBlock2 {
+  String? get badWithoutBlock2 {
     if ((_fullName) == (null)) // LINT
       _fullName = getFullUserName(this);
     return _fullName;
   }
 
-  String get badWithoutBlock3 {
+  String? get badWithoutBlock3 {
     if ((_fullName == null)) // LINT
       _fullName = getFullUserName(this);
     return _fullName;
@@ -113,8 +113,8 @@ class Person {
     } else {}
   }
 
-  A a;
-  A b;
+  A a = A();
+  A b = A();
 
   void f() {
     if (a.i == null) { // OK
@@ -130,5 +130,5 @@ class Person {
 }
 
 class A {
-  int i;
+  int? i;
 }

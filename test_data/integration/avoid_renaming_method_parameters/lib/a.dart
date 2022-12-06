@@ -4,6 +4,8 @@
 
 // test w/ `dart test -N avoid_renaming_method_parameters`
 
+// ignore_for_file: unused_element
+
 abstract class A {
   m1();
   m2(a);

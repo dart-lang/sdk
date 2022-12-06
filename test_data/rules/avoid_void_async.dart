@@ -19,8 +19,6 @@ void d() async => null; // LINT
 void e() => null; // OK
 Future<void> f() async => null; // OK
 
-void g() async* {} // LINT
-void h() sync* {} // LINT
 Stream<void> i() async* {} // OK
 Iterable<void> j() sync* {} // OK
 
@@ -46,8 +44,6 @@ class Foo {
   void e() => null; // OK
   Future<void> f() async => null; // OK
 
-  void g() async* {} // LINT
-  void h() sync* {} // LINT
   Stream<void> i() async* {} // OK
   Iterable<void> j() sync* {} // OK
 

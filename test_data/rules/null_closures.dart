@@ -7,34 +7,21 @@
 import 'dart:async';
 import 'dart:core';
 
-class A extends B {
-  A(int x);
-}
-class B extends A {}
-
-//https://github.com/dart-lang/linter/issues/1414
-void test_cycle() {
-  new A(null);
-}
-
 void list_firstWhere() {
   // firstWhere has a _named_ closure argument.
   <int>[2, 4, 6].firstWhere((e) => e.isEven, orElse: null); // LINT
-  <int>[2, 4, 6].firstWhere((e) => e.isEven, orElse: () => null); // OK
-  <int>[2, 4, 6].where(null); // LINT
   <int>[2, 4, 6].where((e) => e.isEven); // OK
 }
 
 void iterable_singleWhere() {
   // singleWhere has a _named_ closure argument.
   <int>{2, 4, 6}.singleWhere((e) => e.isEven, orElse: null); // LINT
-  <int>[2, 4, 6].singleWhere((e) => e.isEven, orElse: () => null); // OK
+  <int?>[2, 4, 6].singleWhere((e) => e?.isEven ?? false, orElse: () => null); // OK
 }
 
 void map_putIfAbsent() {
   // putIfAbsent has a _required_ closure argument.
-  var map = <int, int>{};
-  map.putIfAbsent(7, null); // LINT
+  var map = <int, int?>{};
   map.putIfAbsent(7, () => null); // OK
 }
 
@@ -46,7 +33,6 @@ void future_wait() {
 
 void list_generate() {
   // List.generate is a _constructor_ with a _positional_ argument.
-  new List.generate(3, null); // LINT
   new List.generate(3, (_) => null); // OK
 }
 

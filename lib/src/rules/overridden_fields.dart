@@ -13,7 +13,6 @@ import '../analyzer.dart';
 const _desc = r"Don't override fields.";
 
 const _details = r'''
-
 **DON'T** override fields.
 
 Overriding fields is almost always done unintentionally.  Regardless, it is a
@@ -87,23 +86,32 @@ Iterable<InterfaceType> _findAllSupertypesAndMixins(
   return interfaces.where((i) => i != interface);
 }
 
-Iterable<InterfaceType> _findAllSupertypesInMixin(ClassElement classElement) {
+Iterable<InterfaceType> _findAllSupertypesInMixin(MixinElement mixinElement) {
   var supertypes = <InterfaceType>[];
   var accumulator = <InterfaceType>[];
-  for (var type in classElement.superclassConstraints) {
+  for (var type in mixinElement.superclassConstraints) {
     supertypes.add(type);
     supertypes.addAll(_findAllSupertypesAndMixins(type, accumulator));
   }
   return supertypes;
 }
 
-class OverriddenFields extends LintRule implements NodeLintRule {
+class OverriddenFields extends LintRule {
+  static const LintCode code = LintCode(
+      'overridden_fields', "Field overrides a field inherited from '{0}'.",
+      correctionMessage:
+          'Try removing the field, overriding the getter and setter if '
+          'necessary.');
+
   OverriddenFields()
       : super(
             name: 'overridden_fields',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -125,11 +133,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     for (var variable in node.fields.variables) {
-      var declaredElement = variable.declaredElement;
-      if (declaredElement != null) {
-        var field = _getOverriddenMember(declaredElement);
-        if (field != null && !field.isAbstract) {
-          rule.reportLint(variable.name);
+      var declaredField = variable.declaredElement;
+      if (declaredField != null) {
+        var overriddenField = _getOverriddenMember(declaredField);
+        if (overriddenField != null && !overriddenField.isAbstract) {
+          rule.reportLintForToken(variable.name,
+              arguments: [overriddenField.enclosingElement.displayName]);
         }
       }
     }
@@ -139,7 +148,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     var memberName = member.name;
     var library = member.library;
     bool isOverriddenMember(PropertyAccessorElement a) {
-      if (memberName != null && a.isSynthetic && a.name == memberName) {
+      if (memberName == null || a.isStatic) {
+        return false;
+      }
+      if (a.isSynthetic && a.name == memberName) {
         // Ensure that private members are overriding a member of the same library.
         if (Identifier.isPrivateName(memberName)) {
           return library == a.library;
@@ -152,13 +164,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     bool containsOverriddenMember(InterfaceType i) =>
         i.accessors.any(isOverriddenMember);
     var enclosingElement = member.enclosingElement;
-    if (enclosingElement is! ClassElement) {
+    if (enclosingElement is! InterfaceElement) {
       return null;
     }
     var classElement = enclosingElement;
 
     Iterable<InterfaceType> interfaces;
-    if (classElement.isMixin) {
+    if (classElement is MixinElement) {
       interfaces = _findAllSupertypesInMixin(classElement);
     } else {
       interfaces =

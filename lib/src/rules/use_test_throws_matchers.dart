@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Use throwsA matcher instead of fail().';
 
 const _details = r'''
-
 Use the `throwsA` matcher instead of try-catch with `fail()`.
 
 **BAD:**
@@ -51,7 +50,7 @@ await expectLater(
 
 ''';
 
-class UseTestThrowsMatchers extends LintRule implements NodeLintRule {
+class UseTestThrowsMatchers extends LintRule {
   UseTestThrowsMatchers()
       : super(
           name: 'use_test_throws_matchers',

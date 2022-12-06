@@ -14,12 +14,14 @@ void main() async {
   print(baseline);
 
   print('Installing pana...');
-  var activate = await Process.run('pub', ['global', 'activate', 'pana']);
+  var activate =
+      await Process.run('dart', ['pub', 'global', 'activate', 'pana']);
   expectOk(activate);
   print(activate.stdout);
 
   print('Running pana...');
-  var output = await Process.run('pub', [
+  var output = await Process.run('dart', [
+    'pub',
     'global',
     'run',
     'pana',

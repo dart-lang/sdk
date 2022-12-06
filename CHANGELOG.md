@@ -1,3 +1,278 @@
+# 1.31.0
+
+- updated `prefer_equal_for_default_values` to not report for SDKs `>=2.19`,
+  where this lint is now an analyzer diagnostic.
+- updated `unrelated_type_equality_checks` to support updated `package:fixnum`
+  structure.
+
+# 1.30.0
+
+- new lint: `enable_null_safety`
+- new lint: `library_annotations`
+- miscellaneous documentation improvements
+
+# 1.29.0
+
+- new lint: `dangling_library_doc_comments`
+- fix `no_leading_underscores_for_local_identifiers` to not report super formals as local variables
+- fix `unnecessary_overrides` false negatives
+- fix `cancel_subscriptions` for nullable fields 
+- new lint: `collection_methods_unrelated_type`
+- update `library_names` to support unnamed libraries
+- fix `unnecessary_parenthesis` support for as-expressions
+- fix `use_build_context_synchronously` to check for context property accesses
+- fix false positive in `comment_references`
+- improved unrelated type checks to handle enums and cascades
+- fix `unnecessary_brace_in_string_interps` for `this` expressions 
+- update `use_build_context_synchronously` for `BuildContext.mounted`
+- improve `flutter_style_todos` to handle more cases
+- fix `use_build_context_synchronously` to check for `BuildContext`s in named expressions
+- fix `exhaustive_cases` to check parenthesized expressions
+- performance improvements for:
+  - `avoid_null_checks_in_equality_operators`
+  - `join_return_with_statement`
+  - `recursive_getters`
+  - `unnecessary_lambdas`
+  - `diagnostic_describe_all_properties`
+  - `prefer_foreach`
+  - `avoid_escaping_inner_quotes`
+  - `cascade_invocations`
+  - `tighten_type_of_initializing_formals`
+  - `prefer_interpolation_to_compose_strings`
+  - `prefer_constructors_over_static_methods`
+  - `avoid_returning_null`
+  - `parameter_assignments`
+  - `prefer_constructors_over_static_methods`
+  - `prefer_interpolation_to_compose_strings`
+  - `avoid_returning_null`
+  - `avoid_returning_this`
+  - `flutter_style_todos`
+  - `avoid_positional_boolean_parameters`
+  - `prefer_const_constructors`
+- new lint: `implicit_call_tearoffs`
+- new lint: `unnecessary_library_directive`
+
+# 1.28.0
+
+- update `avoid_redundant_argument_values` to work with enum declarations
+- performance improvements for `prefer_contains`
+- new lint: `unreachable_from_main`
+- (internal): analyzer API updates and `DartTypeUtilities` refactoring
+
+# 1.27.0
+
+- fix `avoid_redundant_argument_values` when referencing required 
+  parameters in legacy libraries
+- performance improvements for `use_late_for_private_fields_and_variables`
+- new lint: `use_string_in_part_of_directives`
+- fixed `use_super_parameters` false positive with repeated super
+  parameter references
+- updated `use_late_for_private_fields_and_variables` to handle enums
+- fixed `prefer_contains` false positive when start index is non-zero
+- improved `noop_primitive_operations` to catch `.toString()`
+  in string interpolations
+- updated `public_member_api_docs` to report diagnostics on extension
+  names (instead of bodies)
+- miscellaneous documentation improvements
+- (internal): `DartTypeUtilities` refactoring
+
+# 1.26.0
+
+- new lint: `combinators_ordering`
+- fixed `use_colored_box` and `use_decorated_box` to not over-report
+  on containers without a child
+- fixed false positive for `unnecessary_parenthesis` on a map-or-set
+  literal at the start of an expression statement
+- fixed false positive for `prefer_final_locals` reporting on fields
+- fixed `unnecessary_overrides` to allow overrides on `@Protected`
+  members
+- fixed `avoid_multiple_declarations_per_line` false positive in
+  `for` statements
+- fixed `prefer_final_locals` false positive on declaration lists
+  with at least one non-final variable
+- fixed `use_build_context_synchronously` to handle `await`s in
+  `if` conditions
+
+# 1.25.0
+
+- new lint: `discarded_futures`
+- improved message and highlight range for
+  `no_duplicate_case_values`
+- performance improvements for `lines_longer_than_80_chars`,
+  `prefer_const_constructors_in_immutables`, and
+  `prefer_initializing_formals`
+
+# 1.24.0
+
+- fix `prefer_final_parameters` to support super parameters
+- new lint: `unnecessary_to_list_in_spreads`
+- fix `unawaited_futures` to handle string interpolated
+  futures
+- update `use_colored_box` to not flag nullable colors
+- new lint: `unnecessary_null_aware_operator_on_extension_on_nullable`
+
+# 1.23.0
+
+- fixed `no_leading_underscores_for_local_identifiers`
+  to lint local function declarations 
+- fixed `avoid_init_to_null` to correctly handle super
+  initializing defaults that are non-null
+- updated `no_leading_underscores_for_local_identifiers`
+  to allow identifiers with just underscores
+- fixed `flutter_style_todos` to support usernames that
+  start with a digit
+- updated `require_trailing_commas` to handle functions
+  in asserts and multi-line strings
+- updated `unsafe_html` to allow assignments to 
+  `img.src`
+- fixed `unnecessary_null_checks` to properly handle map
+  literal entries
+
+# 1.22.0
+
+- fixed false positives for `unnecessary_getters_setters`
+  and `prefer_final_fields`with enhanced enums
+- updated to analyzer 3.4.0 APIs
+- fixed null-safe variance in `invariant_booleans`
+
+# 1.21.2
+
+- several `use_super_parameters` false positive fixes
+- updated `depend_on_referenced_packages` to treat
+  `flutter_gen` as a virtual package, not needing an
+  explicit dependency
+
+# 1.21.1
+
+- bumped language lower-bound constraint to `2.15.0`
+
+# 1.21.0
+
+- fixed `use_key_in_widget_constructors` false positive
+  with `key` super parameter initializers
+- fixed `use_super_parameters` false positive with field
+  formal params
+- updated `unnecessary_null_checks` and 
+  `null_check_on_nullable_type_parameter` to handle
+  list/set/map literals, and `yield` and `await`
+  expressions
+
+# 1.20.0
+
+- renamed `use_super_initializers` to `use_super_parameters`
+- fixed `unnecessary_null_aware_assignments` property-access
+  false positive
+
+# 1.19.2
+
+- new lint: `use_super_initializers`
+- new lint: `use_enums`
+- new lint: `use_colored_box`
+- performance improvements for `sort_constructors`
+- doc improvements for `always_use_package_imports`,
+  `avoid_print`, and `avoid_relative_lib_imports` 
+- update `avoid_void_async` to skip `main` functions
+- update `prefer_final_parameters` to not super on super params
+- lint updates for enhanced-enums and super-initializer language
+  features
+- updated `unnecessary_late` to report on the variable name
+- marked `null_check_on_nullable_type_parameter` stable
+
+# 1.18.0
+
+- extend `camel_case_types` to cover enums
+- fix `no_leading_underscores_for_local_identifiers` to not 
+  mis-flag field formal parameters with default values
+- fix `prefer_function_declarations_over_variables` to not
+  mis-flag non-final fields
+- performance improvements for `prefer_contains`
+- update `exhaustive_cases` to skip deprecated values that
+  redirect to other values
+
+# 1.17.1
+
+- update to `analyzer` version 3.0
+
+# 1.17.0
+
+- new lint: `unnecessary_late`
+- fix to `no_leading_underscores_for_local_identifiers` to allow
+  underscores in catch clauses
+
+# 1.16.0
+
+- doc improvements for `prefer_initializing_formals`
+- updates to `secure_pubspec_urls` to check `issue_tracker` and
+  `repository` entries
+- new lint: `conditional_uri_does_not_exist`
+- performance improvements for 
+  `missing_whitespace_between_adjacent_strings`
+
+# 1.15.0
+
+- new lint: `use_decorated_box`
+- new lint: `no_leading_underscores_for_library_prefixes`
+- new lint: `no_leading_underscores_for_local_identifiers`
+- new lint: `secure_pubspec_urls`
+- new lint: `sized_box_shrink_expand`
+- new lint: `avoid_final_parameters`
+- improved docs for `omit_local_variable_types`
+
+# 1.14.0
+
+- fix `omit_local_variable_types` to not flag a local type that is 
+  required for inference
+
+# 1.13.0
+
+- allow `while (true) { ...}` in `literal_only_boolean_expressions`
+- fixed `file_names` to report at the start of the file (not the entire 
+  compilation unit)
+- fixed `prefer_collection_literals` named typed param false positive
+- control flow improvements for `use_build_context_synchronously`
+
+# 1.12.0
+
+- fixed `unnecessary_lambdas` false positive for const constructor invocations
+- updated `avoid_print` to allow `kDebugMode`-wrapped print calls
+- fixed handling of initializing formals in `prefer_final_parameters`
+- fixed `unnecessary_parenthesis` false positive with function expressions
+
+# 1.11.0
+
+- added support for constructor tear-offs to `avoid_redundant_argument_values`, 
+  `unnecessary_lambdas`, and `unnecessary_parenthesis`
+- new lint: `unnecessary_constructor_name` to flag unnecessary uses of `.new`
+
+# 1.10.0
+
+- improved regular expression parsing performance for common checks 
+  (`camel_case_types`, `file_names`, etc.)
+- (internal) migrated to analyzer 2.1.0 APIs
+- fixed false positive in `use_build_context_synchronously` in awaits inside 
+  anonymous functions
+- fixed `overridden_fields` false positive w/ static fields
+- fixed false positive in `avoid_null_checks_in_equality_operators` w/ 
+  non-nullable params
+- fixed false positive for deferred imports in `prefer_const_constructors`
+
+# 1.9.0
+
+- marked `avoid_dynamic_calls` stable
+- (internal) removed unused `MockPubVisitor` and `MockRule` classes
+- fixed `prefer_void_to_null` false positive w/ overridden properties
+- (internal) removed references to `NodeLintRule` in lint rule declarations
+- fixed `prefer_void_to_null` false positive on overriding returns
+- fixed `prefer_generic_function_type_aliases` false positive w/ incomplete statements
+- fixed false positive for `prefer_initializing_formals` with factory constructors
+- fixed `void_checks` false positives with incomplete source
+- updated `unnecessary_getters_setters` to only flag the getter
+- improved messages for `avoid_renaming_method_parameters`
+- fixed false positive in `prefer_void_to_null`
+- fixed false positive in `omit_local_variable_types`
+- fixed false positive in `use_rethrow_when_possible`
+- performance improvements for `annotate_overrides`, `prefer_contains`, and `prefer_void_to_null`
+
 # 1.8.0
 
 - performance improvements for `prefer_is_not_empty`

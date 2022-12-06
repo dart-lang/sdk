@@ -9,6 +9,38 @@
 // ignore_for_file: prefer_expression_function_bodies
 // ignore_for_file: unused_local_variable
 
+class CC {
+  const CC();
+}
+
+var ccs = [ () => const CC()]; // OK
+
+typedef Maker = Object Function();
+
+class C {
+  int c;
+  C([this.c = 3, int y = 0]);
+}
+
+var l = <Maker>[
+  C.new, // OK
+  () => C(), // LINT
+  () => C(3), // OK
+];
+
+void constructorTearOffs() {
+  var listOfInts = [1, 2, 3];
+  for (var c in listOfInts.map((x) => C(x))) { // LINT
+    print(c.c);
+  }
+  for (var c in listOfInts.map((x) => C(3))) { // OK
+    print(c.c);
+  }
+  for (var c in listOfInts.map((x) => C(x, 3))) { // OK
+    print(c.c);
+  }
+}
+
 int count(String s) => s.length;
 final strings = ['a', 'bb', 'ccc', 'dddd'];
 
@@ -64,8 +96,8 @@ void main() {
   final array = <MyClass>[];
   final x = MyClass();
 
-  final notRelevantQuestionPeriod = (p) => array[x?.m1].m2(p); // OK
-  final correctNotRelevantQuestionPeriod = array[x?.m1].m2; // OK
+  final notRelevantQuestionPeriod = (p) => array[x?.m1 ?? 0].m2(p); // OK
+  final correctNotRelevantQuestionPeriod = array[x?.m1 ?? 0].m2; // OK
 
   finalList.forEach((name) { // LINT
     print(name);
@@ -75,7 +107,7 @@ void main() {
   // Lambdas as parameters.
   finalList.where((e) => finalList.contains(e)); // LINT
   finalList.where((e) => nonFinalList.contains(e)); // OK
-  finalList.where((e) => finalList?.contains(e)); // OK
+  finalList.where((e) => finalList?.contains(e) ?? false); // OK
   finalList.where(finalList.contains); // OK
 
   // Lambdas assigned to variables.
@@ -100,7 +132,7 @@ void main() {
       ((a) => e.contains(a))(e)); // OK
 
   finalList.where((e) => // OK
-      ((a) => e?.contains(a))(e)); // OK
+      ((a) => e?.contains(a) ?? false)(e)); // OK
 
   var noStatementLambda = () { // OK
     // Empty lambda
@@ -125,7 +157,7 @@ void method() {
   var a = names.where((e) => ((e) => e.contains(e))(e)); // LINT
   var b = names.where((e) => // LINT
       ((e) => e?.contains(e))(e));
-  names.where((e) => e?.contains(e)); // OK
+  names.where((e) => e?.contains(e) ?? false); // OK
 
   var c = names.where((e) { // LINT
     return ((e) {

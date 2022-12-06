@@ -11,10 +11,17 @@ import '../analyzer.dart';
 const _desc = r'Use trailing commas for all function calls and declarations.';
 
 const _details = r'''
-
 **DO** use trailing commas for all function calls and declarations unless the
 function call or definition, from the start of the function name up to the
 closing parenthesis, fits in a single line.
+
+**BAD:**
+```dart
+void run() {
+  method('does not fit on one line',
+      'test test test test test test test test test test test');
+}
+```
 
 **GOOD:**
 ```dart
@@ -26,25 +33,17 @@ void run() {
 }
 ```
 
-**BAD:**
-```dart
-void run() {
-  method('does not fit on one line',
-      'test test test test test test test test test test test');
-}
-```
-
-**Exception:** If the final parameter/argument is positional (vs named) and is
+**EXCEPTION:** If the final parameter/argument is positional (vs named) and is
 either a function literal implemented using curly braces, a literal map, a
 literal set or a literal array. This exception only applies if the final
 parameter does not fit entirely on one line.
 
-**Note:** This lint rule assumes `dartfmt` has been run over the code and may
-produce false positives until that has happened.
+**NOTE:** This lint rule assumes `dart format` has been run over the code and
+may produce false positives until that has happened.
 
 ''';
 
-class RequireTrailingCommas extends LintRule implements NodeLintRule {
+class RequireTrailingCommas extends LintRule {
   RequireTrailingCommas()
       : super(
           name: 'require_trailing_commas',
@@ -77,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   final LintRule rule;
 
-  LineInfo? _lineInfo;
+  late LineInfo _lineInfo;
 
   _Visitor(this.rule);
 
@@ -136,8 +135,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     // No trailing comma is needed if the function call or declaration, up to
     // the closing parenthesis, fits on a single line. Ensuring the left and
-    // right parenthesis are on the same line is sufficient since dartfmt places
-    // the left parenthesis right after the identifier (on the same line).
+    // right parenthesis are on the same line is sufficient since `dart format`
+    // places the left parenthesis right after the identifier (on the same
+    // line).
     if (_isSameLine(leftParenthesis, rightParenthesis)) return;
 
     // Check the last parameter to determine if there are any exceptions.
@@ -147,22 +147,34 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   bool _isSameLine(Token token1, Token token2) =>
-      _lineInfo!.getLocation(token1.offset).lineNumber ==
-      _lineInfo!.getLocation(token2.offset).lineNumber;
+      _lineInfo.getLocation(token1.offset).lineNumber ==
+      _lineInfo.getLocation(token2.end).lineNumber;
 
   bool _shouldAllowTrailingCommaException(AstNode lastNode) {
-    // No exceptions are allowed if the last parameter is named.
+    // No exceptions are allowed if the last argument is named.
     if (lastNode is FormalParameter && lastNode.isNamed) return false;
 
-    // No exceptions are allowed if the entire last parameter fits on one line.
+    // No exceptions are allowed if the entire last argument fits on one line.
     if (_isSameLine(lastNode.beginToken, lastNode.endToken)) return false;
 
-    // Exception is allowed if the last parameter is a function literal.
+    // Exception is allowed if the last argument is a function literal.
     if (lastNode is FunctionExpression && lastNode.body is BlockFunctionBody) {
       return true;
     }
 
-    // Exception is allowed if the last parameter is a set, map or list literal.
+    // Exception is allowed if the last argument is a (multiline) string literal.
+    if (lastNode is StringLiteral) return true;
+
+    // Exception is allowed if the last argument is a anonymous function call.
+    // This case arises a lot in asserts.
+    if (lastNode is FunctionExpressionInvocation &&
+        lastNode.function is FunctionExpression &&
+        _isSameLine(lastNode.argumentList.leftParenthesis,
+            lastNode.argumentList.rightParenthesis)) {
+      return true;
+    }
+
+    // Exception is allowed if the last argument is a set, map or list literal.
     if (lastNode is SetOrMapLiteral || lastNode is ListLiteral) return true;
 
     return false;

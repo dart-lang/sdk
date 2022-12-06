@@ -34,7 +34,7 @@ void someFunction4() {
 }
 
 void someFunction5(Object object) {
-  List<ClassBase> someList;
+  List<ClassBase> someList = [];
 
   for (ClassBase someInstance in someList) {
     if (object == someInstance) print('someFunction5'); // OK
@@ -42,7 +42,7 @@ void someFunction5(Object object) {
 }
 
 void someFunction6(Object object) {
-  List someList;
+  List someList = [];
 
   for (var someInstance in someList) {
     if (object == someInstance) print('someFunction6'); // OK
@@ -50,13 +50,13 @@ void someFunction6(Object object) {
 }
 
 void someFunction7() {
-  List someList;
+  List someList = [];
 
   if (someList.length == 0) print('someFunction7'); // OK
 }
 
 void someFunction8(ClassBase instance) {
-  DerivedClass1 other;
+  DerivedClass1 other = DerivedClass1();
 
   if (other == instance) print('someFunction8'); // OK
 }
@@ -160,7 +160,7 @@ void someFunction22<A extends num, B extends num>(A a, B b) {
 
 void function23() {
   Future getFuture() => new Future.value();
-  Future<void> aVoidFuture;
+  Future<void>? aVoidFuture;
 
   var aFuture = getFuture();
   if (aFuture == aVoidFuture) print('someFunction23'); // OK
@@ -174,7 +174,7 @@ void function30() {
   if (int == double) print('someFunction30'); // OK
   ClassWCall callable = ClassWCall();
   if (c.determinant == callable) print('someFunction30'); // OK
-  SubClassWCall callable2 = SubClassWCall2();
+  SubClassWCall callable2 = SubClassWCall();
   if (c.determinant == callable2) print('someFunction30'); // OK
 }
 

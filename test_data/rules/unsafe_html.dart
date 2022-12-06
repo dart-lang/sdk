@@ -11,7 +11,6 @@ void main() {
   var embed = EmbedElement();
   embed.src = 'foo'; // LINT
   IFrameElement()..src = 'foo'; // LINT
-  ImageElement()..src = 'foo'; // LINT
 
   var script = ScriptElement();
   script.src = 'foo.js'; // LINT
@@ -61,9 +60,9 @@ void main() {
 }
 
 class C {
-  String src;
-  String srcdoc;
-  String href;
+  String src = '';
+  String srcdoc = '';
+  String href = '';
 
   C();
 

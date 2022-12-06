@@ -8,10 +8,19 @@ import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Prefer for elements when building maps from iterables.';
+const _desc = r"Prefer 'for' elements when building maps from iterables.";
 
 const _details = r'''
-When building maps from iterables, it is preferable to use for elements.
+When building maps from iterables, it is preferable to use 'for' elements.
+
+Using 'for' elements brings several benefits including:
+
+- Performance
+- Flexibility
+- Readability
+- Improved type inference
+- Improved interaction with null safety
+
 
 **BAD:**
 ```dart
@@ -30,16 +39,34 @@ return {
     '${demo.routeName}': demo.buildRoute,
 };
 ```
+
+**GOOD:**
+```dart
+// Map<int, Student> is not required, type is inferred automatically.
+final pizzaRecipients = {
+  ...studentLeaders,
+  for (var student in classG)
+    if (student.isPassing) student.id: student,
+};
+```
 ''';
 
-class PreferForElementsToMapFromIterable extends LintRule
-    implements NodeLintRule {
+class PreferForElementsToMapFromIterable extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_for_elements_to_map_fromIterable',
+      "Use 'for' elements when building maps from iterables.",
+      correctionMessage:
+          "Try using a collection literal with a 'for' element.");
+
   PreferForElementsToMapFromIterable()
       : super(
             name: 'prefer_for_elements_to_map_fromIterable',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -82,7 +109,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       } else if (body is BlockFunctionBody) {
         var statements = body.block.statements;
         if (statements.length == 1) {
-          var statement = statements[0];
+          var statement = statements.first;
           if (statement is ReturnStatement) {
             return statement.expression;
           }
@@ -98,7 +125,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           var parameters = expression.parameters?.parameters;
           if (parameters != null &&
               parameters.length == 1 &&
-              parameters[0].isRequired) {
+              parameters.first.isRequired) {
             if (extractBody(expression) != null) {
               return expression;
             }

@@ -5,7 +5,7 @@
 // test w/ `dart test -N use_to_and_as_if_applicable`
 
 class A {
-  A.from(B);
+  A.from(B _);
 }
 
 // Testing the regexp
@@ -71,4 +71,20 @@ class B {
     _asa();
     _functionWihParameter(0);
   }
+}
+
+abstract class C {
+  A getA();
+}
+
+class D1 extends C {
+  A getA() => A.from(B()); // OK
+}
+
+class D2 implements C {
+  A getA() => A.from(B()); // OK
+}
+
+mixin D3 on C {
+  A getA() => A.from(B()); // OK
 }

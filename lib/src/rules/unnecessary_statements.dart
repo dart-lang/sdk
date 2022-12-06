@@ -12,7 +12,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid using unnecessary statements.';
 
 const _details = r'''
-
 **AVOID** using unnecessary statements.
 
 Statements which have no clear effect are usually unnecessary, or should be
@@ -46,7 +45,11 @@ return myvar;
 
 ''';
 
-class UnnecessaryStatements extends LintRule implements NodeLintRule {
+class UnnecessaryStatements extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_statements', 'Unnecessary statement.',
+      correctionMessage: 'Try completing the statement or breaking it up.');
+
   UnnecessaryStatements()
       : super(
             name: 'unnecessary_statements',
@@ -55,10 +58,12 @@ class UnnecessaryStatements extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
+  LintCode get lintCode => code;
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(_ReportNoClearEffectVisitor(this));
-    registry.addAsExpression(this, visitor);
     registry.addExpressionStatement(this, visitor);
     registry.addForStatement(this, visitor);
     registry.addCascadeExpression(this, visitor);

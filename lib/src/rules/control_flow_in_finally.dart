@@ -10,26 +10,10 @@ import '../analyzer.dart';
 const _desc = r'Avoid control flow in finally blocks.';
 
 const _details = r'''
-
 **AVOID** control flow leaving finally blocks.
 
 Using control flow in finally blocks will inevitably cause unexpected behavior
 that is hard to debug.
-
-**GOOD:**
-```dart
-class Ok {
-  double compliantMethod() {
-    var i = 5;
-    try {
-      i = 1 / 0;
-    } catch (e) {
-      print(e); // OK
-    }
-    return i;
-  }
-}
-```
 
 **BAD:**
 ```dart
@@ -82,15 +66,37 @@ class BadBreak {
 }
 ```
 
+**GOOD:**
+```dart
+class Ok {
+  double compliantMethod() {
+    var i = 5;
+    try {
+      i = 1 / 0;
+    } catch (e) {
+      print(e); // OK
+    }
+    return i;
+  }
+}
+```
+
 ''';
 
-class ControlFlowInFinally extends LintRule implements NodeLintRule {
+class ControlFlowInFinally extends LintRule {
+  static const LintCode code = LintCode(
+      'control_flow_in_finally', "Use of '{0}' in a 'finally' clause.",
+      correctionMessage: 'Try restructuring the code.');
+
   ControlFlowInFinally()
       : super(
             name: 'control_flow_in_finally',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -109,7 +115,8 @@ class ControlFlowInFinally extends LintRule implements NodeLintRule {
 abstract class ControlFlowInFinallyBlockReporterMixin {
   LintRule get rule;
 
-  void reportIfFinallyAncestorExists(AstNode node, {AstNode? ancestor}) {
+  void reportIfFinallyAncestorExists(AstNode node,
+      {required String kind, AstNode? ancestor}) {
     var tryStatement = node.thisOrAncestorOfType<TryStatement>();
     var finallyBlock = tryStatement?.finallyBlock;
     bool finallyBlockAncestorPredicate(AstNode n) => n == finallyBlock;
@@ -122,7 +129,7 @@ abstract class ControlFlowInFinallyBlockReporterMixin {
     var enablerNode = _findEnablerNode(
         ancestor, finallyBlockAncestorPredicate, node, tryStatement);
     if (enablerNode == null) {
-      rule.reportLint(node);
+      rule.reportLint(node, arguments: [kind]);
     }
   }
 
@@ -154,16 +161,17 @@ class _Visitor extends SimpleAstVisitor<void>
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    reportIfFinallyAncestorExists(node, ancestor: node.target);
+    reportIfFinallyAncestorExists(node, ancestor: node.target, kind: 'break');
   }
 
   @override
   void visitContinueStatement(ContinueStatement node) {
-    reportIfFinallyAncestorExists(node, ancestor: node.target);
+    reportIfFinallyAncestorExists(node,
+        ancestor: node.target, kind: 'continue');
   }
 
   @override
   void visitReturnStatement(ReturnStatement node) {
-    reportIfFinallyAncestorExists(node);
+    reportIfFinallyAncestorExists(node, kind: 'return');
   }
 }

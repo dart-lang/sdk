@@ -13,9 +13,9 @@ import '../analyzer.dart';
 const _desc = r'Tighten type of initializing formal.';
 
 const _details = r'''
-
-Tighten type of initializing formal if a non-null assert exists. This allows the
-type system to catch problems rather than have them only be caught at run-time.
+Tighten the type of an initializing formal if a non-null assert exists. This
+allows the type system to catch problems rather than have them only be caught at
+run-time.
 
 **BAD:**
 ```dart
@@ -29,16 +29,23 @@ class A {
 **GOOD:**
 ```dart
 class A {
-  A.c1(String this.p) : assert(p != null);
+  A.c1(String this.p);
   A.c2(this.p);
   final String? p;
 }
-```
 
+class B {
+  String? b;
+  B(this.b);
+}
+
+class C extends B {
+  B(String super.b);
+}
+```
 ''';
 
-class TightenTypeOfInitializingFormals extends LintRule
-    implements NodeLintRule {
+class TightenTypeOfInitializingFormals extends LintRule {
   TightenTypeOfInitializingFormals()
       : super(
           name: 'tighten_type_of_initializing_formals',
@@ -60,34 +67,48 @@ class TightenTypeOfInitializingFormals extends LintRule
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule, this.context);
-
   final LintRule rule;
+
   final LinterContext context;
+  _Visitor(this.rule, this.context);
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    node.initializers
-        .whereType<AssertInitializer>()
-        .map((e) => e.condition)
-        .whereType<BinaryExpression>()
-        .where((e) => e.operator.type == TokenType.BANG_EQ)
-        .map((e) => e.rightOperand is NullLiteral
-            ? e.leftOperand
-            : e.leftOperand is NullLiteral
-                ? e.rightOperand
-                : null)
-        .whereType<Identifier>()
-        .where((e) {
-          var staticType = e.staticType;
-          return staticType != null &&
-              context.typeSystem.isNullable(staticType);
-        })
-        .map((e) => e.staticElement)
-        .whereType<FieldFormalParameterElement>()
-        .forEach((e) {
-          rule.reportLint(node.parameters.parameters
-              .firstWhere((p) => p.declaredElement == e));
-        });
+    for (var initializer in node.initializers) {
+      if (initializer is! AssertInitializer) continue;
+
+      var condition = initializer.condition;
+      if (condition is! BinaryExpression) continue;
+
+      if (condition.operator.type == TokenType.BANG_EQ) {
+        if (condition.rightOperand is NullLiteral) {
+          var leftOperand = condition.leftOperand;
+          if (leftOperand is Identifier) {
+            var staticType = leftOperand.staticType;
+            if (staticType != null &&
+                context.typeSystem.isNullable(staticType)) {
+              _check(leftOperand.staticElement, node);
+            }
+          }
+        } else if (condition.leftOperand is NullLiteral) {
+          var rightOperand = condition.rightOperand;
+          if (rightOperand is Identifier) {
+            var staticType = rightOperand.staticType;
+            if (staticType != null &&
+                context.typeSystem.isNullable(staticType)) {
+              _check(rightOperand.staticElement, node);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  void _check(Element? element, ConstructorDeclaration node) {
+    if (element is FieldFormalParameterElement ||
+        element is SuperFormalParameterElement) {
+      rule.reportLint(node.parameters.parameters
+          .firstWhere((p) => p.declaredElement == element));
+    }
   }
 }

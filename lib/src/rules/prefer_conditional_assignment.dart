@@ -7,12 +7,12 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
+import '../util/dart_type_utilities.dart' as type_utils;
 
 const _desc = r'Prefer using `??=` over testing for null.';
 
 const _details = r'''
-
 **PREFER** using `??=` over testing for null.
 
 As Dart has the `??=` operator, it is advisable to use it where applicable to
@@ -39,7 +39,7 @@ String get fullName {
 
 bool _checkExpression(Expression expression, Expression condition) =>
     expression is AssignmentExpression &&
-    DartTypeUtilities.canonicalElementsFromIdentifiersAreEqual(
+    type_utils.canonicalElementsFromIdentifiersAreEqual(
         expression.leftHandSide, condition);
 
 bool _checkStatement(Statement statement, Expression condition) {
@@ -56,23 +56,30 @@ Expression? _getExpressionCondition(Expression rawExpression) {
   var expression = rawExpression.unParenthesized;
   if (expression is BinaryExpression &&
       expression.operator.type == TokenType.EQ_EQ) {
-    if (DartTypeUtilities.isNullLiteral(expression.rightOperand)) {
+    if (expression.rightOperand.isNullLiteral) {
       return expression.leftOperand;
     }
-    if (DartTypeUtilities.isNullLiteral(expression.leftOperand)) {
+    if (expression.leftOperand.isNullLiteral) {
       return expression.rightOperand;
     }
   }
   return null;
 }
 
-class PreferConditionalAssignment extends LintRule implements NodeLintRule {
+class PreferConditionalAssignment extends LintRule {
+  static const LintCode code = LintCode('prefer_conditional_assignment',
+      "Unnecessary 'null' comparison before assigning a value.",
+      correctionMessage: "Try using the '??=' assignment operator.");
+
   PreferConditionalAssignment()
       : super(
             name: 'prefer_conditional_assignment',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

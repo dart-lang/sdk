@@ -6,12 +6,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../utils.dart';
+import '../util/ascii_utils.dart';
 
 const _desc = r'Avoid empty catch blocks.';
 
 const _details = r'''
-
 **AVOID** empty catch blocks.
 
 In general, empty catch blocks should be avoided.  In cases where they are
@@ -49,13 +48,21 @@ try {
 
 ''';
 
-class EmptyCatches extends LintRule implements NodeLintRule {
+class EmptyCatches extends LintRule {
+  static const LintCode code = LintCode('empty_catches', 'Empty catch block.',
+      correctionMessage:
+          'Try adding statements to the block, adding a comment to the block, '
+          "or removing the 'catch' clause.");
+
   EmptyCatches()
       : super(
             name: 'empty_catches',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -75,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Skip exceptions named with underscores.
     var exceptionParameter = node.exceptionParameter;
     if (exceptionParameter != null &&
-        isJustUnderscores(exceptionParameter.name)) {
+        exceptionParameter.name.lexeme.isJustUnderscores) {
       return;
     }
 

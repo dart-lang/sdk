@@ -58,13 +58,20 @@ class MyStateful extends StatefulWidget {
 ```
 ''';
 
-class NoLogicInCreateState extends LintRule implements NodeLintRule {
+class NoLogicInCreateState extends LintRule {
+  static const LintCode code = LintCode(
+      'no_logic_in_create_state', "Don't put any logic in 'createState'.",
+      correctionMessage: "Try moving the logic out of 'createState'.");
+
   NoLogicInCreateState()
       : super(
             name: 'no_logic_in_create_state',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -81,7 +88,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
-    if (node.name.name != 'createState') {
+    if (node.name.lexeme != 'createState') {
       return;
     }
 
@@ -95,7 +102,7 @@ class _Visitor extends SimpleAstVisitor {
     if (body is BlockFunctionBody) {
       var statements = body.block.statements;
       if (statements.length == 1) {
-        var statement = statements[0];
+        var statement = statements.first;
         if (statement is ReturnStatement) {
           expressionToTest = statement.expression;
         }

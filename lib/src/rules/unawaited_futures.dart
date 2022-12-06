@@ -7,21 +7,27 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'`Future` results in `async` function bodies must be '
-    '`await`ed or marked `unawaited` using `package:pedantic`.';
+    '`await`ed or marked `unawaited` using `dart:async`.';
 
 const _details = r'''
-
 **DO** await functions that return a `Future` inside of an async function body.
 
 It's easy to forget await in async methods as naming conventions usually don't
 tell us if a method is sync or async (except for some in `dart:io`).
 
 When you really _do_ want to start a fire-and-forget `Future`, the recommended
-way is to use `unawaited` from `package:pedantic`. The `// ignore` and
+way is to use `unawaited` from `dart:async`. The `// ignore` and
 `// ignore_for_file` comments also work.
+
+**BAD:**
+```dart
+void main() async {
+  doSomething(); // Likely a bug.
+}
+```
 
 **GOOD:**
 ```dart
@@ -34,16 +40,9 @@ void main() async {
 }
 ```
 
-**BAD:**
-```dart
-void main() async {
-  doSomething(); // Likely a bug.
-}
-```
-
 ''';
 
-class UnawaitedFutures extends LintRule implements NodeLintRule {
+class UnawaitedFutures extends LintRule {
   UnawaitedFutures()
       : super(
             name: 'unawaited_futures',
@@ -57,6 +56,7 @@ class UnawaitedFutures extends LintRule implements NodeLintRule {
     var visitor = _Visitor(this);
     registry.addExpressionStatement(this, visitor);
     registry.addCascadeExpression(this, visitor);
+    registry.addInterpolationExpression(this, visitor);
   }
 }
 
@@ -67,12 +67,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCascadeExpression(CascadeExpression node) {
-    for (var expr in node.cascadeSections) {
-      if ((expr.staticType?.isDartAsyncFuture ?? false) &&
-          _isEnclosedInAsyncFunctionBody(expr) &&
-          expr is! AssignmentExpression) {
-        rule.reportLint(expr);
-      }
+    var sections = node.cascadeSections;
+    for (var i = 0; i < sections.length; i++) {
+      _visit(sections[i]);
     }
   }
 
@@ -85,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (type == null) {
       return;
     }
-    if (DartTypeUtilities.implementsInterface(type, 'Future', 'dart.async')) {
+    if (type.implementsInterface('Future', 'dart.async')) {
       // Ignore a couple of special known cases.
       if (_isFutureDelayedInstanceCreationWithComputation(expr) ||
           _isMapPutIfAbsentInvocation(expr)) {
@@ -98,6 +95,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         rule.reportLint(node);
       }
     }
+  }
+
+  @override
+  void visitInterpolationExpression(InterpolationExpression node) {
+    _visit(node.expression);
   }
 
   bool _isEnclosedInAsyncFunctionBody(AstNode node) {
@@ -121,4 +123,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       expr is MethodInvocation &&
       expr.methodName.name == 'putIfAbsent' &&
       _isMapClass(expr.methodName.staticElement?.enclosingElement);
+
+  void _visit(Expression expr) {
+    if ((expr.staticType?.isDartAsyncFuture ?? false) &&
+        _isEnclosedInAsyncFunctionBody(expr) &&
+        expr is! AssignmentExpression) {
+      rule.reportLint(expr);
+    }
+  }
 }

@@ -11,7 +11,6 @@ const _desc =
     r'Prefer final for variable declarations if they are not reassigned.';
 
 const _details = r'''
-
 **DO** prefer declaring variables as final if they are not reassigned later in
 the code.
 
@@ -46,7 +45,7 @@ void mutableCase() {
 
 ''';
 
-class PreferFinalLocals extends LintRule implements NodeLintRule {
+class PreferFinalLocals extends LintRule {
   PreferFinalLocals()
       : super(
             name: 'prefer_final_locals',
@@ -61,7 +60,7 @@ class PreferFinalLocals extends LintRule implements NodeLintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
-    registry.addVariableDeclaration(this, visitor);
+    registry.addVariableDeclarationList(this, visitor);
   }
 }
 
@@ -71,20 +70,26 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.isConst ||
-        node.isFinal ||
-        node.equals == null ||
-        node.initializer == null) {
-      return;
-    }
+  void visitVariableDeclarationList(VariableDeclarationList node) {
+    if (node.isConst || node.isFinal) return;
 
     var function = node.thisOrAncestorOfType<FunctionBody>();
-    var declaredElement = node.declaredElement;
-    if (function != null &&
-        declaredElement != null &&
-        !function.isPotentiallyMutatedInScope(declaredElement)) {
-      rule.reportLint(node.name);
+    if (function == null) return;
+
+    for (var variable in node.variables) {
+      if (variable.equals == null || variable.initializer == null) {
+        return;
+      }
+      var declaredElement = variable.declaredElement;
+      if (declaredElement != null &&
+          function.isPotentiallyMutatedInScope(declaredElement)) {
+        return;
+      }
+    }
+    if (node.keyword != null) {
+      rule.reportLintForToken(node.keyword);
+    } else if (node.type != null) {
+      rule.reportLint(node.type);
     }
   }
 }

@@ -14,8 +14,7 @@ import 'unnecessary_null_checks.dart';
 const _desc = r"Don't use null check on a potentially nullable type parameter.";
 
 const _details = r'''
-
-Don't use null check on a potentially nullable type parameter.
+**DON'T** use null check on a potentially nullable type parameter.
 
 Given a generic type parameter `T` which has a nullable bound (e.g. the default
 bound of `Object?`), it is very easy to introduce erroneous null checks when
@@ -44,16 +43,24 @@ T run<T>(T callback()) {
 
 ''';
 
-class NullCheckOnNullableTypeParameter extends LintRule
-    implements NodeLintRule {
+class NullCheckOnNullableTypeParameter extends LintRule {
+  static const LintCode code = LintCode(
+      'null_check_on_nullable_type_parameter',
+      "The null check operator shouldn't be used on a variable whose type is a "
+          'potentially nullable type parameter.',
+      correctionMessage: "Try explicitly testing for 'null'.");
+
   NullCheckOnNullableTypeParameter()
       : super(
           name: 'null_check_on_nullable_type_parameter',
           description: _desc,
           details: _details,
-          maturity: Maturity.experimental,
+          maturity: Maturity.stable,
           group: Group.style,
         );
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -63,16 +70,15 @@ class NullCheckOnNullableTypeParameter extends LintRule
     }
 
     var visitor = _Visitor(this, context);
-    registry.addCompilationUnit(this, visitor);
     registry.addPostfixExpression(this, visitor);
   }
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule, this.context);
-
   final LintRule rule;
+
   final LinterContext context;
+  _Visitor(this.rule, this.context);
 
   @override
   void visitPostfixExpression(PostfixExpression node) {

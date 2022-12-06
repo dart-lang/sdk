@@ -1,0 +1,33 @@
+# A workflow to close issues where the author hasn't responded to a request for
+# more information; see https://github.com/godofredoc/no-response for docs.
+
+name: response check
+
+# Both `issue_comment` and `scheduled` event types are required.
+on:
+  issue_comment:
+    types: [created]
+  schedule:
+    # Schedule for five minutes after the hour, every hour
+    - cron: '5 * * * *'
+
+# All permissions not specified are set to 'none'.
+permissions:
+  issues: write
+
+jobs:
+  noResponse:
+    runs-on: ubuntu-latest
+    if: ${{ github.repository_owner == 'dart-lang' }}
+    steps:
+      - uses: godofredoc/no-response@0ce2dc0e63e1c7d2b87752ceed091f6d32c9df09
+        with:
+          responseRequiredLabel: "needs-info"
+          daysUntilClose: 14
+          # Comment to post when closing an Issue for lack of response.
+          closeComment: >
+            Without additional information we're not able to resolve this
+            issue, so it will be closed at this time. You're still free to add
+            more info and respond to any questions above, though. We'll reopen
+            the case if you do. Thanks for your contribution!
+          token: ${{ github.token }}

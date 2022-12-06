@@ -3,13 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
 import '../util/unrelated_types_visitor.dart';
 
 const _desc = r'Invocation of `remove` with references of unrelated types.';
 
 const _details = r'''
-
 **DON'T** invoke `remove` on `List` with an instance of different type than
 the parameter type.
 
@@ -119,7 +117,10 @@ class DerivedClass3 extends ClassBase implements Mixin {}
 
 ''';
 
-class ListRemoveUnrelatedType extends LintRule implements NodeLintRule {
+class ListRemoveUnrelatedType extends LintRule {
+  static const LintCode code = LintCode('list_remove_unrelated_type',
+      "The argument type '{0}' isn't related to '{1}'.");
+
   ListRemoveUnrelatedType()
       : super(
             name: 'list_remove_unrelated_type',
@@ -128,21 +129,25 @@ class ListRemoveUnrelatedType extends LintRule implements NodeLintRule {
             group: Group.errors);
 
   @override
+  LintCode get lintCode => code;
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this, context.typeSystem);
+    var visitor = _Visitor(this, context.typeSystem, context.typeProvider);
     registry.addMethodInvocation(this, visitor);
   }
 }
 
 class _Visitor extends UnrelatedTypesProcessors {
-  static final _definition = InterfaceTypeDefinition('List', 'dart.core');
-
-  _Visitor(LintRule rule, TypeSystem typeSystem) : super(rule, typeSystem);
+  _Visitor(super.rule, super.typeSystem, super.typeProvider);
 
   @override
-  InterfaceTypeDefinition get definition => _definition;
-
-  @override
-  String get methodName => 'remove';
+  List<MethodDefinition> get methods => [
+        MethodDefinitionForElement(
+          typeProvider.listElement,
+          'remove',
+          ExpectedArgumentKind.assignableToCollectionTypeArgument,
+        ),
+      ];
 }

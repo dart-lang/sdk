@@ -7,18 +7,12 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
+import '../ast.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
-const alwaysFalse =
-    'Always false because indexOf is always greater or equal -1.';
-
-const alwaysTrue = 'Always true because indexOf is always greater or equal -1.';
-
-const useContains = 'Use contains instead of indexOf';
 const _desc = r'Use contains for `List` and `String` instances.';
-
 const _details = r'''
-
 **DON'T** use `indexOf` to see if a collection contains an element.
 
 Calling `indexOf` to see if a collection contains something is difficult to read
@@ -26,19 +20,32 @@ and may have poor performance.
 
 Instead, prefer `contains`.
 
+**BAD:**
+```dart
+if (lunchBox.indexOf('sandwich') == -1) return 'so hungry...';
+```
+
 **GOOD:**
 ```dart
 if (!lunchBox.contains('sandwich')) return 'so hungry...';
 ```
 
-**BAD:**
-```dart
-if (lunchBox.indexOf('sandwich')) == -1 return 'so hungry...';
-```
-
 ''';
 
-class PreferContainsOverIndexOf extends LintRule implements NodeLintRule {
+class PreferContainsOverIndexOf extends LintRule {
+  // TODO(brianwilkerson) Both `alwaysFalse` and `alwaysTrue` should be warnings
+  //  rather than lints because they represent a bug rather than a style
+  //  preference.
+  static const LintCode alwaysFalse = LintCode('prefer_contains',
+      'Always false because indexOf is always greater or equal -1.');
+
+  static const LintCode alwaysTrue = LintCode('prefer_contains',
+      'Always true because indexOf is always greater or equal -1.');
+
+  static const LintCode useContains = LintCode('prefer_contains',
+      "Unnecessary use of 'indexOf' to test for containment.",
+      correctionMessage: "Try using 'contains'.");
+
   PreferContainsOverIndexOf()
       : super(
             name: 'prefer_contains',
@@ -47,27 +54,14 @@ class PreferContainsOverIndexOf extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
+  List<LintCode> get lintCodes => [alwaysFalse, alwaysTrue, useContains];
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
-    registry.addMethodInvocation(this, visitor);
+    registry.addBinaryExpression(this, visitor);
   }
-
-  void reportLintWithDescription(AstNode? node, String description) {
-    if (node != null) {
-      reporter.reportErrorForNode(_LintCode(name, description), node, []);
-    }
-  }
-}
-
-/// TODO create common MultiMessageLintCode class
-class _LintCode extends LintCode {
-  static final registry = <String, _LintCode>{};
-
-  factory _LintCode(String name, String message) =>
-      registry.putIfAbsent(name + message, () => _LintCode._(name, message));
-
-  _LintCode._(String name, String message) : super(name, message);
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
@@ -78,93 +72,70 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule, this.context);
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.name != 'indexOf') {
+  void visitBinaryExpression(BinaryExpression node) {
+    // This lint rule is only concerned with these operators.
+    if (!node.operator.matchesAny([
+      TokenType.EQ_EQ,
+      TokenType.BANG_EQ,
+      TokenType.GT,
+      TokenType.GT_EQ,
+      TokenType.LT,
+      TokenType.LT_EQ,
+    ])) {
       return;
     }
-
-    var parentType = node.target?.staticType;
-    if (parentType == null ||
-        !DartTypeUtilities.implementsAnyInterface(parentType, [
-          InterfaceTypeDefinition('Iterable', 'dart.core'),
-          InterfaceTypeDefinition('String', 'dart.core'),
-        ])) {
-      return;
-    }
-
-    if (node.parent is AssignmentExpression) {
-      // The result of `indexOf` is being assigned before being compared, so
-      // it's important. E.g.  `(next = list.indexOf('{')) != -1)`.
-      return;
-    }
-
-    // Going up in AST structure to find binary comparison operator for this
-    // `indexOf` access. Most of the time it will be a parent, but sometimes
-    // it can be wrapped in parentheses or `as` operator.
-    AstNode? search = node;
-    while (
-        search != null && search is Expression && search is! BinaryExpression) {
-      search = search.parent;
-    }
-
-    if (search is! BinaryExpression) {
-      return;
-    }
-
-    var binaryExpression = search;
-    var operator = binaryExpression.operator;
-
-    // Comparing constants with result of indexOf.
-
-    var rightOperand = binaryExpression.rightOperand;
-    var rightValue = context.evaluateConstant(rightOperand).value;
-
-    if (rightValue != null && (rightValue.type?.isDartCoreInt ?? false)) {
-      // Constant is on right side of comparison operator
-      _checkConstant(binaryExpression, rightValue.toIntValue(), operator.type);
-      return;
-    }
-
-    var leftOperand = binaryExpression.leftOperand;
-    var leftValue = context.evaluateConstant(leftOperand).value;
-    if (leftValue != null && (leftValue.type?.isDartCoreInt ?? false)) {
-      // Constants is on left side of comparison operator
-      _checkConstant(binaryExpression, leftValue.toIntValue(),
-          _invertedTokenType(operator.type));
+    var value = getIntValue(node.rightOperand, context);
+    if (value is int) {
+      if (value <= 0 && _isUnassignedIndexOf(node.leftOperand)) {
+        _checkConstant(node, value, node.operator.type);
+      }
+    } else {
+      value = getIntValue(node.leftOperand, context);
+      if (value is int) {
+        if (value <= 0 && _isUnassignedIndexOf(node.rightOperand)) {
+          _checkConstant(node, value, _invertedTokenType(node.operator.type));
+        }
+      }
     }
   }
 
-  void _checkConstant(Expression expression, int? value, TokenType type) {
+  void _checkConstant(Expression expression, int value, TokenType type) {
     if (value == -1) {
       if (type == TokenType.EQ_EQ ||
           type == TokenType.BANG_EQ ||
           type == TokenType.LT_EQ ||
           type == TokenType.GT) {
-        rule.reportLintWithDescription(expression, useContains);
+        rule.reportLint(expression,
+            errorCode: PreferContainsOverIndexOf.useContains);
       } else if (type == TokenType.LT) {
         // indexOf < -1 is always false
-        rule.reportLintWithDescription(expression, alwaysFalse);
+        rule.reportLint(expression,
+            errorCode: PreferContainsOverIndexOf.alwaysFalse);
       } else if (type == TokenType.GT_EQ) {
         // indexOf >= -1 is always true
-        rule.reportLintWithDescription(expression, alwaysTrue);
+        rule.reportLint(expression,
+            errorCode: PreferContainsOverIndexOf.alwaysTrue);
       }
     } else if (value == 0) {
       // 'indexOf >= 0' is same as 'contains',
       // and 'indexOf < 0' is same as '!contains'
       if (type == TokenType.GT_EQ || type == TokenType.LT) {
-        rule.reportLintWithDescription(expression, useContains);
+        rule.reportLint(expression,
+            errorCode: PreferContainsOverIndexOf.useContains);
       }
-    } else if (value! < -1) {
+    } else if (value < -1) {
       // 'indexOf' is always >= -1, so comparing with lesser values makes
       // no sense.
       if (type == TokenType.EQ_EQ ||
           type == TokenType.LT_EQ ||
           type == TokenType.LT) {
-        rule.reportLintWithDescription(expression, alwaysFalse);
+        rule.reportLint(expression,
+            errorCode: PreferContainsOverIndexOf.alwaysFalse);
       } else if (type == TokenType.BANG_EQ ||
           type == TokenType.GT_EQ ||
           type == TokenType.GT) {
-        rule.reportLintWithDescription(expression, alwaysTrue);
+        rule.reportLint(expression,
+            errorCode: PreferContainsOverIndexOf.alwaysTrue);
       }
     }
   }
@@ -186,5 +157,40 @@ class _Visitor extends SimpleAstVisitor<void> {
       default:
         return type;
     }
+  }
+
+  /// Returns whether [expression] is an invocation of `Iterable.indexOf` or
+  /// `String.indexOf`, which is not assigned to a value.
+  bool _isUnassignedIndexOf(Expression expression) {
+    // Unwrap parens and `as` expressions.
+    var invocation = expression.unParenthesized;
+    while (invocation is AsExpression) {
+      invocation = invocation.expression;
+    }
+    invocation = invocation.unParenthesized;
+
+    if (invocation is! MethodInvocation) return false;
+
+    // The result of `indexOf` is being assigned before being compared, so
+    // it's important. E.g.  `(next = list.indexOf('{')) != -1)`.
+    if (invocation.parent is AssignmentExpression) return false;
+    if (invocation.methodName.name != 'indexOf') return false;
+
+    var parentType = invocation.target?.staticType;
+    if (parentType == null) return false;
+    if (!parentType.implementsAnyInterface([
+      InterfaceTypeDefinition('Iterable', 'dart.core'),
+      InterfaceTypeDefinition('String', 'dart.core'),
+    ])) {
+      return false;
+    }
+
+    var args = invocation.argumentList.arguments;
+    if (args.length == 2) {
+      var start = args[1];
+      if (getIntValue(start, context) != 0) return false;
+    }
+
+    return true;
   }
 }

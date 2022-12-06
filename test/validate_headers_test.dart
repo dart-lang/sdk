@@ -8,8 +8,14 @@ import 'package:test/test.dart';
 
 void main() {
   group('check for copyright headers', () {
+    test('... in bin', () async {
+      await validate('bin');
+    });
     test('... in lib', () async {
       await validate('lib');
+    });
+    test('... in test', () async {
+      await validate('test');
     });
     test('... in tool', () async {
       await validate('tool');

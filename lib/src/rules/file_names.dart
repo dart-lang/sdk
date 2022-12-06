@@ -11,7 +11,6 @@ import '../util/ascii_utils.dart';
 const _desc = r'Name source files using `lowercase_with_underscores`.';
 
 const _details = r'''
-
 **DO** name source files using `lowercase_with_underscores`.
 
 Some file systems are not case-sensitive, so many projects require filenames to
@@ -20,16 +19,16 @@ in that form. Using underscores as the separator ensures that the name is still
 a valid Dart identifier, which may be helpful if the language later supports
 symbolic imports.
 
-**GOOD:**
-
-* `slider_menu.dart`
-* `file_system.dart`
-
 **BAD:**
 
 * `SliderMenu.dart`
 * `filesystem.dart`
 * `file-system.dart`
+
+**GOOD:**
+
+* `slider_menu.dart`
+* `file_system.dart`
 
 Files without a strict `.dart` extension are ignored.  For example:
 
@@ -43,13 +42,21 @@ library.
 
 ''';
 
-class FileNames extends LintRule implements NodeLintRule {
+class FileNames extends LintRule {
+  static const LintCode code = LintCode(
+      'file_names', "The file name '{0}' isn't a snake_case identifier.",
+      correctionMessage:
+          'Try changing the name to follow the snake_case style.');
+
   FileNames()
       : super(
             name: 'file_names',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -70,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (declaredElement != null) {
       var fileName = declaredElement.source.shortName;
       if (!isValidDartFileName(fileName)) {
-        rule.reportLint(node);
+        rule.reportLintForOffset(0, 0, arguments: [fileName]);
       }
     }
   }

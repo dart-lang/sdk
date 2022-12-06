@@ -7,15 +7,16 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 import '../util/dart_type_utilities.dart';
 
 const _desc =
     r'Equality operator `==` invocation with references of unrelated types.';
 
 const _details = r'''
-
 **DON'T** Compare references of unrelated types for equality.
 
 Comparing references of a type where neither is a subtype of the other most
@@ -139,30 +140,39 @@ bool _hasNonComparableOperands(TypeSystem typeSystem, BinaryExpression node) {
   if (leftType == null || rightType == null) {
     return false;
   }
-  return !DartTypeUtilities.isNullLiteral(left) &&
-      !DartTypeUtilities.isNullLiteral(right) &&
-      DartTypeUtilities.unrelatedTypes(typeSystem, leftType, rightType) &&
+  return !left.isNullLiteral &&
+      !right.isNullLiteral &&
+      typesAreUnrelated(typeSystem, leftType, rightType) &&
       !(_isFixNumIntX(leftType) && _isCoreInt(rightType));
 }
 
 bool _isCoreInt(DartType type) => type.isDartCoreInt;
 
 bool _isFixNumIntX(DartType type) {
-  if (type is! InterfaceType) {
-    return false;
-  }
-  Element element = type.element;
-  return (element.name == 'Int32' || element.name == 'Int64') &&
-      element.library?.name == 'fixnum';
+  // todo(pq): add tests that ensure this predicate works with fixnum >= 1.1.0-dev
+  // See: https://github.com/dart-lang/linter/issues/3868
+  if (type is! InterfaceType) return false;
+  InterfaceElement element = type.element;
+  if (element.name != 'Int32' && element.name != 'Int64') return false;
+  var uri = element.library.source.uri;
+  if (!uri.isScheme('package')) return false;
+  return uri.pathSegments.firstOrNull == 'fixnum';
 }
 
-class UnrelatedTypeEqualityChecks extends LintRule implements NodeLintRule {
+class UnrelatedTypeEqualityChecks extends LintRule {
+  static const LintCode code = LintCode('unrelated_type_equality_checks',
+      "Neither type of the operands of '==' is a subtype of the other.",
+      correctionMessage: 'Try changing one or both of the operands.');
+
   UnrelatedTypeEqualityChecks()
       : super(
             name: 'unrelated_type_equality_checks',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

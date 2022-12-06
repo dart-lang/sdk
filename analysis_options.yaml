@@ -36,10 +36,11 @@ linter:
     - cancel_subscriptions
 #    - cascade_invocations
     - cast_nullable_to_non_nullable
+#    - combinators_ordering
 #    - close_sinks # https://github.com/dart-lang/linter/issues/268
     - comment_references
     - directives_ordering
-    - invariant_booleans
+    - discarded_futures
     - join_return_with_assignment
 #    - lines_longer_than_80_chars # under review (see #1068)
     - literal_only_boolean_expressions
@@ -58,11 +59,10 @@ linter:
     - prefer_expression_function_bodies
 #    - prefer_final_locals
     - prefer_foreach
-    - prefer_interpolation_to_compose_strings
 #    - prefer_mixin
     - prefer_null_aware_method_calls
     - prefer_relative_imports
-    - depend_on_referenced_packages
+    - prefer_single_quotes
 #    - public_member_api_docs
 #    - sort_constructors_first
     - sort_pub_dependencies
@@ -73,13 +73,12 @@ linter:
     - unawaited_futures # pedantic
     - unnecessary_final
     - unnecessary_lambdas
-    - unnecessary_null_aware_assignments
     - unnecessary_null_checks
-    - unnecessary_nullable_for_final_variable_declarations
     - unnecessary_parenthesis
     - unnecessary_statements
     - use_if_null_to_convert_nulls_to_bools
     - use_late_for_private_fields_and_variables
     - use_setters_to_change_properties
     - use_string_buffers
+    - use_super_parameters
     - use_to_and_as_if_applicable

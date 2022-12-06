@@ -9,25 +9,18 @@ import '../analyzer.dart';
 
 const _desc = r'Avoid relative imports for files in `lib/`.';
 
-const _details = r'''*DO* avoid relative imports for files in `lib/`.
+const _details = r'''
+**DO** avoid relative imports for files in `lib/`.
 
 When mixing relative and absolute imports it's possible to create confusion
 where the same member gets imported in two different ways.  An easy way to avoid
 that is to ensure you have no relative imports that include `lib/` in their
 paths.
 
-**GOOD:**
-
-```dart
-import 'package:foo/bar.dart';
-
-import 'baz.dart';
-
-...
-```
+You can also use 'always_use_package_imports' to disallow relative imports
+between files within `lib/`.
 
 **BAD:**
-
 ```dart
 import 'package:foo/bar.dart';
 
@@ -36,9 +29,27 @@ import '../lib/baz.dart';
 ...
 ```
 
+**GOOD:**
+```dart
+import 'package:foo/bar.dart';
+
+import 'baz.dart';
+
+...
+```
+
 ''';
 
-class AvoidRelativeLibImports extends LintRule implements NodeLintRule {
+class AvoidRelativeLibImports extends LintRule {
+  static const LintCode code = LintCode('avoid_relative_lib_imports',
+      "Can't use a relative path to import a library in 'lib'.",
+      correctionMessage:
+          "Try fixing the relative path or changing the import to a 'package:' "
+          'import.');
+
+  @override
+  LintCode get lintCode => code;
+
   AvoidRelativeLibImports()
       : super(
             name: 'avoid_relative_lib_imports',
@@ -60,10 +71,9 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   bool isRelativeLibImport(ImportDirective node) {
-    // This check is too narrow.  Really we should be checking against the
-    // resolved URI and not it's literal string content.
-    // See: https://github.com/dart-lang/linter/issues/2419
-    var uriContent = node.uriContent;
+    // Relative paths from within the `lib` folder are covered by the
+    // `always_use_package_imports` lint.
+    var uriContent = node.uri.stringValue;
     if (uriContent != null) {
       var uri = Uri.tryParse(uriContent);
       if (uri != null && uri.scheme.isEmpty) {

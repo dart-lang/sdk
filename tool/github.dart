@@ -10,7 +10,7 @@ Future<List<Issue>> getLinterIssues({Authentication? auth}) async {
   try {
     return github.issues.listByRepo(slug).toList();
   } on Exception catch (e) {
-    print('exception caught fetching github issues');
+    print('exception caught fetching GitHub issues');
     print(e);
     print('(defaulting to an empty list)');
     return Future.value(<Issue>[]);

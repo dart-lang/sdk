@@ -11,7 +11,6 @@ const _desc =
     r'Prefer final in for-each loop variable if reference is not reassigned.';
 
 const _details = r'''
-
 **DO** prefer declaring for-each loop variables as final if they are not
 reassigned later in the code.
 
@@ -43,7 +42,7 @@ for (var element in elements) {
 
 ''';
 
-class PreferFinalInForEach extends LintRule implements NodeLintRule {
+class PreferFinalInForEach extends LintRule {
   PreferFinalInForEach()
       : super(
             name: 'prefer_final_in_for_each',
@@ -83,7 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (function != null &&
           loopVariableElement != null &&
           !function.isPotentiallyMutatedInScope(loopVariableElement)) {
-        rule.reportLint(loopVariable.identifier);
+        rule.reportLintForToken(loopVariable.name);
       }
     }
   }

@@ -30,8 +30,6 @@ void main() {
       await cli.runLinter([
         '$integrationTestDir/prefer_mixin',
         '--rules=prefer_mixin',
-        '--packages',
-        '$ruleTestDir/.mock_packages',
       ], LinterOptions());
       expect(
           collectingOut.trim(),

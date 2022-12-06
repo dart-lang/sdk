@@ -16,7 +16,7 @@ void write(int x) {}
 /// [String] is OK.
 class A {
   /// But [zap] is not. #LINT
-  int z;
+  int z = 0;
 
   /// Reads [x] and assigns to [z]. #OK
   void read(int x) {}
@@ -28,5 +28,24 @@ class A {
 /// [
 /// ^--- Should not crash (#819).
 class B {
+}
 
+/// A link to [Sha256][rfc] hash function.
+///
+/// [rfc]: http://tools.ietf.org/html/rfc6234
+class C {
+}
+
+/// A link to [Sha256](http://tools.ietf.org/html/rfc6234) hash function.
+class D {
+}
+
+/// A link to [Sha256](http://tools.ietf.org/html/rfc6234 "Some") hash function.
+class E {
+}
+
+/// A link to [rfc][] hash function.
+///
+/// [rfc]: http://tools.ietf.org/html/rfc6234
+class F {
 }

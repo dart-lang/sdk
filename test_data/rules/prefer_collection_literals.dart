@@ -8,7 +8,6 @@ import 'dart:collection';
 
 //ignore_for_file: unused_local_variable
 void main() {
-  var listToLint = new List(); //LINT
   var mapToLint = new Map(); // LINT
   var LinkedHashMapToLint = new LinkedHashMap(); // LINT
 
@@ -16,9 +15,7 @@ void main() {
   var m2 = Map.fromIterable([]); //OK
   var m3 = Map.fromIterables([], []); //OK
 
-  var constructedListInsideLiteralList = [[], new List()]; // LINT
   var literalListInsideLiteralList = [[], []]; // OK
-  var fiveLengthList = new List(5); // OK
 
   var namedConstructorList = new List.filled(5, true); // OK
   var namedConstructorMap = new Map.identity(); // OK
@@ -60,10 +57,8 @@ void main() {
   printHashSet(LinkedHashSet<int>()); // OK
   printIndentedHashSet(0, LinkedHashSet<int>()); // OK
 
-  printUnresolved(LinkedHashSet<int>()); // OK
-
-  Set<int> ss7 = LinkedHashSet.from([1, 2, 3]); // LINT
-  LinkedHashSet<int> ss8 =  LinkedHashSet.from([1, 2, 3]); // OK
+  Set<int> ss8 = LinkedHashSet.from([1, 2, 3]); // LINT
+  LinkedHashSet<int> ss9 =  LinkedHashSet.from([1, 2, 3]); // OK
 
   Iterable iter = Iterable.empty(); // OK
   var sss = Set.from(iter); // OK

@@ -57,7 +57,7 @@ class Foo {
 }
 
 void noCascadeWithGetter() {
-  final foo = new Foo();
+  final foo = Foo();
   foo.baz(); // LINT
   foo.bar; // LINT
   foo.foo(); // LINT
@@ -111,25 +111,25 @@ void cascadeStatic() {
 
 // https://github.com/dart-lang/linter/issues/339
 class Identifier339 {
-  String value;
-  String system;
+  String value = '';
+  String system = '';
 }
 
 class Resource339 {
-  String id;
+  String id = '';
   dynamic identifier;
 }
 
-class Practitioner339 extends Resource339{
-  int foo;
+class Practitioner339 extends Resource339 {
+  int foo = 0;
 
-  String build() => null;
+  String build() => '';
 
   void bar(dynamic) {}
 }
 
 class Entry339 {
-  Resource339 resource;
+  Resource339 resource = Resource339();
 }
 
 void main339() {
@@ -163,8 +163,8 @@ void otherDependencies3() {
 }
 
 class Bug661 {
-  Bug661 parent;
-  Practitioner339 practitioner;
+  late Bug661 parent;
+  late Practitioner339 practitioner;
 
   void bar() {
     practitioner.bar(1);
@@ -174,11 +174,11 @@ class Bug661 {
 }
 
 class Bug701 {
-  int foo;
-  int bar;
+  int foo = 0;
+  int bar = 0;
 }
 
-void function701({Bug701 something}) {
+void function701({Bug701? something}) {
   something ??= new Bug701();
   something.foo = 1; // OK
   something.bar = 2; // LINT
@@ -196,11 +196,13 @@ void function694() {
 }
 
 class A {
-  int f;
-  int g;
+  late int f;
+  late int g;
 
   int get p => 7;
   int get q => 6;
+  int m() => 5;
+  void set s(int value) {}
 }
 
 class B {
@@ -227,6 +229,21 @@ void bug1323() {
     ..p
     ..q;
   b2.a.p; // OK
+
+  b1.a
+    ..p
+    ..q;
+  b2.a..p; // OK
+
+  b1.a
+    ..p
+    ..m();
+  b2.a.m(); // OK
+
+  b1.a
+    ..p
+    ..s = 1;
+  b2.a.s = 1; // OK
 }
 
 void bug1317() async {

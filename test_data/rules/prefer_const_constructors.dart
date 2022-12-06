@@ -4,10 +4,10 @@
 
 // test w/ `dart test -N prefer_const_constructors`
 
-import 'package:meta/meta.dart';
+// ignore_for_file: unused_local_variable
 
 class A {
-  const A({A parent});
+  const A({A? parent});
   const A.a();
 }
 
@@ -68,7 +68,7 @@ class F {
 
   const F(this.l);
 
-  static F m1() => new F(null); // LINT
+  static F m1() => new F([]); // LINT
   static F m2(List<F> l) => new F(l); // OK
   static F m3(F f) => new F([f]); // OK
 }
@@ -78,7 +78,7 @@ class G {
 
   const G(this.m);
 
-  static G m1() => new G(null); // LINT
+  static G m1() => new G({}); // LINT
   static G m2(Map<G, G> m) => new G(m); // OK
   static G m3(G g) => new G({g: g}); // OK
 }
@@ -87,7 +87,7 @@ class G {
 class H {}
 class I {
   final H foo;
-  const I({this.foo});
+  const I({required this.foo});
 
   I makeI() => I(foo: H()); // OK
 }
@@ -98,12 +98,3 @@ class J<T> {
 void gimmeJ<T>() => new J<T>(); // OK
 void gimmeJofString() => new J<String>(); // LINT
 void gimmeJofDynamic() => new J<dynamic>(); // LINT
-
-class K {
-  @literal
-  const K();
-}
-
-k() {
-  var kk = K(); // OK (handled by analyzer hint)
-}

@@ -4,15 +4,40 @@
 
 // test w/ `dart test -N always_specify_types`
 
+// ignore_for_file: unused_local_variable
+
 import 'package:meta/meta.dart';
+
+/// https://github.com/dart-lang/linter/issues/3275
+typedef Foo1 = Map<String, Object>;
+final Foo1 foo = Foo1();
+
+/// Constructor tear-offs
+void constructorTearOffs() {
+  List<List>.filled; // LINT
+  List<E> Function<E>(int, E) filledList = List.filled; // OK - generic function
+  filledList<int>(3, 3); // OK
+  filledList(3, 3); // OK - generic function invocations are uncovered -- see: #2914
+}
+
+typedef MapList = List<StringMap>; //LINT
+typedef JsonMap = Map<String, dynamic>; //OK
+typedef StringList = List<JsonMap>; //OK
+typedef RawList = List; //LINT
+typedef StringMap<V> = Map<String, V>; //OK
+
+StringMap<String> sm = StringMap<String>(); //OK
+StringMap? rm1; //LINT
+StringMap<String> rm2 = StringMap(); //LINT
+StringMap rm3 = StringMap<String>(); //LINT
 
 Map<String, String> map = {}; //LINT
 List<String> strings = []; //LINT
 Set<String> set = {}; //LINT
 
-List list; // LINT
-List<List> lists; //LINT
-List<int> ints; //OK
+List? list; //LINT
+List<List>? lists; //LINT
+List<int> ints = <int>[1]; //OK
 
 final x = 1; //LINT [1:5]
 final int xx = 3;
@@ -43,6 +68,7 @@ main() {
     print(i);
   }
   List<String> ls = <String>[];
+  // ignore: avoid_function_literals_in_foreach_calls
   ls.forEach((s) => print(s)); //LINT [15:1]
   for (var l in ls) { //LINT [8:3]
     print(l);
@@ -57,13 +83,14 @@ main() {
     print(e);
   }
 
+  // ignore: non_constant_identifier_names
   var __; // LINT
 
   listen((_) { // OK!
     // ...
   });
 
-  P p = new P(); //OK (optionalTypeArgs)
+  P p = P(); //OK (optionalTypeArgs)
 }
 
 P doSomething(P p) //OK (optionalTypeArgs)
@@ -71,7 +98,7 @@ P doSomething(P p) //OK (optionalTypeArgs)
   return p;
 }
 
-listen(void onData(Object event)) {}
+listen(void Function(Object event) onData) {}
 
 var z; //LINT
 
@@ -85,8 +112,8 @@ class Foo {
 }
 
 void m() {
-  if ('' is Map) //OK {
+  if ('' is Map) //OK
   {
-     print("won't happen");
+    print("won't happen");
   }
 }

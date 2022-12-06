@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -13,7 +14,6 @@ import '../util/dart_type_utilities.dart';
 const _desc = r"Don't create a lambda when a tear-off will do.";
 
 const _details = r'''
-
 **DON'T** create a lambda when a tear-off will do.
 
 **BAD:**
@@ -42,11 +42,9 @@ bool _containsNullAwareInvocationInChain(AstNode? node) =>
             _containsNullAwareInvocationInChain(node.target)));
 
 Iterable<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
-    DartTypeUtilities.traverseNodesInDFS(node)
-        .whereType<SimpleIdentifier>()
-        .map((e) => e.staticElement);
+    _IdentifierVisitor().extractElements(node);
 
-class UnnecessaryLambdas extends LintRule implements NodeLintRule {
+class UnnecessaryLambdas extends LintRule {
   UnnecessaryLambdas()
       : super(
             name: 'unnecessary_lambdas',
@@ -110,11 +108,31 @@ class _FinalExpressionChecker {
   }
 }
 
+class _IdentifierVisitor extends RecursiveAstVisitor {
+  final _elements = <Element?>[];
+
+  _IdentifierVisitor();
+
+  List<Element?> extractElements(AstNode node) {
+    node.accept(this);
+    return _elements;
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    _elements.add(node.staticElement);
+    super.visitSimpleIdentifier(node);
+  }
+}
+
 class _Visitor extends SimpleAstVisitor<void> {
+  final bool constructorTearOffsEnabled;
   final LintRule rule;
   final LinterContext context;
 
-  _Visitor(this.rule, this.context);
+  _Visitor(this.rule, this.context)
+      : constructorTearOffsEnabled =
+            context.isEnabled(Feature.constructor_tearoffs);
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
@@ -124,7 +142,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     var body = node.body;
     if (body is BlockFunctionBody && body.block.statements.length == 1) {
       var statement = body.block.statements.single;
-
       if (statement is ExpressionStatement &&
           statement.expression is InvocationExpression) {
         _visitInvocationExpression(
@@ -137,18 +154,45 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       }
     } else if (body is ExpressionFunctionBody) {
-      if (body.expression is InvocationExpression) {
-        _visitInvocationExpression(
-            body.expression as InvocationExpression, node);
+      var expression = body.expression;
+      if (expression is InvocationExpression) {
+        _visitInvocationExpression(expression, node);
+      } else if (constructorTearOffsEnabled &&
+          expression is InstanceCreationExpression) {
+        _visitInstanceCreation(expression, node);
       }
     }
+  }
+
+  void _visitInstanceCreation(
+      InstanceCreationExpression expression, FunctionExpression node) {
+    if (expression.isConst) return;
+
+    var arguments = expression.argumentList.arguments;
+    var parameters = node.parameters?.parameters ?? <FormalParameter>[];
+    if (parameters.length != arguments.length) return;
+
+    bool matches(Expression argument, FormalParameter parameter) {
+      if (argument is SimpleIdentifier) {
+        return argument.name == parameter.name?.lexeme;
+      }
+      return false;
+    }
+
+    for (var i = 0; i < arguments.length; ++i) {
+      if (!matches(arguments[i], parameters[i])) {
+        return;
+      }
+    }
+
+    rule.reportLint(node);
   }
 
   void _visitInvocationExpression(
       InvocationExpression node, FunctionExpression nodeToLint) {
     var nodeToLintParams = nodeToLint.parameters?.parameters;
     if (nodeToLintParams == null ||
-        !DartTypeUtilities.matchesArgumentsWithParameters(
+        !argumentsMatchParameters(
             node.argumentList.arguments, nodeToLintParams)) {
       return;
     }
@@ -177,8 +221,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (target is SimpleIdentifier) {
         var element = target.staticElement;
         if (element is PrefixElement) {
-          var imports = element.enclosingElement.getImportsWithPrefix(element);
-          for (var import in imports) {
+          for (var import in element.imports) {
             if (import.isDeferred) {
               return;
             }
@@ -211,4 +254,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
   }
+}
+
+extension LibraryImportElementExtension on LibraryImportElement {
+  bool get isDeferred => prefix is DeferredImportElementPrefix;
 }

@@ -12,16 +12,7 @@ const _desc =
     r'Use `lowercase_with_underscores` when specifying a library prefix.';
 
 const _details = r'''
-
 **DO** use `lowercase_with_underscores` when specifying a library prefix.
-
-**GOOD:**
-```dart
-import 'dart:math' as math;
-import 'dart:json' as json;
-import 'package:js/js.dart' as js;
-import 'package:javascript_utils/javascript_utils.dart' as js_utils;
-```
 
 **BAD:**
 ```dart
@@ -31,15 +22,31 @@ import 'package:js/js.dart' as JS;
 import 'package:javascript_utils/javascript_utils.dart' as jsUtils;
 ```
 
+**GOOD:**
+```dart
+import 'dart:math' as math;
+import 'dart:json' as json;
+import 'package:js/js.dart' as js;
+import 'package:javascript_utils/javascript_utils.dart' as js_utils;
+```
+
 ''';
 
-class LibraryPrefixes extends LintRule implements NodeLintRule {
+class LibraryPrefixes extends LintRule {
+  static const LintCode code = LintCode(
+      'library_prefixes', "The prefix '{0}' isn't a snake_case identifier.",
+      correctionMessage:
+          'Try changing the prefix to follow the snake_case style.');
+
   LibraryPrefixes()
       : super(
             name: 'library_prefixes',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -56,8 +63,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    if (node.prefix != null && !isValidLibraryPrefix(node.prefix.toString())) {
-      rule.reportLint(node.prefix);
+    var prefix = node.prefix;
+    if (prefix != null && !isValidLibraryPrefix(prefix.toString())) {
+      rule.reportLint(prefix, arguments: [prefix.toString()]);
     }
   }
 }

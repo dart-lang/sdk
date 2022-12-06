@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r"Don't import implementation files from another package.";
 
 const _details = r'''
-
 From the the [pub package layout doc](https://dart.dev/tools/pub/package-layout#implementation-files):
 
 **DON'T** import implementation files from another package.
@@ -30,7 +29,7 @@ might change in ways that could break your code.
 **BAD:**
 ```dart
 // In 'road_runner'
-import 'package:acme/lib/src/internals.dart;
+import 'package:acme/src/internals.dart';
 ```
 
 ''';
@@ -56,16 +55,25 @@ bool samePackage(Uri? uri1, Uri? uri2) {
   if (segments1.isEmpty || segments2.isEmpty) {
     return false;
   }
-  return segments1[0] == segments2[0];
+  return segments1.first == segments2.first;
 }
 
-class ImplementationImports extends LintRule implements NodeLintRule {
+class ImplementationImports extends LintRule {
+  static const LintCode code = LintCode('implementation_imports',
+      "Import of a library in the 'lib/src' directory of another package.",
+      correctionMessage:
+          'Try importing a public library that exports this library, or '
+          'removing the import.');
+
   ImplementationImports()
       : super(
             name: 'implementation_imports',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -82,7 +90,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitImportDirective(ImportDirective node) {
-    var importUri = node.uriSource?.uri;
+    var importUri = node.element?.importedLibrary?.source.uri;
     var sourceUri = node.element?.source.uri;
 
     // Test for 'package:*/src/'.

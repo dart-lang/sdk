@@ -7,16 +7,56 @@
 // TODO(mfairhurst) test void with a prefix, except that causes bugs.
 // TODO(mfairhurst) test defining a class named Null (requires a 2nd file)
 
+// ignore_for_file: unused_local_variable
+
 import 'dart:async';
 import 'dart:core';
 import 'dart:core' as core;
 
+abstract class X {
+  dynamic get foo;
+}
+
+/// https://github.com/dart-lang/linter/issues/1523
+class Y extends X {
+  @override
+  Null get foo => null; // OK
+}
+
+/// https://github.com/dart-lang/linter/issues/2792
+class A<T> {
+  Future<T>? something() {}
+}
+
+class B<T> implements A<T> {
+  @override
+  Null something() {}  // OK
+}
+
+class C {
+  FutureOr<void>? something() {}
+}
+
+class D implements C {
+  @override
+  Null something() {}  // LINT
+}
+
+class E {
+  Never? something() {} // LINT
+}
+
+class F implements E {
+  @override
+  Null something() {}  // OK
+}
+
 void void_; // OK
 Null null_; // LINT
 core.Null core_null; // LINT
-Future<void> future_void; // OK
-Future<Null> future_null; // LINT
-Future<core.Null> future_core_null; // LINT
+Future<void>? future_void; // OK
+Future<Null>? future_null; // LINT
+Future<core.Null>? future_core_null; // LINT
 
 void void_f() {} // OK
 Null null_f() {} // LINT
@@ -25,21 +65,21 @@ f_void(void x) {} // OK
 f_null(Null x) {} // LINT
 f_core_null(core.Null x) {} // LINT
 
-void Function(Null) voidFunctionNull; // OK
-Null Function() nullFunctionVoid; // OK
-Future<Null> Function() FutureNullFunction; // LINT
-void Function(Future<Null>) voidFunctionFutureNull; // LINT
+void Function(Null)? voidFunctionNull; // OK
+Null Function()? nullFunctionVoid; // OK
+Future<Null> Function()? FutureNullFunction; // LINT
+void Function(Future<Null>)? voidFunctionFutureNull; // LINT
 
 usage() {
   void void_; // OK
   Null null_; // LINT
   core.Null core_null; // LINT
-  Future<void> future_void; // OK
+  Future<void>? future_void; // OK
   Future<Null> future_null; // LINT
   Future<core.Null> future_core_null; // LINT
 
-  future_void.then<Null>((_) {}); // LINT
-  future_void.then<void>((_) {}); // OK
+  future_void?.then<Null>((_) {}); // LINT
+  future_void?.then<void>((_) {}); // OK
 }
 
 void inference() {
@@ -62,10 +102,10 @@ void emptyLiterals() {
   <Null, Null>{}; // OK
   <int, Null>{1: null}; // LINT
   <String, Null>{"foo": null}; // LINT
-  <Object, Null>{null: null}; // LINT
+  <Object?, Null>{null: null}; // LINT
   <Null, int>{null: 1}; // LINT
   <Null, String>{null: "foo"}; // LINT
-  <Null, Object>{null: null}; // LINT
+  <Null, Object?>{null: null}; // LINT
   <Null, // LINT
       Null>{null: null}; // LINT
   <int, void>{}; // OK
@@ -77,10 +117,10 @@ void emptyLiterals() {
   <void, void>{}; // OK
   <int, void>{1: null}; // OK
   <String, void>{"foo": null}; // OK
-  <Object, void>{null: null}; // OK
+  <Object?, void>{null: null}; // OK
   <void, int>{null: 1}; // OK
   <void, String>{null: "foo"}; // OK
-  <void, Object>{null: null}; // OK
+  <void, Object?>{null: null}; // OK
   <void, void>{null: null}; // OK
 
   // TODO(mfairhurst): is it worth handling more complex literals?
@@ -99,9 +139,9 @@ class AsMembers {
   void void_; // OK
   Null null_; // LINT
   core.Null core_null; // LINT
-  Future<void> future_void; // OK
-  Future<Null> future_null; // LINT
-  Future<core.Null> future_core_null; // LINT
+  Future<void>? future_void; // OK
+  Future<Null>? future_null; // LINT
+  Future<core.Null>? future_core_null; // LINT
 
   void void_f() {} // OK
   Null null_f() {} // LINT
@@ -114,12 +154,12 @@ class AsMembers {
     void void_; // OK
     Null null_; // LINT
     core.Null core_null; // LINT
-    Future<void> future_void; // OK
+    Future<void>? future_void; // OK
     Future<Null> future_null; // LINT
     Future<core.Null> future_core_null; // LINT
 
-    future_void.then<Null>((_) {}); // LINT
-    future_void.then<void>((_) {}); // OK
+    future_void?.then<Null>((_) {}); // LINT
+    future_void?.then<void>((_) {}); // OK
   }
 
   parameterNamedNull(Object Null) {
@@ -134,4 +174,7 @@ class AsMembers {
 
 class MemberNamedNull {
   final Null = null; // OK
+}
+
+extension _ on Null { // OK
 }

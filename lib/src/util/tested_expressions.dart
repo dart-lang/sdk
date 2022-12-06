@@ -100,7 +100,7 @@ class TestedExpressions {
     }
 
     _contradictions = _findContradictoryComparisons(
-        LinkedHashSet.from(facts),
+        LinkedHashSet.of(facts),
         binaryExpression != null
             ? binaryExpression.operator.type
             : TokenType.AMPERSAND_AMPERSAND);
@@ -200,7 +200,7 @@ class TestedExpressions {
         }
 
         var set = _findContradictoryComparisons(
-            HashSet.from([ex.leftOperand, ex.rightOperand]), ex.operator.type);
+            HashSet.of([ex.leftOperand, ex.rightOperand]), ex.operator.type);
         expressions.addAll(set);
       };
 }

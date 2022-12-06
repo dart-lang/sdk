@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Await only futures.';
 
@@ -34,13 +34,21 @@ main() async {
 ```
 ''';
 
-class AwaitOnlyFutures extends LintRule implements NodeLintRule {
+class AwaitOnlyFutures extends LintRule {
+  static const LintCode code = LintCode('await_only_futures',
+      "Uses 'await' on an instance of '{0}', which is not a subtype of 'Future'.",
+      correctionMessage:
+          "Try removing the 'await' or changing the expression.");
+
   AwaitOnlyFutures()
       : super(
             name: 'await_only_futures',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -51,9 +59,6 @@ class AwaitOnlyFutures extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  static const LintCode _errorCode = LintCode('await_only_futures',
-      "'await' applied to '{0}', which is not a 'Future'.");
-
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -66,11 +71,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!(type == null ||
         type.isDartAsyncFuture ||
         type.isDynamic ||
-        DartTypeUtilities.extendsClass(type, 'Future', 'dart.async') ||
-        DartTypeUtilities.implementsInterface(type, 'Future', 'dart.async') ||
-        DartTypeUtilities.isClass(type, 'FutureOr', 'dart.async'))) {
-      rule.reportLintForToken(node.awaitKeyword,
-          errorCode: _errorCode, arguments: [type]);
+        type.extendsClass('Future', 'dart.async') ||
+        type.implementsInterface('Future', 'dart.async') ||
+        type.isDartAsyncFutureOr)) {
+      rule.reportLintForToken(node.awaitKeyword, arguments: [type]);
     }
   }
 }

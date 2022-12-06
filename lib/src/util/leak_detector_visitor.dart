@@ -10,19 +10,19 @@ import 'package:meta/meta.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 _Predicate _hasConstructorFieldInitializers(
         VariableDeclaration v) =>
     (AstNode n) =>
         n is ConstructorFieldInitializer &&
-        n.fieldName.staticElement == v.name.staticElement;
+        n.fieldName.staticElement == v.declaredElement;
 
 _Predicate _hasFieldFormalParameter(VariableDeclaration v) => (AstNode n) {
       if (n is FieldFormalParameter) {
-        var staticElement = n.identifier.staticElement;
+        var staticElement = n.declaredElement;
         return staticElement is FieldFormalParameterElement &&
-            staticElement.field == v.name.staticElement;
+            staticElement.field == v.declaredElement;
       }
       return false;
     };
@@ -31,7 +31,7 @@ _Predicate _hasReturn(VariableDeclaration v) => (AstNode n) {
       if (n is ReturnStatement) {
         var expression = n.expression;
         if (expression is SimpleIdentifier) {
-          return expression.staticElement == v.name.staticElement;
+          return expression.staticElement == v.declaredElement;
         }
       }
       return false;
@@ -54,7 +54,9 @@ _VisitVariableDeclaration _buildVariableReporter(
         return;
       }
 
-      var containerNodes = DartTypeUtilities.traverseNodesInDFS(container);
+      // todo(pq): migrate away from `traverseNodesInDFS` (https://github.com/dart-lang/linter/issues/3745)
+      // ignore: deprecated_member_use_from_same_package
+      var containerNodes = container.traverseNodesInDFS();
 
       var validators = <Iterable<AstNode>>[];
       for (var f in predicateBuilders) {
@@ -86,7 +88,7 @@ Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
   return prefixedIdentifiers.where((n) {
     var declaredElement = variable.declaredElement;
     return declaredElement != null &&
-        n.prefix.staticElement == variable.name.staticElement &&
+        n.prefix.staticElement == variable.declaredElement &&
         _hasMatch(predicates, declaredElement.type, n.identifier.token.lexeme);
   });
 }
@@ -97,7 +99,7 @@ Iterable<AstNode> _findMethodInvocationsWithVariableAsArgument(
   return prefixedIdentifiers.where((n) => n.argumentList.arguments
       .whereType<SimpleIdentifier>()
       .map((e) => e.staticElement)
-      .contains(variable.name.staticElement));
+      .contains(variable.declaredElement));
 }
 
 Iterable<AstNode> _findNodesInvokingMethodOnVariable(
@@ -110,6 +112,8 @@ Iterable<AstNode> _findNodesInvokingMethodOnVariable(
           n is MethodInvocation &&
           ((_hasMatch(predicates, declaredElement.type, n.methodName.name) &&
                   (_isSimpleIdentifierElementEqualToVariable(
+                          n.realTarget, variable) ||
+                      _isPostfixExpressionOperandEqualToVariable(
                           n.realTarget, variable) ||
                       _isPropertyAccessThroughThis(n.realTarget, variable) ||
                       (n.thisOrAncestorMatching((a) => a == variable) !=
@@ -131,7 +135,7 @@ Iterable<AstNode> _findVariableAssignments(
           // Assignment to VariableDeclaration as setter.
           (n.leftHandSide is PropertyAccess &&
               (n.leftHandSide as PropertyAccess).propertyName.token.lexeme ==
-                  variable.name.token.lexeme))
+                  variable.name.lexeme))
       // Being assigned another reference.
       &&
       n.rightHandSide is SimpleIdentifier);
@@ -187,6 +191,16 @@ bool _isSimpleIdentifierElementEqualToVariable(
         AstNode? n, VariableDeclaration variable) =>
     n is SimpleIdentifier &&
     _isElementEqualToVariable(n.staticElement, variable);
+
+bool _isPostfixExpressionOperandEqualToVariable(
+    AstNode? n, VariableDeclaration variable) {
+  if (n is PostfixExpression) {
+    var operand = n.operand;
+    return operand is SimpleIdentifier &&
+        _isElementEqualToVariable(operand.staticElement, variable);
+  }
+  return false;
+}
 
 typedef DartTypePredicate = bool Function(DartType type);
 

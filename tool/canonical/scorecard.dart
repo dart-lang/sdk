@@ -187,7 +187,7 @@ class LintScore {
   bool get inFlutter => ruleSets.contains('flutter');
   bool get inRecommended => ruleSets.contains('recommended');
 
-  String get _ruleSets => ruleSets.isNotEmpty ? ' ${ruleSets.toString()}' : '';
+  String get _ruleSets => ruleSets.isNotEmpty ? ' $ruleSets' : '';
 
   String toMarkdown(List<Detail> details) {
     var sb = StringBuffer('| ');
@@ -311,7 +311,7 @@ class ScoreCard {
       for (var bug in bugs) {
         var title = bug.title;
         if (title.contains(lint.name)) {
-          bugReferences.add('#${bug.number.toString()}');
+          bugReferences.add('#${bug.number}');
         }
       }
 
@@ -363,12 +363,12 @@ class ScoreCard {
   static Future<List<String>> _getLintsWithBulkFixes() async {
     var client = http.Client();
     var req = await client.get(Uri.parse(
-        'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/correction/fix_internal.dart'));
+        'https://raw.githubusercontent.com/dart-lang/sdk/main/pkg/analysis_server/lib/src/services/correction/fix_internal.dart'));
 
     var parser = CompilationUnitParser();
     var cu = parser.parse(contents: req.body, name: 'fix_internal.dart');
     var fixProcessor = cu.declarations.firstWhere(
-        (m) => m is ClassDeclaration && m.name.name == 'FixProcessor');
+        (m) => m is ClassDeclaration && m.name.lexeme == 'FixProcessor');
 
     var collector = _BulkFixCollector();
     fixProcessor.accept(collector);
@@ -378,12 +378,12 @@ class ScoreCard {
   static Future<List<String>> _getLintsWithFixes() async {
     var client = http.Client();
     var req = await client.get(Uri.parse(
-        'https://raw.githubusercontent.com/dart-lang/sdk/master/pkg/analysis_server/lib/src/services/linter/lint_names.dart'));
+        'https://raw.githubusercontent.com/dart-lang/sdk/main/pkg/analysis_server/lib/src/services/linter/lint_names.dart'));
 
     var parser = CompilationUnitParser();
     var cu = parser.parse(contents: req.body, name: 'lint_names.dart');
-    var lintNamesClass = cu.declarations
-        .firstWhere((m) => m is ClassDeclaration && m.name.name == 'LintNames');
+    var lintNamesClass = cu.declarations.firstWhere(
+        (m) => m is ClassDeclaration && m.name.lexeme == 'LintNames');
 
     var collector = _FixCollector();
     lintNamesClass.accept(collector);
@@ -394,7 +394,7 @@ class ScoreCard {
       'https://raw.githubusercontent.com/dart-lang/lints/main/lib/core.yaml');
 
   static Future<List<String>> _readFlutterLints() async => _fetchLints(
-      'https://raw.githubusercontent.com/flutter/packages/master/packages/flutter_lints/lib/flutter.yaml');
+      'https://raw.githubusercontent.com/flutter/packages/main/packages/flutter_lints/lib/flutter.yaml');
 
   static List<String> _readLints(String contents) {
     var lintConfigs = processAnalysisOptionsFile(contents);
@@ -412,7 +412,7 @@ class _BulkFixCollector extends _LintNameCollector {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (var field in node.fields.variables) {
-      if (field.name.name == 'lintProducerMap') {
+      if (field.name.lexeme == 'lintProducerMap') {
         var initializer = field.initializer;
         if (initializer is SetOrMapLiteral) {
           for (var element in initializer.elements) {
@@ -451,7 +451,7 @@ class _FixCollector extends _LintNameCollector {
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (var v in node.fields.variables) {
-      addLint(v.name.name);
+      addLint(v.name.lexeme);
     }
   }
 }

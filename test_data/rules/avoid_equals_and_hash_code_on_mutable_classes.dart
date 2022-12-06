@@ -13,7 +13,7 @@ class A {
   @override
   operator ==(other) => other is A && other.key == key; // OK
   @override
-  int hashCode() => key.hashCode; // OK
+  int get hashCode => key.hashCode; // OK
 }
 
 class B {
@@ -22,7 +22,7 @@ class B {
   @override
   operator ==(other) => other is B && other.key == key; // LINT
   @override
-  int hashCode() => key.hashCode; // LINT
+  int get hashCode => key.hashCode; // LINT
 }
 
 @immutable

@@ -12,7 +12,7 @@ import 'github.dart';
 
 Future<void> main(List<String> args) async {
   var parser = ArgParser()
-    ..addOption('token', abbr: 't', help: 'Specifies a github auth token.');
+    ..addOption('token', abbr: 't', help: 'Specifies a GitHub auth token.');
   ArgResults options;
   try {
     options = parser.parse(args);

@@ -75,4 +75,3 @@ typedef Fn3<T> = void Function<U>(U); // OK
 typedef Fn4<T> = void Function(T); // OK
 typedef Fn5 = void Function<T>(T); // OK
 
-typedef Predicate = bool <E>(E element); // OK

@@ -12,7 +12,6 @@ import '../ast.dart';
 const _desc = r"Don't access members with `this` unless avoiding shadowing.";
 
 const _details = r'''
-
 From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
 
 **DON'T** use `this` when not needed to avoid shadowing.
@@ -49,13 +48,20 @@ class Box {
 
 ''';
 
-class UnnecessaryThis extends LintRule implements NodeLintRule {
+class UnnecessaryThis extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_this', "Unnecessary 'this.' qualifier.",
+      correctionMessage: "Try removing 'this.'.");
+
   UnnecessaryThis()
       : super(
             name: 'unnecessary_this',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

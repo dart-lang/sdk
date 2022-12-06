@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Use generic function type syntax for parameters.';
 
 const _details = r'''
-
 Use generic function type syntax for parameters.
 
 **BAD:**
@@ -25,14 +24,21 @@ Iterable<T> where(bool Function(T) predicate) {}
 
 ''';
 
-class UseFunctionTypeSyntaxForParameters extends LintRule
-    implements NodeLintRule {
+class UseFunctionTypeSyntaxForParameters extends LintRule {
+  static const LintCode code = LintCode(
+      'use_function_type_syntax_for_parameters',
+      "Use the generic function type syntax to declare the parameter '{0}'.",
+      correctionMessage: 'Try using the generic function type syntax.');
+
   UseFunctionTypeSyntaxForParameters()
       : super(
             name: 'use_function_type_syntax_for_parameters',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -49,6 +55,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    rule.reportLint(node);
+    rule.reportLint(node, arguments: [node.name.lexeme]);
   }
 }

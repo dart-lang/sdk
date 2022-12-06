@@ -15,10 +15,15 @@ class _PrivateWidget extends StatefulWidget { // OK
 
 class MyWidget extends StatelessWidget {
   MyWidget(); // LINT
-  MyWidget.withKey({Key key}) : super(key: key); // OK
-  MyWidget.withUnusedKey({Key key}); // LINT
-  factory MyWidget.fact() => null; // OK
+  MyWidget.withKey({Key? key}) : super(key: key ?? Key('')); // OK
+  MyWidget.withUnusedKey({Key? key}); // LINT
+  factory MyWidget.fact() => MyWidget(); // OK
   MyWidget._private(); // OK
   MyWidget.redirect() : this.withKey(key: Key('')); // OK
   MyWidget.superCall() : super(key: Key('')); // OK
+}
+
+class ConstWidget extends StatelessWidget {
+  const ConstWidget(); // LINT [9:11]
+  const ConstWidget.named(); // LINT [21:5]
 }

@@ -5,24 +5,18 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Avoid null in null-aware assignment.';
 
 const _details = r'''
-
 **AVOID** `null` in null-aware assignment.
 
 Using `null` on the right-hand side of a null-aware assignment effectively makes
 the assignment redundant.
-
-**GOOD:**
-```dart
-var x;
-x ??= 1;
-```
 
 **BAD:**
 ```dart
@@ -30,15 +24,28 @@ var x;
 x ??= null;
 ```
 
+**GOOD:**
+```dart
+var x;
+x ??= 1;
+```
+
 ''';
 
-class UnnecessaryNullAwareAssignments extends LintRule implements NodeLintRule {
+class UnnecessaryNullAwareAssignments extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_null_aware_assignments', "Unnecessary assignment of 'null'.",
+      correctionMessage: 'Try removing the assignment.');
+
   UnnecessaryNullAwareAssignments()
       : super(
             name: 'unnecessary_null_aware_assignments',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -55,8 +62,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
+    if (node.readElement is PropertyAccessorElement) return;
+    if (node.writeElement is PropertyAccessorElement) return;
+
     if (node.operator.type == TokenType.QUESTION_QUESTION_EQ &&
-        DartTypeUtilities.isNullLiteral(node.rightHandSide)) {
+        node.rightHandSide.isNullLiteral) {
       rule.reportLint(node);
     }
   }

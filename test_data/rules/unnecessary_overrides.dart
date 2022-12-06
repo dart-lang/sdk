@@ -4,6 +4,8 @@
 
 // test w/ `dart test -N unnecessary_overrides`
 
+import 'package:meta/meta.dart';
+
 class _MyAnnotation {
   const _MyAnnotation();
 }
@@ -16,11 +18,12 @@ class Base {
 
   int max1(int a, int b) => 0;
   int max2(int a, int b) => 0;
-  int m1({int a, int b}) => 0;
-  int m2({int a, int b}) => 0;
-  int m3({int a, int b}) => 0;
+  int m1({int a = 0, int b = 0}) => 0;
+  int m2({int a = 0, int b = 0}) => 0;
+  int m3({int a = 0, int b = 0}) => 0;
+  int m4({int a = 0, int b = 0}) => 0;
   int operator +(other) => 0;
-  Base operator ~()=> null;
+  Base operator ~() => Base();
   @override
   int get hashCode => 13;
 }
@@ -30,7 +33,8 @@ class Parent extends Base {
   int get x => super.x; // LINT
 
   @override
-  set x(other) { // LINT
+  set x(other)  // LINT
+  {
     super.x = other;
   }
 
@@ -41,19 +45,22 @@ class Parent extends Base {
   int max2(int a, int b) => super.max2(b, a); // OK
 
   @override
-  int m1({int a, int b}) => super.m1(a: a, b: b); // LINT
+  int m1({int a = 0, int b = 0}) => super.m1(a: a, b: b); // LINT
 
   @override
-  int m2({int a, int b}) => super.m2(b: b, a: a); // LINT
+  int m2({int a = 0, int b = 0}) => super.m2(b: b, a: a); // LINT
 
   @override
-  int m3({int a, int b}) => super.m3(b: a, a: b); // OK
+  int m3({int a = 0, int b = 0}) => super.m3(b: a, a: b); // OK
+
+  @override
+  int m4({int a = 0, int b = 0}) => super.m1(a: a, b: b); // OK
 
   @override
   int operator +(other) => super + other; // LINT
 
   @override
-  Base operator ~()=> ~super; // LINT
+  Base operator ~() => ~super; // LINT
 
   @override
   @myAnnotation
@@ -95,7 +102,8 @@ class A {
 
 class B extends A {
   @override
-  void foo() { // LINT
+  void foo() // LINT
+  {
     super.foo();
   }
 
@@ -108,7 +116,8 @@ class B extends A {
   int getA(Iterable a) => super.getA(a); // LINT
 
   @override
-  int getB(Iterable a) { // LINT
+  int getB(Iterable a) // LINT
+  {
     return super.getB(a);
   }
 
@@ -120,40 +129,42 @@ class B extends A {
 }
 
 class C {
-  num get g => null;
-  set s(int v) => null;
-  num m(int v) => null;
-  num m1({int v = 20}) => null;
-  num m2([int v = 20]) => null;
-  num operator +(int other) => null;
+  num get g => 0;
+  set s(int v) {}
+  @protected
+  num m(int v) => 0;
+  @protected
+  num m1({int v = 20}) => 0;
+  num m2([int v = 20]) => 0;
+  num operator +(int other) => 0;
 }
 class ReturnTypeChanged extends C {
   @override
-  int get g => super.g; // OK
+  int get g => super.g as int; // OK
   @override
-  int m(int v) => super.m(v); // OK
+  int m(int v) => super.m(v) as int; // OK
   @override
-  int m1({int v = 20}) => super.m1(v: v); // OK
+  int m1({int v = 20}) => super.m1(v: v) as int; // OK
   @override
-  int m2([int v = 20]) => super.m2(v); // OK
+  int m2([int v = 20]) => super.m2(v) as int; // OK
   @override
-  int operator +(int other) => super + other; // OK
+  int operator +(int other) => super + other as int; // OK
 }
 class ParameterTypeChanged extends C {
   @override
-  set s(num v) => super.s = v; // OK
+  set s(num v) => super.s = v as int; // OK
   @override
-  num m(num v) => super.m(v); // OK
+  num m(num v) => super.m(v as int); // OK
   @override
-  num m1({num v = 20}) => super.m1(v: v); // OK
+  num m1({num v = 20}) => super.m1(v: v as int); // OK
   @override
-  num m2([num v = 20]) => super.m2(v); // OK
+  num m2([num v = 20]) => super.m2(v as int); // OK
   @override
-  num operator +(num other) => super + other; // OK
+  num operator +(num other) => super.g + other; // OK
 }
 class ParameterNameChanged extends C {
   @override
-  set s(num v2) => super.s = v2; // OK
+  set s(num v2) => super.s = v2 as int; // OK
   @override
   num m(int v2) => super.m(v2); // OK
   @override
@@ -175,17 +186,23 @@ class ParameterCovarianceChanged extends C {
 }
 class ParameterAdditional extends C {
   @override
-  num m(int v, [int v2]) => super.m(v); // OK
+  num m(int v, [int v2 = 1]) => super.m(v); // OK
   @override
-  num m1({int v = 20, int v2}) => super.m1(v: v); // OK
+  num m1({int v = 20, int? v2}) => super.m1(v: v); // OK
   @override
-  num m2([int v = 20, int v2]) => super.m2(v); // OK
+  num m2([int v = 20, int? v2]) => super.m2(v); // OK
 }
 class ParameterDefaultChange extends C {
   @override
   num m1({int v = 10}) => super.m1(v: v); // OK
   @override
   num m2([int v = 10]) => super.m2(v); // OK
+}
+class ProtectedMadePublic extends C {
+  @override
+  num m(int v) => super.m(v); // OK
+  @protected
+  num m1({int v = 20}) => super.m1(v: v); // LINT
 }
 
 // noSuchMethod is allowed to proxify
@@ -198,4 +215,32 @@ class E extends C {
   /// it's ok to override to provide better documentation
   @override
   num get g => super.g; // OK
+}
+
+class F<T> {
+  T m1() => throw 42;
+
+  T get g1 => throw 42;
+
+  void set s1(T value) => throw 42;
+
+  T operator +(T other) => throw 42;
+}
+
+class G extends F<int> {
+  @override
+  int m1() => super.m1(); // LINT
+
+  @override
+  int get g1 => super.g1; // LINT
+
+  @override
+  void set s1(int value) => super.s1 = value; // LINT
+
+  @override
+  int operator +(int other) => super + other; // LINT
+}
+
+extension on int {
+  int m1() => 7;
 }

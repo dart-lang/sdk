@@ -4,4 +4,5 @@
 
 // test w/ `dart test -N package_prefixed_library_names`
 
-library linter.not_where_it_should_be; //LINT
+// See: https://github.com/dart-lang/linter/issues/3395
+library linter.not_where_it_should_be; //FAILING

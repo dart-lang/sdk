@@ -7,21 +7,28 @@ import 'package:source_span/source_span.dart';
 
 import '../../analyzer.dart';
 
-const _desc = r'Sort pub dependencies.';
+const _desc = r'Sort pub dependencies alphabetically.';
 
 const _details = r'''
-**DO** sort pub dependencies in `pubspec.yaml`.
+**DO** sort pub dependencies alphabetically (A to Z) in `pubspec.yaml`.
 
 Sorting list of pub dependencies makes maintenance easier.
 ''';
 
 class SortPubDependencies extends LintRule {
+  static const LintCode code = LintCode(
+      'sort_pub_dependencies', 'Unsorted dependencies.',
+      correctionMessage: 'Try sorting the dependencies.');
+
   SortPubDependencies()
       : super(
             name: 'sort_pub_dependencies',
             description: _desc,
             details: _details,
             group: Group.pub);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   PubspecVisitor getPubspecVisitor() => Visitor(this);
@@ -38,12 +45,12 @@ class Visitor extends PubspecVisitor<void> {
   }
 
   @override
-  void visitPackageDevDependencies(PSDependencyList dependencies) {
+  void visitPackageDependencyOverrides(PSDependencyList dependencies) {
     _visitDeps(dependencies);
   }
 
   @override
-  void visitPackageDependencyOverrides(PSDependencyList dependencies) {
+  void visitPackageDevDependencies(PSDependencyList dependencies) {
     _visitDeps(dependencies);
   }
 

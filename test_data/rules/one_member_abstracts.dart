@@ -9,7 +9,7 @@ abstract class X {
 }
 
 abstract class Y {
-  int x;
+  int x = 0;
   int f();
 }
 

@@ -6,12 +6,11 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Avoid setters without getters.';
 
 const _details = r'''
-
 **DON'T** define a setter without a corresponding getter.
 
 Defining a setter without defining a corresponding getter can lead to logical
@@ -44,13 +43,12 @@ class Good {
 
 ''';
 
-bool _hasGetter(MethodDeclaration node) =>
-    DartTypeUtilities.lookUpGetter(node) != null;
+class AvoidSettersWithoutGetters extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_setters_without_getters', 'Setter has no corresponding getter.',
+      correctionMessage:
+          'Try adding a corresponding getter or removing the setter.');
 
-bool _hasInheritedSetter(MethodDeclaration node) =>
-    DartTypeUtilities.lookUpInheritedConcreteSetter(node) != null;
-
-class AvoidSettersWithoutGetters extends LintRule implements NodeLintRule {
   AvoidSettersWithoutGetters()
       : super(
             name: 'avoid_setters_without_getters',
@@ -59,10 +57,15 @@ class AvoidSettersWithoutGetters extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
+  LintCode get lintCode => code;
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
     registry.addClassDeclaration(this, visitor);
+    registry.addEnumDeclaration(this, visitor);
+    // todo(pq): consider visiting mixin declarations
   }
 }
 
@@ -73,11 +76,20 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
-    for (var member in node.members.whereType<MethodDeclaration>()) {
+    visitMembers(node.members);
+  }
+
+  @override
+  void visitEnumDeclaration(EnumDeclaration node) {
+    visitMembers(node.members);
+  }
+
+  void visitMembers(NodeList<ClassMember> members) {
+    for (var member in members.whereType<MethodDeclaration>()) {
       if (member.isSetter &&
-          !_hasInheritedSetter(member) &&
-          !_hasGetter(member)) {
-        rule.reportLint(member.name);
+          member.lookUpInheritedConcreteSetter() == null &&
+          member.lookUpGetter() == null) {
+        rule.reportLintForToken(member.name);
       }
     }
   }

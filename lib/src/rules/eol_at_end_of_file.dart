@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Put a single newline at end of file.';
 
 const _details = r'''
-
 **DO** put a single newline at the end of non-empty files.
 
 **BAD:**
@@ -24,9 +23,10 @@ a {
 b {
 }
     <-- newline
+```    
 ''';
 
-class EolAtEndOfFile extends LintRule implements NodeLintRule {
+class EolAtEndOfFile extends LintRule {
   EolAtEndOfFile()
       : super(
             name: 'eol_at_end_of_file',

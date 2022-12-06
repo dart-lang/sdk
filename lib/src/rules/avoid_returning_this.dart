@@ -7,13 +7,12 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc =
     r'Avoid returning this from methods just to enable a fluent interface.';
 
 const _details = r'''
-
 **AVOID** returning this from methods just to enable a fluent interface.
 
 Returning `this` from a method is redundant; Dart has a cascade operator which
@@ -44,14 +43,14 @@ var buffer = StringBuffer()
 
 ''';
 
-bool _isFunctionExpression(AstNode node) => node is FunctionExpression;
+bool _returnsThis(ReturnStatement node) => node.expression is ThisExpression;
 
-bool _isReturnStatement(AstNode node) => node is ReturnStatement;
+class AvoidReturningThis extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_returning_this', "Don't return 'this' from a method.",
+      correctionMessage:
+          "Try changing the return type to 'void' and removing the return.");
 
-bool _returnsThis(AstNode node) =>
-    (node as ReturnStatement).expression is ThisExpression;
-
-class AvoidReturningThis extends LintRule implements NodeLintRule {
   AvoidReturningThis()
       : super(
             name: 'avoid_returning_this',
@@ -60,10 +59,36 @@ class AvoidReturningThis extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
+  LintCode get lintCode => code;
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
     registry.addMethodDeclaration(this, visitor);
+  }
+}
+
+class _BodyVisitor extends RecursiveAstVisitor {
+  List<ReturnStatement> returnStatements = [];
+
+  List<ReturnStatement> collectReturns(BlockFunctionBody body) {
+    body.accept(this);
+    return returnStatements;
+  }
+
+  @override
+  visitFunctionExpression(FunctionExpression node) {
+    // Short-circuit visiting on Function expressions.
+  }
+
+  @override
+  visitReturnStatement(ReturnStatement node) {
+    // Short-circuit if not returning this.
+    if (!_returnsThis(node)) return;
+
+    returnStatements.add(node);
+    super.visitReturnStatement(node);
   }
 }
 
@@ -77,14 +102,17 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.isOperator) return;
 
     var parent = node.parent;
-    if (parent is ClassOrMixinDeclaration) {
-      if (DartTypeUtilities.overridesMethod(node)) {
+    if (parent is ClassDeclaration ||
+        parent is EnumDeclaration ||
+        parent is MixinDeclaration) {
+      if (node.isOverride) {
         return;
       }
 
       var returnType = node.declaredElement?.returnType;
       if (returnType is InterfaceType &&
-          returnType.element == parent.declaredElement) {
+          // ignore: cast_nullable_to_non_nullable
+          returnType.element == (parent as Declaration).declaredElement) {
       } else {
         return;
       }
@@ -95,15 +123,13 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var body = node.body;
     if (body is BlockFunctionBody) {
-      var returnStatements = DartTypeUtilities.traverseNodesInDFS(body.block,
-              excludeCriteria: _isFunctionExpression)
-          .where(_isReturnStatement);
-      if (returnStatements.isNotEmpty && returnStatements.every(_returnsThis)) {
-        rule.reportLint(node.name);
+      var returnStatements = _BodyVisitor().collectReturns(body);
+      if (returnStatements.isNotEmpty) {
+        rule.reportLint(returnStatements.first.expression);
       }
     } else if (body is ExpressionFunctionBody) {
       if (body.expression is ThisExpression) {
-        rule.reportLint(node.name);
+        rule.reportLintForToken(node.name);
       }
     }
   }

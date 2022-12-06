@@ -28,7 +28,7 @@ void main() {
 void defineLinterEngineTests() {
   group('engine', () {
     group('reporter', () {
-      void _test(
+      void doTest(
           String label, String expected, Function(PrintingReporter r) report) {
         test(label, () {
           String? msg;
@@ -38,9 +38,9 @@ void defineLinterEngineTests() {
         });
       }
 
-      _test('exception', 'EXCEPTION: LinterException: foo',
+      doTest('exception', 'EXCEPTION: LinterException: foo',
           (r) => r.exception(LinterException('foo')));
-      _test('warn', 'WARN: foo', (r) => r.warn('foo'));
+      doTest('warn', 'WARN: foo', (r) => r.warn('foo'));
     });
 
     group('exceptions', () {

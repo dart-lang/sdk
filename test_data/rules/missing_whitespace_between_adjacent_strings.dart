@@ -18,7 +18,6 @@ f(o) {
   f('long line\t' 'is long'); // OK
 
   f(RegExp('(\n)+' '(\n)+' '(\n)+')); // OK
-  new Unresolved('aaa' 'bbb'); // OK
   matches('(\n)+' '(\n)+' '(\n)+'); // OK
 
   f('Hello' // OK

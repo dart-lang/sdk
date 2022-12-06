@@ -8,13 +8,12 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc =
     r'Use a setter for operations that conceptually change a property.';
 
 const _details = r'''
-
 **DO** use a setter for operations that conceptually change a property.
 
 **BAD:**
@@ -31,7 +30,7 @@ button.visible = false;
 
 ''';
 
-class UseSettersToChangeAProperty extends LintRule implements NodeLintRule {
+class UseSettersToChangeAProperty extends LintRule {
   UseSettersToChangeAProperty()
       : super(
             name: 'use_setters_to_change_properties',
@@ -56,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.isSetter ||
         node.isGetter ||
-        DartTypeUtilities.overridesMethod(node) ||
+        node.isOverride ||
         node.parameters?.parameters.length != 1 ||
         node.returnType?.type?.isVoid != true) {
       return;
@@ -65,13 +64,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     void checkExpression(Expression expression) {
       if (expression is AssignmentExpression &&
           expression.operator.type == TokenType.EQ) {
-        var leftOperand =
-            DartTypeUtilities.getCanonicalElement(expression.writeElement);
-        var rightOperand = DartTypeUtilities.getCanonicalElementFromIdentifier(
-            expression.rightHandSide);
+        var leftOperand = expression.writeElement?.canonicalElement;
+        var rightOperand = expression.rightHandSide.canonicalElement;
         var parameterElement = node.declaredElement?.parameters.first;
         if (rightOperand == parameterElement && leftOperand is FieldElement) {
-          rule.reportLint(node.name);
+          rule.reportLintForToken(node.name);
         }
       }
     }

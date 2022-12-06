@@ -4,7 +4,7 @@
 
 // test w/ `dart test -N unrelated_type_equality_checks`
 
-bool m(int? a1, num a2) {
+void m(int? a1, num a2) {
   var b1 = a1 == a2; // OK
   var b2 = a2 == a1; // OK
 }

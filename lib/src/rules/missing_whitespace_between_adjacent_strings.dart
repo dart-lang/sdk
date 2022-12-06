@@ -10,11 +10,10 @@ import '../analyzer.dart';
 const _desc = r'Missing whitespace between adjacent strings.';
 
 const _details = r'''
-
 Add a trailing whitespace to prevent missing whitespace between adjacent
 strings.
 
-With long text split accross adjacent strings it's easy to forget a whitespace
+With long text split across adjacent strings it's easy to forget a whitespace
 between strings.
 
 **BAD:**
@@ -33,8 +32,7 @@ var s =
 
 ''';
 
-class MissingWhitespaceBetweenAdjacentStrings extends LintRule
-    implements NodeLintRule {
+class MissingWhitespaceBetweenAdjacentStrings extends LintRule {
   MissingWhitespaceBetweenAdjacentStrings()
       : super(
             name: 'missing_whitespace_between_adjacent_strings',
@@ -46,11 +44,11 @@ class MissingWhitespaceBetweenAdjacentStrings extends LintRule
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
-    registry.addCompilationUnit(this, visitor);
+    registry.addAdjacentStrings(this, visitor);
   }
 }
 
-class _Visitor extends RecursiveAstVisitor<void> {
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -128,11 +126,11 @@ extension on StringLiteral {
   /// Returns whether this contains whitespace, where any
   /// [InterpolationExpression] does not count as whitespace.
   bool get hasWhitespace {
-    if (this is SimpleStringLiteral) {
-      return (this as SimpleStringLiteral).value.hasWhitespace;
-    } else if (this is StringInterpolation) {
-      return (this as StringInterpolation)
-          .elements
+    var self = this;
+    if (self is SimpleStringLiteral) {
+      return self.value.hasWhitespace;
+    } else if (self is StringInterpolation) {
+      return self.elements
           .any((e) => e is InterpolationString && e.value.hasWhitespace);
     }
     return false;

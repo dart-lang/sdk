@@ -6,18 +6,19 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc =
     r'Start the name of the method with to/_to or as/_as if applicable.';
 
 const _details = r'''
+From the [Effective Dart](https://dart.dev/guides/language/effective-dart/design):
 
-From the [design guide](https://dart.dev/guides/language/effective-dart/design):
+**PREFER** naming a method `to___()` if it copies the object's state to a new
+object.
 
-**PREFER** naming a method to___() if it copies the object's state to a new object.
-
-**PREFER** naming a method as___() if it returns a different representation backed by the original object.
+**PREFER** naming a method `as___()` if it returns a different representation
+backed by the original object.
 
 **BAD:**
 ```dart
@@ -54,9 +55,9 @@ bool _beginsWithAsOrTo(String name) {
 }
 
 bool _isVoid(TypeAnnotation? returnType) =>
-    returnType is TypeName && returnType.name.name == 'void';
+    returnType is NamedType && returnType.name.name == 'void';
 
-class UseToAndAsIfApplicable extends LintRule implements NodeLintRule {
+class UseToAndAsIfApplicable extends LintRule {
   UseToAndAsIfApplicable()
       : super(
             name: 'use_to_and_as_if_applicable',
@@ -84,10 +85,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         nodeParameters != null &&
         nodeParameters.parameters.isEmpty &&
         !_isVoid(node.returnType) &&
-        !_beginsWithAsOrTo(node.name.name) &&
-        !DartTypeUtilities.hasInheritedMethod(node) &&
+        !_beginsWithAsOrTo(node.name.lexeme) &&
+        !node.hasInheritedMethod &&
         _checkBody(node.body)) {
-      rule.reportLint(node.name);
+      rule.reportLintForToken(node.name);
     }
   }
 

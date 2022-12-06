@@ -8,13 +8,18 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 
 const _desc = r'Avoid using `forEach` with a function literal.';
 
 const _details = r'''
-
 **AVOID** using `forEach` with a function literal.
+
+The `for` loop enables a developer to be clear and explicit as to their intent.
+A return in the body of the `for` loop returns from the body of the function,
+where as a return in the body of the `forEach` closure only returns a value
+for that iteration of the `forEach`. The body of a `for` loop can contain
+`await`s, while the closure body of a `forEach` cannot.
 
 **BAD:**
 ```dart
@@ -28,8 +33,6 @@ people.forEach((person) {
 for (var person in people) {
   ...
 }
-
-people.forEach(print);
 ```
 ''';
 
@@ -52,16 +55,23 @@ bool _hasMethodChaining(MethodInvocation node) {
 bool _isNonNullableIterable(DartType? type) =>
     type != null &&
     type.nullabilitySuffix != NullabilitySuffix.question &&
-    DartTypeUtilities.implementsInterface(type, 'Iterable', 'dart.core');
+    type.implementsInterface('Iterable', 'dart.core');
 
-class AvoidFunctionLiteralInForeachMethod extends LintRule
-    implements NodeLintRule {
+class AvoidFunctionLiteralInForeachMethod extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_function_literals_in_foreach_calls',
+      "Function literals shouldn't be passed to 'forEach'.",
+      correctionMessage: "Try using a 'for' loop.");
+
   AvoidFunctionLiteralInForeachMethod()
       : super(
             name: 'avoid_function_literals_in_foreach_calls',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -82,7 +92,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (target != null &&
         node.methodName.token.value() == 'forEach' &&
         node.argumentList.arguments.isNotEmpty &&
-        node.argumentList.arguments[0] is FunctionExpression &&
+        node.argumentList.arguments.first is FunctionExpression &&
         _isNonNullableIterable(target.staticType) &&
         !_hasMethodChaining(node)) {
       rule.reportLint(node.function);

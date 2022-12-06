@@ -36,8 +36,8 @@ void main() {
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
-            'lib.dart 11:14 [lint] Avoid private typedef functions.',
-            'part.dart 11:14 [lint] Avoid private typedef functions.',
+            'lib.dart 11:14',
+            'part.dart 11:14',
             '2 files analyzed, 2 issues found',
           ]));
       expect(exitCode, 1);

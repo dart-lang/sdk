@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = 'Prefer int literals over double literals.';
 
 const _details = '''
-
 **DO** use int literals rather than the corresponding double literal.
 
 **BAD:**
@@ -34,7 +33,7 @@ main() {
 
 ''';
 
-class PreferIntLiterals extends LintRule implements NodeLintRule {
+class PreferIntLiterals extends LintRule {
   PreferIntLiterals()
       : super(
             name: 'prefer_int_literals',
@@ -56,7 +55,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   /// Determine if the given literal can be replaced by an int literal.
   bool canReplaceWithIntLiteral(DoubleLiteral literal) {
-    // TODO(danrubel): Consider moving this into analyzer
     var parent = literal.parent;
     if (parent is PrefixExpression) {
       if (parent.operator.lexeme == '-') {
@@ -87,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else if (parent is ListLiteral) {
       var typeArguments = parent.typeArguments?.arguments;
       return typeArguments?.length == 1 &&
-          _isDartCoreDoubleTypeAnnotation(typeArguments![0]);
+          _isDartCoreDoubleTypeAnnotation(typeArguments!.first);
     } else if (parent is NamedExpression) {
       var argList = parent.parent;
       if (argList is ArgumentList) {

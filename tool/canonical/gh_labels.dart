@@ -13,7 +13,7 @@ import '../github.dart';
 /// Outputs a list of issues whose GH issue tags need updating.
 Future<void> main(List<String> args) async {
   var parser = ArgParser()
-    ..addOption('token', abbr: 't', help: 'Specifies a github auth token.');
+    ..addOption('token', abbr: 't', help: 'Specifies a GitHub auth token.');
   ArgResults options;
   try {
     options = parser.parse(args);
@@ -41,8 +41,8 @@ Future<void> main(List<String> args) async {
       if (title.contains(rule.key)) {
         var sets = rule.value;
         for (var set in sets) {
-          if (!issue.labels.any((label) => label.name.startsWith('set: '))) {
-            print('${issue.htmlUrl} => set: $set');
+          if (!issue.labels.any((label) => label.name.startsWith('set-'))) {
+            print('${issue.htmlUrl} => set-$set');
           }
         }
       }

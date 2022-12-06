@@ -4,10 +4,19 @@
 
 // test w/ `dart test -N unnecessary_statements`
 
+void constructorTearOffs() {
+  MyClass.new; // LINT
+  MyClass.named; // LINT
+
+  var m = MyClass.new;
+  m().foo; // LINT
+  m().field; // LINT
+}
+
 String f(Object o) {
   // See: https://github.com/dart-lang/linter/issues/2163
   o as int; // OK
-  return null;
+  return '';
 }
 
 notReturned() {
@@ -169,11 +178,14 @@ inOtherStatements() {
 bool someBool = true;
 bool foo() => true;
 get getter => true;
-int field;
+int field = 0;
 
 class MyClass {
-  int field;
+  int field = 0;
   bool foo() => true;
 
   get getter => true;
+
+  MyClass();
+  MyClass.named();
 }

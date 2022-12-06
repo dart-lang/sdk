@@ -6,6 +6,44 @@
 
 import 'dart:async';
 
+/// https://github.com/dart-lang/linter/issues/2944
+void foo() {
+  final items = [];
+  (() => [].add('something')).compose(() {}); // OK
+  (() => '').hashCode; // OK
+  (() => '').f = 1; // OK
+  (() => '') + 1; // OK
+  (() => '')[0]; // OK
+}
+
+extension A on void Function() {
+  void Function() compose(void Function() other) => () {
+        this();
+        other();
+      };
+
+  set f(int f) {}
+  operator +(int x) {}
+  int operator [](int i) => 0;
+}
+
+var func = (() => null); // LINT
+
+class D {
+  D.d([int? x, int? y]);
+}
+
+/// https://github.com/dart-lang/linter/issues/2907
+void constructorTearOffs() {
+  var makeD = D.d;
+  (makeD)(1); // LINT
+  (D.d)(1); // LINT
+  (List<int>.filled)(3, 0); // LINT
+  (List.filled)<int>(3, 0); // OK
+  var tearoff = (List<int>.filled); // LINT
+  (List<int>).toString(); //OK
+}
+
 var a, b, c, d;
 
 main() async {
@@ -19,6 +57,8 @@ main() async {
   (await new Future.value(1)).toString(); // OK
   ('' as String).toString(); // OK
   !(true as bool); // OK
+  (b - a) as num; // OK
+  (b - a) is num; // OK
   a = (a); // LINT
   (a) ? true : false; // LINT
   true ? (a) : false; // LINT
@@ -42,24 +82,30 @@ main() async {
   // OK because unary operators mixed with space-separated tokens may have
   // unexpected ordering.
   !(const [7].contains(42)); // OK
-  !(new List(3).contains(42)); // OK
+  !(new List.empty().contains(42)); // OK
   !(await Future.value(false)); // OK
-  -(new List(3).length); // OK
-  !(new List(3).length.isEven); // OK
-  -(new List(3).length.abs().abs().abs()); // OK
-  -(new List(3).length.sign.sign.sign); // OK
+  -(new List.empty().length); // OK
+  !(new List.empty().length.isEven); // OK
+  -(new List.empty().length.abs().abs().abs()); // OK
+  -(new List.empty().length.sign.sign.sign); // OK
   !(const [7]).contains(42); // OK
 
   // OK because some methods are defined on Type, but removing the parentheses
   // would attempt to call a _static_ method on the target.
   (String).hashCode;
   (int).runtimeType;
-  (bool).noSuchMethod();
+  (bool).noSuchMethod(invocation()!);
   (double).toString();
 
   ({false: 'false', true: 'true'}).forEach((k, v) => print('$k: $v'));
   ({false, true}).forEach(print);
   ({false, true}).length;
+  ({false, true}).length.toString();
+  ({1, 2, 3}) + {4};
+  ({1, 2, 3}).cast<num>;
+  /* comment */ ({1, 2, 3}).length;
+  // comment
+  ({1, 2, 3}).length;
   print(({1, 2, 3}).length); // LINT
   ([false, true]).forEach(print); // LINT
   (0.sign).isEven; // LINT
@@ -72,17 +118,21 @@ main() async {
 
 }
 
+Invocation? invocation() => null;
+
 m({p}) => null;
 
 bool Function(dynamic) get fn => (x) => x is bool ? x : false;
 
 class ClassWithFunction {
-  Function f;
-  int number;
+  Function? f;
+  int? number;
 
+  ClassWithFunction();
   ClassWithFunction.named(int a) : this.number = (a + 2); // LINT
   // https://github.com/dart-lang/linter/issues/1473
-  ClassWithFunction.named2(Function value) : this.f = (value ?? (_) => 42); // OK
+  ClassWithFunction.named2(Function value)
+      : this.f = (value ?? (_) => 42); // OK
 }
 
 class ClassWithClassWithFunction {
@@ -97,7 +147,11 @@ class UnnecessaryParenthesis {
 
   UnnecessaryParenthesis()
       : c = (ClassWithClassWithFunction()
-          ..c = ClassWithFunction().f = () => 42); // OK
+          ..c = (ClassWithFunction()..f = () => 42)); // OK
+}
+
+extension<T> on Set<T> {
+  Set<T> operator +(Set<T> other) => {...this, ...other};
 }
 
 class MyType extends Type {

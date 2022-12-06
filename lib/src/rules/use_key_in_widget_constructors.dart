@@ -8,7 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'Use key in widget constructors.';
@@ -28,18 +28,25 @@ class MyPublicWidget extends StatelessWidget {
 **GOOD:**
 ```dart
 class MyPublicWidget extends StatelessWidget {
-  MyPublicWidget({Key? key}) : super(key: key);
+  MyPublicWidget({super.key});
 }
 ```
 ''';
 
-class UseKeyInWidgetConstructors extends LintRule implements NodeLintRule {
+class UseKeyInWidgetConstructors extends LintRule {
+  static const LintCode code = LintCode('use_key_in_widget_constructors',
+      "Constructors for public widgets should have a named 'key' parameter.",
+      correctionMessage: 'Try adding a named parameter to the constructor.');
+
   UseKeyInWidgetConstructors()
       : super(
             name: 'use_key_in_widget_constructors',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -62,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         classElement.isPublic &&
         hasWidgetAsAscendant(classElement) &&
         classElement.constructors.where((e) => !e.isSynthetic).isEmpty) {
-      rule.reportLint(node.name);
+      rule.reportLintForToken(node.name);
     }
     super.visitClassDeclaration(node);
   }
@@ -77,8 +84,10 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constructorElement.isPublic &&
         !constructorElement.isFactory &&
         classElement.isPublic &&
+        classElement is ClassElement &&
         hasWidgetAsAscendant(classElement) &&
         !isExactWidget(classElement) &&
+        !_hasKeySuperParameterInitializerArg(node) &&
         !node.initializers.any((initializer) {
           if (initializer is SuperConstructorInvocation) {
             var staticElement = initializer.staticElement;
@@ -93,17 +102,28 @@ class _Visitor extends SimpleAstVisitor<void> {
           }
           return false;
         })) {
-      rule.reportLintForToken(node.firstTokenAfterCommentAndMetadata);
+      var errorNode = node.name ?? node.returnType;
+      rule.reportLintForOffset(errorNode.offset, errorNode.length);
     }
     super.visitConstructorDeclaration(node);
   }
 
-  bool _defineKeyParameter(ConstructorElement element) =>
-      element.parameters.any((e) => e.name == 'key' && _isKeyType(e.type));
-
   bool _defineKeyArgument(ArgumentList argumentList) => argumentList.arguments
       .any((a) => a.staticParameterElement?.name == 'key');
 
-  bool _isKeyType(DartType type) =>
-      DartTypeUtilities.implementsInterface(type, 'Key', '');
+  bool _defineKeyParameter(ConstructorElement element) =>
+      element.parameters.any((e) => e.name == 'key' && _isKeyType(e.type));
+
+  bool _hasKeySuperParameterInitializerArg(ConstructorDeclaration node) {
+    for (var parameter in node.parameters.parameters) {
+      var element = parameter.declaredElement;
+      if (element is SuperFormalParameterElement && element.name == 'key') {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  bool _isKeyType(DartType type) => type.implementsInterface('Key', '');
 }

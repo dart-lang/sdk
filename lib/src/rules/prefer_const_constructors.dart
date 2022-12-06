@@ -4,17 +4,28 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../analyzer.dart';
-import '../ast.dart';
 
 const _desc = r'Prefer const with constant constructors.';
 
 const _details = r'''
-
 **PREFER** using `const` for instantiating constant constructors.
 
-If a const constructor is available, it is preferable to use it.
+If a constructor can be invoked as const to produce a canonicalized instance,
+it's preferable to do so.
+
+**BAD:**
+```dart
+class A {
+  const A();
+}
+
+void accessA() {
+  A a = new A();
+}
+```
 
 **GOOD:**
 ```dart
@@ -38,26 +49,23 @@ class A {
 A foo(int x) => new A(x);
 ```
 
-**BAD:**
-```dart
-class A {
-  const A();
-}
-
-void accessA() {
-  A a = new A();
-}
-```
-
 ''';
 
-class PreferConstConstructors extends LintRule implements NodeLintRule {
+class PreferConstConstructors extends LintRule {
+  static const LintCode code = LintCode('prefer_const_constructors',
+      "Use 'const' with the constructor to improve performance.",
+      correctionMessage:
+          "Try adding the 'const' keyword to the constructor invocation.");
+
   PreferConstConstructors()
       : super(
             name: 'prefer_const_constructors',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -76,15 +84,18 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (node.constructorName.type.isDeferred) return;
+
     var element = node.constructorName.staticElement;
+    if (element == null) return;
 
-    if (!node.isConst && element != null && element.isConst) {
+    if (element.isConst && !node.isConst) {
       // Handled by analyzer hint.
-      if (hasLiteralAnnotation(element)) {
-        return;
-      }
+      if (element.hasLiteral) return;
 
-      if (element.enclosingElement.isDartCoreObject) {
+      var enclosingElement = element.enclosingElement;
+      if (enclosingElement is ClassElement &&
+          enclosingElement.isDartCoreObject) {
         // Skip lint for `new Object()`, because it can be used for Id creation.
         return;
       }

@@ -8,7 +8,7 @@ import 'dart:math';
 import 'package:analyzer/error/error.dart';
 
 import 'analyzer.dart';
-import 'util/charcodes.dart' show $pipe, $backslash;
+import 'util/charcodes.dart' show $backslash, $pipe;
 import 'util/score_utils.dart';
 
 // Number of times to perform linting to get stable benchmarks.
@@ -60,7 +60,6 @@ Future writeBenchmarks(
   var coreRuleset = await coreRules;
   var recommendedRuleset = await recommendedRules;
   var flutterRuleset = await flutterRules;
-  var pedanticRuleset = await pedanticRules;
 
   var stats = timings.keys.map((t) {
     var sets = <String>[];
@@ -72,9 +71,6 @@ Future writeBenchmarks(
     }
     if (flutterRuleset.contains(t)) {
       sets.add('flutter');
-    }
-    if (pedanticRuleset.contains(t)) {
-      sets.add('pedantic');
     }
 
     var details = sets.isEmpty ? '' : " [${sets.join(', ')}]";
@@ -114,8 +110,6 @@ void _writeTimings(IOSink out, List<_Stat> timings, int summaryLength) {
   timings.sort();
   for (var stat in timings) {
     totalTime += stat.elapsed;
-    // TODO: Shame timings slower than 100ms?
-    // TODO: Present both total times and time per count?
     out.writeln(
         '${stat.name.padRight(longestName)}${stat.elapsed.toString().padLeft(pad)}');
   }
@@ -127,21 +121,13 @@ void _writeTimings(IOSink out, List<_Stat> timings, int summaryLength) {
 }
 
 class DetailedReporter extends SimpleFormatter {
-  DetailedReporter(
-      Iterable<AnalysisErrorInfo> errors, LintFilter? filter, IOSink out,
-      {int? fileCount,
-      int? elapsedMs,
-      String? fileRoot,
-      bool showStatistics = false,
-      bool machineOutput = false,
-      bool quiet = false})
-      : super(errors, filter, out,
-            fileCount: fileCount,
-            fileRoot: fileRoot,
-            elapsedMs: elapsedMs,
-            showStatistics: showStatistics,
-            machineOutput: machineOutput,
-            quiet: quiet);
+  DetailedReporter(super.errors, super.filter, super.out,
+      {super.fileCount,
+      super.elapsedMs,
+      super.fileRoot,
+      super.showStatistics,
+      super.machineOutput,
+      super.quiet});
 
   @override
   void writeLint(AnalysisError error, {int? offset, int? line, int? column}) {

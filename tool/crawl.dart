@@ -20,17 +20,12 @@ const _allPathSuffix = '/example/all.yaml';
 
 /// We don't care about SDKs previous to this bottom.
 final Version bottomDartSdk = Version(2, 0, 0);
-Map<String, String?> _dartSdkToLinterMap = <String, String?>{};
+final Map<String, String?> _dartSdkToLinterMap = <String, String?>{};
 
-final _effectiveDartOptionsRootUrl = Uri.https(
-    'raw.githubusercontent.com', '/tenhobi/effective_dart/master/lib/');
-final _effectiveDartOptionsUrl =
-    _effectiveDartOptionsRootUrl.resolve('analysis_options.yaml');
-List<String>? _effectiveDartRules;
 final _flutterOptionsUrl = Uri.https('raw.githubusercontent.com',
-    '/flutter/packages/master/packages/flutter_lints/lib/flutter.yaml');
-final _flutterRepoOptionsUrl = Uri.https('raw.githubusercontent.com',
-    '/flutter/flutter/master/analysis_options.yaml');
+    '/flutter/packages/main/packages/flutter_lints/lib/flutter.yaml');
+final _flutterRepoOptionsUrl = Uri.https(
+    'raw.githubusercontent.com', '/flutter/flutter/main/analysis_options.yaml');
 
 List<String>? _flutterRepoRules;
 
@@ -40,20 +35,12 @@ int? _latestMinor;
 Iterable<LintRule>? _registeredLints;
 final _repoPathPrefix =
     Uri.https('raw.githubusercontent.com', '/dart-lang/linter/');
-final _rulePathPrefix =
-    Uri.https('raw.githubusercontent.com', '/dart-lang/linter/');
 
 List<String>? _sdkTags;
 
+List<String>? _linterTags;
+
 Map<String, List<String?>> _sinceMap = <String, List<String>>{};
-
-final _stagehandOptionsUrl = Uri.https('raw.githubusercontent.com',
-    '/dart-lang/stagehand/master/templates/analysis_options.yaml');
-
-List<String>? _stagehandRules;
-
-Future<List<String>> get effectiveDartRules async =>
-    _effectiveDartRules ??= await _fetchEffectiveDartRules();
 
 Future<List<String>> get flutterRepoRules async =>
     _flutterRepoRules ??= await score_utils.fetchRules(_flutterRepoOptionsUrl);
@@ -64,8 +51,6 @@ Future<List<String>> get flutterRules async =>
 Future<int> get latestMinor async =>
     _latestMinor ??= await _readLatestMinorVersion();
 
-Future<List<String>> get pedanticRules async => score_utils.pedanticRules;
-
 Iterable<LintRule> get registeredLints {
   if (_registeredLints == null) {
     registerLintRules();
@@ -73,9 +58,6 @@ Iterable<LintRule> get registeredLints {
   }
   return _registeredLints!;
 }
-
-Future<List<String>> get stagehandRules async =>
-    _stagehandRules ??= await score_utils.fetchRules(_stagehandOptionsUrl);
 
 Future<String?> dartSdkForLinter(String version, Authentication? auth) async {
   var sdkVersions = <String>[];
@@ -98,58 +80,34 @@ Future<String?> findSinceDartSdk(String linterVersion,
         {Authentication? auth}) async =>
     await dartSdkForLinter(linterVersion, auth);
 
-Future<String?> findSinceLinter(String lint, {Authentication? auth}) async {
-  // History recorded in `all.yaml` starts in minor 31.
-  var rules_31 = await rulesForVersion(31);
-  if (rules_31 != null) {
-    if (rules_31.contains(lint)) {
-      var version = await _crawlForVersion(lint);
-      if (version != null) {
+Future<String?> findSinceLinter(String lint, [Authentication? auth]) async {
+  var linterReleases = await getLinterReleases(auth);
+
+  for (var version in linterReleases) {
+    var rules = await rulesForVersion(version);
+    if (rules != null) {
+      if (rules.contains(lint)) {
         return version;
       }
     }
   }
 
-  var latest = await latestMinor;
-  for (var minor = 31; minor <= latest; ++minor) {
-    var rules = await rulesForVersion(minor);
-    if (rules != null) {
-      if (rules.contains(lint)) {
-        return '0.1.$minor';
-      }
-    }
-  }
-
   return null;
 }
 
-Future<List<String>> getSdkTags(Authentication? auth) async =>
-    _sdkTags ??= await _fetchSdkTags(auth);
+Future<List<String>> getSdkTags(Authentication? auth,
+        {bool onlyStable = false}) async =>
+    _sdkTags ??= await _fetchSdkTags(auth, onlyStable: onlyStable);
+
+Future<List<String>> getLinterReleases([Authentication? auth]) async =>
+    _linterTags ??=
+        (await _fetchLinterReleaseTags(auth)).reversed.toList(growable: false);
 
 Future<String?> linterForDartSdk(String sdk) async =>
     _dartSdkToLinterMap[sdk] ??= await _fetchLinterForVersion(sdk);
 
-Future<List<String?>?> rulesForVersion(int minor) async {
-  var version = '0.1.$minor';
-  if (minor >= 31) {
-    var rules = await fetchRulesForVersion(version);
-    return _sinceMap[version] ??= rules;
-  }
-  return null;
-}
-
-Future<String?> _crawlForVersion(String lint) async {
-  var client = http.Client();
-  for (var minor = 1; minor < 31; ++minor) {
-    var version = '0.1.$minor';
-    var req = await client
-        .get(_rulePathPrefix.resolve('$version/lib/src/rules/$lint.dart'));
-    if (req.statusCode == 200) {
-      return version;
-    }
-  }
-  return null;
-}
+Future<List<String?>?> rulesForVersion(String version) async =>
+    _sinceMap[version] ??= await fetchRulesForVersion(version);
 
 Future<String> _fetchDEPSforVersion(String version) async {
   var client = http.Client();
@@ -159,33 +117,90 @@ Future<String> _fetchDEPSforVersion(String version) async {
   return req.body;
 }
 
-Future<List<String>> _fetchEffectiveDartRules() async {
-  var client = http.Client();
-  var req = await client.get(_effectiveDartOptionsUrl);
-  var includedOptions =
-      req.body.split('include: package:effective_dart/')[1].trim();
-  return score_utils
-      .fetchRules(_effectiveDartOptionsRootUrl.resolve(includedOptions));
+final _linterReleasePattern = RegExp(r'\d+\.\d+(\.\d+)');
+
+Future<String?> _commitReferenceToVersion(String version) async {
+  if (_linterReleasePattern.hasMatch(version)) {
+    return version;
+  }
+
+  // Get all tags which include this commit reference
+  var result = await Process.run('git', ['tag', '--contains', version]);
+  var output = result.stdout;
+  if (output is String) {
+    var tags = _linterReleasePattern.allMatches(output);
+    // Take the earliest (first) release which includes this commit
+    var latestTag = tags.first.group(0);
+    if (latestTag != null) {
+      return latestTag;
+    }
+  }
+
+  return null;
 }
 
 Future<String?> _fetchLinterForVersion(String version) async {
   var deps = await _fetchDEPSforVersion(version);
-  for (var line in deps.split('\n')) {
-    if (line.trim().startsWith('"lint')) {
+  for (var untrimmedLine in deps.split('\n')) {
+    var line = untrimmedLine.trim();
+    if (line.startsWith('"lint')) {
       // "linter_tag": "0.1.59",
-      var split = line.trim().split('"linter_tag":');
-      if (split.length == 2) {
+      var oldSplit = line.split('"linter_tag":');
+      if (oldSplit.length == 2) {
         //  "0.1.59",
-        return split[1].split('"')[1];
+        return _commitReferenceToVersion(oldSplit[1].split('"')[1]);
+      }
+
+      // "linter_rev": "f2c55484e8ebda0aec8c2fea637b3bd5b17258ca",
+      var newSplit = line.split('"linter_rev":');
+      if (newSplit.length == 2) {
+        // "f2c55484e8ebda0aec8c2fea637b3bd5b17258ca",
+        var parsedLinterVersion = newSplit[1].split('"')[1];
+        return _commitReferenceToVersion(parsedLinterVersion);
       }
     }
   }
   return null;
 }
 
-Future<List<String>> _fetchSdkTags(Authentication? auth) async {
+final _releaseTagPattern = RegExp(r'\d+');
+final _stableReleasePattern = RegExp(r'^\d+\.\d+\.\d+$');
+
+Future<List<String>> _fetchLinterReleaseTags(Authentication? auth) async =>
+    await _fetchRepoTags(
+        'dart-lang', 'linter', auth, _stableReleasePattern.hasMatch);
+
+Future<List<String>> _fetchSdkTags(Authentication? auth,
+        {bool onlyStable = false}) async =>
+    await _fetchRepoTags('dart-lang', 'linter', auth, (t) {
+      // Filter on numeric release tags.
+      if (!t.startsWith(_releaseTagPattern)) {
+        return false;
+      }
+
+      // Filter on bottom.
+      try {
+        var version = Version.parse(t);
+        if (version < bottomDartSdk) {
+          return false;
+        }
+      } on FormatException {
+        return false;
+      }
+
+      if (onlyStable) {
+        if (!_stableReleasePattern.hasMatch(t)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+Future<List<String>> _fetchRepoTags(String org, String repo,
+    Authentication? auth, bool Function(String) where) async {
   var github = GitHub(auth: auth);
-  var slug = RepositorySlug('dart-lang', 'sdk');
+  var slug = RepositorySlug(org, repo);
 
   print('list repository tags: $slug');
   print('authentication:  ${auth != null ? "(token)" : "(anonymous)"}');
@@ -195,37 +210,19 @@ Future<List<String>> _fetchSdkTags(Authentication? auth) async {
       .map((t) => t.name)
       .toList()
       .catchError((e) {
-    print('exception caught fetching SDK tags');
+    print('exception caught fetching $repo tags');
     print(e);
-    print('(using cached SDK values)');
+    print('(using cached $repo values)');
     return Future.value(<String>[]);
   });
 
-  return tags.whereType<String>().where((t) {
-    // Filter on numeric release tags.
-    if (!t.startsWith(RegExp(r'\d+'))) {
-      return false;
-    }
-
-    // Filter on bottom.
-    try {
-      var version = Version.parse(t);
-      return version.compareTo(bottomDartSdk) >= 0;
-    } on FormatException {
-      return false;
-    }
-  }).toList();
+  return tags.whereType<String>().where(where).toList(growable: false);
 }
 
 Future<int> _readLatestMinorVersion() async {
   var contents = await File('pubspec.yaml').readAsString();
   var pubspec = loadYamlNode(contents) as YamlMap;
-  // 0.1.79 or 0.1.79-dev or 0.1.97+1
-  return int.parse((pubspec['version'] as String)
-      .split('.')
-      .last
-      .split('-')
-      .first
-      .split('+')
-      .first);
+  var version = pubspec['version'] as String;
+  // 1.15.0
+  return int.parse(version.split('.')[1]);
 }

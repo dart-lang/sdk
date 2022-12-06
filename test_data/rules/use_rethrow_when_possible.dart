@@ -36,3 +36,13 @@ void good3() {
     }
   }
 }
+
+void bug2789() {
+  try {} catch (e) {
+    e != null ? e.toString() : throw e; // OK
+  }
+
+  try {} catch (e) {
+    print(throw e); // OK
+  }
+}

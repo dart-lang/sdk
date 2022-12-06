@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Use `;` instead of `{}` for empty constructor bodies.';
 
 const _details = r'''
-
 From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
 
 **DO** use `;` instead of `{}` for empty constructor bodies.
@@ -18,14 +17,6 @@ From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
 In Dart, a constructor with an empty body can be terminated with just a
 semicolon.  This is required for const constructors.  For consistency and
 brevity, other constructors should also do this.
-
-**GOOD:**
-```dart
-class Point {
-  int x, y;
-  Point(this.x, this.y);
-}
-```
 
 **BAD:**
 ```dart
@@ -35,15 +26,30 @@ class Point {
 }
 ```
 
+**GOOD:**
+```dart
+class Point {
+  int x, y;
+  Point(this.x, this.y);
+}
+```
+
 ''';
 
-class EmptyConstructorBodies extends LintRule implements NodeLintRule {
+class EmptyConstructorBodies extends LintRule {
+  static const LintCode code = LintCode('empty_constructor_bodies',
+      "Empty constructor bodies should be written using a ';' rather than '{}'.",
+      correctionMessage: "Try replacing the constructor body with ';'.");
+
   EmptyConstructorBodies()
       : super(
             name: 'empty_constructor_bodies',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

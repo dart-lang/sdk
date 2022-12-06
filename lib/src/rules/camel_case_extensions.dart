@@ -11,7 +11,6 @@ import '../utils.dart';
 const _desc = r'Name extensions using UpperCamelCase.';
 
 const _details = r'''
-
 From the [style guide](https://dart.dev/guides/language/effective-dart/style/):
 
 **DO** name extensions using `UpperCamelCase`.
@@ -31,13 +30,21 @@ extension SmartIterable<T> on Iterable<T> {
 ```
 ''';
 
-class CamelCaseExtensions extends LintRule implements NodeLintRule {
+class CamelCaseExtensions extends LintRule {
+  static const LintCode code = LintCode('camel_case_extensions',
+      "The extension name '{0}' isn't an UpperCamelCase identifier.",
+      correctionMessage:
+          'Try changing the name to follow the UpperCamelCase style.');
+
   CamelCaseExtensions()
       : super(
             name: 'camel_case_extensions',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -55,8 +62,8 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
     var name = node.name;
-    if (name != null && !isCamelCase(name.name)) {
-      rule.reportLint(name);
+    if (name != null && !isCamelCase(name.lexeme)) {
+      rule.reportLintForToken(name, arguments: [name.lexeme]);
     }
   }
 }

@@ -11,8 +11,7 @@ import '../ast.dart';
 const _desc = r'Depend on referenced packages.';
 
 const _details = r'''
-
-**DO** Depend on referenced packages.
+**DO** depend on referenced packages.
 
 When importing a package, add a dependency on it to your pubspec.
 
@@ -45,13 +44,21 @@ dependencies:
 
 ''';
 
-class DependOnReferencedPackages extends LintRule implements NodeLintRule {
+class DependOnReferencedPackages extends LintRule {
+  static const LintCode code = LintCode('depend_on_referenced_packages',
+      "The imported package '{0}' isn't a dependency of the importing package.",
+      correctionMessage:
+          "Try adding a dependency for '{0}' in the 'pubspec.yaml' file.");
+
   DependOnReferencedPackages()
       : super(
             name: 'depend_on_referenced_packages',
             description: _desc,
             details: _details,
             group: Group.pub);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -84,14 +91,27 @@ class DependOnReferencedPackages extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends SimpleAstVisitor {
+  /// Virtual packages will not have explicit dependencies
+  /// and get skipped.
+  static const virtualPackages = [
+    //https://github.com/dart-lang/linter/issues/3308
+    'flutter_gen',
+  ];
+
   final DependOnReferencedPackages rule;
   final List<String> availableDeps;
 
   _Visitor(this.rule, this.availableDeps);
 
+  @override
+  void visitExportDirective(ExportDirective node) => _checkDirective(node);
+
+  @override
+  void visitImportDirective(ImportDirective node) => _checkDirective(node);
+
   void _checkDirective(UriBasedDirective node) {
     // Is it a package: uri?
-    var uriContent = node.uriContent;
+    var uriContent = node.uri.stringValue;
     if (uriContent == null) return;
     if (!uriContent.startsWith('package:')) return;
 
@@ -100,13 +120,8 @@ class _Visitor extends SimpleAstVisitor {
     if (firstSlash == -1) return;
 
     var packageName = uriContent.substring(8, firstSlash);
+    if (virtualPackages.contains(packageName)) return;
     if (availableDeps.contains(packageName)) return;
-    rule.reportLint(node.uri);
+    rule.reportLint(node.uri, arguments: [packageName]);
   }
-
-  @override
-  void visitImportDirective(ImportDirective node) => _checkDirective(node);
-
-  @override
-  void visitExportDirective(ExportDirective node) => _checkDirective(node);
 }

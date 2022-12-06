@@ -10,6 +10,7 @@ import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 
 import 'doc.dart';
+import 'since.dart';
 
 /// Generates a list of lint rules in machine format suitable for consumption by
 /// other tools.
@@ -30,10 +31,12 @@ void main(List<String> args) async {
 }
 
 String getMachineListing(Iterable<LintRule> ruleRegistry,
-    {bool pretty = true}) {
+    {Map<String, String>? fixStatusMap,
+    bool pretty = true,
+    Map<String, SinceInfo>? sinceInfo}) {
   var rules = List<LintRule>.of(ruleRegistry, growable: false)..sort();
   var encoder = pretty ? JsonEncoder.withIndent('  ') : JsonEncoder();
-
+  fixStatusMap ??= {};
   var json = encoder.convert([
     for (var rule in rules)
       {
@@ -46,10 +49,13 @@ String getMachineListing(Iterable<LintRule> ruleRegistry,
           if (coreRules.contains(rule.name)) 'core',
           if (recommendedRules.contains(rule.name)) 'recommended',
           if (flutterRules.contains(rule.name)) 'flutter',
-          if (pedanticRules.contains(rule.name)) 'pedantic',
-          if (effectiveDartRules.contains(rule.name)) 'effective_dart',
         ],
+        'fixStatus': fixStatusMap[rule.name] ?? 'unregistered',
         'details': rule.details,
+        if (sinceInfo != null)
+          'sinceDartSdk': sinceInfo[rule.name]?.sinceDartSdk ?? 'Unreleased',
+        if (sinceInfo != null)
+          'sinceLinter': sinceInfo[rule.name]?.sinceLinter ?? 'Unreleased',
       }
   ]);
   return json;

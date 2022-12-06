@@ -4,19 +4,20 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 
 const _desc = r'Avoid redundant argument values.';
 
-const _details = r'''Avoid redundant argument values.
-
-**DON'T** declare arguments with values that match the defaults for the
-corresponding parameter.
+const _details = r'''
+**DON'T** pass an argument that matches the corresponding parameter's default
+value.
 
 **BAD:**
 ```dart
-void f({bool valWithDefault = true, bool val}) {
+void f({bool valWithDefault = true, bool? val}) {
   ...
 }
 
@@ -27,7 +28,7 @@ void main() {
 
 **GOOD:**
 ```dart
-void f({bool valWithDefault = true, bool val}) {
+void f({bool valWithDefault = true, bool? val}) {
   ...
 }
 
@@ -38,7 +39,13 @@ void main() {
 ```
 ''';
 
-class AvoidRedundantArgumentValues extends LintRule implements NodeLintRule {
+class AvoidRedundantArgumentValues extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_redundant_argument_values',
+      'The value of the argument is redundant because it matches the default '
+          'value.',
+      correctionMessage: 'Try removing the argument.');
+
   AvoidRedundantArgumentValues()
       : super(
             name: 'avoid_redundant_argument_values',
@@ -47,10 +54,15 @@ class AvoidRedundantArgumentValues extends LintRule implements NodeLintRule {
             group: Group.style);
 
   @override
+  LintCode get lintCode => code;
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this, context);
+    registry.addEnumConstantArguments(this, visitor);
     registry.addInstanceCreationExpression(this, visitor);
+    registry.addFunctionExpressionInvocation(this, visitor);
     registry.addMethodInvocation(this, visitor);
   }
 }
@@ -70,30 +82,98 @@ class _Visitor extends SimpleAstVisitor {
     for (var i = arguments.length - 1; i >= 0; --i) {
       var arg = arguments[i];
       var param = arg.staticParameterElement;
-      if (param == null || param.hasRequired || param.isRequiredNamed) {
-        continue;
-      } else if (param.isRequiredPositional) {
-        break;
+      if (arg is NamedExpression) {
+        arg = arg.expression;
       }
-      var value = param.computeConstantValue();
-      if (value != null) {
-        if (arg is NamedExpression) {
-          arg = arg.expression;
-        }
-        var expressionValue = context.evaluateConstant(arg);
-        if (expressionValue.value == value) {
-          rule.reportLint(arg);
-        }
-      }
-      if (param.isOptionalPositional) {
+      checkArgument(arg, param);
+      if (param != null && param.isOptionalPositional) {
+        // Redundant arguments may be necessary to specify, in order to specify
+        // a non-redundant argument for the last optional positional parameter.
         break;
       }
     }
   }
 
+  void checkArgument(Expression arg, ParameterElement? param) {
+    if (param == null ||
+        param.declaration.isRequired ||
+        param.hasRequired ||
+        !param.isOptional) {
+      return;
+    }
+    var value = param.computeConstantValue();
+    if (value != null && value.hasKnownValue) {
+      var expressionValue = context.evaluateConstant(arg).value;
+      if ((expressionValue?.hasKnownValue ?? false) &&
+          expressionValue == value) {
+        rule.reportLint(arg);
+      }
+    }
+  }
+
+  @override
+  void visitEnumConstantArguments(EnumConstantArguments node) {
+    check(node.argumentList);
+  }
+
+  @override
+  visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    check(node.argumentList);
+  }
+
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    check(node.argumentList);
+    var constructor = node.constructorName.staticElement;
+    if (constructor != null && !constructor.isFactory) {
+      check(node.argumentList);
+      return;
+    }
+
+    var redirectedConstructor = constructor?.redirectedConstructor;
+    while (redirectedConstructor?.redirectedConstructor != null) {
+      redirectedConstructor = redirectedConstructor?.redirectedConstructor;
+    }
+    if (redirectedConstructor == null) {
+      check(node.argumentList);
+      return;
+    }
+
+    var parameters = redirectedConstructor.parameters;
+
+    // If the constructor being called is a redirecting factory constructor, an
+    // argument is redundant if it is equal to the default value of the
+    // corresponding parameter on the _redirectied constructor_, not this
+    // constructor, which may be different.
+
+    var arguments = node.argumentList.arguments;
+    if (arguments.isEmpty) {
+      return;
+    }
+
+    for (var i = arguments.length - 1; i >= 0; --i) {
+      var arg = arguments[i];
+      ParameterElement? param;
+      if (arg is NamedExpression) {
+        param = parameters.firstWhereOrNull(
+            (p) => p.isNamed && p.name == arg.name.label.name);
+      } else {
+        // Count which positional argument we're at.
+        var positionalCount =
+            arguments.take(i + 1).where((a) => a is! NamedExpression).length;
+        var positionalIndex = positionalCount - 1;
+        if (positionalIndex < parameters.length) {
+          if (parameters[positionalIndex].isPositional) {
+            param = parameters[positionalIndex];
+          }
+        }
+      }
+      checkArgument(arg, param);
+      if (param != null && param.isOptionalPositional) {
+        // Redundant arguments may be necessary to specify, in order to specify
+        // a non-redundant argument for the last optional positional parameter.
+        break;
+      }
+    }
   }
 
   @override

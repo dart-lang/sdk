@@ -11,3 +11,10 @@ class X {
     x ??= 1; //OK
   }
 }
+
+int? get x => null;
+set x(int? x) { }
+
+void f() {
+  x ??= null; //OK
+}

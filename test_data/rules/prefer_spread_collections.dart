@@ -19,7 +19,7 @@ var l7 = []..addAll(things); // LINT
 
 // Control flow.
 
-bool condition;
+bool condition = false;
 var l5 = ['a']..addAll(condition ? things : const []); // LINT
 var l6 = ['a']..addAll(condition ? things : []); // LINT
 
@@ -31,5 +31,3 @@ g() {
   A()..addAll(['a']); // OK
 }
 
-const thangs = [];
-const cc = []..addAll(thangs); // OK -- don't show on invalid code

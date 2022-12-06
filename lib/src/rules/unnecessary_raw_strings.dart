@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Unnecessary raw string.';
 
 const _details = r'''
-
 Use raw string only when needed.
 
 **BAD:**
@@ -27,7 +26,7 @@ var s3 = r'\a';
 
 ''';
 
-class UnnecessaryRawStrings extends LintRule implements NodeLintRule {
+class UnnecessaryRawStrings extends LintRule {
   UnnecessaryRawStrings()
       : super(
             name: 'unnecessary_raw_strings',

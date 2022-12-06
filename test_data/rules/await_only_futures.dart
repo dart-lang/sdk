@@ -25,13 +25,13 @@ class CancellableFuture<T> implements Future<T> {
   }
 
   @override
-  Future<T> catchError(Function onError, {bool test(Object error)}) {
+  Future<T> catchError(Function onError, {bool test(Object error)?}) {
     throw new Exception('Not supported.');
   }
 
 
   @override
-  Future<T> timeout(Duration timeLimit, {onTimeout()}) {
+  Future<T> timeout(Duration timeLimit, {onTimeout()?}) {
     throw new Exception('Not supported.');
   }
 
@@ -41,7 +41,7 @@ class CancellableFuture<T> implements Future<T> {
   }
 
   @override
-  Future<R> then<R>(FutureOr<R> Function(T value) onValue, {Function onError}) {
+  Future<R> then<R>(FutureOr<R> Function(T value) onValue, {Function? onError}) {
     throw new Exception('Not supported.');
   }
 }

@@ -29,20 +29,18 @@ void main() {
 
     test('lint lib/ sources and non-lib/ sources', () async {
       await cli.run([
-        '--packages',
-        '$integrationTestDir/avoid_renaming_method_parameters/_packages',
         '$integrationTestDir/avoid_renaming_method_parameters',
         '--rules=avoid_renaming_method_parameters'
       ]);
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
-            'a.dart 29:6 [lint] Don\'t rename parameters of overridden methods.',
-            'a.dart 31:12 [lint] Don\'t rename parameters of overridden methods.',
-            'a.dart 32:9 [lint] Don\'t rename parameters of overridden methods.',
-            'a.dart 34:7 [lint] Don\'t rename parameters of overridden methods.',
-            'a.dart 35:6 [lint] Don\'t rename parameters of overridden methods.',
-            'a.dart 36:6 [lint] Don\'t rename parameters of overridden methods.',
+            'a.dart 31:6 [lint]',
+            'a.dart 33:12 [lint]',
+            'a.dart 34:9 [lint]',
+            'a.dart 36:7 [lint]',
+            'a.dart 37:6 [lint]',
+            'a.dart 38:6 [lint]',
             '3 files analyzed, 6 issues found',
           ]));
       expect(exitCode, 1);

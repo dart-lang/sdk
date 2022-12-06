@@ -32,3 +32,13 @@ void main() {
 
   bad3 = print; // OK
 }
+
+var ok2 = () {}; // OK
+
+final bad4 = () {}; // LINT
+
+class C {
+  var ok3 = () {}; // OK
+
+  final bad5 = () {}; // LINT
+}

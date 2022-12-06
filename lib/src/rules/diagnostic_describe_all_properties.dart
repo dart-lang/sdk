@@ -3,13 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 import '../ast.dart';
-import '../util/dart_type_utilities.dart';
+import '../extensions.dart';
 import '../util/flutter_utils.dart';
 
 const _desc = r'DO reference all public properties in debug methods.';
@@ -65,8 +66,7 @@ class Absorber extends Widget {
 ```
 ''';
 
-class DiagnosticsDescribeAllProperties extends LintRule
-    implements NodeLintRule {
+class DiagnosticsDescribeAllProperties extends LintRule {
   DiagnosticsDescribeAllProperties()
       : super(
           name: 'diagnostic_describe_all_properties',
@@ -84,51 +84,54 @@ class DiagnosticsDescribeAllProperties extends LintRule
   }
 }
 
+class _IdentifierVisitor extends RecursiveAstVisitor {
+  final List<Token> properties;
+  _IdentifierVisitor(this.properties);
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    String debugName;
+    String name;
+    const debugPrefix = 'debug';
+    if (node.name.startsWith(debugPrefix) &&
+        node.name.length > debugPrefix.length) {
+      debugName = node.name;
+      name = '${node.name[debugPrefix.length].toLowerCase()}'
+          '${node.name.substring(debugPrefix.length + 1)}';
+    } else {
+      name = node.name;
+      debugName =
+          '$debugPrefix${node.name[0].toUpperCase()}${node.name.substring(1)}';
+    }
+    properties.removeWhere(
+        (property) => property.lexeme == debugName || property.lexeme == name);
+
+    super.visitSimpleIdentifier(node);
+  }
+}
+
 class _Visitor extends SimpleAstVisitor {
   final LintRule rule;
   final LinterContext context;
 
   _Visitor(this.rule, this.context);
 
-  void removeReferences(
-      MethodDeclaration? method, List<SimpleIdentifier> properties) {
-    if (method == null) {
-      return;
-    }
-    DartTypeUtilities.traverseNodesInDFS(method.body)
-        .whereType<SimpleIdentifier>()
-        .forEach((p) {
-      String debugName;
-      String name;
-      const debugPrefix = 'debug';
-      if (p.name.startsWith(debugPrefix) &&
-          p.name.length > debugPrefix.length) {
-        debugName = p.name;
-        name =
-            '${p.name[debugPrefix.length].toLowerCase()}${p.name.substring(debugPrefix.length + 1)}';
-      } else {
-        name = p.name;
-        debugName =
-            '$debugPrefix${p.name[0].toUpperCase()}${p.name.substring(1)}';
-      }
-      properties.removeWhere(
-          (property) => property.name == debugName || property.name == name);
-    });
+  void removeReferences(MethodDeclaration? method, List<Token> properties) {
+    method?.body.accept(_IdentifierVisitor(properties));
   }
 
-  bool skipForDiagnostic(
-          {Element? element, DartType? type, SimpleIdentifier? name}) =>
+  bool skipForDiagnostic({Element? element, DartType? type, Token? name}) =>
       isPrivate(name) || _isOverridingMember(element) || isWidgetProperty(type);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     // We only care about Diagnosticables.
     var type = node.declaredElement?.thisType;
-    if (!DartTypeUtilities.implementsInterface(type, 'Diagnosticable', '')) {
+    if (!type.implementsInterface('Diagnosticable', '')) {
       return;
     }
 
-    var properties = <SimpleIdentifier>[];
+    var properties = <Token>[];
     for (var member in node.members) {
       if (member is MethodDeclaration && member.isGetter) {
         if (!member.isStatic &&
@@ -159,8 +162,8 @@ class _Visitor extends SimpleAstVisitor {
       return;
     }
 
-    var debugFillProperties = node.getMethod('debugFillProperties');
-    var debugDescribeChildren = node.getMethod('debugDescribeChildren');
+    var debugFillProperties = node.members.getMethod('debugFillProperties');
+    var debugDescribeChildren = node.members.getMethod('debugDescribeChildren');
 
     // Remove any defined in debugFillProperties.
     removeReferences(debugFillProperties, properties);
@@ -169,7 +172,7 @@ class _Visitor extends SimpleAstVisitor {
     removeReferences(debugDescribeChildren, properties);
 
     // Flag the rest.
-    properties.forEach(rule.reportLint);
+    properties.forEach(rule.reportLintForToken);
   }
 
   bool _isOverridingMember(Element? member) {

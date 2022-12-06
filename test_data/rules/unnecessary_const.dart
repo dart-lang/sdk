@@ -14,6 +14,9 @@ main() {
   const A(); // OK
   A(); // OK
 
+  A.new(); // OK
+  const A.new(); // OK
+
   const A([]); // OK
   A([]); // OK
   A(const []); // OK
@@ -33,4 +36,8 @@ main() {
   final v10 = const A([]); // OK
   final v11 = const A(const {}); // LINT
   final v12 = const A({}); // OK
+
+  const v13 = const A.new(); // LINT
+  final v14 = A.new(const []); // OK
+  final v15 = const A.new(const []); // LINT
 }

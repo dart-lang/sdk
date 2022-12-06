@@ -12,7 +12,7 @@ import '../mocks.dart';
 import '../test_constants.dart';
 
 void main() {
-  group('Depend on referenced packages', () {
+  group('depend_on_referenced_packages', () {
     var currentOut = outSink;
     var collectingOut = CollectingSink();
     setUp(() {
@@ -27,8 +27,6 @@ void main() {
 
     test('lints files under bin', () async {
       await cli.run([
-        '--packages',
-        '$integrationTestDir/depend_on_referenced_packages/_packages',
         '$integrationTestDir/depend_on_referenced_packages/bin',
         '--rules=depend_on_referenced_packages'
       ]);
@@ -36,13 +34,9 @@ void main() {
       expect(
           output,
           stringContainsInOrder([
-            "Depend on referenced packages.",
             "import 'package:private_dep/private_dep.dart'; // LINT",
-            "Depend on referenced packages.",
             "import 'package:transitive_dep/transitive_dep.dart'; // LINT",
-            "Depend on referenced packages.",
             "export 'package:private_dep/private_dep.dart'; // LINT",
-            "Depend on referenced packages.",
             "export 'package:transitive_dep/transitive_dep.dart'; // LINT",
           ]));
       expect(output, isNot(contains('// OK')));
@@ -51,8 +45,6 @@ void main() {
 
     test('lints files under lib', () async {
       await cli.run([
-        '--packages',
-        '$integrationTestDir/depend_on_referenced_packages/_packages',
         '$integrationTestDir/depend_on_referenced_packages/lib',
         '--rules=depend_on_referenced_packages'
       ]);
@@ -60,13 +52,9 @@ void main() {
       expect(
           output,
           stringContainsInOrder([
-            "Depend on referenced packages.",
             "import 'package:private_dep/private_dep.dart'; // LINT",
-            "Depend on referenced packages.",
             "import 'package:transitive_dep/transitive_dep.dart'; // LINT",
-            "Depend on referenced packages.",
             "export 'package:private_dep/private_dep.dart'; // LINT",
-            "Depend on referenced packages.",
             "export 'package:transitive_dep/transitive_dep.dart'; // LINT",
           ]));
       expect(output, isNot(contains('// OK')));
@@ -75,8 +63,6 @@ void main() {
 
     test('lints files under test', () async {
       await cli.run([
-        '--packages',
-        '$integrationTestDir/depend_on_referenced_packages/_packages',
         '$integrationTestDir/depend_on_referenced_packages/test',
         '--rules=depend_on_referenced_packages'
       ]);
@@ -84,9 +70,7 @@ void main() {
       expect(
           output,
           stringContainsInOrder([
-            "Depend on referenced packages.",
             "import 'package:transitive_dep/transitive_dep.dart'; // LINT",
-            "Depend on referenced packages.",
             "export 'package:transitive_dep/transitive_dep.dart'; // LINT",
           ]));
       expect(output, isNot(contains('// OK')));

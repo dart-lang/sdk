@@ -27,8 +27,7 @@ void main() {
       ], LinterOptions());
       expect(
           collectingOut.trim(), contains('5 files analyzed, 3 issues found'));
-      expect(collectingOut.trim(),
-          contains('Put a single newline at end of file'));
+      expect(collectingOut.trim(), contains('2:2 [lint]'));
     });
   });
 }

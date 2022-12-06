@@ -5,16 +5,16 @@
 // test w/ `dart test -N unnecessary_this`
 
 extension E on int {
-  String f() => this?.toString(); //OK
-  int get h => this?.hashCode; //OK
+  String? f() => this?.toString(); //OK
+  int? get h => this?.hashCode; //OK
 }
 
 void bar() {}
 
-int x;
+int x = 0;
 
 class Parent {
-  int x, y;
+  int x = 0, y = 0;
   void bar() {}
   void foo() {}
 }
@@ -40,7 +40,7 @@ class Child extends Parent {
 void duplicate() {}
 
 class A {
-  num x, y;
+  num x = 0, y = 0;
 
   A(num x, num y) {
     this.x = x; // OK

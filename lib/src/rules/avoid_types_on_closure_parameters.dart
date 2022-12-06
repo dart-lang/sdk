@@ -10,7 +10,6 @@ import '../analyzer.dart';
 const _desc = r'Avoid annotating types for function expression parameters.';
 
 const _details = r'''
-
 **AVOID** annotating types for function expression parameters.
 
 Annotating types for function expression parameters is usually unnecessary
@@ -29,7 +28,11 @@ var names = people.map((person) => person.name);
 
 ''';
 
-class AvoidTypesOnClosureParameters extends LintRule implements NodeLintRule {
+class AvoidTypesOnClosureParameters extends LintRule {
+  static const LintCode code = LintCode('avoid_types_on_closure_parameters',
+      'Unnecessary type annotation on a function expression parameter.',
+      correctionMessage: 'Try removing the type annotation.');
+
   AvoidTypesOnClosureParameters()
       : super(
             name: 'avoid_types_on_closure_parameters',
@@ -39,6 +42,9 @@ class AvoidTypesOnClosureParameters extends LintRule implements NodeLintRule {
 
   @override
   List<String> get incompatibleRules => const ['always_specify_types'];
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -79,7 +85,7 @@ class AvoidTypesOnClosureParametersVisitor extends SimpleAstVisitor {
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var type = node.type;
-    if (type is TypeName && type.name.name != 'dynamic') {
+    if (type is NamedType && type.name.name != 'dynamic') {
       rule.reportLint(node.type);
     }
   }

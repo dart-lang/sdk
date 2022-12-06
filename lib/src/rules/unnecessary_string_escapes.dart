@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Remove unnecessary backslashes in strings.';
 
 const _details = r'''
-
 Remove unnecessary backslashes in strings.
 
 **BAD:**
@@ -28,13 +27,20 @@ Remove unnecessary backslashes in strings.
 
 ''';
 
-class UnnecessaryStringEscapes extends LintRule implements NodeLintRule {
+class UnnecessaryStringEscapes extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_string_escapes', 'Unnecessary escape in string literal.',
+      correctionMessage: "Remove the '\\' escape.");
+
   UnnecessaryStringEscapes()
       : super(
             name: 'unnecessary_string_escapes',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -46,35 +52,25 @@ class UnnecessaryStringEscapes extends LintRule implements NodeLintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  /// The special escaped chars listed in language specification
+  static const allowedEscapedChars = [
+    '"',
+    "'",
+    r'$',
+    r'\',
+    'n',
+    'r',
+    'f',
+    'b',
+    't',
+    'v',
+    'x',
+    'u',
+  ];
+
   final LintRule rule;
 
   _Visitor(this.rule);
-
-  @override
-  void visitSimpleStringLiteral(SimpleStringLiteral node) {
-    if (node.isRaw) return;
-
-    visitLexeme(
-      node.literal,
-      isSingleQuoted: node.isSingleQuoted,
-      isMultiline: node.isMultiline,
-      contentsOffset: node.contentsOffset,
-      contentsEnd: node.contentsEnd,
-    );
-  }
-
-  @override
-  void visitStringInterpolation(StringInterpolation node) {
-    for (var element in node.elements.whereType<InterpolationString>()) {
-      visitLexeme(
-        element.contents,
-        isSingleQuoted: node.isSingleQuoted,
-        isMultiline: node.isMultiline,
-        contentsOffset: element.contentsOffset,
-        contentsEnd: element.contentsEnd,
-      );
-    }
-  }
 
   void visitLexeme(
     Token token, {
@@ -125,19 +121,29 @@ class _Visitor extends SimpleAstVisitor<void> {
     checkPendingQuotes();
   }
 
-  /// The special escaped chars listed in language specification
-  static const allowedEscapedChars = [
-    '"',
-    "'",
-    r'$',
-    r'\',
-    'n',
-    'r',
-    'f',
-    'b',
-    't',
-    'v',
-    'x',
-    'u',
-  ];
+  @override
+  void visitSimpleStringLiteral(SimpleStringLiteral node) {
+    if (node.isRaw) return;
+
+    visitLexeme(
+      node.literal,
+      isSingleQuoted: node.isSingleQuoted,
+      isMultiline: node.isMultiline,
+      contentsOffset: node.contentsOffset,
+      contentsEnd: node.contentsEnd,
+    );
+  }
+
+  @override
+  void visitStringInterpolation(StringInterpolation node) {
+    for (var element in node.elements.whereType<InterpolationString>()) {
+      visitLexeme(
+        element.contents,
+        isSingleQuoted: node.isSingleQuoted,
+        isMultiline: node.isMultiline,
+        contentsOffset: element.contentsOffset,
+        contentsEnd: element.contentsEnd,
+      );
+    }
+  }
 }

@@ -26,13 +26,9 @@ class A {
   // still lint after unmovable assert
   A.c4(a) {
     assert(a != null); // LINT
-    assert(this != null); // OK
     assert(a != null); // LINT
   }
-  // no lint if this is used
-  A.c5(a) {
-    assert(this != null); // OK
-  }
+
   // no lint if field is used
   A.c6(a) {
     assert(this.f != null); // OK
@@ -59,6 +55,7 @@ class A {
   }
   factory A.c11({f}) {
     assert(f != null); // OK
+    return A.c1(1);
   }
   // lint for call of top level member
   A.c12() {
@@ -72,14 +69,6 @@ class A {
   A.c13() {
     assert(sa != null); // LINT
     assert(sm() != null); // LINT
-  }
-
-  A.c14() {
-    assert(() // OK
-        {
-      f = true;
-      return false;
-    });
   }
 }
 
@@ -104,14 +93,6 @@ class Mixin {
 class D extends Object with Mixin {
   D() {
     assert(a != null); // OK
-  }
-}
-
-class E {
-  set tlg(v) {}
-  E() {
-    // setter with the same name as top level getter used
-    assert(tlg != null); // LINT
   }
 }
 

@@ -61,6 +61,5 @@ class Annotation implements Comparable<Annotation> {
 
 extension on String? {
   int? toInt() => this == null ? null : int.parse(this!);
-  String? toNullIfBlank() =>
-      this == null || this!.trim().isEmpty == true ? null : this;
+  String? toNullIfBlank() => this == null || this!.trim().isEmpty ? null : this;
 }

@@ -18,7 +18,9 @@ const processFileFailedExitCode = 65;
 
 const unableToProcessExitCode = 64;
 String? getRoot(List<String> paths) =>
-    paths.length == 1 && Directory(paths[0]).existsSync() ? paths[0] : null;
+    paths.length == 1 && Directory(paths.first).existsSync()
+        ? paths.first
+        : null;
 
 bool isLinterErrorCode(int code) =>
     code == unableToProcessExitCode || code == processFileFailedExitCode;
@@ -66,6 +68,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
     ..addMultiOption('rules',
         help: 'A list of lint rules to run. For example: '
             'avoid_as,annotate_overrides')
+    // TODO(srawlins): Remove this flag; it does not work any more.
     ..addOption('packages',
         help: 'Path to the package resolution configuration file, which\n'
             'supplies a mapping of package names to paths.');
@@ -120,6 +123,9 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
   }
 
   var packageConfigFile = options['packages'] as String?;
+  packageConfigFile = packageConfigFile != null
+      ? _absoluteNormalizedPath(packageConfigFile)
+      : null;
 
   var stats = options['stats'] as bool;
   var benchmark = options['benchmark'] as bool;
@@ -133,7 +139,11 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 
   var filesToLint = <File>[];
   for (var path in options.rest) {
-    filesToLint.addAll(collectFiles(path));
+    filesToLint.addAll(
+      collectFiles(path)
+          .map((file) => _absoluteNormalizedPath(file.path))
+          .map(File.new),
+    );
   }
 
   if (benchmark) {
@@ -166,4 +176,11 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 $err
 $stack''');
   }
+}
+
+String _absoluteNormalizedPath(String path) {
+  var pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+  return pathContext.normalize(
+    pathContext.absolute(path),
+  );
 }

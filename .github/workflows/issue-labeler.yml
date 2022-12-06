@@ -1,0 +1,21 @@
+name: "issue labeler"
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions: read-all
+
+jobs:
+  triage:
+    permissions:
+      contents: read
+      issues: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: github/issue-labeler@6ca237433dbbb8e475241b7f38f4600d9e296c57
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          configuration-path: .github/issue-labeler.yml
+          enable-versioned-regex: 0
+          include-title: 1

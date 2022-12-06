@@ -11,7 +11,6 @@ import '../analyzer.dart';
 const _desc = r'Prefer null aware method calls.';
 
 const _details = r'''
-
 Instead of checking nullability of a function/method `f` before calling it you
 can use `f?.call()`.
 
@@ -27,7 +26,7 @@ f?.call();
 
 ''';
 
-class PreferNullAwareMethodCalls extends LintRule implements NodeLintRule {
+class PreferNullAwareMethodCalls extends LintRule {
   PreferNullAwareMethodCalls()
       : super(
           name: 'prefer_null_aware_method_calls',

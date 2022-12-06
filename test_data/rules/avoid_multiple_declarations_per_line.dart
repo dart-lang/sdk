@@ -51,3 +51,11 @@ extension GoodExtension on Object {
   static String? bar;
   static String? baz;
 }
+
+// https://github.com/dart-lang/linter/issues/2543
+okInForLoop() {
+  for (var i = 0, j = 0; i < 2 && j < 2; ++i, ++j) // OK
+  {
+    //
+  }
+}

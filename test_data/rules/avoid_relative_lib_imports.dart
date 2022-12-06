@@ -4,6 +4,6 @@
 
 // test w/ `dart test -N avoid_relative_lib_imports`
 
-import '../_data/avoid_relative_lib_imports/lib/dummy.dart'; //LINT
+import '../integration/avoid_relative_lib_imports/lib/dummy.dart'; //LINT
 import 'avoid_catching_errors.dart'; //OK
 

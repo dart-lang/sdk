@@ -6,13 +6,13 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
 const _desc = r'Avoid calling toString() on runtimeType.';
 
 const _details = r'''
-
 Calling `toString` on a runtime type is a non-trivial operation that can
 negatively impact performance. It's better to avoid it.
 
@@ -41,7 +41,7 @@ type information is more important than performance:
 
 ''';
 
-class NoRuntimeTypeToString extends LintRule implements NodeLintRule {
+class NoRuntimeTypeToString extends LintRule {
   NoRuntimeTypeToString()
       : super(
             name: 'no_runtimeType_toString',
@@ -99,13 +99,16 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (n is ThrowExpression) return true;
         if (n is CatchClause) return true;
         if (n is MixinDeclaration) return true;
-        if (n is ClassDeclaration && n.isAbstract) return true;
+        if (n is ClassDeclaration && n.abstractKeyword != null) return true;
         if (n is ExtensionDeclaration) {
           var declaredElement = n.declaredElement;
           if (declaredElement != null) {
-            var extendedElement = declaredElement.extendedType.element;
-            return !(extendedElement is ClassElement &&
-                !extendedElement.isAbstract);
+            var extendedType = declaredElement.extendedType;
+            if (extendedType is InterfaceType) {
+              var extendedElement = extendedType.element;
+              return !(extendedElement is ClassElement &&
+                  !extendedElement.isAbstract);
+            }
           }
         }
         return false;

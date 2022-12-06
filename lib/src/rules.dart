@@ -22,6 +22,7 @@ import 'rules/avoid_empty_else.dart';
 import 'rules/avoid_equals_and_hash_code_on_mutable_classes.dart';
 import 'rules/avoid_escaping_inner_quotes.dart';
 import 'rules/avoid_field_initializers_in_const_classes.dart';
+import 'rules/avoid_final_parameters.dart';
 import 'rules/avoid_function_literals_in_foreach_calls.dart';
 import 'rules/avoid_implementing_value_types.dart';
 import 'rules/avoid_init_to_null.dart';
@@ -57,28 +58,36 @@ import 'rules/cancel_subscriptions.dart';
 import 'rules/cascade_invocations.dart';
 import 'rules/cast_nullable_to_non_nullable.dart';
 import 'rules/close_sinks.dart';
+import 'rules/collection_methods_unrelated_type.dart';
+import 'rules/combinators_ordering.dart';
 import 'rules/comment_references.dart';
+import 'rules/conditional_uri_does_not_exist.dart';
 import 'rules/constant_identifier_names.dart';
 import 'rules/control_flow_in_finally.dart';
 import 'rules/curly_braces_in_flow_control_structures.dart';
+import 'rules/dangling_library_doc_comments.dart';
 import 'rules/depend_on_referenced_packages.dart';
 import 'rules/deprecated_consistency.dart';
 import 'rules/diagnostic_describe_all_properties.dart';
 import 'rules/directives_ordering.dart';
+import 'rules/discarded_futures.dart';
 import 'rules/do_not_use_environment.dart';
 import 'rules/empty_catches.dart';
 import 'rules/empty_constructor_bodies.dart';
 import 'rules/empty_statements.dart';
+import 'rules/enable_null_safety.dart';
 import 'rules/eol_at_end_of_file.dart';
 import 'rules/exhaustive_cases.dart';
 import 'rules/file_names.dart';
 import 'rules/flutter_style_todos.dart';
 import 'rules/hash_and_equals.dart';
 import 'rules/implementation_imports.dart';
+import 'rules/implicit_call_tearoffs.dart';
 import 'rules/invariant_booleans.dart';
 import 'rules/iterable_contains_unrelated_type.dart';
 import 'rules/join_return_with_assignment.dart';
 import 'rules/leading_newlines_in_multiline_strings.dart';
+import 'rules/library_annotations.dart';
 import 'rules/library_names.dart';
 import 'rules/library_prefixes.dart';
 import 'rules/library_private_types_in_public_api.dart';
@@ -89,6 +98,8 @@ import 'rules/missing_whitespace_between_adjacent_strings.dart';
 import 'rules/no_adjacent_strings_in_list.dart';
 import 'rules/no_default_cases.dart';
 import 'rules/no_duplicate_case_values.dart';
+import 'rules/no_leading_underscores_for_library_prefixes.dart';
+import 'rules/no_leading_underscores_for_local_identifiers.dart';
 import 'rules/no_logic_in_create_state.dart';
 import 'rules/no_runtimeType_toString.dart';
 import 'rules/non_constant_identifier_names.dart';
@@ -145,11 +156,13 @@ import 'rules/prefer_typing_uninitialized_variables.dart';
 import 'rules/prefer_void_to_null.dart';
 import 'rules/provide_deprecation_message.dart';
 import 'rules/pub/package_names.dart';
+import 'rules/pub/secure_pubspec_urls.dart';
 import 'rules/pub/sort_pub_dependencies.dart';
 import 'rules/public_member_api_docs.dart';
 import 'rules/recursive_getters.dart';
 import 'rules/require_trailing_commas.dart';
 import 'rules/sized_box_for_whitespace.dart';
+import 'rules/sized_box_shrink_expand.dart';
 import 'rules/slash_for_doc_comments.dart';
 import 'rules/sort_child_properties_last.dart';
 import 'rules/sort_constructors_first.dart';
@@ -164,11 +177,15 @@ import 'rules/unawaited_futures.dart';
 import 'rules/unnecessary_await_in_return.dart';
 import 'rules/unnecessary_brace_in_string_interps.dart';
 import 'rules/unnecessary_const.dart';
+import 'rules/unnecessary_constructor_name.dart';
 import 'rules/unnecessary_final.dart';
 import 'rules/unnecessary_getters_setters.dart';
 import 'rules/unnecessary_lambdas.dart';
+import 'rules/unnecessary_late.dart';
+import 'rules/unnecessary_library_directive.dart';
 import 'rules/unnecessary_new.dart';
 import 'rules/unnecessary_null_aware_assignments.dart';
+import 'rules/unnecessary_null_aware_operator_on_extension_on_nullable.dart';
 import 'rules/unnecessary_null_checks.dart';
 import 'rules/unnecessary_null_in_if_null_operators.dart';
 import 'rules/unnecessary_nullable_for_final_variable_declarations.dart';
@@ -179,9 +196,14 @@ import 'rules/unnecessary_statements.dart';
 import 'rules/unnecessary_string_escapes.dart';
 import 'rules/unnecessary_string_interpolations.dart';
 import 'rules/unnecessary_this.dart';
+import 'rules/unnecessary_to_list_in_spreads.dart';
+import 'rules/unreachable_from_main.dart';
 import 'rules/unrelated_type_equality_checks.dart';
 import 'rules/unsafe_html.dart';
 import 'rules/use_build_context_synchronously.dart';
+import 'rules/use_colored_box.dart';
+import 'rules/use_decorated_box.dart';
+import 'rules/use_enums.dart';
 import 'rules/use_full_hex_values_for_flutter_colors.dart';
 import 'rules/use_function_type_syntax_for_parameters.dart';
 import 'rules/use_if_null_to_convert_nulls_to_bools.dart';
@@ -193,6 +215,8 @@ import 'rules/use_raw_strings.dart';
 import 'rules/use_rethrow_when_possible.dart';
 import 'rules/use_setters_to_change_properties.dart';
 import 'rules/use_string_buffers.dart';
+import 'rules/use_string_in_part_of_directives.dart';
+import 'rules/use_super_parameters.dart';
 import 'rules/use_test_throws_matchers.dart';
 import 'rules/use_to_and_as_if_applicable.dart';
 import 'rules/valid_regexps.dart';
@@ -202,6 +226,7 @@ void registerLintRules({bool inTestMode = false}) {
   Analyzer.facade.cacheLinterVersion();
   Analyzer.facade
     ..register(AlwaysDeclareReturnTypes())
+    ..register(UnnecessaryLibraryDirective())
     ..register(AlwaysPutControlBodyOnNewLine())
     ..register(AlwaysPutRequiredNamedParametersFirst())
     ..register(AlwaysRequireNonNullNamedParameters())
@@ -219,6 +244,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(AvoidEmptyElse())
     ..register(AvoidEscapingInnerQuotes())
     ..register(AvoidFieldInitializersInConstClasses())
+    ..register(AvoidFinalParameters())
     ..register(AvoidFunctionLiteralInForeachMethod())
     ..register(AvoidImplementingValueTypes())
     ..register(AvoidInitToNull())
@@ -255,28 +281,36 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(CascadeInvocations())
     ..register(CastNullableToNonNullable())
     ..register(CloseSinks())
+    ..register(CollectionMethodsUnrelatedType())
+    ..register(CombinatorsOrdering())
     ..register(CommentReferences())
+    ..register(ConditionalUriDoesNotExist())
     ..register(ConstantIdentifierNames())
     ..register(ControlFlowInFinally())
     ..register(CurlyBracesInFlowControlStructures())
+    ..register(DanglingLibraryDocComments())
     ..register(DependOnReferencedPackages())
     ..register(DeprecatedConsistency())
     ..register(DiagnosticsDescribeAllProperties())
     ..register(DirectivesOrdering())
+    ..register(DiscardedFutures())
     ..register(DoNotUseEnvironment())
     ..register(EmptyCatches())
     ..register(EmptyConstructorBodies())
     ..register(EmptyStatements())
+    ..register(EnableNullSafety())
     ..register(EolAtEndOfFile())
     ..register(ExhaustiveCases())
     ..register(FileNames())
     ..register(FlutterStyleTodos())
     ..register(HashAndEquals())
     ..register(ImplementationImports())
+    ..register(ImplicitCallTearoffs())
     ..register(InvariantBooleans())
     ..register(IterableContainsUnrelatedType())
     ..register(JoinReturnWithAssignment())
     ..register(LeadingNewlinesInMultilineStrings())
+    ..register(LibraryAnnotations())
     ..register(LibraryNames())
     ..register(LibraryPrefixes())
     ..register(LibraryPrivateTypesInPublicAPI())
@@ -288,6 +322,8 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(NoDefaultCases())
     ..register(NoDuplicateCaseValues())
     ..register(NonConstantIdentifierNames())
+    ..register(NoLeadingUnderscoresForLibraryPrefixes())
+    ..register(NoLeadingUnderscoresForLocalIdentifiers())
     ..register(NoLogicInCreateState())
     ..register(NoopPrimitiveOperations())
     ..register(NoRuntimeTypeToString())
@@ -344,9 +380,11 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(ProvideDeprecationMessage())
     ..register(PublicMemberApiDocs())
     ..register(PubPackageNames())
+    ..register(SecurePubspecUrls())
     ..register(RecursiveGetters())
     ..register(RequireTrailingCommas())
     ..register(SizedBoxForWhitespace())
+    ..register(SizedBoxShrinkExpand())
     ..register(SlashForDocComments())
     ..register(SortChildPropertiesLast())
     ..register(SortConstructorsFirst())
@@ -362,6 +400,7 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(UnnecessaryAwaitInReturn())
     ..register(UnnecessaryBraceInStringInterps())
     ..register(UnnecessaryConst())
+    ..register(UnnecessaryConstructorName())
     ..register(UnnecessaryFinal())
     ..register(UnnecessaryNew())
     ..register(UnnecessaryNullAwareAssignments())
@@ -370,7 +409,9 @@ void registerLintRules({bool inTestMode = false}) {
     //..register(UnnecessaryGetters())
     ..register(UnnecessaryGettersSetters())
     ..register(UnnecessaryLambdas())
+    ..register(UnnecessaryLate())
     ..register(UnnecessaryNullableForFinalVariableDeclarations())
+    ..register(UnnecessaryNullAwareOperatorOnExtensionOnNullable())
     ..register(UnnecessaryNullChecks())
     ..register(UnnecessaryOverrides())
     ..register(UnnecessaryParenthesis())
@@ -379,9 +420,14 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(UnnecessaryStringEscapes())
     ..register(UnnecessaryStringInterpolations())
     ..register(UnnecessaryThis())
+    ..register(UnnecessaryToListInSpreads())
+    ..register(UnreachableFromMain())
     ..register(UnrelatedTypeEqualityChecks())
     ..register(UnsafeHtml())
     ..register(UseBuildContextSynchronously(inTestMode: inTestMode))
+    ..register(UseColoredBox())
+    ..register(UseDecoratedBox())
+    ..register(UseEnums())
     ..register(UseFullHexValuesForFlutterColors())
     ..register(UseFunctionTypeSyntaxForParameters())
     ..register(UseIfNullToConvertNullsToBools())
@@ -393,6 +439,8 @@ void registerLintRules({bool inTestMode = false}) {
     ..register(UseRawStrings())
     ..register(UseSettersToChangeAProperty())
     ..register(UseStringBuffers())
+    ..register(UseStringInPartOfDirectives())
+    ..register(UseSuperParameters())
     ..register(UseTestThrowsMatchers())
     ..register(UseToAndAsIfApplicable())
     ..register(ValidRegExps())
