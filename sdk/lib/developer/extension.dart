@@ -166,10 +166,11 @@ void postEvent(String eventKind, Map eventData, {String stream = 'Extension'}) {
   ];
 
   if (protectedStreams.contains(stream)) {
-    throw ArgumentError.value(stream, 'stream', 'cannot be a protected stream');
+    throw ArgumentError.value(
+        stream, 'stream', 'Cannot be a protected stream.');
   } else if (stream.startsWith('_')) {
     throw ArgumentError.value(
-        stream, 'stream', 'Cannot start with and underscore');
+        stream, 'stream', 'Cannot start with and underscore.');
   }
 
   if (!extensionStreamHasListener) {

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:developer' as developer;
 import 'dart:typed_data';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
@@ -16,7 +15,6 @@ import 'utils/mutex.dart';
 
 class StreamManager {
   StreamManager(this.dds);
-  String loggingString = '';
 
   /// Send `streamNotify` notifications to clients subscribed to `streamId`.
   ///
@@ -147,6 +145,7 @@ class StreamManager {
             Event.parse(parameters['event'].asMap.cast<String, dynamic>())!;
         final destinationStreamId =
             event.extensionData?.data[destinationStreamKey]!;
+
         if (destinationStreamId != null) {
           (parameters.value['event']['extensionData'] as Map<String, dynamic>)
               .remove('__destinationStream');
