@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable-experiment=records
-// @dart=2.19
+// @dart=3.0
 // ignore_for_file: experiment_not_enabled
 
 library get_object_rpc_test;

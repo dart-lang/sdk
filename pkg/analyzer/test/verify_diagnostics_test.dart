@@ -58,8 +58,6 @@ class DocumentationValidator {
     'CompileTimeErrorCode.MULTIPLE_SUPER_INITIALIZERS',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.NON_SYNC_FACTORY',
-    // This isn't enabled yet, but will be enabled in 3.0.
-    'CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE',
     // Need a way to make auxiliary files that (a) are not included in the
     // generated docs or (b) can be made persistent for fixes.
     'CompileTimeErrorCode.PART_OF_NON_PART',
@@ -88,6 +86,8 @@ class DocumentationValidator {
     // 'CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION',
     // 'CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
     // 'CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY',
+    // This no longer works in 3.0.
+    'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     // The code has been replaced but is not yet removed.
     'HintCode.DEPRECATED_MEMBER_USE',
     // Produces more than one error range by design.

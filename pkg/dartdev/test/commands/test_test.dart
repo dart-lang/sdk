@@ -101,7 +101,7 @@ void main() {
     p.file('pubspec.yaml', '''
 name: ${p.name}
 environment:
-  sdk: '>=2.10.0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 ''');
     p.file('test/foo_test.dart', '''
 import 'package:test/test.dart';

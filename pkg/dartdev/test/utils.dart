@@ -78,7 +78,7 @@ class TestProject {
             ? '''
 name: $name
 environment:
-  sdk: '${sdkConstraint ?? '>=2.10.0 <3.0.0'}'
+  sdk: '${sdkConstraint ?? '>=2.12.0 <3.0.0'}'
 
 dev_dependencies:
   test: any

@@ -167,7 +167,7 @@ void run() {
     p.file('pubspec.yaml', '''
 name: foo
 environment:
-  sdk: '>=2.9.0<3.0.0'
+  sdk: '>=2.12.0<3.0.0'
 
 dependencies: { 'bar': {'path': '${bar.dir.path}'}}
 ''');

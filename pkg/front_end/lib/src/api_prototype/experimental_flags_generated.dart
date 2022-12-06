@@ -63,9 +63,9 @@ class ExperimentalFlag {
       name: 'const-functions',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag constantUpdate2018 = const ExperimentalFlag(
       name: 'constant-update-2018',
@@ -111,9 +111,9 @@ class ExperimentalFlag {
       name: 'extension-types',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag genericMetadata = const ExperimentalFlag(
       name: 'generic-metadata',
@@ -135,17 +135,17 @@ class ExperimentalFlag {
       name: 'inference-update-2',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag macros = const ExperimentalFlag(
       name: 'macros',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag namedArgumentsAnywhere = const ExperimentalFlag(
       name: 'named-arguments-anywhere',
@@ -175,25 +175,25 @@ class ExperimentalFlag {
       name: 'patterns',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag records = const ExperimentalFlag(
       name: 'records',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(2, 19));
 
   static const ExperimentalFlag sealedClass = const ExperimentalFlag(
       name: 'sealed-class',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag setLiterals = const ExperimentalFlag(
       name: 'set-literals',
@@ -223,9 +223,9 @@ class ExperimentalFlag {
       name: 'test-experiment',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag tripleShift = const ExperimentalFlag(
       name: 'triple-shift',
@@ -247,25 +247,25 @@ class ExperimentalFlag {
       name: 'value-class',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag variance = const ExperimentalFlag(
       name: 'variance',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 
   static const ExperimentalFlag views = const ExperimentalFlag(
       name: 'views',
       isEnabledByDefault: false,
       isExpired: false,
-      enabledVersion: const Version(2, 19),
-      experimentEnabledVersion: const Version(2, 19),
-      experimentReleasedVersion: const Version(2, 19));
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
 }
 
 /// Interface for accessing the global state of experimental features.

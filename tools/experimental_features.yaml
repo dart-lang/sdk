@@ -107,7 +107,7 @@
 # default 'language' "category" with code generated for both CFE and Analyzer,
 # while other categories can be tailored more specifically.
 
-current-version: '2.19.0'
+current-version: '3.0.0'
 
 features:
   variance:
@@ -130,7 +130,7 @@ features:
 
   records:
     help: "Records"
-    experimentalReleaseVersion: '2.19.0'
+    experimentalReleaseVersion: "2.19.0"
 
   patterns:
     help: "Patterns"

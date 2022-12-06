@@ -28,7 +28,7 @@ class InvalidLanguageOverrideGreaterTest extends PubPackageResolutionTest {
 // @dart = ${latestVersion.major}.${latestVersion.minor + 1}
 class A {}
 ''', [
-      error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 15),
+      error(HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER, 0, 14),
     ]);
     _assertUnitLanguageVersion(
       package: latestVersion,
