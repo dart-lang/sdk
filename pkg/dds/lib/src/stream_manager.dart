@@ -147,6 +147,10 @@ class StreamManager {
             Event.parse(parameters['event'].asMap.cast<String, dynamic>())!;
         final destinationStreamId =
             event.extensionData?.data['__destinationStream']!;
+        if (destinationStreamId != null) {
+          (parameters.value['event']['extensionData'] as Map<String, dynamic>)
+              .remove('__destinationStream');
+        }
 
         if (destinationStreamId != 'Extension' && destinationStreamId != null) {
           if (streamListeners.containsKey(destinationStreamId)) {
@@ -158,8 +162,6 @@ class StreamManager {
           final values = parameters.value;
 
           values['streamId'] = destinationStreamId;
-          (values['event']['extensionData'] as Map<String, dynamic>)
-              .remove('__destinationStream');
 
           streamNotify(destinationStreamId, values);
           return;
@@ -314,7 +316,10 @@ class StreamManager {
       () async {
         assert(stream.isNotEmpty);
         final customListeners = customStreamListeners[stream];
-        customListeners?.remove(client);
+        if (customListeners != null && customListeners.contains(client)) {
+          customListeners.remove(client);
+          return;
+        }
 
         final listeners = streamListeners[stream];
         if (listeners == null ||
