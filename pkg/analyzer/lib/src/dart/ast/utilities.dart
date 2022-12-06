@@ -1105,6 +1105,7 @@ class AstComparator implements AstVisitor<bool> {
     var other = _other as PatternVariableDeclaration;
     return isEqualNodes(
             node.documentationComment, other.documentationComment) &&
+        _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.keyword, other.keyword) &&
         isEqualNodes(node.pattern, other.pattern) &&
         isEqualTokens(node.equals, other.equals) &&

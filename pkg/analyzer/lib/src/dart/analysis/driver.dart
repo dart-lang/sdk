@@ -674,9 +674,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     var completer = Completer<SomeErrorsResult>();
-    _errorsRequestedFiles
-        .putIfAbsent(path, () => <Completer<SomeErrorsResult>>[])
-        .add(completer);
+    _errorsRequestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify(this);
     return completer.future;
   }
@@ -733,9 +731,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       return Future.value();
     }
     var completer = Completer<AnalysisDriverUnitIndex?>();
-    _indexRequestedFiles
-        .putIfAbsent(path, () => <Completer<AnalysisDriverUnitIndex?>>[])
-        .add(completer);
+    _indexRequestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify(this);
     return completer.future;
   }
@@ -874,9 +870,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     final kind = file.kind;
     if (kind is LibraryFileKind) {
       final completer = Completer<SomeResolvedLibraryResult>();
-      _requestedLibraries
-          .putIfAbsent(kind, () => <Completer<SomeResolvedLibraryResult>>[])
-          .add(completer);
+      _requestedLibraries.putIfAbsent(kind, () => []).add(completer);
       _scheduler.notify(this);
       return completer.future;
     } else if (kind is AugmentationFileKind) {
@@ -963,9 +957,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
     // Schedule analysis.
     var completer = Completer<SomeResolvedUnitResult>();
-    _requestedFiles
-        .putIfAbsent(path, () => <Completer<SomeResolvedUnitResult>>[])
-        .add(completer);
+    _requestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify(this);
     return completer.future;
   }
@@ -992,9 +984,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     var completer = Completer<SomeUnitElementResult>();
-    _unitElementRequestedFiles
-        .putIfAbsent(path, () => <Completer<SomeUnitElementResult>>[])
-        .add(completer);
+    _unitElementRequestedFiles.putIfAbsent(path, () => []).add(completer);
     _scheduler.notify(this);
     return completer.future;
   }

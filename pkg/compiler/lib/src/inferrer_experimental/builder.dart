@@ -225,10 +225,12 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
-    ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(_analyzedMember);
-    scopeInfo.forEachBoxedVariable(_localsMap, (variable, field) {
-      _capturedAndBoxed[variable] = field;
-    });
+    if (!_analyzedMember.isAbstract) {
+      ScopeInfo scopeInfo = _closureDataLookup.getScopeInfo(_analyzedMember);
+      scopeInfo.forEachBoxedVariable(_localsMap, (variable, field) {
+        _capturedAndBoxed[variable] = field;
+      });
+    }
 
     return visit(_analyzedNode)!;
   }

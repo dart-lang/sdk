@@ -3731,8 +3731,7 @@ void f() {
 class FlutterSnippetCompletionTest extends SnippetCompletionTest {
   /// Standard import statements expected for basic Widgets.
   String get expectedImports => '''
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';''';
+import 'package:flutter/widgets.dart';''';
 
   /// Nullability suffix expected in this test class.
   ///
@@ -4007,9 +4006,7 @@ class FlutterSnippetCompletionWithoutNullSafetyTest
     extends FlutterSnippetCompletionTest {
   @override
   String get expectedImports => '''
-import 'package:flutter/src/foundation/key.dart';
-import 'package:flutter/src/widgets/framework.dart';
-import 'package:flutter/src/widgets/placeholder.dart';''';
+import 'package:flutter/widgets.dart';''';
 
   @override
   String get expectedNullableSuffix => '';

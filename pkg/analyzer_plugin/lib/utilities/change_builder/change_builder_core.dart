@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
@@ -40,8 +42,8 @@ abstract class ChangeBuilder {
   ///
   /// Setting [createEditsForImports] to `false` will prevent edits being
   /// produced to add `import` statements for any unimported types.
-  Future<void> addDartFileEdit(
-      String path, void Function(DartFileEditBuilder builder) buildFileEdit,
+  Future<void> addDartFileEdit(String path,
+      FutureOr<void> Function(DartFileEditBuilder builder) buildFileEdit,
       {ImportPrefixGenerator importPrefixGenerator,
       bool createEditsForImports = true});
 

@@ -4,13 +4,13 @@
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/fix/dart/extensions.dart';
-import 'package:analysis_server/src/services/correction/fix/dart/top_level_declarations.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/services/top_level_declarations.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 

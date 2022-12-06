@@ -26,15 +26,16 @@ class Thread;
 class HeapProfileSampler {
  public:
   explicit HeapProfileSampler(Thread* thread);
-  ~HeapProfileSampler();
 
-  void Enable(bool enabled);
+  static void Enable(bool enabled);
+
+  static void SetSamplingInterval(intptr_t bytes_interval);
+
+  static void SetSamplingCallback(Dart_HeapSamplingCallback callback);
+
+  void Initialize();
 
   void HandleNewTLAB(intptr_t old_tlab_remaining_space);
-
-  void SetSamplingInterval(intptr_t bytes_interval);
-
-  void SetSamplingCallback(Dart_HeapSamplingCallback callback);
 
   void InvokeCallbackForLastSample(Dart_PersistentHandle type_name,
                                    Dart_WeakPersistentHandle obj);
@@ -52,6 +53,9 @@ class HeapProfileSampler {
   void SampleSize(intptr_t allocation_size);
 
  private:
+  void EnableLocked();
+  void SetSamplingIntervalLocked();
+
   intptr_t SetNextSamplingIntervalLocked(intptr_t next_interval);
 
   intptr_t GetNextSamplingIntervalLocked();
@@ -59,18 +63,16 @@ class HeapProfileSampler {
 
   // Protects sampling logic from modifications of callback_, sampling_interval,
   // and enabled_ while collecting a sample.
-  RwLock* lock_;
+  static RwLock* lock_;
+  static bool enabled_;
+  static Dart_HeapSamplingCallback callback_;
+  static intptr_t sampling_interval_;
 
-  bool enabled_ = false;
+  static const intptr_t kUninitialized = -1;
+  static const intptr_t kDefaultSamplingInterval = 512 * KB;
 
-  Dart_HeapSamplingCallback callback_;
-
-  const intptr_t kUninitialized = -1;
-  const intptr_t kDefaultSamplingInterval = 1 << 19;  // 512KiB
-  intptr_t sampling_interval_ = kDefaultSamplingInterval;
   intptr_t interval_to_next_sample_;
   intptr_t next_tlab_offset_ = kUninitialized;
-
   intptr_t last_sample_size_ = kUninitialized;
 
   Thread* thread_;

@@ -22,8 +22,8 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
   String get refactoringName;
 
   void addSource(String filePath, String code) {
-    content[filePath] = code;
-    newFile(filePath, code);
+    var file = newFile(filePath, code);
+    content[file.path] = code;
   }
 
   void addTestSource(String markedCode) {

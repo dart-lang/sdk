@@ -1095,6 +1095,31 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     callee.removeCall(caller, _call!);
   }
 
+  late final Set<MemberEntity> closurizedTargets = {};
+
+  void _handleCalledTarget(MemberEntity target, InferrerEngine inferrer,
+      {required bool addToQueue, required bool remove}) {
+    MemberTypeInformation targetType =
+        inferrer.types.getInferredTypeOfMember(target);
+    if (remove) {
+      _removeCall(targetType);
+      targetType.removeUser(this);
+    } else {
+      _addCall(targetType);
+      targetType.addUser(this);
+    }
+    final isClosurized = inferrer.updateParameterInputs(
+        this, target, arguments, selector,
+        addToQueue: addToQueue, remove: remove);
+    if (isClosurized) {
+      if (remove) {
+        closurizedTargets.remove(target);
+      } else {
+        closurizedTargets.add(target);
+      }
+    }
+  }
+
   @override
   void addToGraph(InferrerEngine inferrer) {
     assert((receiver as dynamic) != null); // TODO(48820): Remove when sound.
@@ -1102,19 +1127,14 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     _hasClosureCallTargets =
         inferrer.closedWorld.includesClosureCall(selector!, typeMask);
     final concreteTargets = _concreteTargets =
-        inferrer.closedWorld.locateMembers(selector!, typeMask);
+        inferrer.memberHierarchyBuilder.rootsForCall(typeMask, selector!);
     _targetsIncludeComplexNoSuchMethod = null;
     receiver.addUser(this);
     if (arguments != null) {
       arguments!.forEach((info) => info.addUser(this));
     }
-    for (MemberEntity element in concreteTargets) {
-      MemberTypeInformation callee =
-          inferrer.types.getInferredTypeOfMember(element);
-      _addCall(callee);
-      callee.addUser(this);
-      inferrer.updateParameterInputs(this, element, arguments, selector,
-          remove: false, addToQueue: false);
+    for (final target in concreteTargets) {
+      _handleCalledTarget(target, inferrer, addToQueue: false, remove: false);
     }
   }
 
@@ -1127,7 +1147,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   Iterable<MemberEntity> get concreteTargets => _concreteTargets!;
 
   @override
-  Iterable<MemberEntity> get callees => _concreteTargets!;
+  Iterable<MemberEntity> get callees => concreteTargets;
 
   AbstractValue? computeTypedSelector(InferrerEngine inferrer) {
     AbstractValue receiverType = receiver.type;
@@ -1269,8 +1289,8 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
 
     _hasClosureCallTargets =
         closedWorld.includesClosureCall(localSelector, typeMask);
-    final concreteTargets =
-        _concreteTargets = closedWorld.locateMembers(localSelector, typeMask);
+    final concreteTargets = _concreteTargets =
+        inferrer.memberHierarchyBuilder.rootsForCall(typeMask, localSelector);
 
     // Update the call graph if the targets could have changed.
     if (!identical(concreteTargets, oldTargets)) {
@@ -1278,25 +1298,15 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
       // Add calls to new targets to the graph.
       concreteTargets
           .where((target) => !oldTargets.contains(target))
-          .forEach((MemberEntity element) {
-        MemberTypeInformation callee =
-            inferrer.types.getInferredTypeOfMember(element);
-        _addCall(callee);
-        callee.addUser(this);
-        inferrer.updateParameterInputs(this, element, arguments, selector,
-            remove: false, addToQueue: true);
+          .forEach((MemberEntity target) {
+        _handleCalledTarget(target, inferrer, addToQueue: true, remove: false);
       });
 
       // Walk over the old targets, and remove calls that cannot happen anymore.
       oldTargets
           .where((target) => !concreteTargets.contains(target))
-          .forEach((MemberEntity element) {
-        MemberTypeInformation callee =
-            inferrer.types.getInferredTypeOfMember(element);
-        _removeCall(callee);
-        callee.removeUser(this);
-        inferrer.updateParameterInputs(this, element, arguments, selector,
-            remove: true, addToQueue: true);
+          .forEach((MemberEntity target) {
+        _handleCalledTarget(target, inferrer, addToQueue: true, remove: true);
       });
     }
 
@@ -1369,15 +1379,12 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
       _hasClosureCallTargets =
           inferrer.closedWorld.includesClosureCall(localSelector, mask);
       final newConcreteTargets = _concreteTargets =
-          inferrer.closedWorld.locateMembers(localSelector, mask);
+          inferrer.memberHierarchyBuilder.rootsForCall(mask, localSelector);
       _targetsIncludeComplexNoSuchMethod = null;
-      for (MemberEntity element in newConcreteTargets) {
-        if (!oldTargets.contains(element)) {
-          MemberTypeInformation callee =
-              inferrer.types.getInferredTypeOfMember(element);
-          callee.addCall(caller, call);
-          inferrer.updateParameterInputs(this, element, arguments, selector,
-              remove: false, addToQueue: true);
+      for (MemberEntity target in newConcreteTargets) {
+        if (!oldTargets.contains(target)) {
+          _handleCalledTarget(target, inferrer,
+              addToQueue: true, remove: false);
         }
       }
     }

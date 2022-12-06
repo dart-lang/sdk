@@ -37,7 +37,9 @@ class FlutterStatefulWidgetWithAnimationController
     final classSingleTickerProviderStateMixin =
         this.classSingleTickerProviderStateMixin!;
 
-    await builder.addDartFileEdit(request.filePath, (builder) {
+    await builder.addDartFileEdit(request.filePath, (builder) async {
+      await addImports(builder);
+
       builder.addReplacement(request.replacementRange, (builder) {
         // Write the StatefulWidget class
         builder.writeClassDeclaration(

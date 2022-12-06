@@ -638,6 +638,9 @@ Thread* IsolateGroup::ScheduleThreadLocked(MonitorLocker* ml,
     thread->set_safepoint_state(
         Thread::SetBypassSafepoints(bypass_safepoint, 0));
     thread->set_vm_tag(VMTag::kVMTagId);
+#if !defined(PRODUCT)
+    thread->heap_sampler().Initialize();
+#endif
     ASSERT(thread->no_safepoint_scope_depth() == 0);
     os_thread->set_thread(thread);
     Thread::SetCurrent(thread);

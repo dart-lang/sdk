@@ -23,7 +23,8 @@ abstract class ClosureData {
   void writeToDataSink(DataSinkWriter sink);
 
   /// Look up information about the variables that have been mutated and are
-  /// used inside the scope of [node].
+  /// used inside the scope of [node]. Assumes member is not abstract and
+  /// therefore scope info exists.
   ScopeInfo getScopeInfo(MemberEntity member);
 
   ClosureRepresentationInfo getClosureInfo(ir.LocalFunction localFunction);

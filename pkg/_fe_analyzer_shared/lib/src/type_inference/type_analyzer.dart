@@ -1207,10 +1207,8 @@ mixin TypeAnalyzer<
           !lastCaseTerminates) {
         errors?.switchCaseCompletesNormally(node, caseIndex, 1);
       }
-      handleMergedStatementCase(
-        node,
-        caseIndex: caseIndex,
-      );
+      handleMergedStatementCase(node,
+          caseIndex: caseIndex, isTerminating: lastCaseTerminates);
       // Stack: (Expression, (numExecutionPaths + 1) * StatementCase)
     }
     // Stack: (Expression, numExecutionPaths * StatementCase)
@@ -1485,12 +1483,15 @@ mixin TypeAnalyzer<
   /// [node] is enclosing switch statement, [caseIndex] is the index of the
   /// merged `case` or `default` group.
   ///
+  /// If [isTerminating] is `true`, then flow analysis has determined that the
+  /// case ends in a construct that doesn't complete normally (e.g. a `break`,
+  /// `return`, `continue`, `throw`, or infinite loop); the client can use this
+  /// to determine whether a jump is needed to the end of the switch statement.
+  ///
   /// Stack effect: pops (CaseHeads, numStatements * Statement) and pushes
   /// (StatementCase).
-  void handleMergedStatementCase(
-    Statement node, {
-    required int caseIndex,
-  });
+  void handleMergedStatementCase(Statement node,
+      {required int caseIndex, required bool isTerminating});
 
   /// Called when visiting a syntactic construct where there is an implicit
   /// no-op collection element.  For example, this is called in place of the

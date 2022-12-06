@@ -94,7 +94,7 @@ class LibraryAnalyzer {
     // Return full results.
     var results = <UnitAnalysisResult>[];
     units.forEach((file, unit) {
-      List<AnalysisError> errors = _getErrorListener(file).errors;
+      var errors = _getErrorListener(file).errors;
       errors = _filterIgnoredErrors(file, errors);
       results.add(UnitAnalysisResult(file, unit, errors));
     });
@@ -269,8 +269,7 @@ class LibraryAnalyzer {
           usedImportedElements.add(visitor.usedElements);
         }
       }
-      UsedLocalElements usedElements =
-          UsedLocalElements.merge(usedLocalElements);
+      var usedElements = UsedLocalElements.merge(usedLocalElements);
       units.forEach((file, unit) {
         _computeHints(
           file,
@@ -726,7 +725,7 @@ class LibraryAnalyzer {
 
   void _resolveFile(FileState file, CompilationUnit unit) {
     var source = file.source;
-    RecordingErrorListener errorListener = _getErrorListener(file);
+    var errorListener = _getErrorListener(file);
 
     var unitElement = unit.declaredElement as CompilationUnitElementImpl;
 

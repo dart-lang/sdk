@@ -251,7 +251,8 @@ class Scavenger {
     ASSERT(heap_ != Dart::vm_isolate_group()->heap());
 
     const uword result = thread->top();
-    const intptr_t remaining = thread->end() - result;
+    const intptr_t remaining = static_cast<intptr_t>(thread->end()) - result;
+    ASSERT(remaining >= 0);
     if (UNLIKELY(remaining < size)) {
       return 0;
     }

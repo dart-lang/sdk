@@ -17,6 +17,7 @@ import '../../ir/class_relation.dart';
 import '../../js_model/js_world.dart';
 import '../../serialization/serialization.dart';
 import '../../universe/class_hierarchy.dart';
+import '../../universe/member_hierarchy.dart';
 import '../../universe/selector.dart' show Selector;
 import '../../universe/use.dart' show DynamicUse;
 import '../../universe/world_builder.dart'
@@ -922,6 +923,13 @@ class CommonMasks with AbstractValueDomain {
   @override
   String getCompactText(covariant TypeMask value) {
     return formatType(dartTypes, value);
+  }
+
+  @override
+  Iterable<MemberEntity> findRootsOfTargets(covariant TypeMask receiver,
+      Selector selector, MemberHierarchyBuilder memberHierarchyBuilder) {
+    return receiver.findRootsOfTargets(
+        selector, memberHierarchyBuilder, _closedWorld);
   }
 
   @override

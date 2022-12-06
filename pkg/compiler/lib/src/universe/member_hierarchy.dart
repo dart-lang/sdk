@@ -56,6 +56,76 @@ class MemberHierarchyBuilder {
     _forEachOverride(entity, f, {});
   }
 
+  MemberEntity? findMatchInSuperclass(ClassEntity cls, Selector selector) {
+    MemberEntity? firstAbstractMatch;
+    ClassEntity? current = cls;
+    final elementEnv = closedWorld.elementEnvironment;
+    while (current != null) {
+      final match =
+          elementEnv.lookupLocalClassMember(current, selector.memberName);
+      if (match != null && !skipMember(match, selector)) {
+        if (match.isAbstract) {
+          firstAbstractMatch ??= match;
+        } else {
+          return match;
+        }
+      }
+      current = elementEnv.getSuperClass(current);
+    }
+    return firstAbstractMatch;
+  }
+
+  /// For each subclass/subtype try to find a member matching selector.
+  ///
+  /// If we find a match then it covers the entire subtree below that match so
+  /// we do not need to check subclasses/subtypes below it.
+  Iterable<MemberEntity> findMatchingAncestors(
+      ClassEntity baseCls, Selector selector,
+      {required bool isSubtype}) {
+    final Set<MemberEntity> results = {};
+    final Queue<ClassEntity> toVisit = Queue();
+    final Set<ClassEntity> visited = {};
+    void addSubclasses(ClassEntity cls) {
+      for (final subclass in closedWorld.classHierarchy
+          .getClassHierarchyNode(cls)
+          .directSubclasses) {
+        final subclassCls = subclass.cls;
+        if (visited.add(subclassCls)) toVisit.add(subclassCls);
+      }
+    }
+
+    void addSubtypes(ClassEntity cls) {
+      for (final subtype
+          in closedWorld.classHierarchy.getClassSet(baseCls).subtypeNodes) {
+        final subtypeCls = subtype.cls;
+        if (visited.add(subtypeCls)) toVisit.add(subtypeCls);
+      }
+    }
+
+    addSubclasses(baseCls);
+    if (isSubtype) {
+      addSubtypes(baseCls);
+      // We only need to add this in the subtype case because
+      // `findMatchInSuperclass` will already check superclasses of `baseCls`.
+      // If this is a subtype query then we need to make sure we add supertypes
+      // of `baseCls`.
+      toVisit.add(baseCls);
+    }
+    while (toVisit.isNotEmpty) {
+      final current = toVisit.removeFirst();
+      final match = findMatchInSuperclass(current, selector);
+      if (match != null) {
+        results.add(match);
+      } else {
+        addSubclasses(current);
+        if (isSubtype) {
+          addSubtypes(current);
+        }
+      }
+    }
+    return results;
+  }
+
   /// Returns the set of root member declarations for [selector]. [cls] acts as
   /// a subclass filter for these roots.
   ///
@@ -91,7 +161,8 @@ class MemberHierarchyBuilder {
     final cachedResult = _callCache[selectorMask];
     if (cachedResult != null) return cachedResult;
 
-    Iterable<MemberEntity> targetsForReceiver = const [];
+    Iterable<MemberEntity> targetsForReceiver =
+        domain.findRootsOfTargets(receiverType, selector, this);
 
     // TODO(natebiggs): Can we calculate this as part of the above call to
     // findRootsOfTargets?
@@ -131,7 +202,7 @@ class MemberHierarchyBuilder {
   }
 
   static bool skipMember(MemberEntity member, Selector selector) {
-    return _skipMemberInternal(member) || !selector.appliesUnnamed(member);
+    return _skipMemberInternal(member) || !selector.appliesStructural(member);
   }
 
   static List<Selector> _selectorsForMember(MemberEntity member) {
@@ -154,16 +225,16 @@ class MemberHierarchyBuilder {
       Map<ClassEntity, MemberEntity?> roots,
       void Function(MemberEntity parent, MemberEntity override) join) {
     final state = queue.removeFirst();
-    if (state.isDeclaration && !roots.containsKey(state.cls)) {
+    final cls = state.cls;
+    final member = state.member;
+    if (state.isDeclaration && !roots.containsKey(cls)) {
       // Only add the potential root if we're processing a declaration of
       // the member and have not already found an override for the class'
       // declaration.
-      roots[state.cls] = state.member;
+      roots[cls] = member;
     }
     final elementEnv = closedWorld.elementEnvironment;
     final elementMap = closedWorld.elementMap;
-    final member = state.member;
-    final cls = state.cls;
     final name = selector.memberName;
 
     void addParent(

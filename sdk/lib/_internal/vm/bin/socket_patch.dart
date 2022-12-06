@@ -2410,9 +2410,8 @@ class _Socket extends Stream<Uint8List> implements Socket {
   }
 
   void set _owner(owner) {
-    // Note: _raw can be _RawSocket and _RawSecureSocket which are two
-    // incompatible types.
-    (_raw as dynamic)._owner = owner;
+    // Note: _raw can be _RawSocket and _RawSecureSocket.
+    (_raw as _RawSocketBase)._owner = owner;
   }
 }
 

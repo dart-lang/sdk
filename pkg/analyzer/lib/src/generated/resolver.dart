@@ -1082,10 +1082,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ) {}
 
   @override
-  void handleMergedStatementCase(
-    covariant SwitchStatementImpl node, {
-    required int caseIndex,
-  }) {
+  void handleMergedStatementCase(covariant SwitchStatementImpl node,
+      {required int caseIndex, required bool isTerminating}) {
     nullSafetyDeadCodeVerifier
         .flowEnd(node.memberGroups[caseIndex].members.last);
   }

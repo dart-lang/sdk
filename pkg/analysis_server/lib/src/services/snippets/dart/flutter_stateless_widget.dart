@@ -28,7 +28,9 @@ class FlutterStatelessWidget extends FlutterSnippetProducer
     // Checked by isValid().
     final classStatelessWidget = this.classStatelessWidget!;
 
-    await builder.addDartFileEdit(request.filePath, (builder) {
+    await builder.addDartFileEdit(request.filePath, (builder) async {
+      await addImports(builder);
+
       builder.addReplacement(request.replacementRange, (builder) {
         builder.writeClassDeclaration(
           widgetClassName,

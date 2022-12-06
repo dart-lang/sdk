@@ -9,6 +9,7 @@ import '../elements/types.dart' show DartType;
 import '../ir/class_relation.dart';
 import '../js_model/js_world.dart';
 import '../serialization/serialization.dart';
+import '../universe/member_hierarchy.dart';
 import '../universe/selector.dart';
 import '../universe/world_builder.dart';
 import '../universe/use.dart';
@@ -367,6 +368,13 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
       required bool nullable}) {
     return const AbstractValueWithPrecision(TrivialAbstractValue(), false);
   }
+
+  @override
+  Iterable<MemberEntity> findRootsOfTargets(
+          covariant TrivialAbstractValue receiver,
+          Selector selector,
+          MemberHierarchyBuilder memberHierarchyBuilder) =>
+      const [];
 
   @override
   AbstractValue get asyncStarStreamType => const TrivialAbstractValue();

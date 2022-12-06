@@ -1523,12 +1523,8 @@ bool ScavengerVisitorBase<parallel>::ForwardOrSetNullIfCollected(
     uword heap_base,
     CompressedObjectPtr* ptr_address) {
   ObjectPtr raw = ptr_address->Decompress(heap_base);
-  if (raw.IsRawNull()) {
-    // Object already null before this GC.
-    return false;
-  }
   if (raw.IsOldObject()) {
-    // Object not touched during this GC.
+    // Object already null (which is old) or not touched during this GC.
     return false;
   }
   uword header = *reinterpret_cast<uword*>(UntaggedObject::ToAddr(raw));

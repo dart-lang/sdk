@@ -18,6 +18,14 @@ abstract class FileStateFilter {
     }
   }
 
+  /// Return a filter of files in the package named [packageName].
+  factory FileStateFilter.packageName(
+    String? packageName, {
+    required bool excludeSrc,
+  }) {
+    return _PackageNameFilter(packageName, excludeSrc: excludeSrc);
+  }
+
   bool shouldInclude(FileState file);
 }
 
@@ -29,6 +37,22 @@ class _AnyFilter implements FileStateFilter {
       return !uri.isDartInternal;
     }
     return true;
+  }
+}
+
+/// Matches any file in the package [packageName].
+///
+/// If [packageName] is `null`, matches files that also have no `packageName`.
+class _PackageNameFilter implements FileStateFilter {
+  final String? packageName;
+  final bool excludeSrc;
+
+  _PackageNameFilter(this.packageName, {required this.excludeSrc});
+
+  @override
+  bool shouldInclude(FileState file) {
+    var uri = file.uriProperties;
+    return uri.packageName == packageName && !(uri.isSrc && excludeSrc);
   }
 }
 
