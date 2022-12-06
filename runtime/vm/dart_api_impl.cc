@@ -6138,8 +6138,8 @@ Dart_CompileToKernel(const char* script_uri,
   result = KernelIsolate::CompileToKernel(
       script_uri, platform_kernel, platform_kernel_size, 0, NULL,
       incremental_compile, snapshot_compile, package_config, NULL, NULL,
-      FLAG_sound_null_safety, verbosity);
-  if (result.status == Dart_KernelCompilationStatus_Ok) {
+      verbosity);
+  if (incremental_compile && result.status == Dart_KernelCompilationStatus_Ok) {
     Dart_KernelCompilationResult accept_result =
         KernelIsolate::AcceptCompilation();
     if (accept_result.status != Dart_KernelCompilationStatus_Ok) {
@@ -6149,34 +6149,6 @@ Dart_CompileToKernel(const char* script_uri,
           accept_result.error);
     }
   }
-#endif
-  return result;
-}
-
-DART_EXPORT Dart_KernelCompilationResult
-Dart_CompileToKernelWithGivenNullsafety(
-    const char* script_uri,
-    const uint8_t* platform_kernel,
-    intptr_t platform_kernel_size,
-    bool snapshot_compile,
-    const char* package_config,
-    bool null_safety,
-    Dart_KernelCompilationVerbosityLevel verbosity) {
-  API_TIMELINE_DURATION(Thread::Current());
-
-  Dart_KernelCompilationResult result = {};
-#if defined(DART_PRECOMPILED_RUNTIME)
-  result.status = Dart_KernelCompilationStatus_Unknown;
-  result.error = Utils::StrDup("Dart_CompileToKernel is unsupported.");
-#else
-  intptr_t null_safety_option =
-      null_safety ? kNullSafetyOptionStrong : kNullSafetyOptionWeak;
-  result = KernelIsolate::CompileToKernel(
-      script_uri, platform_kernel, platform_kernel_size,
-      /*source_files_count=*/0, /*source_files=*/nullptr,
-      /*incremental_compile=*/false, snapshot_compile, package_config,
-      /*multiroot_filepaths=*/nullptr, /*multiroot_scheme=*/nullptr,
-      null_safety_option, verbosity);
 #endif
   return result;
 }
@@ -6208,20 +6180,29 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
                                        const uint8_t* snapshot_instructions,
                                        const uint8_t* kernel_buffer,
                                        intptr_t kernel_buffer_size) {
-#if defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(FLAG_sound_null_safety != kNullSafetyOptionUnspecified);
-  return (FLAG_sound_null_safety == kNullSafetyOptionStrong);
-#else
-  bool null_safety;
-  if (FLAG_sound_null_safety == kNullSafetyOptionUnspecified) {
-    null_safety = Dart::DetectNullSafety(
-        script_uri, snapshot_data, snapshot_instructions, kernel_buffer,
-        kernel_buffer_size, package_config, original_working_directory);
-  } else {
-    null_safety = (FLAG_sound_null_safety == kNullSafetyOptionStrong);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // If snapshot is an app-jit snapshot we will figure out the mode by
+  // sniffing the feature string in the snapshot.
+  if (snapshot_data != nullptr) {
+    // Read the snapshot and check for null safety option.
+    const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
+    if (!Snapshot::IsAgnosticToNullSafety(snapshot->kind())) {
+      return SnapshotHeaderReader::NullSafetyFromSnapshot(snapshot);
+    }
   }
-  return null_safety;
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+  // If kernel_buffer is specified, it could be a self contained
+  // kernel file or the kernel file of the application,
+  // figure out the null safety mode by sniffing the kernel file.
+  if (kernel_buffer != nullptr) {
+    const char* error = nullptr;
+    std::unique_ptr<kernel::Program> program = kernel::Program::ReadFromBuffer(
+        kernel_buffer, kernel_buffer_size, &error);
+    if (program != nullptr) {
+      return program->compilation_mode() == NNBDCompiledMode::kStrong;
+    }
+  }
+#endif
+  return FLAG_sound_null_safety;
 }
 
 // --- Service support ---

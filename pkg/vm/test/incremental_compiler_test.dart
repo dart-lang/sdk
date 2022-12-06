@@ -13,6 +13,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         DiagnosticMessage,
         ExperimentalFlag,
         IncrementalCompilerResult,
+        NnbdMode,
         computePlatformBinariesLocation;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -36,6 +37,7 @@ main() {
   CompilerOptions getFreshOptions() {
     return new CompilerOptions()
       ..sdkRoot = sdkRoot
+      ..nnbdMode = NnbdMode.Strong
       ..target = new VmTarget(new TargetFlags())
       ..additionalDills = <Uri>[platformKernel]
       ..onDiagnostic = (DiagnosticMessage message) {
@@ -1043,7 +1045,7 @@ main() {
             "name": "foo",
             "rootUri": "..",
             "packageUri": "lib",
-            "languageVersion": "2.7",
+            "languageVersion": "2.12",
           },
         ],
       }));
@@ -1059,7 +1061,7 @@ main() {
 
       var barUri = Uri.file('${mytest.path}/lib/bar.dart');
       new File(barUri.toFilePath())
-          .writeAsStringSync("class A { static int a; }\n");
+          .writeAsStringSync("class A { static int a = 0; }\n");
 
       var bazUri = Uri.file('${mytest.path}/lib/baz.dart');
       new File(bazUri.toFilePath()).writeAsStringSync("import 'dart:isolate';\n"
@@ -1095,7 +1097,7 @@ main() {
       }
 
       new File(barUri.toFilePath())
-          .writeAsStringSync("class A { static int b; }\n");
+          .writeAsStringSync("class A { static int b = 0; }\n");
       compiler.invalidate(barUri);
       {
         IncrementalCompilerResult compilerResult =
@@ -1138,7 +1140,7 @@ main() {
       final Uri barUri = Uri.file('${mytest.path}/bar.dart');
       new File.fromUri(barUri).writeAsStringSync("""
         class A {
-          static int a;
+          static int a = 0;
           int b() { return 42; }
         }
         """);
@@ -1185,7 +1187,7 @@ main() {
 
       new File.fromUri(barUri).writeAsStringSync("""
         class A {
-          static int a;
+          static int a = 0;
           int b() { return 84; }
         }
         """);
@@ -1619,7 +1621,7 @@ main() {
             {
               "name": "foo",
               "rootUri": ".",
-              "languageVersion": "2.7",
+              "languageVersion": "2.12",
             },
           ],
         }));

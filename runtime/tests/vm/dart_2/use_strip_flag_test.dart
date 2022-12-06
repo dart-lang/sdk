@@ -43,6 +43,7 @@ main(List<String> args) async {
 
     // Compile script to Kernel IR.
     await run(genKernel, <String>[
+      '--no-sound-null-safety',
       '--aot',
       '--platform=$platformDill',
       '-o',
@@ -53,6 +54,7 @@ main(List<String> args) async {
     // Run the AOT compiler to generate stripped and unstripped ELF snapshots.
     final unstrippedSnapshot = path.join(tempDir, 'whole.so');
     await run(genSnapshot, <String>[
+      '--no-sound-null-safety',
       '--snapshot-kind=app-aot-elf',
       '--elf=$unstrippedSnapshot',
       scriptDill,
@@ -60,6 +62,7 @@ main(List<String> args) async {
 
     final strippedSnapshot = path.join(tempDir, 'stripped.so');
     await run(genSnapshot, <String>[
+      '--no-sound-null-safety',
       '--snapshot-kind=app-aot-elf',
       '--elf=$strippedSnapshot',
       '--strip',
@@ -75,6 +78,7 @@ main(List<String> args) async {
 
     final unstrippedCode = path.join(tempDir, 'whole.S');
     await run(genSnapshot, <String>[
+      '--no-sound-null-safety',
       '--snapshot-kind=app-aot-assembly',
       '--assembly=$unstrippedCode',
       scriptDill,
@@ -82,6 +86,7 @@ main(List<String> args) async {
 
     final strippedCode = path.join(tempDir, 'stripped.S');
     await run(genSnapshot, <String>[
+      '--no-sound-null-safety',
       '--snapshot-kind=app-aot-assembly',
       '--assembly=$strippedCode',
       '--strip',

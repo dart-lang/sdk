@@ -41,8 +41,7 @@ import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart' show Component, Library, Procedure;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:vm/incremental_compiler.dart';
-import 'package:vm/kernel_front_end.dart'
-    show autoDetectNullSafetyMode, createLoadedLibrariesSet;
+import 'package:vm/kernel_front_end.dart' show createLoadedLibrariesSet;
 import 'package:vm/http_filesystem.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
 
@@ -70,26 +69,14 @@ const int kTrainTag = 3;
 const int kCompileExpressionTag = 4;
 const int kListDependenciesTag = 5;
 const int kNotifyIsolateShutdownTag = 6;
-const int kDetectNullabilityTag = 7;
 
 bool allowDartInternalImport = false;
-
-// Null Safety command line options
-//
-// Note: The values of these constants must match the
-// values of flag sound_null_safety in ../../../../runtime/vm/flag_list.h.
-// 0 - No --[no-]sound-null-safety option specified on the command line.
-// 1 - '--no-sound-null-safety' specified on the command line.
-// 2 - '--sound-null-safety' option specified on the command line.
-const int kNullSafetyOptionUnspecified = 0;
-const int kNullSafetyOptionWeak = 1;
-const int kNullSafetyOptionStrong = 2;
 
 CompilerOptions setupCompilerOptions(
     FileSystem fileSystem,
     Uri? platformKernelPath,
     bool enableAsserts,
-    int nullSafety,
+    bool nullSafety,
     List<String>? experimentalFlags,
     Uri? packagesUri,
     List<String> errorsPlain,
@@ -108,8 +95,7 @@ CompilerOptions setupCompilerOptions(
   return new CompilerOptions()
     ..fileSystem = fileSystem
     ..target = new VmTarget(new TargetFlags(
-        enableNullSafety: nullSafety == kNullSafetyOptionStrong,
-        supportMirrors: enableMirrors))
+        enableNullSafety: nullSafety, supportMirrors: enableMirrors))
     ..packagesFileUri = packagesUri
     ..sdkSummary = platformKernelPath
     ..verbose = verbose
@@ -120,9 +106,7 @@ CompilerOptions setupCompilerOptions(
       errorsColorized.add(msg);
     })
     ..environmentDefines = new EnvironmentMap()
-    ..nnbdMode = (nullSafety == kNullSafetyOptionStrong)
-        ? NnbdMode.Strong
-        : NnbdMode.Weak
+    ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage message) {
       bool printToStdErr = false;
       bool printToStdOut = false;
@@ -164,7 +148,7 @@ abstract class Compiler {
   final FileSystem fileSystem;
   final Uri? platformKernelPath;
   final bool enableAsserts;
-  final int nullSafety;
+  final bool nullSafety;
   final List<String>? experimentalFlags;
   final String? packageConfig;
   final String invocationModes;
@@ -183,7 +167,7 @@ abstract class Compiler {
 
   Compiler(this.isolateGroupId, this.fileSystem, this.platformKernelPath,
       {this.enableAsserts = false,
-      this.nullSafety = kNullSafetyOptionUnspecified,
+      this.nullSafety = true,
       this.experimentalFlags = null,
       this.supportCodeCoverage = false,
       this.supportHotReload = false,
@@ -298,7 +282,7 @@ class IncrementalCompilerWrapper extends Compiler {
   IncrementalCompilerWrapper(
       int isolateGroupId, FileSystem fileSystem, Uri? platformKernelPath,
       {bool enableAsserts = false,
-      int nullSafety = kNullSafetyOptionUnspecified,
+      bool nullSafety = true,
       List<String>? experimentalFlags,
       String? packageConfig,
       String invocationModes = '',
@@ -392,7 +376,7 @@ class SingleShotCompilerWrapper extends Compiler {
       int isolateGroupId, FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain = false,
       bool enableAsserts = false,
-      int nullSafety = kNullSafetyOptionUnspecified,
+      bool nullSafety = true,
       List<String>? experimentalFlags,
       String? packageConfig,
       String invocationModes = '',
@@ -436,7 +420,7 @@ IncrementalCompilerWrapper? lookupIncrementalCompiler(int isolateGroupId) {
 Future<Compiler> lookupOrBuildNewIncrementalCompiler(int isolateGroupId,
     List sourceFiles, Uri platformKernelPath, List<int>? platformKernel,
     {bool enableAsserts = false,
-    int nullSafety = kNullSafetyOptionUnspecified,
+    bool nullSafety = true,
     List<String>? experimentalFlags,
     String? packageConfig,
     String? multirootFilepaths,
@@ -784,7 +768,7 @@ Future _processLoadRequest(request) async {
       inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
   final bool incremental = request[4];
   final bool snapshot = request[5];
-  final int nullSafety = request[6];
+  final bool nullSafety = request[6];
   final List sourceFiles = request[8];
   final bool enableAsserts = request[9];
   final List<String>? experimentalFlags =
@@ -792,7 +776,6 @@ Future _processLoadRequest(request) async {
   final String? packageConfig = request[11];
   final String? multirootFilepaths = request[12];
   final String? multirootScheme = request[13];
-  final String? workingDirectory = request[14];
   final String verbosityLevel = request[15];
   final bool enableMirrors = request[16];
   Uri platformKernelPath;
@@ -837,39 +820,6 @@ Future _processLoadRequest(request) async {
       (compiler as IncrementalCompilerWrapper).accept();
     }
     port.send(new CompilationResult.ok(null).toResponse());
-    return;
-  } else if (tag == kDetectNullabilityTag) {
-    FileSystem fileSystem = _buildFileSystem(
-        sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
-    Uri? packagesUri = null;
-    final packageConfigWithDefault = packageConfig ?? Platform.packageConfig;
-    if (packageConfigWithDefault != null) {
-      packagesUri = Uri.parse(packageConfigWithDefault);
-    }
-    if (packagesUri != null && !packagesUri.hasScheme) {
-      // Script does not have a scheme, assume that it is a path,
-      // resolve it against the working directory.
-      packagesUri = Uri.directory(workingDirectory!).resolveUri(packagesUri);
-    }
-    final List<String> errorsPlain = <String>[];
-    final List<String> errorsColorized = <String>[];
-    var options = setupCompilerOptions(
-        fileSystem,
-        platformKernelPath,
-        false,
-        nullSafety,
-        experimentalFlags,
-        packagesUri,
-        errorsPlain,
-        errorsColorized,
-        invocationModes,
-        verbosityLevel,
-        false);
-
-    // script should only be null for kUpdateSourcesTag.
-    await autoDetectNullSafetyMode(script!, options);
-    bool value = options.nnbdMode == NnbdMode.Strong;
-    port.send(new CompilationResult.nullSafety(value).toResponse());
     return;
   }
 
@@ -1056,7 +1006,7 @@ Future trainInternal(String scriptUri, String? platformKernelPath) async {
     platformKernelPath,
     false /* incremental */,
     false /* snapshot */,
-    kNullSafetyOptionUnspecified /* null safety */,
+    true /* null safety */,
     1 /* isolateGroupId chosen randomly */,
     [] /* source files */,
     false /* enable asserts */,

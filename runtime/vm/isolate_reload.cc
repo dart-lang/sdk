@@ -1136,7 +1136,7 @@ char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
         /*snapshot_compile=*/false,
         /*package_config=*/nullptr,
         /*multiroot_filepaths=*/nullptr,
-        /*multiroot_scheme=*/nullptr, FLAG_sound_null_safety);
+        /*multiroot_scheme=*/nullptr);
   }
   if (retval.status != Dart_KernelCompilationStatus_Ok) {
     if (retval.kernel != nullptr) {

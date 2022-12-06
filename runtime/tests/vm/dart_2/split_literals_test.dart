@@ -58,6 +58,7 @@ main(List<String> args) async {
 
     // Compile source to kernel.
     await run(genKernel, <String>[
+      "--no-sound-null-safety",
       "--aot",
       "--platform=$platformDill",
       "-o",
@@ -67,6 +68,7 @@ main(List<String> args) async {
 
     // Compile kernel to ELF.
     await run(genSnapshot, <String>[
+      "--no-sound-null-safety",
       "--snapshot-kind=app-aot-elf",
       "--elf=$snapshot",
       "--loading-unit-manifest=$manifest",

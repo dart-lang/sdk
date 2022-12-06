@@ -101,7 +101,7 @@ void main() {
     p.file('pubspec.yaml', '''
 name: ${p.name}
 environment:
-  sdk: '>=2.10.0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 ''');
     p.file('test/foo_test.dart', '''
 import 'package:test/test.dart';
@@ -135,8 +135,6 @@ void main() {
   test('has package:test dependency', () async {
     p = project(mainSrc: 'int get foo => 1;\n');
     p.file('test/foo_test.dart', '''
-$dartVersionFilePrefix2_9
-
 import 'package:test/test.dart';
 
 void main() {

@@ -370,7 +370,10 @@
         "mode": "release",
         "runtime": "vm",
         "timeout": 240,
-        "use-sdk": true
+        "use-sdk": true,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "web-unittest-asserts-legacy-(linux|mac|win)": {
@@ -381,7 +384,10 @@
         "mode": "release",
         "runtime": "vm",
         "timeout": 240,
-        "use-sdk": true
+        "use-sdk": true,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "unittest-asserts-(debug|product|release)-(linux|mac|win)": {
@@ -425,61 +431,106 @@
     "dartk-asan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "asan",
-        "timeout": 240
+        "timeout": 240,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartk-lsan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "lsan",
-        "timeout": 240
+        "timeout": 240,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartk-msan-linux-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "msan",
-        "timeout": 240
+        "timeout": 240,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartk-tsan-(linux|mac)-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "tsan",
-        "timeout": 240
+        "timeout": 240,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartk-ubsan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "ubsan",
-        "timeout": 240
+        "timeout": 240,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartkp-asan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "asan",
-        "timeout": 240
+        "timeout": 240,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartkp-lsan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "lsan",
-        "timeout": 240
+        "timeout": 240,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartkp-msan-linux-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "msan",
-        "timeout": 240
+        "timeout": 240,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartkp-tsan-(linux|mac)-(debug|product|release)-(x64|simarm64|simriscv64)": {
       "options": {
         "builder-tag": "tsan",
-        "timeout": 240
+        "timeout": 240,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartkp-ubsan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "ubsan",
-        "timeout": 240
+        "timeout": 240,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dart2js-(linux|mac|win)-chrome": {
@@ -722,25 +773,56 @@
     "dartkp-android-(debug|product|release)-arm_x64": {
       "options": {
         "builder-tag": "crossword",
-        "use-elf": true
+        "use-elf": true,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartkp-android-(debug|product|release)-(arm|arm64|arm64c)": {
       "options": {
-        "use-elf": true
+        "use-elf": true,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
-    "dartk-android-(debug|product|release)-(arm|arm64|arm64c)": {},
+    "dartk-android-(debug|product|release)-(arm|arm64|arm64c)": {
+      "options": {
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
+      }
+    },
     "dartkp-(linux|win|mac)-(debug|product|release)-(arm64|arm64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
       "options": {
-        "use-elf": true
+        "use-elf": true,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartkp-dwarf-(linux|win|mac)-product-(arm64|arm64c|simarm|simarm64|simarm64c|x64|x64c|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "dwarf",
         "vm-options": [
-          "--dwarf_stack_traces"
+          "--dwarf_stack_traces",
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
         ],
         "use-elf": true
       }
@@ -748,7 +830,13 @@
     "dartkp-linux-(debug|product|release)-simarm-crossword": {
       "options": {
         "builder-tag": "crossword",
-        "use-elf": true
+        "use-elf": true,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartkp-weak-asserts-linux-(debug|product|release)-simarm-crossword": {
@@ -764,39 +852,89 @@
     "dartkp-(win|mac)-(debug|product|release)-simarm-crossword": {
       "options": {
         "builder-tag": "crossword",
-        "use-elf": true
+        "use-elf": true,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartkp-win-(product|release)-(x64|x64c)": {
       "options": {
-        "use-elf": true
+        "use-elf": true,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartkp-win-debug-(x64|x64c)": {
       "options": {
         "use-elf": true,
-        "vm-options": []
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
-    "dartkp-(linux|mac)-(product|release)-(x64|x64c)": {},
+    "dartkp-(linux|mac)-(product|release)-(x64|x64c)": {
+      "options": {
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
+      }
+    },
     "dartkp-obfuscate-(linux|mac|win)-(debug|product|release)-(x64|x64c)": {
       "options": {
         "builder-tag": "obfuscated",
         "vm-options": [
-          "--obfuscate"
+          "--obfuscate",
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
         ]
       }
     },
     "dartkp-(linux|mac)-debug-(x64|x64c)": {
       "options": {
-        "vm-options": []
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
-    "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {},
-    "dartk-fuchsia-(debug|product|release)-(x64|x64c)": {},
+    "dartk-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
+      "options": {
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
+      }
+    },
+    "dartk-fuchsia-(debug|product|release)-(x64|x64c)": {
+      "options": {
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
+      }
+    },
     "dartk-linux-debug-(ia32|x64)-canary": {
       "options": {
-        "builder-tag": "canary"
+        "builder-tag": "canary",
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartkp-weak-asserts-(linux|mac)-(debug|product|release)-(arm64|x64|x64c)": {
@@ -849,40 +987,71 @@
     },
     "dartk-checked-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
       "options": {
-        "enable-asserts": true
+        "enable-asserts": true,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
-    "dartk-(linux|mac|win)-(debug|product|release)-(arm64|arm64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {},
+    "dartk-(linux|mac|win)-(debug|product|release)-(arm64|arm64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
+      "options": {
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
+      }
+    },
     "dartk-optcounter-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
       "options": {
         "builder-tag": "optimization_counter_threshold",
         "vm-options": [
           "--optimization-counter-threshold=5",
-          "--random-seed=__RANDOM__"
+          "--random-seed=__RANDOM__",
+          "--no-sound-null-safety"
         ]
       }
     },
     "dartk-reload-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
       "options": {
-        "hot-reload": true
+        "hot-reload": true,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartk-reload-rollback-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
       "options": {
-        "hot-reload-rollback": true
+        "hot-reload-rollback": true,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartk-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
       "options": {
-        "use-qemu": true
+        "use-qemu": true,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
     "dartkp-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
       "options": {
-        "use-qemu": true
+        "use-qemu": true,
+        "vm-options": [
+          "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
+        ]
       }
     },
-    "app_jitk-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {},
+    "app_jitk-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
+      "options": {
+        "vm-options": [
+          "--no-sound-null-safety"
+        ]
+      }
+    },
     "dartdevk-checked-(linux|mac|win)-(debug|product|release)-(chrome|firefox)": {
       "options": {
         "checked": true,
@@ -2713,6 +2882,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
+            "--no-sound-null-safety",
             "pkg/compiler/tool/modular_test_suite_legacy.dart",
             "-nweb-unittest-asserts-legacy-linux",
             "--verbose",
@@ -2724,6 +2894,7 @@
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
           "arguments": [
+            "--no-sound-null-safety",
             "pkg/compiler/tool/modular_test_suite.dart",
             "-nweb-unittest-asserts-linux",
             "--verbose",

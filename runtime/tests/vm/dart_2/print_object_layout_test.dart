@@ -87,6 +87,7 @@ main() async {
 
     await run(genKernel, <String>[
       '--aot',
+      '--no-sound-null-safety',
       '--platform=$platformDill',
       '--output=$appDillPath',
       testScriptUri.toFilePath(),
@@ -94,6 +95,7 @@ main() async {
 
     await run(genSnapshot, <String>[
       '--snapshot-kind=app-aot-elf',
+      '--no-sound-null-safety',
       '--elf=$snapshotPath',
       '--print-object-layout-to=$objectLayoutPath',
       appDillPath,

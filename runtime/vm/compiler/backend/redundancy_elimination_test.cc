@@ -1330,7 +1330,7 @@ main() {
       kMatchAndMoveFunctionEntry,
       kMatchAndMoveCheckStackOverflow,
   }));
-  if (FLAG_sound_null_safety != kNullSafetyOptionStrong) {
+  if (!FLAG_sound_null_safety) {
     RELEASE_ASSERT(cursor.TryMatch({
         kMatchAndMoveCheckClass,
     }));

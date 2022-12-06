@@ -106,17 +106,17 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
     ]);
   }
 
-  test_language209_override299() async {
+  test_language212_override399() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
-      languageVersion: '2.9',
+      languageVersion: '2.12',
     );
 
-    await resolveTestCode('// @dart = 2.99');
+    await resolveTestCode('// @dart = 3.99');
 
     // Invalid override: minor is greater than the latest minor.
     _assertLanguageVersion(
-      package: Version.parse('2.9.0'),
+      package: Version.parse('2.12.0'),
       override: null,
     );
 
@@ -124,22 +124,23 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
       Feature.constant_update_2018,
       Feature.control_flow_collections,
       Feature.extension_methods,
+      Feature.non_nullable,
       Feature.set_literals,
       Feature.spread_collections,
     ]);
   }
 
-  test_language209_override300() async {
+  test_language212_override400() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder(),
-      languageVersion: '2.9',
+      languageVersion: '2.12',
     );
 
-    await resolveTestCode('// @dart = 3.00');
+    await resolveTestCode('// @dart = 4.00');
 
     // Invalid override: major is greater than the latest major.
     _assertLanguageVersion(
-      package: Version.parse('2.9.0'),
+      package: Version.parse('2.12.0'),
       override: null,
     );
 
@@ -147,6 +148,7 @@ class LibraryElementTest_featureSet extends PubPackageResolutionTest {
       Feature.constant_update_2018,
       Feature.control_flow_collections,
       Feature.extension_methods,
+      Feature.non_nullable,
       Feature.set_literals,
       Feature.spread_collections,
     ]);

@@ -30,15 +30,16 @@ Future<void> main(List<String> args) async {
 
     {
       final result = await generateAotKernel(checkedInDartVM, genKernel,
-          platformDill, sourcePath, dillPath, null, []);
+          platformDill, sourcePath, dillPath, null, [],
+          extraGenKernelOptions: ['--no-sound-null-safety']);
       Expect.equals(result.stderr, '');
       Expect.equals(result.exitCode, 0);
       Expect.equals(result.stdout, '');
     }
 
     {
-      final result = await generateAotSnapshot(
-          genSnapshot, dillPath, aotPath, null, false, []);
+      final result = await generateAotSnapshot(genSnapshot, dillPath, aotPath,
+          null, false, ['--no-sound-null-safety']);
       Expect.equals(result.stderr, '');
       Expect.equals(result.exitCode, 0);
       Expect.equals(result.stdout, '');

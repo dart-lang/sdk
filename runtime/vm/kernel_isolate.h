@@ -31,7 +31,6 @@ class KernelIsolate : public AllStatic {
   static const int kCompileExpressionTag;
   static const int kListDependenciesTag;
   static const int kNotifyIsolateShutdown;
-  static const int kDetectNullabilityTag;
 
   static void InitializeState();
   static bool Start();
@@ -55,7 +54,6 @@ class KernelIsolate : public AllStatic {
       const char* package_config = NULL,
       const char* multiroot_filepaths = NULL,
       const char* multiroot_scheme = NULL,
-      intptr_t default_null_safety = kNullSafetyOptionUnspecified,
       Dart_KernelCompilationVerbosityLevel verbosity =
           Dart_KernelCompilationVerbosityLevel_All);
 

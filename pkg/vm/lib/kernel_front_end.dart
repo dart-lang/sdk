@@ -14,9 +14,6 @@ import 'package:build_integration/file_system/multi_root.dart'
 
 import 'package:crypto/crypto.dart';
 
-import 'package:front_end/src/api_prototype/language_version.dart'
-    show uriUsesLegacyLanguageVersion;
-
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerContext,
@@ -123,7 +120,7 @@ void declareCompilerOptions(ArgParser args) {
   args.addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false);
   args.addFlag('sound-null-safety',
-      help: 'Respect the nullability of types at runtime.', defaultsTo: null);
+      help: 'Respect the nullability of types at runtime.', defaultsTo: true);
   args.addFlag('split-output-by-packages',
       help:
           'Split resulting kernel file into multiple files (one per package).',
@@ -196,7 +193,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final bool linkPlatform = options['link-platform'];
   final bool embedSources = options['embed-sources'];
   final bool enableAsserts = options['enable-asserts'];
-  final bool? nullSafety = options['sound-null-safety'];
+  final bool nullSafety = options['sound-null-safety'];
   final bool useProtobufTreeShakerV2 = options['protobuf-tree-shaker-v2'];
   final bool splitOutputByPackages = options['split-output-by-packages'];
   final String? manifestFilename = options['manifest'];
@@ -268,7 +265,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..explicitExperimentalFlags = parseExperimentalFlags(
         parseExperimentalArguments(experimentalFlags),
         onError: print)
-    ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
+    ..nnbdMode = nullSafety ? NnbdMode.Strong : NnbdMode.Weak
     ..onDiagnostic = (DiagnosticMessage m) {
       errorDetector(m);
     }
@@ -276,11 +273,6 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     ..invocationModes =
         InvocationMode.parseArguments(options['invocation-modes'])
     ..verbosity = verbosity;
-
-  if (nullSafety == null &&
-      compilerOptions.globalFeatures.nonNullable.isEnabled) {
-    await autoDetectNullSafetyMode(mainUri, compilerOptions);
-  }
 
   compilerOptions.target = createFrontEndTarget(targetName,
       trackWidgetCreation: options['track-widget-creation'],
@@ -603,17 +595,10 @@ bool parseCommandLineDefines(
   return true;
 }
 
-/// Detect null safety mode from an entry point and set [options.nnbdMode].
-Future<void> autoDetectNullSafetyMode(
-    Uri script, CompilerOptions options) async {
-  var isLegacy = await uriUsesLegacyLanguageVersion(script, options);
-  options.nnbdMode = isLegacy ? NnbdMode.Weak : NnbdMode.Strong;
-}
-
 /// Create front-end target with given name.
 Target? createFrontEndTarget(String targetName,
     {bool trackWidgetCreation = false,
-    bool nullSafety = false,
+    bool nullSafety = true,
     bool supportMirrors = true}) {
   // Make sure VM-specific targets are available.
   installAdditionalTargets();

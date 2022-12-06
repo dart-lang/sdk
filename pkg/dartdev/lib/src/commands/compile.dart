@@ -129,7 +129,7 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
       )
       ..addFlag('sound-null-safety',
           help: 'Respect the nullability of types at runtime.',
-          defaultsTo: null)
+          defaultsTo: true)
       ..addExperimentalFlags(verbose: verbose);
   }
 
@@ -186,9 +186,9 @@ class CompileSnapshotCommand extends CompileSubcommandCommand {
     buildArgs.add('--snapshot-kind=$formatName');
     buildArgs.add('--snapshot=${path.canonicalize(outputFile)}');
 
-    final bool? soundNullSafety = args['sound-null-safety'];
-    if (soundNullSafety != null) {
-      buildArgs.add('--${soundNullSafety ? '' : 'no-'}sound-null-safety');
+    final bool soundNullSafety = args['sound-null-safety'];
+    if (!soundNullSafety) {
+      buildArgs.add('--no-sound-null-safety');
     }
 
     final String? packages = args[packagesOption.flag];
@@ -267,7 +267,7 @@ class CompileNativeCommand extends CompileSubcommandCommand {
       )
       ..addFlag('sound-null-safety',
           help: 'Respect the nullability of types at runtime.',
-          defaultsTo: null)
+          defaultsTo: true)
       ..addOption('save-debugging-info', abbr: 'S', valueHelp: 'path', help: '''
 Remove debugging information from the output and save it separately to the specified file.
 <path> can be relative or absolute.''')

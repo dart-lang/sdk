@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
+// @dart=2.9
 
 import 'dart:async';
 import 'dart:convert';
@@ -32,6 +32,7 @@ Future<void> main(List<String> args) async {
     {
       final result = await Process.run(dart, [
         '--verbosity=warning',
+        '--no-sound-null-safety',
         '--snapshot-kind=kernel',
         '--snapshot=$dillPath',
         sourcePath,
@@ -42,7 +43,8 @@ Future<void> main(List<String> args) async {
     }
 
     {
-      final result = await Process.run(dart, [dillPath, '--child']);
+      final result = await Process.run(
+          dart, ['--no-sound-null-safety', dillPath, '--child']);
       Expect.equals('', result.stderr);
       Expect.equals(0, result.exitCode);
       Expect.equals('Hello, SDK Hash!', result.stdout.trim());
@@ -62,7 +64,8 @@ Future<void> main(List<String> args) async {
     }
 
     {
-      final result = await Process.run(dart, [dillPath, '--child']);
+      final result = await Process.run(
+          dart, ['--no-sound-null-safety', dillPath, '--child']);
       Expect.equals(
           'Can\'t load Kernel binary: Invalid SDK hash.', result.stderr.trim());
       Expect.equals(253, result.exitCode);
@@ -78,7 +81,8 @@ Future<void> main(List<String> args) async {
     }
 
     {
-      final result = await Process.run(dart, [dillPath, '--child']);
+      final result = await Process.run(
+          dart, ['--no-sound-null-safety', dillPath, '--child']);
       Expect.equals('', result.stderr);
       Expect.equals(0, result.exitCode);
       Expect.equals('Hello, SDK Hash!', result.stdout.trim());

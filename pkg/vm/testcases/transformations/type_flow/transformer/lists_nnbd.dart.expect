@@ -6,8 +6,8 @@ import "dart:_internal" as _in;
 class A extends core::Object {
 [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]  final field core::List<core::int> literal1;
 [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:2]  final field core::List<core::int> literal2;
-[@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int*>[])] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  final field core::List<core::int> constLiteral1 = #C1;
-[@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int*>[1, 2])] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]  final field core::List<core::int> constLiteral2 = #C4;
+[@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int>[])] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:3]  final field core::List<core::int> constLiteral1 = #C1;
+[@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int>[1, 2])] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:4]  final field core::List<core::int> constLiteral2 = #C4;
 [@vm.inferred-type.metadata=dart.core::_List<dart.core::int>] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]  final field core::List<core::int> filledFactory1;
 [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:6]  final field core::List<core::int> filledFactory2;
 [@vm.inferred-type.metadata=dart.core::_List<dart.core::int>] [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:7]  final field core::List<core::int> filledFactory3;
@@ -31,8 +31,8 @@ static method main() → dynamic {
   self::A x = new self::A::•();
   core::print([@vm.direct-call.metadata=#lib::A.literal1] [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] x.{self::A::literal1}{core::List<core::int>});
   core::print([@vm.direct-call.metadata=#lib::A.literal2] [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] x.{self::A::literal2}{core::List<core::int>});
-  core::print([@vm.direct-call.metadata=#lib::A.constLiteral1] [@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int*>[])] x.{self::A::constLiteral1}{core::List<core::int>});
-  core::print([@vm.direct-call.metadata=#lib::A.constLiteral2] [@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int*>[1, 2])] x.{self::A::constLiteral2}{core::List<core::int>});
+  core::print([@vm.direct-call.metadata=#lib::A.constLiteral1] [@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int>[])] x.{self::A::constLiteral1}{core::List<core::int>});
+  core::print([@vm.direct-call.metadata=#lib::A.constLiteral2] [@vm.inferred-type.metadata=dart.core::_ImmutableList (value: const <dart.core::int>[1, 2])] x.{self::A::constLiteral2}{core::List<core::int>});
   core::print([@vm.direct-call.metadata=#lib::A.filledFactory1] [@vm.inferred-type.metadata=dart.core::_List<dart.core::int>] x.{self::A::filledFactory1}{core::List<core::int>});
   core::print([@vm.direct-call.metadata=#lib::A.filledFactory2] [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] x.{self::A::filledFactory2}{core::List<core::int>});
   core::print([@vm.direct-call.metadata=#lib::A.filledFactory3] [@vm.inferred-type.metadata=dart.core::_List<dart.core::int>] x.{self::A::filledFactory3}{core::List<core::int>});
@@ -48,8 +48,8 @@ static method main() → dynamic {
   core::print([@vm.direct-call.metadata=#lib::A.generateFactory5] [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::List<dart.core::int>>] x.{self::A::generateFactory5}{core::List<core::List<core::int>>});
 }
 constants  {
-  #C1 = <core::int*>[]
+  #C1 = <core::int>[]
   #C2 = 1
   #C3 = 2
-  #C4 = <core::int*>[#C2, #C3]
+  #C4 = <core::int>[#C2, #C3]
 }

@@ -28,7 +28,7 @@ Future<void> generateNative({
   required List<String> defines,
   String enableExperiment = '',
   bool enableAsserts = false,
-  bool? soundNullSafety,
+  bool soundNullSafety = true,
   bool verbose = false,
   String verbosity = 'all',
   List<String> extraOptions = const [],
@@ -64,8 +64,7 @@ Future<void> generateNative({
         extraGenKernelOptions: [
           '--invocation-modes=compile',
           '--verbosity=$verbosity',
-          if (soundNullSafety != null)
-            '--${soundNullSafety ? '' : 'no-'}sound-null-safety',
+          '--${soundNullSafety ? '' : 'no-'}sound-null-safety',
         ]);
     await _forwardOutput(kernelResult);
     if (kernelResult.exitCode != 0) {
@@ -76,11 +75,15 @@ Future<void> generateNative({
       print('Generating AOT snapshot.');
     }
 
+    List<String> extraAotOptions = [
+      if (!soundNullSafety) "--no-sound-null-safety",
+      ...extraOptions
+    ];
     final String snapshotFile = (outputKind == Kind.aot
         ? outputPath
         : path.join(tempDir.path, 'snapshot.aot'));
     final snapshotResult = await generateAotSnapshot(genSnapshot, kernelFile,
-        snapshotFile, debugPath, enableAsserts, extraOptions);
+        snapshotFile, debugPath, enableAsserts, extraAotOptions);
 
     if (verbose || snapshotResult.exitCode != 0) {
       await _forwardOutput(snapshotResult);
