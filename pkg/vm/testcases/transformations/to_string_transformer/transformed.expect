@@ -101,7 +101,7 @@ constants  {
   #C8 = 2
   #C9 = "C"
   #C10 = self::FooEnum {index:#C8, _name:#C9}
-  #C11 = <self::FooEnum*>[#C4, #C7, #C10]
+  #C11 = <self::FooEnum>[#C4, #C7, #C10]
   #C12 = "flutter:keep-to-string"
   #C13 = null
   #C14 = core::pragma {name:#C12, options:#C13}

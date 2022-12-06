@@ -919,6 +919,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration
       ],
       if (_isAndroid && _isArm) '--no-sim-use-hardfp',
       if (_configuration.isMinified) '--obfuscate',
+      ..._nnbdModeArgument(_configuration),
       // The SIMARM precompiler assumes support for integer division, but the
       // Qemu arm cpus do not support integer division.
       if (_configuration.useQemu) '--no-use-integer-division',

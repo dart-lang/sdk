@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.9
-
 import 'dart:io';
 
 import 'package:kernel/binary/ast_from_binary.dart';
@@ -11,7 +9,7 @@ import 'package:kernel/kernel.dart';
 import 'package:kernel/src/equivalence.dart';
 
 void main(List<String> args) {
-  String resolvedExecutable = Platform.environment['resolvedExecutable'];
+  String? resolvedExecutable = Platform.environment['resolvedExecutable'];
   File exe =
       new File(resolvedExecutable ?? Platform.resolvedExecutable).absolute;
   int steps = 0;

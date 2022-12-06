@@ -90,17 +90,6 @@ class ThreadRegistry;
 class UserTag;
 class WeakTable;
 
-/*
- * Possible values of null safety flag
-  0 - not specified
-  1 - weak mode
-  2 - strong mode)
-*/
-constexpr int kNullSafetyOptionUnspecified = 0;
-constexpr int kNullSafetyOptionWeak = 1;
-constexpr int kNullSafetyOptionStrong = 2;
-extern int FLAG_sound_null_safety;
-
 class IsolateVisitor {
  public:
   IsolateVisitor() {}

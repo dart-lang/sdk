@@ -79,6 +79,11 @@ template("_application_snapshot") {
     output = invoker.output
   }
 
+  gen_kernel_args = []
+  if (defined(invoker.gen_kernel_args)) {
+    gen_kernel_args += invoker.gen_kernel_args
+  }
+
   # Build the kernel file using the prebuilt VM to speed up the debug and
   # simulator builds.
   prebuilt_dart_action(target_name + "_dill") {
@@ -131,6 +136,7 @@ template("_application_snapshot") {
       "-Dsdk_hash=$sdk_hash",
       "-Ddart.vm.product=$is_product_flag",
     ]
+    args += gen_kernel_args
     args += [ rebase_path(main_dart) ]
   }
 

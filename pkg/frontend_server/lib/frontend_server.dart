@@ -173,7 +173,7 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addFlag('enable-asserts',
       help: 'Whether asserts will be enabled.', defaultsTo: false)
   ..addFlag('sound-null-safety',
-      help: 'Respect the nullability of types at runtime.', defaultsTo: null)
+      help: 'Respect the nullability of types at runtime.', defaultsTo: true)
   ..addMultiOption('enable-experiment',
       help: 'Comma separated list of experimental features, eg set-literals.',
       hide: true)
@@ -456,7 +456,7 @@ class FrontendCompiler implements CompilerInterface {
     final String platformKernelDill =
         options['platform'] ?? 'platform_strong.dill';
     final String? packagesOption = _options['packages'];
-    final bool? nullSafety = _options['sound-null-safety'];
+    final bool nullSafety = _options['sound-null-safety'];
     final CompilerOptions compilerOptions = CompilerOptions()
       ..sdkRoot = sdkRoot
       ..fileSystem = _fileSystem
@@ -468,7 +468,7 @@ class FrontendCompiler implements CompilerInterface {
       ..explicitExperimentalFlags = parseExperimentalFlags(
           parseExperimentalArguments(options['enable-experiment']),
           onError: (msg) => errors.add(msg))
-      ..nnbdMode = (nullSafety == true) ? NnbdMode.Strong : NnbdMode.Weak
+      ..nnbdMode = (nullSafety == false) ? NnbdMode.Weak : NnbdMode.Strong
       ..onDiagnostic = _onDiagnostic
       ..verbosity = Verbosity.parseArgument(options['verbosity'],
           onError: (msg) => errors.add(msg));
@@ -531,11 +531,6 @@ class FrontendCompiler implements CompilerInterface {
         print('Error: --from-dill option cannot be used with --incremental');
         return false;
       }
-    }
-
-    if (nullSafety == null &&
-        compilerOptions.globalFeatures.nonNullable.isEnabled) {
-      await autoDetectNullSafetyMode(_mainSource, compilerOptions);
     }
 
     // Initialize additional supported kernel targets.

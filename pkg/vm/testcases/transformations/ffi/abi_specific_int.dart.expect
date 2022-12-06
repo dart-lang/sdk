@@ -173,7 +173,7 @@ constants  {
   #C52 = ffi::Uint16 {}
   #C53 = ffi::Abi {_os:#C50, _architecture:#C14}
   #C54 = ffi::Abi {_os:#C50, _architecture:#C18}
-  #C55 = <ffi::Abi*, ffi::NativeType*>{#C6:#C7, #C11:#C7, #C15:#C7, #C19:#C7, #C22:#C23, #C24:#C7, #C27:#C7, #C28:#C7, #C29:#C7, #C32:#C7, #C33:#C7, #C34:#C35, #C36:#C35, #C40:#C35, #C44:#C35, #C47:#C7, #C48:#C7, #C51:#C52, #C53:#C52, #C54:#C52)
+  #C55 = <ffi::Abi, ffi::NativeType>{#C6:#C7, #C11:#C7, #C15:#C7, #C19:#C7, #C22:#C23, #C24:#C7, #C27:#C7, #C28:#C7, #C29:#C7, #C32:#C7, #C33:#C7, #C34:#C35, #C36:#C35, #C40:#C35, #C44:#C35, #C47:#C7, #C48:#C7, #C51:#C52, #C53:#C52, #C54:#C52)
   #C56 = ffi::AbiSpecificIntegerMapping {mapping:#C55}
   #C57 = "vm:ffi:abi-specific-mapping"
   #C58 = TypeLiteralConstant(ffi::Uint32)
@@ -202,7 +202,7 @@ constants  {
   #C81 = <core::Type>[#C80]
   #C82 = ffi::_FfiStructLayout {fieldTypes:#C81, packing:#C66}
   #C83 = core::pragma {name:#C70, options:#C82}
-  #C84 = ffi::_ArraySize<ffi::NativeType*> {dimension1:#C79, dimension2:#C66, dimension3:#C66, dimension4:#C66, dimension5:#C66, dimensions:#C66}
+  #C84 = ffi::_ArraySize<ffi::NativeType> {dimension1:#C79, dimension2:#C66, dimension3:#C66, dimension4:#C66, dimension5:#C66, dimensions:#C66}
   #C85 = 400
   #C86 = 800
   #C87 = 200

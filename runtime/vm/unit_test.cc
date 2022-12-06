@@ -115,7 +115,7 @@ Dart_Isolate TestCase::CreateIsolate(const uint8_t* data_buffer,
   char* err;
   Dart_IsolateFlags api_flags;
   Isolate::FlagsInitialize(&api_flags);
-  api_flags.null_safety = (FLAG_sound_null_safety == kNullSafetyOptionStrong);
+  api_flags.null_safety = FLAG_sound_null_safety;
   Dart_Isolate isolate = NULL;
   if (len == 0) {
     isolate = Dart_CreateIsolateGroup(

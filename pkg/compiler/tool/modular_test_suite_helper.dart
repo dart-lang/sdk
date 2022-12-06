@@ -125,6 +125,7 @@ abstract class CFEStep extends IOModularStep {
     // TODO(joshualitt): Ensure the kernel worker has some way to specify
     // --no-sound-null-safety
     List<String> args = [
+      '--no-sound-null-safety',
       _kernelWorkerScript,
       ...stepArguments,
       '--exclude-non-sources',
@@ -268,6 +269,7 @@ class ModularAnalysisStep extends IOModularStep {
     }
 
     List<String> args = [
+      '--no-sound-null-safety',
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       '--no-sound-null-safety',
@@ -343,6 +345,7 @@ class ConcatenateDillsStep extends IOModularStep {
         .toList();
     dataDependencies.add('${toUri(module, modularDataId)}');
     List<String> args = [
+      '--no-sound-null-safety',
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
@@ -403,6 +406,7 @@ class ComputeClosedWorldStep extends IOModularStep {
     if (_options.verbose)
       print("\nstep: dart2js compute closed world on $module");
     List<String> args = [
+      '--no-sound-null-safety',
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
@@ -452,6 +456,7 @@ class GlobalAnalysisStep extends IOModularStep {
       List<String> flags) async {
     if (_options.verbose) print("\nstep: dart2js global analysis on $module");
     List<String> args = [
+      '--no-sound-null-safety',
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
@@ -506,6 +511,7 @@ class Dart2jsCodegenStep extends IOModularStep {
       List<String> flags) async {
     if (_options.verbose) print("\nstep: dart2js backend on $module");
     List<String> args = [
+      '--no-sound-null-safety',
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
@@ -559,6 +565,7 @@ class Dart2jsEmissionStep extends IOModularStep {
       List<String> flags) async {
     if (_options.verbose) print("step: dart2js backend on $module");
     List<String> args = [
+      '--no-sound-null-safety',
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',

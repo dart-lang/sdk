@@ -13,6 +13,7 @@ void runTest(bool withDartDev) {
       'Displays service URI on SIGQUIT ${withDartDev ? '' : 'with --disable-dart-dev'}',
       () async {
     final process = await Process.start(Platform.resolvedExecutable, [
+      '--no-sound-null-safety',
       if (!withDartDev) '--disable-dart-dev',
       Platform.script.resolve('sigquit_starts_service_script.dart').toString(),
     ]);
@@ -31,6 +32,7 @@ void runTest(bool withDartDev) {
 
     // Wait for the process to start.
     await readyCompleter.future;
+    print("Child process has started");
     process.kill(ProcessSignal.sigquit);
     await completer.future;
     process.kill();

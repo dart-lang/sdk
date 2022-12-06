@@ -46,6 +46,7 @@ main(List<String> args) async {
 
     // Compile script to Kernel IR.
     await run(genKernel, <String>[
+      '--no-sound-null-safety',
       '--aot',
       '--platform=$platformDill',
       '-o',
@@ -55,6 +56,7 @@ main(List<String> args) async {
 
     final scriptDwarfSnapshot = path.join(tempDir, 'dwarf.so');
     await run(genSnapshot, <String>[
+      '--no-sound-null-safety',
       '--resolve-dwarf-paths',
       '--dwarf-stack-traces-mode',
       '--snapshot-kind=app-aot-elf',

@@ -24,7 +24,7 @@ kernel_application_snapshot("kernel-service_snapshot") {
     # Force triple-slashes both on Windows and otherwise.
     # Becomes e.g. file:///full/path/to/file and "file:///C:/full/path/to/file.
     # Without the ', "/"' part, on Linux it would get four slashes.
-    "file:///" + rebase_path("../../pkg/compiler/lib/src/dart2js.dart", "/"),
+    "file:///" + rebase_path("../../pkg/vm/bin/kernel_service.dart", "/"),
   ]
   output = "$root_gen_dir/kernel-service.dart.snapshot"
 }
