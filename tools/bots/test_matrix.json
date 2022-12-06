@@ -997,6 +997,9 @@
       "options": {
         "vm-options": [
           "--no-sound-null-safety"
+        ],
+        "gen-kernel-options": [
+          "--no-sound-null-safety"
         ]
       }
     },
