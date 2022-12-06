@@ -31,8 +31,8 @@ class StreamManager {
     data, {
     DartDevelopmentServiceClient? excludedClient,
   }) {
-    var listeners = streamListeners[streamId];
-    listeners ??= customStreamListeners[streamId];
+    final listeners =
+        streamListeners[streamId] ?? customStreamListeners[streamId];
     if (listeners != null) {
       final isBinaryData = data is Uint8List;
       for (final listener in listeners) {
@@ -141,18 +141,19 @@ class StreamManager {
     }
     dds.vmServiceClient.registerMethod(
       'streamNotify',
-      (json_rpc.Parameters parameters) async {
+      (json_rpc.Parameters parameters) {
         final streamId = parameters['streamId'].asString;
         final event =
             Event.parse(parameters['event'].asMap.cast<String, dynamic>())!;
         final destinationStreamId =
-            event.extensionData?.data['__destinationStream']!;
+            event.extensionData?.data[destinationStreamKey]!;
         if (destinationStreamId != null) {
           (parameters.value['event']['extensionData'] as Map<String, dynamic>)
               .remove('__destinationStream');
         }
 
-        if (destinationStreamId != 'Extension' && destinationStreamId != null) {
+        if (destinationStreamId != null &&
+            destinationStreamId != kExtensionStream) {
           if (streamListeners.containsKey(destinationStreamId)) {
             // __destinationStream is only used by developer.postEvent.
             // developer.postEvent is only supposed to postEvents to the
@@ -409,6 +410,8 @@ class StreamManager {
   static const kProfilerStream = 'Profiler';
   static const kStderrStream = 'Stderr';
   static const kStdoutStream = 'Stdout';
+
+  static const destinationStreamKey = 'destinationStream';
 
   static Map<String, LoggingRepository> loggingRepositories = {};
 

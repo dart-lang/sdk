@@ -18,31 +18,30 @@ void main() {
   late DartDevelopmentService dds;
 
   setUp(() async {
-    // process = await spawnDartProcess(
-    //   'post_event_custom_stream_script.dart',
-    // );
+    process = await spawnDartProcess(
+      'post_event_custom_stream_script.dart',
+    );
   });
-  /**
-   * TODO: Delete this comment/note
-   * have 2 files,
-   * in the script file, probably want to have places where you call debugger (pause here essentially)
-   * synchronize on that to make sure that you get there
-   * once you get there then sub to the stream
-   * once all that subscription is set up then you resume the isolate then post an event
-   * you would have a completer in the stream the receive the message. 
-   * await the future for the completer and then finish
-   * default timeout is fine
-   */
+
   tearDown(() async {
     await dds.shutdown();
     process.kill();
   });
+  Future<IsolateRef> getIsolate(VmService service) async {
+    IsolateRef isolate;
+    while (true) {
+      final vm = await service.getVM();
+      if (vm.isolates!.isNotEmpty) {
+        isolate = vm.isolates!.first;
+        break;
+      }
+      await Future.delayed(const Duration(seconds: 1));
+    }
+    return isolate;
+  }
 
   test('sends a postEvent over a custom stream to multiple listeners',
       () async {
-    process = await spawnDartProcess(
-      'post_event_custom_stream_script.dart',
-    );
     dds = await DartDevelopmentService.startDartDevelopmentService(
       remoteVmServiceUri,
     );
@@ -52,13 +51,12 @@ void main() {
     final service2 = await vmServiceConnectUri(dds.wsUri.toString());
     final completer1 = Completer<Event>();
     final completer2 = Completer<Event>();
-    final isolateId = (await service1.getVM()).isolates!.first.id!;
+    final isolateId = (await getIsolate(service1)).id!;
 
     await service1.streamListen(script.customStreamId);
     service1.onEvent(script.customStreamId).listen((event) {
       completer1.complete(event);
     });
-
     await service2.streamListen(script.customStreamId);
     service2.onEvent(script.customStreamId).listen((event) {
       completer2.complete(event);
@@ -74,5 +72,79 @@ void main() {
 
     expect(event2.extensionKind, equals(script.eventKind));
     expect(event2.extensionData?.data, equals(script.eventData));
+  });
+
+  test('can cancel custom stream listeners', () async {
+    dds = await DartDevelopmentService.startDartDevelopmentService(
+      remoteVmServiceUri,
+    );
+    expect(dds.isRunning, true);
+    final service1 = await vmServiceConnectUri(dds.wsUri.toString());
+    (await getIsolate(service1)).id!;
+
+    await service1.streamListen(script.customStreamId);
+
+    // We should be able to cancel
+    await service1.streamCancel(script.customStreamId);
+
+    try {
+      await service1.streamCancel(script.customStreamId);
+      expect(false, 'Re-Canceling the custom stream should have failed');
+    } on RPCError catch (e) {
+      expect(
+        e.message,
+        'Stream not subscribed',
+      );
+    }
+  });
+
+  test('canceling a custom stream does not cancel other listeners', () async {
+    dds = await DartDevelopmentService.startDartDevelopmentService(
+      remoteVmServiceUri,
+    );
+    expect(dds.isRunning, true);
+    final service1 = await vmServiceConnectUri(dds.wsUri.toString());
+    final isolateId = (await getIsolate(service1)).id!;
+    final extensionCompleter = Completer<Event>();
+
+    await service1.streamListen(script.customStreamId);
+    await service1.streamListen('Extension');
+    service1.onEvent('Extension').listen((event) {
+      extensionCompleter.complete(event);
+    });
+
+    await service1.streamCancel(script.customStreamId);
+
+    await service1.resume(isolateId);
+
+    final event1 = await extensionCompleter.future;
+
+    expect(event1.extensionKind, equals(script.eventKind));
+    expect(event1.extensionData?.data, equals(script.eventData));
+  });
+
+  test('Canceling a normal stream does not cancel custom listeners', () async {
+    dds = await DartDevelopmentService.startDartDevelopmentService(
+      remoteVmServiceUri,
+    );
+    expect(dds.isRunning, true);
+    final service1 = await vmServiceConnectUri(dds.wsUri.toString());
+    final isolateId = (await getIsolate(service1)).id!;
+    final customStreamCompleter = Completer<Event>();
+
+    await service1.streamListen(script.customStreamId);
+    await service1.streamListen('Extension');
+    service1.onEvent(script.customStreamId).listen((event) {
+      customStreamCompleter.complete(event);
+    });
+
+    await service1.streamCancel('Extension');
+
+    await service1.resume(isolateId);
+
+    final event1 = await customStreamCompleter.future;
+
+    expect(event1.extensionKind, equals(script.eventKind));
+    expect(event1.extensionData?.data, equals(script.eventData));
   });
 }

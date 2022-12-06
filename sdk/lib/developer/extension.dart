@@ -146,11 +146,14 @@ external bool get extensionStreamHasListener;
 /// event stream.
 ///
 /// If [extensionStreamHasListener] is false, this method is a no-op.
-// This event will only be posted to the extension stream, if you try to post to a stream that is part of the vm service or is defined by the dart VM Embedder
+/// Override [stream] to set the destination stream that the event should be
+/// posted to. The [stream] may not start with an underscore or already be part
+/// of the VM Service.
 void postEvent(String eventKind, Map eventData, {String stream = 'Extension'}) {
+  const destinationStreamKey = '__destinationStream';
   // Keep protected streams in sync with `streams_` in runtime/vm/service.cc
   // `Extension` is the only stream that should not be protected here.
-  final protectedStreams = [
+  final protectedStreams = <String>[
     'VM',
     'Isolate',
     'Debug',
@@ -163,11 +166,10 @@ void postEvent(String eventKind, Map eventData, {String stream = 'Extension'}) {
   ];
 
   if (protectedStreams.contains(stream)) {
-    throw new ArgumentError.value(
-        stream, "stream", "cannot be a protected stream");
+    throw ArgumentError.value(stream, 'stream', 'cannot be a protected stream');
   } else if (stream.startsWith('_')) {
-    throw new ArgumentError.value(
-        stream, "stream", "Cannot start with and underscore");
+    throw ArgumentError.value(
+        stream, 'stream', 'Cannot start with and underscore');
   }
 
   if (!extensionStreamHasListener) {
@@ -177,7 +179,7 @@ void postEvent(String eventKind, Map eventData, {String stream = 'Extension'}) {
   checkNotNullable(eventKind, 'eventKind');
   checkNotNullable(eventData, 'eventData');
   checkNotNullable(stream, 'stream');
-  eventData['__destinationStream'] = stream;
+  eventData[destinationStreamKey] = stream;
   String eventDataAsString = json.encode(eventData);
   _postEvent(eventKind, eventDataAsString);
 }
