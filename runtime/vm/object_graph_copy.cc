@@ -159,15 +159,10 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
   if (cid == kNeverCid) return true;
   if (cid == kSentinelCid) return true;
   if (cid == kStackTraceCid) return true;
-#if defined(DART_PRECOMPILED_RUNTIME)
-  // In JIT mode we have field guards enabled which means
-  // double/float32x4/float64x2 boxes can be mutable and we therefore cannot
-  // share them.
-  if (cid == kDoubleCid || cid == kFloat32x4Cid || cid == kFloat64x2Cid) {
+  if (cid == kDoubleCid || cid == kFloat32x4Cid || cid == kFloat64x2Cid ||
+      cid == kInt32x4Cid) {
     return true;
   }
-#endif
-  if (cid == kInt32x4Cid) return true;  // No field guards here.
   if (cid == kSendPortCid) return true;
   if (cid == kCapabilityCid) return true;
 
@@ -226,13 +221,6 @@ static bool MightNeedReHashing(ObjectPtr object) {
   if (FLAG_interpret_irregexp && cid == kRegExpCid) return false;
 #endif
   if (cid == kInt32x4Cid) return false;
-
-  // We copy those (instead of sharing them) - see [CanShareObjct]. They rely
-  // on the default hashCode implementation which uses identity hash codes
-  // (instead of structural hash code).
-  if (cid == kFloat32x4Cid || cid == kFloat64x2Cid) {
-    return !kDartPrecompiledRuntime;
-  }
 
   // If the [tags] indicates this is a canonical object we'll share it instead
   // of copying it. That would suggest we don't have to re-hash maps/sets
