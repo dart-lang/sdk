@@ -125,7 +125,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parent is BinaryExpression) return;
       if (parent is ConditionalExpression) return;
       if (parent is CascadeExpression) return;
-      if (parent is FunctionExpressionInvocation) return;
+      if (parent is FunctionExpressionInvocation) {
+        if (expression is PrefixedIdentifier) {
+          rule.reportLint(node);
+        }
+        return;
+      }
       if (parent is AsExpression) return;
       if (parent is IsExpression) return;
 
@@ -153,13 +158,19 @@ class _Visitor extends SimpleAstVisitor<void> {
         return;
       }
 
-      if (parent.precedence < node.expression.precedence) {
+      // TODO an API to the AST for better usage
+      // Precedence isn't sufficient (e.g. PostfixExpression requires parenthesis)
+      if (expression is PropertyAccess ||
+          expression is MethodInvocation ||
+          expression is IndexExpression) {
         rule.reportLint(node);
-        return;
+      }
+
+      if (parent.precedence < expression.precedence) {
+        rule.reportLint(node);
       }
     } else {
       rule.reportLint(node);
-      return;
     }
   }
 
