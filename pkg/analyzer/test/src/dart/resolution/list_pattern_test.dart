@@ -28,7 +28,7 @@ void f(x) {
 ListPattern
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -57,7 +57,7 @@ void f(x) {
 ListPattern
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@41
@@ -91,7 +91,7 @@ ListPattern
     rightBracket: >
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@46
@@ -140,7 +140,7 @@ ListPattern
         staticType: int
     RestPatternElement
       operator: ...
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: rest
         declaredElement: hasImplicitType rest@46
@@ -164,7 +164,7 @@ void f(List<int> x) {
 ListPattern
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@51
@@ -198,7 +198,7 @@ ListPattern
     rightBracket: >
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@56
@@ -263,7 +263,7 @@ void f(Object x) {
 ListPattern
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -292,7 +292,7 @@ void f(Object x) {
 ListPattern
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@48
@@ -359,7 +359,7 @@ ListPattern
     rightBracket: >
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -398,7 +398,7 @@ ListPattern
     rightBracket: >
   leftBracket: [
   elements
-    VariablePattern
+    DeclaredVariablePattern
       keyword: var
       name: a
       declaredElement: hasImplicitType a@53
@@ -421,7 +421,7 @@ PatternVariableDeclaration
   pattern: ListPattern
     leftBracket: [
     elements
-      VariablePattern
+      DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@29
           type: int
@@ -460,7 +460,7 @@ PatternVariableDeclaration
       rightBracket: >
     leftBracket: [
     elements
-      VariablePattern
+      DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@23
           type: int
@@ -497,7 +497,7 @@ PatternVariableDeclaration
   pattern: ListPattern
     leftBracket: [
     elements
-      VariablePattern
+      DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int

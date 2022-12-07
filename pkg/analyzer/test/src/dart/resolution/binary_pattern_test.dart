@@ -23,7 +23,7 @@ void f(x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
-  leftOperand: VariablePattern
+  leftOperand: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -32,7 +32,7 @@ BinaryPattern
       type: int
     name: _
   operator: &&
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: double
@@ -55,7 +55,7 @@ void f(x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
-  leftOperand: VariablePattern
+  leftOperand: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -64,7 +64,7 @@ BinaryPattern
       type: int
     name: _
   operator: &&
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: double
@@ -89,12 +89,12 @@ PatternVariableDeclarationStatement
     pattern: ParenthesizedPattern
       leftParenthesis: (
       pattern: BinaryPattern
-        leftOperand: VariablePattern
+        leftOperand: DeclaredVariablePattern
           name: a
           declaredElement: hasImplicitType a@18
             type: int
         operator: &&
-        rightOperand: VariablePattern
+        rightOperand: DeclaredVariablePattern
           name: b
           declaredElement: hasImplicitType b@23
             type: int
@@ -116,7 +116,7 @@ void f(x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
-  leftOperand: VariablePattern
+  leftOperand: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -125,7 +125,7 @@ BinaryPattern
       type: int
     name: _
   operator: ||
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: double
@@ -148,7 +148,7 @@ void f(x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
-  leftOperand: VariablePattern
+  leftOperand: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -157,7 +157,7 @@ BinaryPattern
       type: int
     name: _
   operator: ||
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: double

@@ -3737,7 +3737,7 @@ void f(x) {
 ''');
     _assertSource(
       'int? _',
-      findNode.variablePattern('int?'),
+      findNode.declaredVariablePattern('int?'),
     );
   }
 

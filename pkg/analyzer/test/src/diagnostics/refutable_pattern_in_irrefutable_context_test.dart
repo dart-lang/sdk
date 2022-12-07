@@ -61,10 +61,10 @@ PatternVariableDeclaration
   pattern: ParenthesizedPattern
     leftParenthesis: (
     pattern: BinaryPattern
-      leftOperand: VariablePattern
+      leftOperand: DeclaredVariablePattern
         name: _
       operator: ||
-      rightOperand: VariablePattern
+      rightOperand: DeclaredVariablePattern
         name: _
     rightParenthesis: )
   equals: =
@@ -91,7 +91,7 @@ PatternVariableDeclaration
   pattern: ParenthesizedPattern
     leftParenthesis: (
     pattern: PostfixPattern
-      operand: VariablePattern
+      operand: DeclaredVariablePattern
         name: _
       operator: ?
     rightParenthesis: )

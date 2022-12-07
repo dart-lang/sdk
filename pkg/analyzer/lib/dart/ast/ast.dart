@@ -218,6 +218,23 @@ abstract class AssertStatement implements Assertion, Statement {
   Token get semicolon;
 }
 
+/// A variable pattern in [PatternAssignment].
+///
+///    variablePattern ::= identifier
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class AssignedVariablePattern implements DartPattern {
+  /// Return the element referenced by this pattern, or `null` if either
+  /// [name] does not resolve to an element, or the AST structure has not
+  /// been resolved. In valid code this will be either [LocalVariableElement]
+  /// or [ParameterElement].
+  Element? get element;
+
+  /// The name of the variable being referenced.
+  Token get name;
+}
+
 /// An assignment expression.
 ///
 ///    assignmentExpression ::=
@@ -363,6 +380,8 @@ abstract class AstVisitor<R> {
 
   R? visitAssertStatement(AssertStatement assertStatement);
 
+  R? visitAssignedVariablePattern(AssignedVariablePattern node);
+
   R? visitAssignmentExpression(AssignmentExpression node);
 
   R? visitAugmentationImportDirective(AugmentationImportDirective node);
@@ -420,6 +439,8 @@ abstract class AstVisitor<R> {
   R? visitContinueStatement(ContinueStatement node);
 
   R? visitDeclaredIdentifier(DeclaredIdentifier node);
+
+  R? visitDeclaredVariablePattern(DeclaredVariablePattern node);
 
   R? visitDefaultFormalParameter(DefaultFormalParameter node);
 
@@ -667,8 +688,6 @@ abstract class AstVisitor<R> {
   R? visitVariableDeclarationList(VariableDeclarationList node);
 
   R? visitVariableDeclarationStatement(VariableDeclarationStatement node);
-
-  R? visitVariablePattern(VariablePattern node);
 
   R? visitWhenClause(WhenClause node);
 
@@ -1645,7 +1664,9 @@ abstract class ContinueStatement implements Statement {
 /// A pattern.
 ///
 ///    pattern ::=
-///        [BinaryPattern]
+///        [AssignedVariablePattern]
+///      | [BinaryPattern]
+///      | [DeclaredVariablePattern]
 ///      | [CastPattern]
 ///      | [ConstantPattern]
 ///      | [ListPattern]
@@ -1655,7 +1676,6 @@ abstract class ContinueStatement implements Statement {
 ///      | [PostfixPattern]
 ///      | [RecordPattern]
 ///      | [RelationalPattern]
-///      | [VariablePattern]
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
@@ -1722,6 +1742,32 @@ abstract class DeclaredIdentifier implements Declaration {
 
   /// Return the name of the declared type of the parameter, or `null` if the
   /// parameter does not have a declared type.
+  TypeAnnotation? get type;
+}
+
+/// A variable pattern that declares a variable.
+///
+///    variablePattern ::=
+///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? [Identifier]
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class DeclaredVariablePattern implements DartPattern {
+  /// Return the element associated with this declaration, or `null` if either
+  /// the variable name is `_` (in which case no variable is defined) or the AST
+  /// structure has not been resolved.
+  VariablePatternElement? get declaredElement;
+
+  /// The 'var' or 'final' keyword used when there is no [type], or `null` if a
+  /// type is given.
+  Token? get keyword;
+
+  /// The name of the variable being bound, if `_` then no variable is bound,
+  /// and [declaredElement] is `null`.
+  Token get name;
+
+  /// The type that the variable is required to match, or `null` if any type is
+  /// matched.
   TypeAnnotation? get type;
 }
 
@@ -5389,31 +5435,6 @@ abstract class VariableDeclarationStatement implements Statement {
 
   /// Return the variables being declared.
   VariableDeclarationList get variables;
-}
-
-/// A variable pattern.
-///
-///    variablePattern ::=
-///        ( 'var' | 'final' | [TypeAnnotation])? [Identifier]
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class VariablePattern implements DartPattern {
-  /// Return the element associated with this declaration, or `null` if either
-  /// the variable name is `_` (in which case no variable is defined) or the AST
-  /// structure has not been resolved.
-  VariablePatternElement? get declaredElement;
-
-  /// The 'var' or 'final' keyword used when there is no [type], or `null` if a
-  /// type is given.
-  Token? get keyword;
-
-  /// The name of the variable being bound.
-  Token get name;
-
-  /// The type that the variable is required to match, or `null` if any type is
-  /// matched.
-  TypeAnnotation? get type;
 }
 
 /// A guard in a pattern-based `case` in a `switch` statement, `switch`

@@ -34,7 +34,7 @@ MapPattern
         literal: 0
         staticType: int
       separator: :
-      value: VariablePattern
+      value: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: String
@@ -68,7 +68,7 @@ MapPattern
         literal: 0
         staticType: int
       separator: :
-      value: VariablePattern
+      value: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@44
@@ -113,7 +113,7 @@ MapPattern
         literal: 0
         staticType: int
       separator: :
-      value: VariablePattern
+      value: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@57
@@ -173,7 +173,7 @@ MapPattern
           literal: ''
     RestPatternElement
       operator: ...
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: rest
         declaredElement: hasImplicitType rest@57
@@ -199,7 +199,7 @@ MapPattern
         literal: 0
         staticType: int
       separator: :
-      value: VariablePattern
+      value: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@50
@@ -241,7 +241,7 @@ MapPattern
         literal: true
         staticType: bool
       separator: :
-      value: VariablePattern
+      value: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@62
@@ -307,7 +307,7 @@ MapPattern
         literal: true
         staticType: bool
       separator: :
-      value: VariablePattern
+      value: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
@@ -338,7 +338,7 @@ MapPattern
         literal: true
         staticType: bool
       separator: :
-      value: VariablePattern
+      value: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@43
@@ -421,7 +421,7 @@ MapPattern
         literal: true
         staticType: bool
       separator: :
-      value: VariablePattern
+      value: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@54
@@ -482,7 +482,7 @@ PatternVariableDeclaration
           literal: true
           staticType: bool
         separator: :
-        value: VariablePattern
+        value: DeclaredVariablePattern
           name: a
           declaredElement: hasImplicitType a@40
             type: int
@@ -532,7 +532,7 @@ PatternVariableDeclaration
           literal: true
           staticType: bool
         separator: :
-        value: VariablePattern
+        value: DeclaredVariablePattern
           name: a
           declaredElement: hasImplicitType a@35
             type: int
@@ -574,7 +574,7 @@ PatternVariableDeclaration
           literal: true
           staticType: bool
         separator: :
-        value: VariablePattern
+        value: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int

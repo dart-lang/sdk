@@ -86,7 +86,7 @@ IfElement
       pattern: ListPattern
         leftBracket: [
         elements
-          VariablePattern
+          DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
                 token: int
@@ -159,7 +159,7 @@ IfElement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int

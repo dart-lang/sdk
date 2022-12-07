@@ -50,7 +50,7 @@ RecordPattern
       fieldName: RecordPatternFieldName
         name: foo
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
         declaredElement: hasImplicitType y@46
@@ -73,7 +73,7 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: var
     name: y
     declaredElement: hasImplicitType y@41
@@ -144,7 +144,7 @@ RecordPattern
       fieldName: RecordPatternFieldName
         name: foo
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
@@ -177,7 +177,7 @@ RecordPattern
       fieldName: RecordPatternFieldName
         name: foo
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
         declaredElement: hasImplicitType y@54
@@ -226,7 +226,7 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
@@ -256,7 +256,7 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
         declaredElement: hasImplicitType y@49
@@ -284,7 +284,7 @@ RecordPattern
       fieldName: RecordPatternFieldName
         name: a
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: b
         declaredElement: hasImplicitType b@47
@@ -311,7 +311,7 @@ RecordPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@46
@@ -338,7 +338,7 @@ RecordPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@53
@@ -365,7 +365,7 @@ RecordPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@60
@@ -390,7 +390,7 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@44
@@ -415,7 +415,7 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@55
@@ -457,7 +457,7 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@69
@@ -467,14 +467,14 @@ RecordPattern
       fieldName: RecordPatternFieldName
         name: foo
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: b
         declaredElement: hasImplicitType b@81
           type: String
       fieldElement: <null>
     RecordPatternField
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: c
         declaredElement: hasImplicitType c@88
@@ -502,7 +502,7 @@ RecordPattern
       fieldName: RecordPatternFieldName
         name: bar
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@58
@@ -530,7 +530,7 @@ RecordPattern
       fieldName: RecordPatternFieldName
         name: foo
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
         declaredElement: hasImplicitType y@58
@@ -585,7 +585,7 @@ RecordPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: foo
         declaredElement: hasImplicitType foo@55
@@ -613,7 +613,7 @@ RecordPattern
       fieldName: RecordPatternFieldName
         colon: :
       pattern: PostfixPattern
-        operand: VariablePattern
+        operand: DeclaredVariablePattern
           keyword: var
           name: foo
           declaredElement: hasImplicitType foo@56
@@ -639,7 +639,7 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: a
         declaredElement: hasImplicitType a@48
@@ -663,13 +663,13 @@ PatternVariableDeclaration
     leftParenthesis: (
     fields
       RecordPatternField
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           name: a
           declaredElement: hasImplicitType a@33
             type: int
         fieldElement: <null>
       RecordPatternField
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           name: b
           declaredElement: hasImplicitType b@36
             type: String
@@ -699,7 +699,7 @@ PatternVariableDeclaration
     leftParenthesis: (
     fields
       RecordPatternField
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -711,7 +711,7 @@ PatternVariableDeclaration
             type: int
         fieldElement: <null>
       RecordPatternField
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: String

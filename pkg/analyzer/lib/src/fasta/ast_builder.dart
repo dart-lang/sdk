@@ -5281,7 +5281,13 @@ class AstBuilder extends StackListener {
       throw UnimplementedError('Patterns not enabled');
     }
     var type = pop() as TypeAnnotationImpl?;
-    push(VariablePatternImpl(keyword: keyword, type: type, name: variable));
+    push(
+      DeclaredVariablePatternImpl(
+        keyword: keyword,
+        type: type,
+        name: variable,
+      ),
+    );
   }
 
   @override

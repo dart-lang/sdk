@@ -152,6 +152,12 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitAssignedVariablePattern(AssignedVariablePattern node) {
+    var other = _other as DeclaredVariablePattern;
+    return isEqualTokens(node.name, other.name);
+  }
+
+  @override
   bool visitAssignmentExpression(AssignmentExpression node) {
     AssignmentExpression other = _other as AssignmentExpression;
     return isEqualNodes(node.leftHandSide, other.leftHandSide) &&
@@ -416,6 +422,14 @@ class AstComparator implements AstVisitor<bool> {
             node.documentationComment, other.documentationComment) &&
         _isEqualNodeLists(node.metadata, other.metadata) &&
         isEqualTokens(node.keyword, other.keyword) &&
+        isEqualNodes(node.type, other.type) &&
+        isEqualTokens(node.name, other.name);
+  }
+
+  @override
+  bool visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    var other = _other as DeclaredVariablePattern;
+    return isEqualTokens(node.keyword, other.keyword) &&
         isEqualNodes(node.type, other.type) &&
         isEqualTokens(node.name, other.name);
   }
@@ -1515,13 +1529,6 @@ class AstComparator implements AstVisitor<bool> {
     VariableDeclarationStatement other = _other as VariableDeclarationStatement;
     return isEqualNodes(node.variables, other.variables) &&
         isEqualTokens(node.semicolon, other.semicolon);
-  }
-
-  @override
-  bool visitVariablePattern(VariablePattern node) {
-    var other = _other as VariablePattern;
-    return isEqualNodes(node.type, other.type) &&
-        isEqualTokens(node.name, other.name);
   }
 
   @override

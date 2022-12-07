@@ -67,7 +67,7 @@ IfStatement
     caseKeyword: case
     guardedPattern: GuardedPattern
       pattern: BinaryPattern
-        leftOperand: VariablePattern
+        leftOperand: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -81,7 +81,7 @@ IfStatement
         rightOperand: ListPattern
           leftBracket: [
           elements
-            VariablePattern
+            DeclaredVariablePattern
               type: NamedType
                 name: SimpleIdentifier
                   token: int
@@ -146,7 +146,7 @@ IfStatement
     caseKeyword: case
     guardedPattern: GuardedPattern
       pattern: BinaryPattern
-        leftOperand: VariablePattern
+        leftOperand: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -160,7 +160,7 @@ IfStatement
         rightOperand: ListPattern
           leftBracket: [
           elements
-            VariablePattern
+            DeclaredVariablePattern
               keyword: final
               type: NamedType
                 name: SimpleIdentifier
@@ -226,7 +226,7 @@ IfStatement
     caseKeyword: case
     guardedPattern: GuardedPattern
       pattern: BinaryPattern
-        leftOperand: VariablePattern
+        leftOperand: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -240,7 +240,7 @@ IfStatement
         rightOperand: ListPattern
           leftBracket: [
           elements
-            VariablePattern
+            DeclaredVariablePattern
               type: NamedType
                 name: SimpleIdentifier
                   token: double
@@ -307,7 +307,7 @@ IfStatement
     guardedPattern: GuardedPattern
       pattern: BinaryPattern
         leftOperand: BinaryPattern
-          leftOperand: VariablePattern
+          leftOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
                 token: int
@@ -381,7 +381,7 @@ IfStatement
     guardedPattern: GuardedPattern
       pattern: BinaryPattern
         leftOperand: BinaryPattern
-          leftOperand: VariablePattern
+          leftOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
                 token: int
@@ -392,7 +392,7 @@ IfStatement
             declaredElement: a@37
               type: int
           operator: ||
-          rightOperand: VariablePattern
+          rightOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
                 token: int
@@ -459,7 +459,7 @@ IfStatement
     guardedPattern: GuardedPattern
       pattern: BinaryPattern
         leftOperand: BinaryPattern
-          leftOperand: VariablePattern
+          leftOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
                 token: int
@@ -470,7 +470,7 @@ IfStatement
             declaredElement: a@37
               type: int
           operator: ||
-          rightOperand: VariablePattern
+          rightOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
                 token: int
@@ -481,7 +481,7 @@ IfStatement
             declaredElement: a@46
               type: int
         operator: ||
-        rightOperand: VariablePattern
+        rightOperand: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -545,7 +545,7 @@ IfStatement
     guardedPattern: GuardedPattern
       pattern: BinaryPattern
         leftOperand: BinaryPattern
-          leftOperand: VariablePattern
+          leftOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
                 token: int
@@ -561,7 +561,7 @@ IfStatement
               literal: 2
               staticType: int
         operator: ||
-        rightOperand: VariablePattern
+        rightOperand: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -631,7 +631,7 @@ IfStatement
               literal: 1
               staticType: int
           operator: ||
-          rightOperand: VariablePattern
+          rightOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
                 token: int
@@ -705,7 +705,7 @@ IfStatement
               literal: 1
               staticType: int
           operator: ||
-          rightOperand: VariablePattern
+          rightOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
                 token: int
@@ -716,7 +716,7 @@ IfStatement
             declaredElement: a@42
               type: int
         operator: ||
-        rightOperand: VariablePattern
+        rightOperand: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -791,7 +791,7 @@ IfStatement
       pattern: ListPattern
         leftBracket: [
         elements
-          VariablePattern
+          DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
                 token: int
@@ -875,7 +875,7 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int

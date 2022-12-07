@@ -150,6 +150,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitAssertStatement(AssertStatement node) => visitStatement(node);
 
   @override
+  R? visitAssignedVariablePattern(AssignedVariablePattern node) =>
+      visitDartPattern(node);
+
+  @override
   R? visitAssignmentExpression(AssignmentExpression node) =>
       visitExpression(node);
 
@@ -258,6 +262,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDeclaredIdentifier(DeclaredIdentifier node) => visitDeclaration(node);
+
+  @override
+  R? visitDeclaredVariablePattern(DeclaredVariablePattern node) =>
+      visitDartPattern(node);
 
   @override
   R? visitDefaultFormalParameter(DefaultFormalParameter node) =>
@@ -734,9 +742,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitStatement(node);
 
   @override
-  R? visitVariablePattern(VariablePattern node) => visitDartPattern(node);
-
-  @override
   R? visitWhenClause(WhenClause node) => visitNode(node);
 
   @override
@@ -795,6 +800,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitAssertStatement(AssertStatement node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitAssignedVariablePattern(AssignedVariablePattern node) {
     node.visitChildren(this);
     return null;
   }
@@ -969,6 +980,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDeclaredIdentifier(DeclaredIdentifier node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     node.visitChildren(this);
     return null;
   }
@@ -1710,12 +1727,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R? visitVariablePattern(VariablePattern node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
   R? visitWhenClause(WhenClause node) {
     node.visitChildren(this);
     return null;
@@ -1767,6 +1778,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitAssertStatement(AssertStatement node) => null;
+
+  @override
+  R? visitAssignedVariablePattern(AssignedVariablePattern node) => null;
 
   @override
   R? visitAssignmentExpression(AssignmentExpression node) => null;
@@ -1854,6 +1868,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDeclaredIdentifier(DeclaredIdentifier node) => null;
+
+  @override
+  R? visitDeclaredVariablePattern(DeclaredVariablePattern node) => null;
 
   @override
   R? visitDefaultFormalParameter(DefaultFormalParameter node) => null;
@@ -2237,9 +2254,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
       null;
 
   @override
-  R? visitVariablePattern(VariablePattern node) => null;
-
-  @override
   R? visitWhenClause(WhenClause node) => null;
 
   @override
@@ -2280,6 +2294,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitAssertStatement(AssertStatement node) => _throw(node);
+
+  @override
+  R? visitAssignedVariablePattern(AssignedVariablePattern node) => _throw(node);
 
   @override
   R? visitAssignmentExpression(AssignmentExpression node) => _throw(node);
@@ -2369,6 +2386,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDeclaredIdentifier(DeclaredIdentifier node) => _throw(node);
+
+  @override
+  R? visitDeclaredVariablePattern(DeclaredVariablePattern node) => _throw(node);
 
   @override
   R? visitDefaultFormalParameter(DefaultFormalParameter node) => _throw(node);
@@ -2759,9 +2779,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
       _throw(node);
 
   @override
-  R? visitVariablePattern(VariablePattern node) => _throw(node);
-
-  @override
   R? visitWhenClause(WhenClause node) => _throw(node);
 
   @override
@@ -2837,6 +2854,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitAssertStatement(AssertStatement node) {
     stopwatch.start();
     T? result = _baseVisitor.visitAssertStatement(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitAssignedVariablePattern(AssignedVariablePattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitAssignedVariablePattern(node);
     stopwatch.stop();
     return result;
   }
@@ -3069,6 +3094,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitDeclaredIdentifier(DeclaredIdentifier node) {
     stopwatch.start();
     T? result = _baseVisitor.visitDeclaredIdentifier(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitDeclaredVariablePattern(node);
     stopwatch.stop();
     return result;
   }
@@ -4054,14 +4087,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T? visitVariablePattern(VariablePattern node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitVariablePattern(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitWhenClause(WhenClause node) {
     stopwatch.start();
     T? result = _baseVisitor.visitWhenClause(node);
@@ -4126,6 +4151,10 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitAssertStatement(AssertStatement node) => visitNode(node);
+
+  @override
+  R? visitAssignedVariablePattern(AssignedVariablePattern node) =>
+      visitNode(node);
 
   @override
   R? visitAssignmentExpression(AssignmentExpression node) => visitNode(node);
@@ -4216,6 +4245,10 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitDeclaredIdentifier(DeclaredIdentifier node) => visitNode(node);
+
+  @override
+  R? visitDeclaredVariablePattern(DeclaredVariablePattern node) =>
+      visitNode(node);
 
   @override
   R? visitDefaultFormalParameter(DefaultFormalParameter node) =>
@@ -4618,9 +4651,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitVariableDeclarationStatement(VariableDeclarationStatement node) =>
       visitNode(node);
-
-  @override
-  R? visitVariablePattern(VariablePattern node) => visitNode(node);
 
   @override
   R? visitWhenClause(WhenClause node) => visitNode(node);

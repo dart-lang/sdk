@@ -23,7 +23,7 @@ void f(int? x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
-  operand: VariablePattern
+  operand: DeclaredVariablePattern
     keyword: var
     name: y
     declaredElement: hasImplicitType y@34
@@ -44,7 +44,7 @@ void f(int? x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
-  operand: VariablePattern
+  operand: DeclaredVariablePattern
     keyword: var
     name: y
     declaredElement: hasImplicitType y@45
@@ -66,7 +66,7 @@ PatternVariableDeclaration
   pattern: ParenthesizedPattern
     leftParenthesis: (
     pattern: PostfixPattern
-      operand: VariablePattern
+      operand: DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@24
           type: int
@@ -89,7 +89,7 @@ void f(int? x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
-  operand: VariablePattern
+  operand: DeclaredVariablePattern
     keyword: var
     name: y
     declaredElement: hasImplicitType y@34
@@ -110,7 +110,7 @@ void f(int? x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
-  operand: VariablePattern
+  operand: DeclaredVariablePattern
     keyword: var
     name: y
     declaredElement: hasImplicitType y@45
