@@ -535,11 +535,6 @@
     },
     "dart2js-(linux|mac|win)-chrome": {
       "options": {
-        "use-sdk": true
-      }
-    },
-    "dart2js-(linux|mac|win)-chrome-unsound": {
-      "options": {
         "use-sdk": true,
         "dart2js-options": [
           "--no-sound-null-safety"
@@ -554,11 +549,6 @@
     },
     "dart2js-(linux|win)-firefox": {
       "options": {
-        "use-sdk": true
-      }
-    },
-    "dart2js-(linux|win)-firefox-unsound": {
-      "options": {
         "use-sdk": true,
         "dart2js-options": [
           "--no-sound-null-safety"
@@ -568,24 +558,13 @@
     "dart2js-win-ie11": {
       "options": {
         "babel": "{\"presets\":[\"es2015\"]}",
-        "use-sdk": true
-      }
-    },
-    "dart2js-win-ie11-unsound": {
-      "options": {
-        "babel": "{\"presets\":[\"es2015\"]}",
+        "use-sdk": true,
         "dart2js-options": [
           "--no-sound-null-safety"
-        ],
-        "use-sdk": true
+        ]
       }
     },
     "dart2js-win-edge": {
-      "options": {
-        "use-sdk": true
-      }
-    },
-    "dart2js-win-edge-unsound": {
       "options": {
         "use-sdk": true,
         "dart2js-options": [
@@ -595,11 +574,6 @@
     },
     "dart2js-mac-safari": {
       "options": {
-        "use-sdk": true
-      }
-    },
-    "dart2js-mac-safari-unsound": {
-      "options": {
         "use-sdk": true,
         "dart2js-options": [
           "--no-sound-null-safety"
@@ -607,13 +581,6 @@
       }
     },
     "dart2js-minified-csp-(linux|mac|win)-chrome": {
-      "options": {
-        "minified": true,
-        "csp": true,
-        "use-sdk": true
-      }
-    },
-    "dart2js-minified-csp-(linux|mac|win)-chrome-unsound": {
       "options": {
         "minified": true,
         "csp": true,
@@ -630,17 +597,12 @@
         "timeout": 240,
         "dart2js-options": [
           "--merge-fragments-threshold=3",
-          "--simple-load-ids"
+          "--simple-load-ids",
+          "--no-sound-null-safety"
         ]
       }
     },
     "dart2js-minified-(linux|mac|win)-d8": {
-      "options": {
-        "minified": true,
-        "use-sdk": true
-      }
-    },
-    "dart2js-minified-(linux|mac|win)-d8-unsound": {
       "options": {
         "minified": true,
         "use-sdk": true,
@@ -657,7 +619,8 @@
         "builder-tag": "dart2js-weak",
         "dart2js-options": [
           "--merge-fragments-threshold=3",
-          "--simple-load-ids"
+          "--simple-load-ids",
+          "--no-sound-null-safety"
         ]
       }
     },
@@ -666,7 +629,8 @@
         "builder-tag": "dart2js_production",
         "use-sdk": true,
         "dart2js-options": [
-          "-O3"
+          "-O3",
+          "--no-sound-null-safety"
         ]
       }
     },
@@ -675,7 +639,8 @@
         "builder-tag": "dart2js_o0",
         "use-sdk": true,
         "dart2js-options": [
-          "-O0"
+          "-O0",
+          "--no-sound-null-safety"
         ]
       }
     },
@@ -699,12 +664,6 @@
       }
     },
     "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8": {
-      "options": {
-        "host-checked": true,
-        "timeout": 240
-      }
-    },
-    "dart2js-hostasserts-(linux|mac|win)-(ia32|x64)-d8-unsound": {
       "options": {
         "host-checked": true,
         "timeout": 240,
@@ -2963,13 +2922,6 @@
           ]
         },
         {
-          "name": "dart2js observatory-ui tests",
-          "arguments": [
-            "-ndart2js-hostasserts-linux-ia32-d8-unsound",
-            "observatory_ui"
-          ]
-        },
-        {
           "name": "dart2js extra tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-ia32-d8",
@@ -3029,14 +2981,6 @@
           ]
         },
         {
-          "name": "dart2js observatory-ui tests",
-          "arguments": [
-            "-ndart2js-${system}-${runtime}-unsound",
-            "--reset-browser-configuration",
-            "observatory_ui"
-          ]
-        },
-        {
           "name": "dart2js extra tests",
           "arguments": [
             "-ndart2js-${system}-${runtime}",
@@ -3075,13 +3019,6 @@
           "arguments": [
             "-ndart2js-minified-linux-d8",
             "pkg"
-          ]
-        },
-        {
-          "name": "dart2js observatory-ui tests",
-          "arguments": [
-            "-ndart2js-minified-linux-d8-unsound",
-            "observatory_ui"
           ]
         },
         {
@@ -3161,7 +3098,7 @@
         {
           "name": "dart2js observatory-ui tests",
           "arguments": [
-            "-ndart2js-minified-csp-linux-chrome-unsound",
+            "-ndart2js-minified-csp-linux-chrome",
             "--reset-browser-configuration",
             "observatory_ui"
           ]
