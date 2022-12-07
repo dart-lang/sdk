@@ -51,6 +51,9 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
 
   @override
   String get refactoringName {
+    if (element is ExtensionElement) {
+      return 'Rename Extension';
+    }
     if (element is FunctionElement) {
       return 'Rename Top-Level Function';
     }

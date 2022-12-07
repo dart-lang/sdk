@@ -1971,6 +1971,64 @@ enum E {
     );
   }
 
+  Future<void> test_extension_atDeclaration() {
+    addTestFile('''
+extension Test on int {
+  void foo() {}
+}
+void f() {
+  Test(0).foo();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test on int', 'NewName');
+      },
+      '''
+extension NewName on int {
+  void foo() {}
+}
+void f() {
+  NewName(0).foo();
+}
+''',
+      feedbackValidator: (feedback) {
+        var renameFeedback = feedback as RenameFeedback;
+        expect(renameFeedback.offset, 10);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
+  Future<void> test_extension_atReference() {
+    addTestFile('''
+extension Test on int {
+  void foo() {}
+}
+void f() {
+  Test(0).foo();
+}
+''');
+    return assertSuccessfulRefactoring(
+      () {
+        return sendRenameRequest('Test(0)', 'NewName');
+      },
+      '''
+extension NewName on int {
+  void foo() {}
+}
+void f() {
+  NewName(0).foo();
+}
+''',
+      feedbackValidator: (feedback) {
+        var renameFeedback = feedback as RenameFeedback;
+        expect(renameFeedback.offset, 55);
+        expect(renameFeedback.length, 4);
+      },
+    );
+  }
+
   Future<void> test_feedback() {
     addTestFile('''
 class Test {}

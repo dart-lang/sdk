@@ -464,6 +464,8 @@ abstract class RenameRefactoring implements Refactoring {
       nameNode = node;
     } else if (node is EnumConstantDeclaration) {
       nameNode = node.name;
+    } else if (node is ExtensionDeclaration) {
+      nameNode = node.name;
     } else if (node is FieldFormalParameter) {
       nameNode = node.name;
     } else if (node is ImportDirective) {
