@@ -475,7 +475,6 @@ dart.ci_sandbox_builder(
 # sdk
 dart.try_builder(
     "dart-sdk-linux",
-    cq_branches = dart.release_channels,
     properties = {
         "$dart/build": {
             "timeout": 100 * 60,  # 100 minutes,
@@ -485,13 +484,11 @@ dart.try_builder(
         "disable_bcid": True,
         "upload_version": True,
     },
-    on_cq = True,
     recipe = "release/sdk",
 )
 
 dart.try_builder(
     "dart-sdk-linux-arm64",
-    cq_branches = dart.release_channels,
     properties = {
         "$dart/build": {
             "timeout": 100 * 60,  # 100 minutes,
@@ -499,7 +496,6 @@ dart.try_builder(
         "archs": ["arm", "arm64"],
         "disable_bcid": True,
     },
-    on_cq = True,
     recipe = "release/sdk",
 )
 
@@ -517,23 +513,19 @@ dart.try_builder(
 
 dart.try_builder(
     "dart-sdk-mac",
-    cq_branches = dart.release_channels,
     dimensions = mac,
     properties = [pinned_xcode, {"archs": ["x64"], "disable_bcid": True}],
-    on_cq = True,
     recipe = "release/sdk",
 )
 
 dart.try_builder(
     "dart-sdk-mac-arm64",
-    cq_branches = dart.release_channels,
     dimensions = [mac, arm64],
     properties = [
         no_android,
         pinned_xcode,
         {"archs": ["arm64"], "disable_bcid": True},
     ],
-    on_cq = True,
     recipe = "release/sdk",
 )
 
@@ -541,8 +533,8 @@ dart.try_builder(
     "dart-sdk-win",
     dimensions = windows,
     properties = {"archs": ["ia32", "x64"], "disable_bcid": True},
-    on_cq = True,
     recipe = "release/sdk",
+    on_cq = True,
 )
 
 dart.try_builder(

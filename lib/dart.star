@@ -88,7 +88,6 @@ def _try_builder(
         goma = None,
         location_filters = None,
         properties = None,
-        try_branches = _BRANCHES,
         on_cq = False):
     """Creates a Dart tryjob.
 
@@ -96,7 +95,7 @@ def _try_builder(
         name: The builder name.
         recipe: The recipe to use (defaults to "dart/neo").
         bucket: The bucket to use (defaults to "try").
-        cq_branches: Branches to be on the commit queue (defaults: _BRANCHES).
+        cq_branches: Make try builder on these branches (defaults to _BRANCHES).
         dimensions: Extra swarming dimensions required by this builder.
         execution_timeout: Time to allow for the build to run.
         experiment_percentage: What experiment percentage to use.
@@ -104,7 +103,6 @@ def _try_builder(
         goma: Whether to use goma or not.
         location_filters: Locations that trigger this tryjob.
         properties: Extra properties to set for builds.
-        try_branches: Branches to be a try builder for (defaults: _BRANCHES).
         on_cq: Whether the build is added to the default set of CQ tryjobs.
     """
     if on_cq and location_filters:
@@ -127,14 +125,15 @@ def _try_builder(
         properties = builder_properties,
         service_account = accounts.try_builder,
     )
-    on_cq = on_cq or location_filters or experiment_percentage
-    for branch in try_branches:
+    includable_only = (not on_cq and not experiment_percentage and
+                       not location_filters)
+    for branch in cq_branches:
         luci.cq_tryjob_verifier(
             builder = builder,
             cq_group = "sdk-%s" % branch,
             experiment_percentage = experiment_percentage,
             location_filters = location_filters,
-            includable_only = not (on_cq and branch in cq_branches),
+            includable_only = includable_only,
         )
     luci.list_view_entry(list_view = "cq", builder = builder)
 
@@ -162,7 +161,6 @@ def _builder(
         service_account = accounts.try_builder,
         triggered_by = ["dart-gitiles-trigger-%s"],
         triggering_policy = None,
-        try_branches = _BRANCHES,
         on_cq = False,
         experiment_percentage = None,
         location_filters = None):
@@ -176,7 +174,7 @@ def _builder(
         enabled: Whether this builder is currently running or not.
         category: Where to show the builder on the console.
         channels: Which other channels the builder should be added to.
-        cq_branches: Branches to be on the commit queue (defaults: _BRANCHES).
+        cq_branches: Make try builder on these branches (defaults to _BRANCHES).
         dimensions: Extra swarming dimensions required by this builder.
         executable: The Luci executable to use.
         execution_timeout: Time to allow for the build to run.
@@ -193,7 +191,6 @@ def _builder(
         service_account: The task service account to use (default: accounts.try_builder).
         triggered_by: What triggers this builder (defaults to standard trigger).
         triggering_policy: The triggering policy used by this builder.
-        try_branches: Branches to be a try builder for (defaults: _BRANCHES).
         on_cq: Whether the build is added to the default set of CQ tryjobs.
         experiment_percentage: What experiment percentage to use.
         location_filters: Locations that trigger this builder.
@@ -211,9 +208,7 @@ def _builder(
     expect_os("-linux", [linux["os"], focal["os"]])
     expect_os("-mac", mac["os"])
 
-    branches = ["main"] + channels
-    cq_branches = [branch for branch in cq_branches if branch in branches]
-    try_branches = [branch for branch in try_branches if branch in branches]
+    cq_branches = ["main"] + [branch for branch in channels if branch != "try"]
 
     def builder(channel, notifies, triggered_by):
         if channel == "try":
@@ -229,7 +224,6 @@ def _builder(
                 experiments = experiments,
                 goma = goma,
                 location_filters = location_filters,
-                try_branches = try_branches,
             )
         else:
             builder_properties = _with_goma(
