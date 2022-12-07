@@ -48,6 +48,11 @@ Widget buildArea() {
 ''';
 
 class UseDecoratedBox extends LintRule {
+  static const LintCode code = LintCode('use_decorated_box',
+      "Use 'DecoratedBox' rather than a 'Container' with only a 'Decoration'.",
+      correctionMessage:
+          "Try replacing the 'Container' with a 'DecoratedBox'.");
+
   UseDecoratedBox()
       : super(
             name: 'use_decorated_box',
@@ -56,34 +61,14 @@ class UseDecoratedBox extends LintRule {
             group: Group.style);
 
   @override
+  LintCode get lintCode => code;
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
 
     registry.addInstanceCreationExpression(this, visitor);
-  }
-}
-
-class _Visitor extends SimpleAstVisitor {
-  final LintRule rule;
-
-  _Visitor(this.rule);
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (!isExactWidgetTypeContainer(node.staticType)) {
-      return;
-    }
-
-    var data = _ArgumentData(node.argumentList);
-
-    if (data.additionalArgumentsFound || data.positionalArgumentsFound) {
-      return;
-    }
-
-    if (data.hasChild && data.hasDecoration) {
-      rule.reportLint(node.constructorName);
-    }
   }
 }
 
@@ -109,6 +94,29 @@ class _ArgumentData {
       } else {
         additionalArgumentsFound = true;
       }
+    }
+  }
+}
+
+class _Visitor extends SimpleAstVisitor {
+  final LintRule rule;
+
+  _Visitor(this.rule);
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (!isExactWidgetTypeContainer(node.staticType)) {
+      return;
+    }
+
+    var data = _ArgumentData(node.argumentList);
+
+    if (data.additionalArgumentsFound || data.positionalArgumentsFound) {
+      return;
+    }
+
+    if (data.hasChild && data.hasDecoration) {
+      rule.reportLint(node.constructorName);
     }
   }
 }

@@ -36,12 +36,19 @@ Future<int> f2() {
 ''';
 
 class UnnecessaryAwaitInReturn extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_await_in_return', "Unnecessary 'await'.",
+      correctionMessage: "Try removing the 'await'.");
+
   UnnecessaryAwaitInReturn()
       : super(
             name: 'unnecessary_await_in_return',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

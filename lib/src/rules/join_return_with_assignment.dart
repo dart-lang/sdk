@@ -52,12 +52,20 @@ Expression? _getExpressionFromReturnStatement(Statement node) =>
     node is ReturnStatement ? node.expression : null;
 
 class JoinReturnWithAssignment extends LintRule {
+  static const LintCode code = LintCode('join_return_with_assignment',
+      "Assignment could be inlined in 'return' statement.",
+      correctionMessage:
+          "Try inlining the assigned value in the 'return' statement.");
+
   JoinReturnWithAssignment()
       : super(
             name: 'join_return_with_assignment',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

@@ -38,12 +38,19 @@ class A {
 ''';
 
 class PreferAssertsWithMessage extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_asserts_with_message', 'Missing a message in an assert.',
+      correctionMessage: 'Try adding a message to the assert.');
+
   PreferAssertsWithMessage()
       : super(
             name: 'prefer_asserts_with_message',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

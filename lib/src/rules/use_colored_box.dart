@@ -39,6 +39,10 @@ Widget buildArea() {
 ''';
 
 class UseColoredBox extends LintRule {
+  static const LintCode code = LintCode('use_colored_box',
+      "Use 'ColoredBox' rather than a 'Container' with only a 'Color'.",
+      correctionMessage: "Try replacing the 'Container' with a 'ColoredBox'.");
+
   UseColoredBox()
       : super(
             name: 'use_colored_box',
@@ -47,34 +51,14 @@ class UseColoredBox extends LintRule {
             group: Group.style);
 
   @override
+  LintCode get lintCode => code;
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
 
     registry.addInstanceCreationExpression(this, visitor);
-  }
-}
-
-class _Visitor extends SimpleAstVisitor {
-  final LintRule rule;
-
-  _Visitor(this.rule);
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    if (!isExactWidgetTypeContainer(node.staticType)) {
-      return;
-    }
-
-    var data = _ArgumentData(node.argumentList);
-
-    if (data.additionalArgumentsFound || data.positionalArgumentsFound) {
-      return;
-    }
-
-    if (data.hasChild && data.hasColor) {
-      rule.reportLint(node.constructorName);
-    }
   }
 }
 
@@ -102,6 +86,29 @@ class _ArgumentData {
       } else {
         additionalArgumentsFound = true;
       }
+    }
+  }
+}
+
+class _Visitor extends SimpleAstVisitor {
+  final LintRule rule;
+
+  _Visitor(this.rule);
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    if (!isExactWidgetTypeContainer(node.staticType)) {
+      return;
+    }
+
+    var data = _ArgumentData(node.argumentList);
+
+    if (data.additionalArgumentsFound || data.positionalArgumentsFound) {
+      return;
+    }
+
+    if (data.hasChild && data.hasColor) {
+      rule.reportLint(node.constructorName);
     }
   }
 }

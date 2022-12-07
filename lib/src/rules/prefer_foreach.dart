@@ -31,7 +31,7 @@ for (final key in map.keys.toList()) {
 map.keys.toList().forEach(map.remove);
 ```
 
-**NOTE:** Replacing a for each statement with a forEach call may change the 
+**NOTE:** Replacing a for each statement with a forEach call may change the
 behavior in the case where there are side-effects on the iterable itself.
 ```dart
 for (final v in myList) {
@@ -44,12 +44,19 @@ myList.forEach(foo().f); // But this one invokes foo() just once.
 ''';
 
 class PreferForeach extends LintRule {
+  static const LintCode code = LintCode('prefer_foreach',
+      "Use 'forEach' rather than a 'for' loop to apply a function to every element.",
+      correctionMessage: "Try using 'forEach' rather than a 'for' loop.");
+
   PreferForeach()
       : super(
             name: 'prefer_foreach',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

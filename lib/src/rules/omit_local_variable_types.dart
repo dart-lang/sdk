@@ -64,6 +64,10 @@ Widget build(BuildContext context) {
 ''';
 
 class OmitLocalVariableTypes extends LintRule {
+  static const LintCode code = LintCode('omit_local_variable_types',
+      'Unnecessary type annotation on a local variable.',
+      correctionMessage: 'Try removing the type annotation.');
+
   OmitLocalVariableTypes()
       : super(
             name: 'omit_local_variable_types',
@@ -73,6 +77,9 @@ class OmitLocalVariableTypes extends LintRule {
 
   @override
   List<String> get incompatibleRules => const ['always_specify_types'];
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

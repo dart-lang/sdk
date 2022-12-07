@@ -33,12 +33,19 @@ class A {
 ''';
 
 class PreferAssertsInInitializerLists extends LintRule {
+  static const LintCode code = LintCode('prefer_asserts_in_initializer_lists',
+      'Assert should be in the initializer list.',
+      correctionMessage: 'Try moving the assert to the initializer list.');
+
   PreferAssertsInInitializerLists()
       : super(
             name: 'prefer_asserts_in_initializer_lists',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

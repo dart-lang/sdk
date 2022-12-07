@@ -23,12 +23,18 @@ const loggingLevel =
 ''';
 
 class DoNotUseEnvironment extends LintRule {
+  static const LintCode code =
+      LintCode('do_not_use_environment', 'Invalid use of a declared variable.');
+
   DoNotUseEnvironment()
       : super(
             name: 'do_not_use_environment',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

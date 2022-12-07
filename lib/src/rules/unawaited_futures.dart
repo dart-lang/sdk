@@ -43,12 +43,20 @@ void main() async {
 ''';
 
 class UnawaitedFutures extends LintRule {
+  static const LintCode code = LintCode('unawaited_futures',
+      "Missing an 'await' for the 'Future' computed by this expression.",
+      correctionMessage:
+          "Try adding an 'await' or wrapping the expression un 'unawaited'.");
+
   UnawaitedFutures()
       : super(
             name: 'unawaited_futures',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

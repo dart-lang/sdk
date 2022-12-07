@@ -44,6 +44,10 @@ may produce false positives until that has happened.
 ''';
 
 class RequireTrailingCommas extends LintRule {
+  static const LintCode code = LintCode(
+      'require_trailing_commas', 'Missing trailing comma.',
+      correctionMessage: 'Try adding a trailing comma.');
+
   RequireTrailingCommas()
       : super(
           name: 'require_trailing_commas',
@@ -52,6 +56,9 @@ class RequireTrailingCommas extends LintRule {
           group: Group.style,
           maturity: Maturity.experimental,
         );
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -81,9 +88,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  void visitCompilationUnit(CompilationUnit node) => _lineInfo = node.lineInfo;
-
-  @override
   void visitArgumentList(ArgumentList node) {
     super.visitArgumentList(node);
     if (node.arguments.isEmpty) return;
@@ -95,13 +99,12 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitFormalParameterList(FormalParameterList node) {
-    super.visitFormalParameterList(node);
-    if (node.parameters.isEmpty) return;
+  void visitAssertInitializer(AssertInitializer node) {
+    super.visitAssertInitializer(node);
     _checkTrailingComma(
       node.leftParenthesis,
       node.rightParenthesis,
-      node.parameters.last,
+      node.message ?? node.condition,
     );
   }
 
@@ -116,12 +119,16 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitAssertInitializer(AssertInitializer node) {
-    super.visitAssertInitializer(node);
+  void visitCompilationUnit(CompilationUnit node) => _lineInfo = node.lineInfo;
+
+  @override
+  void visitFormalParameterList(FormalParameterList node) {
+    super.visitFormalParameterList(node);
+    if (node.parameters.isEmpty) return;
     _checkTrailingComma(
       node.leftParenthesis,
       node.rightParenthesis,
-      node.message ?? node.condition,
+      node.parameters.last,
     );
   }
 

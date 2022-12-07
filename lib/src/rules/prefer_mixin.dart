@@ -42,12 +42,19 @@ const _setMixinName = 'SetMixin';
 const _stringConversionSinkName = 'StringConversionSinkMixin';
 
 class PreferMixin extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_mixin', 'Only mixins should be mixed in.',
+      correctionMessage: "Try converting '{0}' to a mixin.");
+
   PreferMixin()
       : super(
             name: 'prefer_mixin',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -69,7 +76,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (type is InterfaceType) {
         var element = type.element;
         if (element is! MixinElement && !isAllowed(element)) {
-          rule.reportLint(mixinNode);
+          rule.reportLint(mixinNode, arguments: [mixinNode.name.name]);
         }
       }
     }

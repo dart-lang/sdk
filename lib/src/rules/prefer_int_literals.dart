@@ -34,12 +34,19 @@ main() {
 ''';
 
 class PreferIntLiterals extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_int_literals', "Unnecessary use of a 'double' literal.",
+      correctionMessage: "Try using an 'int' literal.");
+
   PreferIntLiterals()
       : super(
             name: 'prefer_int_literals',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

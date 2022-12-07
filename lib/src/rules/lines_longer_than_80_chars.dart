@@ -25,8 +25,8 @@ compact. The main offender is usually `VeryLongCamelCaseClassNames`. Ask
 yourself, “Does each word in that type name tell me something critical or
 prevent a name collision?” If not, consider omitting it.
 
-Note that `dart format` does 99% of this for you, but the last 1% is you. It 
-does not split long string literals to fit in 80 columns, so you have to do 
+Note that `dart format` does 99% of this for you, but the last 1% is you. It
+does not split long string literals to fit in 80 columns, so you have to do
 that manually.
 
 We make an exception for URIs and file paths. When those occur in comments or
@@ -42,12 +42,19 @@ final _uriRegExp = RegExp(r'[/\\]');
 bool _looksLikeUriOrPath(String value) => _uriRegExp.hasMatch(value);
 
 class LinesLongerThan80Chars extends LintRule {
+  static const LintCode code = LintCode('lines_longer_than_80_chars',
+      'The line length exceeds the 80-character limit.',
+      correctionMessage: 'Try breaking the line across multiple lines.');
+
   LinesLongerThan80Chars()
       : super(
             name: 'lines_longer_than_80_chars',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

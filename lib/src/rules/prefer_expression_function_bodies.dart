@@ -52,12 +52,19 @@ containsValue(String value) => getValues().contains(value);
 ''';
 
 class PreferExpressionFunctionBodies extends LintRule {
+  static const LintCode code = LintCode('prefer_expression_function_bodies',
+      'Unnecessary use of a block function body.',
+      correctionMessage: 'Try using an expression function body.');
+
   PreferExpressionFunctionBodies()
       : super(
             name: 'prefer_expression_function_bodies',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

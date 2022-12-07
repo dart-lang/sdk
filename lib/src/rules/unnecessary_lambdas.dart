@@ -45,12 +45,19 @@ Iterable<Element?> _extractElementsOfSimpleIdentifiers(AstNode node) =>
     _IdentifierVisitor().extractElements(node);
 
 class UnnecessaryLambdas extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_lambdas', 'Closure should be a tearoff.',
+      correctionMessage: 'Try using a tearoff rather than a closure.');
+
   UnnecessaryLambdas()
       : super(
             name: 'unnecessary_lambdas',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

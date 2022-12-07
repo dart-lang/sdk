@@ -45,12 +45,20 @@ bool _hasNewInvocation(DartType returnType, FunctionBody body) =>
     _BodyVisitor(returnType).containsInstanceCreation(body);
 
 class PreferConstructorsInsteadOfStaticMethods extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_constructors_over_static_methods',
+      'Static method should be a constructor.',
+      correctionMessage: 'Try converting the method into a constructor.');
+
   PreferConstructorsInsteadOfStaticMethods()
       : super(
             name: 'prefer_constructors_over_static_methods',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

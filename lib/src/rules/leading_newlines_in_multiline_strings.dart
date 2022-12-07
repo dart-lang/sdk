@@ -35,12 +35,20 @@ var s2 = '''This one-liner multiline string is ok. It usually allows to escape b
 """;
 
 class LeadingNewlinesInMultilineStrings extends LintRule {
+  static const LintCode code = LintCode('leading_newlines_in_multiline_strings',
+      'Missing a newline at the beginning of a multiline string.',
+      correctionMessage:
+          'Try adding a newline at the beginning of the string.');
+
   LeadingNewlinesInMultilineStrings()
       : super(
             name: 'leading_newlines_in_multiline_strings',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -53,11 +61,11 @@ class LeadingNewlinesInMultilineStrings extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule);
-
   final LintRule rule;
 
   LineInfo? lineInfo;
+
+  _Visitor(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {

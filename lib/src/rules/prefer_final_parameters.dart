@@ -63,6 +63,10 @@ void mutableParameter(String label) { // OK
 ''';
 
 class PreferFinalParameters extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_final_parameters', "The parameter '{0}' should be final.",
+      correctionMessage: 'Try making the parameter final.');
+
   PreferFinalParameters()
       : super(
             name: 'prefer_final_parameters',
@@ -73,6 +77,9 @@ class PreferFinalParameters extends LintRule {
   @override
   List<String> get incompatibleRules =>
       const ['unnecessary_final', 'avoid_final_parameters'];
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -88,6 +95,18 @@ class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
   _Visitor(this.rule);
+
+  @override
+  void visitConstructorDeclaration(ConstructorDeclaration node) =>
+      _reportApplicableParameters(node.parameters, node.body);
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) =>
+      _reportApplicableParameters(node.parameters, node.body);
+
+  @override
+  void visitMethodDeclaration(MethodDeclaration node) =>
+      _reportApplicableParameters(node.parameters, node.body);
 
   /// Report the lint for parameters in the [parameters] list that are not
   /// const or final already and not potentially mutated in the function [body].
@@ -112,21 +131,9 @@ class _Visitor extends SimpleAstVisitor<void> {
         if (declaredElement != null &&
             !declaredElement.isInitializingFormal &&
             !body.isPotentiallyMutatedInScope(declaredElement)) {
-          rule.reportLint(param);
+          rule.reportLint(param, arguments: [param.name!.lexeme]);
         }
       }
     }
   }
-
-  @override
-  void visitConstructorDeclaration(ConstructorDeclaration node) =>
-      _reportApplicableParameters(node.parameters, node.body);
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) =>
-      _reportApplicableParameters(node.parameters, node.body);
-
-  @override
-  void visitMethodDeclaration(MethodDeclaration node) =>
-      _reportApplicableParameters(node.parameters, node.body);
 }
