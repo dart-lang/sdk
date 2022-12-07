@@ -8428,7 +8428,8 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleVariablePattern(Token? keyword, Token variable) {
+  void handleVariablePattern(Token? keyword, Token variable,
+      {required bool inAssignmentPattern}) {
     debugEvent('VariablePattern');
     assert(checkState(keyword ?? variable, [
       ValueKinds.TypeBuilderOrNull,
@@ -8443,6 +8444,7 @@ class BodyBuilder extends StackListenerImpl
     if (variable.lexeme == "_") {
       pattern = new WildcardPattern(patternType, variable.charOffset);
     } else {
+      // TODO(paulberry): use inAssignmentPattern.
       pattern = new VariablePattern(
           patternType,
           variable.lexeme,

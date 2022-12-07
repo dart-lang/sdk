@@ -6298,7 +6298,7 @@ class Parser {
     Token next = token.next!;
     if (allowPatterns && optional('case', next)) {
       Token case_ = token = next;
-      token = parsePattern(token, isRefutableContext: true);
+      token = parsePattern(token, PatternContext.matching);
       next = token.next!;
       Token? when;
       if (optional('when', next)) {
@@ -7459,7 +7459,7 @@ class Parser {
         }
         if (forPartsContext != null) {
           forPartsContext.patternKeyword = varFinalOrConst;
-          return parsePattern(beforeType, isRefutableContext: false);
+          return parsePattern(beforeType, PatternContext.declaration);
         } else {
           return parsePatternVariableDeclarationStatement(
               beforeType, start, varFinalOrConst);
@@ -8371,7 +8371,7 @@ class Parser {
           }
           listener.beginCaseExpression(caseKeyword);
           if (allowPatterns) {
-            token = parsePattern(caseKeyword, isRefutableContext: true);
+            token = parsePattern(caseKeyword, PatternContext.matching);
           } else {
             token = parseExpression(caseKeyword);
           }
@@ -9234,20 +9234,13 @@ class Parser {
   /// nullAssertPattern ::= primaryPattern '!'
   /// nullCheckPattern ::= primaryPattern '?'
   ///
-  /// [isRefutableContext] should be `true` if the pattern occurs in a
-  /// `guardedPattern` or any of its sub-patterns (i.e. in a
-  /// `switchStatementCase`, `switchExpressionCase`, or `ifCondition`); these
-  /// are contexts where a pattern match might be expected to fail, and bare
-  /// identifiers are treated as constant patterns.  It should be `false` if the
-  /// pattern occurs in a `localVariableDeclaration`, `forLoopParts`, or
-  /// `patternAssignment`; these are contexts where a pattern match failure is
-  /// either prohibited statically or causes a runtime exception, and bare
-  /// identifiers are treated as variable patterns.
-  Token parsePattern(Token token,
-      {int precedence = 1, required bool isRefutableContext}) {
+  /// [patternContext] indicates whether the pattern is refutable or
+  /// irrefutable, and whether it occurs as part of a patternAssignment.
+  Token parsePattern(Token token, PatternContext patternContext,
+      {int precedence = 1}) {
     assert(precedence >= 1);
     assert(precedence <= SELECTOR_PRECEDENCE);
-    token = parsePrimaryPattern(token, isRefutableContext: isRefutableContext);
+    token = parsePrimaryPattern(token, patternContext);
     while (true) {
       Token next = token.next!;
       int tokenLevel = _computePrecedence(next, forPattern: true);
@@ -9278,9 +9271,8 @@ class Parser {
         case '||':
           listener.beginBinaryPattern(next);
           // Left associative so we parse the RHS one precedence level higher
-          token = parsePattern(next,
-              precedence: tokenLevel + 1,
-              isRefutableContext: isRefutableContext);
+          token =
+              parsePattern(next, patternContext, precedence: tokenLevel + 1);
           listener.endBinaryPattern(next);
           break;
         default:
@@ -9317,7 +9309,7 @@ class Parser {
   ///                   | 'const' typeArguments? '{' elements? '}'
   ///                   | 'const' '(' expression ')'
   /// objectPattern ::= typeName typeArguments? '(' patternFields? ')'
-  Token parsePrimaryPattern(Token token, {required bool isRefutableContext}) {
+  Token parsePrimaryPattern(Token token, PatternContext patternContext) {
     Token start = token;
     TypeParamOrArgInfo typeArg =
         computeTypeParamOrArg(token, /* inDeclaration = */ true);
@@ -9327,8 +9319,7 @@ class Parser {
       case '[':
         // listPattern ::= typeArguments? '[' patterns? ']'
         token = typeArg.parseArguments(token, this);
-        token = parseListPatternSuffix(token,
-            isRefutableContext: isRefutableContext);
+        token = parseListPatternSuffix(token, patternContext);
         // A list pattern is a valid form of outerPattern, so verify that
         // skipOuterPattern would have skipped this pattern properly.
         assert(
@@ -9339,8 +9330,7 @@ class Parser {
         // mapPatternEntries ::= mapPatternEntry ( ',' mapPatternEntry )* ','?
         // mapPatternEntry   ::= expression ':' pattern
         token = typeArg.parseArguments(token, this);
-        token = parseMapPatternSuffix(token,
-            isRefutableContext: isRefutableContext);
+        token = parseMapPatternSuffix(token, patternContext);
         // A map pattern is a valid form of outerPattern, so verify that
         // skipOuterPattern would have skipped this pattern properly.
         assert(
@@ -9355,7 +9345,7 @@ class Parser {
       case 'var':
       case 'final':
         // variablePattern ::= ( 'var' | 'final' | 'final'? type )? identifier
-        return parseVariablePattern(token);
+        return parseVariablePattern(token, patternContext);
       case '(':
         // parenthesizedPattern  ::= '(' pattern ')'
         // recordPattern         ::= '(' patternFields? ')'
@@ -9366,8 +9356,8 @@ class Parser {
           listener.handleRecordPattern(next, /* count = */ 0);
           token = nextNext;
         } else {
-          token = parseParenthesizedPatternOrRecordPattern(token,
-              isRefutableContext: isRefutableContext);
+          token =
+              parseParenthesizedPatternOrRecordPattern(token, patternContext);
         }
         // A record or parenthesized pattern is a valid form of outerPattern, so
         // verify that skipOuterPattern would have skipped this pattern
@@ -9412,7 +9402,7 @@ class Parser {
     }
     TypeInfo typeInfo = computeVariablePatternType(token);
     if (typeInfo != noType) {
-      return parseVariablePattern(token, typeInfo: typeInfo);
+      return parseVariablePattern(token, patternContext, typeInfo: typeInfo);
     }
     // objectPattern ::= typeName typeArguments? '(' patternFields? ')'
     // TODO(paulberry): Make sure OTHER_IDENTIFIER is handled
@@ -9441,8 +9431,7 @@ class Parser {
       if (optional('(', afterToken) && !potentialTypeArg.recovered) {
         TypeParamOrArgInfo typeArg = potentialTypeArg;
         token = typeArg.parseArguments(token, this);
-        token = parseObjectPatternRest(token,
-            isRefutableContext: isRefutableContext);
+        token = parseObjectPatternRest(token, patternContext);
         listener.handleObjectPattern(firstIdentifier, dot, secondIdentifier);
         // An object pattern is a valid form of outerPattern, so verify that
         // skipOuterPattern would have skipped this pattern properly.
@@ -9452,10 +9441,10 @@ class Parser {
       } else if (dot == null) {
         // It's a single identifier.  If it's a wildcard pattern or we're in an
         // irrefutable context, parse it as a variable pattern.
-        if (!isRefutableContext || firstIdentifier.lexeme == '_') {
+        if (!patternContext.isRefutable || firstIdentifier.lexeme == '_') {
           // It's a wildcard pattern with no preceding type, so parse it as a
           // variable pattern.
-          return parseVariablePattern(beforeFirstIdentifier,
+          return parseVariablePattern(beforeFirstIdentifier, patternContext,
               typeInfo: typeInfo);
         }
       }
@@ -9474,7 +9463,8 @@ class Parser {
   /// about the type appearing after [token], if any.
   ///
   /// variablePattern ::= ( 'var' | 'final' | 'final'? type )? identifier
-  Token parseVariablePattern(Token token, {TypeInfo typeInfo = noType}) {
+  Token parseVariablePattern(Token token, PatternContext patternContext,
+      {TypeInfo typeInfo = noType}) {
     Token? keyword;
     if (typeInfo != noType) {
       token = typeInfo.parseType(token, this);
@@ -9500,7 +9490,8 @@ class Parser {
       token = insertSyntheticIdentifier(
           token, IdentifierContext.localVariableDeclaration);
     }
-    listener.handleVariablePattern(keyword, token);
+    listener.handleVariablePattern(keyword, token,
+        inAssignmentPattern: patternContext == PatternContext.assignment);
     return token;
   }
 
@@ -9508,8 +9499,7 @@ class Parser {
   /// bracket.
   ///
   /// listPattern ::= typeArguments? '[' patterns? ']'
-  Token parseListPatternSuffix(Token token,
-      {required bool isRefutableContext}) {
+  Token parseListPatternSuffix(Token token, PatternContext patternContext) {
     Token beforeToken = token;
     Token beginToken = token = token.next!;
     assert(optional('[', token) || optional('[]', token));
@@ -9537,11 +9527,11 @@ class Parser {
         next = token.next!;
         bool hasSubPattern = looksLikePatternStart(next);
         if (hasSubPattern) {
-          token = parsePattern(token, isRefutableContext: isRefutableContext);
+          token = parsePattern(token, patternContext);
         }
         listener.handleRestPattern(dots, hasSubPattern: hasSubPattern);
       } else {
-        token = parsePattern(token, isRefutableContext: isRefutableContext);
+        token = parsePattern(token, patternContext);
       }
       next = token.next!;
       ++count;
@@ -9585,7 +9575,7 @@ class Parser {
   /// mapPattern        ::= typeArguments? '{' mapPatternEntries? '}'
   /// mapPatternEntries ::= mapPatternEntry ( ',' mapPatternEntry )* ','?
   /// mapPatternEntry   ::= expression ':' pattern
-  Token parseMapPatternSuffix(Token token, {required bool isRefutableContext}) {
+  Token parseMapPatternSuffix(Token token, PatternContext patternContext) {
     Token leftBrace = token = token.next!;
     assert(optional('{', leftBrace));
     Token next = token.next!;
@@ -9604,7 +9594,7 @@ class Parser {
         next = token.next!;
         bool hasSubPattern = looksLikePatternStart(next);
         if (hasSubPattern) {
-          token = parsePattern(token, isRefutableContext: isRefutableContext);
+          token = parsePattern(token, patternContext);
         }
         listener.handleRestPattern(dots, hasSubPattern: hasSubPattern);
       } else {
@@ -9618,7 +9608,7 @@ class Parser {
               codes.templateExpectedButGot.withArguments(':'),
               new SyntheticToken(TokenType.PERIOD, next.charOffset));
         }
-        token = parsePattern(colon, isRefutableContext: isRefutableContext);
+        token = parsePattern(colon, patternContext);
         listener.handleMapPatternEntry(colon, token.next!);
       }
       ++count;
@@ -9664,8 +9654,8 @@ class Parser {
   /// recordPattern         ::= '(' patternFields? ')'
   /// patternFields         ::= patternField ( ',' patternField )* ','?
   /// patternField          ::= ( identifier? ':' )? pattern
-  Token parseParenthesizedPatternOrRecordPattern(Token token,
-      {required bool isRefutableContext}) {
+  Token parseParenthesizedPatternOrRecordPattern(
+      Token token, PatternContext patternContext) {
     Token begin = token.next!;
     assert(optional('(', begin));
     bool old = mayParseFunctionExpressions;
@@ -9698,7 +9688,7 @@ class Parser {
         colon = token;
         wasValidRecord = true;
       }
-      token = parsePattern(token, isRefutableContext: isRefutableContext);
+      token = parsePattern(token, patternContext);
       next = token.next!;
       if (wasRecord || colon != null) {
         listener.handlePatternField(colon);
@@ -9741,8 +9731,7 @@ class Parser {
   /// `(`.
   ///
   /// objectPattern ::= typeName typeArguments? '(' patternFields? ')'
-  Token parseObjectPatternRest(Token token,
-      {required bool isRefutableContext}) {
+  Token parseObjectPatternRest(Token token, PatternContext patternContext) {
     Token begin = token = token.next!;
     assert(optional('(', begin));
     int argumentCount = 0;
@@ -9764,7 +9753,7 @@ class Parser {
                 .next!;
         colon = token;
       }
-      token = parsePattern(token, isRefutableContext: isRefutableContext);
+      token = parsePattern(token, patternContext);
       next = token.next!;
       listener.handlePatternField(colon);
       ++argumentCount;
@@ -9869,7 +9858,7 @@ class Parser {
   ///                                expression
   Token parsePatternVariableDeclarationStatement(
       Token keyword, Token start, Token varOrFinal) {
-    Token token = parsePattern(keyword, isRefutableContext: false);
+    Token token = parsePattern(keyword, PatternContext.declaration);
     Token equals = token.next!;
     // Caller should have assured that the pattern was followed by an `=`.
     assert(optional('=', equals));
@@ -9882,7 +9871,7 @@ class Parser {
 
   /// patternAssignment ::= outerPattern '=' expression
   Token parsePatternAssignment(Token token) {
-    token = parsePattern(token, isRefutableContext: false);
+    token = parsePattern(token, PatternContext.assignment);
     Token equals = token.next!;
     // Caller should have assured that the pattern was followed by an `=`.
     assert(optional('=', equals));
@@ -9911,7 +9900,7 @@ class Parser {
       mayParseFunctionExpressions = false;
       while (true) {
         listener.beginSwitchExpressionCase();
-        token = parsePattern(token, isRefutableContext: true);
+        token = parsePattern(token, PatternContext.matching);
         Token? when;
         next = token.next!;
         if (optional('when', next)) {
@@ -9979,4 +9968,24 @@ class ForPartsContext {
 
   @override
   String toString() => 'ForPartsContext($patternKeyword)';
+}
+
+/// Enum describing the different contexts in which a pattern can occur.
+enum PatternContext {
+  /// The pattern is part of a localVariableDeclaration or forLoopParts, meaning
+  /// bare identifiers refer to freshly declared variables.
+  declaration(isRefutable: false),
+
+  /// The pattern is part of a guardedPattern inside an if-case, switch
+  /// expression, or switch statement, meaning bare identifiers refer to
+  /// constants.
+  matching(isRefutable: true),
+
+  /// The pattern is part of a pattern assignment, meaning bare identifiers
+  /// refer to previously declared variables.
+  assignment(isRefutable: false);
+
+  final bool isRefutable;
+
+  const PatternContext({required this.isRefutable});
 }

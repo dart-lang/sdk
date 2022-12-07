@@ -1778,8 +1778,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleVariablePattern(Token? keyword, Token variable) {
-    listener?.handleVariablePattern(keyword, variable);
+  void handleVariablePattern(Token? keyword, Token variable,
+      {required bool inAssignmentPattern}) {
+    listener?.handleVariablePattern(keyword, variable,
+        inAssignmentPattern: inAssignmentPattern);
   }
 
   @override
