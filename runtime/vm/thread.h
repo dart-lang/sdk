@@ -184,6 +184,7 @@ class Thread;
 #define CACHED_FUNCTION_ENTRY_POINTS_LIST(V)                                   \
   V(suspend_state_init_async)                                                  \
   V(suspend_state_await)                                                       \
+  V(suspend_state_await_with_type_check)                                       \
   V(suspend_state_return_async)                                                \
   V(suspend_state_return_async_not_future)                                     \
   V(suspend_state_init_async_star)                                             \

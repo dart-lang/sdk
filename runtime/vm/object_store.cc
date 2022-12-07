@@ -300,6 +300,10 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!function.IsNull());
   set_suspend_state_await(function);
 
+  function = cls.LookupFunctionAllowPrivate(Symbols::_awaitWithTypeCheck());
+  ASSERT(!function.IsNull());
+  set_suspend_state_await_with_type_check(function);
+
   function = cls.LookupFunctionAllowPrivate(Symbols::_returnAsync());
   ASSERT(!function.IsNull());
   set_suspend_state_return_async(function);

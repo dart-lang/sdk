@@ -1385,6 +1385,9 @@ void SuspendInstr::PrintOperandsTo(BaseTextBuffer* f) const {
     case StubId::kAwait:
       name = "Await";
       break;
+    case StubId::kAwaitWithTypeCheck:
+      name = "AwaitWithTypeCheck";
+      break;
     case StubId::kYieldAsyncStar:
       name = "YieldAsyncStar";
       break;
@@ -1396,7 +1399,7 @@ void SuspendInstr::PrintOperandsTo(BaseTextBuffer* f) const {
       break;
   }
   f->Printf("%s(", name);
-  operand()->PrintTo(f);
+  Definition::PrintOperandsTo(f);
   f->AddString(")");
 }
 

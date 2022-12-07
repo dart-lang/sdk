@@ -1892,9 +1892,11 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
 void StubCodeCompiler::GenerateSuspendStub(
     Assembler* assembler,
     bool call_suspend_function,
+    bool pass_type_arguments,
     intptr_t suspend_entry_point_offset_in_thread,
     intptr_t suspend_function_offset_in_object_store) {
   const Register kArgument = SuspendStubABI::kArgumentReg;
+  const Register kTypeArgs = SuspendStubABI::kTypeArgsReg;
   const Register kTemp = SuspendStubABI::kTempReg;
   const Register kFrameSize = SuspendStubABI::kFrameSizeReg;
   const Register kSuspendState = SuspendStubABI::kSuspendStateReg;
@@ -1916,6 +1918,10 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ SubRegisters(kFrameSize, SPREG);
 
   __ EnterStubFrame();
+
+  if (pass_type_arguments) {
+    __ PushRegister(kTypeArgs);
+  }
 
   __ CompareClassId(kSuspendState, kSuspendStateCid, kTemp);
 
@@ -2042,8 +2048,14 @@ void StubCodeCompiler::GenerateSuspendStub(
   __ Bind(&call_dart);
   if (call_suspend_function) {
     __ Comment("Call suspend Dart function");
+    if (pass_type_arguments) {
+      __ LoadObject(ARGS_DESC_REG,
+                    ArgumentsDescriptorBoxed(/*type_args_len=*/1,
+                                             /*num_arguments=*/2));
+    }
     CallDartCoreLibraryFunction(assembler, suspend_entry_point_offset_in_thread,
-                                suspend_function_offset_in_object_store);
+                                suspend_function_offset_in_object_store,
+                                /*uses_args_desc=*/pass_type_arguments);
   } else {
     // SuspendStub returns either the result of Dart callback,
     // or SuspendStub argument (if Dart callback is not used).
@@ -2137,14 +2149,25 @@ void StubCodeCompiler::GenerateSuspendStub(
 void StubCodeCompiler::GenerateAwaitStub(Assembler* assembler) {
   GenerateSuspendStub(assembler,
                       /*call_suspend_function=*/true,
+                      /*pass_type_arguments=*/false,
                       target::Thread::suspend_state_await_entry_point_offset(),
                       target::ObjectStore::suspend_state_await_offset());
+}
+
+void StubCodeCompiler::GenerateAwaitWithTypeCheckStub(Assembler* assembler) {
+  GenerateSuspendStub(
+      assembler,
+      /*call_suspend_function=*/true,
+      /*pass_type_arguments=*/true,
+      target::Thread::suspend_state_await_with_type_check_entry_point_offset(),
+      target::ObjectStore::suspend_state_await_with_type_check_offset());
 }
 
 void StubCodeCompiler::GenerateYieldAsyncStarStub(Assembler* assembler) {
   GenerateSuspendStub(
       assembler,
       /*call_suspend_function=*/true,
+      /*pass_type_arguments=*/false,
       target::Thread::suspend_state_yield_async_star_entry_point_offset(),
       target::ObjectStore::suspend_state_yield_async_star_offset());
 }
@@ -2154,6 +2177,7 @@ void StubCodeCompiler::GenerateSuspendSyncStarAtStartStub(
   GenerateSuspendStub(
       assembler,
       /*call_suspend_function=*/true,
+      /*pass_type_arguments=*/false,
       target::Thread::
           suspend_state_suspend_sync_star_at_start_entry_point_offset(),
       target::ObjectStore::suspend_state_suspend_sync_star_at_start_offset());
@@ -2162,7 +2186,8 @@ void StubCodeCompiler::GenerateSuspendSyncStarAtStartStub(
 void StubCodeCompiler::GenerateSuspendSyncStarAtYieldStub(
     Assembler* assembler) {
   GenerateSuspendStub(assembler,
-                      /*call_suspend_function=*/false, -1, -1);
+                      /*call_suspend_function=*/false,
+                      /*pass_type_arguments=*/false, -1, -1);
 }
 
 void StubCodeCompiler::GenerateInitSuspendableFunctionStub(

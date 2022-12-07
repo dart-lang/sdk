@@ -1274,6 +1274,7 @@ class Thread : public AllStatic {
 
   static word suspend_state_init_async_entry_point_offset();
   static word suspend_state_await_entry_point_offset();
+  static word suspend_state_await_with_type_check_entry_point_offset();
   static word suspend_state_return_async_entry_point_offset();
   static word suspend_state_return_async_not_future_entry_point_offset();
 
@@ -1312,6 +1313,7 @@ class ObjectStore : public AllStatic {
   static word type_type_offset();
 
   static word suspend_state_await_offset();
+  static word suspend_state_await_with_type_check_offset();
   static word suspend_state_handle_exception_offset();
   static word suspend_state_init_async_offset();
   static word suspend_state_init_async_star_offset();

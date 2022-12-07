@@ -4323,9 +4323,12 @@ Fragment FlowGraphBuilder::Call1ArgStub(TokenPosition position,
 
 Fragment FlowGraphBuilder::Suspend(TokenPosition position,
                                    SuspendInstr::StubId stub_id) {
+  Value* type_args =
+      (stub_id == SuspendInstr::StubId::kAwaitWithTypeCheck) ? Pop() : nullptr;
+  Value* operand = Pop();
   SuspendInstr* instr =
-      new (Z) SuspendInstr(InstructionSource(position), stub_id, Pop(),
-                           GetNextDeoptId(), GetNextDeoptId());
+      new (Z) SuspendInstr(InstructionSource(position), stub_id, operand,
+                           type_args, GetNextDeoptId(), GetNextDeoptId());
   Push(instr);
   return Fragment(instr);
 }

@@ -412,10 +412,11 @@ struct DoubleToIntegerStubABI {
   static constexpr Register kResultReg = A0;
 };
 
-// ABI for SuspendStub (AwaitStub, YieldAsyncStarStub,
+// ABI for SuspendStub (AwaitStub, AwaitWithTypeCheckStub, YieldAsyncStarStub,
 // SuspendSyncStarAtStartStub, SuspendSyncStarAtYieldStub).
 struct SuspendStubABI {
   static const Register kArgumentReg = A0;
+  static const Register kTypeArgsReg = T0;  // Can be the same as kTempReg
   static const Register kTempReg = T0;
   static const Register kFrameSizeReg = T1;
   static const Register kSuspendStateReg = T2;

@@ -177,6 +177,7 @@ class ObjectPointerVisitor;
   RW(Function, async_star_stream_controller_add_stream)                        \
   RW(Function, suspend_state_init_async)                                       \
   RW(Function, suspend_state_await)                                            \
+  RW(Function, suspend_state_await_with_type_check)                            \
   RW(Function, suspend_state_return_async)                                     \
   RW(Function, suspend_state_return_async_not_future)                          \
   RW(Function, suspend_state_init_async_star)                                  \
@@ -272,6 +273,7 @@ class ObjectPointerVisitor;
   RW(Code, slow_tts_stub)                                                      \
   /* Roots for JIT/AOT snapshots are up until here (see to_snapshot() below)*/ \
   RW(Code, await_stub)                                                         \
+  RW(Code, await_with_type_check_stub)                                         \
   RW(Code, clone_suspend_state_stub)                                           \
   RW(Code, init_async_stub)                                                    \
   RW(Code, resume_stub)                                                        \
@@ -366,6 +368,7 @@ class ObjectPointerVisitor;
   DO(init_late_instance_field_stub, InitLateInstanceField)                     \
   DO(init_late_final_instance_field_stub, InitLateFinalInstanceField)          \
   DO(await_stub, Await)                                                        \
+  DO(await_with_type_check_stub, AwaitWithTypeCheck)                           \
   DO(clone_suspend_state_stub, CloneSuspendState)                              \
   DO(init_async_stub, InitAsync)                                               \
   DO(resume_stub, Resume)                                                      \

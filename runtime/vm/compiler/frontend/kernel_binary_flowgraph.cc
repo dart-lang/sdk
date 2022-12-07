@@ -4481,15 +4481,28 @@ Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
 
   instructions += BuildExpression();  // read operand.
 
+  SuspendInstr::StubId stub_id = SuspendInstr::StubId::kAwait;
   if (ReadTag() == kSomething) {
-    // TODO(50529): Use runtime check type when present.
-    SkipDartType();  // read runtime check type.
+    const AbstractType& type = T.BuildType();  // read runtime check type.
+    if (!type.IsType() ||
+        !Class::Handle(Z, type.type_class()).IsFutureClass()) {
+      FATAL("Unexpected type for runtime check in await: %s", type.ToCString());
+    }
+    ASSERT(type.IsFinalized());
+    const auto& type_args = TypeArguments::ZoneHandle(Z, type.arguments());
+    if (!type_args.IsNull()) {
+      const auto& type_arg = AbstractType::Handle(Z, type_args.TypeAt(0));
+      if (!type_arg.IsTopTypeForSubtyping()) {
+        instructions += TranslateInstantiatedTypeArguments(type_args);
+        stub_id = SuspendInstr::StubId::kAwaitWithTypeCheck;
+      }
+    }
   }
 
   if (NeedsDebugStepCheck(parsed_function()->function(), pos)) {
     instructions += DebugStepCheck(pos);
   }
-  instructions += B->Suspend(pos, SuspendInstr::StubId::kAwait);
+  instructions += B->Suspend(pos, stub_id);
   return instructions;
 }
 
