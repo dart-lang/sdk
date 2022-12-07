@@ -342,7 +342,7 @@ main() {
 
     group('If-case:', () {
       test('Type schema', () {
-        var x = Var('x')..errorId = 'x';
+        var x = Var('x');
         h.run([
           ifCase(
             expr('int').checkContext('?'),
@@ -355,7 +355,7 @@ main() {
       });
 
       test('With else', () {
-        var x = Var('x')..errorId = 'x';
+        var x = Var('x');
         h.run([
           ifCase(
             expr('num'),
@@ -373,7 +373,7 @@ main() {
       });
 
       test('With guard', () {
-        var x = Var('x')..errorId = 'x';
+        var x = Var('x');
         h.run([
           ifCase(
             expr('num'),
@@ -386,7 +386,7 @@ main() {
       });
 
       test('Allows refutable patterns', () {
-        var x = Var('x')..errorId = 'x';
+        var x = Var('x');
         h.run([
           ifCase(
             expr('num').checkContext('?'),
@@ -400,7 +400,7 @@ main() {
 
       group('Guard not assignable to bool', () {
         test('int', () {
-          var x = Var('x')..errorId = 'x';
+          var x = Var('x');
           h.run([
             ifCase(
               expr('int'),
@@ -413,7 +413,7 @@ main() {
         });
 
         test('bool', () {
-          var x = Var('x')..errorId = 'x';
+          var x = Var('x');
           h.run([
             ifCase(
               expr('int'),
@@ -424,7 +424,7 @@ main() {
         });
 
         test('dynamic', () {
-          var x = Var('x')..errorId = 'x';
+          var x = Var('x');
           h.run([
             ifCase(
               expr('int'),
@@ -559,7 +559,7 @@ main() {
 
       group('var pattern:', () {
         test('untyped', () {
-          var x = Var('x')..errorId = 'x';
+          var x = Var('x');
           h.run([
             switch_(
               expr('int').checkContext('?'),
@@ -577,7 +577,7 @@ main() {
         });
 
         test('typed', () {
-          var x = Var('x')..errorId = 'x';
+          var x = Var('x');
           h.run([
             switch_(
               expr('int').checkContext('?'),
@@ -628,7 +628,7 @@ main() {
       });
 
       test('guard', () {
-        var i = Var('i')..errorId = 'i';
+        var i = Var('i');
         h.run([
           switch_(
             expr('int'),
@@ -652,8 +652,8 @@ main() {
 
       group('Variables:', () {
         test('Independent cases', () {
-          var x = Var('x')..errorId = 'x';
-          var y = Var('y')..errorId = 'y';
+          var x = Var('x');
+          var y = Var('y');
           h.run([
             switch_(
               expr('int'),
@@ -676,8 +676,8 @@ main() {
         group('Shared case scope:', () {
           group('Present in both cases:', () {
             test('With the same type and finality', () {
-              var x1 = Var('x')..errorId = 'x1';
-              var x2 = Var('x')..errorId = 'x2';
+              var x1 = Var('x', identity: 'x1');
+              var x2 = Var('x', identity: 'x2');
               h.run([
                 switch_(
                   expr('int'),
@@ -697,9 +697,9 @@ main() {
               ]);
             });
             test('With the same type and finality, with logical-or', () {
-              var x1 = Var('x')..errorId = 'x1';
-              var x2 = Var('x')..errorId = 'x2';
-              var x3 = Var('x')..errorId = 'x3';
+              var x1 = Var('x', identity: 'x1');
+              var x2 = Var('x', identity: 'x2');
+              var x3 = Var('x', identity: 'x3');
               h.run([
                 switch_(
                   expr('int'),
@@ -722,8 +722,8 @@ main() {
             });
             group('With different type:', () {
               test('explicit / explicit', () {
-                var x1 = Var('x')..errorId = 'x1';
-                var x2 = Var('x')..errorId = 'x2';
+                var x1 = Var('x', identity: 'x1');
+                var x2 = Var('x', identity: 'x2');
                 h.run([
                   switch_(
                     expr('int'),
@@ -744,8 +744,8 @@ main() {
                 ]);
               });
               test('explicit / implicit', () {
-                var x1 = Var('x')..errorId = 'x1';
-                var x2 = Var('x')..errorId = 'x2';
+                var x1 = Var('x', identity: 'x1');
+                var x2 = Var('x', identity: 'x2');
                 h.run([
                   switch_(
                     expr('int'),
@@ -766,8 +766,8 @@ main() {
                 ]);
               });
               test('implicit / implicit', () {
-                var x1 = Var('x')..errorId = 'x1';
-                var x2 = Var('x')..errorId = 'x2';
+                var x1 = Var('x', identity: 'x1');
+                var x2 = Var('x', identity: 'x2');
                 h.run([
                   switch_(
                     expr('List<int>'),
@@ -792,8 +792,8 @@ main() {
               });
             });
             test('With different finality', () {
-              var x1 = Var('x', isFinal: true)..errorId = 'x1';
-              var x2 = Var('x')..errorId = 'x2';
+              var x1 = Var('x', isFinal: true, identity: 'x1');
+              var x2 = Var('x', identity: 'x2');
               h.run([
                 switch_(
                   expr('int'),
@@ -815,7 +815,7 @@ main() {
             });
           });
           test('case has, case not', () {
-            var x1 = Var('x')..errorId = 'x1';
+            var x1 = Var('x', identity: 'x1');
             h.run([
               switch_(
                 expr('int'),
@@ -835,7 +835,7 @@ main() {
             ]);
           });
           test('case not, case has', () {
-            var x1 = Var('x')..errorId = 'x1';
+            var x1 = Var('x', identity: 'x1');
             h.run([
               switch_(
                 expr('int'),
@@ -856,7 +856,7 @@ main() {
             ]);
           });
           test('case has, default', () {
-            var x1 = Var('x')..errorId = 'x1';
+            var x1 = Var('x', identity: 'x1');
             h.run([
               switch_(
                 expr('int'),
@@ -875,7 +875,7 @@ main() {
             ]);
           });
           test('case has, with label', () {
-            var x1 = Var('x')..errorId = 'x1';
+            var x1 = Var('x', identity: 'x1');
             h.run([
               switch_(
                 expr('int'),
@@ -1302,7 +1302,7 @@ main() {
 
       group('Guard not assignable to bool', () {
         test('int', () {
-          var x = Var('x')..errorId = 'x';
+          var x = Var('x');
           h.run([
             switch_(
               expr('int'),
@@ -1319,7 +1319,7 @@ main() {
         });
 
         test('bool', () {
-          var x = Var('x')..errorId = 'x';
+          var x = Var('x');
           h.run([
             switch_(
               expr('int'),
@@ -1334,7 +1334,7 @@ main() {
         });
 
         test('dynamic', () {
-          var x = Var('x')..errorId = 'x';
+          var x = Var('x');
           h.run([
             switch_(
               expr('int'),
@@ -1407,10 +1407,9 @@ main() {
 
       test('illegal late pattern', () {
         h.run([
-          (match(
+          match(
               listPattern([wildcard()])..errorId = 'PATTERN', expr('List<int>'),
-              isLate: true)
-            ..errorId = 'CONTEXT'),
+              isLate: true),
         ], expectedErrors: {
           'patternDoesNotAllowLate(PATTERN)'
         });
@@ -1430,7 +1429,7 @@ main() {
   group('Patterns:', () {
     group('Cast:', () {
       test('Type schema', () {
-        var x = Var('x')..errorId = 'x';
+        var x = Var('x');
         h.run([
           ifCase(
             expr('num'),
@@ -1544,7 +1543,7 @@ main() {
 
       group('Static type', () {
         test('Explicit type arguments', () {
-          var x = Var('x', errorId: 'x');
+          var x = Var('x');
           h.run([
             ifCase(
               expr('dynamic'),
@@ -1567,7 +1566,7 @@ main() {
         });
 
         test('Matched type is a map', () {
-          var x = Var('x', errorId: 'x');
+          var x = Var('x');
           h.run([
             ifCase(
               expr('Map<bool, int>'),
@@ -1586,7 +1585,7 @@ main() {
         });
 
         test('Matched type is dynamic', () {
-          var x = Var('x', errorId: 'x');
+          var x = Var('x');
           h.run([
             ifCase(
               expr('dynamic'),
@@ -1605,7 +1604,7 @@ main() {
         });
 
         test('Matched type is other', () {
-          var x = Var('x', errorId: 'x');
+          var x = Var('x');
           h.run([
             ifCase(
               expr('String'),
@@ -1827,8 +1826,8 @@ main() {
         });
 
         test('Matched type is other', () {
-          var x = Var('x')..errorId = 'x';
-          var y = Var('y')..errorId = 'y';
+          var x = Var('x');
+          var y = Var('y');
           h.run([
             ifCase(
               expr('Object'),
@@ -1848,7 +1847,7 @@ main() {
 
         group('Rest pattern:', () {
           test('With pattern', () {
-            var x = Var('x')..errorId = 'x';
+            var x = Var('x');
             h.run([
               match(
                 listPattern([listPatternRestElement(x.pattern())]),
@@ -1926,13 +1925,13 @@ main() {
       });
 
       test('Match var overlap', () {
-        var x1 = Var('x')..errorId = 'x1';
-        var x2 = Var('x')..errorId = 'x2';
+        var x1 = Var('x', identity: 'x1')..errorId = 'x1';
+        var x2 = Var('x', identity: 'x2')..errorId = 'x2';
         h.run([
           match(
             listPattern([
-              x1.pattern()..errorId = 'P1',
-              x2.pattern()..errorId = 'P2',
+              x1.pattern(),
+              x2.pattern(),
             ]),
             expr('List<int>'),
           ),
@@ -1971,13 +1970,10 @@ main() {
       });
 
       test('Duplicate variable pattern', () {
-        var x1 = Var('x')..errorId = 'x1';
-        var x2 = Var('x')..errorId = 'x2';
+        var x1 = Var('x', identity: 'x1')..errorId = 'x1';
+        var x2 = Var('x', identity: 'x2')..errorId = 'x2';
         h.run([
-          match(
-              (x1.pattern()..errorId = 'LHS')
-                  .and(x2.pattern()..errorId = 'RHS'),
-              expr('int')),
+          match(x1.pattern().and(x2.pattern()), expr('int')),
         ], expectedErrors: {
           'duplicateVariablePattern(name: x, original: x1, duplicate: x2)',
         });
@@ -2016,8 +2012,8 @@ main() {
         group('Should have same types:', () {
           group('Same:', () {
             test('explicit / explicit', () {
-              var x1 = Var('x')..errorId = 'x1';
-              var x2 = Var('x')..errorId = 'x2';
+              var x1 = Var('x', identity: 'x1');
+              var x2 = Var('x', identity: 'x2');
               h.run([
                 ifCase(
                   expr('Object'),
@@ -2031,8 +2027,8 @@ main() {
               ]);
             });
             test('explicit / explicit, normalized', () {
-              var x1 = Var('x')..errorId = 'x1';
-              var x2 = Var('x')..errorId = 'x2';
+              var x1 = Var('x', identity: 'x1');
+              var x2 = Var('x', identity: 'x2');
               h.run([
                 ifCase(
                   expr('Object'),
@@ -2048,8 +2044,8 @@ main() {
               ]);
             });
             test('explicit / implicit', () {
-              var x1 = Var('x')..errorId = 'x1';
-              var x2 = Var('x')..errorId = 'x2';
+              var x1 = Var('x', identity: 'x1');
+              var x2 = Var('x', identity: 'x2');
               h.run([
                 ifCase(
                   expr('int'),
@@ -2062,8 +2058,8 @@ main() {
               ]);
             });
             test('implicit / explicit', () {
-              var x1 = Var('x')..errorId = 'x1';
-              var x2 = Var('x')..errorId = 'x2';
+              var x1 = Var('x', identity: 'x1');
+              var x2 = Var('x', identity: 'x2');
               h.run([
                 ifCase(
                   expr('int'),
@@ -2076,8 +2072,8 @@ main() {
               ]);
             });
             test('implicit / implicit', () {
-              var x1 = Var('x')..errorId = 'x1';
-              var x2 = Var('x')..errorId = 'x2';
+              var x1 = Var('x', identity: 'x1');
+              var x2 = Var('x', identity: 'x2');
               h.run([
                 ifCase(
                   expr('int'),
@@ -2092,8 +2088,8 @@ main() {
           });
           group('Not same:', () {
             test('explicit / explicit', () {
-              var x1 = Var('x')..errorId = 'x1';
-              var x2 = Var('x')..errorId = 'x2';
+              var x1 = Var('x', identity: 'x1');
+              var x2 = Var('x', identity: 'x2')..errorId = 'x2';
               h.run([
                 ifCase(
                   expr('Object'),
@@ -2110,8 +2106,8 @@ main() {
               });
             });
             test('explicit / implicit', () {
-              var x1 = Var('x')..errorId = 'x1';
-              var x2 = Var('x')..errorId = 'x2';
+              var x1 = Var('x', identity: 'x1');
+              var x2 = Var('x', identity: 'x2')..errorId = 'x2';
               h.run([
                 ifCase(
                   expr('num'),
@@ -2130,8 +2126,8 @@ main() {
           });
         });
         test('Should have same finality', () {
-          var x1 = Var('x', isFinal: true)..errorId = 'x1';
-          var x2 = Var('x')..errorId = 'x2';
+          var x1 = Var('x', isFinal: true, identity: 'x1');
+          var x2 = Var('x', identity: 'x2')..errorId = 'x2';
           h.run([
             ifCase(
               expr('int'),
@@ -2149,8 +2145,8 @@ main() {
         });
         group('Should be present in both branches:', () {
           test('Both have', () {
-            var x1 = Var('x')..errorId = 'x1';
-            var x2 = Var('x')..errorId = 'x2';
+            var x1 = Var('x', identity: 'x1');
+            var x2 = Var('x', identity: 'x2');
             h.run([
               ifCase(
                 expr('int'),
@@ -2163,7 +2159,7 @@ main() {
             ]);
           });
           test('Left has', () {
-            var x1 = Var('x')..errorId = 'x1';
+            var x1 = Var('x', identity: 'x1')..errorId = 'x1';
             h.run([
               ifCase(
                 expr('int'),
@@ -2180,7 +2176,7 @@ main() {
             });
           });
           test('Right has', () {
-            var x1 = Var('x')..errorId = 'x1';
+            var x1 = Var('x', identity: 'x1')..errorId = 'x1';
             h.run([
               ifCase(
                 expr('int'),
@@ -2316,7 +2312,7 @@ main() {
               objectPattern(
                 requiredType: 'B',
                 fields: [
-                  Var('foo', errorId: 'foo').pattern().recordField('foo'),
+                  Var('foo').pattern().recordField('foo'),
                 ],
               ),
               [],
@@ -2333,7 +2329,7 @@ main() {
               objectPattern(
                 requiredType: 'dynamic',
                 fields: [
-                  Var('foo', errorId: 'foo').pattern().recordField('foo'),
+                  Var('foo').pattern().recordField('foo'),
                 ],
               ),
               [],
@@ -2350,7 +2346,7 @@ main() {
               objectPattern(
                 requiredType: 'Never',
                 fields: [
-                  Var('foo', errorId: 'foo').pattern().recordField('foo'),
+                  Var('foo').pattern().recordField('foo'),
                 ],
               ),
               [],
@@ -2368,10 +2364,8 @@ main() {
               objectPattern(
                 requiredType: 'A<int>',
                 fields: [
-                  Var('a', errorId: 'a').pattern().recordField('foo')
-                    ..errorId = 'ORIGINAL',
-                  Var('b', errorId: 'b').pattern().recordField('foo')
-                    ..errorId = 'DUPLICATE',
+                  Var('a').pattern().recordField('foo')..errorId = 'ORIGINAL',
+                  Var('b').pattern().recordField('foo')..errorId = 'DUPLICATE',
                 ],
               ),
               [],
@@ -2432,8 +2426,8 @@ main() {
               ifCase(
                 expr('dynamic').checkContext('?'),
                 recordPattern([
-                  Var('a', errorId: 'a').pattern(type: 'int').recordField(),
-                  Var('b', errorId: 'b').pattern().recordField(),
+                  Var('a').pattern(type: 'int').recordField(),
+                  Var('b').pattern().recordField(),
                 ]),
                 [],
               ).checkIr(
@@ -2503,8 +2497,8 @@ main() {
                   ifCase(
                     expr('(int,)').checkContext('?'),
                     recordPattern([
-                      Var('a', errorId: 'a').pattern().recordField(),
-                      Var('b', errorId: 'b').pattern().recordField(),
+                      Var('a').pattern().recordField(),
+                      Var('b').pattern().recordField(),
                     ]),
                     [],
                   ).checkIr('ifCase(expr((int)), recordPattern(varPattern(a, '
@@ -2520,7 +2514,7 @@ main() {
                   ifCase(
                     expr('(int, String)').checkContext('?'),
                     recordPattern([
-                      Var('a', errorId: 'a').pattern().recordField(),
+                      Var('a').pattern().recordField(),
                     ]),
                     [],
                   ).checkIr('ifCase(expr((int, String)), '
@@ -2539,8 +2533,8 @@ main() {
               ifCase(
                 expr('X').checkContext('?'),
                 recordPattern([
-                  Var('a', errorId: 'a').pattern(type: 'int').recordField(),
-                  Var('b', errorId: 'b').pattern().recordField(),
+                  Var('a').pattern(type: 'int').recordField(),
+                  Var('b').pattern().recordField(),
                 ]),
                 [],
               ).checkIr('ifCase(expr(X), recordPattern(varPattern(a, '
@@ -2559,8 +2553,8 @@ main() {
               ifCase(
                 expr('dynamic').checkContext('?'),
                 recordPattern([
-                  Var('a', errorId: 'a').pattern(type: 'int').recordField('a'),
-                  Var('b', errorId: 'b').pattern().recordField('b'),
+                  Var('a').pattern(type: 'int').recordField('a'),
+                  Var('b').pattern().recordField('b'),
                 ]),
                 [],
               ).checkIr('ifCase(expr(dynamic), recordPattern(varPattern(a, '
@@ -2627,8 +2621,8 @@ main() {
                   ifCase(
                     expr('({int a})').checkContext('?'),
                     recordPattern([
-                      Var('a', errorId: 'a').pattern().recordField('a'),
-                      Var('b', errorId: 'b').pattern().recordField('b'),
+                      Var('a').pattern().recordField('a'),
+                      Var('b').pattern().recordField('b'),
                     ]),
                     [],
                   ).checkIr('ifCase(expr(({int a})), recordPattern('
@@ -2644,7 +2638,7 @@ main() {
                   ifCase(
                     expr('({int a, String b})').checkContext('?'),
                     recordPattern([
-                      Var('a', errorId: 'a').pattern().recordField('a'),
+                      Var('a').pattern().recordField('a'),
                     ]),
                     [],
                   ).checkIr('ifCase(expr(({int a, String b})), '
@@ -2663,8 +2657,8 @@ main() {
               ifCase(
                 expr('X').checkContext('?'),
                 recordPattern([
-                  Var('a', errorId: 'a').pattern(type: 'int').recordField('a'),
-                  Var('b', errorId: 'b').pattern().recordField('b'),
+                  Var('a').pattern(type: 'int').recordField('a'),
+                  Var('b').pattern().recordField('b'),
                 ]),
                 [],
               ).checkIr('ifCase(expr(X), recordPattern(varPattern(a, '
@@ -2680,10 +2674,8 @@ main() {
             ifCase(
               expr('({int a})'),
               recordPattern([
-                Var('a', errorId: 'a').pattern().recordField('a')
-                  ..errorId = 'ORIGINAL',
-                Var('b', errorId: 'b').pattern().recordField('a')
-                  ..errorId = 'DUPLICATE',
+                Var('a').pattern().recordField('a')..errorId = 'ORIGINAL',
+                Var('b').pattern().recordField('a')..errorId = 'DUPLICATE',
               ]),
               [],
             ),

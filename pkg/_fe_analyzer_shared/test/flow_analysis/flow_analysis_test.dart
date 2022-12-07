@@ -1869,7 +1869,7 @@ main() {
       var x = Var('x');
       var y = Var('y');
       var z = Var('z');
-      var w = Var('w', errorId: 'w');
+      var w = Var('w');
       h.run([
         declare(x, type: 'int'),
         declare(y, type: 'int'),
@@ -2016,7 +2016,7 @@ main() {
     });
 
     test('switchStatement var promotes', () {
-      var x = Var('x')..errorId = 'x';
+      var x = Var('x');
       h.run([
         switch_(
             expr('int'),
@@ -2030,7 +2030,7 @@ main() {
     });
 
     test('switchStatement_afterWhen() promotes', () {
-      var x = Var('x')..errorId = 'x';
+      var x = Var('x');
       h.run([
         switch_(
             expr('num'),
@@ -2250,8 +2250,8 @@ main() {
     });
 
     test('switchStatement_endAlternative() joins branches', () {
-      var x1 = Var('x')..errorId = 'x1';
-      var x2 = Var('x')..errorId = 'x2';
+      var x1 = Var('x', identity: 'x1');
+      var x2 = Var('x', identity: 'x2');
       var y = Var('y');
       var z = Var('z');
       h.run([
