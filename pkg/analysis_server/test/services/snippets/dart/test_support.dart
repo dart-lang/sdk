@@ -36,7 +36,7 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
       offset: offsetFromMarker(code),
     );
 
-    final producer = generator(request);
+    final producer = generator(request, elementImportCache: {});
     expect(await producer.isValid(), isFalse);
   }
 
@@ -47,7 +47,7 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
       offset: offsetFromMarker(code),
     );
 
-    final producer = generator(request);
+    final producer = generator(request, elementImportCache: {});
     expect(await producer.isValid(), isTrue);
     return producer.compute();
   }

@@ -21,7 +21,12 @@ class TopLevelDeclarations {
 
   /// Return the first public library that that exports (but does not necessary
   /// declare) [element].
-  Future<LibraryElement?> publiclyExporting(Element element) async {
+  Future<LibraryElement?> publiclyExporting(Element element,
+      {Map<Element, LibraryElement?>? resultCache}) async {
+    if (resultCache?.containsKey(element) ?? false) {
+      return resultCache![element];
+    }
+
     var declarationFilePath = element.source?.fullName;
     if (declarationFilePath == null) {
       return null;
@@ -48,6 +53,7 @@ class TopLevelDeclarations {
       }
 
       if (_findElement(elementResult.element, element.displayName) != null) {
+        resultCache?[element] = elementResult.element;
         return elementResult.element;
       }
     }

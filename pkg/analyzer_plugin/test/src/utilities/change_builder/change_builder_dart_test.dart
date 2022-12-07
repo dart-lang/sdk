@@ -4,6 +4,7 @@
 
 // ignore_for_file: camel_case_types
 
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -12,9 +13,9 @@ import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
-    show DartLinkedEditBuilderImpl;
+    show DartFileEditBuilderImpl, DartLinkedEditBuilderImpl;
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1804,6 +1805,12 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
 @reflectiveTest
 class DartFileEditBuilderImplTest extends AbstractContextTest
     with DartChangeBuilderMixin {
+  Future<ResolvedUnitResult> resolveContent(String path, String content) async {
+    path = convertPath(path);
+    addSource(path, content);
+    return resolveFile(path);
+  }
+
   Future<void> test_convertFunctionFromSyncToAsync_closure() async {
     var path = convertPath('/home/test/lib/test.dart');
     addSource(path, '''var f = () {}''');
@@ -1932,6 +1939,96 @@ void functionAfter() {
   1 +  2;
 }
 ''');
+  }
+
+  Future<void> test_importElementLibrary_libElement() async {
+    var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
+
+    var resolvedLibUnit =
+        await resolveContent('/home/test/lib/a.dart', 'class A {}');
+
+    var findNode = FindNode(resolvedLibUnit.content, resolvedLibUnit.unit);
+    var classElement = findNode.classDeclaration('A').declaredElement!;
+    var cache = <Element, LibraryElement?>{};
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
+      var builderImpl = builder as DartFileEditBuilderImpl;
+      await builderImpl.importElementLibrary(classElement, resultCache: cache);
+    });
+
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    expect(edits[0].replacement,
+        equalsIgnoringWhitespace("import 'package:test/a.dart';\n"));
+    expect(cache[classElement], resolvedLibUnit.libraryElement);
+  }
+
+  Future<void> test_importElementLibrary_sdkElement() async {
+    var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
+
+    var futureOrElement = resolvedUnit.typeProvider.futureOrElement;
+    var cache = <Element, LibraryElement?>{};
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
+      var builderImpl = builder as DartFileEditBuilderImpl;
+      await builderImpl.importElementLibrary(futureOrElement,
+          resultCache: cache);
+    });
+
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    expect(
+        edits[0].replacement, equalsIgnoringWhitespace("import 'dart:async';"));
+    expect(cache[futureOrElement], futureOrElement.library);
+  }
+
+  Future<void> test_importElementLibrary_srcElement() async {
+    var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
+
+    var resolvedSrcUnit =
+        await resolveContent('/home/test/lib/src/a.dart', 'class A {}');
+
+    var resolvedExportUnit =
+        await resolveContent('/home/test/lib/a.dart', "export 'src/a.dart'");
+
+    var findNode = FindNode(resolvedSrcUnit.content, resolvedSrcUnit.unit);
+    var classElement = findNode.classDeclaration('A').declaredElement!;
+    var cache = <Element, LibraryElement?>{};
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
+      var builderImpl = builder as DartFileEditBuilderImpl;
+      await builderImpl.importElementLibrary(classElement, resultCache: cache);
+    });
+
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    expect(edits[0].replacement,
+        equalsIgnoringWhitespace("import 'package:test/a.dart';\n"));
+    expect(cache[classElement], resolvedExportUnit.libraryElement);
+  }
+
+  Future<void> test_importElementLibrary_usesCache() async {
+    var resolvedUnit = await resolveContent('/home/test/lib/test.dart', '');
+
+    // Create a fake file to put into the cache to verify it's being used.
+    var resolvedFakeUnit = await resolveContent('/home/test/lib/fake.dart', '');
+
+    var futureOrElement = resolvedUnit.typeProvider.futureOrElement;
+    var cache = <Element, LibraryElement?>{
+      futureOrElement: resolvedFakeUnit.libraryElement,
+    };
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(resolvedUnit.path, (builder) async {
+      var builderImpl = builder as DartFileEditBuilderImpl;
+      await builderImpl.importElementLibrary(futureOrElement,
+          resultCache: cache);
+    });
+
+    var edits = getEdits(builder);
+    expect(edits, hasLength(1));
+    expect(edits[0].replacement,
+        equalsIgnoringWhitespace("import 'package:test/fake.dart';"));
+    expect(cache[futureOrElement], resolvedFakeUnit.libraryElement);
   }
 
   Future<void> test_multipleEdits_concurrently() async {

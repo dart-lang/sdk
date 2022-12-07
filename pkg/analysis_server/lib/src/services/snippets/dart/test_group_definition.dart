@@ -11,7 +11,10 @@ class TestGroupDefinition extends DartSnippetProducer {
   static const prefix = 'group';
   static const label = 'group';
 
-  TestGroupDefinition(super.request);
+  TestGroupDefinition(super.request, {required super.elementImportCache});
+
+  @override
+  String get snippetPrefix => prefix;
 
   @override
   Future<Snippet> compute() async {

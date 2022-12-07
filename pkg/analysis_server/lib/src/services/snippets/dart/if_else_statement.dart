@@ -11,7 +11,10 @@ class IfElseStatement extends DartSnippetProducer {
   static const prefix = 'ife';
   static const label = 'ife';
 
-  IfElseStatement(super.request);
+  IfElseStatement(super.request, {required super.elementImportCache});
+
+  @override
+  String get snippetPrefix => prefix;
 
   @override
   Future<Snippet> compute() async {

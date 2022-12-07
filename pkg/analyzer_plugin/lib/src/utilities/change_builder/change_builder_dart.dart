@@ -1534,15 +1534,15 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   ///
   /// If the library [element] is declared in is inside the `src` folder, will
   /// try to locate a public URI to import instead.
-  Future<void> importElementLibrary(Element element) async {
-    // TODO(dantup): Add the ability to pass a cache in to this function so
-    //  multiple callers can avoid looking up the same elements.
+  Future<void> importElementLibrary(Element element,
+      {Map<Element, LibraryElement?>? resultCache}) async {
     if (_isDefinedLocally(element) || _getImportElement(element) != null) {
       return;
     }
 
-    var libraryWithElement =
-        await TopLevelDeclarations(resolvedUnit).publiclyExporting(element);
+    var libraryWithElement = resultCache?[element] ??
+        await TopLevelDeclarations(resolvedUnit)
+            .publiclyExporting(element, resultCache: resultCache);
     if (libraryWithElement != null) {
       _elementLibrariesToImport[element] =
           _importLibrary(libraryWithElement.source.uri);

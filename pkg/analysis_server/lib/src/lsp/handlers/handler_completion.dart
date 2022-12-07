@@ -299,13 +299,15 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
     required ResolvedUnitResult unit,
     required int offset,
     required LineInfo lineInfo,
+    required bool Function(String input) filter,
   }) async {
     final request = DartSnippetRequest(
       unit: unit,
       offset: offset,
     );
     final snippetManager = DartSnippetManager();
-    final snippets = await snippetManager.computeSnippets(request);
+    final snippets =
+        await snippetManager.computeSnippets(request, filter: filter);
 
     return snippets.map((snippet) => snippetToCompletionItem(
           server,
@@ -527,6 +529,7 @@ class CompletionHandler extends MessageHandler<CompletionParams, CompletionList>
               unit: unit,
               offset: offset,
               lineInfo: unit.lineInfo,
+              filter: fuzzy.stringMatches,
             );
             return snippets.where(fuzzy.completionItemMatches).toList();
           });
@@ -835,8 +838,10 @@ class _FuzzyFilterHelper {
       : _matcher = FuzzyMatcher(prefix, matchStyle: MatchStyle.TEXT);
 
   bool completionItemMatches(CompletionItem item) =>
-      _matcher.score(item.filterText ?? item.label) > 0;
+      stringMatches(item.filterText ?? item.label);
 
   bool completionSuggestionMatches(CompletionSuggestion item) =>
-      _matcher.score(item.displayText ?? item.completion) > 0;
+      stringMatches(item.displayText ?? item.completion);
+
+  bool stringMatches(String input) => _matcher.score(input) > 0;
 }

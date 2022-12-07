@@ -11,7 +11,10 @@ class SwitchStatement extends DartSnippetProducer {
   static const prefix = 'switch';
   static const label = 'switch case';
 
-  SwitchStatement(super.request);
+  SwitchStatement(super.request, {required super.elementImportCache});
+
+  @override
+  String get snippetPrefix => prefix;
 
   @override
   Future<Snippet> compute() async {
