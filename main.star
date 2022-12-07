@@ -484,6 +484,7 @@ dart.try_builder(
         "disable_bcid": True,
         "upload_version": True,
     },
+    location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
 )
 
@@ -496,6 +497,7 @@ dart.try_builder(
         "archs": ["arm", "arm64"],
         "disable_bcid": True,
     },
+    location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
 )
 
@@ -515,6 +517,7 @@ dart.try_builder(
     "dart-sdk-mac",
     dimensions = mac,
     properties = [pinned_xcode, {"archs": ["x64"], "disable_bcid": True}],
+    location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
 )
 
@@ -526,6 +529,7 @@ dart.try_builder(
         pinned_xcode,
         {"archs": ["arm64"], "disable_bcid": True},
     ],
+    location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
 )
 
@@ -541,6 +545,7 @@ dart.try_builder(
     "dart-sdk-win-arm64",
     dimensions = windows,
     properties = {"archs": ["arm64"], "disable_bcid": True},
+    location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
 )
 

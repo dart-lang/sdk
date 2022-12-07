@@ -65,6 +65,11 @@ _DART2WASM_PATHS = _CFE_PATHS + [
     "pkg/(dart2wasm|vm|wasm_builder|_js_interop_checks)/.+",
 ]
 
+_RELEASE_PATHS = [
+    # Paths that trigger release tryjobs
+    "tools/VERSION",
+]
+
 def _to_location_filters(paths):
     return [cq.location_filter(path_regexp = path) for path in paths]
 
@@ -76,6 +81,7 @@ paths = struct(
     dart2js = _DART2JS_PATHS,
     dart2wasm = _DART2WASM_PATHS,
     ddc = _DDC_PATHS,
+    release = _RELEASE_PATHS,
     standard = _STANDARD_PATHS,
     test_py = _TEST_PY_PATHS,
     vm = _VM_PATHS,
