@@ -1877,11 +1877,11 @@ main() {
         ifCase(
           expr('num'),
           w.pattern(type: 'int'),
-          ifTrue: [
+          [
             x.write(expr('int')).stmt,
             y.write(expr('int')).stmt,
           ],
-          ifFalse: [
+          [
             y.write(expr('int')).stmt,
             z.write(expr('int')).stmt,
           ],
@@ -1899,7 +1899,7 @@ main() {
         ifCase(
           x.expr.notEq(nullLiteral),
           intLiteral(0).pattern,
-          ifTrue: [
+          [
             checkNotPromoted(x),
           ],
         ),

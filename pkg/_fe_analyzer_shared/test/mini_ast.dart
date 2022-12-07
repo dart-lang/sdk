@@ -202,19 +202,16 @@ Statement if_(Expression condition, List<Statement> ifTrue,
       location: location);
 }
 
-Statement ifCase(
-  Expression expression,
-  PossiblyGuardedPattern pattern, {
-  List<Statement>? ifTrue,
-  List<Statement>? ifFalse,
-}) {
+Statement ifCase(Expression expression, PossiblyGuardedPattern pattern,
+    List<Statement> ifTrue,
+    [List<Statement>? ifFalse]) {
   var location = computeLocation();
   var guardedPattern = pattern._asGuardedPattern;
   return _IfCase(
     expression,
     guardedPattern.pattern,
     guardedPattern.guard,
-    _Block(ifTrue ?? [], location: location),
+    _Block(ifTrue, location: location),
     ifFalse != null ? _Block(ifFalse, location: location) : null,
     location: location,
   );

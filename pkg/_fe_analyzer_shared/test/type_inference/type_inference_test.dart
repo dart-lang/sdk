@@ -347,6 +347,7 @@ main() {
           ifCase(
             expr('int').checkContext('?'),
             x.pattern(type: 'num'),
+            [],
           ).checkIr('ifCase(expr(int), '
               'varPattern(x, matchedType: int, staticType: num), variables(x), '
               'true, block(), noop)'),
@@ -359,10 +360,10 @@ main() {
           ifCase(
             expr('num'),
             x.pattern(type: 'int'),
-            ifTrue: [
+            [
               expr('Object').stmt,
             ],
-            ifFalse: [
+            [
               expr('String').stmt,
             ],
           ).checkIr('ifCase(expr(num), '
@@ -377,6 +378,7 @@ main() {
           ifCase(
             expr('num'),
             x.pattern(type: 'int').when(x.expr.eq(intLiteral(0))),
+            [],
           ).checkIr('ifCase(expr(num), '
               'varPattern(x, matchedType: num, staticType: int), variables(x), '
               '==(x, 0), block(), noop)'),
@@ -389,6 +391,7 @@ main() {
           ifCase(
             expr('num').checkContext('?'),
             x.pattern(type: 'int'),
+            [],
           ).checkIr('ifCase(expr(num), '
               'varPattern(x, matchedType: num, staticType: int), variables(x), '
               'true, block(), noop)'),
@@ -402,6 +405,7 @@ main() {
             ifCase(
               expr('int'),
               x.pattern().when(expr('int')..errorId = 'GUARD'),
+              [],
             ),
           ], expectedErrors: {
             'nonBooleanCondition(GUARD)'
@@ -414,6 +418,7 @@ main() {
             ifCase(
               expr('int'),
               x.pattern().when(expr('bool')),
+              [],
             ),
           ], expectedErrors: {});
         });
@@ -424,6 +429,7 @@ main() {
             ifCase(
               expr('int'),
               x.pattern().when(expr('dynamic')),
+              [],
             ),
           ], expectedErrors: {});
         });
@@ -1429,6 +1435,7 @@ main() {
           ifCase(
             expr('num'),
             x.pattern().as_('int'),
+            [],
           ).checkIr('ifCase(expr(num), castPattern(varPattern(x, '
               'matchedType: int, staticType: int), int, matchedType: num), '
               'variables(x), true, block(), noop)'),
@@ -1551,6 +1558,7 @@ main() {
                   ),
                 ],
               ),
+              [],
             ).checkIr('ifCase(expr(dynamic), mapPattern(mapPatternEntry('
                 'expr(Object), varPattern(x, matchedType: int, staticType: '
                 'int)), matchedType: dynamic, requiredType: Map<bool, int>), '
@@ -1569,6 +1577,7 @@ main() {
                   x.pattern(),
                 ),
               ]),
+              [],
             ).checkIr('ifCase(expr(Map<bool, int>), mapPattern(mapPatternEntry('
                 'expr(Object), varPattern(x, matchedType: int, staticType: '
                 'int)), matchedType: Map<bool, int>, requiredType: '
@@ -1587,6 +1596,7 @@ main() {
                   x.pattern(),
                 ),
               ]),
+              [],
             ).checkIr('ifCase(expr(dynamic), mapPattern(mapPatternEntry('
                 'expr(Object), varPattern(x, matchedType: dynamic, staticType: '
                 'dynamic)), matchedType: dynamic, requiredType: '
@@ -1605,6 +1615,7 @@ main() {
                   x.pattern(),
                 ),
               ]),
+              [],
             ).checkIr('ifCase(expr(String), mapPattern(mapPatternEntry('
                 'expr(Object), varPattern(x, matchedType: Object?, staticType: '
                 'Object?)), matchedType: String, requiredType: '
@@ -1826,6 +1837,7 @@ main() {
                 listPatternRestElement(
                     y.pattern(expectInferredType: 'List<Object?>')),
               ]),
+              [],
             ).checkIr('ifCase(expr(Object), listPattern(varPattern(x, '
                 'matchedType: Object?, staticType: Object?), ...(varPattern(y, '
                 'matchedType: List<Object?>, staticType: List<Object?>)), '
@@ -2010,6 +2022,7 @@ main() {
                 ifCase(
                   expr('Object'),
                   x1.pattern(type: 'int').or(x2.pattern(type: 'int')),
+                  [],
                 ).checkIr('ifCase(expr(Object), logicalOrPattern(varPattern(x, '
                     'matchedType: Object, staticType: int), varPattern(x, '
                     'matchedType: Object, staticType: int), '
@@ -2026,6 +2039,7 @@ main() {
                   x1
                       .pattern(type: 'Object')
                       .or(x2.pattern(type: 'FutureOr<Object>')),
+                  [],
                 ).checkIr('ifCase(expr(Object), logicalOrPattern(varPattern(x, '
                     'matchedType: Object, staticType: Object), varPattern(x, '
                     'matchedType: Object, staticType: FutureOr<Object>), '
@@ -2040,6 +2054,7 @@ main() {
                 ifCase(
                   expr('int'),
                   x1.pattern(type: 'int').or(x2.pattern()),
+                  [],
                 ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                     'matchedType: int, staticType: int), varPattern(x, '
                     'matchedType: int, staticType: int), matchedType: int), '
@@ -2053,6 +2068,7 @@ main() {
                 ifCase(
                   expr('int'),
                   x1.pattern().or(x2.pattern(type: 'int')),
+                  [],
                 ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                     'matchedType: int, staticType: int), varPattern(x, '
                     'matchedType: int, staticType: int), matchedType: int), '
@@ -2066,6 +2082,7 @@ main() {
                 ifCase(
                   expr('int'),
                   x1.pattern().or(x2.pattern()),
+                  [],
                 ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                     'matchedType: int, staticType: int), varPattern(x, '
                     'matchedType: int, staticType: int), matchedType: int), '
@@ -2081,6 +2098,7 @@ main() {
                 ifCase(
                   expr('Object'),
                   x1.pattern(type: 'int').or(x2.pattern(type: 'num')),
+                  [],
                 ).checkIr('ifCase(expr(Object), logicalOrPattern(varPattern(x, '
                     'matchedType: Object, staticType: int), varPattern(x, '
                     'matchedType: Object, staticType: num), matchedType: '
@@ -2098,6 +2116,7 @@ main() {
                 ifCase(
                   expr('num'),
                   x1.pattern(type: 'int').or(x2.pattern()),
+                  [],
                 ).checkIr('ifCase(expr(num), logicalOrPattern(varPattern(x, '
                     'matchedType: num, staticType: int), varPattern(x, '
                     'matchedType: num, staticType: num), matchedType: num), '
@@ -2117,6 +2136,7 @@ main() {
             ifCase(
               expr('int'),
               x1.pattern().or(x2.pattern()),
+              [],
             ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                 'matchedType: int, staticType: int), varPattern(x, '
                 'matchedType: int, staticType: int), matchedType: int), '
@@ -2135,6 +2155,7 @@ main() {
               ifCase(
                 expr('int'),
                 x1.pattern().or(x2.pattern()),
+                [],
               ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                   'matchedType: int, staticType: int), varPattern(x, '
                   'matchedType: int, staticType: int), matchedType: int), '
@@ -2147,6 +2168,7 @@ main() {
               ifCase(
                 expr('int'),
                 (x1.pattern().or(wildcard()))..errorId = 'PATTERN',
+                [],
               ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(x, '
                   'matchedType: int, staticType: int), varPattern(_, '
                   'matchedType: int, staticType: int), matchedType: int), '
@@ -2163,6 +2185,7 @@ main() {
               ifCase(
                 expr('int'),
                 (wildcard().or(x1.pattern()))..errorId = 'PATTERN',
+                [],
               ).checkIr('ifCase(expr(int), logicalOrPattern(varPattern(_, '
                   'matchedType: int, staticType: int), varPattern(x, '
                   'matchedType: int, staticType: int), matchedType: int), '
@@ -2296,6 +2319,7 @@ main() {
                   Var('foo', errorId: 'foo').pattern().recordField('foo'),
                 ],
               ),
+              [],
             ).checkIr('ifCase(expr(A<int>), objectPattern(varPattern(foo, '
                 'matchedType: int, staticType: int), matchedType: A<int>, '
                 'requiredType: B<int>), variables(foo), true, block(), noop)'),
@@ -2312,6 +2336,7 @@ main() {
                   Var('foo', errorId: 'foo').pattern().recordField('foo'),
                 ],
               ),
+              [],
             ).checkIr('ifCase(expr(int), objectPattern(varPattern(foo, '
                 'matchedType: dynamic, staticType: dynamic), matchedType: int, '
                 'requiredType: dynamic), variables(foo), true, block(), noop)'),
@@ -2328,6 +2353,7 @@ main() {
                   Var('foo', errorId: 'foo').pattern().recordField('foo'),
                 ],
               ),
+              [],
             ).checkIr('ifCase(expr(int), objectPattern(varPattern(foo, '
                 'matchedType: Never, staticType: Never), matchedType: int, '
                 'requiredType: Never), variables(foo), true, block(), noop)'),
@@ -2348,6 +2374,7 @@ main() {
                     ..errorId = 'DUPLICATE',
                 ],
               ),
+              [],
             ),
           ], expectedErrors: {
             'duplicateRecordPatternField(name: foo, original: ORIGINAL, '
@@ -2408,6 +2435,7 @@ main() {
                   Var('a', errorId: 'a').pattern(type: 'int').recordField(),
                   Var('b', errorId: 'b').pattern().recordField(),
                 ]),
+                [],
               ).checkIr(
                 'ifCase(expr(dynamic), recordPattern(varPattern(a, '
                 'matchedType: dynamic, staticType: int), varPattern(b, '
@@ -2478,6 +2506,7 @@ main() {
                       Var('a', errorId: 'a').pattern().recordField(),
                       Var('b', errorId: 'b').pattern().recordField(),
                     ]),
+                    [],
                   ).checkIr('ifCase(expr((int)), recordPattern(varPattern(a, '
                       'matchedType: Object?, staticType: Object?), '
                       'varPattern(b, matchedType: Object?, staticType: '
@@ -2493,6 +2522,7 @@ main() {
                     recordPattern([
                       Var('a', errorId: 'a').pattern().recordField(),
                     ]),
+                    [],
                   ).checkIr('ifCase(expr((int, String)), '
                       'recordPattern(varPattern(a, matchedType: Object?, '
                       'staticType: Object?), matchedType: (int, String), '
@@ -2512,6 +2542,7 @@ main() {
                   Var('a', errorId: 'a').pattern(type: 'int').recordField(),
                   Var('b', errorId: 'b').pattern().recordField(),
                 ]),
+                [],
               ).checkIr('ifCase(expr(X), recordPattern(varPattern(a, '
                   'matchedType: Object?, staticType: int), varPattern(b, '
                   'matchedType: Object?, staticType: Object?), matchedType: X, '
@@ -2531,6 +2562,7 @@ main() {
                   Var('a', errorId: 'a').pattern(type: 'int').recordField('a'),
                   Var('b', errorId: 'b').pattern().recordField('b'),
                 ]),
+                [],
               ).checkIr('ifCase(expr(dynamic), recordPattern(varPattern(a, '
                   'matchedType: dynamic, staticType: int), varPattern(b, '
                   'matchedType: dynamic, staticType: dynamic), matchedType: '
@@ -2598,6 +2630,7 @@ main() {
                       Var('a', errorId: 'a').pattern().recordField('a'),
                       Var('b', errorId: 'b').pattern().recordField('b'),
                     ]),
+                    [],
                   ).checkIr('ifCase(expr(({int a})), recordPattern('
                       'varPattern(a, matchedType: Object?, staticType: '
                       'Object?), varPattern(b, matchedType: Object?, '
@@ -2613,6 +2646,7 @@ main() {
                     recordPattern([
                       Var('a', errorId: 'a').pattern().recordField('a'),
                     ]),
+                    [],
                   ).checkIr('ifCase(expr(({int a, String b})), '
                       'recordPattern(varPattern(a, matchedType: Object?, '
                       'staticType: Object?), matchedType: ({int a, String b}), '
@@ -2632,6 +2666,7 @@ main() {
                   Var('a', errorId: 'a').pattern(type: 'int').recordField('a'),
                   Var('b', errorId: 'b').pattern().recordField('b'),
                 ]),
+                [],
               ).checkIr('ifCase(expr(X), recordPattern(varPattern(a, '
                   'matchedType: Object?, staticType: int), varPattern(b, '
                   'matchedType: Object?, staticType: Object?), matchedType: X, '
@@ -2650,6 +2685,7 @@ main() {
                 Var('b', errorId: 'b').pattern().recordField('a')
                   ..errorId = 'DUPLICATE',
               ]),
+              [],
             ),
           ], expectedErrors: {
             'duplicateRecordPatternField(name: a, original: ORIGINAL, '
@@ -2686,6 +2722,7 @@ main() {
               null,
               intLiteral(0).checkContext('?'),
             ),
+            [],
           ).checkIr('ifCase(expr(int), relationalPattern(0, matchedType: int), '
               'variables(), true, block(), noop)')
         ]);
@@ -2703,6 +2740,7 @@ main() {
                 ),
                 intLiteral(0).checkContext('num'),
               ),
+              [],
             ).checkIr('ifCase(expr(int), relationalPattern(0, matchedType: '
                 'int), variables(), true, block(), noop)')
           ]);
@@ -2719,6 +2757,7 @@ main() {
                 ),
                 expr('int?').checkContext('Object'),
               ),
+              [],
             ).checkIr('ifCase(expr(Object), relationalPattern(expr(int?), '
                 'matchedType: Object), variables(), true, block(), noop)')
           ]);
@@ -2735,6 +2774,7 @@ main() {
                 ),
                 expr('int?').checkContext('Object'),
               ),
+              [],
             ).checkIr('ifCase(expr(Object), relationalPattern(expr(int?), '
                 'matchedType: Object), variables(), true, block(), noop)')
           ]);
@@ -2751,6 +2791,7 @@ main() {
                 ),
                 expr('String')..errorId = 'OPERAND',
               ),
+              [],
             ).checkIr('ifCase(expr(int), relationalPattern(expr(String), '
                 'matchedType: int), variables(), true, block(), noop)')
           ], expectedErrors: {
@@ -2771,6 +2812,7 @@ main() {
                 expr('String').checkContext('Object'),
                 errorId: 'PATTERN',
               ),
+              [],
             ).checkIr('ifCase(expr(A), relationalPattern(expr(String), '
                 'matchedType: A), variables(), true, block(), noop)')
           ], expectedErrors: {
@@ -2820,6 +2862,7 @@ main() {
           ifCase(
             expr('int'),
             wildcard(),
+            [],
           ).checkIr('ifCase(expr(int), varPattern(_, matchedType: int, '
               'staticType: int), variables(), true, block(), noop)'),
         ]);
@@ -2830,6 +2873,7 @@ main() {
           ifCase(
             expr('num'),
             wildcard(type: 'int'),
+            [],
           ).checkIr('ifCase(expr(num), varPattern(_, matchedType: num, '
               'staticType: int), variables(), true, block(), noop)'),
         ]);
