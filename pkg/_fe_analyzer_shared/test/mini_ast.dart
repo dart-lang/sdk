@@ -220,9 +220,9 @@ Statement ifCase(Expression expression, PossiblyGuardedPattern pattern,
 CollectionElement ifCaseElement(
   Expression expression,
   PossiblyGuardedPattern pattern,
-  CollectionElement ifTrue, {
+  CollectionElement ifTrue, [
   CollectionElement? ifFalse,
-}) {
+]) {
   var location = computeLocation();
   var guardedPattern = pattern._asGuardedPattern;
   return new _IfCaseElement(

@@ -78,7 +78,7 @@ main() {
             expr('Object'),
             intLiteral(0).pattern,
             intLiteral(1).checkContext('int').asCollectionElement,
-            ifFalse: intLiteral(2).checkContext('int').asCollectionElement,
+            intLiteral(2).checkContext('int').asCollectionElement,
           )
               .checkIr('if(expression: expr(Object), pattern: '
                   'const(0, matchedType: Object), guard: true, '
