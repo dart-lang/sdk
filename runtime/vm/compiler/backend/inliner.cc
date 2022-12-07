@@ -3186,6 +3186,11 @@ static bool InlineByteArrayBaseStore(FlowGraph* flow_graph,
       value_check = Cids::CreateMonomorphic(Z, kFloat32x4Cid);
       break;
     }
+    case kTypedDataFloat64x2ArrayCid: {
+      // Check that value is always Float64x2.
+      value_check = Cids::CreateMonomorphic(Z, kFloat64x2Cid);
+      break;
+    }
     case kTypedDataInt64ArrayCid:
     case kTypedDataUint64ArrayCid:
       // StoreIndexedInstr takes unboxed int64, so value is
@@ -3965,6 +3970,13 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
                                      kTypedDataFloat32x4ArrayCid, graph_entry,
                                      entry, last, result);
+    case MethodRecognizer::kByteArrayBaseGetFloat64x2:
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
+      return InlineByteArrayBaseLoad(flow_graph, call, receiver, receiver_cid,
+                                     kTypedDataFloat64x2ArrayCid, graph_entry,
+                                     entry, last, result);
     case MethodRecognizer::kByteArrayBaseGetInt32x4:
       if (!ShouldInlineSimd()) {
         return false;
@@ -4024,6 +4036,13 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(
       }
       return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
                                       receiver_cid, kTypedDataFloat32x4ArrayCid,
+                                      graph_entry, entry, last, result);
+    case MethodRecognizer::kByteArrayBaseSetFloat64x2:
+      if (!ShouldInlineSimd()) {
+        return false;
+      }
+      return InlineByteArrayBaseStore(flow_graph, target, call, receiver,
+                                      receiver_cid, kTypedDataFloat64x2ArrayCid,
                                       graph_entry, entry, last, result);
     case MethodRecognizer::kByteArrayBaseSetInt32x4:
       if (!ShouldInlineSimd()) {

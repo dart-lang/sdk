@@ -34,6 +34,7 @@ namespace dart {
   V(_TypedList, _getFloat32, ByteArrayBaseGetFloat32, 0xe8f6a107)              \
   V(_TypedList, _getFloat64, ByteArrayBaseGetFloat64, 0xf82a3634)              \
   V(_TypedList, _getFloat32x4, ByteArrayBaseGetFloat32x4, 0xaf2d0ce5)          \
+  V(_TypedList, _getFloat64x2, ByteArrayBaseGetFloat64x2, 0x545d2cc0)          \
   V(_TypedList, _getInt32x4, ByteArrayBaseGetInt32x4, 0x5573740b)              \
   V(_TypedList, _setInt8, ByteArrayBaseSetInt8, 0xe18943a2)                    \
   V(_TypedList, _setUint8, ByteArrayBaseSetUint8, 0xaf59b748)                  \
@@ -46,6 +47,7 @@ namespace dart {
   V(_TypedList, _setFloat32, ByteArrayBaseSetFloat32, 0x2f362de0)              \
   V(_TypedList, _setFloat64, ByteArrayBaseSetFloat64, 0x2359f8d2)              \
   V(_TypedList, _setFloat32x4, ByteArrayBaseSetFloat32x4, 0x38c6295a)          \
+  V(_TypedList, _setFloat64x2, ByteArrayBaseSetFloat64x2, 0xbaead73f)          \
   V(_TypedList, _setInt32x4, ByteArrayBaseSetInt32x4, 0x5ce9025b)              \
   V(ByteData, ., ByteDataFactory, 0x91f05063)                                  \
   V(_ByteDataView, get:offsetInBytes, ByteDataViewOffsetInBytes, 0x60cef22c)   \
