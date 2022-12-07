@@ -268,7 +268,9 @@ class ObjectPointerVisitor;
   RW(Code, nullable_type_parameter_tts_stub)                                   \
   RW(Code, type_parameter_tts_stub)                                            \
   RW(Code, unreachable_tts_stub)                                               \
+  RW(Array, ffi_callback_functions)                                            \
   RW(Code, slow_tts_stub)                                                      \
+  /* Roots for JIT/AOT snapshots are up until here (see to_snapshot() below)*/ \
   RW(Code, await_stub)                                                         \
   RW(Code, clone_suspend_state_stub)                                           \
   RW(Code, init_async_stub)                                                    \
@@ -285,7 +287,6 @@ class ObjectPointerVisitor;
   RW(GrowableObjectArray, instructions_tables)                                 \
   RW(Array, obfuscation_map)                                                   \
   RW(Array, loading_unit_uris)                                                 \
-  RW(Array, ffi_callback_functions)                                            \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
   // Please remember the last entry must be referred in the 'to' function below.

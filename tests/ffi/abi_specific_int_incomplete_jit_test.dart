@@ -30,7 +30,6 @@ void main() {
   testInlineArray();
   testInlineArray2();
   testAsFunction();
-  testFromFunction();
 }
 
 void testSizeOf() {
@@ -133,28 +132,5 @@ void testAsFunction() {
     nullptr
         .cast<NativeFunction<IncompleteArrayStruct Function()>>()
         .asFunction<IncompleteArrayStruct Function()>();
-  });
-}
-
-int myIncr(int a) => a + 1;
-
-IncompleteArrayStruct myIncompleteReturn() =>
-    nullptr.cast<IncompleteArrayStruct>().ref;
-
-int myIncompleteArg(IncompleteArrayStruct a) => 5;
-
-void testFromFunction() {
-  Expect.throws(() {
-    Pointer.fromFunction<Incomplete Function(Int32)>(myIncr, 3);
-  });
-  Expect.throws(() {
-    Pointer.fromFunction<Int32 Function(Incomplete)>(myIncr, 3);
-  });
-  Expect.throws(() {
-    Pointer.fromFunction<IncompleteArrayStruct Function()>(myIncompleteReturn);
-  });
-  Expect.throws(() {
-    Pointer.fromFunction<Int32 Function(IncompleteArrayStruct)>(
-        myIncompleteArg, 3);
   });
 }

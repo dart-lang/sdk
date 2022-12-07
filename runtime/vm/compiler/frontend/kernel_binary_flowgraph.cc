@@ -3391,10 +3391,7 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     case MethodRecognizer::kFfiAsFunctionInternal:
       return BuildFfiAsFunctionInternal();
     case MethodRecognizer::kFfiNativeCallbackFunction:
-      if (CompilerState::Current().is_aot()) {
-        return BuildFfiNativeCallbackFunction();
-      }
-      break;
+      return BuildFfiNativeCallbackFunction();
     case MethodRecognizer::kFfiLoadAbiSpecificInt:
       return BuildLoadAbiSpecificInt(/*at_index=*/false);
     case MethodRecognizer::kFfiLoadAbiSpecificIntAtIndex:
@@ -6381,10 +6378,9 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   compiler::ffi::NativeFunctionTypeFromFunctionType(zone_, native_sig, &error);
   ReportIfNotNull(error);
 
-  const Function& result = Function::ZoneHandle(
-      Z,
-      compiler::ffi::NativeCallbackFunction(
-          native_sig, target, exceptional_return, /*register_function=*/true));
+  const Function& result =
+      Function::ZoneHandle(Z, compiler::ffi::NativeCallbackFunction(
+                                  native_sig, target, exceptional_return));
   code += Constant(result);
 
   return code;

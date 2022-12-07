@@ -974,6 +974,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiLoadDouble:
     case MethodRecognizer::kFfiLoadDoubleUnaligned:
     case MethodRecognizer::kFfiLoadPointer:
+    case MethodRecognizer::kFfiNativeCallbackFunction:
     case MethodRecognizer::kFfiStoreInt8:
     case MethodRecognizer::kFfiStoreInt16:
     case MethodRecognizer::kFfiStoreInt32:
@@ -1279,6 +1280,14 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       ASSERT_EQUAL(function.NumParameters(), 0);
       body += IntConstant(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       break;
+    case MethodRecognizer::kFfiNativeCallbackFunction: {
+      const auto& error = String::ZoneHandle(
+          Z, Symbols::New(thread_,
+                          "This function should be handled on call site."));
+      body += Constant(error);
+      body += ThrowException(TokenPosition::kNoSource);
+      break;
+    }
     case MethodRecognizer::kFfiLoadInt8:
     case MethodRecognizer::kFfiLoadInt16:
     case MethodRecognizer::kFfiLoadInt32:

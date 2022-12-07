@@ -2310,6 +2310,37 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   EXPECT_EQ(1, new_array.Length());
 }
 
+ISOLATE_UNIT_TEST_CASE(TypedData_Grow) {
+  const intptr_t kSmallSize = 42;
+  const intptr_t kLargeSize = 1000;
+
+  Random random(42);
+
+  for (classid_t cid = kTypedDataInt8ArrayCid; cid < kByteDataViewCid;
+       cid += 4) {
+    ASSERT(IsTypedDataClassId(cid));
+
+    const auto& small = TypedData::Handle(TypedData::New(cid, kSmallSize));
+    EXPECT_EQ(small.LengthInBytes(), kSmallSize * small.ElementSizeInBytes());
+
+    for (intptr_t i = 0; i < TypedData::ElementSizeFor(cid) * kSmallSize; i++) {
+      small.SetUint8(i, static_cast<uint8_t>(random.NextUInt64() & 0xff));
+    }
+
+    const auto& big = TypedData::Handle(TypedData::Grow(small, kLargeSize));
+    EXPECT_EQ(small.GetClassId(), big.GetClassId());
+    EXPECT_EQ(big.LengthInBytes(), kLargeSize * big.ElementSizeInBytes());
+
+    for (intptr_t i = 0; i < TypedData::ElementSizeFor(cid) * kSmallSize; i++) {
+      EXPECT_EQ(small.GetUint8(i), big.GetUint8(i));
+    }
+    for (intptr_t i = TypedData::ElementSizeFor(cid) * kSmallSize;
+         i < TypedData::ElementSizeFor(cid) * kLargeSize; i++) {
+      EXPECT_EQ(0, big.GetUint8(i));
+    }
+  }
+}
+
 ISOLATE_UNIT_TEST_CASE(InternalTypedData) {
   uint8_t data[] = {253, 254, 255, 0, 1, 2, 3, 4};
   intptr_t data_length = ARRAY_SIZE(data);
