@@ -364,6 +364,22 @@ class B implements A {}
 ''');
   }
 
+  test_class_method_body_block_invokesSuperSelf_false_differentName() {
+    _assertSameSignature('''
+class A {
+  void foo() {
+    super.bar();
+  }
+}
+''', '''
+class A {
+  void foo() {
+    super.bar2();
+  }
+}
+''');
+  }
+
   test_class_modifier() {
     _assertNotSameSignature(r'''
 class C {}
@@ -454,18 +470,6 @@ int a = 2;
 static const int a = 1;
 ''', r'''
 static const int a = 2;
-''');
-  }
-
-  test_classLike_method_body_block_invokesSuperSelf_false_differentName() {
-    _assertSameSignature_classLike(r'''
-void foo() {
-  super.bar();
-}
-''', r'''
-void foo() {
-  super.bar2();
-}
 ''');
   }
 
@@ -1311,6 +1315,116 @@ mixin M {}
 ''', r'''
 class A {}
 mixin M on A {}
+''');
+  }
+
+  test_mixin_superInvokedNames_indexRead_add() {
+    _assertNotSameSignature(r'''
+mixin M {
+  void foo() {
+    super[0] = 0;
+  }
+}
+''', r'''
+mixin M {
+  void foo() {
+    super[0];
+    super[0] = 0;
+  }
+}
+''');
+  }
+
+  test_mixin_superInvokedNames_indexWrite_add() {
+    _assertNotSameSignature(r'''
+mixin M {
+  void foo() {
+    super[0];
+  }
+}
+''', r'''
+mixin M {
+  void foo() {
+    super[0];
+    super[0] = 0;
+  }
+}
+''');
+  }
+
+  test_mixin_superInvokedNames_methodInvocation_add() {
+    _assertNotSameSignature(r'''
+mixin M {
+  void foo() {}
+}
+''', r'''
+mixin M {
+  void foo() {
+    super.bar();
+  }
+}
+''');
+  }
+
+  test_mixin_superInvokedNames_methodInvocation_change() {
+    _assertNotSameSignature(r'''
+mixin M {
+  void foo() {
+    super.bar();
+  }
+}
+''', r'''
+mixin M {
+  void foo() {
+    super.bar2();
+  }
+}
+''');
+  }
+
+  test_mixin_superInvokedNames_methodInvocation_remove() {
+    _assertNotSameSignature(r'''
+mixin M {
+  void foo() {
+    super.bar();
+  }
+}
+''', r'''
+mixin M {
+  void foo() {}
+}
+''');
+  }
+
+  test_mixin_superInvokedNames_propertyRead_change() {
+    _assertNotSameSignature(r'''
+mixin M {
+  void foo() {
+    super.bar;
+  }
+}
+''', r'''
+mixin M {
+  void foo() {
+    super.bar2;
+  }
+}
+''');
+  }
+
+  test_mixin_superInvokedNames_propertyWrite_change() {
+    _assertNotSameSignature(r'''
+mixin M {
+  void foo() {
+    super.bar = 0;
+  }
+}
+''', r'''
+mixin M {
+  void foo() {
+    super.bar2 = 2;
+  }
+}
 ''');
   }
 
