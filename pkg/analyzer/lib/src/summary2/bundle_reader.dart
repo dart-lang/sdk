@@ -1634,19 +1634,16 @@ class ResolutionReader {
 
     if (memberFlags == Tag.MemberLegacyWithTypeArguments ||
         memberFlags == Tag.MemberWithTypeArguments) {
-      var arguments = _readTypeList();
-      // TODO(scheglov) why to check for empty? If we have this flags.
-      if (arguments.isNotEmpty) {
-        var typeParameters =
-            (element.enclosingElement as TypeParameterizedElement)
-                .typeParameters;
-        var substitution = Substitution.fromPairs(typeParameters, arguments);
-        element =
-            ExecutableMember.from2(element as ExecutableElement, substitution);
-      }
+      element as ExecutableElement;
+      var enclosing = element.enclosingElement as TypeParameterizedElement;
+      var typeParameters = enclosing.typeParameters;
+      var typeArguments = _readTypeList();
+      var substitution = Substitution.fromPairs(typeParameters, typeArguments);
+      element = ExecutableMember.from2(element, substitution);
     }
 
-    if (memberFlags == Tag.MemberLegacyWithTypeArguments) {
+    if (memberFlags == Tag.MemberLegacyWithoutTypeArguments ||
+        memberFlags == Tag.MemberLegacyWithTypeArguments) {
       return Member.legacy(element);
     }
 
