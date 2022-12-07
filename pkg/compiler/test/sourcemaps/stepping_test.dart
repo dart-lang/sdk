@@ -75,6 +75,7 @@ Future runTest(AnnotatedCode annotatedCode, String config,
     '--out=$outputFile',
     inputFile,
     Flags.disableInlining,
+    Flags.noSoundNullSafety,
     '--libraries-spec=$sdkLibrariesSpecificationUri',
   ];
   CompilationResult compilationResult = await entry.internalMain(arguments);

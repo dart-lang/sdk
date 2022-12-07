@@ -88,6 +88,7 @@ main() {
       'pkg/compiler/test/deferred/data/deferred_helper.dart',
       '--out=custom.js',
       '--deferred-map=def/deferred.json',
+      '--no-sound-null-safety',
       '--no-csp',
       Flags.dumpInfo,
     ], [
@@ -112,6 +113,7 @@ main() {
 
     await test([
       'pkg/compiler/test/deferred/data/deferred_helper.dart',
+      '--no-sound-null-safety',
       '--csp',
       ...additionOptionals,
     ], expectedOutput);

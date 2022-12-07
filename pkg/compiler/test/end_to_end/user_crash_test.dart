@@ -10,6 +10,7 @@ import 'package:expect/expect.dart';
 import 'package:front_end/src/fasta/messages.dart'
     show templateCantReadFile, messageMissingMain;
 import 'package:compiler/compiler_api.dart' as api;
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
 final EXCEPTION = 'Crash-marker';
@@ -75,7 +76,7 @@ Future<RunResult> run(
           entryPoint: entryPoint,
           memorySourceFiles: memorySourceFiles,
           diagnosticHandler: diagnostics,
-          unsafeToTouchSourceFiles: true);
+          options: [Flags.soundNullSafety]);
     } catch (e) {
       result.exceptions.add(e);
     }

@@ -40,7 +40,8 @@ main() {
         entryPoint: entryPoint,
         options: [
           '--input-dill=memory:c.dill',
-          '--dill-dependencies=memory:a.dill,memory:b.dill'
+          '--dill-dependencies=memory:a.dill,memory:b.dill',
+          '--sound-null-safety',
         ],
         memorySourceFiles: {'a.dill': aDill, 'b.dill': bDill, 'c.dill': cDill},
         diagnosticHandler: diagnostics,

@@ -143,17 +143,36 @@ Compiler compilerFor(
 
   // If soundNullSafety is not requested, then we prepend the opt out string to
   // the memory files.
-  if (!options.contains(Flags.soundNullSafety) && !unsafeToTouchSourceFiles) {
-    // Map may be immutable so copy.
-    sources = {};
-    memorySourceFiles.forEach((k, v) => sources[k] = v);
-    RegExp optOutStr = RegExp(r"\/\/\s*@dart\s*=\s*2\.\d+");
+  // TODO(48820): After migrating all tests we should no longer have to infer
+  // a mode in the memory compiler. The logic to update options and to update
+  // sources to opt-out should be removed.
+  if (!options.contains(Flags.soundNullSafety)) {
+    bool addUnsoundFlag = false;
+    if (!unsafeToTouchSourceFiles) {
+      // Map may be immutable so copy.
+      sources = {};
+      memorySourceFiles.forEach((k, v) => sources[k] = v);
+      addUnsoundFlag = true;
+    }
+
     for (var key in sources.keys) {
       if (sources[key] is String && key.endsWith('.dart')) {
-        if (!optOutStr.hasMatch(sources[key])) {
-          sources[key] = '// @dart=2.7\n' + sources[key];
+        RegExp optOutStr = RegExp(r"\/\/\s*@dart\s*=\s*2\.(\d+)");
+        final match = optOutStr.firstMatch(sources[key]);
+        if (match == null) {
+          if (!unsafeToTouchSourceFiles) {
+            sources[key] = '// @dart=2.7\n' + sources[key];
+          }
+        } else {
+          // If the file version is prior to 2.12, we treat it as unsound
+          if (int.parse(match.group(1)) < 12) {
+            addUnsoundFlag = true;
+          }
         }
       }
+    }
+    if (addUnsoundFlag && !options.contains(Flags.noSoundNullSafety)) {
+      options = [Flags.noSoundNullSafety, ...options];
     }
   }
 

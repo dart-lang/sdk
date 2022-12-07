@@ -111,17 +111,6 @@ String _getPlatformFilename(CompilerOptions options, String targetName) {
   return "${targetName}_platform$unsoundMarker.dill";
 }
 
-void _inferNullSafetyMode(CompilerOptions options, bool isSound) {
-  if (options.nullSafetyMode == NullSafetyMode.unspecified) {
-    options.nullSafetyMode =
-        isSound ? NullSafetyMode.sound : NullSafetyMode.unsound;
-  }
-}
-
-void _validateNullSafetyMode(CompilerOptions options) {
-  assert(options.nullSafetyMode != NullSafetyMode.unspecified);
-}
-
 class _LoadFromKernelResult {
   final ir.Component? component;
   final Library? entryLibrary;
@@ -177,8 +166,6 @@ Future<_LoadFromKernelResult> _loadFromKernel(CompilerOptions options,
     throw ArgumentError("$resolvedUri was compiled with $dillMode null "
         "safety and is incompatible with the '$option' option");
   }
-  _inferNullSafetyMode(options, isStrongDill);
-  _validateNullSafetyMode(options);
 
   // When compiling modularly, a dill for the SDK will be provided. In those
   // cases we ignore the implicit platform binary.
@@ -269,7 +256,17 @@ Future<_LoadFromSourceResult> _loadFromSource(
     Uri resolvedUri = options.compilationTarget!;
     bool isLegacy =
         await fe.uriUsesLegacyLanguageVersion(resolvedUri, feOptions);
-    _inferNullSafetyMode(options, !isLegacy);
+    if (isLegacy && options.nullSafetyMode == NullSafetyMode.sound) {
+      reporter.reportError(
+          reporter.createMessage(NO_LOCATION_SPANNABLE, MessageKind.GENERIC, {
+        'text': "Starting with Dart 3.0, `dart compile js` expects programs to be "
+            "null safe by default. Some libraries reached from "
+            "$resolvedUri opted-out of null safety. "
+            "You can temporarily compile this application using the deprecated "
+            "'${Flags.noSoundNullSafety}' option (which will be removed before "
+            "the Dart 3.0 stable release)."
+      }));
+    }
     sources.add(options.compilationTarget!);
   }
 
@@ -298,8 +295,6 @@ Future<_LoadFromSourceResult> _loadFromSource(
       verbosity: verbosity);
   ir.Component? component = await fe.compile(initializedCompilerState, verbose,
       fileSystem, onDiagnostic, sources, isModularCompile);
-  _validateNullSafetyMode(options);
-
   _doTransformsOnKernelLoad(component);
 
   // We have to compute canonical names on the component here to avoid missing

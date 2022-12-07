@@ -698,6 +698,7 @@ void main() {}
       [
         'compile',
         'js',
+        '--no-sound-null-safety',
         '-o',
         outFile,
         inFile,

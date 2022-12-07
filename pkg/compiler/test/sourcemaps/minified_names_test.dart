@@ -97,6 +97,7 @@ checkExpectation(MinifiedNameTest test, bool minified) async {
   print('-- ${minified ? 'minified' : 'not-minified'}:');
   var options = [
     Flags.testMode,
+    Flags.noSoundNullSafety,
     '--libraries-spec=$sdkLibrariesSpecificationUri',
     if (minified) Flags.minify,
   ];

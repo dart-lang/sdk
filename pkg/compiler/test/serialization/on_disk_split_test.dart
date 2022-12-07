@@ -23,6 +23,7 @@ main(List<String> args) {
     await internalMain([
           'pkg/compiler/test/codesize/swarm/swarm.dart',
           Flags.writeClosedWorld,
+          '--no-sound-null-safety',
           '--out=${dillUri}',
         ] +
         commonArgs);
@@ -30,6 +31,7 @@ main(List<String> args) {
           '${dillUri}',
           Flags.readClosedWorld,
           Flags.writeData,
+          '--no-sound-null-safety',
           '--out=${outUri}',
         ] +
         commonArgs);

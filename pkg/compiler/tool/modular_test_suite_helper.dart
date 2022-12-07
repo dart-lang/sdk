@@ -127,6 +127,7 @@ abstract class CFEStep extends IOModularStep {
     List<String> args = [
       '--no-sound-null-safety',
       _kernelWorkerScript,
+      '--no-sound-null-safety',
       ...stepArguments,
       '--exclude-non-sources',
       '--multi-root',
@@ -350,6 +351,7 @@ class ConcatenateDillsStep extends IOModularStep {
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      Flags.noSoundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, dillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
@@ -411,6 +413,7 @@ class ComputeClosedWorldStep extends IOModularStep {
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      Flags.noSoundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, fullDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
@@ -461,6 +464,7 @@ class GlobalAnalysisStep extends IOModularStep {
       _dart2jsScript,
       // TODO(sigmund): remove this dependency on libraries.json
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      Flags.noSoundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
@@ -515,6 +519,7 @@ class Dart2jsCodegenStep extends IOModularStep {
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      Flags.noSoundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '--enable-experiment=$flag',
@@ -569,6 +574,7 @@ class Dart2jsEmissionStep extends IOModularStep {
       '--packages=${sdkRoot.toFilePath()}/$packageConfigJsonPath',
       _dart2jsScript,
       if (_options.useSdk) '--libraries-spec=$_librarySpecForSnapshot',
+      Flags.noSoundNullSafety,
       '${Flags.entryUri}=$fakeRoot${module.mainSource}',
       '${Flags.inputDill}=${toUri(module, globalUpdatedDillId)}',
       for (String flag in flags) '${Flags.enableLanguageExperiments}=$flag',
