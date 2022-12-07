@@ -7576,7 +7576,7 @@ library
 library
   definingUnit
     classes
-      sealed class C @13
+      abstract sealed class C @13
         constructors
           synthetic @-1
 ''');
@@ -9052,7 +9052,7 @@ mixin M {}
 library
   definingUnit
     classes
-      sealed class alias C @13
+      abstract sealed class alias C @13
         supertype: Object
         mixins
           M

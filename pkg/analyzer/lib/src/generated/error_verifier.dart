@@ -1405,6 +1405,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkMixinsSuperClass(withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
       _checkForConflictingGenerics(node);
+      _checkForSealedSupertypeOutsideOfLibrary(
+          node, superclass, withClause, implementsClause);
       if (node is ClassDeclaration) {
         _checkForNoDefaultSuperConstructorImplicit(node);
       }
@@ -4204,6 +4206,49 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.RETURN_IN_GENERATIVE_CONSTRUCTOR, body);
   }
 
+  /// Check that if a direct supertype of a node is sealed, then it must be in
+  /// the same library.
+  ///
+  /// See [CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY].
+  void _checkForSealedSupertypeOutsideOfLibrary(
+      NamedCompilationUnitMember node,
+      NamedType? superclass,
+      WithClause? withClause,
+      ImplementsClause? implementsClause) {
+    // TODO (kallentu): Distinguish between mixins and classes and make a
+    // separate error for both.
+    void reportSealedClassOutsideOfLibraryError(ClassElementImpl superclass) {
+      if (superclass.isSealed && superclass.library != _currentLibrary) {
+        errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
+            node,
+            [superclass.name]);
+      }
+    }
+
+    if (superclass != null) {
+      final superclassType = superclass.type;
+      if (superclassType is InterfaceType) {
+        final superclassElement = superclassType.element;
+        if (superclassElement is ClassElementImpl) {
+          reportSealedClassOutsideOfLibraryError(superclassElement);
+        }
+      }
+    }
+    // TODO (kallentu): Report errors for the [withClause].
+    if (implementsClause != null) {
+      for (NamedType interface in implementsClause.interfaces) {
+        final interfaceType = interface.type;
+        if (interfaceType is InterfaceType) {
+          final interfaceElement = interfaceType.element;
+          if (interfaceElement is ClassElementImpl) {
+            reportSealedClassOutsideOfLibraryError(interfaceElement);
+          }
+        }
+      }
+    }
+  }
+
   /// Verify that the elements in the given set [literal] are subtypes of the
   /// set's static type.
   ///
@@ -4980,6 +5025,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.IMPLEMENTS_REPEATED,
       );
       _checkForConflictingGenerics(node);
+      _checkForSealedSupertypeOutsideOfLibrary(
+          node, null, null, implementsClause);
     }
   }
 

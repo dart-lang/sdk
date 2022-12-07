@@ -10706,8 +10706,8 @@ const Template<
 const Code<Message Function(String name)>
     codeSealedClassSubtypeOutsideOfLibrary =
     const Code<Message Function(String name)>(
-  "SealedClassSubtypeOutsideOfLibrary",
-);
+        "SealedClassSubtypeOutsideOfLibrary",
+        analyzerCodes: <String>["SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSealedClassSubtypeOutsideOfLibrary(String name) {
