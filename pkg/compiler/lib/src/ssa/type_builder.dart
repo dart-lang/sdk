@@ -120,7 +120,8 @@ abstract class TypeBuilder {
       // Dart semantics for `a == b` check `a` and `b` against `null` outside
       // the method invocation. For code size reasons, dart2js implements the
       // null check on `a` by implementing `JSNull.==`, and the null check on
-      // `b` by injecting the check into `==` methods, before any type checks.
+      // `b` by injecting the check into `==` methods, before any argument type
+      // checks.
       //
       // There are a small number of runtime library methods that do not have
       // the check injected. For these we need to widen the argument type to
