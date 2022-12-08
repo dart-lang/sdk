@@ -4209,20 +4209,27 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   /// Check that if a direct supertype of a node is sealed, then it must be in
   /// the same library.
   ///
-  /// See [CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY].
+  /// See [CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY],
+  /// [CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY].
   void _checkForSealedSupertypeOutsideOfLibrary(
       NamedCompilationUnitMember node,
       NamedType? superclass,
       WithClause? withClause,
       ImplementsClause? implementsClause) {
-    // TODO (kallentu): Distinguish between mixins and classes and make a
-    // separate error for both.
-    void reportSealedClassOutsideOfLibraryError(ClassElementImpl superclass) {
+    void reportSealedClassOrMixinSubtypeOutsideOfLibraryError(
+        ClassOrMixinElementImpl superclass) {
       if (superclass.isSealed && superclass.library != _currentLibrary) {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
-            node,
-            [superclass.name]);
+        if (superclass is MixinElementImpl) {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY,
+              node,
+              [superclass.name]);
+        } else {
+          errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY,
+              node,
+              [superclass.name]);
+        }
       }
     }
 
@@ -4231,18 +4238,30 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       if (superclassType is InterfaceType) {
         final superclassElement = superclassType.element;
         if (superclassElement is ClassElementImpl) {
-          reportSealedClassOutsideOfLibraryError(superclassElement);
+          reportSealedClassOrMixinSubtypeOutsideOfLibraryError(
+              superclassElement);
         }
       }
     }
-    // TODO (kallentu): Report errors for the [withClause].
+    if (withClause != null) {
+      for (NamedType withMixin in withClause.mixinTypes) {
+        final withType = withMixin.type;
+        if (withType is InterfaceType) {
+          final withElement = withType.element;
+          if (withElement is ClassOrMixinElementImpl) {
+            reportSealedClassOrMixinSubtypeOutsideOfLibraryError(withElement);
+          }
+        }
+      }
+    }
     if (implementsClause != null) {
       for (NamedType interface in implementsClause.interfaces) {
         final interfaceType = interface.type;
         if (interfaceType is InterfaceType) {
           final interfaceElement = interfaceType.element;
           if (interfaceElement is ClassElementImpl) {
-            reportSealedClassOutsideOfLibraryError(interfaceElement);
+            reportSealedClassOrMixinSubtypeOutsideOfLibraryError(
+                interfaceElement);
           }
         }
       }

@@ -141,6 +141,69 @@ class Bar2 implements Bar {}
 ''');
   }
 
+  test_class_with_sealed_inside() async {
+    await assertNoErrorsInCode(r'''
+sealed class Foo {}
+class Bar with Foo {}
+''');
+  }
+
+  test_class_with_sealed_outside() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+sealed class Foo {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'foo.dart';
+class Bar with Foo {}
+''', [
+      error(
+          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 21),
+    ]);
+  }
+
+  test_class_with_sealed_outside_viaTypedef_inside() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+sealed class Foo {}
+typedef FooTypedef = Foo;
+''');
+
+    await assertErrorsInCode(r'''
+import 'foo.dart';
+class Bar with FooTypedef {}
+''', [
+      error(
+          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 28),
+    ]);
+  }
+
+  test_class_with_sealed_outside_viaTypedef_outside() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+sealed class Foo {}
+''');
+
+    await assertErrorsInCode(r'''
+import 'foo.dart';
+typedef FooTypedef = Foo;
+class Bar with FooTypedef {}
+''', [
+      error(
+          CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 45, 28),
+    ]);
+  }
+
+  test_class_with_subtypeOfSealed_outside() async {
+    newFile('$testPackageLibPath/foo.dart', r'''
+sealed class Foo {}
+class Bar with Foo {}
+''');
+
+    await assertNoErrorsInCode(r'''
+import 'foo.dart';
+class Bar2 extends Bar {}
+''');
+  }
+
   test_mixin_implements_sealed_outside() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 sealed class Foo {}
