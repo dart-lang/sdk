@@ -11,7 +11,7 @@ import 'package:dart2wasm/closures.dart';
 import 'package:dart2wasm/code_generator.dart';
 import 'package:dart2wasm/constants.dart';
 import 'package:dart2wasm/dispatch_table.dart';
-import 'package:dart2wasm/dynamic_dispatch.dart';
+import 'package:dart2wasm/dynamic_forwarders.dart';
 import 'package:dart2wasm/functions.dart';
 import 'package:dart2wasm/globals.dart';
 import 'package:dart2wasm/kernel_nodes.dart';
@@ -68,7 +68,7 @@ class Translator with KernelNodes {
   late final Constants constants;
   late final Types types;
   late final FunctionCollector functions;
-  late final DynamicDispatcher dynamics;
+  late final DynamicForwarders dynamicForwarders;
 
   // Information about the program used and updated by the various phases.
 
@@ -140,6 +140,24 @@ class Translator with KernelNodes {
     w.NumType.f64: boxedDoubleClass,
   };
 
+  // For now all dynamic forwarders use the same type, but getters and setters
+  // can have a simpler type.
+  late final w.FunctionType dynamicForwarderFunctionType = m.addFunctionType([
+    // Receiver
+    topInfo.nonNullableType,
+
+    // Type arguments
+    classInfo[fixedLengthListClass]!.nonNullableType,
+
+    // Positional arguments
+    classInfo[fixedLengthListClass]!.nonNullableType,
+
+    // Named arguments, represented as array of symbol and object pairs
+    classInfo[fixedLengthListClass]!.nonNullableType,
+  ], [
+    topInfo.nullableType
+  ]);
+
   Translator(this.component, this.coreTypes, this.typeEnvironment, this.options)
       : libraries = component.libraries,
         hierarchy =
@@ -150,7 +168,7 @@ class Translator with KernelNodes {
     dispatchTable = DispatchTable(this);
     functions = FunctionCollector(this);
     types = Types(this);
-    dynamics = DynamicDispatcher(this);
+    dynamicForwarders = DynamicForwarders(this);
   }
 
   // Finds the `main` method for a given library which is assumed to contain
@@ -218,16 +236,19 @@ class Translator with KernelNodes {
       String? exportName = functions.getExport(reference);
 
       if (options.printKernel || options.printWasm) {
+        String header = "#${function.index}: $canonicalName";
         if (exportName != null) {
-          print("#${function.index}: $canonicalName (exported as $exportName)");
-        } else {
-          print("#${function.index}: $canonicalName");
+          header = "$header (exported as $exportName)";
         }
+        if (reference.isTypeCheckerReference) {
+          header = "$header (type checker)";
+        }
+        print(header);
         print(member.function
             ?.computeFunctionType(Nullability.nonNullable)
             .toStringInternal());
       }
-      if (options.printKernel) {
+      if (options.printKernel && !reference.isTypeCheckerReference) {
         if (member is Constructor) {
           Class cls = member.enclosingClass;
           for (Field field in cls.fields) {
@@ -789,6 +810,24 @@ class Translator with KernelNodes {
       }
     }
     return null;
+  }
+
+  /// Indexes a Dart `List` on the stack.
+  void indexList(w.Instructions b, void pushIndex(w.Instructions b)) {
+    ClassInfo info = classInfo[listBaseClass]!;
+    w.ArrayType arrayType =
+        (info.struct.fields[FieldIndex.listArray].type as w.RefType).heapType
+            as w.ArrayType;
+    b.struct_get(info.struct, FieldIndex.listArray);
+    pushIndex(b);
+    b.array_get(arrayType);
+  }
+
+  /// Pushes a Dart `List`'s length onto the stack as `i32`.
+  void getListLength(w.Instructions b) {
+    ClassInfo info = classInfo[listBaseClass]!;
+    b.struct_get(info.struct, FieldIndex.listLength);
+    b.i32_wrap_i64();
   }
 }
 

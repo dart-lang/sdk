@@ -177,51 +177,6 @@ class SelectorInfo {
     return m.addFunctionType(
         [inputs[0], ...typeParameters, ...inputs.sublist(1)], outputs);
   }
-
-  /// Whether the selector can be applied in a [DynamicGet], [DynamicSet], or
-  /// [DynamicInvocation]. This only checks the argument counts and names, not
-  /// their types.
-  bool canApply(Expression dynamicExpression) {
-    if (dynamicExpression is DynamicGet || dynamicExpression is DynamicSet) {
-      // Dynamic get or set can always apply.
-      return true;
-    } else if (dynamicExpression is DynamicInvocation) {
-      Procedure member = paramInfo.member as Procedure;
-      Arguments arguments = dynamicExpression.arguments;
-      FunctionNode function = member.function;
-      if (arguments.types.isNotEmpty &&
-          arguments.types.length != function.typeParameters.length) {
-        return false;
-      }
-
-      if (arguments.positional.length < function.requiredParameterCount ||
-          arguments.positional.length > function.positionalParameters.length) {
-        return false;
-      }
-
-      Set<String> namedParameters = {};
-      Set<String> requiredNamedParameters = {};
-      for (VariableDeclaration v in function.namedParameters) {
-        if (v.isRequired) {
-          requiredNamedParameters.add(v.name!);
-        } else {
-          namedParameters.add(v.name!);
-        }
-      }
-
-      int requiredFound = 0;
-      for (NamedExpression namedArgument in arguments.named) {
-        bool found = requiredNamedParameters.contains(namedArgument.name);
-        if (found) {
-          requiredFound++;
-        } else if (!namedParameters.contains(namedArgument.name)) {
-          return false;
-        }
-      }
-      return requiredFound == requiredNamedParameters.length;
-    }
-    throw '"canApply" should only be used for procedures';
-  }
 }
 
 /// Builds the dispatch table for member calls.
@@ -313,18 +268,16 @@ class DispatchTable {
     return selector;
   }
 
-  /// Returns a possibly null list of [SelectorInfo]s for a given dynamic
-  /// call.
-  Iterable<SelectorInfo>? selectorsForDynamicNode(Expression node) {
-    if (node is DynamicGet) {
-      return _dynamicGets[node.name.text];
-    } else if (node is DynamicSet) {
-      return _dynamicSets[node.name.text];
-    } else if (node is DynamicInvocation) {
-      return _dynamicMethods[node.name.text];
-    } else {
-      throw 'Dynamic invocation of $node not supported';
-    }
+  Iterable<SelectorInfo>? selectorsForDynamicGet(String memberName) {
+    return _dynamicGets[memberName];
+  }
+
+  Iterable<SelectorInfo>? selectorsForDynamicSet(String memberName) {
+    return _dynamicSets[memberName];
+  }
+
+  Iterable<SelectorInfo>? selectorsForDynamicInvocation(String memberName) {
+    return _dynamicMethods[memberName];
   }
 
   void build() {
