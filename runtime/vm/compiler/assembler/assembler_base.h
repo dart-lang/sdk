@@ -837,7 +837,18 @@ class AssemblerBase : public StackResource {
   // dst. May clobber scratch if provided, otherwise may clobber TMP.
   //
   // Note: Only uses the lower 32 bits of the hash and returns a 32 bit hash.
-  virtual void FinalizeHash(Register hash, Register scratch = TMP) = 0;
+  void FinalizeHash(Register hash, Register scratch = TMP) {
+    return FinalizeHashForSize(/*bit_size=*/kBitsPerInt32, hash, scratch);
+  }
+  // Performs FinalizeHash from runtime/vm/hash.h on the hash contained in
+  // dst and returns the result, masked to a maximum of [bit_size] bits.
+  // May clobber scratch if provided, otherwise may clobber TMP.
+  //
+  // Note: Only uses the lower 32 bits of the hash. Since the underlying
+  // algorithm produces 32-bit values, assumes 0 < [bit_size] <= 32.
+  virtual void FinalizeHashForSize(intptr_t bit_size,
+                                   Register hash,
+                                   Register scratch = TMP) = 0;
 
   void LoadTypeClassId(Register dst, Register src) {
 #if !defined(TARGET_ARCH_IA32)

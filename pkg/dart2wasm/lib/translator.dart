@@ -330,6 +330,40 @@ class Translator with KernelNodes {
             : coreTypes.objectClass;
   }
 
+  /// Compute the runtime type of a tear-off. This is the signature of the
+  /// method with the types of all covariant parameters replaced by `Object?`.
+  FunctionType getTearOffType(Procedure method) {
+    assert(method.kind == ProcedureKind.Method);
+    final FunctionType staticType = method.getterType as FunctionType;
+
+    final positionalParameters = List.of(staticType.positionalParameters);
+    assert(positionalParameters.length ==
+        method.function.positionalParameters.length);
+    for (int i = 0; i < positionalParameters.length; i++) {
+      final param = method.function.positionalParameters[i];
+      if (param.isCovariantByDeclaration || param.isCovariantByClass) {
+        positionalParameters[i] = coreTypes.objectNullableRawType;
+      }
+    }
+
+    final namedParameters = List.of(staticType.namedParameters);
+    assert(namedParameters.length == method.function.namedParameters.length);
+    for (int i = 0; i < namedParameters.length; i++) {
+      final param = method.function.namedParameters[i];
+      if (param.isCovariantByDeclaration || param.isCovariantByClass) {
+        namedParameters[i] = NamedType(
+            namedParameters[i].name, coreTypes.objectNullableRawType,
+            isRequired: namedParameters[i].isRequired);
+      }
+    }
+
+    return FunctionType(
+        positionalParameters, staticType.returnType, Nullability.nonNullable,
+        namedParameters: namedParameters,
+        typeParameters: staticType.typeParameters,
+        requiredParameterCount: staticType.requiredParameterCount);
+  }
+
   /// Creates a [Tag] for a void [FunctionType] with two parameters,
   /// a [topInfo.nonNullableType] parameter to hold an exception, and a
   /// [stackTraceInfo.nonNullableType] to hold a stack trace. This single

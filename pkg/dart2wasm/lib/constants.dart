@@ -137,25 +137,6 @@ class Constants {
     if (expectedType == translator.voidMarker) return;
     ConstantInstantiator(this, function, b, expectedType).instantiate(constant);
   }
-
-  /// Emit code to push a constant onto the stack that forms part of a type.
-  ///
-  /// If the constant is part of a generic function type, [env] contains the
-  /// environment that maps the function's type parameters to their runtime
-  /// representation.
-  ///
-  /// It is assumed that constants that form part of a type are never lazy.
-  /// Hitting the forced laziness criterion (a list longer than the maximum
-  /// number of elements allowed by the `array.new_fixed` Wasm instruction)
-  /// would need to involve a function type with this many parameters, but such
-  /// a function would hit the (lower) limit on the maximum number of parameters
-  /// to a Wasm function anyway.
-  void instantiateTypeConstant(w.DefinedFunction? function, w.Instructions b,
-      Constant constant, FunctionTypeEnvironment? env) {
-    ConstantInfo info = ConstantCreator(this, env).ensureConstant(constant)!;
-    assert(!info.isLazy);
-    b.global_get(info.global);
-  }
 }
 
 class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
@@ -261,12 +242,7 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
 class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   final Constants constants;
 
-  /// Environment that maps function type parameters to their runtime
-  /// representation when inside a generic function type.
-  FunctionTypeEnvironment _env;
-
-  ConstantCreator(this.constants, [FunctionTypeEnvironment? env])
-      : _env = env ?? FunctionTypeEnvironment();
+  ConstantCreator(this.constants);
 
   Translator get translator => constants.translator;
   Types get types => translator.types;
@@ -545,8 +521,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   @override
   ConstantInfo? visitStaticTearOffConstant(StaticTearOffConstant constant) {
     Procedure member = constant.targetReference.asProcedure;
-    Constant functionTypeConstant = TypeLiteralConstant(
-        member.function.computeFunctionType(Nullability.nonNullable));
+    Constant functionTypeConstant =
+        TypeLiteralConstant(translator.getTearOffType(member));
     ensureConstant(functionTypeConstant);
     ClosureImplementation closure = translator.getTearOffClosure(member);
     w.StructType struct = closure.representation.closureStruct;
@@ -574,7 +550,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         .toList();
     Procedure tearOffProcedure = tearOffConstant.targetReference.asProcedure;
     FunctionType tearOffFunctionType =
-        tearOffProcedure.function.computeFunctionType(Nullability.nonNullable);
+        translator.getTearOffType(tearOffProcedure);
     FunctionType instantiatedFunctionType = Substitution.fromPairs(
                 tearOffFunctionType.typeParameters, constant.types)
             .substituteType(tearOffFunctionType.withoutTypeParameters)
@@ -692,7 +668,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
   ConstantInfo? _makeFunctionType(
       TypeLiteralConstant constant, FunctionType type, ClassInfo info) {
-    _env.enterFunctionType(type);
+    int typeParameterOffset = types.computeFunctionTypeParameterOffset(type);
     ListConstant typeParameterBoundsConstant = constants
         .makeTypeList(type.typeParameters.map((p) => p.bound).toList());
     TypeLiteralConstant returnTypeConstant =
@@ -708,11 +684,11 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     ensureConstant(positionalParametersConstant);
     ensureConstant(requiredParameterCountConstant);
     ensureConstant(namedParametersConstant);
-    _env.leaveFunctionType();
     return createConstant(constant, info.nonNullableType, (function, b) {
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
       b.i32_const(types.encodedNullability(type));
+      b.i64_const(typeParameterOffset);
       constants.instantiateConstant(
           function, b, typeParameterBoundsConstant, types.typeListExpectedType);
       constants.instantiateConstant(
@@ -741,13 +717,17 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       return _makeFunctionType(constant, type, info);
     } else if (type is TypeParameterType) {
       if (types.isFunctionTypeParameter(type)) {
+        // The indexing scheme used by function type parameters ensures that
+        // function type parameter types that are identical as constants (have
+        // the same nullability and refer to the same type parameter) have the
+        // same representation and thus can be canonicalized like other
+        // constants.
         return createConstant(constant, info.nonNullableType, (function, b) {
+          int index = types.getFunctionTypeParameterIndex(type.parameter);
           b.i32_const(info.classId);
           b.i32_const(initialIdentityHash);
           b.i32_const(types.encodedNullability(type));
-          FunctionTypeParameterType param = _env.lookup(type.parameter);
-          b.i64_const(param.depth);
-          b.i64_const(param.index);
+          b.i64_const(index);
           b.struct_new(info.struct);
         });
       }

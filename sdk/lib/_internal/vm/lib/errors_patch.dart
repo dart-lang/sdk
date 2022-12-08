@@ -106,9 +106,9 @@ class _TypeError extends Error implements TypeError, CastError {
 
   String toString() => _message;
 
-  final String _url;
-  final int _line;
-  final int _column;
+  final String? _url;
+  final int? _line;
+  final int? _column;
   final String _message;
 }
 

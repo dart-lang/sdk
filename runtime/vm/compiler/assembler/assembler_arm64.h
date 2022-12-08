@@ -2229,7 +2229,9 @@ class Assembler : public AssemblerBase {
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
 
   void CombineHashes(Register hash, Register other) override;
-  void FinalizeHash(Register hash, Register scratch = TMP) override;
+  void FinalizeHashForSize(intptr_t bit_size,
+                           Register hash,
+                           Register scratch = TMP) override;
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.

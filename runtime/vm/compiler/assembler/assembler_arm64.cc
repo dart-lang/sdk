@@ -1919,13 +1919,25 @@ void Assembler::CombineHashes(Register hash, Register other) {
   eor(hash, hash, Operand(hash, LSR, 6), kFourBytes);
 }
 
-void Assembler::FinalizeHash(Register hash, Register scratch) {
+void Assembler::FinalizeHashForSize(intptr_t bit_size,
+                                    Register hash,
+                                    Register scratch) {
+  ASSERT(bit_size > 0);  // Can't avoid returning 0 if there are no hash bits!
+  // While any 32-bit hash value fits in X bits, where X > 32, the caller may
+  // reasonably expect that the returned values fill the entire bit space.
+  ASSERT(bit_size <= kBitsPerInt32);
   // hash += hash << 3;
   add(hash, hash, Operand(hash, LSL, 3), kFourBytes);
   // hash ^= hash >> 11;  // Logical shift, unsigned hash.
   eor(hash, hash, Operand(hash, LSR, 11), kFourBytes);
   // hash += hash << 15;
-  adds(hash, hash, Operand(hash, LSL, 15), kFourBytes);
+  if (bit_size < kBitsPerInt32) {
+    add(hash, hash, Operand(hash, LSL, 15), kFourBytes);
+    // Size to fit.
+    andis(hash, hash, Immediate(Utils::NBitMask(bit_size)));
+  } else {
+    adds(hash, hash, Operand(hash, LSL, 15), kFourBytes);
+  }
   // return (hash == 0) ? 1 : hash;
   cinc(hash, hash, ZERO);
 }

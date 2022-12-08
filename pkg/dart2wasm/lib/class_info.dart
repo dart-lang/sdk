@@ -33,7 +33,7 @@ class FieldIndex {
   static const instantiationContextTypeArgumentsBase = 1;
   static const typeIsDeclaredNullable = 2;
   static const interfaceTypeTypeArguments = 4;
-  static const functionTypeNamedParameters = 7;
+  static const functionTypeNamedParameters = 8;
   static const typedListBaseLength = 2;
   static const typedListArray = 3;
   static const typedListViewTypedData = 3;

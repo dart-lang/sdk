@@ -150,6 +150,11 @@ class ClosureLayouter extends RecursiveVisitor {
   late final w.StructType closureBaseStruct = _makeClosureStruct("#ClosureBase",
       vtableBaseStruct, translator.classInfo[translator.functionClass]!.struct);
 
+  late final w.RefType typeType =
+      translator.classInfo[translator.typeClass]!.nonNullableType;
+  late final w.RefType functionTypeType =
+      translator.classInfo[translator.functionTypeClass]!.nonNullableType;
+
   w.StructType _makeClosureStruct(
       String name, w.StructType vtableStruct, w.StructType superType) {
     // A closure contains:
@@ -165,15 +170,13 @@ class ClosureLayouter extends RecursiveVisitor {
           w.FieldType(w.RefType.data(nullable: false)),
           w.FieldType(w.RefType.def(vtableStruct, nullable: false),
               mutable: false),
-          w.FieldType(typeType, mutable: false)
+          w.FieldType(functionTypeType, mutable: false)
         ],
         superType: superType);
   }
 
   w.Module get m => translator.m;
   w.ValueType get topType => translator.topInfo.nullableType;
-  w.ValueType get typeType =>
-      translator.classInfo[translator.typeClass]!.nonNullableType;
 
   ClosureLayouter(this.translator)
       : procedureAttributeMetadata =
@@ -477,25 +480,55 @@ class ClosureLayouter extends RecursiveVisitor {
     w.Local preciseClosure = instantiationFunction.addLocal(genericClosureType);
     w.Instructions b = instantiationFunction.body;
 
+    // Parameters to the instantiation function
+    final w.Local closureParam = instantiationFunction.locals[0];
+    w.Local typeParam(int i) => instantiationFunction.locals[1 + i];
+
     // Header for the closure struct
     b.i32_const(info.classId);
     b.i32_const(initialIdentityHash);
 
     // Context for the instantiated closure, containing the original closure and
     // the type arguments
-    b.local_get(instantiationFunction.locals[0]);
+    b.local_get(closureParam);
     b.ref_cast(genericClosureStruct);
     b.local_tee(preciseClosure);
     for (int i = 0; i < typeCount; i++) {
-      b.local_get(instantiationFunction.locals[1 + i]);
+      b.local_get(typeParam(i));
     }
     b.struct_new(contextStruct);
 
-    // The rest of the closure struct
     b.global_get(vtable);
-    // TODO(askesc): Substitute type arguments into type
+
+    // Construct the type of the instantiated closure, which is the type of the
+    // original closure with the type arguments of the instantiation substituted
+    // for its type parameters.
+
+    // Type of the original closure
     b.local_get(preciseClosure);
     b.struct_get(genericClosureStruct, FieldIndex.closureRuntimeType);
+
+    // Put type arguments into a `List<_Type>`.
+    ClassInfo listInfo = translator.classInfo[translator.fixedLengthListClass]!;
+    translator.functions.allocateClass(listInfo.classId);
+    Constant typeConstant = TypeLiteralConstant(
+        InterfaceType(translator.typeClass, Nullability.nonNullable));
+    b.i32_const(listInfo.classId);
+    b.i32_const(initialIdentityHash);
+    translator.constants
+        .instantiateConstant(instantiationFunction, b, typeConstant, typeType);
+    b.i64_const(typeCount);
+    for (int i = 0; i < typeCount; i++) {
+      b.local_get(typeParam(i));
+    }
+    b.array_new_fixed(translator.listArrayType, typeCount);
+    b.struct_new(listInfo.struct);
+
+    // Call [_TypeUniverse.substituteFunctionTypeArgument].
+    b.call(translator.functions
+        .getFunction(translator.substituteFunctionTypeArgument.reference));
+
+    // Finally, allocate closure struct.
     b.struct_new(instantiatedRepresentation.closureStruct);
 
     b.end();

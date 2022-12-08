@@ -865,8 +865,7 @@ InstancePtr Exceptions::NewInstance(const char* class_name) {
   return Instance::New(cls);
 }
 
-// Allocate, initialize, and throw a TypeError or CastError.
-// If error_msg is not null, throw a TypeError, even for a type cast.
+// Allocate, initialize, and throw a TypeError.
 void Exceptions::CreateAndThrowTypeError(TokenPosition location,
                                          const AbstractType& src_type,
                                          const AbstractType& dst_type,
@@ -876,8 +875,7 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
   Zone* zone = thread->zone();
   const Array& args = Array::Handle(zone, Array::New(4));
 
-  ExceptionType exception_type =
-      (dst_name.ptr() == Symbols::InTypeCast().ptr()) ? kCast : kType;
+  ExceptionType exception_type = kType;
 
   DartFrameIterator iterator(thread,
                              StackFrameIterator::kNoCrossThreadIteration);
@@ -908,9 +906,7 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
     pieces.Add(Symbols::TypeQuote());
     pieces.Add(String::Handle(zone, dst_type.UserVisibleName()));
     pieces.Add(Symbols::SingleQuote());
-    if (exception_type == kCast) {
-      pieces.Add(dst_name);
-    } else if (dst_name.Length() > 0) {
+    if (dst_name.Length() > 0) {
       pieces.Add(Symbols::SpaceOfSpace());
       pieces.Add(Symbols::SingleQuote());
       pieces.Add(dst_name);
@@ -944,7 +940,7 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
     THR_Print("%s\n", error_msg.ToCString());
   }
 
-  // Throw TypeError or CastError instance.
+  // Throw TypeError instance.
   Exceptions::ThrowByType(exception_type, args);
   UNREACHABLE();
 }
@@ -1149,11 +1145,6 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kAssertion:
       library = Library::CoreLibrary();
       class_name = &Symbols::AssertionError();
-      constructor_name = &Symbols::DotCreate();
-      break;
-    case kCast:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::CastError();
       constructor_name = &Symbols::DotCreate();
       break;
     case kType:

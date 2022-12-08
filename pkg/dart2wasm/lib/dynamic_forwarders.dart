@@ -6,7 +6,6 @@ import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/dispatch_table.dart';
 import 'package:dart2wasm/reference_extensions.dart';
 import 'package:dart2wasm/translator.dart';
-import 'package:dart2wasm/types.dart';
 
 import 'package:kernel/ast.dart';
 
@@ -572,8 +571,11 @@ void _makeEmptyGrowableList(
 
   b.i32_const(info.classId);
   b.i32_const(initialIdentityHash);
-  translator.constants.instantiateTypeConstant(function, b,
-      TypeLiteralConstant(DynamicType()), FunctionTypeEnvironment());
+  translator.constants.instantiateConstant(
+      function,
+      b,
+      TypeLiteralConstant(DynamicType()),
+      translator.classInfo[translator.typeClass]!.nonNullableType);
   b.i64_const(0); // _length
   b.i32_const(capacity);
   b.array_new_default(arrayType); // _data

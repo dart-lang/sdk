@@ -197,8 +197,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   void generateTearOffGetter(Procedure procedure) {
     _initializeThis(member);
-    DartType functionType =
-        procedure.function.computeFunctionType(Nullability.nonNullable);
+    DartType functionType = translator.getTearOffType(procedure);
     ClosureImplementation closure = translator.getTearOffClosure(procedure);
     w.StructType struct = closure.representation.closureStruct;
 
@@ -1842,7 +1841,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // Super tear-off
       w.StructType closureStruct = _pushClosure(
           translator.getTearOffClosure(target),
-          target.function.computeFunctionType(Nullability.nonNullable),
+          translator.getTearOffType(target),
           () => visitThis(w.RefType.data(nullable: false)));
       return w.RefType.def(closureStruct, nullable: false);
     }

@@ -939,7 +939,9 @@ class Assembler : public AssemblerBase {
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
 
   void CombineHashes(Register dst, Register other) override;
-  void FinalizeHash(Register dst, Register scratch = kNoRegister) override;
+  void FinalizeHashForSize(intptr_t bit_size,
+                           Register dst,
+                           Register scratch = kNoRegister) override;
 
   // In debug mode, this generates code to check that:
   //   FP + kExitLinkSlotFromEntryFp == SP

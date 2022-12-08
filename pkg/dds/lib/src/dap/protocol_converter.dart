@@ -592,7 +592,9 @@ class ProtocolConverter {
             f.json?['_kind'] == 'GetterFunction' &&
             !(f.isStatic ?? false) &&
             !(f.isConst ?? false));
-        getterNames.addAll(instanceFields.map((f) => f.name!));
+        getterNames.addAll(instanceFields
+            .map((f) => f.name!)
+            .where((name) => !name.startsWith('_')));
       }
 
       classRef = classResponse.superClass;

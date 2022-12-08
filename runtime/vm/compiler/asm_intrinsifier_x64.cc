@@ -1595,53 +1595,23 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   // RCX: String length, untagged integer.
   // RDI: Loop counter, untagged integer.
   // RAX: Hash code, untagged integer.
-  Label loop, done, set_hash_code;
+  Label loop, done;
   __ Bind(&loop);
   __ cmpq(RDI, RCX);
   __ j(EQUAL, &done, Assembler::kNearJump);
   // Add to hash code: (hash_ is uint32)
-  // hash_ += ch;
-  // hash_ += hash_ << 10;
-  // hash_ ^= hash_ >> 6;
   // Get one characters (ch).
   __ movzxb(RDX, FieldAddress(RBX, RDI, TIMES_1,
                               target::OneByteString::data_offset()));
   // RDX: ch and temporary.
-  __ addl(RAX, RDX);
-  __ movq(RDX, RAX);
-  __ shll(RDX, Immediate(10));
-  __ addl(RAX, RDX);
-  __ movq(RDX, RAX);
-  __ shrl(RDX, Immediate(6));
-  __ xorl(RAX, RDX);
+  __ CombineHashes(RAX, RDX);
 
   __ incq(RDI);
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&done);
-  // Finalize:
-  // hash_ += hash_ << 3;
-  // hash_ ^= hash_ >> 11;
-  // hash_ += hash_ << 15;
-  __ movq(RDX, RAX);
-  __ shll(RDX, Immediate(3));
-  __ addl(RAX, RDX);
-  __ movq(RDX, RAX);
-  __ shrl(RDX, Immediate(11));
-  __ xorl(RAX, RDX);
-  __ movq(RDX, RAX);
-  __ shll(RDX, Immediate(15));
-  __ addl(RAX, RDX);
-  // hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
-  __ andl(
-      RAX,
-      Immediate(((static_cast<intptr_t>(1) << target::String::kHashBits) - 1)));
-
-  // return hash_ == 0 ? 1 : hash_;
-  __ cmpq(RAX, Immediate(0));
-  __ j(NOT_EQUAL, &set_hash_code, Assembler::kNearJump);
-  __ incq(RAX);
-  __ Bind(&set_hash_code);
+  // Finalize and fit to size kHashBits. Ensures hash is non-zero.
+  __ FinalizeHashForSize(target::String::kHashBits, RAX);
   __ shlq(RAX, Immediate(target::UntaggedObject::kHashTagPos));
   // lock+orq is an atomic read-modify-write.
   __ lock();

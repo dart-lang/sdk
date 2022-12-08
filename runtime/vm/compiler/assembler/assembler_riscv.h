@@ -1401,7 +1401,9 @@ class Assembler : public MicroAssembler {
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
 
   void CombineHashes(Register dst, Register other) override;
-  void FinalizeHash(Register dst, Register scratch = TMP) override;
+  void FinalizeHashForSize(intptr_t bit_size,
+                           Register dst,
+                           Register scratch = TMP) override;
 
   // If allocation tracing for |cid| is enabled, will jump to |trace| label,
   // which will allocate in the runtime where tracing occurs.
