@@ -3,9 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'nodes.dart';
+import 'value_range_analyzer.dart';
 
 abstract class OptimizationPhase {
   String get name;
   void visitGraph(HGraph graph);
   bool validPostcondition(HGraph graph);
+}
+
+abstract class SsaOptimizerTask {
+  set ranges(Map<HInstruction, Range> value);
 }
