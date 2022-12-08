@@ -2389,20 +2389,23 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitBoolLiteral(BoolLiteral node, w.ValueType expectedType) {
-    b.i32_const(node.value ? 1 : 0);
-    return w.NumType.i32;
+    translator.constants.instantiateConstant(
+        function, b, BoolConstant(node.value), expectedType);
+    return expectedType;
   }
 
   @override
   w.ValueType visitIntLiteral(IntLiteral node, w.ValueType expectedType) {
-    b.i64_const(node.value);
-    return w.NumType.i64;
+    translator.constants.instantiateConstant(
+        function, b, IntConstant(node.value), expectedType);
+    return expectedType;
   }
 
   @override
   w.ValueType visitDoubleLiteral(DoubleLiteral node, w.ValueType expectedType) {
-    b.f64_const(node.value);
-    return w.NumType.f64;
+    translator.constants.instantiateConstant(
+        function, b, DoubleConstant(node.value), expectedType);
+    return expectedType;
   }
 
   @override
