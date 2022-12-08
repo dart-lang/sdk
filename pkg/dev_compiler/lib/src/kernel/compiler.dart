@@ -5935,7 +5935,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
             case 'PRINT_LEGACY_STARS':
               return js.boolean(_options.printLegacyStars);
             case 'LEGACY':
-              return js.boolean(!_options.soundNullSafety);
+              return _options.soundNullSafety
+                  ? js.boolean(false)
+                  // When running the new runtime type system with weak null
+                  // safety this flag gets toggled when performing `is` and `as`
+                  // checks. This allows DDC to produce optional warnings or
+                  // errors when tests pass but would fail in sound null safety.
+                  : runtimeCall('legacyTypeChecks');
             case 'MINIFIED':
               return js.boolean(false);
             case 'NEW_RUNTIME_TYPES':
@@ -6563,16 +6569,24 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         type.nullability == Nullability.nonNullable &&
         type != _types.coreTypes.intNonNullableRawType) {
       return js.call('typeof # == #', [lhs, js.string(typeofName, "'")]);
-    } else {
-      return _options.newRuntimeTypes
+    }
+
+    if (_options.newRuntimeTypes) {
+      // When using the new runtime type system with sound null safety we can
+      // call to the library directly. In weak mode we call a DDC only method
+      // that can optionally produce warnings or errors when the check passes
+      // but would fail with sound null safety.
+      return _options.soundNullSafety
           ? js.call('#.#(#)', [
               _emitType(type),
               _emitMemberName(js_ast.FixedNames.rtiIsField,
                   memberClass: rtiClass),
               lhs
             ])
-          : js.call('#.is(#)', [_emitType(type), lhs]);
+          : runtimeCall('is(#, #)', [lhs, _emitType(type)]);
     }
+
+    return js.call('#.is(#)', [_emitType(type), lhs]);
   }
 
   @override
@@ -6649,15 +6663,21 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _emitCast(js_ast.Expression expr, DartType type) {
     if (_types.isTop(type)) return expr;
-
-    return _options.newRuntimeTypes
-        ? js.call('#.#(#)', [
-            _emitType(type),
-            _emitMemberName(js_ast.FixedNames.rtiAsField,
-                memberClass: rtiClass),
-            expr
-          ])
-        : js.call('#.as(#)', [_emitType(type), expr]);
+    if (_options.newRuntimeTypes) {
+      // When using the new runtime type system with sound null safety we can
+      // call to the library directly. In weak mode we call a DDC only method
+      // that can optionally produce warnings or errors when the cast passes but
+      // would fail with sound null safety.
+      return _options.soundNullSafety
+          ? js.call('#.#(#)', [
+              _emitType(type),
+              _emitMemberName(js_ast.FixedNames.rtiAsField,
+                  memberClass: rtiClass),
+              expr
+            ])
+          : runtimeCall('as(#, #)', [expr, _emitType(type)]);
+    }
+    return js.call('#.as(#)', [_emitType(type), expr]);
   }
 
   @override
