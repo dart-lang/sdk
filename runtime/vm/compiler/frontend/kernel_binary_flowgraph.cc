@@ -4957,42 +4957,14 @@ Fragment StreamingFlowGraphBuilder::BuildSwitchCase(SwitchHelper* helper,
     body_fragment += Drop();
   }
 
-  // The Dart language specification mandates fall-throughs in [SwitchCase]es
-  // to be runtime errors.
+  // TODO(http://dartbug.com/50595): The CFE does not insert breaks for
+  // unterminated cases which never reach the end of their control flow.
+  // If the CFE inserts synthesized breaks, we can add an assert here instead.
   if (!is_default && body_fragment.is_open() &&
       (case_index < (helper->case_count() - 1))) {
-    const Class& klass = Class::ZoneHandle(
-        Z, Library::LookupCoreClass(Symbols::FallThroughError()));
-    ASSERT(!klass.IsNull());
-    const auto& error = klass.EnsureIsFinalized(thread());
-    ASSERT(error == Error::null());
-
-    GrowableHandlePtrArray<const String> pieces(Z, 3);
-    pieces.Add(Symbols::FallThroughError());
-    pieces.Add(Symbols::Dot());
-    pieces.Add(H.DartSymbolObfuscate("_create"));
-
-    const Function& constructor = Function::ZoneHandle(
-        Z, klass.LookupConstructorAllowPrivate(String::ZoneHandle(
-               Z, Symbols::FromConcatAll(H.thread(), pieces))));
-    ASSERT(!constructor.IsNull());
-    const String& url = H.DartSymbolPlain(
-        parsed_function()->function().ToLibNamePrefixedQualifiedCString());
-
-    // Create instance of _FallThroughError
-    body_fragment += AllocateObject(TokenPosition::kNoSource, klass, 0);
-    LocalVariable* instance = MakeTemporary();
-
-    // Call _FallThroughError._create constructor.
-    body_fragment += LoadLocal(instance);  // this
-    body_fragment += Constant(url);        // url
-    body_fragment += NullConstant();       // line
-
-    body_fragment +=
-        StaticCall(TokenPosition::kNoSource, constructor, 3, ICData::kStatic);
-    body_fragment += Drop();
-
-    // Throw the exception
+    const auto& error =
+        String::ZoneHandle(Z, Symbols::New(thread(), "Unreachable code."));
+    body_fragment += Constant(error);
     body_fragment += ThrowException(TokenPosition::kNoSource);
     body_fragment += Drop();
   }
