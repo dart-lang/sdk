@@ -13,7 +13,7 @@ import '../js_backend/native_data.dart' show NativeBasicData;
 import '../world.dart' show World;
 import 'selector.dart' show Selector;
 import 'use.dart' show DynamicUse, StaticUse;
-import 'resolution_world_builder_interfaces.dart' show ResolutionWorldBuilder;
+import 'resolution_world_builder.dart' show ResolutionWorldBuilder;
 import 'strong_mode_constraint.dart' show StrongModeConstraintInterface;
 
 /// The combined constraints on receivers all the dynamic call sites of the same
