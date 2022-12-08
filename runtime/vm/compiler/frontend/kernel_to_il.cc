@@ -687,7 +687,7 @@ Fragment FlowGraphBuilder::ThrowTypeError() {
 
   Fragment instructions;
 
-  // Create instance of _FallThroughError
+  // Create instance of _TypeError
   instructions += AllocateObject(TokenPosition::kNoSource, klass, 0);
   LocalVariable* instance = MakeTemporary();
 

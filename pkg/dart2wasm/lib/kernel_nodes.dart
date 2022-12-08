@@ -136,6 +136,8 @@ mixin KernelNodes {
       .superclass! // _LinkedHashSetMixin<K, V>
       .procedures
       .firstWhere((p) => p.name.text == "add");
+  late final Procedure growableListAdd =
+      index.getProcedure("dart:core", "_GrowableList", "add");
   late final Procedure hashImmutableIndexNullable = index.getProcedure(
       "dart:collection", "_HashAbstractImmutableBase", "get:_indexNullable");
 
@@ -174,6 +176,8 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "_TypeError", "_throwAsCheckError");
   late final Procedure throwWasmRefError =
       index.getProcedure("dart:core", "_TypeError", "_throwWasmRefError");
+  late final Procedure throwArgumentTypeCheckError = index.getProcedure(
+      "dart:core", "_TypeError", "_throwArgumentTypeCheckError");
 
   // dart:core type procedures
   late final Procedure isSubtype =
@@ -182,6 +186,12 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "_Type", "get:asNullable");
   late final Procedure createNormalizedFutureOrType = index.getProcedure(
       "dart:core", "_TypeUniverse", "createNormalizedFutureOrType");
+
+  // dart:core dynamic invocation helper procedures
+  late final Procedure getNamedParameter =
+      index.getTopLevelProcedure("dart:core", "_getNamedParameter");
+  late final Procedure namedParameterListToMap =
+      index.getTopLevelProcedure("dart:core", "_namedParameterListToMap");
 
   // dart:wasm procedures
   late final Procedure wasmFunctionCall =

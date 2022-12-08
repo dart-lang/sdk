@@ -81,6 +81,16 @@ class _TypeError extends _Error implements TypeError {
         "The Wasm reference is not $expected", stackTrace);
     return _throwObjectWithStackTrace(typeError, stackTrace);
   }
+
+  @pragma("wasm:entry-point")
+  static Never _throwArgumentTypeCheckError(
+      Object? arg, _Type param, String paramName, StackTrace stackTrace) {
+    final typeError = _TypeError.fromMessageAndStackTrace(
+        "type '${arg.runtimeType}' is not a subtype of "
+        "type '$param' of '$paramName'",
+        stackTrace);
+    return _throwObjectWithStackTrace(typeError, stackTrace);
+  }
 }
 
 @patch

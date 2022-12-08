@@ -123,13 +123,26 @@ class FunctionCollector {
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
       _worklist.add(target);
+
+      if (target.isTypeCheckerReference) {
+        final Member member = target.asMember;
+        return m.addFunction(
+            translator.dynamicForwarderFunctionType, '$member type checker');
+      }
+
+      if (target.isTearOffReference) {
+        return m.addFunction(
+            translator.dispatchTable.selectorForTarget(target).signature,
+            "${target.asMember}");
+      }
+
       if (target.isAsyncInnerReference) {
         w.BaseFunction outer = getFunction(target.asProcedure.reference);
         return addAsyncInnerFunctionFor(outer);
       }
-      w.FunctionType ftype = target.isTearOffReference
-          ? translator.dispatchTable.selectorForTarget(target).signature
-          : target.asMember.accept1(_FunctionTypeGenerator(translator), target);
+
+      final ftype =
+          target.asMember.accept1(_FunctionTypeGenerator(translator), target);
       return m.addFunction(ftype, "${target.asMember}");
     });
   }

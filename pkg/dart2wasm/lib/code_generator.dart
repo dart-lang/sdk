@@ -6,6 +6,7 @@ import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/closures.dart';
 import 'package:dart2wasm/constants.dart';
 import 'package:dart2wasm/dispatch_table.dart';
+import 'package:dart2wasm/dynamic_forwarders.dart';
 import 'package:dart2wasm/intrinsics.dart';
 import 'package:dart2wasm/param_info.dart';
 import 'package:dart2wasm/reference_extensions.dart';
@@ -144,6 +145,14 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     if (reference.isTearOffReference) {
       return generateTearOffGetter(member as Procedure);
+    }
+
+    if (reference.isTypeCheckerReference) {
+      if (member is Field) {
+        return _generateFieldSetterTypeCheckerMethod();
+      } else {
+        return _generateProcedureTypeCheckerMethod();
+      }
     }
 
     if (intrinsifier.generateMemberIntrinsic(
@@ -1496,7 +1505,14 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (node.name.text == "call") {
       return _functionCall(node.receiver, node.arguments);
     }
-    return translator.dynamics.emitDynamicCall(this, node);
+    _callForwarder(
+        node.name.text,
+        translator.dynamicForwarders.getMethodForwarder(node),
+        node.receiver,
+        node.arguments.types,
+        node.arguments.positional,
+        node.arguments.named);
+    return translator.topInfo.nullableType;
   }
 
   @override
@@ -1883,12 +1899,23 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitDynamicGet(DynamicGet node, w.ValueType expectedType) {
-    return translator.dynamics.emitDynamicCall(this, node);
+    _callForwarder(
+        node.name.text,
+        translator.dynamicForwarders.getGetterForwarder(node),
+        node.receiver, [], [], []);
+    return translator.topInfo.nullableType;
   }
 
   @override
   w.ValueType visitDynamicSet(DynamicSet node, w.ValueType expectedType) {
-    return translator.dynamics.emitDynamicCall(this, node);
+    _callForwarder(
+        node.name.text,
+        translator.dynamicForwarders.getSetterForwarder(node),
+        node.receiver,
+        [],
+        [node.value],
+        []);
+    return translator.topInfo.nullableType;
   }
 
   w.ValueType _directGet(
@@ -2266,8 +2293,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void visitArgumentsLists(List<Expression> positional,
       w.FunctionType signature, ParameterInfo paramInfo, int signatureOffset,
       {List<DartType> typeArguments = const [],
-      List<NamedExpression> named = const [],
-      bool requiresTypeChecks = false}) {
+      List<NamedExpression> named = const []}) {
     for (int i = 0; i < typeArguments.length; i++) {
       types.makeType(this, typeArguments[i]);
     }
@@ -2560,6 +2586,342 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         translator.classInfo[translator.typeClass]!.nonNullableType;
     translator.convertType(function, resultType, nonNullableTypeType);
     return nonNullableTypeType;
+  }
+
+  /// Generate type checker method for a setter.
+  ///
+  /// This function will be called by a setter forwarder in a dynamic set to
+  /// type check the setter argument before calling the actual setter.
+  void _generateFieldSetterTypeCheckerMethod() {
+    final receiverLocal = function.locals[0];
+    final positionalArgsLocal = function.locals[2];
+
+    _initializeThis(member);
+
+    // Local for the argument.
+    final argLocal = addLocal(translator.topInfo.nullableType);
+
+    // Local for the expected type of the argument.
+    final typeType =
+        translator.classInfo[translator.typeClass]!.nonNullableType;
+    final argTypeLocal = addLocal(typeType);
+
+    final field = member as Field;
+    final paramType = field.type;
+
+    _generateArgumentTypeCheck(
+      field.name.text,
+      () {
+        b.local_get(positionalArgsLocal);
+        translator.indexList(b, (b) => b.i32_const(0));
+      },
+      () {
+        types.makeType(this, paramType);
+      },
+      argLocal,
+      argTypeLocal,
+    );
+
+    ClassInfo info = translator.classInfo[field.enclosingClass]!;
+    int fieldIndex = translator.fieldIndex[field]!;
+    b.local_get(receiverLocal);
+    translator.convertType(function, receiverLocal.type, info.nullableType);
+    b.local_get(argLocal);
+    translator.convertType(
+        function, argLocal.type, info.struct.fields[fieldIndex].type.unpacked);
+    b.struct_set(info.struct, fieldIndex);
+    translator.constants.instantiateConstant(
+        function, b, NullConstant(), translator.topInfo.nullableType);
+    b.end();
+  }
+
+  /// Generate type checker method for a method.
+  ///
+  /// This function will be called by an invocation forwarder in a dynamic
+  /// invocation to type check parameters before calling the actual method.
+  void _generateProcedureTypeCheckerMethod() {
+    final receiverLocal = function.locals[0];
+    final typeArgsLocal = function.locals[1];
+    final positionalArgsLocal = function.locals[2];
+    final namedArgsLocal = function.locals[3];
+
+    _initializeThis(member);
+
+    final typeType =
+        translator.classInfo[translator.typeClass]!.nonNullableType;
+
+    final targetParamInfo = translator.paramInfoFor(member.reference);
+
+    final procedure = member as Procedure;
+
+    // Bind type parameters
+    final memberTypeParams = procedure.function.typeParameters;
+    assert(memberTypeParams.length == targetParamInfo.typeParamCount);
+
+    if (memberTypeParams.isNotEmpty) {
+      // Type argument list is either empty or have the right number of types
+      // (checked by the forwarder).
+      b.local_get(typeArgsLocal);
+      translator.getListLength(b);
+      b.i32_eqz();
+      b.if_([], List.generate(memberTypeParams.length, (_) => typeType));
+      // No type arguments passed, initialize with defaults
+      for (final typeParam in memberTypeParams) {
+        types.makeType(this, typeParam.defaultType);
+      }
+      b.else_();
+      for (int typeParamIdx = 0;
+          typeParamIdx < memberTypeParams.length;
+          typeParamIdx += 1) {
+        b.local_get(typeArgsLocal);
+        translator.indexList(b, (b) => b.i32_const(typeParamIdx));
+        translator.convertType(
+            function, translator.topInfo.nullableType, typeType);
+      }
+      b.end();
+
+      // Create locals for type parameters. These will be used by `makeType`
+      // below when generating types of parameters, for type checks.
+      for (int typeParamIdx = memberTypeParams.length - 1;
+          typeParamIdx >= 0;
+          typeParamIdx -= 1) {
+        final local = addLocal(typeType);
+        b.local_set(local);
+        typeLocals[memberTypeParams[typeParamIdx]] = local;
+      }
+    }
+
+    // Check positional argument types
+    final List<VariableDeclaration> memberPositionalParams =
+        procedure.function.positionalParameters;
+
+    // Local for the current argument being checked. Used to avoid indexing the
+    // positional parameters array again when throwing type error.
+    final argLocal = addLocal(translator.topInfo.nullableType);
+
+    // Local for the expected type of the current positional arguments. Used to
+    // avoid generating the type again when throwing type error.
+    final argTypeLocal = addLocal(typeType);
+
+    for (int positionalParamIdx = 0;
+        positionalParamIdx < memberPositionalParams.length;
+        positionalParamIdx += 1) {
+      final param = memberPositionalParams[positionalParamIdx];
+      _generateArgumentTypeCheck(
+        param.name!,
+        () {
+          b.local_get(positionalArgsLocal);
+          translator.indexList(b, (b) => b.i32_const(positionalParamIdx));
+        },
+        () {
+          types.makeType(this, param.type);
+        },
+        argLocal,
+        argTypeLocal,
+      );
+    }
+
+    // Check named argument types
+    final memberNamedParams = procedure.function.namedParameters;
+
+    /// Maps a named parameter in the member's signature to the parameter's
+    /// index in the array [namedArgsLocal].
+    int mapNamedParameterToArrayIndex(String name) {
+      int? idx;
+      for (int i = 0; i < targetParamInfo.names.length; i += 1) {
+        if (targetParamInfo.names[i] == name) {
+          idx = i;
+          break;
+        }
+      }
+      return idx!;
+    }
+
+    for (int namedParamIdx = 0;
+        namedParamIdx < memberNamedParams.length;
+        namedParamIdx += 1) {
+      final param = memberNamedParams[namedParamIdx];
+      _generateArgumentTypeCheck(
+        param.name!,
+        () {
+          b.local_get(namedArgsLocal);
+          translator.indexList(b,
+              (b) => b.i32_const(mapNamedParameterToArrayIndex(param.name!)));
+        },
+        () {
+          types.makeType(this, param.type);
+        },
+        argLocal,
+        argTypeLocal,
+      );
+    }
+
+    // Argument types are as expected, call the member function
+
+    final w.BaseFunction memberWasmFunction =
+        translator.functions.getFunction(member.reference);
+    final List<w.ValueType> memberWasmInputs = memberWasmFunction.type.inputs;
+
+    b.local_get(receiverLocal);
+    translator.convertType(
+        function, translator.topInfo.nullableType, memberWasmInputs[0]);
+
+    for (final typeParam in memberTypeParams) {
+      b.local_get(typeLocals[typeParam]!);
+    }
+
+    int memberParamIdx =
+        1 + targetParamInfo.typeParamCount; // skip receiver and type args
+
+    void pushArgument(w.Local listLocal, int listIdx, int wasmInputIdx) {
+      b.local_get(listLocal);
+      translator.indexList(b, (b) => b.i32_const(listIdx));
+      translator.convertType(function, translator.topInfo.nullableType,
+          memberWasmInputs[wasmInputIdx]);
+    }
+
+    for (int positionalParamIdx = 0;
+        positionalParamIdx < targetParamInfo.positional.length;
+        positionalParamIdx += 1) {
+      pushArgument(positionalArgsLocal, positionalParamIdx, memberParamIdx);
+      memberParamIdx += 1;
+    }
+
+    for (int namedParamIdx = 0;
+        namedParamIdx < targetParamInfo.names.length;
+        namedParamIdx += 1) {
+      pushArgument(namedArgsLocal, namedParamIdx, memberParamIdx);
+      memberParamIdx += 1;
+    }
+
+    call(member.reference);
+
+    translator.convertType(
+        function,
+        translator.outputOrVoid(memberWasmFunction.type.outputs),
+        translator.topInfo.nullableType);
+
+    b.return_();
+    b.end();
+  }
+
+  /// Generate code that checks type of an argument against an expected type
+  /// and throws a `TypeError` on failure.
+  ///
+  /// Does not expect any values on stack and does not leave any values on
+  /// stack.
+  ///
+  /// Locals [argLocal] and [argExpectedTypeLocal] are used to store values
+  /// pushed by [pushArg] and [pushArgExpectedType] and reuse the values.
+  ///
+  /// [argName] is used in the type error as the name of the argument that
+  /// doesn't match the expected type.
+  void _generateArgumentTypeCheck(
+    String argName,
+    void Function() pushArg,
+    void Function() pushArgExpectedType,
+    w.Local argLocal,
+    w.Local argExpectedTypeLocal,
+  ) {
+    // Argument
+    pushArg();
+    b.local_tee(argLocal);
+
+    // Expected type
+    pushArgExpectedType();
+    b.local_tee(argExpectedTypeLocal);
+
+    // Check that argument type is subtype of expected type
+    b.call(translator.functions.getFunction(translator.isSubtype.reference));
+
+    b.i32_eqz();
+    b.if_();
+    // Type check failed
+    b.local_get(argLocal);
+    b.local_get(argExpectedTypeLocal);
+    wrap(
+        StringLiteral(argName),
+        translator
+            .translateType(translator.coreTypes.stringNonNullableRawType));
+    call(translator.stackTraceCurrent.reference);
+    call(translator.throwArgumentTypeCheckError.reference);
+    b.unreachable();
+    b.end();
+  }
+
+  void _callForwarder(
+      String memberName,
+      Forwarder forwarder,
+      Expression receiver,
+      List<DartType> typeArguments,
+      List<Expression> positionalArguments,
+      List<NamedExpression> namedArguments) {
+    final forwarderCallBlock = b.block([], [translator.topInfo.nullableType]);
+
+    // Evaluate receiver
+    wrap(receiver, translator.topInfo.nullableType);
+    final nullableReceiverLocal =
+        function.addLocal(translator.topInfo.nullableType);
+    b.local_set(nullableReceiverLocal);
+
+    // Evaluate type arguments
+    makeList(InterfaceType(translator.typeClass, Nullability.nonNullable),
+        typeArguments.length, (elementType, elementIdx) {
+      translator.types.makeType(this, typeArguments[elementIdx]);
+    }, isGrowable: false);
+    final typeArgsLocal = function.addLocal(
+        translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
+    b.local_set(typeArgsLocal);
+
+    // Evaluate positional arguments
+    makeList(DynamicType(), positionalArguments.length,
+        (elementType, elementIdx) {
+      wrap(positionalArguments[elementIdx], elementType);
+    }, isGrowable: false);
+    final positionalArgsLocal = function.addLocal(
+        translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
+    b.local_set(positionalArgsLocal);
+
+    // Evaluate named arguments
+    makeList(DynamicType(), namedArguments.length * 2,
+        (elementType, elementIdx) {
+      if (elementIdx % 2 == 0) {
+        final name = namedArguments[elementIdx ~/ 2].name;
+        final w.ValueType symbolValueType =
+            translator.classInfo[translator.symbolClass]!.nonNullableType;
+        translator.constants.instantiateConstant(
+            function, b, SymbolConstant(name, null), symbolValueType);
+      } else {
+        final value = namedArguments[elementIdx ~/ 2].value;
+        wrap(value, elementType);
+      }
+    }, isGrowable: false);
+    final namedArgsLocal = function.addLocal(
+        translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
+    b.local_set(namedArgsLocal);
+
+    final nullBlock = b.block([], [translator.topInfo.nonNullableType]);
+    b.local_get(nullableReceiverLocal);
+    b.br_on_non_null(nullBlock);
+    // Throw `NoSuchMethodError`. Normally this needs to happen via instance
+    // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
+    // have a `Null` class in dart2wasm so we throw directly.
+    b.local_get(nullableReceiverLocal);
+    createInvocationObject(translator, function, forwarder, typeArgsLocal,
+        positionalArgsLocal, namedArgsLocal);
+
+    w.BaseFunction f = translator.functions
+        .getFunction(translator.noSuchMethodErrorThrowWithInvocation.reference);
+    b.call(f);
+    b.br(forwarderCallBlock);
+    b.end(); // nullBlock
+
+    b.local_get(typeArgsLocal);
+    b.local_get(positionalArgsLocal);
+    b.local_get(namedArgsLocal);
+    b.call(forwarder.function);
+
+    b.end(); // forwarderCallBlock
   }
 }
 

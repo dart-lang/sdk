@@ -99,7 +99,6 @@ class ObjectPointerVisitor;
   V(ExprTemp, ":expr_temp")                                                    \
   V(ExternalOneByteString, "_ExternalOneByteString")                           \
   V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
-  V(FallThroughError, "FallThroughError")                                      \
   V(FfiAbiSpecificMapping, "_FfiAbiSpecificMapping")                           \
   V(FfiBool, "Bool")                                                           \
   V(FfiCallback, "_FfiCallback")                                               \
