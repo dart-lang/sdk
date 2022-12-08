@@ -186,6 +186,8 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "_Type", "get:asNullable");
   late final Procedure createNormalizedFutureOrType = index.getProcedure(
       "dart:core", "_TypeUniverse", "createNormalizedFutureOrType");
+  late final Procedure substituteFunctionTypeArgument = index.getProcedure(
+      "dart:core", "_TypeUniverse", "substituteFunctionTypeArgument");
 
   // dart:core dynamic invocation helper procedures
   late final Procedure getNamedParameter =

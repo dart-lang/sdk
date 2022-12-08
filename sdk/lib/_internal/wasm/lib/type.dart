@@ -521,7 +521,7 @@ class _TypeUniverse {
       isSpecificInterfaceType(t, ClassID.cidFunction) ||
       isSpecificInterfaceType(t, ClassID.cid_Function);
 
-  static _Type substituteTypeParameter(
+  static _Type substituteInterfaceTypeParameter(
       _InterfaceTypeParameterType typeParameter, List<_Type> substitutions) {
     // If the type parameter is non-nullable, or the substitution type is
     // nullable, then just return the substitution type. Otherwise, we return
@@ -533,44 +533,99 @@ class _TypeUniverse {
     return substitution;
   }
 
-  static _Type substituteTypeArgument(_Type type, List<_Type> substitutions) {
+  static _Type substituteFunctionTypeParameter(
+      _FunctionTypeParameterType typeParameter,
+      List<_Type> substitutions,
+      _FunctionType? rootFunction) {
+    if (rootFunction != null &&
+        typeParameter.index >= rootFunction.typeParameterOffset) {
+      _Type substitution =
+          substitutions[typeParameter.index - rootFunction.typeParameterOffset];
+      if (typeParameter.isDeclaredNullable) return substitution.asNullable;
+      return substitution;
+    } else {
+      return typeParameter;
+    }
+  }
+
+  @pragma("wasm:entry-point")
+  static _FunctionType substituteFunctionTypeArgument(
+      _FunctionType functionType, List<_Type> substitutions) {
+    return substituteTypeArgument(functionType, substitutions, functionType)
+        .as<_FunctionType>();
+  }
+
+  /// Substitute the type parameters of an interface type or function type.
+  ///
+  /// For interface types, [rootFunction] is always `null`.
+  ///
+  /// For function types, [rootFunction] is the function whose type parameters
+  /// are being substituted, or `null` when inside a nested function type that
+  /// is guaranteed not to contain any type parameter types that are to be
+  /// substituted.
+  static _Type substituteTypeArgument(
+      _Type type, List<_Type> substitutions, _FunctionType? rootFunction) {
     if (type.isNever || type.isDynamic || type.isVoid || type.isNull) {
       return type;
     } else if (type.isFutureOr) {
       return createNormalizedFutureOrType(
           type.isDeclaredNullable,
-          substituteTypeArgument(
-              type.as<_FutureOrType>().typeArgument, substitutions));
+          substituteTypeArgument(type.as<_FutureOrType>().typeArgument,
+              substitutions, rootFunction));
     } else if (type.isInterface) {
       _InterfaceType interfaceType = type.as<_InterfaceType>();
       return _InterfaceType(
           interfaceType.classId,
           interfaceType.isDeclaredNullable,
           interfaceType.typeArguments
-              .map((type) => substituteTypeArgument(type, substitutions))
+              .map((type) =>
+                  substituteTypeArgument(type, substitutions, rootFunction))
               .toList());
     } else if (type.isInterfaceTypeParameterType) {
-      return substituteTypeParameter(
+      assert(rootFunction == null);
+      return substituteInterfaceTypeParameter(
           type.as<_InterfaceTypeParameterType>(), substitutions);
     } else if (type.isFunction) {
       _FunctionType functionType = type.as<_FunctionType>();
+      bool isRoot = identical(type, rootFunction);
+      if (!isRoot &&
+          rootFunction != null &&
+          functionType.typeParameterOffset +
+                  functionType.typeParameterBounds.length >
+              rootFunction.typeParameterOffset) {
+        // The type parameter index range of this nested generic function type
+        // overlaps that of the root function, which means it does not contain
+        // any function type parameter types referring to the root function.
+        // Pass `null` as the `rootFunction` to avoid mis-interpreting enclosed
+        // type parameter types as referring to the root function.
+        rootFunction = null;
+      }
       return _FunctionType(
           functionType.typeParameterOffset,
-          functionType.typeParameterBounds
-              .map((type) => substituteTypeArgument(type, substitutions))
-              .toList(),
-          substituteTypeArgument(functionType.returnType, substitutions),
+          isRoot
+              ? const []
+              : functionType.typeParameterBounds
+                  .map((type) =>
+                      substituteTypeArgument(type, substitutions, rootFunction))
+                  .toList(),
+          substituteTypeArgument(
+              functionType.returnType, substitutions, rootFunction),
           functionType.positionalParameters
-              .map((type) => substituteTypeArgument(type, substitutions))
+              .map((type) =>
+                  substituteTypeArgument(type, substitutions, rootFunction))
               .toList(),
           functionType.requiredParameterCount,
           functionType.namedParameters
               .map((named) => _NamedParameter(
                   named.name,
-                  substituteTypeArgument(named.type, substitutions),
+                  substituteTypeArgument(
+                      named.type, substitutions, rootFunction),
                   named.isRequired))
               .toList(),
           functionType.isDeclaredNullable);
+    } else if (type.isFunctionTypeParameterType) {
+      return substituteFunctionTypeParameter(
+          type.as<_FunctionTypeParameterType>(), substitutions, rootFunction);
     } else {
       throw 'Type argument substitution not supported for $type';
     }
@@ -578,8 +633,10 @@ class _TypeUniverse {
 
   static List<_Type> substituteTypeArguments(
           List<_Type> types, List<_Type> substitutions) =>
-      List<_Type>.generate(types.length,
-          (int index) => substituteTypeArgument(types[index], substitutions),
+      List<_Type>.generate(
+          types.length,
+          (int index) =>
+              substituteTypeArgument(types[index], substitutions, null),
           growable: false);
 
   static _Type createNormalizedFutureOrType(
