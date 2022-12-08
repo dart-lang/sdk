@@ -412,6 +412,32 @@ void f() {
 ''');
   }
 
+  Future<void> test_forParts_updaters_throw_multiple() async {
+    await resolveTestCode('''
+void f() {
+  for (;; 0, throw 1, 2, 3) {}
+}
+''');
+    await assertHasFix('''
+void f() {
+  for (;; 0, throw 1) {}
+}
+''');
+  }
+
+  Future<void> test_forParts_updaters_throw_multiple_comma() async {
+    await resolveTestCode('''
+void f() {
+  for (;; 0, throw 1, 2, 3,) {}
+}
+''');
+    await assertHasFix('''
+void f() {
+  for (;; 0, throw 1,) {}
+}
+''');
+  }
+
   Future<void> test_statements_one() async {
     await resolveTestCode('''
 int f() {
