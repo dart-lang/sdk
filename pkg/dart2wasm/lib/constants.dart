@@ -521,8 +521,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
   @override
   ConstantInfo? visitStaticTearOffConstant(StaticTearOffConstant constant) {
     Procedure member = constant.targetReference.asProcedure;
-    Constant functionTypeConstant = TypeLiteralConstant(
-        member.function.computeFunctionType(Nullability.nonNullable));
+    Constant functionTypeConstant =
+        TypeLiteralConstant(translator.getTearOffType(member));
     ensureConstant(functionTypeConstant);
     ClosureImplementation closure = translator.getTearOffClosure(member);
     w.StructType struct = closure.representation.closureStruct;
@@ -550,7 +550,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         .toList();
     Procedure tearOffProcedure = tearOffConstant.targetReference.asProcedure;
     FunctionType tearOffFunctionType =
-        tearOffProcedure.function.computeFunctionType(Nullability.nonNullable);
+        translator.getTearOffType(tearOffProcedure);
     FunctionType instantiatedFunctionType = Substitution.fromPairs(
                 tearOffFunctionType.typeParameters, constant.types)
             .substituteType(tearOffFunctionType.withoutTypeParameters)
