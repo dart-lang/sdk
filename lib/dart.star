@@ -82,11 +82,13 @@ def _try_builder(
         bucket = "try",
         cq_branches = _BRANCHES,
         dimensions = None,
+        executable = None,
         execution_timeout = None,
         experiment_percentage = None,
         experiments = None,
         goma = None,
         location_filters = None,
+        pool = "luci.dart.try",
         properties = None,
         on_cq = False):
     """Creates a Dart tryjob.
@@ -97,18 +99,20 @@ def _try_builder(
         bucket: The bucket to use (defaults to "try").
         cq_branches: Make try builder on these branches (defaults to _BRANCHES).
         dimensions: Extra swarming dimensions required by this builder.
+        executable: The Luci executable to use.
         execution_timeout: Time to allow for the build to run.
         experiment_percentage: What experiment percentage to use.
         experiments: Experiments to run on this builder, with percentages.
         goma: Whether to use goma or not.
         location_filters: Locations that trigger this tryjob.
+        pool: The pool to set in dimensions (defaults to "luci.dart.try").
         properties: Extra properties to set for builds.
         on_cq: Whether the build is added to the default set of CQ tryjobs.
     """
     if on_cq and location_filters:
         fail("Can't be on the default CQ and conditionally on the CQ")
     dimensions = defaults.dimensions(dimensions)
-    dimensions["pool"] = "luci.dart.try"
+    dimensions["pool"] = pool
     properties = defaults.properties(properties)
     builder_properties = _with_goma(goma, dimensions, properties)
     builder = name + "-try"
@@ -118,7 +122,7 @@ def _try_builder(
         bucket = bucket,
         caches = defaults.caches(dimensions["os"]),
         dimensions = dimensions,
-        executable = _recipe(recipe),
+        executable = executable or _recipe(recipe),
         execution_timeout = execution_timeout,
         experiments = experiments,
         priority = priority.high,
@@ -153,7 +157,6 @@ def _builder(
         expiration_timeout = None,
         goma = None,
         fyi = False,
-        main_channel = True,
         notifies = "dart",
         priority = priority.normal,
         properties = None,
@@ -183,7 +186,6 @@ def _builder(
         expiration_timeout: How long builds should wait for a bot to run on.
         goma: Whether to use goma or not.
         fyi: Whether this is an FYI builder or not.
-        main_channel: Whether to add to the main channel (default: True).
         notifies: Which luci notifier group to notify (default: "dart").
         priority: What swarming priority this builder gets (default: NORMAL).
         properties: Extra properties to set for builds.
@@ -219,6 +221,7 @@ def _builder(
                 dimensions = dimensions,
                 properties = properties,
                 on_cq = on_cq,
+                executable = executable,
                 execution_timeout = execution_timeout,
                 experiment_percentage = experiment_percentage,
                 experiments = experiments,
@@ -284,8 +287,7 @@ def _builder(
                             console_view = "alt",
                         )
 
-    if main_channel:
-        builder(None, notifies = notifies, triggered_by = triggered_by)
+    builder(None, notifies = notifies, triggered_by = triggered_by)
     for _channel in channels:
         if enabled:
             builder(_channel, notifies = None, triggered_by = triggered_by)

@@ -34,9 +34,11 @@ _EXPERIMENTAL = {"host_class": "experimental"}
 def _union(x, overrides):
     """ Creates a new dict with the values from all passed dictionaries
 
-    If dicts contain the same keys, their values are assumed to be dicts
-    and merged. Values in dicts later in overrides' sub-dicts will overwrite
-    values in earlier sub-dicts.
+    If dicts contain the same keys, their values are merged if the values are
+    dicts. This merging only happens at the top level, not recursively into
+    dicts containing dicts.
+    Otherwise, the earlier value is overwritten by the value from the
+    later override.
 
     Args:
         x (dict): A dict.
