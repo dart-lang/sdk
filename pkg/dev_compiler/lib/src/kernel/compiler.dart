@@ -716,9 +716,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _currentTypeEnvironment = _currentTypeEnvironment.extend(c.typeParameters);
 
     // Mixins are unrolled in _defineClass.
-    // If this class is annotated with `@JS`, then there is nothing to emit.
-    if (!c.isAnonymousMixin && !hasJSInteropAnnotation(c)) {
-      moduleItems.add(_emitClassDeclaration(c));
+    if (!c.isAnonymousMixin) {
+      // If this class is annotated with `@JS`, then we only need to emit the
+      // non-external factories and static members.
+      if (!hasJSInteropAnnotation(c)) {
+        moduleItems.add(_emitClassDeclaration(c));
+      } else {
+        var interopClassDef = _emitJSInteropClassNonExternalMembers(c);
+        if (interopClassDef != null) moduleItems.add(interopClassDef);
+      }
     }
 
     // The const table depends on dart.defineLazy, so emit it after the SDK.
@@ -883,6 +889,56 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return js_ast.Statement.from(body);
   }
 
+  /// Emits a class declaration for the JS interop class [c] for any
+  /// non-external factories or static members.
+  ///
+  /// If [c] is not an interop class or does not contain non-external factories
+  /// or static members, returns null.
+  js_ast.Statement? _emitJSInteropClassNonExternalMembers(Class c) {
+    if (!hasJSInteropAnnotation(c)) return null;
+    // Generic JS interop classes are emitted like Dart generic classes, where
+    // the type arguments need to be instantiated.
+    var className = c.typeParameters.isNotEmpty
+        ? _emitTemporaryId(getLocalClassName(c))
+        : _emitTopLevelNameNoExternalInterop(c);
+
+    var nonExternalMethods = <js_ast.Method>[];
+    for (var procedure in c.procedures) {
+      if (procedure.isExternal) continue;
+      if (procedure.isFactory && !procedure.isRedirectingFactory) {
+        // Skip redirecting factories (they've already been resolved).
+        var factory = _emitFactoryConstructor(procedure);
+        if (factory != null) nonExternalMethods.add(factory);
+      } else if (procedure.isStatic) {
+        var staticMethod = _emitMethodDeclaration(procedure);
+        if (staticMethod != null) nonExternalMethods.add(staticMethod);
+      }
+    }
+
+    // Emit static fields, if there are any.
+    var fieldInitialization = <js_ast.Statement>[];
+    _emitStaticFieldsAndAccessors(c, fieldInitialization);
+
+    // Avoid unnecessary code emission if there are no members we care about.
+    if (nonExternalMethods.isNotEmpty || fieldInitialization.isNotEmpty) {
+      // Note that this class has no heritage. This class should never be used
+      // as a type. It's merely a placeholder for static members.
+      var body = <js_ast.Statement>[
+        _emitClassStatement(c, className, null, nonExternalMethods)
+            .toStatement()
+      ];
+      var classDef = js_ast.Statement.from(body);
+      var typeFormals = c.typeParameters;
+      if (typeFormals.isNotEmpty) {
+        classDef =
+            _defineClassTypeArguments(c, typeFormals, classDef, className, []);
+      }
+      body = [classDef, ...fieldInitialization];
+      return js_ast.Statement.from(body);
+    }
+    return null;
+  }
+
   /// Wraps a possibly generic class in its type arguments.
   js_ast.Statement _defineClassTypeArguments(
       NamedNode c,
@@ -920,9 +976,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ? runtimeCall('normalizeFutureOr(#)', [genericArgs])
         : runtimeCall('generic(#)', [genericArgs]);
 
-    var genericName = _emitTopLevelNameNoInterop(c, suffix: '\$');
-    return js.statement('{ # = #; # = #(); }',
-        [genericName, genericCall, _emitTopLevelName(c), genericName]);
+    var genericName = _emitTopLevelNameNoExternalInterop(c, suffix: '\$');
+    return js.statement('{ # = #; # = #(); }', [
+      genericName,
+      genericCall,
+      _emitTopLevelNameNoExternalInterop(c),
+      genericName
+    ]);
   }
 
   js_ast.Expression _emitVariance(TypeParameter typeParameter) {
@@ -1460,18 +1520,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _superHelpers.clear();
   }
 
-  /// Emits static fields for a class, and initialize them eagerly if possible,
-  /// otherwise define them as lazy properties.
+  /// Emits non-external static fields for a class, and initialize them eagerly
+  /// if possible, otherwise define them as lazy properties.
   void _emitStaticFieldsAndAccessors(Class c, List<js_ast.Statement> body) {
     var fields = c.fields
-        .where((f) => f.isStatic && !isRedirectingFactoryField(f))
+        .where(
+            (f) => f.isStatic && !f.isExternal && !isRedirectingFactoryField(f))
         .toList();
     var fieldNames = Set.from(fields.map((f) => f.name));
     var staticSetters = c.procedures.where(
         (p) => p.isStatic && p.isAccessor && fieldNames.contains(p.name));
     var members = [...fields, ...staticSetters];
     if (fields.isNotEmpty) {
-      body.add(_emitLazyMembers(_emitTopLevelName(c), members,
+      body.add(_emitLazyMembers(_emitTopLevelNameNoExternalInterop(c), members,
           (n) => _emitStaticMemberName(n.name.text)));
     }
   }
@@ -2577,7 +2638,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   js_ast.PropertyAccess _emitTopLevelName(NamedNode n, {String suffix = ''}) {
-    return _emitJSInterop(n) ?? _emitTopLevelNameNoInterop(n, suffix: suffix);
+    return _emitJSInterop(n) ??
+        _emitTopLevelNameNoExternalInterop(n, suffix: suffix);
   }
 
   /// Like [_emitMemberName], but for declaration sites.
@@ -2754,7 +2816,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.LiteralString _emitStaticMemberName(String name, [NamedNode? member]) {
     if (member != null) {
-      var jsName = _emitJSInteropStaticMemberName(member);
+      var jsName = _emitJSInteropExternalStaticMemberName(member);
       if (jsName != null) return jsName;
 
       // Allow the Dart SDK to assign names to statics with the @JSExportName
@@ -2806,15 +2868,19 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return f;
   }
 
-  js_ast.LiteralString? _emitJSInteropStaticMemberName(NamedNode n) {
+  /// Emit the name associated with external static members of interop classes.
+  js_ast.LiteralString? _emitJSInteropExternalStaticMemberName(NamedNode n) {
     if (!usesJSInterop(n)) return null;
+    if (n is Member && !n.isExternal) return null;
     var name = _annotationName(n, isPublicJSAnnotation) ?? getTopLevelName(n);
     assert(!name.contains('.'),
         'JS interop checker rejects dotted names on static class members');
     return js.escapedString(name, "'");
   }
 
-  js_ast.PropertyAccess _emitTopLevelNameNoInterop(NamedNode n,
+  /// Emit the top-level name associated with [n], which should not be an
+  /// external interop member.
+  js_ast.PropertyAccess _emitTopLevelNameNoExternalInterop(NamedNode n,
       {String suffix = ''}) {
     // Some native tests use top-level native methods.
     var isTopLevelNative = n is Member && isNative(n);
@@ -3234,7 +3300,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
     }
 
-    typeRep ??= _emitTopLevelNameNoInterop(type.classNode);
+    typeRep ??= _emitTopLevelNameNoExternalInterop(type.classNode);
 
     // Avoid emitting the null safety wrapper types when:
     // * This specific InterfaceType is known to be from a context where
@@ -3261,7 +3327,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     return _typeTable.nameType(type, typeRep);
   }
 
-  /// Emits the a reference to the class described by [type].
+  /// Emits a reference to the class described by [type].
   ///
   /// The nullability of [type] is not considered because it is meaningless when
   /// describing a reference to the class itself.
@@ -3270,33 +3336,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// function that defines the class and will pass the type parameters as
   /// arguments. The nullability of the type parameters does have meaning so it
   /// is encoded.
+  ///
+  /// Note that for `package:js` types, this will emit the class we emitted
+  /// using `_emitJSInteropClassNonExternalMembers`, and not the runtime type
+  /// that we synthesize for `package:js` types.
   js_ast.Expression _emitClassRef(InterfaceType type) {
     var cls = type.classNode;
     _declareBeforeUse(cls);
-    // Type parameters don't matter as JS interop types cannot be reified.
-    // package:js types fall under `@JS`, `@anonymous`, or `@staticInterop`
-    // types. `@JS` types are used to correspond to JS types that exist, but we
-    // do not use the underlying type for type checks, so they operate virtually
-    // the same as `@anonymous` types. `@staticInterop` types, however, can be
-    // casted to other `package:js` types as well as any type that inherits
-    // `JavaScriptObject`. This is to match the behavior across the other
-    // backends that use erasure. We represent `@JS` and `@anonymous` types with
-    // a NonStaticInteropType and `@staticInterop` with a StaticInteropType to
-    // make this distinction at runtime.
-    var jsName = isJSAnonymousType(cls)
-        ? getLocalClassName(cls)
-        : _emitJsNameWithoutGlobal(cls);
-    if (jsName != null) {
-      return runtimeCall('packageJSType(#, #)',
-          [js.escapedString(jsName), js.boolean(isStaticInteropType(cls))]);
-    }
     var args = type.typeArguments;
     Iterable<js_ast.Expression>? jsArgs;
     if (args.any((a) => a != const DynamicType())) {
       jsArgs = args.map(_emitType);
     }
     if (jsArgs != null) return _emitGenericClassType(type, jsArgs);
-    return _emitTopLevelNameNoInterop(type.classNode);
+    return _emitTopLevelNameNoExternalInterop(type.classNode);
   }
 
   /// Emits the representation of a FutureOr [type].
@@ -3374,7 +3427,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
 
   js_ast.Expression _emitGenericClassType(
       InterfaceType t, Iterable<js_ast.Expression> typeArgs) {
-    var genericName = _emitTopLevelNameNoInterop(t.classNode, suffix: '\$');
+    var genericName =
+        _emitTopLevelNameNoExternalInterop(t.classNode, suffix: '\$');
     return js.call('#(#)', [genericName, typeArgs]);
   }
 
@@ -3514,23 +3568,32 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   /// Emits an expression that lets you access statics on a [type] from code.
-  js_ast.Expression _emitConstructorAccess(InterfaceType type) {
-    return _emitJSInterop(type.classNode) ??
-        (_options.newRuntimeTypes
-            ? _emitClassRef(type)
-            : _emitInterfaceType(type, emitNullability: false));
-  }
-
   js_ast.Expression _emitConstructorName(InterfaceType type, Member c) {
-    return _emitJSInterop(type.classNode) ??
-        js_ast.PropertyAccess(
-            _emitConstructorAccess(type), _constructorName(c.name.text));
+    var isSyntheticDefault =
+        c is Constructor && c.isSynthetic && c.name.text.isEmpty;
+    // If it's an external constructor or synthetic default, use the JS
+    // constructor.
+    var jsConstructor = _emitJSInterop(type.classNode);
+    if (jsConstructor != null && (c.isExternal || isSyntheticDefault)) {
+      return jsConstructor;
+    }
+    // If it's non-external but belongs to an interop class, we want the class
+    // reference we defined in `_emitJSInteropClassNonExternalMembers`.
+    return js_ast.PropertyAccess(
+        _options.newRuntimeTypes || usesJSInterop(type.classNode)
+            ? _emitClassRef(type)
+            : _emitInterfaceType(type, emitNullability: false),
+        _constructorName(c.name.text));
   }
 
-  /// Emits an expression that lets you access statics on an [c] from code.
-  js_ast.Expression _emitStaticClassName(Class c) {
+  /// Emits an expression that lets you access statics on [c] from code.
+  ///
+  /// If [isExternal] is false, emits the non-external name.
+  js_ast.Expression _emitStaticClassName(Class c, bool isExternal) {
     _declareBeforeUse(c);
-    return _emitTopLevelName(c);
+    return isExternal
+        ? _emitTopLevelName(c)
+        : _emitTopLevelNameNoExternalInterop(c);
   }
 
   /// Emits named parameters in the form '{name: type}'.
@@ -5979,7 +6042,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         }
         if (name == 'getGenericClassStatic') {
           if (type is InterfaceType) {
-            return _emitTopLevelNameNoInterop(type.classNode, suffix: '\$');
+            return _emitTopLevelNameNoExternalInterop(type.classNode,
+                suffix: '\$');
           }
           if (type is FutureOrType) {
             return _emitFutureOrNameNoInterop(suffix: '\$');
@@ -6088,7 +6152,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // A static native element should just forward directly to the JS type's
       // member, for example `Css.supports(...)` in dart:html should be replaced
       // by a direct call to the DOM API: `global.CSS.supports`.
-      if (_isExternal(target) && (target as Procedure).isStatic) {
+      var isExternal = _isExternal(target);
+      if (isExternal && (target as Procedure).isStatic) {
         var nativeName = _extensionTypes.getNativePeers(c);
         if (nativeName.isNotEmpty) {
           var memberName = _annotationName(target, isJSName) ??
@@ -6096,7 +6161,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           return runtimeCall('global.#.#', [nativeName[0], memberName]);
         }
       }
-      return js_ast.PropertyAccess(_emitStaticClassName(c),
+      return js_ast.PropertyAccess(_emitStaticClassName(c, isExternal),
           _emitStaticMemberName(target.name.text, target));
     }
     return _emitTopLevelName(target);
