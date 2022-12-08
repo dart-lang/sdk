@@ -27,7 +27,6 @@ class CoreTypes {
       'Type',
       'Function',
       'Invocation',
-      'FallThroughError',
       'Record',
     ],
     'dart:_internal': [
