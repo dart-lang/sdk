@@ -17,8 +17,7 @@ namespace ffi {
 
 FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
                                    const Function& dart_target,
-                                   const Instance& exceptional_return,
-                                   bool register_function) {
+                                   const Instance& exceptional_return) {
   Thread* const thread = Thread::Current();
   Zone* const zone = thread->zone();
   Function& function = Function::Handle(zone);
@@ -74,16 +73,31 @@ FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
   signature ^= ClassFinalizer::FinalizeType(signature);
   function.SetSignature(signature);
 
-  if (register_function) {
-    ObjectStore* object_store = thread->isolate_group()->object_store();
+  {
+    // Ensure only one thread updates the cache of deduped ffi trampoline
+    // functions.
+    auto isolate_group = thread->isolate_group();
+    SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
+
+    auto object_store = isolate_group->object_store();
     if (object_store->ffi_callback_functions() == Array::null()) {
       FfiCallbackFunctionSet set(
           HashTables::New<FfiCallbackFunctionSet>(/*initial_capacity=*/4));
       object_store->set_ffi_callback_functions(set.Release());
     }
     FfiCallbackFunctionSet set(object_store->ffi_callback_functions());
+
+    const intptr_t entry_count_before = set.NumOccupied();
     function ^= set.InsertOrGet(function);
+    const intptr_t entry_count_after = set.NumOccupied();
+
     object_store->set_ffi_callback_functions(set.Release());
+
+    if (entry_count_before != entry_count_after) {
+      function.AssignFfiCallbackId(entry_count_before);
+    } else {
+      ASSERT(function.FfiCallbackId() != -1);
+    }
   }
 
   return function.ptr();

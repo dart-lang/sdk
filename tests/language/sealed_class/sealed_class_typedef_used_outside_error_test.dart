@@ -13,13 +13,15 @@ import 'sealed_class_typedef_used_outside_lib.dart';
 typedef ATypeDef = SealedClass;
 
 class A extends ATypeDef {}
+// [error column 1, length 27]
+// [analyzer] COMPILE_TIME_ERROR.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
 //    ^
-// [analyzer] unspecified
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
 
 class B implements ATypeDef {
+// [error column 1, length 184]
+// [analyzer] COMPILE_TIME_ERROR.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
 //    ^
-// [analyzer] unspecified
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
   int foo = 1;
 }

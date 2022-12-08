@@ -27,7 +27,7 @@ void f(int x) {
     final node1 = findNode.caseClause('case final a').guardedPattern;
     assertResolvedNodeText(node1, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@35
@@ -37,7 +37,7 @@ GuardedPattern
     final node2 = findNode.caseClause('case final b').guardedPattern;
     assertResolvedNodeText(node2, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: b
     declaredElement: hasImplicitType isFinal b@61
@@ -56,7 +56,7 @@ void f(int x) {
     final node1 = findNode.caseClause('case final a').guardedPattern;
     assertResolvedNodeText(node1, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@35
@@ -66,7 +66,7 @@ GuardedPattern
     final node2 = findNode.caseClause('case final b').guardedPattern;
     assertResolvedNodeText(node2, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: b
     declaredElement: hasImplicitType isFinal b@60
@@ -83,13 +83,13 @@ void f(int x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
-  leftOperand: VariablePattern
+  leftOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@35
       type: int
   operator: ||
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@46
@@ -112,13 +112,13 @@ BinaryPattern
         literal: 0
         staticType: int
     operator: &&
-    rightOperand: VariablePattern
+    rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@40
         type: int
   operator: ||
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@51
@@ -137,7 +137,7 @@ void f(int x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
-  leftOperand: VariablePattern
+  leftOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@35
@@ -166,7 +166,7 @@ BinaryPattern
       literal: 1
       staticType: int
   operator: ||
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@40
@@ -187,7 +187,7 @@ void f(int x) {
     assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: BinaryPattern
-    leftOperand: VariablePattern
+    leftOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@35
@@ -217,13 +217,13 @@ void f(int x) {
     assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: BinaryPattern
-    leftOperand: VariablePattern
+    leftOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@35
         type: int
     operator: ||
-    rightOperand: VariablePattern
+    rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@46
@@ -246,19 +246,19 @@ void f(int x) {
     assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: BinaryPattern
-    leftOperand: VariablePattern
+    leftOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@35
         type: int
     operator: ||
-    rightOperand: VariablePattern
+    rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@46
         type: int
   operator: ||
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@57
@@ -278,7 +278,7 @@ void f(int x) {
     assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: BinaryPattern
-    leftOperand: VariablePattern
+    leftOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@35
@@ -289,7 +289,7 @@ BinaryPattern
         literal: 2
         staticType: int
   operator: ||
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@51
@@ -315,7 +315,7 @@ BinaryPattern
         literal: 1
         staticType: int
     operator: ||
-    rightOperand: VariablePattern
+    rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@40
@@ -345,13 +345,13 @@ BinaryPattern
         literal: 1
         staticType: int
     operator: ||
-    rightOperand: VariablePattern
+    rightOperand: DeclaredVariablePattern
       keyword: final
       name: a
       declaredElement: hasImplicitType isFinal a@40
         type: int
   operator: ||
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@51
@@ -381,7 +381,7 @@ BinaryPattern
         literal: 2
         staticType: int
   operator: ||
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@45
@@ -401,13 +401,13 @@ void f(int x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
-  leftOperand: VariablePattern
+  leftOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@46
       type: int
   operator: ||
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@57
@@ -429,7 +429,7 @@ void f(int x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
-  leftOperand: VariablePattern
+  leftOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@46
@@ -461,7 +461,7 @@ BinaryPattern
       literal: 1
       staticType: int
   operator: ||
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@51
@@ -483,7 +483,7 @@ void f(int x) {
     final node1 = findNode.switchPatternCase('case /*1*/').guardedPattern;
     assertResolvedNodeText(node1, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@52
@@ -493,7 +493,7 @@ GuardedPattern
     final node2 = findNode.switchPatternCase('case /*2*/').guardedPattern;
     assertResolvedNodeText(node2, r'''
 GuardedPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: a
     declaredElement: hasImplicitType isFinal a@76

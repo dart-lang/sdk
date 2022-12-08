@@ -4127,6 +4127,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the supertype being extended, implemented, or mixed in
+  static const CompileTimeErrorCode SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY =
+      CompileTimeErrorCode(
+    'SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY',
+    "The sealed class '{0}' can't be extended, implemented, or mixed in "
+        "outside of its library.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode SET_ELEMENT_FROM_DEFERRED_LIBRARY =
       CompileTimeErrorCode(

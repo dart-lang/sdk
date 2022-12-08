@@ -376,6 +376,29 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitDeclaredVariablePattern(
+    covariant DeclaredVariablePatternImpl node,
+  ) {
+    _writeln('DeclaredVariablePattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        final element = node.declaredElement;
+        if (element != null) {
+          _sink.write(_indent);
+          _sink.write('declaredElement: ');
+          _writeIf(element.hasImplicitType, 'hasImplicitType ');
+          _writeIf(element.isFinal, 'isFinal ');
+          _sink.writeln('${element.name}@${element.nameOffset}');
+          _withIndent(() {
+            _writeType('type', element.type);
+          });
+        }
+      }
+    });
+  }
+
+  @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     _writeln('DefaultFormalParameter');
     _withIndent(() {
@@ -1485,27 +1508,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _writeln('VariableDeclarationStatement');
     _withIndent(() {
       _writeNamedChildEntities(node);
-    });
-  }
-
-  @override
-  void visitVariablePattern(covariant VariablePatternImpl node) {
-    _writeln('VariablePattern');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
-      if (_withResolution) {
-        final element = node.declaredElement;
-        if (element != null) {
-          _sink.write(_indent);
-          _sink.write('declaredElement: ');
-          _writeIf(element.hasImplicitType, 'hasImplicitType ');
-          _writeIf(element.isFinal, 'isFinal ');
-          _sink.writeln('${element.name}@${element.nameOffset}');
-          _withIndent(() {
-            _writeType('type', element.type);
-          });
-        }
-      }
     });
   }
 

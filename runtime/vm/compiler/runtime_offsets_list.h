@@ -182,6 +182,7 @@
   FIELD(ObjectStore, string_type_offset)                                       \
   FIELD(ObjectStore, type_type_offset)                                         \
   FIELD(ObjectStore, suspend_state_await_offset)                               \
+  FIELD(ObjectStore, suspend_state_await_with_type_check_offset)               \
   FIELD(ObjectStore, suspend_state_handle_exception_offset)                    \
   FIELD(ObjectStore, suspend_state_init_async_offset)                          \
   FIELD(ObjectStore, suspend_state_init_async_star_offset)                     \
@@ -306,6 +307,7 @@
   FIELD(Thread, stack_overflow_shared_without_fpu_regs_stub_offset)            \
   FIELD(Thread, store_buffer_block_offset)                                     \
   FIELD(Thread, suspend_state_await_entry_point_offset)                        \
+  FIELD(Thread, suspend_state_await_with_type_check_entry_point_offset)        \
   FIELD(Thread, suspend_state_init_async_entry_point_offset)                   \
   FIELD(Thread, suspend_state_return_async_entry_point_offset)                 \
   FIELD(Thread, suspend_state_return_async_not_future_entry_point_offset)      \

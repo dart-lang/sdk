@@ -107,7 +107,7 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: foo
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: foo2
         declaredElement: hasImplicitType foo2@90
@@ -225,7 +225,7 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: foo
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
         declaredElement: hasImplicitType y@83
@@ -263,7 +263,7 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: foo
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: foo2
         declaredElement: hasImplicitType foo2@84
@@ -338,7 +338,7 @@ ObjectPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: foo
         declaredElement: hasImplicitType foo@81
@@ -376,7 +376,7 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         colon: :
       pattern: PostfixPattern
-        operand: VariablePattern
+        operand: DeclaredVariablePattern
           keyword: var
           name: foo
           declaredElement: hasImplicitType foo@82
@@ -416,7 +416,7 @@ ObjectPattern
         colon: :
       pattern: ParenthesizedPattern
         leftParenthesis: (
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: foo
           declaredElement: hasImplicitType foo@82
@@ -491,7 +491,7 @@ ObjectPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: foo
         declaredElement: hasImplicitType foo@65
@@ -527,7 +527,7 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: foo
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
         declaredElement: hasImplicitType y@77
@@ -580,7 +580,7 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: foo
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
         declaredElement: hasImplicitType y@145
@@ -621,7 +621,7 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: foo
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
         declaredElement: hasImplicitType y@141
@@ -658,7 +658,7 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: hashCode
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
         declaredElement: hasImplicitType y@90
@@ -697,7 +697,7 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: foo
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
         declaredElement: hasImplicitType y@85
@@ -734,7 +734,7 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: foo
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
         declaredElement: hasImplicitType y@73
@@ -771,7 +771,7 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: $0
         colon: :
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
         declaredElement: hasImplicitType y@71
@@ -808,7 +808,7 @@ PatternVariableDeclaration
         fieldName: RecordPatternFieldName
           name: foo
           colon: :
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           name: a
           declaredElement: hasImplicitType a@32
             type: int
@@ -862,7 +862,7 @@ PatternVariableDeclaration
         fieldName: RecordPatternFieldName
           name: foo
           colon: :
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           name: a
           declaredElement: hasImplicitType a@29
             type: int
@@ -918,7 +918,7 @@ PatternVariableDeclaration
         fieldName: RecordPatternFieldName
           name: foo
           colon: :
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int

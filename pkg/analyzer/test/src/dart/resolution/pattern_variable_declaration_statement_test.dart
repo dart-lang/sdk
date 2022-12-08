@@ -30,7 +30,7 @@ PatternVariableDeclarationStatement
     keyword: final
     pattern: ParenthesizedPattern
       leftParenthesis: (
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: num
@@ -63,7 +63,7 @@ PatternVariableDeclarationStatement
     keyword: final
     pattern: ParenthesizedPattern
       leftParenthesis: (
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType isFinal a@20
           type: int
@@ -91,7 +91,7 @@ PatternVariableDeclarationStatement
     keyword: var
     pattern: ParenthesizedPattern
       leftParenthesis: (
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@18
           type: A
@@ -128,7 +128,7 @@ PatternVariableDeclarationStatement
     keyword: var
     pattern: ParenthesizedPattern
       leftParenthesis: (
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: num
@@ -162,7 +162,7 @@ PatternVariableDeclarationStatement
     keyword: var
     pattern: ParenthesizedPattern
       leftParenthesis: (
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         type: NamedType
           name: SimpleIdentifier
             token: int
@@ -204,7 +204,7 @@ PatternVariableDeclarationStatement
     keyword: var
     pattern: ParenthesizedPattern
       leftParenthesis: (
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@18
           type: int
@@ -232,13 +232,13 @@ PatternVariableDeclarationStatement
       leftParenthesis: (
       fields
         RecordPatternField
-          pattern: VariablePattern
+          pattern: DeclaredVariablePattern
             name: a
             declaredElement: hasImplicitType a@33
               type: int
           fieldElement: <null>
         RecordPatternField
-          pattern: VariablePattern
+          pattern: DeclaredVariablePattern
             name: b
             declaredElement: hasImplicitType b@36
               type: String

@@ -815,15 +815,17 @@ final deferredImports = JS<Object>('!', 'new Map()');
 ///
 /// Libraries are not actually deferred in DDC, so this just records the import
 /// for runtime validation, then returns a future that completes immediately.
-Future loadLibrary(
+Future<void> loadLibrary(
     @notNull String enclosingLibrary, @notNull String importPrefix) {
-  var result = JS('', '#.get(#)', deferredImports, enclosingLibrary);
-  if (JS<bool>('', '# === void 0', result)) {
-    JS('', '#.set(#, # = new Set())', deferredImports, enclosingLibrary,
-        result);
+  _loadLibrary() {
+    var result = JS('', '#.get(#)', deferredImports, enclosingLibrary);
+    if (JS<bool>('', '# === void 0', result)) {
+      JS('', '#.set(#, # = new Set())', deferredImports, enclosingLibrary,
+          result);
+    }
+    JS('', '#.add(#)', result, importPrefix);
   }
-  JS('', '#.add(#)', result, importPrefix);
-  return Future.value();
+  return Future(_loadLibrary);
 }
 
 void checkDeferredIsLoaded(

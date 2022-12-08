@@ -9,13 +9,15 @@
 import "sealed_class_implement_lib.dart";
 
 abstract class OutsideA implements SealedClass {}
+// [error column 1, length 49]
+// [analyzer] COMPILE_TIME_ERROR.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
 //             ^
-// [analyzer] unspecified
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
 
 class OutsideB implements SealedClass {
+// [error column 1, length 344]
+// [analyzer] COMPILE_TIME_ERROR.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
 //    ^
-// [analyzer] unspecified
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
   @override
   int nonAbstractFoo = 2;
@@ -31,6 +33,7 @@ class OutsideB implements SealedClass {
 }
 
 mixin OutsideMixin implements SealedClass {}
+// [error column 1, length 44]
+// [analyzer] COMPILE_TIME_ERROR.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
 //    ^
-// [analyzer] unspecified
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.

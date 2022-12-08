@@ -925,8 +925,7 @@ const Function& FlowGraphDeserializer::ReadTrait<const Function&>::Read(
         const Instance& exceptional_return = d->Read<const Instance&>();
         return Function::ZoneHandle(
             zone, compiler::ffi::NativeCallbackFunction(
-                      c_signature, callback_target, exceptional_return,
-                      /*register_function=*/true));
+                      c_signature, callback_target, exceptional_return));
       } else {
         const String& name = d->Read<const String&>();
         const FunctionType& signature = d->Read<const FunctionType&>();

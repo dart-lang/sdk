@@ -1207,23 +1207,8 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   const intptr_t callback_id = marshaller_.dart_signature().FfiCallbackId();
 
-  // Load the thread object.
-  //
-  // Create another frame to align the frame before continuing in "native" code.
-  // If we were called by a trampoline, it has already loaded the thread.
-  ASSERT(!FLAG_precompiled_mode);  // No relocation for AOT linking.
-  if (!NativeCallbackTrampolines::Enabled()) {
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(compiler::target::kWordSize);
-
-    __ movl(compiler::Address(SPREG, 0), compiler::Immediate(callback_id));
-    __ movl(EAX, compiler::Immediate(reinterpret_cast<intptr_t>(
-                     DLRT_GetThreadForNativeCallback)));
-    __ call(EAX);
-    __ movl(THR, EAX);
-
-    __ LeaveFrame();
-  }
+  // The thread object was already loaded by a JIT trampoline.
+  ASSERT(NativeCallbackTrampolines::Enabled());
 
   // Save the current VMTag on the stack.
   __ movl(ECX, compiler::Assembler::VMTagAddress());

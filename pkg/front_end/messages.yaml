@@ -6004,6 +6004,7 @@ InheritedRestrictedMemberOfEnumImplementer:
 
 SealedClassSubtypeOutsideOfLibrary:
   problemMessage: "Sealed class '#name' can't be extended, implemented, or mixed in outside of its library."
+  analyzerCode: SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
   experiments: sealed-class
   script:
     main.dart:

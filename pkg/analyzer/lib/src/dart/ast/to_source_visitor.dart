@@ -69,6 +69,11 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    sink.write(node.name.lexeme);
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _visitNode(node.leftHandSide);
     sink.write(' ');
@@ -310,6 +315,13 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.keyword, suffix: ' ');
     _visitNode(node.type, suffix: ' ');
     _visitToken(node.name);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    _visitToken(node.keyword, suffix: ' ');
+    _visitNode(node.type, suffix: ' ');
+    sink.write(node.name.lexeme);
   }
 
   @override
@@ -1339,13 +1351,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     _visitNode(node.variables);
     sink.write(';');
-  }
-
-  @override
-  void visitVariablePattern(VariablePattern node) {
-    _visitToken(node.keyword, suffix: ' ');
-    _visitNode(node.type, suffix: ' ');
-    sink.write(node.name.lexeme);
   }
 
   @override

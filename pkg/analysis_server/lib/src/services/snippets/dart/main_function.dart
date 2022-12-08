@@ -15,7 +15,10 @@ class MainFunction extends DartSnippetProducer {
   static const prefix = 'main';
   static const label = 'main()';
 
-  MainFunction(super.request);
+  MainFunction(super.request, {required super.elementImportCache});
+
+  @override
+  String get snippetPrefix => prefix;
 
   /// Whether to insert a `List<String> args` parameter in the generated
   /// function.

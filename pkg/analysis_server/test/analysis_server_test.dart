@@ -105,20 +105,20 @@ class AnalysisServerTest with ResourceProviderMixin {
         InstrumentationService.NULL_SERVICE);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50496')
-  Future<void> test_cache() async {
+  /// See https://github.com/dart-lang/sdk/issues/50496
+  Future<void> test_caching_mixin_superInvokedNames_setter_change() async {
     var lib = convertPath('/lib');
     newFolder(lib);
     var foo = newFile('/lib/foo.dart', '''
-abstract class A {
-  set foo(_);
+class A {
+  set foo(int _) {}
 }
 mixin M on A {
   void bar() {
-    super.foo = 0;
+    super.boo = 0;
   }
 }
-abstract class X extends A with M {}
+class X extends A with M {}
 ''');
     await server.setAnalysisRoots('0', [lib], []);
     await server.onAnalysisComplete;
@@ -127,32 +127,15 @@ abstract class X extends A with M {}
 
     server.updateContent('0', {
       foo.path: AddContentOverlay('''
-abstract class A {
-  set boo(_);
+class A {
+  set foo(int _) {}
 }
 mixin M on A {
   void bar() {
     super.foo = 0;
   }
 }
-abstract class X extends A with M {}
-''')
-    });
-    await server.onAnalysisComplete;
-    expect(server.statusAnalyzing, isFalse);
-    channel.notificationsReceived.clear();
-
-    server.updateContent('0', {
-      foo.path: AddContentOverlay('''
-abstract class A {
-  set boo(_);
-}
-mixin M on A {
-  void bar() {
-    super.boo = 0;
-  }
-}
-abstract class X extends A with M {}
+class X extends A with M {}
 ''')
     });
     await server.onAnalysisComplete;
@@ -161,13 +144,9 @@ abstract class X extends A with M {}
     expect(notifications, hasLength(1));
     var notification = notifications.first;
     expect(notification.event, 'analysis.errors');
-    var params = notification.params;
-    expect(params, isNotNull);
-    var errors = params!['errors'] as List<Map<String, dynamic>>;
-    expect(errors, hasLength(1));
-    var error = errors.first;
-    var message = error['message'];
-    expect(message, contains("boo"));
+    var params = notification.params!;
+    var errors = params['errors'] as List<Map<String, Object?>>;
+    expect(errors, isEmpty);
   }
 
   /// Test that modifying package_config again while a context rebuild is in

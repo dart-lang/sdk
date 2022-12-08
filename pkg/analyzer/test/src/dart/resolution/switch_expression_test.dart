@@ -42,7 +42,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           name: _
       arrow: =>
       expression: MethodInvocation
@@ -75,7 +75,7 @@ void f(Object? x, int Function() a) {
     assertResolvedNodeText(node, r'''
 SwitchExpressionCase
   guardedPattern: GuardedPattern
-    pattern: VariablePattern
+    pattern: DeclaredVariablePattern
       name: _
   arrow: =>
   expression: FunctionExpressionInvocation
@@ -200,7 +200,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -245,7 +245,7 @@ SwitchExpression
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           name: _
       arrow: =>
       expression: NullLiteral
@@ -290,7 +290,7 @@ SwitchExpression
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -332,7 +332,7 @@ SwitchExpression
         pattern: ListPattern
           leftBracket: [
           elements
-            VariablePattern
+            DeclaredVariablePattern
               type: NamedType
                 name: SimpleIdentifier
                   token: int
@@ -373,7 +373,7 @@ SwitchExpression
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -410,7 +410,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -442,7 +442,7 @@ SwitchExpression
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           name: _
       arrow: =>
       expression: SimpleIdentifier

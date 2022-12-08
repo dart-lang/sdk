@@ -11,6 +11,7 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -73,13 +74,27 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
   CompilationUnitElement get unitElement => unit.declaredElement!;
 
-  String get _declarationKeyword {
-    if (_isPartOfConstantExpression(singleExpression)) {
-      return 'const';
-    } else if (codeStyleOptions.makeLocalsFinal) {
-      return 'final';
+  String get _declarationKeywordAndType {
+    var useConst = stringLiteralPart == null &&
+        _isPartOfConstantExpression(singleExpression);
+    var useFinal = codeStyleOptions.makeLocalsFinal;
+
+    String? typeString;
+    if (codeStyleOptions.specifyTypes) {
+      typeString = singleExpression != null
+          ? singleExpression?.staticType
+              ?.getDisplayString(withNullability: unit.isNonNullableByDefault)
+          : stringLiteralPart != null
+              ? 'String'
+              : null;
+    }
+
+    if (useConst) {
+      return typeString != null ? 'const $typeString' : 'const';
+    } else if (useFinal) {
+      return typeString != null ? 'final $typeString' : 'final';
     } else {
-      return 'var';
+      return typeString ?? 'var';
     }
   }
 
@@ -137,9 +152,9 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     if (singleExpression != null &&
         singleExpression.parent is ExpressionStatement &&
         occurrences.length == 1) {
-      var keyword = _declarationKeyword;
-      var declarationSource = '$keyword $name = ';
-      var edit = SourceEdit(singleExpression.offset, 0, declarationSource);
+      var keywordAndType = _declarationKeywordAndType;
+      var declarationCode = '$keywordAndType $name = ';
+      var edit = SourceEdit(singleExpression.offset, 0, declarationCode);
       doSourceChange_addElementEdit(change, unitElement, edit);
       return Future.value(change);
     }
@@ -152,17 +167,15 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
 
     // add variable declaration
     {
-      String declarationCode;
-      int nameOffsetInDeclarationCode;
+      var keywordAndType = _declarationKeywordAndType;
+      var declarationCode = '$keywordAndType ';
+      var nameOffsetInDeclarationCode = declarationCode.length;
       if (stringLiteralPart != null) {
-        declarationCode = 'var ';
-        nameOffsetInDeclarationCode = declarationCode.length;
+        // TODO(dantup): This does not correctly handle escaping (for example
+        //  unescaped single quotes in a double quoted string).
         declarationCode += "$name = '$stringLiteralPart';";
       } else {
-        var keyword = _declarationKeyword;
         var initializerCode = utils.getRangeText(selectionRange);
-        declarationCode = '$keyword ';
-        nameOffsetInDeclarationCode = declarationCode.length;
         declarationCode += '$name = $initializerCode;';
       }
       // prepare location for declaration
@@ -197,6 +210,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
     // prepare replacement
     var occurrenceReplacement = name;
     if (stringLiteralPart != null) {
+      // TODO(dantup): Don't include braces if unnecessary.
       occurrenceReplacement = '\${$name}';
       occurrencesShift += 2;
     }

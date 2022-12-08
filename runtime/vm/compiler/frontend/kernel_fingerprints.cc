@@ -673,7 +673,7 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       ReadPosition();                    // read position.
       CalculateExpressionFingerprint();  // read operand.
       if (ReadTag() == kSomething) {
-        SkipDartType();  // read runtime check type.
+        CalculateDartTypeFingerprint();  // read runtime check type.
       }
       return;
     case kConstStaticInvocation:

@@ -1527,22 +1527,12 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ PushNativeCalleeSavedRegisters();
 
-  // Load the thread object. If we were called by a trampoline, the thread is
-  // already loaded.
-  if (FLAG_precompiled_mode) {
+  // Load the thread object. If we were called by a JIT trampoline, the thread
+  // is already loaded.
+  const intptr_t callback_id = marshaller_.dart_signature().FfiCallbackId();
+  if (!NativeCallbackTrampolines::Enabled()) {
     compiler->LoadBSSEntry(BSS::Relocation::DRT_GetThreadForNativeCallback, R1,
                            R0);
-  } else if (!NativeCallbackTrampolines::Enabled()) {
-    // In JIT mode, we can just paste the address of the runtime entry into the
-    // generated code directly. This is not a problem since we don't save
-    // callbacks into JIT snapshots.
-    __ LoadImmediate(
-        R1, reinterpret_cast<int64_t>(DLRT_GetThreadForNativeCallback));
-  }
-
-  const intptr_t callback_id = marshaller_.dart_signature().FfiCallbackId();
-
-  if (!NativeCallbackTrampolines::Enabled()) {
     // Create another frame to align the frame before continuing in "native"
     // code.
     __ EnterFrame(0);

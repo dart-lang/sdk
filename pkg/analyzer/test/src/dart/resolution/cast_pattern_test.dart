@@ -23,7 +23,7 @@ void f(x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 CastPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: var
     name: y
     declaredElement: hasImplicitType y@29
@@ -79,7 +79,7 @@ PatternVariableDeclaration
   pattern: ParenthesizedPattern
     leftParenthesis: (
     pattern: CastPattern
-      pattern: VariablePattern
+      pattern: DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@19
           type: int

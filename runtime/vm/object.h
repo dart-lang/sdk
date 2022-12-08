@@ -2769,6 +2769,9 @@ class Function : public Object {
   // -1 for Dart -> native calls.
   int32_t FfiCallbackId() const;
 
+  // Should be called when ffi trampoline function object is created.
+  void AssignFfiCallbackId(int32_t callback_id) const;
+
   // Can only be called on FFI trampolines.
   bool FfiIsLeaf() const;
 
@@ -11226,6 +11229,10 @@ class TypedData : public TypedDataBase {
   static TypedDataPtr New(intptr_t class_id,
                           intptr_t len,
                           Heap::Space space = Heap::kNew);
+
+  static TypedDataPtr Grow(const TypedData& current,
+                           intptr_t len,
+                           Heap::Space space = Heap::kNew);
 
   static void Copy(const TypedDataBase& dst,
                    intptr_t dst_offset_in_bytes,

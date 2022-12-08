@@ -311,6 +311,33 @@ class _SuspendState {
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:invisible")
+  Object? _awaitWithTypeCheck<T>(Object? object) {
+    if (_thenCallback == null) {
+      _createAsyncCallbacks();
+    }
+    // Declare a new variable to avoid type promotion of 'object' to
+    // 'Future<T>', as it would disable further type promotion to '_Future'.
+    final obj = object;
+    if (obj is Future<T>) {
+      if (object is _Future) {
+        if (object._isComplete) {
+          _awaitCompletedFuture(object);
+        } else {
+          object._thenAwait<dynamic>(
+              unsafeCast<dynamic Function(dynamic)>(_thenCallback),
+              unsafeCast<dynamic Function(Object, StackTrace)>(_errorCallback));
+        }
+      } else {
+        _awaitUserDefinedFuture(obj);
+      }
+    } else {
+      _awaitNotFuture(object);
+    }
+    return _functionData;
+  }
+
+  @pragma("vm:entry-point", "call")
+  @pragma("vm:invisible")
   static Future _returnAsync(Object suspendState, Object? returnValue) {
     _Future future;
     if (suspendState is _SuspendState) {

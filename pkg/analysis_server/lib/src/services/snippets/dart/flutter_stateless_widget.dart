@@ -19,7 +19,10 @@ class FlutterStatelessWidget extends FlutterSnippetProducer
   @override
   late ClassElement? classKey;
 
-  FlutterStatelessWidget(super.request);
+  FlutterStatelessWidget(super.request, {required super.elementImportCache});
+
+  @override
+  String get snippetPrefix => prefix;
 
   @override
   Future<Snippet> compute() async {

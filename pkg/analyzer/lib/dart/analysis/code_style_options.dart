@@ -24,6 +24,9 @@ abstract class CodeStyleOptions {
   /// class members.
   bool get sortConstructorsFirst;
 
+  /// Return `true` if types should be specified whenever possible.
+  bool get specifyTypes;
+
   /// Return `true` if the formatter should be used on code changes in this
   /// context.
   bool get useFormatter;

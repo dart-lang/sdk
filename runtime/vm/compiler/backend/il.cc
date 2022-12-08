@@ -7678,12 +7678,24 @@ void Call1ArgStubInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                              locs(), deopt_id(), env());
 }
 
+Definition* SuspendInstr::Canonicalize(FlowGraph* flow_graph) {
+  if (stub_id() == StubId::kAwaitWithTypeCheck &&
+      !operand()->Type()->CanBeFuture()) {
+    type_args()->RemoveFromUseList();
+    stub_id_ = StubId::kAwait;
+  }
+  return this;
+}
+
 LocationSummary* SuspendInstr::MakeLocationSummary(Zone* zone, bool opt) const {
-  const intptr_t kNumInputs = 1;
+  const intptr_t kNumInputs = has_type_args() ? 2 : 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
   locs->set_in(0, Location::RegisterLocation(SuspendStubABI::kArgumentReg));
+  if (has_type_args()) {
+    locs->set_in(1, Location::RegisterLocation(SuspendStubABI::kTypeArgsReg));
+  }
   locs->set_out(0, Location::RegisterLocation(CallingConventions::kReturnReg));
   return locs;
 }
@@ -7697,6 +7709,9 @@ void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (stub_id_) {
     case StubId::kAwait:
       stub = object_store->await_stub();
+      break;
+    case StubId::kAwaitWithTypeCheck:
+      stub = object_store->await_with_type_check_stub();
       break;
     case StubId::kYieldAsyncStar:
       stub = object_store->yield_async_star_stub();

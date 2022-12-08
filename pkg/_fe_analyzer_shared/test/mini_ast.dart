@@ -202,19 +202,16 @@ Statement if_(Expression condition, List<Statement> ifTrue,
       location: location);
 }
 
-Statement ifCase(
-  Expression expression,
-  PossiblyGuardedPattern pattern, {
-  List<Statement>? ifTrue,
-  List<Statement>? ifFalse,
-}) {
+Statement ifCase(Expression expression, PossiblyGuardedPattern pattern,
+    List<Statement> ifTrue,
+    [List<Statement>? ifFalse]) {
   var location = computeLocation();
   var guardedPattern = pattern._asGuardedPattern;
   return _IfCase(
     expression,
     guardedPattern.pattern,
     guardedPattern.guard,
-    _Block(ifTrue ?? [], location: location),
+    _Block(ifTrue, location: location),
     ifFalse != null ? _Block(ifFalse, location: location) : null,
     location: location,
   );
@@ -223,9 +220,9 @@ Statement ifCase(
 CollectionElement ifCaseElement(
   Expression expression,
   PossiblyGuardedPattern pattern,
-  CollectionElement ifTrue, {
+  CollectionElement ifTrue, [
   CollectionElement? ifFalse,
-}) {
+]) {
   var location = computeLocation();
   var guardedPattern = pattern._asGuardedPattern;
   return new _IfCaseElement(
@@ -689,6 +686,12 @@ class Harness {
     if (!errorRecoveryOk && assertInErrorRecoveryStack != null) {
       fail('assertInErrorRecovery called but no errors reported: '
           '$assertInErrorRecoveryStack');
+    }
+    if (Node._nodesWithUnusedErrorIds.isNotEmpty) {
+      var ids = [for (var node in Node._nodesWithUnusedErrorIds) node._errorId]
+          .join(', ');
+      Node._nodesWithUnusedErrorIds.clear();
+      fail('Unused error ids: $ids');
     }
   }
 
@@ -1180,6 +1183,11 @@ class MiniAstOperations
 class Node {
   static int _nextId = 0;
 
+  /// Tracks all [Node] object that have had an [errorId] assigned, but haven't
+  /// had [errorId] queried.  This is used to detect unused error IDs so that we
+  /// can keep the test cases clean.
+  static final Set<Node> _nodesWithUnusedErrorIds = {};
+
   final int id;
 
   final String location;
@@ -1189,6 +1197,7 @@ class Node {
   Node._({required this.location}) : id = _nextId++;
 
   String get errorId {
+    _nodesWithUnusedErrorIds.remove(this);
     String? errorId = _errorId;
     if (errorId == null) {
       fail('No error ID assigned for $runtimeType $this at $location');
@@ -1199,6 +1208,7 @@ class Node {
 
   set errorId(String value) {
     _errorId = value;
+    _nodesWithUnusedErrorIds.add(this);
   }
 
   @override
@@ -1290,7 +1300,8 @@ class PatternVariableJoin extends Var {
       ],
       name,
     ].join(' ');
-    var componentsStr = components.map((v) => v._errorId ?? v).join(', ');
+    var componentsStr =
+        components.map((v) => v.stringToCheckVariables).join(', ');
     return '$declarationStr = [$componentsStr]';
   }
 }
@@ -1430,12 +1441,13 @@ class Var extends Node implements Promotable {
   /// The type of the variable, or `null` if it is not yet known.
   Type? _type;
 
-  Var(this.name, {this.isFinal = false, String? errorId})
-      : super._(location: computeLocation()) {
-    if (errorId != null) {
-      this.errorId = errorId;
-    }
-  }
+  /// Identifier for this variable in IR.  This allows distinct variables with
+  /// the same name to be distinguished.
+  final String identity;
+
+  Var(this.name, {this.isFinal = false, String? identity})
+      : identity = identity ?? name,
+        super._(location: computeLocation());
 
   /// Creates an L-value representing a reference to this variable.
   LValue get expr =>
@@ -1444,7 +1456,7 @@ class Var extends Node implements Promotable {
   bool get isConsistent => true;
 
   /// The string that should be used to check variables in a set.
-  String get stringToCheckVariables => errorId;
+  String get stringToCheckVariables => identity;
 
   /// Gets the type if known; otherwise throws an exception.
   Type get type {

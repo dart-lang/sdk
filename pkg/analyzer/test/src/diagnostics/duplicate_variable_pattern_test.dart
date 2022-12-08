@@ -27,13 +27,13 @@ void f(int x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
-  leftOperand: VariablePattern
+  leftOperand: DeclaredVariablePattern
     keyword: var
     name: a
     declaredElement: hasImplicitType a@33
       type: int
   operator: &&
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     keyword: var
     name: a
     declaredElement: hasImplicitType a@42
@@ -56,13 +56,13 @@ void f(int x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
-  leftOperand: VariablePattern
+  leftOperand: DeclaredVariablePattern
     keyword: var
     name: a
     declaredElement: hasImplicitType a@44
       type: int
   operator: &&
-  rightOperand: VariablePattern
+  rightOperand: DeclaredVariablePattern
     keyword: var
     name: a
     declaredElement: hasImplicitType a@53

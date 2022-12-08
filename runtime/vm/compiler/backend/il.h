@@ -10623,10 +10623,11 @@ class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
 };
 
 // Suspends execution using the suspend stub specified using [StubId].
-class SuspendInstr : public TemplateDefinition<1, Throws> {
+class SuspendInstr : public TemplateDefinition<2, Throws> {
  public:
   enum class StubId {
     kAwait,
+    kAwaitWithTypeCheck,
     kYieldAsyncStar,
     kSuspendSyncStarAtStart,
     kSuspendSyncStarAtYield,
@@ -10635,6 +10636,7 @@ class SuspendInstr : public TemplateDefinition<1, Throws> {
   SuspendInstr(const InstructionSource& source,
                StubId stub_id,
                Value* operand,
+               Value* type_args,
                intptr_t deopt_id,
                intptr_t resume_deopt_id)
       : TemplateDefinition(source, deopt_id),
@@ -10642,9 +10644,22 @@ class SuspendInstr : public TemplateDefinition<1, Throws> {
         resume_deopt_id_(resume_deopt_id),
         token_pos_(source.token_pos) {
     SetInputAt(0, operand);
+    if (has_type_args()) {
+      SetInputAt(1, type_args);
+    } else {
+      ASSERT(type_args == nullptr);
+    }
   }
 
+  bool has_type_args() const { return stub_id_ == StubId::kAwaitWithTypeCheck; }
+  virtual intptr_t InputCount() const { return has_type_args() ? 2 : 1; }
+
   Value* operand() const { return inputs_[0]; }
+  Value* type_args() const {
+    ASSERT(has_type_args());
+    return inputs_[1];
+  }
+
   StubId stub_id() const { return stub_id_; }
   intptr_t resume_deopt_id() const { return resume_deopt_id_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
@@ -10659,8 +10674,10 @@ class SuspendInstr : public TemplateDefinition<1, Throws> {
   DECLARE_INSTRUCTION(Suspend);
   PRINT_OPERANDS_TO_SUPPORT
 
+  virtual Definition* Canonicalize(FlowGraph* flow_graph);
+
 #define FIELD_LIST(F)                                                          \
-  F(const StubId, stub_id_)                                                    \
+  F(StubId, stub_id_)                                                          \
   F(const intptr_t, resume_deopt_id_)                                          \
   F(const TokenPosition, token_pos_)
 

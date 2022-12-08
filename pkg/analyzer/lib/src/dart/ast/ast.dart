@@ -657,6 +657,55 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
   }
 }
 
+/// A variable pattern in [PatternAssignment].
+///
+///    variablePattern ::= identifier
+@experimental
+class AssignedVariablePatternImpl extends DartPatternImpl
+    implements AssignedVariablePattern {
+  @override
+  Element? element;
+
+  @override
+  final Token name;
+
+  AssignedVariablePatternImpl({
+    required this.name,
+  });
+
+  @override
+  Token get beginToken => name;
+
+  @override
+  Token get endToken => name;
+
+  @override
+  ChildEntities get _childEntities =>
+      super._childEntities..addToken('name', name);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitAssignedVariablePattern(this);
+  }
+
+  @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    throw UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  void resolvePattern(
+    ResolverVisitor resolverVisitor,
+    DartType matchedType,
+    SharedMatchContext context,
+  ) {
+    throw UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {}
+}
+
 /// An assignment expression.
 ///
 ///    assignmentExpression ::=
@@ -1135,7 +1184,8 @@ class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
     DartType matchedType,
     SharedMatchContext context,
   ) {
-    assert(operator.type == TokenType.AMPERSAND_AMPERSAND || operator.type == TokenType.BAR_BAR);
+    assert(operator.type == TokenType.AMPERSAND_AMPERSAND ||
+        operator.type == TokenType.BAR_BAR);
     resolverVisitor.analyzeLogicalPattern(
         matchedType, context, this, leftOperand, rightOperand,
         isAnd: operator.type == TokenType.AMPERSAND_AMPERSAND);
@@ -3352,7 +3402,9 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
 /// A pattern.
 ///
 ///    pattern ::=
-///        [BinaryPattern]
+///        [AssignedVariablePattern]
+///      | [BinaryPattern]
+///      | [DeclaredVariablePattern]
 ///      | [CastPattern]
 ///      | [ConstantPattern]
 ///      | [ListPattern]
@@ -3362,7 +3414,6 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
 ///      | [PostfixPattern]
 ///      | [RecordPattern]
 ///      | [RelationalPattern]
-///      | [VariablePattern]
 @experimental
 abstract class DartPatternImpl extends AstNodeImpl
     implements DartPattern, ListPatternElementImpl {
@@ -3377,7 +3428,7 @@ abstract class DartPatternImpl extends AstNodeImpl
   DartPattern get unParenthesized => this;
 
   /// The variable pattern, itself, or wrapped in a unary pattern.
-  VariablePatternImpl? get variablePattern => null;
+  DeclaredVariablePatternImpl? get variablePattern => null;
 
   DartType computePatternSchema(ResolverVisitor resolverVisitor);
 
@@ -3491,6 +3542,103 @@ class DeclaredSimpleIdentifier extends SimpleIdentifierImpl {
 
   @override
   bool inDeclarationContext() => true;
+}
+
+/// A variable pattern.
+///
+///    variablePattern ::=
+///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? [Identifier]
+@experimental
+class DeclaredVariablePatternImpl extends DartPatternImpl
+    implements DeclaredVariablePattern {
+  @override
+  VariablePatternBindElementImpl? declaredElement;
+
+  @override
+  final Token? keyword;
+
+  @override
+  final Token name;
+
+  @override
+  final TypeAnnotationImpl? type;
+
+  DeclaredVariablePatternImpl({
+    required this.name,
+    required this.keyword,
+    required this.type,
+  }) {
+    _becomeParentOf(type);
+  }
+
+  @override
+  Token get beginToken => type?.beginToken ?? name;
+
+  @override
+  Token get endToken => name;
+
+  /// If [keyword] is `final`, returns it.
+  Token? get finalToken {
+    final keyword = this.keyword;
+    if (keyword != null && keyword.keyword == Keyword.FINAL) {
+      return keyword;
+    }
+    return null;
+  }
+
+  /// Returns the context for this pattern.
+  /// * Declaration context: [PatternVariableDeclarationImpl]
+  /// * Assignment context: [PatternAssignmentImpl]
+  /// * Matching context: [GuardedPatternImpl]
+  AstNodeImpl? get patternContext {
+    for (DartPatternImpl current = this;;) {
+      final parent = current.parent;
+      if (parent is PatternVariableDeclarationImpl) {
+        return parent;
+      } else if (parent is PatternAssignmentImpl) {
+        return parent;
+      } else if (parent is GuardedPatternImpl) {
+        return parent;
+      } else if (parent is DartPatternImpl) {
+        current = parent;
+      } else {
+        return null;
+      }
+    }
+  }
+
+  @override
+  DeclaredVariablePatternImpl? get variablePattern => this;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('keyword', keyword)
+    ..addNode('type', type)
+    ..addToken('name', name);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitDeclaredVariablePattern(this);
+
+  @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeVariablePatternSchema(type?.typeOrThrow);
+  }
+
+  @override
+  void resolvePattern(
+    ResolverVisitor resolverVisitor,
+    DartType matchedType,
+    SharedMatchContext context,
+  ) {
+    resolverVisitor.analyzeVariablePattern(matchedType, context, this,
+        declaredElement, declaredElement?.name, type?.typeOrThrow);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    type?.accept(visitor);
+  }
 }
 
 /// A formal parameter with a default value. There are two kinds of parameters
@@ -9726,7 +9874,7 @@ class ParenthesizedPatternImpl extends DartPatternImpl
   }
 
   @override
-  VariablePatternImpl? get variablePattern => pattern.variablePattern;
+  DeclaredVariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -10171,7 +10319,7 @@ class PostfixPatternImpl extends DartPatternImpl implements PostfixPattern {
   Token get endToken => operator;
 
   @override
-  VariablePatternImpl? get variablePattern => operand.variablePattern;
+  DeclaredVariablePatternImpl? get variablePattern => operand.variablePattern;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -13685,101 +13833,6 @@ class VariableDeclarationStatementImpl extends StatementImpl
   @override
   void visitChildren(AstVisitor visitor) {
     _variableList.accept(visitor);
-  }
-}
-
-/// A variable pattern.
-///
-///    variablePattern ::=
-///        ( 'var' | 'final' | [TypeAnnotation])? [Identifier]
-@experimental
-class VariablePatternImpl extends DartPatternImpl implements VariablePattern {
-  @override
-  VariablePatternBindElementImpl? declaredElement;
-
-  @override
-  final Token? keyword;
-
-  @override
-  final Token name;
-
-  @override
-  final TypeAnnotationImpl? type;
-
-  VariablePatternImpl({
-    required this.name,
-    required this.keyword,
-    required this.type,
-  }) {
-    _becomeParentOf(type);
-  }
-
-  @override
-  Token get beginToken => type?.beginToken ?? name;
-
-  @override
-  Token get endToken => name;
-
-  /// If [keyword] is `final`, returns it.
-  Token? get finalToken {
-    final keyword = this.keyword;
-    if (keyword != null && keyword.keyword == Keyword.FINAL) {
-      return keyword;
-    }
-    return null;
-  }
-
-  /// Returns the context for this pattern.
-  /// * Declaration context: [PatternVariableDeclarationImpl]
-  /// * Assignment context: [PatternAssignmentImpl]
-  /// * Matching context: [GuardedPatternImpl]
-  AstNodeImpl? get patternContext {
-    for (DartPatternImpl current = this;;) {
-      final parent = current.parent;
-      if (parent is PatternVariableDeclarationImpl) {
-        return parent;
-      } else if (parent is PatternAssignmentImpl) {
-        return parent;
-      } else if (parent is GuardedPatternImpl) {
-        return parent;
-      } else if (parent is DartPatternImpl) {
-        current = parent;
-      } else {
-        return null;
-      }
-    }
-  }
-
-  @override
-  VariablePatternImpl? get variablePattern => this;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('keyword', keyword)
-    ..addNode('type', type)
-    ..addToken('name', name);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitVariablePattern(this);
-
-  @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeVariablePatternSchema(type?.typeOrThrow);
-  }
-
-  @override
-  void resolvePattern(
-    ResolverVisitor resolverVisitor,
-    DartType matchedType,
-    SharedMatchContext context,
-  ) {
-    resolverVisitor.analyzeVariablePattern(matchedType, context, this,
-        declaredElement, declaredElement?.name, type?.typeOrThrow);
-  }
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    type?.accept(visitor);
   }
 }
 

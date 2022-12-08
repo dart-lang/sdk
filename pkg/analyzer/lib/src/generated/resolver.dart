@@ -1179,7 +1179,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  bool isVariablePattern(AstNode pattern) => pattern is VariablePattern;
+  bool isVariablePattern(AstNode pattern) => pattern is DeclaredVariablePattern;
 
   @override
   DartType listType(DartType elementType) {

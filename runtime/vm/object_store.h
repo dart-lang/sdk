@@ -177,6 +177,7 @@ class ObjectPointerVisitor;
   RW(Function, async_star_stream_controller_add_stream)                        \
   RW(Function, suspend_state_init_async)                                       \
   RW(Function, suspend_state_await)                                            \
+  RW(Function, suspend_state_await_with_type_check)                            \
   RW(Function, suspend_state_return_async)                                     \
   RW(Function, suspend_state_return_async_not_future)                          \
   RW(Function, suspend_state_init_async_star)                                  \
@@ -268,8 +269,11 @@ class ObjectPointerVisitor;
   RW(Code, nullable_type_parameter_tts_stub)                                   \
   RW(Code, type_parameter_tts_stub)                                            \
   RW(Code, unreachable_tts_stub)                                               \
+  RW(Array, ffi_callback_functions)                                            \
   RW(Code, slow_tts_stub)                                                      \
+  /* Roots for JIT/AOT snapshots are up until here (see to_snapshot() below)*/ \
   RW(Code, await_stub)                                                         \
+  RW(Code, await_with_type_check_stub)                                         \
   RW(Code, clone_suspend_state_stub)                                           \
   RW(Code, init_async_stub)                                                    \
   RW(Code, resume_stub)                                                        \
@@ -285,7 +289,6 @@ class ObjectPointerVisitor;
   RW(GrowableObjectArray, instructions_tables)                                 \
   RW(Array, obfuscation_map)                                                   \
   RW(Array, loading_unit_uris)                                                 \
-  RW(Array, ffi_callback_functions)                                            \
   RW(Class, ffi_pointer_class)                                                 \
   RW(Class, ffi_native_type_class)                                             \
   // Please remember the last entry must be referred in the 'to' function below.
@@ -365,6 +368,7 @@ class ObjectPointerVisitor;
   DO(init_late_instance_field_stub, InitLateInstanceField)                     \
   DO(init_late_final_instance_field_stub, InitLateFinalInstanceField)          \
   DO(await_stub, Await)                                                        \
+  DO(await_with_type_check_stub, AwaitWithTypeCheck)                           \
   DO(clone_suspend_state_stub, CloneSuspendState)                              \
   DO(init_async_stub, InitAsync)                                               \
   DO(resume_stub, Resume)                                                      \

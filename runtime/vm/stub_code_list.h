@@ -160,6 +160,7 @@ namespace dart {
   V(InstantiateTypeArgumentsMayShareFunctionTA)                                \
   V(NoSuchMethodDispatcher)                                                    \
   V(Await)                                                                     \
+  V(AwaitWithTypeCheck)                                                        \
   V(InitAsync)                                                                 \
   V(Resume)                                                                    \
   V(ReturnAsync)                                                               \

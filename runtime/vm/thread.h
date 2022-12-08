@@ -184,6 +184,7 @@ class Thread;
 #define CACHED_FUNCTION_ENTRY_POINTS_LIST(V)                                   \
   V(suspend_state_init_async)                                                  \
   V(suspend_state_await)                                                       \
+  V(suspend_state_await_with_type_check)                                       \
   V(suspend_state_return_async)                                                \
   V(suspend_state_return_async_not_future)                                     \
   V(suspend_state_init_async_star)                                             \
@@ -1072,20 +1073,13 @@ class Thread : public ThreadState {
     }
   }
 
-  int32_t AllocateFfiCallbackId();
-
   // Store 'code' for the native callback identified by 'callback_id'.
   //
   // Expands the callback code array as necessary to accomodate the callback
   // ID.
-  void SetFfiCallbackCode(int32_t callback_id, const Code& code);
-
-  // Store 'stack_return' for the native callback identified by 'callback_id'.
-  //
-  // Expands the callback stack return array as necessary to accomodate the
-  // callback ID.
-  void SetFfiCallbackStackReturn(int32_t callback_id,
-                                 intptr_t stack_return_delta);
+  void SetFfiCallbackCode(const Function& ffi_trampoline,
+                          const Code& code,
+                          intptr_t stack_return_delta);
 
   // Ensure that 'callback_id' refers to a valid callback in this isolate.
   //
@@ -1350,6 +1344,10 @@ class Thread : public ThreadState {
 
   void FinishEntering(TaskKind kind);
   void PrepareLeaving();
+
+  // Ensures that we have allocated neccessary thread-local data structures for
+  // [callback_id].
+  void EnsureFfiCallbackMetadata(intptr_t callback_id);
 
   static void SetCurrent(Thread* current) { OSThread::SetCurrentTLS(current); }
 

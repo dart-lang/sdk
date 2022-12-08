@@ -3,7 +3,7 @@
 ### Language
 
 - **Breaking change** [#49635][]: Flag additional code as unreachable due to
-  types `Null` and `Never`.  Several unusual constructs that lead to unreachable
+  types `Null` and `Never`. Several unusual constructs that lead to unreachable
   code are now recognized by flow analysis:
 
   - Control flow after an expression of the form `e ?? other` or `e ??= other`,
@@ -33,7 +33,7 @@
   `noSuchMethod`. If a concrete class implements an interface containing a
   member with a name that's private to different library, and does not inherit
   an implementation of that interface member, a invocation of that member will
-  result in an exception getting thrown.  Previously, such attempts would result
+  result in an exception getting thrown. Previously, such attempts would result
   in the call being diverted to the `noSuchMethod` method.
 
   This change closes a loophole in Dart's privacy system, where another library
@@ -48,17 +48,15 @@
   dependencies during top-level type inference.
 
   Previously, some of these dependencies were ignored, based on an analysis
-  determining that they could not influence the inferred type. However,
-  this analysis was complex, differed slightly among tools, and had become
-  much more complex due to other changes (especially, enhanced flow
-  analysis).
+  determining that they could not influence the inferred type. However, this
+  analysis was complex, differed slightly among tools, and had become much more
+  complex due to other changes (especially, enhanced flow analysis).
 
-  With this change, all tools treat these cyclic dependencies in the
-  same way, the analysis is well-understood, and, arguably, the code is
-  more readable.
+  With this change, all tools treat these cyclic dependencies in the same way,
+  the analysis is well-understood, and, arguably, the code is more readable.
 
-  Breakage is mitigated by adding a declared type to one top-level
-  declaration per cycle which is now an error.
+  Breakage is mitigated by adding a declared type to one top-level declaration
+  per cycle which is now an error.
 
 [#50383]: https://github.com/dart-lang/sdk/issues/50383
 
@@ -75,8 +73,8 @@
 
 #### `dart:convert`
 
-- **Breaking change** [#34233][]: The previously deprecated API
-  [`DEFAULT_BUFFER_SIZE`][] in `JsonUtf8Encoder` has been removed.
+- **Breaking change** [#34233]: The previously deprecated API
+  [`DEFAULT_BUFFER_SIZE`] in `JsonUtf8Encoder` has been removed.
 
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
 [`DEFAULT_BUFFER_SIZE`]: https://api.dart.dev/stable/2.17.6/dart-convert/JsonUtf8Encoder/DEFAULT_BUFFER_SIZE-constant.html
@@ -97,11 +95,11 @@
 
 #### `dart:developer`
 
-- **Breaking change** [#34233][]: The previously deprecated APIs
-  `kInvalidParams`, `kExtensionError`, `kExtensionErrorMax`, and
-  `kExtensionErrorMin` in [`ServiceExtensionResponse`][] have been removed. They
-  have been replaced by `invalidParams`, `extensionError`, `extensionErrorMax`,
-  and `extensionErrorMin`.
+- **Breaking change** [#34233]: The previously deprecated APIs `kInvalidParams`,
+  `kExtensionError`, `kExtensionErrorMax`, and `kExtensionErrorMin` in
+  [`ServiceExtensionResponse`] have been removed. They have been replaced by
+  `invalidParams`, `extensionError`, `extensionErrorMax`, and
+  `extensionErrorMin`.
 - Deprecated `UserTag.MAX_USER_TAGS` in favor of `UserTag.maxUserTags`.
 
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
@@ -109,7 +107,7 @@
 
 #### `dart:ffi`
 
-- **Breaking change** [#49935][]:  The runtime type argument of `Pointer` has
+- **Breaking change** [#49935]: The runtime type argument of `Pointer` has
   changed to `Never` in preparation of completely removing the runtime type
   argument. `Pointer.toString` has changed to not report any type argument.
 
@@ -121,17 +119,17 @@
 - Deprecated `registerElement` and `registerElement2` in `Document` and
   `HtmlDocument`. These APIs were based on the deprecated Web Components v0.5
   specification and are not supported by browsers today. These APIs are expected
-  to be deleted in a future release. See the related breaking change
-  request [#49536](https://github.com/dart-lang/sdk/issues/49536).
+  to be deleted in a future release. See the related breaking change request
+  [#49536](https://github.com/dart-lang/sdk/issues/49536).
 
 #### `dart:io`
 
 - **Breaking change** [#49305](https://github.com/dart-lang/sdk/issues/49305):
   Disallow negative or hexadecimal content-length headers.
 - **Breaking change** [#49647](https://github.com/dart-lang/sdk/issues/49647):
-  `File.create` now takes new optional `exclusive` `bool` parameter, and
-  when it is `true` the operation will fail if target file already exists.
-- **Breaking change** [#49878][]: Calling `ResourceHandle.toFile()`,
+  `File.create` now takes new optional `exclusive` `bool` parameter, and when it
+  is `true` the operation will fail if target file already exists.
+- **Breaking change** [#49878]: Calling `ResourceHandle.toFile()`,
   `ResourceHandle.toSocket()`, `ResourceHandle.toRawSocket()` or
   `ResourceHandle.toRawDatagramSocket()`, more than once now throws a
   `StateError`.
@@ -142,8 +140,7 @@
 
 [#49878]: https://github.com/dart-lang/sdk/issues/49878
 
-- Adds three new `FileSystemException` subclasses to handle common error
-  cases:
+- Adds three new `FileSystemException` subclasses to handle common error cases:
 
   - `PathAccessException`: The necessary access rights are not available.
   - `PathExistsException`: The path being created already exists.
@@ -158,9 +155,9 @@
 
 #### `dart:mirrors`
 
-- **Breaking change** [#34233][]: The APIs [`MirrorsUsed`][] and [`Comment`][]
-  have been removed. `MirrorsUsed` was experimental and deprecated; `Comment`
-  was previously used internally in dart2js. Both are no longer functional.
+- **Breaking change** [#34233]: The APIs [`MirrorsUsed`] and [`Comment`] have
+  been removed. `MirrorsUsed` was experimental and deprecated; `Comment` was
+  previously used internally in dart2js. Both are no longer functional.
 
 [#34233]: https://github.com/dart-lang/sdk/issues/34233
 [`MirrorsUsed`]: https://api.dart.dev/stable/dart-mirrors/MirrorsUsed-class.html
@@ -172,18 +169,18 @@
 
 - **Breaking changes to the preview feature `@staticInterop`**:
   - Classes with this annotation are now disallowed from using `external`
-  generative constructors. Use `external factory`s for these classes instead,
-  and the behavior should be identical. This includes use of synthetic
-  constructors. See [#48730][] and [#49941][] for more details.
+    generative constructors. Use `external factory`s for these classes instead,
+    and the behavior should be identical. This includes use of synthetic
+    constructors. See [#48730] and [#49941] for more details.
   - Classes with this annotation's external extension members are now disallowed
-  from using type parameters e.g. `external void method<T>(T t)`. Use a
-  non-`external` extension method for type parameters instead. See [#49350][]
-  for more details.
+    from using type parameters e.g. `external void method<T>(T t)`. Use a
+    non-`external` extension method for type parameters instead. See [#49350]
+    for more details.
   - Classes with this annotation should also have the `@JS` annotation. You can
-  also have the `@anonymous` annotation with these two annotations for an object
-  literal constructor, but it isn't required.
+    also have the `@anonymous` annotation with these two annotations for an
+    object literal constructor, but it isn't required.
   - Classes with this annotation can not be implemented by classes without this
-  annotation. This is to avoid confusing type behavior.
+    annotation. This is to avoid confusing type behavior.
 
 [#48730]: https://github.com/dart-lang/sdk/issues/48730
 [#49941]: https://github.com/dart-lang/sdk/issues/49941
@@ -208,14 +205,19 @@
 
 Updated the Linter to `1.31.0`, which includes changes that
 
-- add new lint: `enable_null_safety`.
-- add new lint: `library_annotations`.
+- add new lint: `collection_methods_unrelated_type`.
+- add new lint: `combinators_ordering`.
 - add new lint: `dangling_library_doc_comments`.
+- add new lint: `enable_null_safety`.
+- add new lint: `implicit_call_tearoffs`.
+- add new lint: `library_annotations`.
+- add new lint: `unnecessary_library_directive`.
+- add new lint: `unreachable_from_main`.
+- add new lint: `use_string_in_part_of_directives`.
 - fix `no_leading_underscores_for_local_identifiers` to not report super formals
   as local variables.
 - fix `unnecessary_overrides` false negatives.
 - fix `cancel_subscriptions` for nullable fields.
-- add new lint: `collection_methods_unrelated_type`.
 - update `library_names` to support unnamed libraries.
 - fix `unnecessary_parenthesis` support for as-expressions.
 - fix `use_build_context_synchronously` to check for context property accesses.
@@ -227,36 +229,9 @@ Updated the Linter to `1.31.0`, which includes changes that
 - fix `use_build_context_synchronously` to check for `BuildContext`s in named
   expressions.
 - fix `exhaustive_cases` to check parenthesized expressions
-- improves performance for:
-  - `avoid_null_checks_in_equality_operators`.
-  - `join_return_with_statement`.
-  - `recursive_getters`.
-  - `unnecessary_lambdas`.
-  - `diagnostic_describe_all_properties`.
-  - `prefer_foreach`.
-  - `avoid_escaping_inner_quotes`.
-  - `cascade_invocations`.
-  - `tighten_type_of_initializing_formals`.
-  - `prefer_interpolation_to_compose_strings`.
-  - `prefer_constructors_over_static_methods`.
-  - `avoid_returning_null`.
-  - `parameter_assignments`.
-  - `prefer_constructors_over_static_methods`.
-  - `prefer_interpolation_to_compose_strings`.
-  - `avoid_returning_null`.
-  - `avoid_returning_this`.
-  - `flutter_style_todos`.
-  - `avoid_positional_boolean_parameters`.
-  - `prefer_const_constructors`.
-- add new lint: `implicit_call_tearoffs`.
-- add new lint: `unnecessary_library_directive`.
 - update `avoid_redundant_argument_values` to work with enum declarations.
-- improve performance for `prefer_contains`.
-- add new lint: `unreachable_from_main`.
 - fix `avoid_redundant_argument_values` when referencing required
   parameters in legacy libraries.
-- improve performance for `use_late_for_private_fields_and_variables`.
-- add new lint: `use_string_in_part_of_directives`.
 - fix `use_super_parameters` false positives with repeated super
   parameter references.
 - update `use_late_for_private_fields_and_variables` to handle enums.
@@ -265,8 +240,6 @@ Updated the Linter to `1.31.0`, which includes changes that
   in string interpolations.
 - update `public_member_api_docs` to report diagnostics on extension
   names (instead of bodies).
-- add miscellaneous documentation improvements.
-- add new lint: `combinators_ordering`.
 - fix `use_colored_box` and `use_decorated_box` to not over-report on containers without
   a child.
 - fix `unnecessary_parenthesis` false positives on a map-or-set literal at the start of
@@ -277,6 +250,29 @@ Updated the Linter to `1.31.0`, which includes changes that
 - fix `prefer_final_locals` false positives on declaration lists with at least one
   non-final variable.
 - fix`use_build_context_synchronously` to handle `await`s in `if` conditions.
+- improves performance for:
+  - `avoid_escaping_inner_quotes`.
+  - `avoid_null_checks_in_equality_operators`.
+  - `avoid_positional_boolean_parameters`.
+  - `avoid_returning_null`.
+  - `avoid_returning_null`.
+  - `avoid_returning_this`.
+  - `cascade_invocations`.
+  - `diagnostic_describe_all_properties`.
+  - `flutter_style_todos`.
+  - `join_return_with_statement`.
+  - `parameter_assignments`.
+  - `prefer_const_constructors`.
+  - `prefer_constructors_over_static_methods`.
+  - `prefer_constructors_over_static_methods`.
+  - `prefer_contains`.
+  - `prefer_foreach`.
+  - `prefer_interpolation_to_compose_strings`.
+  - `prefer_interpolation_to_compose_strings`.
+  - `recursive_getters`.
+  - `tighten_type_of_initializing_formals`.
+  - `unnecessary_lambdas`.
+  - `use_late_for_private_fields_and_variables`.
 
 #### Pub
 
@@ -305,10 +301,11 @@ Updated the Linter to `1.31.0`, which includes changes that
 - Update `dart pub publish` to require a working resolution.
   If publishing a breaking release of mutually dependent packages use `dependency_overrides`
   to obtain a resolution.
-- `dart pub add` will now allow adding multiple packages from any source using the same YAML syntax as in `pubspec.yaml`.
+- `dart pub add` will now allow adding multiple packages from any source using 
+  the same YAML syntax as in `pubspec.yaml`.
 
   For example:
-  ```
+  ```console
   $ dart pub add retry:^1.0.0 'dev:foo{"git":"https://github.com/foo/foo"}'
   ```
 - `dart pub publish` will now give a warning if `dart analyze` reports any diagnostics.
@@ -605,17 +602,16 @@ the new implementation carries a few subtle changes in behavior:
 Updated the Linter to `1.25.0`, which includes changes that
 
 - add new lint: `discarded_futures`.
+- add new lint: `unnecessary_null_aware_operator_on_extension_on_nullable`.
+- add new lint: `unnecessary_to_list_in_spreads`.
 - improve message and highlight range for `no_duplicate_case_values`
 - improve performance for `lines_longer_than_80_chars`,
   `prefer_const_constructors_in_immutables`, and
   `prefer_initializing_formals`.
 - fix `prefer_final_parameters` to support super parameters.
-- add new lint: `unnecessary_to_list_in_spreads`.
 - fix `unawaited_futures` to handle string interpolated
   futures.
 - update `use_colored_box` to not flag nullable colors,
-- add new lint:
-  `unnecessary_null_aware_operator_on_extension_on_nullable`.
 - fix `no_leading_underscores_for_local_identifiers`
   to lint local function declarations.
 - fix `avoid_init_to_null` to correctly handle super

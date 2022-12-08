@@ -11,7 +11,10 @@ class TestDefinition extends DartSnippetProducer {
   static const prefix = 'test';
   static const label = 'test';
 
-  TestDefinition(super.request);
+  TestDefinition(super.request, {required super.elementImportCache});
+
+  @override
+  String get snippetPrefix => prefix;
 
   @override
   Future<Snippet> compute() async {

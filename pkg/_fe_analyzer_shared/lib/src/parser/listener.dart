@@ -1433,7 +1433,12 @@ class Listener implements UnescapeErrorListener {
   /// Called after the parser has consumed a variable pattern, consisting of an
   /// optional `var` or `final` keyword, an optional type annotation, and a
   /// variable name identifier.
-  void handleVariablePattern(Token? keyword, Token variable) {
+  ///
+  /// The flag [inAssignmentPattern] indicates whether this variable pattern is
+  /// part of a `patternAssignment` (and hence should refer to a previously
+  /// declared variable rather than declaring a fresh one).
+  void handleVariablePattern(Token? keyword, Token variable,
+      {required bool inAssignmentPattern}) {
     logEvent('VariablePattern');
   }
 

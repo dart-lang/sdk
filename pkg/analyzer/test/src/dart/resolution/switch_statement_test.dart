@@ -262,7 +262,7 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -291,7 +291,7 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -354,7 +354,7 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           keyword: final
           type: NamedType
             name: SimpleIdentifier
@@ -384,7 +384,7 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           keyword: final
           type: NamedType
             name: SimpleIdentifier
@@ -448,7 +448,7 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           keyword: final
           type: NamedType
             name: SimpleIdentifier
@@ -478,7 +478,7 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: num
@@ -541,7 +541,7 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -570,7 +570,7 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: num
@@ -641,7 +641,7 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -704,7 +704,7 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -775,7 +775,7 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -850,7 +850,7 @@ SwitchStatement
           colon: :
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -919,7 +919,7 @@ SwitchStatement
         pattern: ListPattern
           leftBracket: [
           elements
-            VariablePattern
+            DeclaredVariablePattern
               type: NamedType
                 name: SimpleIdentifier
                   token: int
@@ -990,7 +990,7 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: VariablePattern
+        pattern: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
               token: int

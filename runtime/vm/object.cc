@@ -8054,22 +8054,27 @@ bool Function::FfiCSignatureReturnsStruct() const {
 
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiTrampoline());
-  if (FfiCallbackTarget() == Object::null()) {
-    return -1;
-  }
-  const Object& obj = Object::Handle(data());
+  ASSERT(FfiCallbackTarget() != Object::null());
+
+  const auto& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
-  const FfiTrampolineData& trampoline_data = FfiTrampolineData::Cast(obj);
-  int32_t callback_id = trampoline_data.callback_id();
-#if defined(DART_PRECOMPILED_RUNTIME)
-  ASSERT(callback_id >= 0);
-#else
-  if (callback_id < 0) {
-    callback_id = Thread::Current()->AllocateFfiCallbackId();
-    trampoline_data.set_callback_id(callback_id);
-  }
-#endif
-  return callback_id;
+  const auto& trampoline_data = FfiTrampolineData::Cast(obj);
+
+  ASSERT(trampoline_data.callback_id() != -1);
+
+  return trampoline_data.callback_id();
+}
+
+void Function::AssignFfiCallbackId(int32_t callback_id) const {
+  ASSERT(IsFfiTrampoline());
+  ASSERT(FfiCallbackTarget() != Object::null());
+
+  const auto& obj = Object::Handle(data());
+  ASSERT(!obj.IsNull());
+  const auto& trampoline_data = FfiTrampolineData::Cast(obj);
+
+  ASSERT(trampoline_data.callback_id() == -1);
+  trampoline_data.set_callback_id(callback_id);
 }
 
 bool Function::FfiIsLeaf() const {
@@ -25909,6 +25914,19 @@ TypedDataPtr TypedData::New(intptr_t class_id,
     result.RecomputeDataField();
   }
   return result.ptr();
+}
+
+TypedDataPtr TypedData::Grow(const TypedData& current,
+                             intptr_t len,
+                             Heap::Space space) {
+  ASSERT(len > current.Length());
+  const auto& new_td =
+      TypedData::Handle(TypedData::New(current.GetClassId(), len, space));
+  {
+    NoSafepointScope no_safepoint_scope;
+    memcpy(new_td.DataAddr(0), current.DataAddr(0), current.LengthInBytes());
+  }
+  return new_td.ptr();
 }
 
 const char* TypedData::ToCString() const {

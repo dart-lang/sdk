@@ -24,12 +24,26 @@ abstract class DartSnippetProducer extends SnippetProducer {
   final LibraryElement libraryElement;
   final bool useSuperParams;
 
-  DartSnippetProducer(super.request)
+  /// Elements that need to be imported for generated code to be valid.
+  ///
+  /// Calling [addImports] will add any required imports to the supplied
+  /// builder.
+  final Set<Element> requiredElementImports = {};
+
+  /// A cache of mappings from Elements to their public Library Elements.
+  ///
+  /// Callers can share this cache across multiple snippet producers to avoid
+  /// repeated searches where they may add imports for the same elements.
+  final Map<Element, LibraryElement?> _elementImportCache;
+
+  DartSnippetProducer(super.request,
+      {required Map<Element, LibraryElement?> elementImportCache})
       : sessionHelper = AnalysisSessionHelper(request.analysisSession),
         utils = CorrectionUtils(request.unit),
         libraryElement = request.unit.libraryElement,
         useSuperParams = request.unit.libraryElement.featureSet
-            .isEnabled(Feature.super_parameters);
+            .isEnabled(Feature.super_parameters),
+        _elementImportCache = elementImportCache;
 
   CodeStyleOptions get codeStyleOptions =>
       sessionHelper.session.analysisContext.analysisOptions.codeStyleOptions;
@@ -44,6 +58,14 @@ abstract class DartSnippetProducer extends SnippetProducer {
   NullabilitySuffix get nullableSuffix => libraryElement.isNonNullableByDefault
       ? NullabilitySuffix.question
       : NullabilitySuffix.none;
+
+  /// Adds public imports for any elements fetched by [getClass] and [getMixin]
+  /// to [builder].
+  Future<void> addImports(DartFileEditBuilder builder) async {
+    final dartBuilder = builder as DartFileEditBuilderImpl;
+    await Future.wait(requiredElementImports.map((element) => dartBuilder
+        .importElementLibrary(element, resultCache: _elementImportCache)));
+  }
 }
 
 abstract class FlutterSnippetProducer extends DartSnippetProducer {
@@ -52,27 +74,12 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   late ClassElement? classWidget;
   late ClassElement? classPlaceholder;
 
-  /// Elements that need to be imported for generated code to be valid.
-  ///
-  /// Calling [getClass] or [getMixin] records elements in this set.
-  /// Calling [addImports] will add any required imports to the supplied
-  /// builder.
-  final Set<Element> _requiredElementImports = {};
-
-  FlutterSnippetProducer(super.request);
-
-  /// Adds public imports for any elements fetched by [getClass] and [getMixin]
-  /// to [builder].
-  Future<void> addImports(DartFileEditBuilder builder) async {
-    final dartBuilder = builder as DartFileEditBuilderImpl;
-    await Future.wait(
-        _requiredElementImports.map(dartBuilder.importElementLibrary));
-  }
+  FlutterSnippetProducer(super.request, {required super.elementImportCache});
 
   Future<ClassElement?> getClass(String name) async {
     final class_ = await sessionHelper.getClass(flutter.widgetsUri, name);
     if (class_ != null) {
-      _requiredElementImports.add(class_);
+      requiredElementImports.add(class_);
     }
     return class_;
   }
@@ -80,7 +87,7 @@ abstract class FlutterSnippetProducer extends DartSnippetProducer {
   Future<MixinElement?> getMixin(String name) async {
     final mixin = await sessionHelper.getMixin(flutter.widgetsUri, name);
     if (mixin != null) {
-      _requiredElementImports.add(mixin);
+      requiredElementImports.add(mixin);
     }
     return mixin;
   }
@@ -191,6 +198,9 @@ abstract class SnippetProducer {
   final DartSnippetRequest request;
 
   SnippetProducer(this.request);
+
+  /// The prefix a user types to use this snippet.
+  String get snippetPrefix;
 
   Future<Snippet> compute();
 

@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
+import 'package:analyzer/src/dart/ast/mixin_super_invoked_names.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:collection/collection.dart';
@@ -150,6 +151,7 @@ class _UnitApiSignatureComputer {
   void _addMixin(MixinDeclaration node) {
     _addTokens(node.beginToken, node.leftBracket);
     _addClassMembers(node.members, false);
+    signature.addStringList(node.superInvokedNames);
   }
 
   void _addNode(AstNode? node) {
@@ -225,5 +227,14 @@ class _UnitApiSignatureComputer {
         _addNode(variable.initializer);
       }
     }
+  }
+}
+
+extension on MixinDeclaration {
+  List<String> get superInvokedNames {
+    var names = <String>{};
+    var collector = MixinSuperInvokedNamesCollector(names);
+    accept(collector);
+    return names.toList(growable: false);
   }
 }

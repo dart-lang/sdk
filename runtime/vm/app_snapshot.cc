@@ -1382,13 +1382,7 @@ class FfiTrampolineDataSerializationCluster : public SerializationCluster {
       FfiTrampolineDataPtr const data = objects_[i];
       AutoTraceObject(data);
       WriteFromTo(data);
-
-      if (s->kind() == Snapshot::kFullAOT) {
-        s->Write<int32_t>(data->untag()->callback_id_);
-      } else {
-        // FFI callbacks can only be written to AOT snapshots.
-        ASSERT(data->untag()->callback_target() == Object::null());
-      }
+      s->Write<int32_t>(data->untag()->callback_id_);
     }
   }
 
@@ -1416,8 +1410,7 @@ class FfiTrampolineDataDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(data, kFfiTrampolineDataCid,
                                      FfiTrampolineData::InstanceSize());
       d.ReadFromTo(data);
-      data->untag()->callback_id_ =
-          d_->kind() == Snapshot::kFullAOT ? d.Read<int32_t>() : -1;
+      data->untag()->callback_id_ = d.Read<int32_t>();
     }
   }
 };

@@ -8,12 +8,12 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(VariablePatternResolutionTest);
+    defineReflectiveTests(DeclaredVariablePatternResolutionTest);
   });
 }
 
 @reflectiveTest
-class VariablePatternResolutionTest extends PubPackageResolutionTest {
+class DeclaredVariablePatternResolutionTest extends PubPackageResolutionTest {
   test_final_switchCase() async {
     await assertNoErrorsInCode(r'''
 void f(int x) {
@@ -25,7 +25,7 @@ void f(int x) {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   keyword: final
   name: y
   declaredElement: hasImplicitType isFinal y@46
@@ -44,7 +44,7 @@ void f(x) {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   keyword: final
   type: NamedType
     name: SimpleIdentifier
@@ -69,7 +69,7 @@ void f(x) {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   type: NamedType
     name: SimpleIdentifier
       token: int
@@ -93,7 +93,7 @@ void f(x) {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   type: NamedType
     name: SimpleIdentifier
       token: int
@@ -115,7 +115,7 @@ void f<T>(T x) {
 
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   keyword: var
   name: y
   declaredElement: hasImplicitType y@54
@@ -137,7 +137,7 @@ void f() {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   keyword: var
   name: y
   declaredElement: hasImplicitType y@95
@@ -153,7 +153,7 @@ void f(int x) {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   keyword: var
   name: y
   declaredElement: hasImplicitType y@33
@@ -169,7 +169,7 @@ void f(Never? x) {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   keyword: var
   name: y
   declaredElement: hasImplicitType y@36
@@ -185,7 +185,7 @@ void f(Null x) {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   keyword: var
   name: y
   declaredElement: hasImplicitType y@34
@@ -207,7 +207,7 @@ void f() {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   keyword: var
   name: y
   declaredElement: hasImplicitType y@95
@@ -226,7 +226,7 @@ void f(int x) {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-VariablePattern
+DeclaredVariablePattern
   keyword: var
   name: y
   declaredElement: hasImplicitType y@44
@@ -246,7 +246,7 @@ void f(int x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 CastPattern
-  pattern: VariablePattern
+  pattern: DeclaredVariablePattern
     keyword: var
     name: y
     declaredElement: hasImplicitType y@44

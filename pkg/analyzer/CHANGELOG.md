@@ -1,3 +1,9 @@
+## 5.3.1
+* Require `collection: ^1.17.0` because we use `elementAtOrNull`.
+
+## 5.3.0
+* Use `3.0.0` as the current language version.
+
 ## 5.2.0
 * Deprecated `Element.enclosingElement3`, use `enclosingElement` instead.
 * Deprecated `Directive.element2`, use `element` instead.

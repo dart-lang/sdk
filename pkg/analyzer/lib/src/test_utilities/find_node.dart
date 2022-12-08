@@ -216,6 +216,10 @@ class FindNode {
     return _node(search, (n) => n is DeclaredIdentifier);
   }
 
+  DeclaredVariablePattern declaredVariablePattern(String search) {
+    return _node(search, (n) => n is DeclaredVariablePattern);
+  }
+
   DefaultFormalParameter defaultParameter(String search) {
     return _node(search, (n) => n is DefaultFormalParameter);
   }
@@ -730,10 +734,6 @@ class FindNode {
 
   VariableDeclarationStatement variableDeclarationStatement(String search) {
     return _node(search, (n) => n is VariableDeclarationStatement);
-  }
-
-  VariablePattern variablePattern(String search) {
-    return _node(search, (n) => n is VariablePattern);
   }
 
   WhenClause whenClause(String search) {

@@ -207,6 +207,7 @@ class StubCodeCompiler : public AllStatic {
   static void GenerateSuspendStub(
       Assembler* assembler,
       bool call_suspend_function,
+      bool pass_type_arguments,
       intptr_t suspend_entry_point_offset_in_thread,
       intptr_t suspend_function_offset_in_object_store);
   static void GenerateInitSuspendableFunctionStub(

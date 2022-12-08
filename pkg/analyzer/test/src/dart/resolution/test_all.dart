@@ -19,6 +19,7 @@ import 'constant_pattern_test.dart' as constant_pattern;
 import 'constant_test.dart' as constant;
 import 'constructor_reference_test.dart' as constructor_reference;
 import 'constructor_test.dart' as constructor;
+import 'declared_variable_pattern_test.dart' as declared_variable_pattern;
 import 'enum_test.dart' as enum_resolution;
 import 'extension_method_test.dart' as extension_method;
 import 'extension_override_test.dart' as extension_override;
@@ -88,7 +89,6 @@ import 'try_statement_test.dart' as try_statement;
 import 'type_inference/test_all.dart' as type_inference;
 import 'type_literal_test.dart' as type_literal;
 import 'type_name_test.dart' as type_name;
-import 'variable_pattern_test.dart' as variable_pattern;
 import 'variance_test.dart' as variance_test;
 import 'yield_statement_test.dart' as yield_statement;
 
@@ -107,8 +107,9 @@ main() {
     constant_pattern.main();
     comment.main();
     constant.main();
-    constructor.main();
     constructor_reference.main();
+    constructor.main();
+    declared_variable_pattern.main();
     enum_resolution.main();
     extension_method.main();
     extension_override.main();
@@ -173,7 +174,6 @@ main() {
     type_inference.main();
     type_literal.main();
     type_name.main();
-    variable_pattern.main();
     variance_test.main();
     yield_statement.main();
     defineReflectiveTests(UpdateNodeTextExpectations);

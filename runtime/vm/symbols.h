@@ -418,6 +418,7 @@ class ObjectPointerVisitor;
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_WeakReference, "_WeakReference")                                          \
   V(_await, "_await")                                                          \
+  V(_awaitWithTypeCheck, "_awaitWithTypeCheck")                                \
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \

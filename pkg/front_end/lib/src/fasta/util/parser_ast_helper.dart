@@ -1906,9 +1906,12 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleVariablePattern(Token? keyword, Token variable) {
+  void handleVariablePattern(Token? keyword, Token variable,
+      {required bool inAssignmentPattern}) {
     VariablePatternHandle data = new VariablePatternHandle(ParserAstType.HANDLE,
-        keyword: keyword, variable: variable);
+        keyword: keyword,
+        variable: variable,
+        inAssignmentPattern: inAssignmentPattern);
     seen(data);
   }
 
@@ -6329,15 +6332,17 @@ class NullCheckPatternHandle extends ParserAstNode {
 class VariablePatternHandle extends ParserAstNode {
   final Token? keyword;
   final Token variable;
+  final bool inAssignmentPattern;
 
   VariablePatternHandle(ParserAstType type,
-      {this.keyword, required this.variable})
+      {this.keyword, required this.variable, required this.inAssignmentPattern})
       : super("VariablePattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "keyword": keyword,
         "variable": variable,
+        "inAssignmentPattern": inAssignmentPattern,
       };
 }
 

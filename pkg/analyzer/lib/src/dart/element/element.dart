@@ -6548,7 +6548,7 @@ abstract class VariableElementImpl extends ElementImpl
 
 class VariablePatternBindElementImpl extends VariablePatternElementImpl
     implements VariablePatternBindElement {
-  final VariablePatternImpl node;
+  final DeclaredVariablePatternImpl node;
 
   VariablePatternBindElementImpl(this.node, super.name, super.offset);
 }
