@@ -50,8 +50,12 @@ final List<Option> options = [
   StringMultiOption(
       "define", (o, values) => o.environment = processEnvironment(values),
       abbr: "D"),
-  StringMultiOption("enable-experiment",
-      (o, values) => o.feExperimentalFlags = processFeExperimentalFlags(values))
+  StringMultiOption(
+      "enable-experiment",
+      (o, values) =>
+          o.feExperimentalFlags = processFeExperimentalFlags(values)),
+  StringOption("multi-root-scheme", (o, value) => o.multiRootScheme = value),
+  UriMultiOption("multi-root", (o, values) => o.multiRoots = values),
 ];
 
 Map<fe.ExperimentalFlag, bool> processFeExperimentalFlags(

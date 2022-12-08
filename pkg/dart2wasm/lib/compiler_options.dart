@@ -18,6 +18,8 @@ class CompilerOptions {
   String outputFile;
   Map<String, String> environment = const {};
   Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};
+  String? multiRootScheme;
+  List<Uri> multiRoots = const [];
 
   factory CompilerOptions.defaultOptions() =>
       CompilerOptions(mainUri: Uri(), outputFile: '');

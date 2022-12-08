@@ -4,6 +4,11 @@
 
 import 'dart:typed_data';
 
+import 'package:build_integration/file_system/multi_root.dart'
+    show MultiRootFileSystem;
+
+import 'package:front_end/src/api_prototype/standard_file_system.dart'
+    show StandardFileSystem;
 import 'package:front_end/src/api_unstable/vm.dart'
     show
         CompilerOptions,
@@ -52,6 +57,12 @@ Future<Uint8List?> compileToModule(compiler.CompilerOptions options,
     ..verbose = false
     ..onDiagnostic = diagnosticMessageHandler
     ..nnbdMode = NnbdMode.Strong;
+  if (options.multiRootScheme != null) {
+    compilerOptions.fileSystem = new MultiRootFileSystem(
+        options.multiRootScheme!,
+        options.multiRoots.isEmpty ? [Uri.base] : options.multiRoots,
+        StandardFileSystem.instance);
+  }
 
   if (options.platformPath != null) {
     compilerOptions.sdkSummary = options.platformPath;
