@@ -40,6 +40,10 @@ include:
 ''';
 
 class UnnecessaryParenthesis extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_parenthesis', 'Unnecessary use of parentheses.',
+      correctionMessage: 'Try removing the parentheses.');
+
   UnnecessaryParenthesis()
       : super(
             name: 'unnecessary_parenthesis',
@@ -48,10 +52,29 @@ class UnnecessaryParenthesis extends LintRule {
             group: Group.style);
 
   @override
+  LintCode get lintCode => code;
+
+  @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
     registry.addParenthesizedExpression(this, visitor);
+  }
+}
+
+class _ContainsFunctionExpressionVisitor extends UnifyingAstVisitor<void> {
+  bool hasFunctionExpression = false;
+
+  @override
+  void visitFunctionExpression(FunctionExpression node) {
+    hasFunctionExpression = true;
+  }
+
+  @override
+  void visitNode(AstNode node) {
+    if (!hasFunctionExpression) {
+      node.visitChildren(this);
+    }
   }
 }
 
@@ -179,22 +202,6 @@ class _Visitor extends SimpleAstVisitor<void> {
         _ContainsFunctionExpressionVisitor();
     node.accept(containsFunctionExpressionVisitor);
     return containsFunctionExpressionVisitor.hasFunctionExpression;
-  }
-}
-
-class _ContainsFunctionExpressionVisitor extends UnifyingAstVisitor<void> {
-  bool hasFunctionExpression = false;
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    hasFunctionExpression = true;
-  }
-
-  @override
-  void visitNode(AstNode node) {
-    if (!hasFunctionExpression) {
-      node.visitChildren(this);
-    }
   }
 }
 

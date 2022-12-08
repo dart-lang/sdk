@@ -43,6 +43,11 @@ useStrings(
 ''';
 
 class PreferSingleQuotes extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_single_quotes', 'Unnecessary use of double quotes.',
+      correctionMessage:
+          'Try using single quotes unless the string contains single quotes.');
+
   PreferSingleQuotes()
       : super(
             name: 'prefer_single_quotes',
@@ -52,6 +57,9 @@ class PreferSingleQuotes extends LintRule {
 
   @override
   List<String> get incompatibleRules => const ['prefer_double_quotes'];
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

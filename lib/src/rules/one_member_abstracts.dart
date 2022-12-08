@@ -36,12 +36,20 @@ typedef Predicate = bool Function(item);
 ''';
 
 class OneMemberAbstracts extends LintRule {
+  static const LintCode code = LintCode(
+      'one_member_abstracts', 'Unnecessary use of an abstract class.',
+      correctionMessage:
+          "Try making '{0}' a top-level function and removing the class.");
+
   OneMemberAbstracts()
       : super(
             name: 'one_member_abstracts',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -76,7 +84,7 @@ class _Visitor extends SimpleAstVisitor<void> {
           member.isAbstract &&
           !member.isGetter &&
           !member.isSetter) {
-        rule.reportLintForToken(node.name);
+        rule.reportLintForToken(node.name, arguments: [member.name.lexeme]);
       }
     }
   }

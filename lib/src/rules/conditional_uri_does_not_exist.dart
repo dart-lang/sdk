@@ -31,12 +31,21 @@ import 'file_that_does_exist.dart'
 ''';
 
 class ConditionalUriDoesNotExist extends LintRule {
+  static const LintCode code = LintCode('conditional_uri_does_not_exist',
+      "The target of a conditional import doesn't exist.",
+      correctionMessage:
+          'Try creating the imported file or changing the URI to reference an '
+          'existing file.');
+
   ConditionalUriDoesNotExist()
       : super(
             name: 'conditional_uri_does_not_exist',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

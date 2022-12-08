@@ -25,12 +25,21 @@ var list = ['a', 'b', if (condition) 'c'];
 ''';
 
 class PreferIfElementsToConditionalExpressions extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_if_elements_to_conditional_expressions',
+      "Use an 'if' element to conditionally add elements.",
+      correctionMessage:
+          "Try using an 'if' element rather than a conditional expression.");
+
   PreferIfElementsToConditionalExpressions()
       : super(
             name: 'prefer_if_elements_to_conditional_expressions',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

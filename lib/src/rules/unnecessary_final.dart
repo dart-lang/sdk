@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 import '../analyzer.dart';
@@ -41,6 +42,14 @@ void goodMethod() {
 ''';
 
 class UnnecessaryFinal extends LintRule {
+  static const LintCode withType = LintCode(
+      'unnecessary_final', "Local variables should not be marked as 'final'.",
+      correctionMessage: "Remove the 'final'.");
+
+  static const LintCode withoutType = LintCode(
+      'unnecessary_final', "Local variables should not be marked as 'final'.",
+      correctionMessage: "Replace 'final' with 'var'.");
+
   UnnecessaryFinal()
       : super(
             name: 'unnecessary_final',
@@ -51,6 +60,9 @@ class UnnecessaryFinal extends LintRule {
   @override
   List<String> get incompatibleRules =>
       const ['prefer_final_locals', 'prefer_final_parameters'];
+
+  @override
+  List<LintCode> get lintCodes => [withType, withoutType];
 
   @override
   void registerNodeProcessors(
@@ -72,10 +84,15 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitFormalParameterList(FormalParameterList parameterList) {
     for (var node in parameterList.parameters) {
       if (node.isFinal) {
-        // TODO(davidmorgan): for consistency this should report on the
-        // `final` keyword, not the node, but it's hard to get to from
-        // FormalParameter.
-        rule.reportLint(node);
+        var keyword = _getFinal(node);
+        if (keyword == null) {
+          continue;
+        }
+        var type = _getType(node);
+        var errorCode = type == null
+            ? UnnecessaryFinal.withoutType
+            : UnnecessaryFinal.withType;
+        rule.reportLintForToken(keyword, errorCode: errorCode);
       }
     }
   }
@@ -91,7 +108,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       var loopVariable = forLoopParts.loopVariable;
 
       if (loopVariable.isFinal) {
-        rule.reportLintForToken(loopVariable.keyword);
+        var errorCode = loopVariable.type == null
+            ? UnnecessaryFinal.withoutType
+            : UnnecessaryFinal.withType;
+        rule.reportLintForToken(loopVariable.keyword, errorCode: errorCode);
       }
     }
   }
@@ -99,7 +119,39 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
     if (node.variables.isFinal) {
-      rule.reportLintForToken(node.variables.keyword);
+      var errorCode = node.variables.type == null
+          ? UnnecessaryFinal.withoutType
+          : UnnecessaryFinal.withType;
+      rule.reportLintForToken(node.variables.keyword, errorCode: errorCode);
     }
+  }
+
+  /// Return the `final` token for the parameter [node].
+  Token? _getFinal(FormalParameter node) {
+    // TODO(brianwilkerson) Combine with `_getType` by using a record to hold
+    //  the token and type.
+    var parameter = node is DefaultFormalParameter ? node.parameter : node;
+    if (parameter is FieldFormalParameter) {
+      return parameter.keyword;
+    } else if (parameter is SimpleFormalParameter) {
+      return parameter.keyword;
+    } else if (parameter is SuperFormalParameter) {
+      return parameter.keyword;
+    }
+    return null;
+  }
+
+  /// Return the type of the formal parameter [node], or `null` if there is no
+  /// explicit type.
+  AstNode? _getType(FormalParameter node) {
+    var parameter = node is DefaultFormalParameter ? node.parameter : node;
+    if (parameter is FieldFormalParameter) {
+      return parameter.type;
+    } else if (parameter is SimpleFormalParameter) {
+      return parameter.type;
+    } else if (parameter is SuperFormalParameter) {
+      return parameter.type;
+    }
+    return null;
   }
 }

@@ -51,6 +51,13 @@ await expectLater(
 ''';
 
 class UseTestThrowsMatchers extends LintRule {
+  static const LintCode code = LintCode(
+      'use_test_throws_matchers',
+      "Use the 'throwsA' matcher instead of using 'fail' when there is no "
+          'exception thrown.',
+      correctionMessage:
+          "Try removing the try-catch and using 'throwsA' to expect an exception.");
+
   UseTestThrowsMatchers()
       : super(
           name: 'use_test_throws_matchers',
@@ -58,6 +65,9 @@ class UseTestThrowsMatchers extends LintRule {
           details: _details,
           group: Group.style,
         );
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -72,6 +82,17 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
+  bool isTestInvocation(Statement statement, String functionName) {
+    if (statement is! ExpressionStatement) return false;
+    var expression = statement.expression;
+    if (expression is! MethodInvocation) return false;
+    var element = expression.methodName.staticElement;
+    return element is FunctionElement &&
+        element.source.uri ==
+            Uri.parse('package:test_api/src/frontend/expect.dart') &&
+        element.name == functionName;
+  }
+
   @override
   void visitTryStatement(TryStatement node) {
     if (node.catchClauses.length != 1 || node.body.statements.isEmpty) return;
@@ -82,16 +103,5 @@ class _Visitor extends SimpleAstVisitor<void> {
         node.finallyBlock == null) {
       rule.reportLint(lastBodyStatement);
     }
-  }
-
-  bool isTestInvocation(Statement statement, String functionName) {
-    if (statement is! ExpressionStatement) return false;
-    var expression = statement.expression;
-    if (expression is! MethodInvocation) return false;
-    var element = expression.methodName.staticElement;
-    return element is FunctionElement &&
-        element.source.uri ==
-            Uri.parse('package:test_api/src/frontend/expect.dart') &&
-        element.name == functionName;
   }
 }

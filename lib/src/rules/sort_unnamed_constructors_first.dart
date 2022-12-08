@@ -33,12 +33,20 @@ abstract class CancelableFuture<T> implements Future<T>  {
 ''';
 
 class SortUnnamedConstructorsFirst extends LintRule {
+  static const LintCode code = LintCode('sort_unnamed_constructors_first',
+      'Invalid location for the unnamed constructor.',
+      correctionMessage:
+          'Try moving the unnamed constructor before all other constructors.');
+
   SortUnnamedConstructorsFirst()
       : super(
             name: 'sort_unnamed_constructors_first',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

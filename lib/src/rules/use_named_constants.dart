@@ -9,8 +9,9 @@ import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
 
-const _desc = r'Use predefined named constants.';
+const lintName = 'use_named_constants';
 
+const _desc = r'Use predefined named constants.';
 const _details = r'''
 Where possible, use already defined const values.
 
@@ -25,9 +26,12 @@ Duration.zero;
 ```
 
 ''';
-const lintName = 'use_named_constants';
 
 class UseNamedConstants extends LintRule {
+  static const LintCode code = LintCode('use_named_constants',
+      "Use the constant '{0}' rather than a constructor returning the same object.",
+      correctionMessage: "Try using '{0}'.");
+
   UseNamedConstants()
       : super(
           name: lintName,
@@ -35,6 +39,9 @@ class UseNamedConstants extends LintRule {
           details: _details,
           group: Group.style,
         );
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -45,10 +52,10 @@ class UseNamedConstants extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule, this.context);
-
   final LintRule rule;
+
   final LinterContext context;
+  _Visitor(this.rule, this.context);
 
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
@@ -75,12 +82,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             in element.fields.where((e) => e.isStatic && e.isConst)) {
           if (field.isAccessibleIn(library) &&
               field.computeConstantValue() == value) {
-            rule.reportLint(node,
-                arguments: ['${element.name}.${field.name}'],
-                errorCode: const LintCode(lintName,
-                    "The constant '{0}' should be referenced instead of duplicating its value.",
-                    correctionMessage:
-                        "Try using the predefined constant '{0}'."));
+            rule.reportLint(node, arguments: ['${element.name}.${field.name}']);
             return;
           }
         }

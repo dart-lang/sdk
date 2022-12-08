@@ -23,16 +23,23 @@ a {
 b {
 }
     <-- newline
-```    
+```
 ''';
 
 class EolAtEndOfFile extends LintRule {
+  static const LintCode code = LintCode(
+      'eol_at_end_of_file', 'Missing a newline at the end of the file.',
+      correctionMessage: 'Try adding a newline at the end of the file.');
+
   EolAtEndOfFile()
       : super(
             name: 'eol_at_end_of_file',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -59,8 +66,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 }
 
 extension on String {
-  bool get endsWithNewline => newline.any(endsWith);
   static const newline = ['\n', '\r'];
-  bool get endsWithMultipleNewlines => multipleNewlines.any(endsWith);
   static const multipleNewlines = ['\n\n', '\r\r', '\r\n\r\n'];
+  bool get endsWithMultipleNewlines => multipleNewlines.any(endsWith);
+  bool get endsWithNewline => newline.any(endsWith);
 }

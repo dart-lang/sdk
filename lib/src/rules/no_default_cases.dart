@@ -49,6 +49,11 @@ Enum-like classes are defined as concrete (non-abstract) classes that have:
 ''';
 
 class NoDefaultCases extends LintRule {
+  static const LintCode code = LintCode(
+      'no_default_cases', "Invalid use of 'default' member in a switch.",
+      correctionMessage:
+          'Try enumerating all the possible values of the switch expression.');
+
   NoDefaultCases()
       : super(
             name: 'no_default_cases',
@@ -56,6 +61,9 @@ class NoDefaultCases extends LintRule {
             details: _details,
             group: Group.style,
             maturity: Maturity.experimental);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

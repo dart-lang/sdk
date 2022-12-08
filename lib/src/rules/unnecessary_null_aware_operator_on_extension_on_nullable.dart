@@ -35,6 +35,12 @@ f(int? i) => i.m();
 ''';
 
 class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_null_aware_operator_on_extension_on_nullable',
+      'Unnecessary use of a null-aware operator to invoke an extension method '
+          'on a nullable type.',
+      correctionMessage: "Try removing the '?'.");
+
   UnnecessaryNullAwareOperatorOnExtensionOnNullable()
       : super(
           name: 'unnecessary_null_aware_operator_on_extension_on_nullable',
@@ -42,6 +48,9 @@ class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
           details: _details,
           group: Group.style,
         );
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -54,10 +63,10 @@ class UnnecessaryNullAwareOperatorOnExtensionOnNullable extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule, this.context);
-
   final LintRule rule;
+
   final LinterContext context;
+  _Visitor(this.rule, this.context);
 
   @override
   void visitIndexExpression(IndexExpression node) {

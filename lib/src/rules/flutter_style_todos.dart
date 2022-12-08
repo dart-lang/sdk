@@ -27,12 +27,19 @@ From the [Flutter docs](https://github.com/flutter/flutter/wiki/Style-guide-for-
 ''';
 
 class FlutterStyleTodos extends LintRule {
+  static const LintCode code = LintCode(
+      'flutter_style_todos', "To-do comment doesn't follow the Flutter style.",
+      correctionMessage: 'Try following the Flutter style for to-do comments.');
+
   FlutterStyleTodos()
       : super(
             name: 'flutter_style_todos',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

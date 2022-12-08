@@ -25,12 +25,20 @@ var s = r'A string with only \ and $';
 ''';
 
 class UseRawStrings extends LintRule {
+  static const LintCode code = LintCode(
+      'use_raw_strings', 'Use a raw string to avoid using escapes.',
+      correctionMessage:
+          'Try making the string a raw string and removing the escapes.');
+
   UseRawStrings()
       : super(
             name: 'use_raw_strings',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

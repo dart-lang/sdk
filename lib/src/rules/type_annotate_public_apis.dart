@@ -49,12 +49,19 @@ With types, all of this is clarified.
 ''';
 
 class TypeAnnotatePublicApis extends LintRule {
+  static const LintCode code = LintCode(
+      'type_annotate_public_apis', 'Missing type annotation on a public API.',
+      correctionMessage: 'Try adding a type annotation.');
+
   TypeAnnotatePublicApis()
       : super(
             name: 'type_annotate_public_apis',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

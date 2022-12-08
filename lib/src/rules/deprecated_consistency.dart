@@ -49,6 +49,20 @@ class B {
 ''';
 
 class DeprecatedConsistency extends LintRule {
+  static const LintCode constructorCode = LintCode('deprecated_consistency',
+      'Constructors in a deprecated class should be deprecated.',
+      correctionMessage: 'Try marking the constructor as deprecated.');
+
+  static const LintCode parameterCode = LintCode('deprecated_consistency',
+      'Parameters that initialize a deprecated field should be deprecated.',
+      correctionMessage: 'Try marking the parameter as deprecated.');
+
+  static const LintCode fieldCode = LintCode(
+      'deprecated_consistency',
+      'Fields that are initialized by a deprecated parameter should be '
+          'deprecated.',
+      correctionMessage: 'Try marking the field as deprecated.');
+
   DeprecatedConsistency()
       : super(
           name: 'deprecated_consistency',
@@ -56,6 +70,9 @@ class DeprecatedConsistency extends LintRule {
           details: _details,
           group: Group.style,
         );
+
+  @override
+  List<LintCode> get lintCodes => [constructorCode, parameterCode, fieldCode];
 
   @override
   void registerNodeProcessors(
@@ -77,7 +94,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (constructorElement != null &&
         constructorElement.enclosingElement.hasDeprecated &&
         !constructorElement.hasDeprecated) {
-      rule.reportLint(node);
+      rule.reportLint(node, errorCode: DeprecatedConsistency.constructorCode);
     }
   }
 
@@ -90,10 +107,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (field == null) return;
 
     if (field.hasDeprecated && !declaredElement.hasDeprecated) {
-      rule.reportLint(node);
+      rule.reportLint(node, errorCode: DeprecatedConsistency.fieldCode);
     }
     if (!field.hasDeprecated && declaredElement.hasDeprecated) {
-      rule.reportLintForOffset(field.nameOffset, field.nameLength);
+      rule.reportLintForOffset(field.nameOffset, field.nameLength,
+          errorCode: DeprecatedConsistency.parameterCode);
     }
   }
 }

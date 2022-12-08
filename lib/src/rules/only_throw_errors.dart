@@ -60,12 +60,21 @@ bool _isThrowable(DartType? type) {
 }
 
 class OnlyThrowErrors extends LintRule {
+  static const LintCode code = LintCode(
+      'only_throw_errors',
+      "Don't throw instances of classes that don't extend either 'Exception' "
+          "or 'Error'.",
+      correctionMessage: 'Try throwing a different class of object.');
+
   OnlyThrowErrors()
       : super(
             name: 'only_throw_errors',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

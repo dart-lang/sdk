@@ -90,12 +90,20 @@ bool _isFormalParameterReassigned(
 }
 
 class ParameterAssignments extends LintRule {
+  static const LintCode code = LintCode(
+      'parameter_assignments', "Invalid assignment to the parameter '{0}'.",
+      correctionMessage:
+          'Try using a local variable in place of the parameter.');
+
   ParameterAssignments()
       : super(
             name: 'parameter_assignments',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -121,12 +129,12 @@ class _DeclarationVisitor extends RecursiveAstVisitor {
   visitAssignmentExpression(AssignmentExpression node) {
     if (paramIsNotNullByDefault) {
       if (_isFormalParameterReassigned(parameter, node)) {
-        rule.reportLint(node);
+        rule.reportLint(node, arguments: [parameter.name!.lexeme]);
       }
     } else if (paramDefaultsToNull) {
       if (_isFormalParameterReassigned(parameter, node)) {
         if (hasBeenAssigned) {
-          rule.reportLint(node);
+          rule.reportLint(node, arguments: [parameter.name!.lexeme]);
         }
         hasBeenAssigned = true;
       }
@@ -141,7 +149,7 @@ class _DeclarationVisitor extends RecursiveAstVisitor {
       var operand = node.operand;
       if (operand is SimpleIdentifier &&
           operand.staticElement == parameter.declaredElement) {
-        rule.reportLint(node);
+        rule.reportLint(node, arguments: [parameter.name!.lexeme]);
       }
     }
 
@@ -154,7 +162,7 @@ class _DeclarationVisitor extends RecursiveAstVisitor {
       var operand = node.operand;
       if (operand is SimpleIdentifier &&
           operand.staticElement == parameter.declaredElement) {
-        rule.reportLint(node);
+        rule.reportLint(node, arguments: [parameter.name!.lexeme]);
       }
     }
 

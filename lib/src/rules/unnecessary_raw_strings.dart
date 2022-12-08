@@ -27,12 +27,19 @@ var s3 = r'\a';
 ''';
 
 class UnnecessaryRawStrings extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_raw_strings', 'Unnecessary use of a raw string.',
+      correctionMessage: 'Try using a normal string.');
+
   UnnecessaryRawStrings()
       : super(
             name: 'unnecessary_raw_strings',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

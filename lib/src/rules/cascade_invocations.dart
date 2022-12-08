@@ -105,6 +105,10 @@ bool _isInvokedWithoutNullAwareOperator(Token? token) =>
 /// Rule to lint consecutive invocations of methods or getters on the same
 /// reference that could be done with the cascade operator.
 class CascadeInvocations extends LintRule {
+  static const LintCode code = LintCode(
+      'cascade_invocations', 'Unnecessary duplication of receiver.',
+      correctionMessage: 'Try using a cascade to avoid the duplication.');
+
   /// Default constructor.
   CascadeInvocations()
       : super(
@@ -112,6 +116,9 @@ class CascadeInvocations extends LintRule {
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

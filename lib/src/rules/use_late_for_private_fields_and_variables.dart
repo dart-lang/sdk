@@ -55,6 +55,11 @@ bool _isPrivateExtension(AstNode parent) {
 }
 
 class UseLateForPrivateFieldsAndVariables extends LintRule {
+  static const LintCode code = LintCode(
+      'use_late_for_private_fields_and_variables',
+      "Use 'late' for private members with a non-nullable type.",
+      correctionMessage: "Try making adding the modifier 'late'.");
+
   UseLateForPrivateFieldsAndVariables()
       : super(
           name: 'use_late_for_private_fields_and_variables',
@@ -63,6 +68,9 @@ class UseLateForPrivateFieldsAndVariables extends LintRule {
           maturity: Maturity.experimental,
           group: Group.style,
         );
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
