@@ -82,7 +82,7 @@ class X {
 }
 ''', [
       // No lint
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 22, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 4),
     ]);
   }
 
@@ -94,7 +94,7 @@ class X {
 }
 ''', [
       // No lint
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 32, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 33, 4),
     ]);
   }
 
