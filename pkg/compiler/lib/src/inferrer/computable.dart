@@ -590,7 +590,7 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
       _wrappedDomain.isFixedLengthJsIndexable(_unwrap(value));
 
   @override
-  Iterable<MemberEntity> findRootsOfTargets(AbstractValue receiver,
+  Iterable<DynamicCallTarget> findRootsOfTargets(AbstractValue receiver,
       Selector selector, MemberHierarchyBuilder memberHierarchyBuilder) {
     return _wrappedDomain.findRootsOfTargets(
         receiver, selector, memberHierarchyBuilder);

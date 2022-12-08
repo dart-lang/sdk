@@ -136,7 +136,7 @@ abstract class ForwardingTypeMask extends TypeMask {
   }
 
   @override
-  Iterable<MemberEntity> findRootsOfTargets(Selector selector,
+  Iterable<DynamicCallTarget> findRootsOfTargets(Selector selector,
       MemberHierarchyBuilder memberHierarchyBuilder, JClosedWorld closedWorld) {
     return forwardTo.findRootsOfTargets(
         selector, memberHierarchyBuilder, closedWorld);

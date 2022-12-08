@@ -631,7 +631,7 @@ abstract class AbstractValueDomain {
   /// Returns a set of members that are ancestors of all possible targets for
   /// a call targeting [selector] on an entity with type represented by
   /// [receiver].
-  Iterable<MemberEntity> findRootsOfTargets(AbstractValue receiver,
+  Iterable<DynamicCallTarget> findRootsOfTargets(AbstractValue receiver,
       Selector selector, MemberHierarchyBuilder memberHierarchyBuilder);
 
   /// Deserializes an [AbstractValue] for this domain from [source].

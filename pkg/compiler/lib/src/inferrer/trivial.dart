@@ -370,7 +370,7 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
   }
 
   @override
-  Iterable<MemberEntity> findRootsOfTargets(
+  Iterable<DynamicCallTarget> findRootsOfTargets(
           covariant TrivialAbstractValue receiver,
           Selector selector,
           MemberHierarchyBuilder memberHierarchyBuilder) =>
