@@ -43,6 +43,12 @@
 //
 // TODO(dartbug.com/43646): Add DART_PRECOMPILER as another axis.
 
+#if defined(DART_COMPRESSED_POINTERS)
+#define COMPRESSED_ONLY(x) x
+#else
+#define COMPRESSED_ONLY(x)
+#endif
+
 #define COMMON_OFFSETS_LIST(FIELD, ARRAY, SIZEOF, ARRAY_SIZEOF,                \
                             PAYLOAD_SIZEOF, RANGE, CONSTANT)                   \
   ARRAY(Array, element_offset)                                                 \
@@ -324,7 +330,7 @@
   FIELD(Thread, vm_tag_offset)                                                 \
   FIELD(Thread, write_barrier_entry_point_offset)                              \
   FIELD(Thread, write_barrier_mask_offset)                                     \
-  FIELD(Thread, heap_base_offset)                                              \
+  COMPRESSED_ONLY(FIELD(Thread, heap_base_offset))                             \
   FIELD(Thread, callback_code_offset)                                          \
   FIELD(Thread, callback_stack_return_offset)                                  \
   FIELD(Thread, next_task_id_offset)                                           \

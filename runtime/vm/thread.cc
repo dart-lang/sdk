@@ -65,18 +65,7 @@ Thread::~Thread() {
 
 Thread::Thread(bool is_vm_isolate)
     : ThreadState(false),
-      stack_limit_(0),
       write_barrier_mask_(UntaggedObject::kGenerationalBarrierMask),
-      heap_base_(0),
-      isolate_(nullptr),
-      dispatch_table_array_(nullptr),
-      saved_stack_limit_(0),
-      stack_overflow_flags_(0),
-      heap_(nullptr),
-      top_exit_frame_info_(0),
-      store_buffer_block_(nullptr),
-      marking_stack_block_(nullptr),
-      vm_tag_(0),
       active_exception_(Object::null()),
       active_stacktrace_(Object::null()),
       global_object_pool_(ObjectPool::null()),
@@ -196,7 +185,9 @@ static const struct ALIGN16 {
 } float_zerow_constant = {0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0x00000000};
 
 void Thread::InitVMConstants() {
+#if defined(DART_COMPRESSED_POINTERS)
   heap_base_ = Object::null()->heap_base();
+#endif
 
 #define ASSERT_VM_HEAP(type_name, member_name, init_expr, default_init_value)  \
   ASSERT((init_expr)->IsOldObject());

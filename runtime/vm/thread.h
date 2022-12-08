@@ -411,12 +411,20 @@ class Thread : public ThreadState {
   };
 
   uword write_barrier_mask() const { return write_barrier_mask_; }
-  uword heap_base() const { return heap_base_; }
+  uword heap_base() const {
+#if defined(DART_COMPRESSED_POINTERS)
+    return heap_base_;
+#else
+    return 0;
+#endif
+  }
 
   static intptr_t write_barrier_mask_offset() {
     return OFFSET_OF(Thread, write_barrier_mask_);
   }
+#if defined(DART_COMPRESSED_POINTERS)
   static intptr_t heap_base_offset() { return OFFSET_OF(Thread, heap_base_); }
+#endif
   static intptr_t stack_overflow_flags_offset() {
     return OFFSET_OF(Thread, stack_overflow_flags_);
   }
@@ -1161,31 +1169,19 @@ class Thread : public ThreadState {
   // in SIMARM(IA32) and ARM, and the same offsets in SIMARM64(X64) and ARM64.
   // We use only word-sized fields to avoid differences in struct packing on the
   // different architectures. See also CheckOffsets in dart.cc.
-  volatile RelaxedAtomic<uword> stack_limit_;
+  volatile RelaxedAtomic<uword> stack_limit_ = 0;
   uword write_barrier_mask_;
-  uword heap_base_;
-  Isolate* isolate_;
-  const uword* dispatch_table_array_;
+#if defined(DART_COMPRESSED_POINTERS)
+  uword heap_base_ = 0;
+#endif
   uword top_ = 0;
   uword end_ = 0;
+  const uword* dispatch_table_array_ = nullptr;
+  ObjectPtr* field_table_values_ = nullptr;
+
   // Offsets up to this point can all fit in a byte on X64. All of the above
   // fields are very abundantly accessed from code. Thus, keeping them first
   // is important for code size (although code size on X64 is not a priority).
-  uword true_end_ = 0;
-  uword saved_stack_limit_;
-  uword stack_overflow_flags_;
-  ObjectPtr* field_table_values_;
-  Heap* heap_;
-  uword volatile top_exit_frame_info_;
-  StoreBufferBlock* store_buffer_block_;
-  MarkingStackBlock* marking_stack_block_;
-  MarkingStackBlock* deferred_marking_stack_block_;
-  uword volatile vm_tag_;
-  // Memory locations dedicated for passing unboxed int64 and double
-  // values from generated code to runtime.
-  // TODO(dartbug.com/33549): Clean this up when unboxed values
-  // could be passed as arguments.
-  ALIGN8 simd128_value_t unboxed_runtime_arg_;
 
 // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
@@ -1206,6 +1202,22 @@ class Thread : public ThreadState {
 #define DECLARE_MEMBERS(name) uword name##_entry_point_ = 0;
   CACHED_FUNCTION_ENTRY_POINTS_LIST(DECLARE_MEMBERS)
 #undef DECLARE_MEMBERS
+
+  Isolate* isolate_ = nullptr;
+  IsolateGroup* isolate_group_ = nullptr;
+
+  uword saved_stack_limit_ = 0;
+  uword stack_overflow_flags_ = 0;
+  uword volatile top_exit_frame_info_ = 0;
+  StoreBufferBlock* store_buffer_block_ = nullptr;
+  MarkingStackBlock* marking_stack_block_ = nullptr;
+  MarkingStackBlock* deferred_marking_stack_block_ = nullptr;
+  uword volatile vm_tag_ = 0;
+  // Memory locations dedicated for passing unboxed int64 and double
+  // values from generated code to runtime.
+  // TODO(dartbug.com/33549): Clean this up when unboxed values
+  // could be passed as arguments.
+  ALIGN8 simd128_value_t unboxed_runtime_arg_;
 
   // JumpToExceptionHandler state:
   ObjectPtr active_exception_;
@@ -1233,10 +1245,11 @@ class Thread : public ThreadState {
   // The code is generated without DART_PRECOMPILED_RUNTIME, but used with
   // DART_PRECOMPILED_RUNTIME.
 
+  Heap* heap_ = nullptr;
+  uword true_end_ = 0;
   TaskKind task_kind_;
   TimelineStream* dart_stream_;
   StreamInfo* service_extension_stream_;
-  IsolateGroup* isolate_group_ = nullptr;
   mutable Monitor thread_lock_;
   ApiLocalScope* api_reusable_scope_;
   int32_t no_callback_scope_depth_;
