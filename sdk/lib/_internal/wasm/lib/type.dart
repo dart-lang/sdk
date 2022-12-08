@@ -137,41 +137,36 @@ class _InterfaceTypeParameterType extends _Type {
 /// This type only occurs inside generic function types.
 @pragma("wasm:entry-point")
 class _FunctionTypeParameterType extends _Type {
-  /// The nesting depth of the function type declaring this type parameter,
-  /// i.e. the number of function types it is embedded inside.
-  final int depth;
-
-  /// The index of this type parameter in the function type's list of type
-  /// parameters.
   final int index;
 
   @pragma("wasm:entry-point")
-  const _FunctionTypeParameterType(
-      super.isDeclaredNullable, this.depth, this.index);
+  const _FunctionTypeParameterType(super.isDeclaredNullable, this.index);
 
   @override
-  _Type get _asNonNullable => _FunctionTypeParameterType(false, depth, index);
+  _Type get _asNonNullable => _FunctionTypeParameterType(false, index);
 
   @override
-  _Type get _asNullable => _FunctionTypeParameterType(true, depth, index);
+  _Type get _asNullable => _FunctionTypeParameterType(true, index);
 
   @override
   bool operator ==(Object o) {
     if (!(super == o)) return false;
     _FunctionTypeParameterType other =
         unsafeCast<_FunctionTypeParameterType>(o);
-    return depth == other.depth && index == other.index;
+    // References to different type parameters can have the same index and thus
+    // sometimes compare equal even if they are not. However, this can only
+    // happen if the containing types are different in other places, in which
+    // case the comparison as a whole correctly compares unequal.
+    return index == other.index;
   }
 
   @override
   int get hashCode {
     int hash = super.hashCode;
     hash = mix64(hash ^ (isDeclaredNullable ? 1 : 0));
-    hash = mix64(hash ^ depth.hashCode);
     return mix64(hash ^ index.hashCode);
   }
 
-  // TODO(askesc): Distinguish the depth of function type parameters.
   @override
   String toString() => 'X$index';
 }
@@ -313,6 +308,12 @@ class _NamedParameter {
 }
 
 class _FunctionType extends _Type {
+  // TODO(askesc): The [typeParameterOffset] is 0 except in the rare case where
+  // the function type contains a nested generic function type that contains a
+  // reference to one of this type's type parameters. It seems wasteful to have
+  // an `i64` in every function type object for this. Consider alternative
+  // representations that don't have this overhead in the common case.
+  final int typeParameterOffset;
   final List<_Type> typeParameterBounds;
   final _Type returnType;
   final List<_Type> positionalParameters;
@@ -321,6 +322,7 @@ class _FunctionType extends _Type {
 
   @pragma("wasm:entry-point")
   const _FunctionType(
+      this.typeParameterOffset,
       this.typeParameterBounds,
       this.returnType,
       this.positionalParameters,
@@ -329,12 +331,24 @@ class _FunctionType extends _Type {
       super.isDeclaredNullable);
 
   @override
-  _Type get _asNonNullable => _FunctionType(typeParameterBounds, returnType,
-      positionalParameters, requiredParameterCount, namedParameters, false);
+  _Type get _asNonNullable => _FunctionType(
+      typeParameterOffset,
+      typeParameterBounds,
+      returnType,
+      positionalParameters,
+      requiredParameterCount,
+      namedParameters,
+      false);
 
   @override
-  _Type get _asNullable => _FunctionType(typeParameterBounds, returnType,
-      positionalParameters, requiredParameterCount, namedParameters, true);
+  _Type get _asNullable => _FunctionType(
+      typeParameterOffset,
+      typeParameterBounds,
+      returnType,
+      positionalParameters,
+      requiredParameterCount,
+      namedParameters,
+      true);
 
   bool operator ==(Object o) {
     if (!(super == o)) return false;
@@ -390,9 +404,11 @@ class _FunctionType extends _Type {
       s.write("<");
       for (int i = 0; i < typeParameterBounds.length; i++) {
         if (i > 0) s.write(", ");
-        // TODO(askesc): Distinguish the depth of function type parameters.
-        s.write("X$i extends ");
-        s.write(typeParameterBounds[i]);
+        s.write("X${typeParameterOffset + i}");
+        if (!_TypeUniverse.isTopType(typeParameterBounds[i])) {
+          s.write(" extends ");
+          s.write(typeParameterBounds[i]);
+        }
       }
       s.write(">");
     }
@@ -432,22 +448,38 @@ class _Environment {
   /// outermost function type.
   final _Environment? parent;
 
-  /// The type parameter bounds of the current function type.
-  final List<_Type> bounds;
+  /// The current function type.
+  final _FunctionType type;
 
   /// The nesting depth of the current function type.
   final int depth;
 
-  _Environment(this.parent, this.bounds)
+  _Environment(this.parent, this.type)
       : depth = parent == null ? 0 : parent.depth + 1;
 
   /// Look up the bound of a function type parameter in the environment.
   _Type lookup(_FunctionTypeParameterType param) {
+    return adjust(param).lookupAdjusted(param);
+  }
+
+  /// Adjust the environment to the one where the type parameter is declared.
+  _Environment adjust(_FunctionTypeParameterType param) {
+    // The `typeParameterOffset` of the function types and the `index` of the
+    // function type parameters are assigned such that the function type to
+    // which a type parameter belongs is the innermost function type enclosing
+    // the type parameter type for which the index falls within the type
+    // parameter index range of the function type.
     _Environment env = this;
-    while (env.depth != param.depth) {
+    while (param.index - env.type.typeParameterOffset >=
+        env.type.typeParameterBounds.length) {
       env = env.parent!;
     }
-    return env.bounds[param.index];
+    return env;
+  }
+
+  /// Look up the bound of a type parameter in its adjusted environment.
+  _Type lookupAdjusted(_FunctionTypeParameterType param) {
+    return type.typeParameterBounds[param.index - type.typeParameterOffset];
   }
 }
 
@@ -523,6 +555,7 @@ class _TypeUniverse {
     } else if (type.isFunction) {
       _FunctionType functionType = type.as<_FunctionType>();
       return _FunctionType(
+          functionType.typeParameterOffset,
           functionType.typeParameterBounds
               .map((type) => substituteTypeArgument(type, substitutions))
               .toList(),
@@ -622,8 +655,8 @@ class _TypeUniverse {
   bool isFunctionSubtype(_FunctionType s, _Environment? sEnv, _FunctionType t,
       _Environment? tEnv) {
     // Set up environments
-    sEnv = _Environment(sEnv, s.typeParameterBounds);
-    tEnv = _Environment(tEnv, t.typeParameterBounds);
+    sEnv = _Environment(sEnv, s);
+    tEnv = _Environment(tEnv, t);
 
     // Check that [s] and [t] have the same number of type parameters and that
     // their bounds are equivalent.
@@ -720,9 +753,23 @@ class _TypeUniverse {
     if (isBottomType(s)) return true;
 
     // Left Type Variable Bound 1:
-    // TODO(joshualitt): Implement for generic function type parameters.
-    if (s.isInterfaceTypeParameterType) {
-      throw 'Unbound type parameter $s';
+    if (s.isFunctionTypeParameterType) {
+      final sTypeParam = s.as<_FunctionTypeParameterType>();
+      _Environment sEnvAdjusted = sEnv!.adjust(sTypeParam);
+      // A function type parameter type is a subtype of another function type
+      // parameter type if they refer to the same type parameter.
+      if (t.isFunctionTypeParameterType) {
+        final tTypeParam = t.as<_FunctionTypeParameterType>();
+        _Environment tEnvAdjusted = tEnv!.adjust(tTypeParam);
+        if (sEnvAdjusted.depth == tEnvAdjusted.depth &&
+            sTypeParam.index - sEnvAdjusted.type.typeParameterOffset ==
+                tTypeParam.index - tEnvAdjusted.type.typeParameterOffset) {
+          return true;
+        }
+      }
+      // Otherwise, compare the bound to the other type.
+      _Type bound = sEnvAdjusted.lookupAdjusted(sTypeParam);
+      return isSubtype(bound, sEnvAdjusted, t, tEnv);
     }
 
     // Left Null:
@@ -775,15 +822,6 @@ class _TypeUniverse {
     }
 
     // Left Promoted Variable does not apply at runtime.
-
-    if (s.isFunctionTypeParameterType) {
-      // A function type parameter type is a subtype of another function type
-      // parameter type if they refer to the same type parameter.
-      if (s == t) return true;
-      // Otherwise, compare the bound to the other type.
-      final sTypeParam = s.as<_FunctionTypeParameterType>();
-      return isSubtype(sEnv!.lookup(sTypeParam), sEnv, t, tEnv);
-    }
 
     // Function Type / Function:
     if (s.isFunction && isFunctionType(t)) {
