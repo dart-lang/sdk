@@ -40,7 +40,7 @@ Widget buildArea() {
 
 class UseColoredBox extends LintRule {
   static const LintCode code = LintCode('use_colored_box',
-      "Use 'ColoredBox' rather than a 'Container' with only a 'Color'.",
+      "Use a 'ColoredBox' rather than a 'Container' with only a 'Color'.",
       correctionMessage: "Try replacing the 'Container' with a 'ColoredBox'.");
 
   UseColoredBox()

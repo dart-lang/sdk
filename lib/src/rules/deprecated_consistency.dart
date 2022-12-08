@@ -54,7 +54,7 @@ class DeprecatedConsistency extends LintRule {
       correctionMessage: 'Try marking the constructor as deprecated.');
 
   static const LintCode parameterCode = LintCode('deprecated_consistency',
-      'Parameter that initialize a deprecated field should be deprecated.',
+      'Parameters that initialize a deprecated field should be deprecated.',
       correctionMessage: 'Try marking the parameter as deprecated.');
 
   static const LintCode fieldCode = LintCode(

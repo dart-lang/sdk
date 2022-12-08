@@ -47,7 +47,7 @@ class C extends B {
 
 class TightenTypeOfInitializingFormals extends LintRule {
   static const LintCode code = LintCode('tighten_type_of_initializing_formals',
-      "Use type annotation rather than 'assert' to enforce non-nullability.",
+      "Use a type annotation rather than 'assert' to enforce non-nullability.",
       correctionMessage:
           "Try adding a type annotation and removing the 'assert'.");
 
