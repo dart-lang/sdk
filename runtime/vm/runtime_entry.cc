@@ -169,7 +169,7 @@ static void NullErrorHelper(Zone* zone,
     args.SetAt(
         3, String::Handle(
                zone, String::New("Null check operator used on a null value")));
-    Exceptions::ThrowByType(Exceptions::kCast, args);
+    Exceptions::ThrowByType(Exceptions::kType, args);
     return;
   }
 

@@ -20019,11 +20019,11 @@ Instance checks (e is T) in strong checking mode in a legacy or opted-in lib:
 
 Casts (e as T) in weak checking mode in a legacy or opted-in library:
   If LEGACY_SUBTYPE(S, T) then e as T evaluates to v.
-  Otherwise a CastError is thrown.
+  Otherwise a TypeError is thrown.
 
 Casts (e as T) in strong checking mode in a legacy or opted-in library:
   If NNBD_SUBTYPE(S, T) then e as T evaluates to v.
-  Otherwise a CastError is thrown.
+  Otherwise a TypeError is thrown.
 */
 
 bool Instance::IsInstanceOf(

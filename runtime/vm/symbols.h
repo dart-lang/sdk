@@ -32,7 +32,6 @@ class ObjectPointerVisitor;
   V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation") \
   V(ByteData, "ByteData")                                                      \
   V(Capability, "Capability")                                                  \
-  V(CastError, "_CastError")                                                   \
   V(CheckLoaded, "_checkLoaded")                                               \
   V(Class, "Class")                                                            \
   V(ClassID, "ClassID")                                                        \
