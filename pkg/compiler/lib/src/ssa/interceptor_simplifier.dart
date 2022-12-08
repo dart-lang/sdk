@@ -10,7 +10,7 @@ import '../js_backend/interceptor_data.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/selector.dart' show Selector;
 import 'nodes.dart';
-import 'optimize_interfaces.dart' show OptimizationPhase;
+import 'optimize.dart' show OptimizationPhase;
 
 /// This phase computes the set of classes dispatched by an interceptor, and
 /// simplifies interceptors in multiple ways:

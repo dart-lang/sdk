@@ -6,7 +6,7 @@ import '../constants/constant_system.dart' as constant_system;
 import '../constants/values.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import 'nodes.dart';
-import 'optimize_interfaces.dart' show OptimizationPhase, SsaOptimizerTask;
+import 'optimize.dart' show OptimizationPhase, SsaOptimizerTask;
 
 class ValueRangeInfo {
   late final IntValue intZero;

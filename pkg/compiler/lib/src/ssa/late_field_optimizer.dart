@@ -8,7 +8,7 @@ import '../js_model/elements.dart' show JField;
 import '../js_model/js_world.dart' show JClosedWorld;
 import 'logging.dart';
 import 'nodes.dart';
-import 'optimize_interfaces.dart' show OptimizationPhase;
+import 'optimize.dart' show OptimizationPhase;
 
 /// Optimization phase that tries to eliminate late field checks and memory
 /// loads.

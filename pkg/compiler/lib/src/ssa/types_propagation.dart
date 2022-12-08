@@ -11,7 +11,7 @@ import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/selector.dart' show Selector;
 import 'logging.dart';
 import 'nodes.dart';
-import 'optimize_interfaces.dart' show OptimizationPhase;
+import 'optimize.dart' show OptimizationPhase;
 
 /// Type propagation and conditioning check insertion.
 ///
