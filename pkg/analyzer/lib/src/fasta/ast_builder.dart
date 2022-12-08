@@ -5276,20 +5276,27 @@ class AstBuilder extends StackListener {
   @override
   void handleVariablePattern(Token? keyword, Token variable,
       {required bool inAssignmentPattern}) {
-    // TODO(paulberry, scheglov): use inAssignmentPattern
     debugEvent('VariablePattern');
     if (!_featureSet.isEnabled(Feature.patterns)) {
       // TODO(paulberry): report the appropriate error
       throw UnimplementedError('Patterns not enabled');
     }
     var type = pop() as TypeAnnotationImpl?;
-    push(
-      DeclaredVariablePatternImpl(
-        keyword: keyword,
-        type: type,
-        name: variable,
-      ),
-    );
+    if (inAssignmentPattern) {
+      push(
+        AssignedVariablePatternImpl(
+          name: variable,
+        ),
+      );
+    } else {
+      push(
+        DeclaredVariablePatternImpl(
+          keyword: keyword,
+          type: type,
+          name: variable,
+        ),
+      );
+    }
   }
 
   @override

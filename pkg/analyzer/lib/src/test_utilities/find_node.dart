@@ -100,6 +100,10 @@ class FindNode {
     return _node(search, (n) => n is AssertStatement);
   }
 
+  AssignedVariablePattern assignedVariablePattern(String search) {
+    return _node(search, (n) => n is AssignedVariablePattern);
+  }
+
   AssignmentExpression assignment(String search) {
     return _node(search, (n) => n is AssignmentExpression);
   }
