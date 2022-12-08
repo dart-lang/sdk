@@ -21,6 +21,7 @@ ROLL_TRIGGERERS = {
 }
 CI_SANDBOX_TRIGGERERS = [
     accounts.ci_builder,
+    # Build bisection and monorepo ci both trigger builds from other builds.
     accounts.try_builder,
     "dart-internal-cbuild@dart-ci-internal.iam.gserviceaccount.com",
 ]
@@ -103,11 +104,15 @@ TRY_ACLS = [
 luci.bucket(
     name = "try",
     acls = TRY_ACLS + [
-        # For workflows that need to be authorized by Google-internal
-        # approval mechanisms, see b/231131625
         acl.entry(
             acl.BUILDBUCKET_TRIGGERER,
-            users = ["dart-eng-tool-proxy@system.gserviceaccount.com"],
+            users = [
+                # For workflows that need to be authorized by Google-internal
+                # approval mechanisms, see b/231131625
+                "dart-eng-tool-proxy@system.gserviceaccount.com",
+                # Monorepo builds use a coordinator build to add try builds.
+                accounts.try_builder,
+            ],
         ),
     ],
 )
