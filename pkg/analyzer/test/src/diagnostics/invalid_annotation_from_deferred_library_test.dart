@@ -44,8 +44,8 @@ class C { const C(int i); }
       error(
           CompileTimeErrorCode
               .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY,
-          79,
-          3),
+          81,
+          1),
     ]);
   }
 

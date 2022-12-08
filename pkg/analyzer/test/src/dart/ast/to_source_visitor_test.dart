@@ -100,6 +100,15 @@ void f() {
     );
   }
 
+  void test_visitAssignedVariablePattern() {
+    var findNode = _parseStringToFindNode('''
+void f(int foo) {
+  (foo) = 0;
+}
+''');
+    _assertSource('foo', findNode.assignedVariablePattern('foo) = 0'));
+  }
+
   void test_visitAssignmentExpression() {
     final code = 'a = b';
     final findNode = _parseStringToFindNode('''
@@ -872,6 +881,21 @@ void f() {
 }
 ''');
     _assertSource(code, findNode.continueStatement('continue'));
+  }
+
+  void test_visitDeclaredVariablePattern() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case int? _:
+      break;
+  }
+}
+''');
+    _assertSource(
+      'int? _',
+      findNode.declaredVariablePattern('int?'),
+    );
   }
 
   void test_visitDefaultFormalParameter_annotation() {
@@ -3724,21 +3748,6 @@ $code;
 $code;
 ''');
     _assertSource(code, findNode.variableDeclarationList(code));
-  }
-
-  void test_visitVariablePattern() {
-    var findNode = _parseStringToFindNode('''
-void f(x) {
-  switch (x) {
-    case int? _:
-      break;
-  }
-}
-''');
-    _assertSource(
-      'int? _',
-      findNode.declaredVariablePattern('int?'),
-    );
   }
 
   void test_visitWhileStatement() {

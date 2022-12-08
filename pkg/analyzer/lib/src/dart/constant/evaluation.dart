@@ -971,6 +971,12 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
     }
     // importPrefix.CONST
+    if (prefixElement is PrefixElement) {
+      if (node.isDeferred) {
+        _reportFromDeferredLibrary(node);
+        return null;
+      }
+    }
     if (prefixElement is! PrefixElement && prefixElement is! ExtensionElement) {
       var prefixResult = prefixNode.accept(this);
       if (prefixResult == null) {
@@ -1478,6 +1484,53 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     }
     return identifier.name == 'length' &&
         identifier.staticElement?.enclosingElement is! ExtensionElement;
+  }
+
+  void _reportFromDeferredLibrary(PrefixedIdentifier node) {
+    var errorCode = () {
+      AstNode? previous;
+      for (AstNode? current = node; current != null;) {
+        if (current is Annotation) {
+          return CompileTimeErrorCode
+              .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY;
+        } else if (current is ConstantContextForExpressionImpl) {
+          return CompileTimeErrorCode
+              .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY;
+        } else if (current is DefaultFormalParameter) {
+          return CompileTimeErrorCode
+              .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY;
+        } else if (current is IfElement && current.condition == node) {
+          return CompileTimeErrorCode
+              .IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY;
+        } else if (current is ListLiteral) {
+          return CompileTimeErrorCode
+              .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY;
+        } else if (current is MapLiteralEntry) {
+          if (previous == current.key) {
+            return CompileTimeErrorCode
+                .NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY;
+          } else {
+            return CompileTimeErrorCode
+                .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY;
+          }
+        } else if (current is SetOrMapLiteral) {
+          return CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY;
+        } else if (current is SpreadElement) {
+          return CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY;
+        } else if (current is SwitchCase) {
+          return CompileTimeErrorCode
+              .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
+        } else if (current is VariableDeclaration) {
+          return CompileTimeErrorCode
+              .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY;
+        }
+        previous = current;
+        current = current.parent;
+      }
+    }();
+    if (errorCode != null) {
+      _errorReporter.reportErrorForNode(errorCode, node.identifier);
+    }
   }
 
   void _reportNotPotentialConstants(AstNode node) {

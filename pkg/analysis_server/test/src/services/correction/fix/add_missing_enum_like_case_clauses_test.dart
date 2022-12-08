@@ -116,6 +116,7 @@ class E {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_notEmpty() async {
     await resolveTestCode('''
 void f(E e) {
@@ -135,6 +136,48 @@ class E {
 }
 ''');
     await assertHasFix('''
+void f(E e) {
+  switch (e) {
+    case E.a:
+      break;
+    case E.b:
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+  }
+}
+class E {
+  static const E a = E._(0);
+  static const E b = E._(1);
+  static const E c = E._(2);
+  final int x;
+  const E._(this.x);
+}
+''');
+  }
+
+  Future<void> test_notEmpty_language219() async {
+    await resolveTestCode('''
+// @dart=2.19
+void f(E e) {
+  switch (e) {
+    case E.a:
+      break;
+    case E.b:
+      break;
+  }
+}
+class E {
+  static const E a = E._(0);
+  static const E b = E._(1);
+  static const E c = E._(2);
+  final int x;
+  const E._(this.x);
+}
+''');
+    await assertHasFix('''
+// @dart=2.19
 void f(E e) {
   switch (e) {
     case E.a:

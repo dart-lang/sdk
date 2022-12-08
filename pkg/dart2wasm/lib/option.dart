@@ -51,6 +51,12 @@ class IntOption extends ValueOption<int> {
             defaultsTo: defaultsTo);
 }
 
+class StringOption extends ValueOption<String> {
+  StringOption(String name, void applyToOptions(CompilerOptions o, String v),
+      {String? defaultsTo})
+      : super(name, applyToOptions, (v) => v, defaultsTo: defaultsTo);
+}
+
 class UriOption extends ValueOption<Uri> {
   UriOption(String name, void applyToOptions(CompilerOptions o, Uri v),
       {String? defaultsTo})
@@ -85,4 +91,11 @@ class StringMultiOption extends MultiValueOption<String> {
       {String? abbr, Iterable<String>? defaultsTo})
       : super(name, applyToOptions, (v) => v,
             abbr: abbr, defaultsTo: defaultsTo);
+}
+
+class UriMultiOption extends MultiValueOption<Uri> {
+  UriMultiOption(name, void applyToOptions(CompilerOptions o, List<Uri> v),
+      {Iterable<String>? defaultsTo})
+      : super(name, applyToOptions, (v) => Uri.file(Directory(v).absolute.path),
+            defaultsTo: defaultsTo);
 }

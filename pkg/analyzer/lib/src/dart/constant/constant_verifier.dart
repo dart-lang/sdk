@@ -11,11 +11,9 @@ import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/potentially_constant.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -318,10 +316,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       } else {
         _reportErrors(result.errors, null);
       }
-      _reportErrorIfFromDeferredLibrary(
-          initializer,
-          CompileTimeErrorCode
-              .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
     }
   }
 
@@ -399,26 +393,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
-  /// Given some computed [Expression], this method generates the passed
-  /// [ErrorCode] on the node if its' value consists of information from a
-  /// deferred library.
-  ///
-  /// @param expression the expression to be tested for a deferred library
-  ///        reference
-  /// @param errorCode the error code to be used if the expression is or
-  ///        consists of a reference to a deferred library
-  void _reportErrorIfFromDeferredLibrary(
-      Expression expression, ErrorCode errorCode,
-      [List<Object>? arguments, List<DiagnosticMessage>? messages]) {
-    DeferredLibraryReferenceDetector referenceDetector =
-        DeferredLibraryReferenceDetector();
-    expression.accept(referenceDetector);
-    if (referenceDetector.result) {
-      _errorReporter.reportErrorForNode(
-          errorCode, expression, arguments, messages);
-    }
-  }
-
   /// Report any errors in the given list. Except for special cases, use the
   /// given error code rather than the one reported in the error.
   ///
@@ -447,7 +421,47 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           identical(dataErrorCode,
               CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH) ||
           identical(
-              dataErrorCode, CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH)) {
+              dataErrorCode, CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY) ||
+          identical(dataErrorCode,
+              CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY) ||
+          identical(dataErrorCode,
+              CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY) ||
+          identical(
+              dataErrorCode,
+              CompileTimeErrorCode
+                  .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY)) {
         _errorReporter.reportError(data);
       } else if (errorCode != null) {
         _errorReporter.reportError(
@@ -515,12 +529,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           argument is NamedExpression ? argument.expression : argument;
       _validate(
           realArgument, CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT);
-      if (realArgument is PrefixedIdentifier && realArgument.isDeferred) {
-        _reportErrorIfFromDeferredLibrary(
-            realArgument,
-            CompileTimeErrorCode
-                .INVALID_ANNOTATION_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY);
-      }
     }
   }
 
@@ -566,12 +574,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         } else {
           result = _validate(
               defaultValue, CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE);
-          if (result != null) {
-            _reportErrorIfFromDeferredLibrary(
-                defaultValue,
-                CompileTimeErrorCode
-                    .NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY);
-          }
         }
         VariableElementImpl element =
             parameter.declaredElement as VariableElementImpl;
@@ -641,12 +643,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           continue;
         }
 
-        _reportErrorIfFromDeferredLibrary(
-          expression,
-          CompileTimeErrorCode
-              .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
-        );
-
         var expressionValueType = _typeSystem.toLegacyTypeIfOptOut(
           expressionValue.type,
         );
@@ -692,12 +688,6 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           continue;
         }
 
-        _reportErrorIfFromDeferredLibrary(
-          expression,
-          CompileTimeErrorCode
-              .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
-        );
-
         var expressionType = expressionValue.type;
 
         if (_implementsEqualsWhenNotAllowed(expressionType)) {
@@ -732,8 +722,6 @@ class _ConstLiteralVerifier {
       var value = verifier._validate(element, errorCode);
       if (value == null) return false;
 
-      _validateExpressionFromDeferredLibrary(element);
-
       final listElementType = this.listElementType;
       if (listElementType != null) {
         return _validateListExpression(listElementType, element, value);
@@ -754,9 +742,6 @@ class _ConstLiteralVerifier {
 
       // The errors have already been reported.
       if (conditionBool == null) return false;
-
-      verifier._reportErrorIfFromDeferredLibrary(element.condition,
-          CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY);
 
       var thenValid = true;
       var elseValid = true;
@@ -780,9 +765,6 @@ class _ConstLiteralVerifier {
     } else if (element is SpreadElement) {
       var value = verifier._validate(element.expression, errorCode);
       if (value == null) return false;
-
-      verifier._reportErrorIfFromDeferredLibrary(element.expression,
-          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY);
 
       if (listElementType != null || setConfig != null) {
         return _validateListOrSetSpread(element, value);
@@ -837,20 +819,6 @@ class _ConstLiteralVerifier {
     return false;
   }
 
-  void _validateExpressionFromDeferredLibrary(Expression expression) {
-    if (listElementType != null) {
-      verifier._reportErrorIfFromDeferredLibrary(
-        expression,
-        CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY,
-      );
-    } else if (setConfig != null) {
-      verifier._reportErrorIfFromDeferredLibrary(
-        expression,
-        CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY,
-      );
-    }
-  }
-
   bool _validateListExpression(
       DartType listElementType, Expression expression, DartObjectImpl value) {
     if (!verifier._runtimeTypeMatch(value, listElementType)) {
@@ -861,11 +829,6 @@ class _ConstLiteralVerifier {
       );
       return false;
     }
-
-    verifier._reportErrorIfFromDeferredLibrary(
-      expression,
-      CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY,
-    );
 
     return true;
   }
@@ -954,11 +917,6 @@ class _ConstLiteralVerifier {
         );
       }
 
-      verifier._reportErrorIfFromDeferredLibrary(
-        keyExpression,
-        CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY,
-      );
-
       var existingKey = config.uniqueKeys[keyValue];
       if (existingKey != null) {
         config.duplicateKeys[keyExpression] = existingKey;
@@ -975,11 +933,6 @@ class _ConstLiteralVerifier {
           [valueValue.type, config.valueType],
         );
       }
-
-      verifier._reportErrorIfFromDeferredLibrary(
-        valueExpression,
-        CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
-      );
     }
 
     return true;
@@ -1038,11 +991,6 @@ class _ConstLiteralVerifier {
       );
       return false;
     }
-
-    verifier._reportErrorIfFromDeferredLibrary(
-      expression,
-      CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY,
-    );
 
     var existingValue = config.uniqueValues[value];
     if (existingValue != null) {

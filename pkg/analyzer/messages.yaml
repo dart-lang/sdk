@@ -1640,7 +1640,7 @@ CompileTimeErrorCode:
       ```dart
       import 'a.dart' deferred as a;
 
-      var l = const [[!a.zero!]];
+      var l = const [a.[!zero!]];
       ```
 
       #### Common fixes
@@ -2454,7 +2454,7 @@ CompileTimeErrorCode:
       ```dart
       import 'dart:math' deferred as math;
 
-      const pi = [!math.pi!];
+      const pi = math.[!pi!];
       ```
 
       #### Common fixes
@@ -6723,7 +6723,7 @@ CompileTimeErrorCode:
         const C(double d);
       }
 
-      @C([!math.pi!])
+      @C(math.[!pi!])
       void f () {}
       ```
 
@@ -9445,7 +9445,7 @@ CompileTimeErrorCode:
 
       void f(int x) {
         switch (x) {
-          case [!a.zero!]:
+          case a.[!zero!]:
             // ...
             break;
         }
@@ -9570,7 +9570,7 @@ CompileTimeErrorCode:
       ```dart
       import 'a.dart' deferred as a;
 
-      void f({int x = [!a.zero!]}) {}
+      void f({int x = a.[!zero!]}) {}
       ```
 
       #### Common fixes

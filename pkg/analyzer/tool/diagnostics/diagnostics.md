@@ -2303,7 +2303,7 @@ literal contains `a.zero`, which is imported using a `deferred` import:
 {% prettify dart tag=pre+code %}
 import 'a.dart' deferred as a;
 
-var l = const [[!a.zero!]];
+var l = const [a.[!zero!]];
 {% endprettify %}
 
 #### Common fixes
@@ -2937,7 +2937,7 @@ being initialized using the constant `math.pi` from the library
 {% prettify dart tag=pre+code %}
 import 'dart:math' deferred as math;
 
-const pi = [!math.pi!];
+const pi = math.[!pi!];
 {% endprettify %}
 
 #### Common fixes
@@ -8226,7 +8226,7 @@ class C {
   const C(double d);
 }
 
-@C([!math.pi!])
+@C(math.[!pi!])
 void f () {}
 {% endprettify %}
 
@@ -12505,7 +12505,7 @@ import 'a.dart' deferred as a;
 
 void f(int x) {
   switch (x) {
-    case [!a.zero!]:
+    case a.[!zero!]:
       // ...
       break;
   }
@@ -12626,7 +12626,7 @@ library imported using a deferred import:
 {% prettify dart tag=pre+code %}
 import 'a.dart' deferred as a;
 
-void f({int x = [!a.zero!]}) {}
+void f({int x = a.[!zero!]}) {}
 {% endprettify %}
 
 #### Common fixes

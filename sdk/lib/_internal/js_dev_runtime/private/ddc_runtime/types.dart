@@ -16,6 +16,15 @@ external bool compileTimeFlag(String flag);
 _throwInvalidFlagError(String message) =>
     throw UnsupportedError('Invalid flag combination.\n$message');
 
+/// When running the new runtime type system with weak null safety this flag
+/// gets toggled to change the behavior of the dart:_rti library when performing
+/// `is` and `as` checks.
+///
+/// This allows DDC to produce optional warnings or errors when tests pass but
+/// would fail in sound null safety.
+@notNull
+bool legacyTypeChecks = !compileTimeFlag("soundNullSafety");
+
 @notNull
 bool _weakNullSafetyWarnings = false;
 

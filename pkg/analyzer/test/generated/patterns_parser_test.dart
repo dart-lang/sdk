@@ -3520,9 +3520,9 @@ ListPattern
     rightBracket: >
   leftBracket: [
   elements
-    DeclaredVariablePattern
+    AssignedVariablePattern
       name: a
-    DeclaredVariablePattern
+    AssignedVariablePattern
       name: b
   rightBracket: ]
 ''');
@@ -3567,9 +3567,9 @@ void f(x) {
 ListPattern
   leftBracket: [
   elements
-    DeclaredVariablePattern
+    AssignedVariablePattern
       name: a
-    DeclaredVariablePattern
+    AssignedVariablePattern
       name: b
   rightBracket: ]
 ''');
@@ -4504,13 +4504,13 @@ MapPattern
       key: SimpleStringLiteral
         literal: 'a'
       separator: :
-      value: DeclaredVariablePattern
+      value: AssignedVariablePattern
         name: a
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'b'
       separator: :
-      value: DeclaredVariablePattern
+      value: AssignedVariablePattern
         name: b
   rightBracket: }
 ''');
@@ -4565,13 +4565,13 @@ MapPattern
       key: SimpleStringLiteral
         literal: 'a'
       separator: :
-      value: DeclaredVariablePattern
+      value: AssignedVariablePattern
         name: a
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'b'
       separator: :
-      value: DeclaredVariablePattern
+      value: AssignedVariablePattern
         name: b
   rightBracket: }
 ''');
@@ -4592,13 +4592,13 @@ MapPattern
       key: SimpleStringLiteral
         literal: 'a'
       separator: :
-      value: DeclaredVariablePattern
+      value: AssignedVariablePattern
         name: a
     MapPatternEntry
       key: SimpleStringLiteral
         literal: 'b'
       separator: :
-      value: DeclaredVariablePattern
+      value: AssignedVariablePattern
         name: b
   rightBracket: }
 ''');
@@ -6160,7 +6160,7 @@ f(x) {
     assertParsedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
-  pattern: DeclaredVariablePattern
+  pattern: AssignedVariablePattern
     name: a
   rightParenthesis: )
 ''');
@@ -7102,7 +7102,7 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: DeclaredVariablePattern
+      pattern: AssignedVariablePattern
         name: a
   rightParenthesis: )
 ''');
@@ -7120,10 +7120,10 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: DeclaredVariablePattern
+      pattern: AssignedVariablePattern
         name: a
     RecordPatternField
-      pattern: DeclaredVariablePattern
+      pattern: AssignedVariablePattern
         name: b
   rightParenthesis: )
 ''');

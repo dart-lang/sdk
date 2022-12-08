@@ -539,7 +539,7 @@ int variableToMove = 3;
     // apply the changes.
     expect(content[expectedNewFilePath], newFileContent);
     if (modifiedOtherFileContent != null) {
-      expect(content[otherFilePath!], modifiedOtherFileContent);
+      expect(content[convertPath(otherFilePath!)], modifiedOtherFileContent);
     }
   }
 }

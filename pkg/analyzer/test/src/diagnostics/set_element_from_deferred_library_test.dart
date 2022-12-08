@@ -40,7 +40,7 @@ import 'lib1.dart' deferred as a;
 const cond = true;
 var v = const {if (cond) a.c};
 ''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY, 78, 3),
+      error(CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY, 80, 1),
     ]);
   }
 
@@ -51,7 +51,7 @@ const int c = 1;''');
 import 'lib1.dart' deferred as a;
 var v = const {a.c};
 ''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY, 49, 3),
+      error(CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY, 51, 1),
     ]);
   }
 
@@ -62,7 +62,7 @@ const int c = 1;''');
 import 'lib1.dart' deferred as a;
 var v = const {a.c + 1};
 ''', [
-      error(CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY, 49, 7),
+      error(CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY, 51, 1),
     ]);
   }
 }

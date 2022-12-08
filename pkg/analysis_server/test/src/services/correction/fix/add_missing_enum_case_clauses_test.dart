@@ -256,6 +256,7 @@ void f(E e) {
     await assertNoFix(errorFilter: _filter);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_notEmpty() async {
     await resolveTestCode('''
 enum E {a, b, c}
@@ -267,6 +268,35 @@ void f(E e) {
 }
 ''');
     await assertHasFixWithFilter('''
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+    case E.a:
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_notEmpty_language219() async {
+    await resolveTestCode('''
+// @dart=2.19
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+    case E.a:
+      break;
+  }
+}
+''');
+    await assertHasFixWithFilter('''
+// @dart=2.19
 enum E {a, b, c}
 void f(E e) {
   switch (e) {

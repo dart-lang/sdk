@@ -313,7 +313,7 @@ findInterceptorForType(Type? type) {
 abstract class Interceptor {
   const Interceptor();
 
-  bool operator ==(other) => identical(this, other);
+  bool operator ==(Object other) => identical(this, other);
 
   int get hashCode => Primitives.objectHashCode(this);
 
@@ -369,7 +369,7 @@ class JSBool extends Interceptor implements bool {
 class JSNull extends Interceptor implements Null {
   const JSNull();
 
-  bool operator ==(other) => identical(null, other);
+  external bool operator ==(Object other);
 
   // Note: if you change this, also change the function [S].
   String toString() => 'null';

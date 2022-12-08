@@ -1487,13 +1487,65 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     return _isNonNullableByDefault(node.parent);
   }
 
-  /// Builds an SSA graph for FunctionNodes of external methods. This produces a
-  /// graph for a method with Dart calling conventions that forwards to the
-  /// actual external method.
+  /// Builds an SSA graph for FunctionNodes of external methods.
   void _buildExternalFunctionNode(
       FunctionEntity function, ir.FunctionNode functionNode) {
     assert(functionNode.body == null);
 
+    if (closedWorld.nativeData.isNativeMember(targetElement)) {
+      _buildExternalNativeFunctionNode(function, functionNode);
+      return;
+    }
+
+    if (function.name == '==') {
+      if (_buildSpecialRuntimeEqualsMethod(function, functionNode)) return;
+    }
+
+    // `external` functions in `dart:_foreign_helper` are queued for compilation
+    // in a modular or staged compile, so just generate an empty function. The
+    // actual call sites for these methods are recognized and replaced, so the
+    // method generated here is never called.
+    if (_commonElements.isForeignHelper(function)) {
+      _openFunction(function,
+          functionNode: functionNode,
+          parameterStructure: function.parameterStructure,
+          checks: _checksForFunction(function));
+      _closeFunction();
+      return;
+    }
+
+    failedAt(CURRENT_ELEMENT_SPANNABLE, 'Unknown external method $function');
+  }
+
+  bool _buildSpecialRuntimeEqualsMethod(
+      FunctionEntity function, ir.FunctionNode functionNode) {
+    assert(function.name == '==');
+
+    if (function.enclosingClass == _commonElements.jsNullClass) {
+      _openFunction(function,
+          functionNode: functionNode,
+          parameterStructure: function.parameterStructure,
+          checks: _checksForFunction(function));
+      HInstruction instance = graph.addConstantNull(closedWorld);
+      HInstruction parameter = parameters.values.first;
+      HInstruction value =
+          HIdentity(instance, parameter, _abstractValueDomain.boolType);
+      add(value);
+      _closeAndGotoExit(HReturn(_abstractValueDomain, value,
+          _sourceInformationBuilder.buildReturn(functionNode)));
+      _closeFunction();
+      return true;
+    }
+
+    return false;
+  }
+
+  /// Builds an SSA graph for FunctionNodes of external methods that are
+  /// 'native' or 'js-interop' methods. This produces a graph for a method with
+  /// Dart calling conventions that forwards to the actual JavaScript `external`
+  /// method.
+  void _buildExternalNativeFunctionNode(
+      FunctionEntity function, ir.FunctionNode functionNode) {
     bool isJsInterop = closedWorld.nativeData.isJsInteropMember(function);
 
     _openFunction(function,
@@ -1501,74 +1553,71 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         parameterStructure: function.parameterStructure,
         checks: _checksForFunction(function));
 
-    if (closedWorld.nativeData.isNativeMember(targetElement)) {
-      List<HInstruction> inputs = [];
-      if (targetElement.isInstanceMember) {
-        inputs.add(localsHandler.readThis(
-            sourceInformation:
-                _sourceInformationBuilder.buildGet(functionNode)));
-      }
+    List<HInstruction> inputs = [];
+    if (targetElement.isInstanceMember) {
+      inputs.add(localsHandler.readThis(
+          sourceInformation: _sourceInformationBuilder.buildGet(functionNode)));
+    }
 
-      void handleParameter(ir.VariableDeclaration param) {
-        Local local = _localsMap.getLocalVariable(param);
-        // Convert Dart function to JavaScript function.
-        HInstruction argument = localsHandler.readLocal(local);
-        ir.DartType type = param.type;
-        if (!isJsInterop && type is ir.FunctionType) {
-          int arity = type.positionalParameters.length;
-          _pushStaticInvocation(
-              _commonElements.closureConverter,
-              [argument, graph.addConstantInt(arity, closedWorld)],
-              _abstractValueDomain.dynamicType,
-              const <DartType>[],
-              sourceInformation: null);
-          argument = pop();
-        }
-        inputs.add(argument);
+    void handleParameter(ir.VariableDeclaration param) {
+      Local local = _localsMap.getLocalVariable(param);
+      // Convert Dart function to JavaScript function.
+      HInstruction argument = localsHandler.readLocal(local);
+      ir.DartType type = param.type;
+      if (!isJsInterop && type is ir.FunctionType) {
+        int arity = type.positionalParameters.length;
+        _pushStaticInvocation(
+            _commonElements.closureConverter,
+            [argument, graph.addConstantInt(arity, closedWorld)],
+            _abstractValueDomain.dynamicType,
+            const <DartType>[],
+            sourceInformation: null);
+        argument = pop();
       }
+      inputs.add(argument);
+    }
 
-      for (int position = 0;
-          position < function.parameterStructure.positionalParameters;
-          position++) {
-        handleParameter(functionNode.positionalParameters[position]);
-      }
-      if (functionNode.namedParameters.isNotEmpty) {
-        List<ir.VariableDeclaration> namedParameters = functionNode
-            .namedParameters
-            // Filter elided parameters.
-            .where((p) =>
-                function.parameterStructure.namedParameters.contains(p.name))
-            .toList();
-        // Sort by file offset to visit parameters in declaration order.
-        namedParameters.sort(nativeOrdering);
-        namedParameters.forEach(handleParameter);
-      }
+    for (int position = 0;
+        position < function.parameterStructure.positionalParameters;
+        position++) {
+      handleParameter(functionNode.positionalParameters[position]);
+    }
+    if (functionNode.namedParameters.isNotEmpty) {
+      List<ir.VariableDeclaration> namedParameters = functionNode
+          .namedParameters
+          // Filter elided parameters.
+          .where((p) =>
+              function.parameterStructure.namedParameters.contains(p.name))
+          .toList();
+      // Sort by file offset to visit parameters in declaration order.
+      namedParameters.sort(nativeOrdering);
+      namedParameters.forEach(handleParameter);
+    }
 
-      NativeBehavior nativeBehavior =
-          _nativeData.getNativeMethodBehavior(function);
-      AbstractValue returnType =
-          _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
+    NativeBehavior nativeBehavior =
+        _nativeData.getNativeMethodBehavior(function);
+    AbstractValue returnType =
+        _typeInferenceMap.typeFromNativeBehavior(nativeBehavior, closedWorld);
 
-      push(HInvokeExternal(targetElement, inputs, returnType, nativeBehavior,
-          sourceInformation: null));
-      HInstruction value = pop();
-      // TODO(johnniwinther): Provide source information.
-      if (options.nativeNullAssertions) {
-        if (_isNonNullableByDefault(functionNode)) {
-          DartType type = _getDartTypeIfValid(functionNode.returnType);
-          if (dartTypes.isNonNullableIfSound(type) &&
-              nodeIsInWebLibrary(functionNode)) {
-            push(HNullCheck(value, _abstractValueDomain.excludeNull(returnType),
-                sticky: true));
-            value = pop();
-          }
+    push(HInvokeExternal(targetElement, inputs, returnType, nativeBehavior,
+        sourceInformation: null));
+    HInstruction value = pop();
+    // TODO(johnniwinther): Provide source information.
+    if (options.nativeNullAssertions) {
+      if (_isNonNullableByDefault(functionNode)) {
+        DartType type = _getDartTypeIfValid(functionNode.returnType);
+        if (dartTypes.isNonNullableIfSound(type) &&
+            nodeIsInWebLibrary(functionNode)) {
+          push(HNullCheck(value, _abstractValueDomain.excludeNull(returnType),
+              sticky: true));
+          value = pop();
         }
       }
-      if (targetElement.isSetter) {
-        _closeAndGotoExit(HGoto(_abstractValueDomain));
-      } else {
-        _emitReturn(value, _sourceInformationBuilder.buildReturn(functionNode));
-      }
+    }
+    if (targetElement.isSetter) {
+      _closeAndGotoExit(HGoto(_abstractValueDomain));
+    } else {
+      _emitReturn(value, _sourceInformationBuilder.buildReturn(functionNode));
     }
 
     _closeFunction();

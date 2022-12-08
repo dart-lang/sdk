@@ -47,8 +47,8 @@ var v = const [ if (cond) a.c ];
 ''', [
       error(
           CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY,
-          79,
-          3),
+          81,
+          1),
     ]);
   }
 
@@ -61,8 +61,8 @@ var v = const [a.c];
 ''', [
       error(
           CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY,
-          49,
-          3),
+          51,
+          1),
     ]);
   }
 
@@ -75,8 +75,8 @@ var v = const [a.c + 1];
 ''', [
       error(
           CompileTimeErrorCode.NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY,
-          49,
-          7),
+          51,
+          1),
     ]);
   }
 }

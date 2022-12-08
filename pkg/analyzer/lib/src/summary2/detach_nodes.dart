@@ -77,7 +77,7 @@ class _Visitor extends GeneralizingElementVisitor<void> {
         initializer = replaceNotSerializableNodes(initializer);
         element.constantInitializer = initializer;
 
-        ConstantContextForExpressionImpl(initializer);
+        ConstantContextForExpressionImpl(element, initializer);
       }
     }
   }

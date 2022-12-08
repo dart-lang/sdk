@@ -28,8 +28,8 @@ f({x = a.V}) {}
 ''', [
       error(
           CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY,
-          55,
-          3),
+          57,
+          1),
     ]);
   }
 
@@ -45,8 +45,8 @@ f({x = a.V + 1}) {}
 ''', [
       error(
           CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE_FROM_DEFERRED_LIBRARY,
-          55,
-          7),
+          57,
+          1),
     ]);
   }
 }

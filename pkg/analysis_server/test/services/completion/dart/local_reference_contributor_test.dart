@@ -2394,8 +2394,32 @@ void f(E e) {
     assertSuggestEnumConst('F.four');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_enum_filter_switchCase() async {
     addTestSource('''
+enum E { one, two }
+enum F { three, four }
+
+void f(E e) {
+  switch (e) {
+    case ^
+  }
+}
+''');
+    await computeSuggestions();
+
+    assertSuggestEnum('E');
+    assertSuggestEnumConst('E.one');
+    assertSuggestEnumConst('E.two');
+
+    assertSuggestEnum('F');
+    assertNotSuggested('F.three');
+    assertNotSuggested('F.four');
+  }
+
+  Future<void> test_enum_filter_switchCase_language219() async {
+    addTestSource('''
+// @dart=2.19
 enum E { one, two }
 enum F { three, four }
 
@@ -5825,9 +5849,27 @@ class C<T> {
     assertNotSuggested('String');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_SwitchStatement_case_var() async {
     // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
-    addTestSource('g(int x) {var t; switch(x) {case 0: var bar; b^}}');
+    addTestSource('''
+g(int x) {var t; switch(x) {case 0: var bar; b^}}
+''');
+    await computeSuggestions();
+
+    assertSuggestFunction('g', 'dynamic');
+    assertSuggestLocalVariable('t', 'dynamic');
+    assertSuggestParameter('x', 'int');
+    assertSuggestLocalVariable('bar', 'dynamic');
+    assertNotSuggested('String');
+  }
+
+  Future<void> test_SwitchStatement_case_var_language219() async {
+    // SwitchStatement  Block  BlockFunctionBody  MethodDeclaration
+    addTestSource('''
+// @dart=2.19
+g(int x) {var t; switch(x) {case 0: var bar; b^}}
+''');
     await computeSuggestions();
 
     assertSuggestFunction('g', 'dynamic');

@@ -13,7 +13,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/annotations.dart';
 import '../universe/member_usage.dart';
-import '../universe/resolution_world_builder_interfaces.dart';
+import '../universe/resolution_world_builder.dart' show ResolutionWorldBuilder;
 import '../universe/use.dart'
     show
         ConstantUse,

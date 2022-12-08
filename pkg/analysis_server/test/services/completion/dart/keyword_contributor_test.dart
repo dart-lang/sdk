@@ -2400,14 +2400,40 @@ f() => [...^];
     assertSuggestKeywords([Keyword.CASE, Keyword.DEFAULT]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_switch_statement_case_break_insideClass() async {
-    addTestSource('class A{foo() {switch(1) {case 1: b^}}}');
+    addTestSource('''
+class A{foo() {switch(1) {case 1: b^}}}
+''');
     await computeSuggestions();
     assertSuggestKeywords(statementStartInSwitchCaseInClass);
   }
 
+  Future<void>
+      test_switch_statement_case_break_insideClass_language219() async {
+    addTestSource('''
+// @dart=2.19
+class A{foo() {switch(1) {case 1: b^}}}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(statementStartInSwitchCaseInClass);
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_switch_statement_case_break_outsideClass() async {
-    addTestSource('foo() {switch(1) {case 1: b^}}');
+    addTestSource('''
+foo() {switch(1) {case 1: b^}}
+''');
+    await computeSuggestions();
+    assertSuggestKeywords(statementStartInSwitchCaseOutsideClass);
+  }
+
+  Future<void>
+      test_switch_statement_case_break_outsideClass_language219() async {
+    addTestSource('''
+// @dart=2.19
+foo() {switch(1) {case 1: b^}}
+''');
     await computeSuggestions();
     assertSuggestKeywords(statementStartInSwitchCaseOutsideClass);
   }

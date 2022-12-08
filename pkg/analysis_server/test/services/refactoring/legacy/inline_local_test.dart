@@ -154,6 +154,7 @@ void f() {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_OK_inSwitchCase() async {
     await indexTestUnit('''
 void f(int p) {
@@ -168,6 +169,32 @@ void f(int p) {
     _createRefactoring('test =');
     // validate change
     return assertSuccessfulRefactoring('''
+void f(int p) {
+  switch (p) {
+    case 0:
+      print(42);
+      break;
+  }
+}
+''');
+  }
+
+  Future<void> test_OK_inSwitchCase_language219() async {
+    await indexTestUnit('''
+// @dart=2.19
+void f(int p) {
+  switch (p) {
+    case 0:
+      int test = 42;
+      print(test);
+      break;
+  }
+}
+''');
+    _createRefactoring('test =');
+    // validate change
+    return assertSuccessfulRefactoring('''
+// @dart=2.19
 void f(int p) {
   switch (p) {
     case 0:

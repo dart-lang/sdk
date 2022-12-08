@@ -111,6 +111,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitAssignedVariablePattern(
+    covariant AssignedVariablePatternImpl node,
+  ) {
+    _writeln('AssignedVariablePattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+      if (_withResolution) {
+        writeElement('element', node.element);
+      }
+    });
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _writeln('AssignmentExpression');
     _withIndent(() {

@@ -27,8 +27,8 @@ import 'lib1.dart' deferred as a;
 f() {
   return const [if(a.c) 0];
 }''', [
-      error(CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY, 59,
-          3),
+      error(CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY, 61,
+          1),
     ]);
   }
 
@@ -60,8 +60,8 @@ import 'lib1.dart' deferred as a;
 f() {
   return const {if(a.c) 0 : 0};
 }''', [
-      error(CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY, 59,
-          3),
+      error(CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY, 61,
+          1),
     ]);
   }
 
@@ -93,8 +93,8 @@ import 'lib1.dart' deferred as a;
 f() {
   return const {if(a.c) 0};
 }''', [
-      error(CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY, 59,
-          3),
+      error(CompileTimeErrorCode.IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY, 61,
+          1),
     ]);
   }
 
