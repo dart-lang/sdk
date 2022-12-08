@@ -78,11 +78,11 @@ class X {
   test_invalidAssignment_namedParameter() async {
     await assertDiagnostics(r'''
 class X {
-  X({int a: null});
+  X({int a = null});
 }
 ''', [
       // No lint
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 22, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 23, 4),
     ]);
   }
 
@@ -90,11 +90,11 @@ class X {
     await assertDiagnostics(r'''
 class X {
   int x;
-  X({this.x: null});
+  X({this.x = null});
 }
 ''', [
       // No lint
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 32, 4),
+      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 33, 4),
     ]);
   }
 
