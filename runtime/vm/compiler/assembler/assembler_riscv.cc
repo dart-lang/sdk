@@ -4232,7 +4232,13 @@ void Assembler::CombineHashes(Register hash, Register other) {
 #endif
 }
 
-void Assembler::FinalizeHash(Register hash, Register scratch) {
+void Assembler::FinalizeHashForSize(intptr_t bit_size,
+                                    Register hash,
+                                    Register scratch) {
+  ASSERT(bit_size > 0);  // Can't avoid returning 0 if there are no hash bits!
+  // While any 32-bit hash value fits in X bits, where X > 32, the caller may
+  // reasonably expect that the returned values fill the entire bit space.
+  ASSERT(bit_size <= kBitsPerInt32);
   ASSERT(scratch != kNoRegister);
 #if XLEN >= 64
   // hash += hash << 3;
@@ -4255,6 +4261,10 @@ void Assembler::FinalizeHash(Register hash, Register scratch) {
   slli(scratch, hash, 15);
   add(hash, hash, scratch);
 #endif
+  // Size to fit.
+  if (bit_size < kBitsPerInt32) {
+    AndImmediate(hash, hash, Utils::NBitMask(bit_size));
+  }
   // return (hash == 0) ? 1 : hash;
   seqz(scratch, hash);
   add(hash, hash, scratch);

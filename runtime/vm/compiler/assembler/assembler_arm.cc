@@ -3094,6 +3094,19 @@ void Assembler::AndImmediate(Register rd,
   }
 }
 
+void Assembler::AndImmediateSetFlags(Register rd,
+                                     Register rs,
+                                     int32_t imm,
+                                     Condition cond) {
+  Operand o;
+  if (Operand::CanHold(imm, &o)) {
+    ands(rd, rs, Operand(o), cond);
+  } else {
+    LoadImmediate(TMP, imm, cond);
+    ands(rd, rs, Operand(TMP), cond);
+  }
+}
+
 void Assembler::OrImmediate(Register rd,
                             Register rs,
                             int32_t imm,
@@ -3466,13 +3479,23 @@ void Assembler::CombineHashes(Register hash, Register other) {
   eor(hash, hash, Operand(hash, LSR, 6));
 }
 
-void Assembler::FinalizeHash(Register hash, Register scratch) {
+void Assembler::FinalizeHashForSize(intptr_t bit_size,
+                                    Register hash,
+                                    Register scratch) {
+  ASSERT(bit_size > 0);  // Can't avoid returning 0 if there are no hash bits!
+  // While any 32-bit hash value fits in X bits, where X > 32, the caller may
+  // reasonably expect that the returned values fill the entire bit space.
+  ASSERT(bit_size <= kBitsPerInt32);
   // hash += hash << 3;
   add(hash, hash, Operand(hash, LSL, 3));
   // hash ^= hash >> 11;  // Logical shift, unsigned hash.
   eor(hash, hash, Operand(hash, LSR, 11));
   // hash += hash << 15;
   adds(hash, hash, Operand(hash, LSL, 15));
+  if (bit_size < kBitsPerInt32) {
+    // Size to fit.
+    AndImmediateSetFlags(hash, hash, Utils::NBitMask(bit_size), NOT_ZERO);
+  }
   // return (hash == 0) ? 1 : hash;
   LoadImmediate(hash, 1, ZERO);
 }

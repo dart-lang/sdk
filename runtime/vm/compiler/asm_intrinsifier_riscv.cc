@@ -1715,71 +1715,30 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ lx(T0, FieldAddress(A1, target::String::length_offset()));
   __ SmiUntag(T0);
 
-  Label set_to_one, done;
-  // If the string is empty, set the hash to 1, and return.
-  __ beqz(T0, &set_to_one);
-
   __ mv(T1, ZR);
   __ addi(T2, A1, target::OneByteString::data_offset() - kHeapObjectTag);
+
   // A1: Instance of OneByteString.
   // T0: String length, untagged integer.
   // T1: Loop counter, untagged integer.
   // T2: String data.
   // A0: Hash code, untagged integer.
 
-  Label loop;
-  // Add to hash code: (hash_ is uint32)
-  // hash_ += ch;
-  // hash_ += hash_ << 10;
-  // hash_ ^= hash_ >> 6;
-  // Get one characters (ch).
+  Label loop, done;
   __ Bind(&loop);
+  __ beq(T1, T0, &done);
+  // Add to hash code: (hash_ is uint32)
+  // Get one characters (ch).
   __ lbu(T3, Address(T2, 0));
   __ addi(T2, T2, 1);
   // T3: ch.
   __ addi(T1, T1, 1);
-#if XLEN == 32
-  __ add(A0, A0, T3);
-  __ slli(TMP, A0, 10);
-  __ add(A0, A0, TMP);
-  __ srli(TMP, A0, 6);
-#else
-  __ addw(A0, A0, T3);
-  __ slliw(TMP, A0, 10);
-  __ addw(A0, A0, TMP);
-  __ srliw(TMP, A0, 6);
-#endif
-  __ xor_(A0, A0, TMP);
-  __ bne(T1, T0, &loop);
+  __ CombineHashes(A0, T3);
+  __ j(&loop);
 
-  // Finalize.
-  // hash_ += hash_ << 3;
-  // hash_ ^= hash_ >> 11;
-  // hash_ += hash_ << 15;
-#if XLEN == 32
-  __ slli(TMP, A0, 3);
-  __ add(A0, A0, TMP);
-  __ srli(TMP, A0, 11);
-  __ xor_(A0, A0, TMP);
-  __ slli(TMP, A0, 15);
-  __ add(A0, A0, TMP);
-#else
-  __ slliw(TMP, A0, 3);
-  __ addw(A0, A0, TMP);
-  __ srliw(TMP, A0, 11);
-  __ xor_(A0, A0, TMP);
-  __ slliw(TMP, A0, 15);
-  __ addw(A0, A0, TMP);
-#endif
-  // hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
-  __ AndImmediate(A0, A0,
-                  (static_cast<intptr_t>(1) << target::String::kHashBits) - 1);
-  // return hash_ == 0 ? 1 : hash_;
-  __ bnez(A0, &done, Assembler::kNearJump);
-  __ Bind(&set_to_one);
-  __ li(A0, 1);
   __ Bind(&done);
-
+  // Finalize. Allow a zero result to combine checks from empty string branch.
+  __ FinalizeHashForSize(target::String::kHashBits, A0);
 #if defined(HASH_IN_OBJECT_HEADER)
   // A1: Untagged address of header word (lr/sc do not support offsets).
   __ subi(A1, A1, kHeapObjectTag);
@@ -1793,12 +1752,11 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
 
   __ srli(A0, A0, target::UntaggedObject::kHashTagPos);
   __ SmiTag(A0);
-  __ ret();
 #else
   __ SmiTag(A0);
   __ sx(A0, FieldAddress(A1, target::String::hash_offset()));
-  __ ret();
 #endif
+  __ ret();
 }
 
 // Allocates a _OneByteString or _TwoByteString. The content is not initialized.

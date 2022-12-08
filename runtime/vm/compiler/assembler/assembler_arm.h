@@ -871,6 +871,10 @@ class Assembler : public AssemblerBase {
   void AndImmediate(Register rd, int32_t imm, Condition cond = AL) {
     AndImmediate(rd, rd, imm, cond);
   }
+  void AndImmediateSetFlags(Register rd,
+                            Register rn,
+                            int32_t value,
+                            Condition cond = AL);
   void AndRegisters(Register dst,
                     Register src1,
                     Register src2 = kNoRegister) override {
@@ -1412,7 +1416,9 @@ class Assembler : public AssemblerBase {
   void BranchOnMonomorphicCheckedEntryJIT(Label* label);
 
   void CombineHashes(Register dst, Register other) override;
-  void FinalizeHash(Register dst, Register scratch = TMP) override;
+  void FinalizeHashForSize(intptr_t bit_size,
+                           Register dst,
+                           Register scratch = TMP) override;
 
   // The register into which the allocation tracing state table is loaded with
   // LoadAllocationTracingStateAddress should be passed to MaybeTraceAllocation.

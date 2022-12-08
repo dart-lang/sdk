@@ -1681,11 +1681,6 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ LoadCompressedSmi(R2, FieldAddress(R1, target::String::length_offset()));
   __ SmiUntag(R2);
 
-  Label done;
-  // If the string is empty, set the hash to 1, and return.
-  __ CompareRegisters(R2, ZR);
-  __ b(&done, EQ);
-
   __ mov(R3, ZR);
   __ AddImmediate(R6, R1,
                   target::OneByteString::data_offset() - kHeapObjectTag);
@@ -1695,36 +1690,22 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   // R6: String data.
   // R0: Hash code, untagged integer.
 
-  Label loop;
-  // Add to hash code: (hash_ is uint32)
-  // hash_ += ch;
-  // hash_ += hash_ << 10;
-  // hash_ ^= hash_ >> 6;
-  // Get one characters (ch).
+  Label loop, done;
   __ Bind(&loop);
+  __ cmp(R3, Operand(R2));
+  __ b(&done, EQ);
+  // Add to hash code: (hash_ is uint32)
+  // Get one characters (ch).
   __ ldr(R7, Address(R6, R3), kUnsignedByte);
   // R7: ch.
   __ add(R3, R3, Operand(1));
-  __ addw(R0, R0, Operand(R7));
-  __ addw(R0, R0, Operand(R0, LSL, 10));
-  __ eorw(R0, R0, Operand(R0, LSR, 6));
+  __ CombineHashes(R0, R7);
   __ cmp(R3, Operand(R2));
-  __ b(&loop, NE);
+  __ b(&loop);
 
-  // Finalize.
-  // hash_ += hash_ << 3;
-  // hash_ ^= hash_ >> 11;
-  // hash_ += hash_ << 15;
-  __ addw(R0, R0, Operand(R0, LSL, 3));
-  __ eorw(R0, R0, Operand(R0, LSR, 11));
-  __ addw(R0, R0, Operand(R0, LSL, 15));
-  // hash_ = hash_ & ((static_cast<intptr_t>(1) << bits) - 1);
-  __ AndImmediate(R0, R0,
-                  (static_cast<intptr_t>(1) << target::String::kHashBits) - 1);
-  __ CompareRegisters(R0, ZR);
-  // return hash_ == 0 ? 1 : hash_;
   __ Bind(&done);
-  __ csinc(R0, R0, ZR, NE);  // R0 <- (R0 != 0) ? R0 : (ZR + 1).
+  // Finalize. Allow a zero result to combine checks from empty string branch.
+  __ FinalizeHashForSize(target::String::kHashBits, R0);
 
   // R1: Untagged address of header word (ldxr/stxr do not support offsets).
   __ sub(R1, R1, Operand(kHeapObjectTag));
