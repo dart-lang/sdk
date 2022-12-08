@@ -1605,30 +1605,6 @@ class AstComparator implements AstVisitor<bool> {
   }
 }
 
-/// A recursive AST visitor that is used to run over [Expression]s to determine
-/// whether the expression is composed by at least one deferred
-/// [PrefixedIdentifier].
-///
-/// See [PrefixedIdentifier.isDeferred].
-class DeferredLibraryReferenceDetector extends RecursiveAstVisitor<void> {
-  /// A flag indicating whether an identifier from a deferred library has been
-  /// found.
-  bool _result = false;
-
-  /// Return `true` if the visitor found a [PrefixedIdentifier] that returned
-  /// `true` to the [PrefixedIdentifier.isDeferred] query.
-  bool get result => _result;
-
-  @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    if (!_result) {
-      if (node.isDeferred) {
-        _result = true;
-      }
-    }
-  }
-}
-
 /// Class capable of handling exceptions generated during linting.
 ///
 /// Clients may not extend, implement or mix-in this class.

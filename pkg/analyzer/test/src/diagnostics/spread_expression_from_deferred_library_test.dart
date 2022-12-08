@@ -27,7 +27,7 @@ f() {
   return const [...a.c];
 }''', [
       error(
-          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY, 59, 3),
+          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY, 61, 1),
     ]);
   }
 
@@ -60,7 +60,7 @@ f() {
   return const {...a.c};
 }''', [
       error(
-          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY, 59, 3),
+          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY, 61, 1),
     ]);
   }
 
@@ -93,7 +93,7 @@ f() {
   return const {...a.c};
 }''', [
       error(
-          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY, 59, 3),
+          CompileTimeErrorCode.SPREAD_EXPRESSION_FROM_DEFERRED_LIBRARY, 61, 1),
     ]);
   }
 

@@ -44,7 +44,7 @@ const cond = true;
 var v = const { if (cond) 'a' : a.c};
 ''', [
       error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
-          85, 3),
+          87, 1),
     ]);
   }
 
@@ -56,7 +56,7 @@ import 'lib1.dart' deferred as a;
 var v = const {'a' : a.c};
 ''', [
       error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
-          55, 3),
+          57, 1),
     ]);
   }
 
@@ -68,7 +68,7 @@ import 'lib1.dart' deferred as a;
 var v = const {'a' : a.c + 1};
 ''', [
       error(CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE_FROM_DEFERRED_LIBRARY,
-          55, 7),
+          57, 1),
     ]);
   }
 }

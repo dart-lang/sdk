@@ -2804,9 +2804,10 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
 /// This class is used as a marker of constant context for initializers
 /// of constant fields and top-level variables read from summaries.
 class ConstantContextForExpressionImpl extends AstNodeImpl {
+  final Element variable;
   final ExpressionImpl expression;
 
-  ConstantContextForExpressionImpl(this.expression) {
+  ConstantContextForExpressionImpl(this.variable, this.expression) {
     _becomeParentOf(expression);
   }
 

@@ -59,8 +59,8 @@ void f(int e) {
       error(
           CompileTimeErrorCode
               .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
-          72,
-          7),
+          74,
+          1),
     ]);
   }
 
@@ -82,8 +82,8 @@ void f(int e) {
       error(
           CompileTimeErrorCode
               .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY,
-          72,
-          3),
+          74,
+          1),
     ]);
   }
 }

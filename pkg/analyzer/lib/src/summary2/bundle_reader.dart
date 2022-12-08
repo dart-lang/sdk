@@ -326,7 +326,7 @@ class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
       var initializer = reader._readOptionalExpression();
       if (initializer != null) {
         element.constantInitializer = initializer;
-        ConstantContextForExpressionImpl(initializer);
+        ConstantContextForExpressionImpl(element, initializer);
       }
     }
     applyConstantOffsets?.perform();
@@ -2086,7 +2086,7 @@ class TopLevelVariableElementLinkedData
       var initializer = reader._readOptionalExpression();
       if (initializer != null) {
         element.constantInitializer = initializer;
-        ConstantContextForExpressionImpl(initializer);
+        ConstantContextForExpressionImpl(element, initializer);
       }
     }
     applyConstantOffsets?.perform();
