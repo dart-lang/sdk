@@ -52,11 +52,11 @@ void f(int p) {
 
   test_function_named_default() async {
     await assertDiagnostics(r'''
-void f({int p: 5}) {
+void f({int p = 5}) {
   print(p++);
 }
 ''', [
-      lint(29, 3),
+      lint(30, 3),
     ]);
   }
 

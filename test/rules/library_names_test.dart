@@ -15,9 +15,6 @@ main() {
 @reflectiveTest
 class LibraryNamesTest extends LintRuleTest {
   @override
-  List<String> get experiments => ['unnamed-libraries'];
-
-  @override
   String get lintRule => 'library_names';
 
   test_libraryWithoutName() async {
