@@ -263,6 +263,9 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
         multiplier *= 4;
         break;
     }
+    if (_configuration.useQemu) {
+      multiplier *= 2;
+    }
 
     if (mode.isDebug) {
       multiplier *= 2;
