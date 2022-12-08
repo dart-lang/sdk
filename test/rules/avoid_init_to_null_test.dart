@@ -78,7 +78,7 @@ class X {
   test_invalidAssignment_namedParameter() async {
     await assertDiagnostics(r'''
 class X {
-  X({int a: null});
+  X({int a = null});
 }
 ''', [
       // No lint
@@ -90,7 +90,7 @@ class X {
     await assertDiagnostics(r'''
 class X {
   int x;
-  X({this.x: null});
+  X({this.x = null});
 }
 ''', [
       // No lint
