@@ -123,13 +123,17 @@ void main(List<String> args) {
       );
     });
 
-    test('includes variable getters when evaluateGettersInDebugViews=true',
+    test('includes public getters when evaluateGettersInDebugViews=true',
         () async {
       final client = dap.client;
       final testFile = dap.createTestFile('''
 void main(List<String> args) {
-  final myVariable = DateTime(2000, 1, 1);
+  final myVariable = A();
   print('Hello!'); $breakpointMarker
+}
+class A {
+  String get publicString => '';
+  String get _privateString => '';
 }
     ''');
       final breakpointLine = lineWith(testFile, breakpointMarker);
@@ -145,28 +149,12 @@ void main(List<String> args) {
       await client.expectLocalVariable(
         stop.threadId!,
         expectedName: 'myVariable',
-        expectedDisplayString: 'DateTime',
+        expectedDisplayString: 'A',
         expectedVariables: '''
-            day: 1, eval: myVariable.day
-            hour: 0, eval: myVariable.hour
-            isUtc: false, eval: myVariable.isUtc
-            microsecond: 0, eval: myVariable.microsecond
-            millisecond: 0, eval: myVariable.millisecond
-            minute: 0, eval: myVariable.minute
-            month: 1, eval: myVariable.month
-            runtimeType: Type (DateTime), eval: myVariable.runtimeType
-            second: 0, eval: myVariable.second
-            timeZoneOffset: Duration, eval: myVariable.timeZoneOffset
-            weekday: 6, eval: myVariable.weekday
-            year: 2000, eval: myVariable.year
+            publicString: "", eval: myVariable.publicString
+            runtimeType: Type (A), eval: myVariable.runtimeType
         ''',
-        ignore: {
-          // Don't check fields that may very based on timezone as it'll make
-          // these tests fragile, and this isn't really what's being tested.
-          'timeZoneName',
-          'microsecondsSinceEpoch',
-          'millisecondsSinceEpoch',
-        },
+        ignorePrivate: false,
       );
     });
 
