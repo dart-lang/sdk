@@ -30,8 +30,6 @@ void test(List<String> strings, String expected, {bool minified = false}) {
 }
 
 extension on List<String> {
-  // TODO(42122): Remove when analyzer doesn't think `*` is unused.
-  // ignore: unused_element
   List<String> operator *(int count) {
     return List.filled(count, this).expand((list) => list).toList();
   }

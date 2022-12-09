@@ -169,7 +169,6 @@ class CodePosition {
 
   CodePosition(this.startPosition, this.endPosition, this.closingPosition);
 
-  // ignore: MISSING_RETURN
   int? getPosition(CodePositionKind kind) {
     switch (kind) {
       case CodePositionKind.START:
@@ -246,7 +245,6 @@ enum SourcePositionKind {
   INNER,
 }
 
-// ignore: MISSING_RETURN
 SourceLocation? getSourceLocation(SourceInformation sourceInformation,
     [SourcePositionKind sourcePositionKind = SourcePositionKind.START]) {
   assert((sourceInformation as dynamic) != null);
