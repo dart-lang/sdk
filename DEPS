@@ -51,7 +51,7 @@ vars = {
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes.
-  "co19_rev": "9cfd817af42a5b3f934829aa1a82b5f27463130f",
+  "co19_rev": "1caf238b37bb19081029a6580f31a728b1359dc0",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "9f28a5f173bd39c9b97a691e7abcba6fdf80b47b",
 
