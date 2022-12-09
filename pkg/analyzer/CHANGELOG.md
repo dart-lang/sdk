@@ -1,3 +1,6 @@
+## 5.4.0-dev
+* Bug fixes: 50660
+
 ## 5.3.1
 * Require `collection: ^1.17.0` because we use `elementAtOrNull`.
 
