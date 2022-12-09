@@ -65,7 +65,7 @@ void HeapProfileSampler::Initialize() {
 void HeapProfileSampler::EnableLocked() {
   if (enabled_) {
     SetNextSamplingIntervalLocked(GetNextSamplingIntervalLocked());
-  } else if (!enabled_) {
+  } else {
     // Reset the TLAB boundaries to the true end to avoid unnecessary slow
     // path invocations when sampling is disabled.
     thread_->set_end(thread_->true_end());
