@@ -144,7 +144,7 @@ vars = {
   "logging_rev": "0373ef85aa1dfe9e179b9fa006c45b65903787f2",
   "markdown_rev": "ee3f4e976efcfed87c6ec78364bc2dd3c6e717b9", # https://github.com/dart-lang/markdown/pull/494
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
-  "matcher_rev": "15d4af21002ae9adee952110192a3face96307c7",
+  "matcher_rev": "7e6a665da079baa3e2a2046ab02e4353ee32556c",
   "mime_rev": "c0c4c47a3d7bf696f1aa1959fb83d598baadb33c",
   "mockito_rev": "347d3e4cc64752b2ff7b5d35fe5cd1b281b17413",
   "package_config_rev": "abb4aec904ab8c739b6dcec516d44f56d96c8115",
