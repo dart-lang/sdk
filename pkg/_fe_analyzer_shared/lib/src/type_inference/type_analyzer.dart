@@ -1236,6 +1236,7 @@ mixin TypeAnalyzer<
       flow?.switchStatement_endAlternatives(null, hasLabels: false);
       // Stack: (Expression, i * ExpressionCase, CaseHead)
       Type type = analyzeExpression(memberInfo.expression, context);
+      flow?.switchStatement_afterCase();
       // Stack: (Expression, i * ExpressionCase, CaseHead, Expression)
       if (lubType == null) {
         lubType = type;
@@ -1337,6 +1338,7 @@ mixin TypeAnalyzer<
           !lastCaseTerminates) {
         errors?.switchCaseCompletesNormally(node, caseIndex, 1);
       }
+      flow?.switchStatement_afterCase();
       handleMergedStatementCase(node,
           caseIndex: caseIndex, isTerminating: lastCaseTerminates);
       // Stack: (Expression, (numExecutionPaths + 1) * StatementCase)

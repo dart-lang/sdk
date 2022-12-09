@@ -1956,6 +1956,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
           hasDefault = true;
         }
         _dispatchList(member.statements);
+        _flowAnalysis!.switchStatement_afterCase();
       });
     }
     _flowAnalysis!.switchStatement_end(hasDefault);

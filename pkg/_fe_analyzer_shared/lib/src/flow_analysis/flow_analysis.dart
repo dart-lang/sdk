@@ -600,6 +600,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   @visibleForTesting
   SsaNode<Type>? ssaNodeForTesting(Variable variable);
 
+  /// Call this method just after visiting a `case` or `default` body.  See
+  /// [switchStatement_expressionEnd] for details.
+  void switchStatement_afterCase();
+
   /// Call this method just before visiting a `case` or `default` clause.  See
   /// [switchStatement_expressionEnd] for details.
   void switchStatement_beginAlternative();
@@ -650,6 +654,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   ///     - Call [switchStatement_endAlternative].
   ///   - Call [switchStatement_endAlternatives].
   ///   - Visit the case body.
+  ///   - Call [switchStatement_afterCase].
   /// - Call [switchStatement_end].
   ///
   /// [scrutinee] should be the expression appearing in parentheses after the
@@ -1324,6 +1329,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
     return _wrap('ssaNodeForTesting($variable)',
         () => _wrapped.ssaNodeForTesting(variable),
         isQuery: true);
+  }
+
+  @override
+  void switchStatement_afterCase() {
+    _wrap('switchStatement_afterCase()',
+        () => _wrapped.switchStatement_afterCase());
   }
 
   @override
@@ -3938,6 +3949,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       .variableInfo[promotionKeyStore.keyForVariable(variable)]?.ssaNode;
 
   @override
+  void switchStatement_afterCase() {
+    _SwitchStatementContext<Type> context =
+        _stack.last as _SwitchStatementContext<Type>;
+    context._breakModel = _join(context._breakModel, _current);
+  }
+
+  @override
   void switchStatement_beginAlternative() {
     _SwitchAlternativesContext<Type> context =
         _stack.last as _SwitchAlternativesContext<Type>;
@@ -3959,12 +3977,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         _stack.removeLast() as _SimpleStatementContext<Type>;
     FlowModel<Type>? breakState = context._breakModel;
 
-    // It is allowed to "fall off" the end of a switch statement, so join the
-    // current state to any breaks that were found previously.
-    breakState = _join(breakState, _current);
-
-    // And, if there is an implicit fall-through default, join it to any breaks.
+    // If there is an implicit fall-through default, join it to any breaks.
     if (!isExhaustive) breakState = _join(breakState, context._previous);
+
+    // If there were no breaks (neither implicit nor explicit), then
+    // `breakState` will be `null`.  This means this is an empty switch
+    // statement and the type of the scrutinee is an exhaustive type.  This
+    // could happen, for instance, if the scrutinee type is the empty record
+    // type.  We need to consider the code after the switch statement reachable
+    // if this happens.
+    breakState ??= context._previous;
 
     _current = breakState.unsplit();
   }
@@ -4849,6 +4871,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   SsaNode<Type>? ssaNodeForTesting(Variable variable) {
     throw new StateError('ssaNodeForTesting requires null-aware flow analysis');
   }
+
+  @override
+  void switchStatement_afterCase() {}
 
   @override
   void switchStatement_beginAlternative() {}

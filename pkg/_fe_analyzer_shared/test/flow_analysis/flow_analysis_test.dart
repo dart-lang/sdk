@@ -6686,6 +6686,33 @@ main() {
               isExhaustive: true),
         ]);
       });
+
+      test('implicit break', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object'),
+          switch_(
+              expr('Object'),
+              [
+                switchStatementMember([
+                  wildcard(type: 'int').switchCase
+                ], [
+                  x.expr.as_('int').stmt,
+                ]),
+                switchStatementMember([default_], [return_()])
+              ],
+              isExhaustive: true),
+          checkReachable(true),
+          checkPromoted(x, 'int'),
+        ]);
+      });
+
+      test('empty exhaustive', () {
+        h.run([
+          switch_(expr('()'), [], isExhaustive: true),
+          checkReachable(true),
+        ]);
+      });
     });
 
     group('Variable pattern:', () {
