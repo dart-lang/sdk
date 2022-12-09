@@ -5838,6 +5838,26 @@ main() {
       ]);
     });
 
+    test('due to pattern assignment', () {
+      var x = Var('x');
+      late Pattern writePattern;
+      h.run([
+        declare(x, type: 'int?', initializer: expr('int?')),
+        if_(x.expr.eq(nullLiteral), [
+          return_(),
+        ]),
+        checkPromoted(x, 'int'),
+        (writePattern = x.pattern()).assign(expr('int?')).stmt,
+        checkNotPromoted(x),
+        x.expr.whyNotPromoted((reasons) {
+          expect(reasons.keys, unorderedEquals([Type('int')]));
+          var nonPromotionReason =
+              reasons.values.single as DemoteViaExplicitWrite<Var>;
+          expect(nonPromotionReason.node, same(writePattern));
+        }).stmt,
+      ]);
+    });
+
     test('preserved in join when one branch unreachable', () {
       var x = Var('x');
       late Expression writeExpression;
@@ -6377,6 +6397,118 @@ main() {
   });
 
   group('Patterns:', () {
+    group('Assignment:', () {
+      group('Demotion', () {
+        test('Demoting', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            x.expr.nonNullAssert.stmt,
+            checkPromoted(x, 'int'),
+            x.pattern().assign(expr('int?')).stmt,
+            checkNotPromoted(x),
+          ]);
+        });
+
+        test('Non-demoting', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'num?'),
+            x.expr.nonNullAssert.stmt,
+            checkPromoted(x, 'num'),
+            x.pattern().assign(expr('int')).stmt,
+            checkPromoted(x, 'num'),
+          ]);
+        });
+      });
+
+      group('Schema:', () {
+        test('Not promoted', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            x.pattern().assign(expr('int').checkContext('int?')).stmt,
+          ]);
+        });
+
+        test('Promoted', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            x.expr.nonNullAssert.stmt,
+            checkPromoted(x, 'int'),
+            x.pattern().assign(expr('int').checkContext('int')).stmt,
+          ]);
+        });
+      });
+
+      group('Promotion:', () {
+        test('Type of interest', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'num'),
+            if_(x.expr.is_('int'), []),
+            checkNotPromoted(x),
+            x.pattern().assign(expr('int')).stmt,
+            checkPromoted(x, 'int'),
+          ]);
+        });
+
+        test('Not a type of interest', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'num'),
+            x.pattern().assign(expr('int')).stmt,
+            checkNotPromoted(x),
+          ]);
+        });
+      });
+
+      test('Definite assignment', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int'),
+          checkAssigned(x, false),
+          x.pattern().assign(expr('int')).stmt,
+          checkAssigned(x, true),
+        ]);
+      });
+
+      group('Boolean condition', () {
+        test('As main pattern', () {
+          var b = Var('b');
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            declare(b, type: 'bool'),
+            b.pattern().assign(x.expr.notEq(nullLiteral)).stmt,
+            if_(b.expr, [
+              // `x` is promoted because `b` is known to equal `x != null`.
+              checkPromoted(x, 'int'),
+            ]),
+          ]);
+        });
+
+        test('As subpattern', () {
+          var b = Var('b');
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            declare(b, type: 'bool'),
+            recordPattern([b.pattern().recordField()])
+                .assign(x.expr.notEq(nullLiteral).as_('dynamic'))
+                .stmt,
+            if_(b.expr, [
+              // Even though the RHS of the pattern is `x != null`, `x` is not
+              // promoted because the pattern for `b` is in a subpattern
+              // position.
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+      });
+    });
+
     group('If-case element:', () {
       test('guarded', () {
         var x = Var('x');

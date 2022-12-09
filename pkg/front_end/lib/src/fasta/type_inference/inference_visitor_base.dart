@@ -182,7 +182,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
   /// [isAssignable].
-  OperationsCfe get operations => _inferrer.operations;
+  Operations<VariableDeclaration, DartType> get operations =>
+      _inferrer.operations;
 
   TypeSchemaEnvironment get typeSchemaEnvironment =>
       _inferrer.typeSchemaEnvironment;

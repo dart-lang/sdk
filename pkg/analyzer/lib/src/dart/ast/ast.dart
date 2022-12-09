@@ -3623,7 +3623,8 @@ class DeclaredVariablePatternImpl extends DartPatternImpl
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeVariablePatternSchema(type?.typeOrThrow);
+    return resolverVisitor
+        .analyzeDeclaredVariablePatternSchema(type?.typeOrThrow);
   }
 
   @override
@@ -3632,7 +3633,7 @@ class DeclaredVariablePatternImpl extends DartPatternImpl
     DartType matchedType,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeVariablePattern(matchedType, context, this,
+    resolverVisitor.analyzeDeclaredVariablePattern(matchedType, context, this,
         declaredElement, declaredElement?.name, type?.typeOrThrow);
   }
 

@@ -2418,6 +2418,67 @@ main() {
       });
     });
 
+    group('Pattern assignment:', () {
+      test('Static type', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'num'),
+          x.pattern().assign(expr('int')).checkType('int').stmt,
+        ]);
+      });
+
+      test('RHS context', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'num'),
+          x
+              .pattern()
+              .assign(expr('int').checkContext('num'))
+              .inContext('Object'),
+        ]);
+      });
+
+      group('Refutability:', () {
+        test('When matched type is a subtype of variable type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'num'),
+            x
+                .pattern()
+                .assign(expr('int'))
+                .checkIr('patternAssignment(expr(int), assignedVarPattern(x))')
+                .stmt,
+          ]);
+        });
+
+        test('When matched type is dynamic', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'num'),
+            x
+                .pattern()
+                .assign(expr('dynamic'))
+                .checkIr(
+                    'patternAssignment(expr(dynamic), assignedVarPattern(x))')
+                .stmt,
+          ]);
+        });
+
+        test('When matched type is not a subtype of variable type', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'num'),
+            ((x.pattern()..errorId = 'PATTERN').assign(expr('String'))
+                  ..errorId = 'CONTEXT')
+                .stmt,
+          ], expectedErrors: {
+            'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
+                'context: CONTEXT, matchedType: String, requiredType: num)'
+          });
+        });
+      });
+    });
+
     group('Record:', () {
       group('Positional:', () {
         group('Match dynamic:', () {
