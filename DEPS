@@ -51,7 +51,7 @@ vars = {
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes.
-  "co19_rev": "9cfd817af42a5b3f934829aa1a82b5f27463130f",
+  "co19_rev": "1caf238b37bb19081029a6580f31a728b1359dc0",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "9f28a5f173bd39c9b97a691e7abcba6fdf80b47b",
 
@@ -111,7 +111,7 @@ vars = {
   "csslib_rev": "34203c09f073ed8267f5d6e333daddb02e6ff609",
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
-  "binaryen_rev" : "eeb838155dbff2fb6731f1ae5550cbb9494532fe",
+  "binaryen_rev" : "7769139efbe818c7ba36d1a382db5114ebee9df8",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
