@@ -24,12 +24,12 @@
 #   issue created for it.
 #
 # Stats:
-# - 698 "needsEvaluation"
+# - 655 "needsEvaluation"
 #   - 282 for CompileTimeErrorCodes
 #   - 220 for ParserErrorCodes
-# -  73 "needsFix"
+# -  92 "needsFix"
 # - 310 "hasFix"
-# -  64 "noFix"
+# -  94 "noFix"
 
 AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR:
   status: noFix
@@ -54,7 +54,7 @@ AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
   notes: |-
     It would not be performant to search the disk for analysis options files
     that could be included.
-    
+
     We could potentially have a fix to create the referenced file that currently
     doesn't exist, but that would only be useful if the missing file is in the
     same repository as the including file.
@@ -1328,9 +1328,9 @@ HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
 HintCode.CAN_BE_NULL_AFTER_NULL_AWARE:
   status: hasFix
 HintCode.CAST_FROM_NULL_ALWAYS_FAILS:
-  status: needsEvaluation
+  status: noFix
 HintCode.CAST_FROM_NULLABLE_ALWAYS_FAILS:
-  status: needsEvaluation
+  status: noFix
 HintCode.DEAD_CODE:
   status: hasFix
 HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH:
@@ -1340,7 +1340,13 @@ HintCode.DEAD_CODE_ON_CATCH_SUBTYPE:
 HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE:
   status: hasFix
 HintCode.DEPRECATED_EXPORT_USE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Low priority, because this is likely not encountered often.
+
+    The fix is to look for a non-deprected way to import the name and to add a
+    new import for it. It might be possible to remove the old import if all of
+    the names being imported through it are available through the new import.
 HintCode.DEPRECATED_EXTENDS_FUNCTION:
   status: needsFix
   notes: |-
@@ -1398,63 +1404,108 @@ HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE:
   notes: |-
     One fix is to convert the reference to a 'package:' URI.
 HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION:
-  status: needsEvaluation
+  status: noFix
 HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
-  status: needsEvaluation
+  status: noFix
+  notes: Deprecated
 HintCode.INFERENCE_FAILURE_ON_COLLECTION_LITERAL:
-  status: needsEvaluation
+  status: noFix
 HintCode.INFERENCE_FAILURE_ON_FUNCTION_INVOCATION:
-  status: needsEvaluation
+  status: noFix
 HintCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE:
-  status: needsEvaluation
+  status: noFix
 HintCode.INFERENCE_FAILURE_ON_GENERIC_INVOCATION:
-  status: needsEvaluation
+  status: noFix
 HintCode.INFERENCE_FAILURE_ON_INSTANCE_CREATION:
-  status: needsEvaluation
+  status: noFix
 HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
-  status: needsEvaluation
+  status: noFix
 HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
-  status: needsEvaluation
+  status: noFix
 HintCode.INVALID_ANNOTATION_TARGET:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The fix is to remove the annotation.
 HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Low priority, because this is likely not encountered often.
+
+    The fix is to update the export directive so that the name is no longer
+    exported.
 HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT_INDIRECTLY:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    Low priority, because this is likely not encountered often and the only fix
+    is not likely to be the most common fix.
+
+    The fix is to update the export directive so that the member using the name
+    is no longer exported.
 HintCode.INVALID_FACTORY_ANNOTATION:
   status: hasFix
 HintCode.INVALID_FACTORY_METHOD_DECL:
-  status: needsEvaluation
+  status: noFix
 HintCode.INVALID_FACTORY_METHOD_IMPL:
-  status: needsEvaluation
+  status: noFix
 HintCode.INVALID_IMMUTABLE_ANNOTATION:
   status: hasFix
 HintCode.INVALID_INTERNAL_ANNOTATION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The fix is to remove the annotation.
 HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
 HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_EQUALS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
 HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_GREATER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
 HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
 HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_LOWER_CASE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
 HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_NUMBER:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
 HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_PREFIX:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
 HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TRAILING_CHARACTERS:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
 HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    If we can identify enough information to do so, the fix is to rewrite the
+    comment into a valid form.
 HintCode.INVALID_LITERAL_ANNOTATION:
   status: hasFix
 HintCode.INVALID_NON_VIRTUAL_ANNOTATION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The fix is to remove the annotation.
 HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
-  status: needsEvaluation
+  status: noFix
 HintCode.INVALID_REQUIRED_NAMED_PARAM:
   status: hasFix
 HintCode.INVALID_REQUIRED_OPTIONAL_POSITIONAL_PARAM:
@@ -1464,21 +1515,25 @@ HintCode.INVALID_REQUIRED_POSITIONAL_PARAM:
 HintCode.INVALID_SEALED_ANNOTATION:
   status: hasFix
 HintCode.INVALID_USE_OF_INTERNAL_MEMBER:
-  status: needsEvaluation
+  status: noFix
 HintCode.INVALID_USE_OF_PROTECTED_MEMBER:
-  status: needsEvaluation
+  status: noFix
 HintCode.INVALID_USE_OF_VISIBLE_FOR_OVERRIDING_MEMBER:
-  status: needsEvaluation
+  status: noFix
   since: ~2.15
 HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
-  status: needsEvaluation
+  status: noFix
 HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
-  status: needsEvaluation
+  status: noFix
 HintCode.INVALID_VISIBILITY_ANNOTATION:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The fix is to remove the annotation.
 HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
   status: needsFix
   since: ~2.15
+  notes: |-
+    The fix is to remove the annotation.
 HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
   status: hasFix
 HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
@@ -1492,24 +1547,28 @@ HintCode.MISSING_REQUIRED_PARAM_WITH_DETAILS:
 HintCode.MISSING_RETURN:
   status: hasFix
 HintCode.MIXIN_ON_SEALED_CLASS:
-  status: needsEvaluation
+  status: noFix
 HintCode.MUST_BE_IMMUTABLE:
-  status: needsEvaluation
+  status: noFix
 HintCode.MUST_CALL_SUPER:
   status: hasFix
 HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The fix is to add `const` before the constructor invocation.
 HintCode.NON_CONST_CALL_TO_LITERAL_CONSTRUCTOR_USING_NEW:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The fix is to replace `new` with `const`.
 HintCode.NULL_ARGUMENT_TO_NON_NULL_TYPE:
-  status: needsEvaluation
+  status: noFix
   since: ~2.15
 HintCode.NULL_AWARE_BEFORE_OPERATOR:
-  status: needsEvaluation
+  status: noFix
 HintCode.NULL_AWARE_IN_CONDITION:
-  status: needsEvaluation
+  status: noFix
 HintCode.NULL_AWARE_IN_LOGICAL_OPERATOR:
-  status: needsEvaluation
+  status: noFix
 HintCode.NULL_CHECK_ALWAYS_FAILS:
   status: needsFix
   notes: |-
@@ -1534,11 +1593,13 @@ HintCode.RECEIVER_OF_TYPE_NEVER:
   notes: |-
     We _could_ remove the thing being received (method invocation, etc.)
 HintCode.RETURN_OF_DO_NOT_STORE:
-  status: needsEvaluation
+  status: needsFix
+  notes: |-
+    The fix is to add the annotation to the enclosing function.
 HintCode.RETURN_OF_INVALID_TYPE_FROM_CATCH_ERROR:
-  status: needsEvaluation
+  status: noFix
 HintCode.RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
-  status: needsEvaluation
+  status: noFix
 HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:
   status: hasFix
 HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
@@ -1557,13 +1618,15 @@ HintCode.SDK_VERSION_GT_GT_GT_OPERATOR:
 HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT:
   status: hasFix
 HintCode.SDK_VERSION_NEVER:
-  status: needsEvaluation
+  status: noFix
+  notes: Deprecated
 HintCode.SDK_VERSION_SET_LITERAL:
   status: hasFix
 HintCode.SDK_VERSION_UI_AS_CODE:
   status: hasFix
 HintCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
-  status: needsEvaluation
+  status: noFix
+  notes: Deprecated
 HintCode.STRICT_RAW_TYPE:
   status: needsFix
   notes: |-
