@@ -2825,8 +2825,6 @@ abstract class pragma {
   Object options;
 }
 
-class AbstractClassInstantiationError {}
-
 class NoSuchMethodError {
   factory NoSuchMethodError.withInvocation(receiver, invocation) => throw '';
 }

@@ -67,9 +67,6 @@ IndexError? var51 = IndexError.withLength(14, 2,
     indexable: 36, name: 'V(', message: '9Jf!0\u2665');
 FallThroughError var52 = FallThroughError();
 FallThroughError? var53 = FallThroughError();
-AbstractClassInstantiationError var54 = AbstractClassInstantiationError('J!');
-AbstractClassInstantiationError? var55 =
-    AbstractClassInstantiationError('L48ynpV');
 UnsupportedError var56 = UnsupportedError('5txzg');
 UnsupportedError? var57 = UnsupportedError('W4vVdfv');
 UnimplementedError var58 = UnimplementedError('pK00TI\u2665');
@@ -283,5 +280,5 @@ main() {
   foo1_Extension0();
 
   print(
-      '$var0\n$var9\n$var11\n$var12\n$var13\n$var14\n$var15\n$var16\n$var17\n$var18\n$var19\n$var20\n$var21\n$var22\n$var23\n$var24\n$var25\n$var26\n$var27\n$var28\n$var29\n$var30\n$var31\n$var32\n$var33\n$var34\n$var35\n$var36\n$var37\n$var38\n$var39\n$var40\n$var41\n$var42\n$var43\n$var44\n$var45\n$var46\n$var47\n$var48\n$var49\n$var50\n$var51\n$var52\n$var53\n$var54\n$var55\n$var56\n$var57\n$var58\n$var59\n$var60\n$var61\n$var62\n$var63\n$var64\n$var65\n$var66\n$var67\n$var68\n$var69\n$var70\n$var71\n$var72\n$var73\n$var74\n$var75\n$var76\n$var77\n$var78\n$var79\n$var80\n$var81\n$var82\n$var83\n$var84\n$var85\n$var86\n$var87\n$var88\n$var89\n$var90\n$var91\n$var92\n$var93\n$var94\n$var95\n$var96\n$var97\n$var98\n$var99\n$var100\n$var101\n$var102\n$var103\n$var104\n$var105\n$var106\n$var107\n$var108\n$var109\n$var110\n$var111\n$var112\n$var113\n$var114\n$var115\n$var116\n$var117\n$var118\n$var119\n$var120\n$var121\n$var122\n$var123\n$var124\n$var125\n$var126\n$var127\n$var128\n$var129\n$var130\n$var131\n$var132\n');
+      '$var0\n$var9\n$var11\n$var12\n$var13\n$var14\n$var15\n$var16\n$var17\n$var18\n$var19\n$var20\n$var21\n$var22\n$var23\n$var24\n$var25\n$var26\n$var27\n$var28\n$var29\n$var30\n$var31\n$var32\n$var33\n$var34\n$var35\n$var36\n$var37\n$var38\n$var39\n$var40\n$var41\n$var42\n$var43\n$var44\n$var45\n$var46\n$var47\n$var48\n$var49\n$var50\n$var51\n$var52\n$var53\n$var56\n$var57\n$var58\n$var59\n$var60\n$var61\n$var62\n$var63\n$var64\n$var65\n$var66\n$var67\n$var68\n$var69\n$var70\n$var71\n$var72\n$var73\n$var74\n$var75\n$var76\n$var77\n$var78\n$var79\n$var80\n$var81\n$var82\n$var83\n$var84\n$var85\n$var86\n$var87\n$var88\n$var89\n$var90\n$var91\n$var92\n$var93\n$var94\n$var95\n$var96\n$var97\n$var98\n$var99\n$var100\n$var101\n$var102\n$var103\n$var104\n$var105\n$var106\n$var107\n$var108\n$var109\n$var110\n$var111\n$var112\n$var113\n$var114\n$var115\n$var116\n$var117\n$var118\n$var119\n$var120\n$var121\n$var122\n$var123\n$var124\n$var125\n$var126\n$var127\n$var128\n$var129\n$var130\n$var131\n$var132\n');
 }

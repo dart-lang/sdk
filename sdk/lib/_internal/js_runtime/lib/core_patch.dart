@@ -253,12 +253,6 @@ class FallThroughError {
   String toString() => super.toString();
 }
 
-@patch
-class AbstractClassInstantiationError {
-  @patch
-  String toString() => "Cannot instantiate abstract class: '$_className'";
-}
-
 // Patch for DateTime implementation.
 @patch
 class DateTime {

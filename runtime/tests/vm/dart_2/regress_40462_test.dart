@@ -56,7 +56,6 @@ RangeError var26 =
 IndexError var27 =
     IndexError.withLength(38, 13, indexable: 29, name: 'R1Z', message: 'VnR7');
 FallThroughError var28 = new FallThroughError();
-AbstractClassInstantiationError var29 = AbstractClassInstantiationError('Sq');
 UnsupportedError var30 = UnsupportedError('(OXv');
 UnimplementedError var31 = UnimplementedError('Dt)F@\u2665');
 StateError var32 = StateError('y');
@@ -1300,7 +1299,7 @@ main() {
   }
   try {
     print(
-        '$var0\n$var1\n$var2\n$var3\n$var4\n$var5\n$var6\n$var7\n$var8\n$var9\n$var10\n$var11\n$var12\n$var13\n$var14\n$var15\n$var16\n$var17\n$var18\n$var19\n$var20\n$var21\n$var22\n$var23\n$var24\n$var25\n$var26\n$var27\n$var28\n$var29\n$var30\n$var31\n$var32\n$var33\n$var34\n$var35\n$var36\n$var37\n$var38\n$var39\n$var40\n$var41\n$var42\n$var43\n$var44\n$var45\n$var46\n$var47\n$var48\n$var49\n$var50\n$var51\n$var52\n$var53\n$var54\n$var55\n$var56\n$var57\n$var58\n$var59\n$var60\n$var61\n$var62\n$var63\n$var64\n$var65\n$var66\n$var67\n$var68\n$var69\n$var70\n$var71\n$var72\n$var73\n$var74\n$var75\n');
+        '$var0\n$var1\n$var2\n$var3\n$var4\n$var5\n$var6\n$var7\n$var8\n$var9\n$var10\n$var11\n$var12\n$var13\n$var14\n$var15\n$var16\n$var17\n$var18\n$var19\n$var20\n$var21\n$var22\n$var23\n$var24\n$var25\n$var26\n$var27\n$var28\n$var30\n$var31\n$var32\n$var33\n$var34\n$var35\n$var36\n$var37\n$var38\n$var39\n$var40\n$var41\n$var42\n$var43\n$var44\n$var45\n$var46\n$var47\n$var48\n$var49\n$var50\n$var51\n$var52\n$var53\n$var54\n$var55\n$var56\n$var57\n$var58\n$var59\n$var60\n$var61\n$var62\n$var63\n$var64\n$var65\n$var66\n$var67\n$var68\n$var69\n$var70\n$var71\n$var72\n$var73\n$var74\n$var75\n');
   } on OutOfMemoryError {
     exit(254);
   } catch (e, st) {
