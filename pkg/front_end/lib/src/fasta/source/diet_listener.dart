@@ -51,11 +51,13 @@ import '../type_inference/type_inference_engine.dart'
     show InferenceDataForTesting, TypeInferenceEngine;
 import '../type_inference/type_inferrer.dart' show TypeInferrer;
 import 'diet_parser.dart';
+import 'source_class_builder.dart';
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
+import 'source_view_builder.dart';
 import 'stack_listener_impl.dart';
 
 class DietListener extends StackListenerImpl {
@@ -729,10 +731,9 @@ class DietListener extends StackListenerImpl {
     Token? metadata = pop() as Token?;
     checkEmpty(beginToken.charOffset);
     if (name is ParserRecovery || currentClassIsParserRecovery) return;
-    SourceFunctionBuilderImpl builder;
+    SourceFunctionBuilder builder;
     if (isConstructor) {
-      builder =
-          lookupConstructor(beginToken, name!) as SourceFunctionBuilderImpl;
+      builder = lookupConstructor(beginToken, name!) as SourceFunctionBuilder;
     } else {
       Builder? memberBuilder =
           lookupBuilder(beginToken, getOrSet, name as String);
@@ -745,7 +746,7 @@ class DietListener extends StackListenerImpl {
         // this point we skip the member.
         return;
       }
-      builder = memberBuilder as SourceFunctionBuilderImpl;
+      builder = memberBuilder as SourceFunctionBuilder;
     }
     buildFunctionBody(
         createFunctionListener(builder),
@@ -809,7 +810,7 @@ class DietListener extends StackListenerImpl {
       ..constantContext = constantContext;
   }
 
-  BodyBuilder createFunctionListener(SourceFunctionBuilderImpl builder) {
+  BodyBuilder createFunctionListener(SourceFunctionBuilder builder) {
     final Scope typeParameterScope =
         builder.computeTypeParameterScope(memberScope);
     final Scope formalParameterScope =
@@ -1166,20 +1167,23 @@ class DietListener extends StackListenerImpl {
   }
 
   Builder? lookupConstructor(Token token, Object nameOrQualified) {
-    assert(currentClass != null);
+    assert(currentDeclaration != null);
+    assert(currentDeclaration is SourceClassBuilder ||
+        currentDeclaration is SourceViewBuilder);
     Builder? declaration;
     String suffix;
     if (nameOrQualified is QualifiedName) {
       suffix = nameOrQualified.name;
     } else {
-      suffix = nameOrQualified == currentClass!.name
+      suffix = nameOrQualified == currentDeclaration!.name
           ? ""
           : nameOrQualified as String;
     }
     if (libraryFeatures.constructorTearoffs.isEnabled) {
       suffix = suffix == "new" ? "" : suffix;
     }
-    declaration = currentClass!.constructorScope.lookupLocalMember(suffix);
+    declaration =
+        currentDeclaration!.constructorScope.lookupLocalMember(suffix);
     declaration = handleDuplicatedName(declaration, token);
     checkBuilder(token, declaration, nameOrQualified);
     return declaration;

@@ -215,6 +215,7 @@ variance/class_type_parameter_modifier: FormatterCrash
 variance/generic_covariance_sound_variance: FormatterCrash
 variance/mixin_type_parameter_modifier: FormatterCrash
 variance/unconstrained_inference: FormatterCrash
+views/constructors: FormatterCrash
 views/procedures: FormatterCrash
 views/representation: FormatterCrash
 views/view_class_declaration: FormatterCrash

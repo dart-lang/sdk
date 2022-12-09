@@ -37,6 +37,8 @@ abstract class DeclarationBuilder implements TypeDeclarationBuilder {
   /// reported.
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false});
+
+  ConstructorScope get constructorScope;
 }
 
 abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
@@ -45,10 +47,19 @@ abstract class DeclarationBuilderImpl extends TypeDeclarationBuilderImpl
   final Scope scope;
 
   @override
+  final ConstructorScope constructorScope;
+
+  @override
   final Uri fileUri;
 
-  DeclarationBuilderImpl(List<MetadataBuilder>? metadata, int modifiers,
-      String name, LibraryBuilder parent, int charOffset, this.scope)
+  DeclarationBuilderImpl(
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      String name,
+      LibraryBuilder parent,
+      int charOffset,
+      this.scope,
+      this.constructorScope)
       : fileUri = parent.fileUri,
         super(metadata, modifiers, name, parent, charOffset);
 

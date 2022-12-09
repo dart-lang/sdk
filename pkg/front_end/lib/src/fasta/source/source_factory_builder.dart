@@ -90,6 +90,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
         .attachMember(_procedureInternal);
     _factoryTearOff = createFactoryTearOffProcedure(name, libraryBuilder,
         libraryBuilder.fileUri, charOffset, tearOffReference);
+    // TODO(johnniwinther): Use [NameScheme] for constructor tear-off names.
     this.asyncModifier = asyncModifier;
   }
 
@@ -166,7 +167,6 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
           tearOff: _factoryTearOff!,
           declarationConstructor: _procedure,
           implementationConstructor: _procedureInternal,
-          enclosingClass: classBuilder.cls,
           libraryBuilder: libraryBuilder);
     }
   }

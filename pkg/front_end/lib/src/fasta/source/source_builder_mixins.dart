@@ -19,6 +19,7 @@ import '../kernel/kernel_helper.dart';
 import '../problems.dart';
 import '../scope.dart';
 import '../util/helpers.dart';
+import 'source_constructor_builder.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
@@ -88,6 +89,7 @@ mixin SourceDeclarationBuilderMixin
     }
 
     scope.unfilteredNameIterator.forEach(buildBuilders);
+    constructorScope.unfilteredNameIterator.forEach(buildBuilders);
   }
 
   int buildBodyNodes({required bool addMembersToLibrary}) {
@@ -122,6 +124,8 @@ mixin SourceDeclarationBuilderMixin
                 setterDeclaration as ProcedureBuilder, typeEnvironment);
           }
         }
+      } else if (builder is SourceConstructorBuilder) {
+        builder.checkTypes(libraryBuilder, typeEnvironment);
       } else {
         assert(false, "Unexpected member: $builder.");
       }

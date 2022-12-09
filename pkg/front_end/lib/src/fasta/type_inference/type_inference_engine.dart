@@ -155,14 +155,14 @@ abstract class TypeInferenceEngine {
   /// This is represented as a map from a constructor to its library
   /// builder because the builder is used to report errors due to cyclic
   /// inference dependencies.
-  final Map<Constructor, SourceConstructorBuilder> toBeInferred = {};
+  final Map<Member, SourceConstructorBuilder> toBeInferred = {};
 
   /// A map containing constructors in the process of being inferred.
   ///
   /// This is used to detect cyclic inference dependencies.  It is represented
   /// as a map from a constructor to its library builder because the builder
   /// is used to report errors.
-  final Map<Constructor, SourceConstructorBuilder> beingInferred = {};
+  final Map<Member, SourceConstructorBuilder> beingInferred = {};
 
   final Map<Member, TypeDependency> typeDependencies = {};
 

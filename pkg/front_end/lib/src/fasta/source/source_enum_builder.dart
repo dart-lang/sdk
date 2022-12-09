@@ -334,6 +334,11 @@ class SourceEnumBuilder extends SourceClassBuilder {
               charEndOffset,
               constructorReference,
               tearOffReference,
+              new NameScheme(
+                  isInstanceMember: false,
+                  containerName: new ClassName(name),
+                  containerType: ContainerType.Class,
+                  libraryName: libraryName),
               forAbstractClassOrEnum: true);
       synthesizedDefaultConstructorBuilder
           .registerInitializedField(valuesBuilder);
@@ -762,7 +767,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         }
       } else {
         Expression initializer = bodyBuilder.buildStaticInvocation(
-            constructorBuilder.constructor, arguments,
+            constructorBuilder.invokeTarget, arguments,
             constness: Constness.explicitConst,
             charOffset: fieldBuilder.charOffset);
         ExpressionInferenceResult inferenceResult = bodyBuilder.typeInferrer
@@ -796,7 +801,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         }
       } else {
         Expression initializer = new ConstructorInvocation(
-            constructorBuilder.constructor, arguments,
+            constructorBuilder.invokeTarget as Constructor, arguments,
             isConst: true)
           ..fileOffset = fieldBuilder.charOffset;
         if (!fieldBuilder.hasBodyBeenBuilt) {

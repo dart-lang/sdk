@@ -338,20 +338,20 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   /// Ensures that all parameter types of [constructor] have been inferred.
-  void _inferConstructorParameterTypes(Constructor target) {
-    SourceConstructorBuilder? constructor = engine.beingInferred[target];
-    if (constructor != null) {
+  void _inferConstructorParameterTypes(Member target) {
+    SourceConstructorBuilder? constructorBuilder = engine.beingInferred[target];
+    if (constructorBuilder != null) {
       // There is a cyclic dependency where inferring the types of the
       // initializing formals of a constructor required us to infer the
       // corresponding field type which required us to know the type of the
       // constructor.
-      String name = target.enclosingClass.name;
+      String name = constructorBuilder.declarationBuilder.name;
       if (target.name.text.isNotEmpty) {
         // TODO(ahe): Use `inferrer.helper.constructorNameForDiagnostics`
         // instead. However, `inferrer.helper` may be null.
         name += ".${target.name.text}";
       }
-      constructor.libraryBuilder.addProblem(
+      constructorBuilder.libraryBuilder.addProblem(
           templateCantInferTypeDueToCircularity.withArguments(name),
           target.fileOffset,
           name.length,
@@ -365,10 +365,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       for (VariableDeclaration declaration in target.function.namedParameters) {
         declaration.type ??= const InvalidType();
       }*/
-    } else if ((constructor = engine.toBeInferred[target]) != null) {
+    } else if ((constructorBuilder = engine.toBeInferred[target]) != null) {
       engine.toBeInferred.remove(target);
-      engine.beingInferred[target] = constructor!;
-      constructor.inferFormalTypes(hierarchyBuilder);
+      engine.beingInferred[target] = constructorBuilder!;
+      constructorBuilder.inferFormalTypes(hierarchyBuilder);
       engine.beingInferred.remove(target);
     }
   }

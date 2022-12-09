@@ -1005,8 +1005,8 @@ severity: $severity
   }
 
   void registerConstructorToBeInferred(
-      Constructor constructor, SourceConstructorBuilder builder) {
-    _typeInferenceEngine!.toBeInferred[constructor] = builder;
+      Member member, SourceConstructorBuilder builder) {
+    _typeInferenceEngine!.toBeInferred[member] = builder;
   }
 
   void registerTypeDependency(Member member, TypeDependency typeDependency) {

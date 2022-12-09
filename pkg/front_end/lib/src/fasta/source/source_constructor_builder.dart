@@ -11,6 +11,7 @@ import 'package:kernel/type_environment.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_builder.dart';
+import '../builder/declaration_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -55,9 +56,12 @@ import '../util/helpers.dart' show DelayedActionPerformer;
 import 'name_scheme.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
+import 'source_view_builder.dart';
 
 abstract class SourceConstructorBuilder
     implements ConstructorBuilder, SourceMemberBuilder {
+  DeclarationBuilder get declarationBuilder;
+
   /// Infers the types of any untyped initializing formals.
   void inferFormalTypes(ClassHierarchyBase hierarchy);
 
@@ -72,87 +76,33 @@ abstract class SourceConstructorBuilder
   bool get isRedirecting;
 }
 
-class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
+abstract class AbstractSourceConstructorBuilder
+    extends SourceFunctionBuilderImpl
     implements SourceConstructorBuilder, Inferable {
   @override
   final OmittedTypeBuilder returnType;
 
-  late final Constructor _constructor;
-  late final Procedure? _constructorTearOff;
-
-  Set<SourceFieldBuilder>? _initializedFields;
-
   final int charOpenParenOffset;
-
-  bool hasMovedSuperInitializer = false;
-
-  SuperInitializer? superInitializer;
-
-  RedirectingInitializer? redirectingInitializer;
-
-  Token? beginInitializers;
-
-  DeclaredSourceConstructorBuilder? actualOrigin;
-
-  Constructor get actualConstructor => _constructor;
-
-  List<DeclaredSourceConstructorBuilder>? _patches;
 
   bool _hasFormalsInferred = false;
 
-  bool _hasDefaultValueCloner = false;
+  Token? beginInitializers;
 
-  final bool _hasSuperInitializingFormals;
-
-  final List<DelayedDefaultValueCloner> _superParameterDefaultValueCloners =
-      <DelayedDefaultValueCloner>[];
-
-  @override
-  List<FormalParameterBuilder>? formals;
-
-  @override
-  String get fullNameForErrors {
-    return "${flattenName(classBuilder.name, charOffset, fileUri)}"
-        "${name.isEmpty ? '' : '.$name'}";
-  }
-
-  DeclaredSourceConstructorBuilder(
+  AbstractSourceConstructorBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
       this.returnType,
       String name,
       List<TypeVariableBuilder>? typeVariables,
-      this.formals,
+      List<FormalParameterBuilder>? formals,
       SourceLibraryBuilder compilationUnit,
-      int startCharOffset,
       int charOffset,
       this.charOpenParenOffset,
-      int charEndOffset,
-      Reference? constructorReference,
-      Reference? tearOffReference,
-      {String? nativeMethodName,
-      required bool forAbstractClassOrEnum})
-      : _hasSuperInitializingFormals =
-            formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
-        super(metadata, modifiers, name, typeVariables, formals,
+      String? nativeMethodName)
+      : super(metadata, modifiers, name, typeVariables, formals,
             compilationUnit, charOffset, nativeMethodName) {
-    _constructor = new Constructor(new FunctionNode(null),
-        name: dummyName,
-        fileUri: compilationUnit.fileUri,
-        reference: constructorReference)
-      ..startFileOffset = startCharOffset
-      ..fileOffset = charOffset
-      ..fileEndOffset = charEndOffset
-      ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault;
-    MemberName constructorName =
-        new MemberName(compilationUnit.libraryName, name);
-    constructorName.attachMember(_constructor);
-    _constructorTearOff = createConstructorTearOffProcedure(name,
-        compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
-        forAbstractClassOrEnum: forAbstractClassOrEnum);
-
     if (formals != null) {
-      for (FormalParameterBuilder formal in formals!) {
+      for (FormalParameterBuilder formal in formals) {
         if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
           formal.type.registerInferable(this);
         }
@@ -161,11 +111,291 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
+  DeclarationBuilder get declarationBuilder => super.declarationBuilder!;
+
+  @override
+  bool get isConstructor => true;
+
+  @override
+  ProcedureKind? get kind => null;
+
+  @override
+  AsyncMarker get asyncModifier => AsyncMarker.Sync;
+
+  @override
+  void inferTypes(ClassHierarchyBase hierarchy) {
+    inferFormalTypes(hierarchy);
+  }
+
+  @override
+  void inferFormalTypes(ClassHierarchyBase hierarchy) {
+    if (_hasFormalsInferred) return;
+    if (formals != null) {
+      libraryBuilder.loader.withUriForCrashReporting(fileUri, charOffset, () {
+        for (FormalParameterBuilder formal in formals!) {
+          if (formal.type is InferableTypeBuilder) {
+            if (formal.isInitializingFormal) {
+              formal.finalizeInitializingFormal(declarationBuilder, hierarchy);
+            }
+          }
+        }
+        _inferSuperInitializingFormals(hierarchy);
+      });
+    }
+    _hasFormalsInferred = true;
+  }
+
+  void _inferSuperInitializingFormals(ClassHierarchyBase hierarchy) {}
+
+  void _buildFormals(Member member) {
+    if (formals != null) {
+      bool needsInference = false;
+      for (FormalParameterBuilder formal in formals!) {
+        if (formal.type is InferableTypeBuilder &&
+            (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
+          formal.variable!.type = const UnknownType();
+          needsInference = true;
+        } else if (!formal.hasDeclaredInitializer &&
+            formal.isSuperInitializingFormal) {
+          needsInference = true;
+        }
+      }
+      if (needsInference) {
+        libraryBuilder.loader.registerConstructorToBeInferred(member, this);
+      }
+    }
+  }
+
+  List<Initializer> get initializers;
+
+  @override
+  bool get isRedirecting {
+    for (Initializer initializer in initializers) {
+      if (initializer is RedirectingInitializer) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  void _injectInvalidInitializer(Message message, int charOffset, int length,
+      ExpressionGeneratorHelper helper) {
+    Initializer lastInitializer = initializers.removeLast();
+    assert(lastInitializer == superInitializer ||
+        lastInitializer == redirectingInitializer);
+    Initializer error = helper.buildInvalidInitializer(
+        helper.buildProblem(message, charOffset, length));
+    initializers.add(error..parent = member);
+    initializers.add(lastInitializer);
+  }
+
+  SuperInitializer? superInitializer;
+
+  RedirectingInitializer? redirectingInitializer;
+
+  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
+      {required InitializerInferenceResult? inferenceResult}) {
+    if (initializer is SuperInitializer) {
+      if (superInitializer != null) {
+        _injectInvalidInitializer(messageMoreThanOneSuperInitializer,
+            initializer.fileOffset, "super".length, helper);
+      } else if (redirectingInitializer != null) {
+        _injectInvalidInitializer(
+            messageRedirectingConstructorWithSuperInitializer,
+            initializer.fileOffset,
+            "super".length,
+            helper);
+      } else {
+        inferenceResult?.applyResult(initializers, member);
+        superInitializer = initializer;
+
+        LocatedMessage? message = helper.checkArgumentsForFunction(
+            initializer.target.function,
+            initializer.arguments,
+            initializer.arguments.fileOffset, <TypeParameter>[]);
+        if (message != null) {
+          initializers.add(helper.buildInvalidInitializer(
+              helper.buildUnresolvedError(
+                  helper.constructorNameForDiagnostics(
+                      initializer.target.name.text),
+                  initializer.fileOffset,
+                  arguments: initializer.arguments,
+                  isSuper: true,
+                  message: message,
+                  kind: UnresolvedKind.Constructor))
+            ..parent = member);
+        } else {
+          initializers.add(initializer..parent = member);
+        }
+      }
+    } else if (initializer is RedirectingInitializer) {
+      if (superInitializer != null) {
+        // Point to the existing super initializer.
+        _injectInvalidInitializer(
+            messageRedirectingConstructorWithSuperInitializer,
+            superInitializer!.fileOffset,
+            "super".length,
+            helper);
+      } else if (redirectingInitializer != null) {
+        _injectInvalidInitializer(
+            messageRedirectingConstructorWithMultipleRedirectInitializers,
+            initializer.fileOffset,
+            noLength,
+            helper);
+      } else if (initializers.isNotEmpty) {
+        // Error on all previous ones.
+        for (int i = 0; i < initializers.length; i++) {
+          Initializer initializer = initializers[i];
+          int length = noLength;
+          if (initializer is AssertInitializer) length = "assert".length;
+          Initializer error = helper.buildInvalidInitializer(
+              helper.buildProblem(
+                  messageRedirectingConstructorWithAnotherInitializer,
+                  initializer.fileOffset,
+                  length));
+          error.parent = member;
+          initializers[i] = error;
+        }
+        inferenceResult?.applyResult(initializers, member);
+        initializers.add(initializer..parent = member);
+        redirectingInitializer = initializer;
+      } else {
+        inferenceResult?.applyResult(initializers, member);
+        redirectingInitializer = initializer;
+
+        LocatedMessage? message = helper.checkArgumentsForFunction(
+            initializer.target.function,
+            initializer.arguments,
+            initializer.arguments.fileOffset, const <TypeParameter>[]);
+        if (message != null) {
+          initializers.add(helper.buildInvalidInitializer(
+              helper.buildUnresolvedError(
+                  helper.constructorNameForDiagnostics(
+                      initializer.target.name.text,
+                      isSuper: false),
+                  initializer.fileOffset,
+                  arguments: initializer.arguments,
+                  isSuper: false,
+                  message: message,
+                  kind: UnresolvedKind.Constructor))
+            ..parent = member);
+        } else {
+          initializers.add(initializer..parent = member);
+        }
+      }
+    } else if (redirectingInitializer != null) {
+      int length = noLength;
+      if (initializer is AssertInitializer) length = "assert".length;
+      _injectInvalidInitializer(
+          messageRedirectingConstructorWithAnotherInitializer,
+          initializer.fileOffset,
+          length,
+          helper);
+    } else if (superInitializer != null) {
+      _injectInvalidInitializer(messageSuperInitializerNotLast,
+          initializer.fileOffset, noLength, helper);
+    } else {
+      inferenceResult?.applyResult(initializers, member);
+      initializers.add(initializer..parent = member);
+    }
+  }
+
+  @override
+  void checkVariance(
+      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
+
+  @override
+  void checkTypes(
+      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
+    library.checkTypesInConstructorBuilder(this, formals, typeEnvironment);
+  }
+
+  @override
+  List<ClassMember> get localMembers =>
+      throw new UnsupportedError('${runtimeType}.localMembers');
+
+  @override
+  List<ClassMember> get localSetters =>
+      throw new UnsupportedError('${runtimeType}.localSetters');
+}
+
+class DeclaredSourceConstructorBuilder
+    extends AbstractSourceConstructorBuilder {
+  late final Constructor _constructor;
+  late final Procedure? _constructorTearOff;
+
+  Set<SourceFieldBuilder>? _initializedFields;
+
+  DeclaredSourceConstructorBuilder? actualOrigin;
+
+  Constructor get actualConstructor => _constructor;
+
+  List<DeclaredSourceConstructorBuilder>? _patches;
+
+  bool _hasDefaultValueCloner = false;
+
+  @override
+  List<FormalParameterBuilder>? formals;
+
+  @override
+  String get fullNameForErrors {
+    return "${flattenName(declarationBuilder.name, charOffset, fileUri)}"
+        "${name.isEmpty ? '' : '.$name'}";
+  }
+
+  DeclaredSourceConstructorBuilder(
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      OmittedTypeBuilder returnType,
+      String name,
+      List<TypeVariableBuilder>? typeVariables,
+      this.formals,
+      SourceLibraryBuilder compilationUnit,
+      int startCharOffset,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      Reference? constructorReference,
+      Reference? tearOffReference,
+      NameScheme nameScheme,
+      {String? nativeMethodName,
+      required bool forAbstractClassOrEnum})
+      : _hasSuperInitializingFormals =
+            formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
+        super(
+            metadata,
+            modifiers,
+            returnType,
+            name,
+            typeVariables,
+            formals,
+            compilationUnit,
+            charOffset,
+            charOpenParenOffset,
+            nativeMethodName) {
+    _constructor = new Constructor(new FunctionNode(null),
+        name: dummyName,
+        fileUri: compilationUnit.fileUri,
+        reference: constructorReference)
+      ..startFileOffset = startCharOffset
+      ..fileOffset = charOffset
+      ..fileEndOffset = charEndOffset
+      ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault;
+    nameScheme
+        .getConstructorMemberName(name, isTearOff: false)
+        .attachMember(_constructor);
+    _constructorTearOff = createConstructorTearOffProcedure(name,
+        compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
+        forAbstractClassOrEnum: forAbstractClassOrEnum);
+    // TODO(johnniwinther): Use [NameScheme] for constructor tear-off names.
+  }
+
+  @override
   SourceClassBuilder get classBuilder =>
       super.classBuilder as SourceClassBuilder;
 
   @override
-  Member? get readTarget => _constructorTearOff ?? _constructor;
+  Member get readTarget => _constructorTearOff ?? _constructor;
 
   @override
   Member? get writeTarget => null;
@@ -180,6 +410,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   Iterable<Member> get exportedMembers => [constructor];
 
   @override
+  List<Initializer> get initializers => _constructor.initializers;
+
+  @override
   DeclaredSourceConstructorBuilder get origin => actualOrigin ?? this;
 
   List<SourceConstructorBuilder>? get patchForTesting => _patches;
@@ -189,25 +422,6 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
 
   @override
   bool get isClassInstanceMember => false;
-
-  @override
-  bool get isConstructor => true;
-
-  @override
-  AsyncMarker get asyncModifier => AsyncMarker.Sync;
-
-  @override
-  ProcedureKind? get kind => null;
-
-  @override
-  bool get isRedirecting {
-    for (Initializer initializer in _constructor.initializers) {
-      if (initializer is RedirectingInitializer) {
-        return true;
-      }
-    }
-    return false;
-  }
 
   /// Returns `true` if this constructor, including its augmentations, is
   /// external.
@@ -272,29 +486,13 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
             tearOff: _constructorTearOff!,
             declarationConstructor: constructor,
             implementationConstructor: _constructor,
-            enclosingClass: classBuilder.cls,
+            enclosingDeclarationTypeParameters: classBuilder.cls.typeParameters,
             libraryBuilder: libraryBuilder);
       }
 
       _hasBeenBuilt = true;
     }
-    if (formals != null) {
-      bool needsInference = false;
-      for (FormalParameterBuilder formal in formals!) {
-        if (formal.type is InferableTypeBuilder &&
-            (formal.isInitializingFormal || formal.isSuperInitializingFormal)) {
-          formal.variable!.type = const UnknownType();
-          needsInference = true;
-        } else if (!formal.hasDeclaredInitializer &&
-            formal.isSuperInitializingFormal) {
-          needsInference = true;
-        }
-      }
-      if (needsInference) {
-        libraryBuilder.loader
-            .registerConstructorToBeInferred(_constructor, this);
-      }
-    }
+    _buildFormals(_constructor);
   }
 
   @override
@@ -306,47 +504,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     }
   }
 
-  @override
-  void inferTypes(ClassHierarchyBase hierarchy) {
-    inferFormalTypes(hierarchy);
-  }
-
-  @override
-  void inferFormalTypes(ClassHierarchyBase hierarchy) {
-    if (_hasFormalsInferred) return;
-    if (formals != null) {
-      libraryBuilder.loader.withUriForCrashReporting(fileUri, charOffset, () {
-        for (FormalParameterBuilder formal in formals!) {
-          if (formal.type is InferableTypeBuilder) {
-            if (formal.isInitializingFormal) {
-              formal.finalizeInitializingFormal(classBuilder, hierarchy);
-            }
-          }
-        }
-
-        if (_hasSuperInitializingFormals) {
-          List<Initializer>? initializers;
-          if (beginInitializers != null) {
-            BodyBuilder bodyBuilder = libraryBuilder.loader
-                .createBodyBuilderForOutlineExpression(libraryBuilder,
-                    classBuilder, this, classBuilder.scope, fileUri);
-            if (isConst) {
-              bodyBuilder.constantContext = ConstantContext.required;
-            }
-            initializers = bodyBuilder.parseInitializers(beginInitializers!,
-                doFinishConstructor: false);
-          }
-          finalizeSuperInitializingFormals(
-              hierarchy, _superParameterDefaultValueCloners, initializers);
-        }
-      });
-    }
-    _hasFormalsInferred = true;
-  }
-
   ConstructorBuilder? _computeSuperTargetBuilder(
       List<Initializer>? initializers) {
-    Constructor superTarget;
+    Member superTarget;
     ClassBuilder superclassBuilder;
 
     TypeBuilder? supertype = classBuilder.supertypeBuilder;
@@ -379,7 +539,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       MemberBuilder? memberBuilder = superclassBuilder.constructorScope
           .lookup("", charOffset, libraryBuilder.fileUri);
       if (memberBuilder is ConstructorBuilder) {
-        superTarget = memberBuilder.constructor;
+        superTarget = memberBuilder.invokeTarget;
       } else {
         // The error in this case should be reported elsewhere.
         return null;
@@ -390,6 +550,30 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         superclassBuilder.findConstructorOrFactory(superTarget.name.text,
             charOffset, libraryBuilder.fileUri, libraryBuilder);
     return constructorBuilder is ConstructorBuilder ? constructorBuilder : null;
+  }
+
+  final bool _hasSuperInitializingFormals;
+
+  final List<DelayedDefaultValueCloner> _superParameterDefaultValueCloners =
+      <DelayedDefaultValueCloner>[];
+
+  @override
+  void _inferSuperInitializingFormals(ClassHierarchyBase hierarchy) {
+    if (_hasSuperInitializingFormals) {
+      List<Initializer>? initializers;
+      if (beginInitializers != null) {
+        BodyBuilder bodyBuilder = libraryBuilder.loader
+            .createBodyBuilderForOutlineExpression(libraryBuilder,
+                declarationBuilder, this, declarationBuilder.scope, fileUri);
+        if (isConst) {
+          bodyBuilder.constantContext = ConstantContext.required;
+        }
+        initializers = bodyBuilder.parseInitializers(beginInitializers!,
+            doFinishConstructor: false);
+      }
+      finalizeSuperInitializingFormals(
+          hierarchy, _superParameterDefaultValueCloners, initializers);
+    }
   }
 
   void finalizeSuperInitializingFormals(
@@ -417,10 +601,10 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       superTargetBuilder.inferFormalTypes(hierarchy);
     }
 
-    Constructor superTarget;
+    Member superTarget;
     FunctionNode? superConstructorFunction;
     if (superTargetBuilder != null) {
-      superTarget = superTargetBuilder.constructor;
+      superTarget = superTargetBuilder.invokeTarget;
       superConstructorFunction = superTargetBuilder.function;
     } else {
       // The error in this case should be reported elsewhere. Here we perform a
@@ -450,7 +634,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     List<String>? namedSuperParameters;
 
     Supertype? supertype = hierarchy.getClassAsInstanceOf(
-        classBuilder.cls, superTarget.enclosingClass);
+        classBuilder.cls, superTarget.enclosingClass!);
     assert(supertype != null);
     Map<TypeParameter, DartType> substitution =
         new Map<TypeParameter, DartType>.fromIterables(
@@ -553,7 +737,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
         // We're going to fully build the constructor so we need scopes.
         formalParameterScope = computeFormalParameterInitializerScope(
             computeFormalParameterScope(
-                computeTypeParameterScope(declarationBuilder!.scope)));
+                computeTypeParameterScope(declarationBuilder.scope)));
       } else {
         formalParameterScope = null;
       }
@@ -583,10 +767,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     ConstructorBuilder? superTargetBuilder =
         _computeSuperTargetBuilder(constructor.initializers);
-    if (superTargetBuilder is DeclaredSourceConstructorBuilder) {
-      superTargetBuilder
-          .addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
-    } else if (superTargetBuilder is SyntheticSourceConstructorBuilder) {
+    if (superTargetBuilder is SourceConstructorBuilder) {
       superTargetBuilder
           .addSuperParameterDefaultValueCloners(delayedDefaultValueCloners);
     }
@@ -608,136 +789,15 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
           new TypeParameterType.withDefaultNullabilityForLibrary(
               typeParameter, libraryBuilder.library));
     }
-    DartType type = new InterfaceType(
+    InterfaceType type = new InterfaceType(
         enclosingClass, libraryBuilder.nonNullable, typeParameterTypes);
     returnType.registerInferredType(type);
   }
 
-  @override
   Constructor get constructor => isPatch ? origin.constructor : _constructor;
 
   @override
   Member get member => constructor;
-
-  void injectInvalidInitializer(Message message, int charOffset, int length,
-      ExpressionGeneratorHelper helper) {
-    List<Initializer> initializers = _constructor.initializers;
-    Initializer lastInitializer = initializers.removeLast();
-    assert(lastInitializer == superInitializer ||
-        lastInitializer == redirectingInitializer);
-    Initializer error = helper.buildInvalidInitializer(
-        helper.buildProblem(message, charOffset, length));
-    initializers.add(error..parent = _constructor);
-    initializers.add(lastInitializer);
-  }
-
-  void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
-      {required InitializerInferenceResult? inferenceResult}) {
-    List<Initializer> initializers = _constructor.initializers;
-    if (initializer is SuperInitializer) {
-      if (superInitializer != null) {
-        injectInvalidInitializer(messageMoreThanOneSuperInitializer,
-            initializer.fileOffset, "super".length, helper);
-      } else if (redirectingInitializer != null) {
-        injectInvalidInitializer(
-            messageRedirectingConstructorWithSuperInitializer,
-            initializer.fileOffset,
-            "super".length,
-            helper);
-      } else {
-        inferenceResult?.applyResult(initializers, _constructor);
-        superInitializer = initializer;
-
-        LocatedMessage? message = helper.checkArgumentsForFunction(
-            initializer.target.function,
-            initializer.arguments,
-            initializer.arguments.fileOffset, <TypeParameter>[]);
-        if (message != null) {
-          initializers.add(helper.buildInvalidInitializer(
-              helper.buildUnresolvedError(
-                  helper.constructorNameForDiagnostics(
-                      initializer.target.name.text),
-                  initializer.fileOffset,
-                  arguments: initializer.arguments,
-                  isSuper: true,
-                  message: message,
-                  kind: UnresolvedKind.Constructor))
-            ..parent = _constructor);
-        } else {
-          initializers.add(initializer..parent = _constructor);
-        }
-      }
-    } else if (initializer is RedirectingInitializer) {
-      if (superInitializer != null) {
-        // Point to the existing super initializer.
-        injectInvalidInitializer(
-            messageRedirectingConstructorWithSuperInitializer,
-            superInitializer!.fileOffset,
-            "super".length,
-            helper);
-      } else if (redirectingInitializer != null) {
-        injectInvalidInitializer(
-            messageRedirectingConstructorWithMultipleRedirectInitializers,
-            initializer.fileOffset,
-            noLength,
-            helper);
-      } else if (initializers.isNotEmpty) {
-        // Error on all previous ones.
-        for (int i = 0; i < initializers.length; i++) {
-          Initializer initializer = initializers[i];
-          int length = noLength;
-          if (initializer is AssertInitializer) length = "assert".length;
-          Initializer error = helper.buildInvalidInitializer(
-              helper.buildProblem(
-                  messageRedirectingConstructorWithAnotherInitializer,
-                  initializer.fileOffset,
-                  length));
-          error.parent = _constructor;
-          initializers[i] = error;
-        }
-        inferenceResult?.applyResult(initializers, _constructor);
-        initializers.add(initializer..parent = _constructor);
-        redirectingInitializer = initializer;
-      } else {
-        inferenceResult?.applyResult(initializers, _constructor);
-        redirectingInitializer = initializer;
-
-        LocatedMessage? message = helper.checkArgumentsForFunction(
-            initializer.target.function,
-            initializer.arguments,
-            initializer.arguments.fileOffset, const <TypeParameter>[]);
-        if (message != null) {
-          initializers.add(helper.buildInvalidInitializer(
-              helper.buildUnresolvedError(
-                  helper.constructorNameForDiagnostics(
-                      initializer.target.name.text,
-                      isSuper: false),
-                  initializer.fileOffset,
-                  arguments: initializer.arguments,
-                  isSuper: false,
-                  message: message,
-                  kind: UnresolvedKind.Constructor))
-            ..parent = _constructor);
-        } else {
-          initializers.add(initializer..parent = _constructor);
-        }
-      }
-    } else if (redirectingInitializer != null) {
-      int length = noLength;
-      if (initializer is AssertInitializer) length = "assert".length;
-      injectInvalidInitializer(
-          messageRedirectingConstructorWithAnotherInitializer,
-          initializer.fileOffset,
-          length,
-          helper);
-    } else if (superInitializer != null) {
-      injectInvalidInitializer(messageSuperInitializerNotLast,
-          initializer.fileOffset, noLength, helper);
-    } else {
-      inferenceResult?.applyResult(initializers, _constructor);
-      initializers.add(initializer..parent = _constructor);
-    }
-  }
 
   @override
   VariableDeclaration? getTearOffParameter(int index) {
@@ -802,16 +862,7 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
     _constructor.initializers = [];
     redirectingInitializer = null;
     superInitializer = null;
-    hasMovedSuperInitializer = false;
   }
-
-  @override
-  List<ClassMember> get localMembers =>
-      throw new UnsupportedError('${runtimeType}.localMembers');
-
-  @override
-  List<ClassMember> get localSetters =>
-      throw new UnsupportedError('${runtimeType}.localSetters');
 
   /// Registers field as being initialized by this constructor.
   ///
@@ -845,13 +896,9 @@ class DeclaredSourceConstructorBuilder extends SourceFunctionBuilderImpl
   }
 
   @override
-  void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
-
-  @override
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {
-    library.checkTypesInConstructorBuilder(this, typeEnvironment);
+    super.checkTypes(library, typeEnvironment);
     List<DeclaredSourceConstructorBuilder>? patches = _patches;
     if (patches != null) {
       for (DeclaredSourceConstructorBuilder patch in patches) {
@@ -889,6 +936,9 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
   @override
   SourceLibraryBuilder get libraryBuilder =>
       super.libraryBuilder as SourceLibraryBuilder;
+
+  @override
+  DeclarationBuilder get declarationBuilder => classBuilder!;
 
   @override
   bool get isRedirecting {
@@ -971,4 +1021,151 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
   @override
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {}
+}
+
+class SourceViewConstructorBuilder extends AbstractSourceConstructorBuilder {
+  late final Procedure _constructor;
+  late final Procedure? _constructorTearOff;
+
+  @override
+  final List<Initializer> initializers = [];
+
+  SourceViewConstructorBuilder(
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      OmittedTypeBuilder returnType,
+      String name,
+      List<TypeVariableBuilder>? typeVariables,
+      List<FormalParameterBuilder>? formals,
+      SourceLibraryBuilder compilationUnit,
+      int startCharOffset,
+      int charOffset,
+      int charOpenParenOffset,
+      int charEndOffset,
+      Reference? constructorReference,
+      Reference? tearOffReference,
+      NameScheme nameScheme,
+      {String? nativeMethodName,
+      required bool forAbstractClassOrEnum})
+      : super(
+            metadata,
+            modifiers,
+            returnType,
+            name,
+            typeVariables,
+            formals,
+            compilationUnit,
+            charOffset,
+            charOpenParenOffset,
+            nativeMethodName) {
+    _constructor = new Procedure(
+        dummyName, ProcedureKind.Method, new FunctionNode(null),
+        fileUri: compilationUnit.fileUri, reference: constructorReference)
+      ..fileOffset = charOffset
+      ..fileEndOffset = charEndOffset
+      ..isNonNullableByDefault = compilationUnit.isNonNullableByDefault;
+    nameScheme
+        .getConstructorMemberName(name, isTearOff: false)
+        .attachMember(_constructor);
+    _constructorTearOff = createConstructorTearOffProcedure(
+      name,
+      compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
+      forAbstractClassOrEnum: forAbstractClassOrEnum,
+      // TODO(johnniwinther): Generate tear-off.
+      /*forceCreateLowering: true*/
+    );
+    if (_constructorTearOff != null) {
+      nameScheme
+          .getConstructorMemberName(name, isTearOff: true)
+          .attachMember(_constructorTearOff!);
+    }
+  }
+
+  SourceViewBuilder get viewBuilder => parent as SourceViewBuilder;
+
+  @override
+  Member get member => _constructor;
+
+  @override
+  Member get readTarget => _constructorTearOff ?? _constructor;
+
+  @override
+  Member? get writeTarget => null;
+
+  @override
+  Member get invokeTarget => _constructor;
+
+  @override
+  FunctionNode get function => _constructor.function;
+
+  @override
+  Iterable<Member> get exportedMembers => [_constructor];
+
+  @override
+  void addSuperParameterDefaultValueCloners(
+      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {}
+
+  @override
+  void _inferSuperInitializingFormals(ClassHierarchyBase hierarchy) {}
+
+  @override
+  int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+    // TODO(johnniwinther): Support augmentation.
+    return 0;
+  }
+
+  @override
+  void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
+    _build();
+    f(_constructor, BuiltMemberKind.ViewConstructor);
+    if (_constructorTearOff != null) {
+      f(_constructorTearOff!, BuiltMemberKind.Method);
+    }
+  }
+
+  bool _hasBeenBuilt = false;
+
+  @override
+  void buildFunction() {
+    // According to the specification §9.3 the return type of a constructor
+    // function is its enclosing class.
+    super.buildFunction();
+
+    View view = viewBuilder.view;
+    List<DartType> typeParameterTypes = <DartType>[];
+    for (int i = 0; i < view.typeParameters.length; i++) {
+      TypeParameter typeParameter = view.typeParameters[i];
+      typeParameterTypes.add(
+          new TypeParameterType.withDefaultNullabilityForLibrary(
+              typeParameter, libraryBuilder.library));
+    }
+    ViewType type =
+        new ViewType(view, libraryBuilder.nonNullable, typeParameterTypes);
+    returnType.registerInferredType(type);
+  }
+
+  void _build() {
+    if (!_hasBeenBuilt) {
+      buildFunction();
+      _constructor.function.fileOffset = charOpenParenOffset;
+      _constructor.function.fileEndOffset = _constructor.fileEndOffset;
+      _constructor.function.typeParameters = const <TypeParameter>[];
+      _constructor.isConst = isConst;
+      _constructor.isExternal = isExternal;
+
+      if (_constructorTearOff != null) {
+        buildConstructorTearOffProcedure(
+            tearOff: _constructorTearOff!,
+            declarationConstructor: _constructor,
+            implementationConstructor: _constructor,
+            enclosingDeclarationTypeParameters: viewBuilder.view.typeParameters,
+            libraryBuilder: libraryBuilder);
+      }
+
+      _hasBeenBuilt = true;
+    }
+    _buildFormals(_constructor);
+  }
+
+  // TODO(johnniwinther): Generate initializers and return statement.
 }

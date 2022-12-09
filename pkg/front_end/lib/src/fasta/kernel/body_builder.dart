@@ -1290,7 +1290,7 @@ class BodyBuilder extends StackListenerImpl
         }
       }
     }
-    if (builder is DeclaredSourceConstructorBuilder) {
+    if (builder is AbstractSourceConstructorBuilder) {
       finishConstructor(builder, asyncModifier, body,
           superParametersAsArguments: superParametersAsArguments);
     } else if (builder is SourceProcedureBuilder) {
@@ -1829,8 +1829,8 @@ class BodyBuilder extends StackListenerImpl
       handleNoInitializers();
     }
     if (doFinishConstructor) {
-      DeclaredSourceConstructorBuilder constructorBuilder =
-          member as DeclaredSourceConstructorBuilder;
+      AbstractSourceConstructorBuilder constructorBuilder =
+          member as AbstractSourceConstructorBuilder;
       List<FormalParameterBuilder>? formals = constructorBuilder.formals;
       finishConstructor(constructorBuilder, AsyncMarker.Sync, null,
           superParametersAsArguments: formals != null
@@ -1879,14 +1879,14 @@ class BodyBuilder extends StackListenerImpl
     return arguments;
   }
 
-  void finishConstructor(DeclaredSourceConstructorBuilder builder,
+  void finishConstructor(AbstractSourceConstructorBuilder builder,
       AsyncMarker asyncModifier, Statement? body,
       {required List<Object /* Expression | NamedExpression */ >?
           superParametersAsArguments}) {
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](
     /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf).
-    assert(builder == member);
+    assert(builder == this.member);
     assert(() {
       if (superParametersAsArguments == null) {
         return true;
@@ -1925,7 +1925,8 @@ class BodyBuilder extends StackListenerImpl
         "Expected 'superParametersAsArguments' "
         "to be sorted by occurrence in file.");
 
-    Constructor constructor = builder.actualConstructor;
+    Member member = builder.member;
+    FunctionNode function = builder.function;
     List<FormalParameterBuilder>? formals = builder.formals;
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
@@ -1983,11 +1984,11 @@ class BodyBuilder extends StackListenerImpl
       if (initializers.last is SuperInitializer) {
         SuperInitializer superInitializer =
             initializers.last as SuperInitializer;
-        if (builder.classBuilder.isEnum) {
+        if (builder.declarationBuilder.isEnum) {
           initializers[initializers.length - 1] = buildInvalidInitializer(
               buildProblem(fasta.messageEnumConstructorSuperInitializer,
                   superInitializer.fileOffset, noLength))
-            ..parent = constructor;
+            ..parent = member;
         } else if (libraryFeatures.superParameters.isEnabled) {
           ArgumentsImpl arguments = superInitializer.arguments as ArgumentsImpl;
 
@@ -2029,10 +2030,10 @@ class BodyBuilder extends StackListenerImpl
           ArgumentsImpl arguments =
               redirectingInitializer.arguments as ArgumentsImpl;
           List<Expression> enumSyntheticArguments = [
-            new VariableGetImpl(constructor.function.positionalParameters[0],
+            new VariableGetImpl(function.positionalParameters[0],
                 forNullGuardedAccess: false)
               ..parent = redirectingInitializer.arguments,
-            new VariableGetImpl(constructor.function.positionalParameters[1],
+            new VariableGetImpl(function.positionalParameters[1],
                 forNullGuardedAccess: false)
               ..parent = redirectingInitializer.arguments
           ];
@@ -2057,8 +2058,9 @@ class BodyBuilder extends StackListenerImpl
       }
     }
 
+    List<Initializer> builtInitializers = builder.initializers;
     if (asyncModifier != AsyncMarker.Sync) {
-      constructor.initializers.add(buildInvalidInitializer(buildProblem(
+      builtInitializers.add(buildInvalidInitializer(buildProblem(
           fasta.messageConstructorNotSync, body!.fileOffset, noLength)));
     }
     if (needsImplicitSuperInitializer) {
@@ -2075,13 +2077,13 @@ class BodyBuilder extends StackListenerImpl
         namedArguments = namedSuperParametersAsArguments;
       }
       if (sourceClassBuilder is SourceEnumBuilder) {
-        assert(constructor.function.positionalParameters.length >= 2 &&
-            constructor.function.positionalParameters[0].name == "#index" &&
-            constructor.function.positionalParameters[1].name == "#name");
+        assert(function.positionalParameters.length >= 2 &&
+            function.positionalParameters[0].name == "#index" &&
+            function.positionalParameters[1].name == "#name");
         (positionalArguments ??= <Expression>[]).insertAll(0, [
-          new VariableGetImpl(constructor.function.positionalParameters[0],
+          new VariableGetImpl(function.positionalParameters[0],
               forNullGuardedAccess: false),
-          new VariableGetImpl(constructor.function.positionalParameters[1],
+          new VariableGetImpl(function.positionalParameters[1],
               forNullGuardedAccess: false)
         ]);
       }
@@ -2104,9 +2106,9 @@ class BodyBuilder extends StackListenerImpl
               null) {
         String superclass =
             sourceClassBuilder!.supertypeBuilder!.fullNameForErrors;
-        int length = constructor.name.text.length;
+        int length = builder.name.length;
         if (length == 0) {
-          length = (constructor.parent as Class).name.length;
+          length = sourceClassBuilder!.cls.name.length;
         }
         initializer = buildInvalidInitializer(
             buildProblem(
@@ -2125,16 +2127,15 @@ class BodyBuilder extends StackListenerImpl
         builder.addInitializer(initializer, this,
             inferenceResult: inferenceResult);
       } else {
-        constructor.initializers.add(initializer);
+        builtInitializers.add(initializer);
       }
     }
-    setParents(constructor.initializers, constructor);
+    setParents(builtInitializers, member);
     if (body == null) {
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
       /// We use an empty statement instead.
-      constructor.function.body = new EmptyStatement()
-        ..parent = constructor.function;
+      function.body = new EmptyStatement()..parent = function;
     }
   }
 

@@ -178,6 +178,7 @@ enum BuiltMemberKind {
   ExtensionSetter,
   ExtensionOperator,
   ExtensionTearOff,
+  ViewConstructor,
   ViewMethod,
   ViewGetter,
   ViewSetter,
