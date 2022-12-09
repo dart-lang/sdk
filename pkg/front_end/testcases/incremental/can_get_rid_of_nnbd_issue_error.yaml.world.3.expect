@@ -2,8 +2,7 @@ main = main::main;
 //
 // Problems in component:
 //
-// Error: Cannot run with sound null safety, because the following dependencies
-// don't support null safety:
+// Error: The following dependencies don't support null safety:
 //
 //  - package:bar
 //

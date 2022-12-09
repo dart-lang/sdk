@@ -9382,7 +9382,7 @@ const Template<Message Function(String string2)>
     templateNullSafetyDisabledInvalidLanguageVersion =
     const Template<Message Function(String string2)>(
         problemMessageTemplate:
-            r"""This requires the null safety language feature, which requires language version of #string2 or higher.""",
+            r"""This requires null safety, which requires language version of #string2 or higher.""",
         withArguments: _withArgumentsNullSafetyDisabledInvalidLanguageVersion);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -9397,7 +9397,7 @@ Message _withArgumentsNullSafetyDisabledInvalidLanguageVersion(String string2) {
   if (string2.isEmpty) throw 'No string provided';
   return new Message(codeNullSafetyDisabledInvalidLanguageVersion,
       problemMessage:
-          """This requires the null safety language feature, which requires language version of ${string2} or higher.""",
+          """This requires null safety, which requires language version of ${string2} or higher.""",
       arguments: {'string2': string2});
 }
 
@@ -9417,8 +9417,7 @@ const Template<
         String
             string)> templateNullSafetyOptOutExplicit = const Template<
         Message Function(String string)>(
-    problemMessageTemplate:
-        r"""Null safety features are disabled for this library.""",
+    problemMessageTemplate: r"""Null safety is disabled for this library.""",
     correctionMessageTemplate:
         r"""Try removing the `@dart=` annotation or setting the language version to #string or higher.""",
     withArguments: _withArgumentsNullSafetyOptOutExplicit);
@@ -9433,7 +9432,7 @@ const Code<Message Function(String string)> codeNullSafetyOptOutExplicit =
 Message _withArgumentsNullSafetyOptOutExplicit(String string) {
   if (string.isEmpty) throw 'No string provided';
   return new Message(codeNullSafetyOptOutExplicit,
-      problemMessage: """Null safety features are disabled for this library.""",
+      problemMessage: """Null safety is disabled for this library.""",
       correctionMessage:
           """Try removing the `@dart=` annotation or setting the language version to ${string} or higher.""",
       arguments: {'string': string});
@@ -9445,8 +9444,7 @@ const Template<
         String
             string)> templateNullSafetyOptOutImplicit = const Template<
         Message Function(String string)>(
-    problemMessageTemplate:
-        r"""Null safety features are disabled for this library.""",
+    problemMessageTemplate: r"""Null safety is disabled for this library.""",
     correctionMessageTemplate:
         r"""Try removing the package language version or setting the language version to #string or higher.""",
     withArguments: _withArgumentsNullSafetyOptOutImplicit);
@@ -9461,7 +9459,7 @@ const Code<Message Function(String string)> codeNullSafetyOptOutImplicit =
 Message _withArgumentsNullSafetyOptOutImplicit(String string) {
   if (string.isEmpty) throw 'No string provided';
   return new Message(codeNullSafetyOptOutImplicit,
-      problemMessage: """Null safety features are disabled for this library.""",
+      problemMessage: """Null safety is disabled for this library.""",
       correctionMessage:
           """Try removing the package language version or setting the language version to ${string} or higher.""",
       arguments: {'string': string});
@@ -10997,23 +10995,19 @@ const Code<Null> codeStrongModeNNBDButOptOut = messageStrongModeNNBDButOptOut;
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode messageStrongModeNNBDButOptOut = const MessageCode(
     "StrongModeNNBDButOptOut",
-    problemMessage:
-        r"""A library can't opt out of null safety by default, when using sound null safety.""");
+    problemMessage: r"""Library doesn't support null safety.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Template<
-    Message Function(
-        List<String>
-            _names)> templateStrongModeNNBDPackageOptOut = const Template<
-        Message Function(List<String> _names)>(
-    problemMessageTemplate:
-        r"""Cannot run with sound null safety, because the following dependencies
-don't support null safety:
+const Template<Message Function(List<String> _names)>
+    templateStrongModeNNBDPackageOptOut =
+    const Template<Message Function(List<String> _names)>(
+        problemMessageTemplate:
+            r"""The following dependencies don't support null safety:
 
 #names
 
 For solutions, see https://dart.dev/go/unsound-null-safety""",
-    withArguments: _withArgumentsStrongModeNNBDPackageOptOut);
+        withArguments: _withArgumentsStrongModeNNBDPackageOptOut);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(List<String> _names)>
@@ -11027,9 +11021,7 @@ Message _withArgumentsStrongModeNNBDPackageOptOut(List<String> _names) {
   if (_names.isEmpty) throw 'No names provided';
   String names = itemizeNames(_names);
   return new Message(codeStrongModeNNBDPackageOptOut,
-      problemMessage:
-          """Cannot run with sound null safety, because the following dependencies
-don't support null safety:
+      problemMessage: """The following dependencies don't support null safety:
 
 ${names}
 

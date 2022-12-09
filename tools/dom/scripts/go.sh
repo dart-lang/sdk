@@ -37,3 +37,13 @@ fi
 
 reset && \
 vpython3 ./dartdomgenerator.py --systems="$SYSTEMS" --logging=40 --update-dom-metadata --gen-interop "$ARG_OPTION"
+
+# Build the platform dill to be used by the bindings emitter.
+cd ../../..
+./tools/build.py -m release compile_dart2js_platform
+cd ./tools/dom/scripts
+
+# Calculate, emit, and format the bindings.
+BINDINGS="../web_library_bindings.dart"
+dart ./web_library_bindings_emitter.dart $BINDINGS
+dart format $BINDINGS

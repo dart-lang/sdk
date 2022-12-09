@@ -14,7 +14,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
     as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -487,6 +486,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   DartType get objectQuestionType => typeSystem.objectQuestion;
 
+  @override
+  Operations<PromotableElement, DartType> get operations =>
+      flowAnalysis.typeOperations;
+
   /// Gets the current depth of the [_rewriteStack].  This may be used in
   /// assertions to verify that pushes and pops are properly balanced.
   int get rewriteStackDepth => _rewriteStack.length;
@@ -500,9 +503,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   DartType? get thisType {
     return _thisType;
   }
-
-  @override
-  TypeOperations<DartType> get typeOperations => flowAnalysis.typeOperations;
 
   @override
   DartType get unknownType => UnknownInferredType.instance;

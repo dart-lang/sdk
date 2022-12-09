@@ -187,6 +187,14 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// A function parameter is always initialized, so [initialized] is `true`.
   void declare(Variable variable, bool initialized);
 
+  /// Call this method after visiting a variable pattern in a non-assignment
+  /// context (or a wildcard pattern).
+  ///
+  /// [matchedType] should be the static type of the value being matched.
+  /// [staticType] should be the static type of the variable pattern itself.
+  void declaredVariablePattern(
+      {required Type matchedType, required Type staticType});
+
   /// Call this method before visiting the body of a "do-while" statement.
   /// [doStatement] should be the same node that was passed to
   /// [AssignedVariables.endNode] for the do-while statement.
@@ -518,6 +526,15 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   void parenthesizedExpression(
       Expression outerExpression, Expression innerExpression);
 
+  /// Call this method just after visiting the right hand side of a pattern
+  /// assignment expression, and before visiting the pattern.
+  ///
+  /// [rhs] is the right hand side expression.
+  void patternAssignment_afterRhs(Expression rhs);
+
+  /// Call this method after visiting a pattern assignment expression.
+  void patternAssignment_end();
+
   /// Call this method just after visiting the initializer of a pattern variable
   /// declaration, and before visiting the pattern.
   void patternVariableDeclaration_afterInitializer(Expression initializer);
@@ -583,6 +600,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   @visibleForTesting
   SsaNode<Type>? ssaNodeForTesting(Variable variable);
 
+  /// Call this method just after visiting a `case` or `default` body.  See
+  /// [switchStatement_expressionEnd] for details.
+  void switchStatement_afterCase();
+
   /// Call this method just before visiting a `case` or `default` clause.  See
   /// [switchStatement_expressionEnd] for details.
   void switchStatement_beginAlternative();
@@ -633,6 +654,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   ///     - Call [switchStatement_endAlternative].
   ///   - Call [switchStatement_endAlternatives].
   ///   - Visit the case body.
+  ///   - Call [switchStatement_afterCase].
   /// - Call [switchStatement_end].
   ///
   /// [scrutinee] should be the expression appearing in parentheses after the
@@ -745,12 +767,6 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// [AssignedVariables.endNode] for the "try" part of the try/finally
   /// statement.
   void tryFinallyStatement_finallyBegin(Node body);
-
-  /// Call this method after visiting a variable pattern.
-  ///
-  /// [matchedType] should be the static type of the value being matched.
-  /// [staticType] should be the static type of the variable pattern itself.
-  void variablePattern({required Type matchedType, required Type staticType});
 
   /// Call this method when encountering an expression that reads the value of
   /// a variable.
@@ -948,6 +964,16 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   void declare(Variable variable, bool initialized) {
     _wrap('declare($variable, $initialized)',
         () => _wrapped.declare(variable, initialized));
+  }
+
+  @override
+  void declaredVariablePattern(
+      {required Type matchedType, required Type staticType}) {
+    _wrap(
+        'declaredVariablePattern(matchedType: $matchedType, '
+        'staticType: $staticType)',
+        () => _wrapped.declaredVariablePattern(
+            matchedType: matchedType, staticType: staticType));
   }
 
   @override
@@ -1244,6 +1270,17 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
+  void patternAssignment_afterRhs(Expression rhs) {
+    _wrap('patternAssignment_afterRhs($rhs)',
+        () => _wrapped.patternAssignment_afterRhs(rhs));
+  }
+
+  @override
+  void patternAssignment_end() {
+    _wrap('patternAssignment_end()', () => _wrapped.patternAssignment_end());
+  }
+
+  @override
   void patternVariableDeclaration_afterInitializer(Expression initializer) {
     _wrap(
         'patternVariableDeclaration_afterInitializer($initializer)',
@@ -1292,6 +1329,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
     return _wrap('ssaNodeForTesting($variable)',
         () => _wrapped.ssaNodeForTesting(variable),
         isQuery: true);
+  }
+
+  @override
+  void switchStatement_afterCase() {
+    _wrap('switchStatement_afterCase()',
+        () => _wrapped.switchStatement_afterCase());
   }
 
   @override
@@ -1403,14 +1446,6 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   void tryFinallyStatement_finallyBegin(Node body) {
     return _wrap('tryFinallyStatement_finallyBegin($body)',
         () => _wrapped.tryFinallyStatement_finallyBegin(body));
-  }
-
-  @override
-  void variablePattern({required Type matchedType, required Type staticType}) {
-    _wrap(
-        'variablePattern(matchedType: $matchedType, staticType: $staticType)',
-        () => _wrapped.variablePattern(
-            matchedType: matchedType, staticType: staticType));
   }
 
   @override
@@ -3372,6 +3407,25 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  void declaredVariablePattern(
+      {required Type matchedType, required Type staticType}) {
+    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
+    ReferenceWithType<Type>? scrutineeReference = context._scrutineeReference;
+    bool coversMatchedType =
+        typeOperations.isSubtypeOf(matchedType, staticType);
+    if (scrutineeReference != null) {
+      ExpressionInfo<Type> promotionInfo =
+          _current.tryPromoteForTypeCheck(this, scrutineeReference, staticType);
+      _current = promotionInfo.ifTrue;
+      if (!coversMatchedType) {
+        context._unmatched = _join(context._unmatched, promotionInfo.ifFalse);
+      }
+    } else if (!coversMatchedType) {
+      context._unmatched = _join(context._unmatched, _current);
+    }
+  }
+
+  @override
   void doStatement_bodyBegin(Statement doStatement) {
     AssignedVariablesNodeInfo info =
         _assignedVariables.getInfoForNode(doStatement);
@@ -3849,6 +3903,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  void patternAssignment_afterRhs(Expression rhs) {
+    _pushPattern(_getExpressionReference(rhs));
+  }
+
+  @override
+  void patternAssignment_end() {
+    _popPattern(null);
+  }
+
+  @override
   void patternVariableDeclaration_afterInitializer(Expression initializer) {
     _pushPattern(_getExpressionReference(initializer));
   }
@@ -3885,6 +3949,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       .variableInfo[promotionKeyStore.keyForVariable(variable)]?.ssaNode;
 
   @override
+  void switchStatement_afterCase() {
+    _SwitchStatementContext<Type> context =
+        _stack.last as _SwitchStatementContext<Type>;
+    context._breakModel = _join(context._breakModel, _current);
+  }
+
+  @override
   void switchStatement_beginAlternative() {
     _SwitchAlternativesContext<Type> context =
         _stack.last as _SwitchAlternativesContext<Type>;
@@ -3906,12 +3977,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         _stack.removeLast() as _SimpleStatementContext<Type>;
     FlowModel<Type>? breakState = context._breakModel;
 
-    // It is allowed to "fall off" the end of a switch statement, so join the
-    // current state to any breaks that were found previously.
-    breakState = _join(breakState, _current);
-
-    // And, if there is an implicit fall-through default, join it to any breaks.
+    // If there is an implicit fall-through default, join it to any breaks.
     if (!isExhaustive) breakState = _join(breakState, context._previous);
+
+    // If there were no breaks (neither implicit nor explicit), then
+    // `breakState` will be `null`.  This means this is an empty switch
+    // statement and the type of the scrutinee is an exhaustive type.  This
+    // could happen, for instance, if the scrutinee type is the empty record
+    // type.  We need to consider the code after the switch statement reachable
+    // if this happens.
+    breakState ??= context._previous;
 
     _current = breakState.unsplit();
   }
@@ -4046,24 +4121,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _current = _join(_current,
         context._previous.conservativeJoin(this, info.written, info.captured));
     context._beforeFinally = _current;
-  }
-
-  @override
-  void variablePattern({required Type matchedType, required Type staticType}) {
-    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
-    ReferenceWithType<Type>? scrutineeReference = context._scrutineeReference;
-    bool coversMatchedType =
-        typeOperations.isSubtypeOf(matchedType, staticType);
-    if (scrutineeReference != null) {
-      ExpressionInfo<Type> promotionInfo =
-          _current.tryPromoteForTypeCheck(this, scrutineeReference, staticType);
-      _current = promotionInfo.ifTrue;
-      if (!coversMatchedType) {
-        context._unmatched = _join(context._unmatched, promotionInfo.ifFalse);
-      }
-    } else if (!coversMatchedType) {
-      context._unmatched = _join(context._unmatched, _current);
-    }
   }
 
   @override
@@ -4511,6 +4568,10 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void declare(Variable variable, bool initialized) {}
 
   @override
+  void declaredVariablePattern(
+      {required Type matchedType, required Type staticType}) {}
+
+  @override
   void doStatement_bodyBegin(Statement doStatement) {}
 
   @override
@@ -4779,6 +4840,12 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
+  void patternAssignment_afterRhs(Expression rhs) {}
+
+  @override
+  void patternAssignment_end() {}
+
+  @override
   void patternVariableDeclaration_afterInitializer(Expression initializer) {}
 
   @override
@@ -4804,6 +4871,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   SsaNode<Type>? ssaNodeForTesting(Variable variable) {
     throw new StateError('ssaNodeForTesting requires null-aware flow analysis');
   }
+
+  @override
+  void switchStatement_afterCase() {}
 
   @override
   void switchStatement_beginAlternative() {}
@@ -4857,9 +4927,6 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void tryFinallyStatement_finallyBegin(Node body) {}
-
-  @override
-  void variablePattern({required Type matchedType, required Type staticType}) {}
 
   @override
   Type? variableRead(Expression expression, Variable variable) {

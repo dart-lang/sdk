@@ -539,7 +539,8 @@ class ExpressionCase extends Node {
   void _preVisit(PreVisitor visitor) {
     var variableBinder = _VariableBinder(errors: visitor.errors);
     variableBinder.casePatternStart();
-    guardedPattern?.pattern.preVisit(visitor, variableBinder);
+    guardedPattern?.pattern
+        .preVisit(visitor, variableBinder, isInAssignment: false);
     variableBinder.casePatternFinish();
     variableBinder.finish();
     expression.preVisit(visitor);
@@ -1251,6 +1252,10 @@ abstract class Pattern extends Node
   Pattern as_(String type) =>
       new _CastPattern(this, Type(type), location: computeLocation());
 
+  /// Creates a pattern assignment expression assigning [rhs] to this pattern.
+  Expression assign(Expression rhs) =>
+      _PatternAssignment(this, rhs, location: computeLocation());
+
   Type computeSchema(Harness h);
 
   Pattern or(Pattern other) =>
@@ -1633,8 +1638,9 @@ class _CastPattern extends Pattern {
   Type computeSchema(Harness h) => h.typeAnalyzer.analyzeCastPatternSchema();
 
   @override
-  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
-    _inner.preVisit(visitor, variableBinder);
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {
+    _inner.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
   }
 
   @override
@@ -1980,7 +1986,8 @@ class _ConstantPattern extends Pattern {
       h.typeAnalyzer.analyzeConstantPatternSchema();
 
   @override
-  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {
     constant.preVisit(visitor);
   }
 
@@ -2029,7 +2036,7 @@ class _Declare extends Statement {
   void preVisit(PreVisitor visitor) {
     var variableBinder = _VariableBinder(errors: visitor.errors);
     variableBinder.casePatternStart();
-    pattern.preVisit(visitor, variableBinder);
+    pattern.preVisit(visitor, variableBinder, isInAssignment: false);
     variableBinder.casePatternFinish();
     variableBinder.finish();
     if (isLate) {
@@ -2062,7 +2069,7 @@ class _Declare extends Statement {
       var staticType = h.typeAnalyzer.analyzeUninitializedVariableDeclaration(
           this, pattern.variable!, pattern.declaredType,
           isFinal: isFinal, isLate: isLate);
-      h.typeAnalyzer.handleVariablePattern(pattern,
+      h.typeAnalyzer.handleDeclaredVariablePattern(pattern,
           matchedType: staticType, staticType: staticType);
       irName = 'declare';
       argKinds = [Kind.pattern];
@@ -2394,7 +2401,7 @@ class _IfCase extends _IfBase {
     _expression.preVisit(visitor);
     var variableBinder = _VariableBinder(errors: visitor.errors);
     variableBinder.casePatternStart();
-    _pattern.preVisit(visitor, variableBinder);
+    _pattern.preVisit(visitor, variableBinder, isInAssignment: false);
     _candidateVariables = variableBinder.casePatternFinish();
     variableBinder.finish();
     _guard?.preVisit(visitor);
@@ -2438,7 +2445,7 @@ class _IfCaseElement extends _IfElementBase {
     _expression.preVisit(visitor);
     var variableBinder = _VariableBinder(errors: visitor.errors);
     variableBinder.casePatternStart();
-    _pattern.preVisit(visitor, variableBinder);
+    _pattern.preVisit(visitor, variableBinder, isInAssignment: false);
     variableBinder.casePatternFinish();
     variableBinder.finish();
     _guard?.preVisit(visitor);
@@ -2626,7 +2633,8 @@ class _LabeledStatement extends Statement {
 }
 
 abstract class _ListOrMapPatternElement implements Node {
-  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder);
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment});
 
   String _debugString({required bool needsKeywordOrType});
 }
@@ -2644,9 +2652,10 @@ class _ListPattern extends Pattern {
       .analyzeListPatternSchema(elementType: _elementType, elements: _elements);
 
   @override
-  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {
     for (var element in _elements) {
-      element.preVisit(visitor, variableBinder);
+      element.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
     }
   }
 
@@ -2749,15 +2758,16 @@ class _LogicalPattern extends Pattern {
       h.typeAnalyzer.analyzeLogicalPatternSchema(_lhs, _rhs, isAnd: isAnd);
 
   @override
-  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {
     if (isAnd) {
-      _lhs.preVisit(visitor, variableBinder);
-      _rhs.preVisit(visitor, variableBinder);
+      _lhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
+      _rhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
     } else {
       variableBinder.logicalOrPatternStart();
-      _lhs.preVisit(visitor, variableBinder);
+      _lhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
       variableBinder.logicalOrPatternFinishLeft();
-      _rhs.preVisit(visitor, variableBinder);
+      _rhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
       variableBinder.logicalOrPatternFinish(this);
     }
   }
@@ -2813,9 +2823,10 @@ class _MapPattern extends Pattern {
       typeArguments: _typeArguments, elements: _elements);
 
   @override
-  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {
     for (var element in _elements) {
-      element.preVisit(visitor, variableBinder);
+      element.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
     }
   }
 
@@ -2856,8 +2867,9 @@ class _MapPatternEntry extends Node implements MapPatternElement {
   _MapPatternEntry(this.key, this.value, {required super.location}) : super._();
 
   @override
-  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
-    value.preVisit(visitor, variableBinder);
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {
+    value.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
   }
 
   @override
@@ -3065,10 +3077,10 @@ class _MiniAstTypeAnalyzer
   FlowAnalysis<Node, Statement, Expression, Var, Type> get flow =>
       _harness.flow;
 
-  Type get thisType => _harness._thisType!;
-
   @override
-  MiniAstOperations get typeOperations => _harness._operations;
+  MiniAstOperations get operations => _harness._operations;
+
+  Type get thisType => _harness._thisType!;
 
   void analyzeAssertStatement(
       Statement node, Expression condition, Expression? message) {
@@ -3372,7 +3384,7 @@ class _MiniAstTypeAnalyzer
     if (requiredType.args.isNotEmpty) {
       return requiredType;
     } else {
-      return typeOperations.downwardInfer(requiredType.name, matchedType);
+      return operations.downwardInfer(requiredType.name, matchedType);
     }
   }
 
@@ -3491,6 +3503,15 @@ class _MiniAstTypeAnalyzer
     );
   }
 
+  void handleAssignedVariablePattern(covariant _VariablePattern node) {
+    _irBuilder.atom(node.variable!.name, Kind.variable,
+        location: node.location);
+    _irBuilder.apply('assignedVarPattern', [Kind.variable], Kind.pattern,
+        location: node.location);
+    assert(node.expectInferredType == null,
+        "assigned variable patterns don't get an inferred type");
+  }
+
   @override
   void handleCase_afterCaseHeads(
       covariant _SwitchStatement node, int caseIndex, Iterable<Var> variables) {
@@ -3522,6 +3543,21 @@ class _MiniAstTypeAnalyzer
       {required int caseIndex, required int subIndex}) {
     _irBuilder.apply('head', [Kind.pattern, Kind.expression], Kind.caseHead,
         location: node.location);
+  }
+
+  void handleDeclaredVariablePattern(covariant _VariablePattern node,
+      {required Type matchedType, required Type staticType}) {
+    _irBuilder.atom(node.variable?.name ?? '_', Kind.variable,
+        location: node.location);
+    _irBuilder.atom(matchedType.type, Kind.type, location: node.location);
+    _irBuilder.atom(staticType.type, Kind.type, location: node.location);
+    _irBuilder.apply(
+        'varPattern', [Kind.variable, Kind.type, Kind.type], Kind.pattern,
+        names: ['matchedType', 'staticType'], location: node.location);
+    var expectInferredType = node.expectInferredType;
+    if (expectInferredType != null) {
+      expect(staticType.type, expectInferredType);
+    }
   }
 
   @override
@@ -3609,21 +3645,6 @@ class _MiniAstTypeAnalyzer
 
   @override
   void handleSwitchScrutinee(Type type) {}
-
-  void handleVariablePattern(covariant _VariablePattern node,
-      {required Type matchedType, required Type staticType}) {
-    _irBuilder.atom(node.variable?.name ?? '_', Kind.variable,
-        location: node.location);
-    _irBuilder.atom(matchedType.type, Kind.type, location: node.location);
-    _irBuilder.atom(staticType.type, Kind.type, location: node.location);
-    _irBuilder.apply(
-        'varPattern', [Kind.variable, Kind.type, Kind.type], Kind.pattern,
-        names: ['matchedType', 'staticType'], location: node.location);
-    var expectInferredType = node.expectInferredType;
-    if (expectInferredType != null) {
-      expect(staticType.type, expectInferredType);
-    }
-  }
 
   @override
   bool isRestPatternElement(Node element) {
@@ -3807,8 +3828,9 @@ class _NullCheckOrAssertPattern extends Pattern {
       .analyzeNullCheckOrAssertPatternSchema(_inner, isAssert: _isAssert);
 
   @override
-  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
-    _inner.preVisit(visitor, variableBinder);
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {
+    _inner.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
   }
 
   @override
@@ -3864,12 +3886,11 @@ class _ObjectPattern extends Pattern {
   }
 
   @override
-  void preVisit(
-    PreVisitor visitor,
-    VariableBinder<Node, Var> variableBinder,
-  ) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {
     for (var field in fields) {
-      field.pattern.preVisit(visitor, variableBinder);
+      field.pattern
+          .preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
     }
   }
 
@@ -3919,6 +3940,32 @@ class _ParenthesizedExpression extends Expression {
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     return h.typeAnalyzer.analyzeParenthesizedExpression(this, expr, context);
+  }
+}
+
+class _PatternAssignment extends Expression {
+  final Pattern _pattern;
+  final Expression _rhs;
+
+  _PatternAssignment(this._pattern, this._rhs, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    var variableBinder = _VariableBinder(errors: visitor.errors);
+    variableBinder.casePatternStart();
+    _pattern.preVisit(visitor, variableBinder, isInAssignment: true);
+    variableBinder.casePatternFinish();
+    variableBinder.finish();
+    _rhs.preVisit(visitor);
+  }
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    var result = h.typeAnalyzer.analyzePatternAssignment(this, _pattern, _rhs);
+    h.irBuilder.apply(
+        'patternAssignment', [Kind.expression, Kind.pattern], Kind.expression,
+        location: location);
+    return result;
   }
 }
 
@@ -3998,12 +4045,11 @@ class _RecordPattern extends Pattern {
   }
 
   @override
-  void preVisit(
-    PreVisitor visitor,
-    VariableBinder<Node, Var> variableBinder,
-  ) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {
     for (var field in fields) {
-      field.pattern.preVisit(visitor, variableBinder);
+      field.pattern
+          .preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
     }
   }
 
@@ -4048,7 +4094,8 @@ class _RelationalPattern extends Pattern {
       h.typeAnalyzer.analyzeRelationalPatternSchema();
 
   @override
-  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {
     operand.preVisit(visitor);
   }
 
@@ -4077,8 +4124,9 @@ class _RestPatternElement extends Node
   _RestPatternElement(this._pattern, {required super.location}) : super._();
 
   @override
-  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
-    _pattern?.preVisit(visitor, variableBinder);
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {
+    _pattern?.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
   }
 
   @override
@@ -4255,7 +4303,8 @@ class _SwitchStatementMember extends Node {
     for (SwitchHead element in elements) {
       if (element is _SwitchHeadCase) {
         variableBinder.casePatternStart();
-        element.guardedPattern.pattern.preVisit(visitor, variableBinder);
+        element.guardedPattern.pattern
+            .preVisit(visitor, variableBinder, isInAssignment: false);
         element.guardedPattern.guard?.preVisit(visitor);
         element.guardedPattern.variables = variableBinder.casePatternFinish(
           sharedCaseScopeKey: this,
@@ -4441,19 +4490,34 @@ class _VariablePattern extends Pattern {
 
   final String? expectInferredType;
 
+  late bool isAssignedVariable;
+
   _VariablePattern(this.declaredType, this.variable, this.expectInferredType,
       {required super.location})
       : super._();
 
   @override
-  Type computeSchema(Harness h) =>
-      h.typeAnalyzer.analyzeVariablePatternSchema(declaredType);
+  Type computeSchema(Harness h) {
+    if (isAssignedVariable) {
+      return h.typeAnalyzer.analyzeAssignedVariablePatternSchema(variable!);
+    } else {
+      return h.typeAnalyzer.analyzeDeclaredVariablePatternSchema(declaredType);
+    }
+  }
 
   @override
-  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder) {
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {
     var variable = this.variable;
-    if (variable != null && variableBinder.add(variable.name, variable)) {
+    isAssignedVariable = isInAssignment && variable != null;
+    if (!isAssignedVariable &&
+        variable != null &&
+        variableBinder.add(variable.name, variable)) {
       visitor._assignedVariables.declare(variable);
+    }
+    if (isAssignedVariable) {
+      assert(declaredType == null,
+          "Variables in pattern assignments can't have declared types");
     }
   }
 
@@ -4463,10 +4527,16 @@ class _VariablePattern extends Pattern {
     Type matchedType,
     SharedMatchContext context,
   ) {
-    var staticType = h.typeAnalyzer.analyzeVariablePattern(
-        matchedType, context, this, variable, variable?.name, declaredType);
-    h.typeAnalyzer.handleVariablePattern(this,
-        matchedType: matchedType, staticType: staticType);
+    if (isAssignedVariable) {
+      h.typeAnalyzer.analyzeAssignedVariablePattern(
+          matchedType, context, this, variable!);
+      h.typeAnalyzer.handleAssignedVariablePattern(this);
+    } else {
+      var staticType = h.typeAnalyzer.analyzeDeclaredVariablePattern(
+          matchedType, context, this, variable, variable?.name, declaredType);
+      h.typeAnalyzer.handleDeclaredVariablePattern(this,
+          matchedType: matchedType, staticType: staticType);
+    }
   }
 
   @override

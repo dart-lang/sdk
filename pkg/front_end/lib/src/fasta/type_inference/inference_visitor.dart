@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     hide NamedType, RecordType;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
@@ -98,7 +97,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Class? mapEntryClass;
 
   @override
-  final TypeOperations<DartType> typeOperations;
+  final Operations<VariableDeclaration, DartType> operations;
 
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
@@ -133,7 +132,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       helper: helper, uriForInstrumentation: uriForInstrumentation);
 
   InferenceVisitorImpl(
-      TypeInferrerImpl inferrer, InferenceHelper helper, this.typeOperations)
+      TypeInferrerImpl inferrer, InferenceHelper helper, this.operations)
       : options = new TypeAnalyzerOptions(
             nullSafetyEnabled: inferrer.libraryBuilder.isNonNullableByDefault,
             patternsEnabled: false),
@@ -8816,8 +8815,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    DartType inferredType = analyzeVariablePattern(matchedType, context, binder,
-        binder.variable, binder.variable.name, binder.type);
+    DartType inferredType = analyzeDeclaredVariablePattern(matchedType, context,
+        binder, binder.variable, binder.variable.name, binder.type);
     instrumentation?.record(uriForInstrumentation, binder.variable.fileOffset,
         'type', new InstrumentationValueForType(inferredType));
     if (binder.type == null) {

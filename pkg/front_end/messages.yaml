@@ -306,7 +306,7 @@ ExperimentDisabled:
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 NullSafetyDisabledInvalidLanguageVersion:
-  problemMessage: "This requires the null safety language feature, which requires language version of #string2 or higher."
+  problemMessage: "This requires null safety, which requires language version of #string2 or higher."
   analyzerCode: ParserErrorCode.EXPERIMENT_NOT_ENABLED
 
 ExperimentDisabledInvalidLanguageVersion:
@@ -1591,12 +1591,11 @@ Unspecified:
   problemMessage: "#string"
 
 StrongModeNNBDButOptOut:
-  problemMessage: "A library can't opt out of null safety by default, when using sound null safety."
+  problemMessage: "Library doesn't support null safety."
 
 StrongModeNNBDPackageOptOut:
   problemMessage:  |
-    Cannot run with sound null safety, because the following dependencies
-    don't support null safety:
+    The following dependencies don't support null safety:
 
     #names
 
@@ -5173,7 +5172,7 @@ FieldNonNullableNotInitializedByConstructorError:
   problemMessage: "This constructor should initialize field '#name' because its type '#type' doesn't allow null."
 
 NullSafetyOptOutExplicit:
-  problemMessage: "Null safety features are disabled for this library."
+  problemMessage: "Null safety is disabled for this library."
   correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string or higher."
 
 ExperimentOptOutExplicit:
@@ -5181,7 +5180,7 @@ ExperimentOptOutExplicit:
   correctionMessage: "Try removing the `@dart=` annotation or setting the language version to #string2 or higher."
 
 NullSafetyOptOutImplicit:
-  problemMessage: "Null safety features are disabled for this library."
+  problemMessage: "Null safety is disabled for this library."
   correctionMessage: "Try removing the package language version or setting the language version to #string or higher."
 
 NullSafetyOptOutComment:
