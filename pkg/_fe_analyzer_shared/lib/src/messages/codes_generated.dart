@@ -2219,16 +2219,6 @@ const MessageCode messageDeclaredMemberConflictsWithOverriddenMembersCause =
         problemMessage: r"""This is one of the overridden members.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const Code<Null> codeDefaultListConstructorError =
-    messageDefaultListConstructorError;
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode messageDefaultListConstructorError = const MessageCode(
-    "DefaultListConstructorError",
-    problemMessage: r"""Can't use the default List constructor.""",
-    correctionMessage: r"""Try using List.filled instead.""");
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)>
     templateDefaultValueInRedirectingFactoryConstructor =
     const Template<Message Function(String name)>(

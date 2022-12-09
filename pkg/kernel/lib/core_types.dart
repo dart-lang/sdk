@@ -182,9 +182,6 @@ class CoreTypes {
 
   late final Class listClass = index.getClass('dart:core', 'List');
 
-  late final Procedure listDefaultConstructor =
-      index.getProcedure('dart:core', 'List', '');
-
   late final Procedure listFromConstructor =
       index.getProcedure('dart:core', 'List', 'from');
 

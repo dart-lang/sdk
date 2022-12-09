@@ -1,2 +1,0 @@
-foo<T extends Object?>() {}
-main() {}
