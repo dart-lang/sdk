@@ -6,8 +6,6 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
-// ignore_for_file: constant_identifier_names
-
 /// Convenience methods for running integration tests.
 import 'dart:async';
 
