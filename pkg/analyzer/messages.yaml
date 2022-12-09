@@ -18637,10 +18637,6 @@ HintCode:
         a.Library();
       }
       ```
-
-      If type arguments shouldn't be required for the class, then mark the class
-      with the `[optionalTypeArgs][meta-optionalTypeArgs]` annotation (from
-      `package:meta`):
   IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE:
     problemMessage: "The library '{0}' is legacy, and shouldn't be imported into a null safe library."
     correctionMessage: Try migrating the imported library.

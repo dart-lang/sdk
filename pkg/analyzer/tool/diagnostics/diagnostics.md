@@ -7465,10 +7465,6 @@ void f() {
 }
 {% endprettify %}
 
-If type arguments shouldn't be required for the class, then mark the class
-with the `[optionalTypeArgs][meta-optionalTypeArgs]` annotation (from
-`package:meta`):
-
 ### import_internal_library
 
 _The library '{0}' is internal and can't be imported._
