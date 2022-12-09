@@ -122,6 +122,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       case BuiltMemberKind.RedirectingFactory:
       case BuiltMemberKind.Field:
       case BuiltMemberKind.Method:
+      case BuiltMemberKind.ViewConstructor:
       case BuiltMemberKind.ViewMethod:
       case BuiltMemberKind.ViewGetter:
       case BuiltMemberKind.ViewSetter:

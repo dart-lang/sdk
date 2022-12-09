@@ -530,10 +530,6 @@ throwRuntimeError(message) {
   throw RuntimeError(message);
 }
 
-throwAbstractClassInstantiationError(className) {
-  throw AbstractClassInstantiationError(className);
-}
-
 throwConcurrentModificationError(collection) {
   throw ConcurrentModificationError(collection);
 }

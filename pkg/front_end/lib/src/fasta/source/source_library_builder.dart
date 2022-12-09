@@ -2187,12 +2187,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     Map<String, MemberBuilder> constructors = declaration.constructors!;
     Map<String, MemberBuilder> setters = declaration.setters!;
 
-    Scope classScope = new Scope(
+    Scope memberScope = new Scope(
         local: members,
         setters: setters,
         parent: scope.withTypeVariables(typeVariables),
-        debugName: "extension $name",
+        debugName: "view $name",
         isModifiable: false);
+    ConstructorScope constructorScope =
+        new ConstructorScope(name, constructors);
 
     View? referenceFrom = referencesFromIndexed?.lookupView(name);
 
@@ -2215,7 +2217,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         modifiers,
         declaration.name,
         typeVariables,
-        classScope,
+        memberScope,
+        constructorScope,
         this,
         startOffset,
         nameOffset,
@@ -2732,23 +2735,57 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               constructorTearOffName(constructorName),
               _currentClassReferencesFromIndexed!.library));
     }
-    DeclaredSourceConstructorBuilder constructorBuilder =
-        new DeclaredSourceConstructorBuilder(
-            metadata,
-            modifiers & ~abstractMask,
-            addInferableType(),
-            constructorName,
-            typeVariables,
-            formals,
-            this,
-            startCharOffset,
-            charOffset,
-            charOpenParenOffset,
-            charEndOffset,
-            constructorReference,
-            tearOffReference,
-            nativeMethodName: nativeMethodName,
-            forAbstractClassOrEnum: forAbstractClass);
+    AbstractSourceConstructorBuilder constructorBuilder;
+
+    ContainerType containerType =
+        currentTypeParameterScopeBuilder.containerType;
+    ContainerName? containerName =
+        currentTypeParameterScopeBuilder.containerName;
+    NameScheme nameScheme = new NameScheme(
+        isInstanceMember: false,
+        containerName: containerName,
+        containerType: containerType,
+        libraryName: referencesFrom != null
+            ? new LibraryName(referencesFrom!.reference)
+            : libraryName);
+    if (currentTypeParameterScopeBuilder.kind ==
+        TypeParameterScopeKind.viewDeclaration) {
+      constructorBuilder = new SourceViewConstructorBuilder(
+          metadata,
+          modifiers & ~abstractMask,
+          addInferableType(),
+          constructorName,
+          typeVariables,
+          formals,
+          this,
+          startCharOffset,
+          charOffset,
+          charOpenParenOffset,
+          charEndOffset,
+          constructorReference,
+          tearOffReference,
+          nameScheme,
+          nativeMethodName: nativeMethodName,
+          forAbstractClassOrEnum: forAbstractClass);
+    } else {
+      constructorBuilder = new DeclaredSourceConstructorBuilder(
+          metadata,
+          modifiers & ~abstractMask,
+          addInferableType(),
+          constructorName,
+          typeVariables,
+          formals,
+          this,
+          startCharOffset,
+          charOffset,
+          charOpenParenOffset,
+          charEndOffset,
+          constructorReference,
+          tearOffReference,
+          nameScheme,
+          nativeMethodName: nativeMethodName,
+          forAbstractClassOrEnum: forAbstractClass);
+    }
     checkTypeVariables(typeVariables, constructorBuilder);
     // TODO(johnniwinther): There is no way to pass the tear off reference here.
     addBuilder(constructorName, constructorBuilder, charOffset,
@@ -3920,6 +3957,54 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           inErrorRecovery: issues.isNotEmpty);
     }
 
+    void processSourceFieldBuilder(SourceFieldBuilder member) {
+      TypeBuilder? fieldType = member.type;
+      if (fieldType is! OmittedTypeBuilder) {
+        List<NonSimplicityIssue> issues =
+            getInboundReferenceIssuesInType(fieldType);
+        reportIssues(issues);
+        _recursivelyReportGenericFunctionTypesAsBoundsForType(fieldType);
+      }
+    }
+
+    void processSourceConstructorBuilder(SourceMemberBuilder member,
+        {required bool inErrorRecovery}) {
+      List<FormalParameterBuilder>? formals;
+      if (member is SourceFactoryBuilder) {
+        assert(member.isFactory,
+            "Unexpected constructor member (${member.runtimeType}).");
+        count += computeDefaultTypesForVariables(member.typeVariables,
+            // Type variables are inherited from the class so if the class
+            // has issues, so does the factory constructors.
+            inErrorRecovery: inErrorRecovery);
+        formals = member.formals;
+      } else {
+        assert(member is AbstractSourceConstructorBuilder,
+            "Unexpected constructor member (${member.runtimeType}).");
+        formals = (member as AbstractSourceConstructorBuilder).formals;
+      }
+      if (formals != null && formals.isNotEmpty) {
+        for (FormalParameterBuilder formal in formals) {
+          List<NonSimplicityIssue> issues =
+              getInboundReferenceIssuesInType(formal.type);
+          reportIssues(issues);
+          _recursivelyReportGenericFunctionTypesAsBoundsForType(formal.type);
+        }
+      }
+    }
+
+    void processSourceMemberBuilder(SourceMemberBuilder member,
+        {required bool inErrorRecovery}) {
+      if (member is SourceProcedureBuilder) {
+        processSourceProcedureBuilder(member);
+      } else if (member is SourceFieldBuilder) {
+        processSourceFieldBuilder(member);
+      } else {
+        processSourceConstructorBuilder(member,
+            inErrorRecovery: inErrorRecovery);
+      }
+    }
+
     void computeDefaultValuesForDeclaration(Builder declaration) {
       if (declaration is SourceClassBuilder) {
         List<NonSimplicityIssue> issues = getNonSimplicityIssuesForDeclaration(
@@ -3929,51 +4014,23 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         count += computeDefaultTypesForVariables(declaration.typeVariables,
             inErrorRecovery: issues.isNotEmpty);
 
-        Iterator<MemberBuilder> iterator = declaration.constructorScope
-            .filteredIterator(
+        Iterator<SourceMemberBuilder> iterator = declaration.constructorScope
+            .filteredIterator<SourceMemberBuilder>(
                 includeDuplicates: false, includeAugmentations: true);
         while (iterator.moveNext()) {
-          MemberBuilder member = iterator.current;
-          List<FormalParameterBuilder>? formals;
-          if (member is SourceFactoryBuilder) {
-            assert(member.isFactory,
-                "Unexpected constructor member (${member.runtimeType}).");
-            count += computeDefaultTypesForVariables(member.typeVariables,
-                // Type variables are inherited from the class so if the class
-                // has issues, so does the factory constructors.
-                inErrorRecovery: issues.isNotEmpty);
-            formals = member.formals;
-          } else {
-            assert(member is DeclaredSourceConstructorBuilder,
-                "Unexpected constructor member (${member.runtimeType}).");
-            formals = (member as DeclaredSourceConstructorBuilder).formals;
-          }
-          if (formals != null && formals.isNotEmpty) {
-            for (FormalParameterBuilder formal in formals) {
-              List<NonSimplicityIssue> issues =
-                  getInboundReferenceIssuesInType(formal.type);
-              reportIssues(issues);
-              _recursivelyReportGenericFunctionTypesAsBoundsForType(
-                  formal.type);
-            }
-          }
+          processSourceMemberBuilder(iterator.current,
+              inErrorRecovery: issues.isNotEmpty);
         }
 
         Iterator<Builder> memberIterator = declaration.fullMemberIterator;
         while (memberIterator.moveNext()) {
           Builder member = memberIterator.current;
-          if (member is SourceProcedureBuilder) {
-            processSourceProcedureBuilder(member);
+          if (member is SourceMemberBuilder) {
+            processSourceMemberBuilder(member,
+                inErrorRecovery: issues.isNotEmpty);
           } else {
-            assert(member is SourceFieldBuilder,
+            assert(false,
                 "Unexpected class member $member (${member.runtimeType}).");
-            TypeBuilder? fieldType = (member as SourceFieldBuilder).type;
-            if (fieldType is! OmittedTypeBuilder) {
-              List<NonSimplicityIssue> issues =
-                  getInboundReferenceIssuesInType(fieldType);
-              reportIssues(issues);
-              _recursivelyReportGenericFunctionTypesAsBoundsForType(fieldType);
-            }
           }
         }
       } else if (declaration is SourceTypeAliasBuilder) {
@@ -3985,24 +4042,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         count += computeDefaultTypesForVariables(declaration.typeVariables,
             inErrorRecovery: issues.isNotEmpty);
         _recursivelyReportGenericFunctionTypesAsBoundsForType(declaration.type);
-      } else if (declaration is SourceFunctionBuilder) {
-        List<NonSimplicityIssue> issues =
-            getNonSimplicityIssuesForTypeVariables(declaration.typeVariables);
-        if (declaration.formals != null && declaration.formals!.isNotEmpty) {
-          for (FormalParameterBuilder formal in declaration.formals!) {
-            issues.addAll(getInboundReferenceIssuesInType(formal.type));
-            _recursivelyReportGenericFunctionTypesAsBoundsForType(formal.type);
-          }
-        }
-        if (declaration.returnType is! OmittedTypeBuilder) {
-          issues
-              .addAll(getInboundReferenceIssuesInType(declaration.returnType));
-          _recursivelyReportGenericFunctionTypesAsBoundsForType(
-              declaration.returnType);
-        }
-        reportIssues(issues);
-        count += computeDefaultTypesForVariables(declaration.typeVariables,
-            inErrorRecovery: issues.isNotEmpty);
+      } else if (declaration is SourceMemberBuilder) {
+        processSourceMemberBuilder(declaration, inErrorRecovery: false);
       } else if (declaration is SourceExtensionBuilder) {
         List<NonSimplicityIssue> issues = getNonSimplicityIssuesForDeclaration(
             declaration,
@@ -4012,15 +4053,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             inErrorRecovery: issues.isNotEmpty);
 
         declaration.forEach((String name, Builder member) {
-          if (member is SourceProcedureBuilder) {
-            processSourceProcedureBuilder(member);
-          } else if (member is SourceFieldBuilder) {
-            if (member.type is! OmittedTypeBuilder) {
-              _recursivelyReportGenericFunctionTypesAsBoundsForType(
-                  member.type);
-            }
+          if (member is SourceMemberBuilder) {
+            processSourceMemberBuilder(member,
+                inErrorRecovery: issues.isNotEmpty);
           } else {
-            throw new StateError(
+            assert(false,
                 "Unexpected extension member $member (${member.runtimeType}).");
           }
         });
@@ -4033,26 +4070,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             inErrorRecovery: issues.isNotEmpty);
 
         declaration.forEach((String name, Builder member) {
-          if (member is SourceProcedureBuilder) {
-            processSourceProcedureBuilder(member);
-          } else if (member is SourceFieldBuilder) {
-            if (member.type is! OmittedTypeBuilder) {
-              _recursivelyReportGenericFunctionTypesAsBoundsForType(
-                  member.type);
-            }
+          if (member is SourceMemberBuilder) {
+            processSourceMemberBuilder(member,
+                inErrorRecovery: issues.isNotEmpty);
           } else {
-            throw new StateError(
-                "Unexpected extension member $member (${member.runtimeType}).");
+            assert(false,
+                "Unexpected view member $member (${member.runtimeType}).");
           }
         });
-      } else if (declaration is SourceFieldBuilder) {
-        if (declaration.type is! OmittedTypeBuilder) {
-          List<NonSimplicityIssue> issues =
-              getInboundReferenceIssuesInType(declaration.type);
-          reportIssues(issues);
-          _recursivelyReportGenericFunctionTypesAsBoundsForType(
-              declaration.type);
-        }
       } else {
         assert(
             declaration is PrefixBuilder ||
@@ -4339,10 +4364,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void checkTypesInConstructorBuilder(
-      DeclaredSourceConstructorBuilder constructorBuilder,
+      SourceConstructorBuilder constructorBuilder,
+      List<FormalParameterBuilder>? formals,
       TypeEnvironment typeEnvironment) {
-    if (!constructorBuilder.isExternal && constructorBuilder.formals != null) {
-      checkInitializersInFormals(constructorBuilder.formals!, typeEnvironment);
+    if (!constructorBuilder.isExternal && formals != null) {
+      checkInitializersInFormals(formals, typeEnvironment);
     }
   }
 

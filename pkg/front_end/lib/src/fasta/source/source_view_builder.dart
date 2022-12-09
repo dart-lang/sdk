@@ -43,6 +43,7 @@ class SourceViewBuilder extends ViewBuilderImpl
       String name,
       this.typeParameters,
       Scope scope,
+      ConstructorScope constructorScope,
       SourceLibraryBuilder parent,
       int startOffset,
       int nameOffset,
@@ -56,7 +57,8 @@ class SourceViewBuilder extends ViewBuilderImpl
                 TypeVariableBuilder.typeParametersFromBuilders(typeParameters),
             reference: referenceFrom?.reference)
           ..fileOffset = nameOffset,
-        super(metadata, modifiers, name, parent, nameOffset, scope);
+        super(metadata, modifiers, name, parent, nameOffset, scope,
+            constructorScope);
 
   @override
   SourceLibraryBuilder get libraryBuilder =>
@@ -124,6 +126,9 @@ class SourceViewBuilder extends ViewBuilderImpl
       case BuiltMemberKind.ExtensionField:
       case BuiltMemberKind.LateIsSetField:
         kind = ViewMemberKind.Field;
+        break;
+      case BuiltMemberKind.ViewConstructor:
+        kind = ViewMemberKind.Constructor;
         break;
       case BuiltMemberKind.ViewMethod:
         kind = ViewMemberKind.Method;

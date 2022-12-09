@@ -151,8 +151,20 @@ class NameScheme {
     }
   }
 
-  // TODO(johnniwinther): Use [NameScheme] for constructor and constructor
-  // tear-off names.
+  MemberName getConstructorMemberName(String name, {required bool isTearOff}) {
+    switch (containerType) {
+      case ContainerType.Library:
+      case ContainerType.Class:
+        return name.startsWith('_')
+            ? new PrivateMemberName(libraryName, name)
+            : new PublicMemberName(name);
+      case ContainerType.View:
+      case ContainerType.Extension:
+        // Extension is handled here for the error case only.
+        return new ViewConstructorName(libraryName, containerName!, name,
+            isTearOff: isTearOff);
+    }
+  }
 }
 
 /// The part of a member name defined by a library.
@@ -395,8 +407,8 @@ class PrivateMemberName extends UpdatableMemberName {
 
 /// A name for an extension procedure.
 ///
-/// This depends on a [LibraryName] and an [ExtensionName] and is updated the
-/// reference of the [LibraryName] or the name of the [ExtensionName] is
+/// This depends on a [LibraryName] and an [ContainerName] and is updated the
+/// reference of the [LibraryName] or the name of the [ContainerName] is
 /// changed.
 class ExtensionProcedureName extends UpdatableMemberName {
   final LibraryName _libraryName;
@@ -423,6 +435,40 @@ class ExtensionProcedureName extends UpdatableMemberName {
             kind: _kind,
             name: _text),
         _libraryName.reference);
+  }
+}
+
+/// A name for a view constructor.
+///
+/// This depends on a [LibraryName] and an [ContainerName] and is updated the
+/// reference of the [LibraryName] or the name of the [ContainerName] is
+/// changed.
+class ViewConstructorName extends UpdatableMemberName {
+  final LibraryName _libraryName;
+  final ContainerName _containerName;
+  final bool isTearOff;
+  final String _text;
+
+  ViewConstructorName(this._libraryName, this._containerName, this._text,
+      {required this.isTearOff}) {
+    _libraryName.attachMemberName(this);
+    _containerName.attachMemberName(this);
+  }
+
+  @override
+  Name _createName() {
+    String viewName = _containerName.name;
+    String kindInfix;
+    // Constructors and tear-offs are converted to methods so we use an
+    // infix to make their names unique.
+    if (isTearOff) {
+      kindInfix = 'get#';
+    } else {
+      kindInfix = '';
+    }
+
+    return new Name.byReference(
+        '${viewName}|${kindInfix}${_text}', _libraryName.reference);
   }
 }
 

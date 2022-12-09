@@ -19,6 +19,7 @@ extension E on int {
   Function<Z extends A>() baz3() => throw 42;
   Function<Z extends A>() get baz4 => throw 42;
   baz2(Function<Z extends A>() a) {}
+  static Function<Z extends A>() baz6 = (() => throw 42)();
   void set baz5(Function<Z extends A>() a) {}
 }
 

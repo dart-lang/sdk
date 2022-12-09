@@ -65,7 +65,7 @@ test() {
     threw = true;
     new B();
     threw = false;
-  } on AbstractClassInstantiationError catch (_) {
+  } on Error catch (_) {
     // Ignored.
   }
   if (!threw) {

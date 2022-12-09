@@ -1153,10 +1153,14 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
       constructor_name = &Symbols::DotCreate();
       break;
     case kAbstractClassInstantiation:
-      library = Library::CoreLibrary();
+#if defined(DART_PRECOMPILED_RUNTIME)
+      UNREACHABLE();
+#else
+      library = Library::MirrorsLibrary();
       class_name = &Symbols::AbstractClassInstantiationError();
       constructor_name = &Symbols::DotCreate();
       break;
+#endif
     case kCyclicInitializationError:
       library = Library::CoreLibrary();
       class_name = &Symbols::CyclicInitializationError();

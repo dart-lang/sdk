@@ -1183,12 +1183,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           node, typeSchemaEnvironment, helper.uri,
           inferred: true);
     }
-    if (isNonNullableByDefault) {
-      if (node.target == coreTypes.listDefaultConstructor) {
-        resultNode = helper.wrapInProblem(node,
-            messageDefaultListConstructorError, node.fileOffset, noLength);
-      }
-    }
     return new ExpressionInferenceResult(
         result.inferredType, result.applyResult(resultNode));
   }
@@ -1243,13 +1237,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isConst: node.isConst, staticTarget: node.target);
     node.hasBeenInferred = true;
     Expression resultNode = node;
-
-    if (isNonNullableByDefault) {
-      if (node.target == coreTypes.listDefaultConstructor) {
-        resultNode = helper.wrapInProblem(node,
-            messageDefaultListConstructorError, node.fileOffset, noLength);
-      }
-    }
 
     return new ExpressionInferenceResult(
         result.inferredType, result.applyResult(resultNode));
@@ -1306,12 +1293,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isConst: node.isConst, staticTarget: node.target);
     node.hasBeenInferred = true;
     Expression resultNode = node;
-    if (isNonNullableByDefault) {
-      if (node.target == coreTypes.listDefaultConstructor) {
-        resultNode = helper.wrapInProblem(node,
-            messageDefaultListConstructorError, node.fileOffset, noLength);
-      }
-    }
     return new ExpressionInferenceResult(
         result.inferredType, result.applyResult(resultNode));
   }

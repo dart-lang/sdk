@@ -151,7 +151,7 @@ static method test() → dynamic {
     invalid-expression "The class 'B' is abstract and can't be instantiated.";
     threw = false;
   }
-  on core::AbstractClassInstantiationError catch(final core::AbstractClassInstantiationError _) {
+  on core::Error catch(final core::Error _) {
   }
   if(!threw) {
     throw "Expected an error above.";

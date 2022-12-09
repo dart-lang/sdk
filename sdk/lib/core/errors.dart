@@ -531,18 +531,6 @@ class FallThroughError extends Error {
   external String toString();
 }
 
-/// Error thrown when trying to instantiate an abstract class.
-///
-/// No longer used in Dart 2 where it has become a compile-time error
-/// to call the constructor of an abstract class.
-@Deprecated("No longer relevant in Dart 2.0")
-class AbstractClassInstantiationError extends Error {
-  final String _className;
-  AbstractClassInstantiationError(String className) : _className = className;
-
-  external String toString();
-}
-
 /// Error thrown when a particular method invocation is not possible.
 ///
 /// This error is thrown by the default implementation of `noSuchMethod`

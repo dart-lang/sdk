@@ -23,6 +23,7 @@ import '../util/helpers.dart' show DelayedActionPerformer;
 import 'builder.dart';
 import 'class_builder.dart';
 import 'constructor_builder.dart';
+import 'declaration_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'modifier_builder.dart';
@@ -220,8 +221,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   }
 
   void finalizeInitializingFormal(
-      ClassBuilder classBuilder, ClassHierarchyBase hierarchy) {
-    Builder? fieldBuilder = classBuilder.lookupLocalMember(name);
+      DeclarationBuilder declarationBuilder, ClassHierarchyBase hierarchy) {
+    Builder? fieldBuilder = declarationBuilder.lookupLocalMember(name);
     if (fieldBuilder is SourceFieldBuilder) {
       type.registerInferredType(fieldBuilder.inferType(hierarchy));
     } else {

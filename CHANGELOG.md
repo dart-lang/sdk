@@ -1,3 +1,14 @@
+## 3.0.0
+
+### Libraries
+
+#### `dart:html`
+
+- **Breaking change**: As previously announced, the deprecated `registerElement`
+  and `registerElement2` methods in `Document` and `HtmlDocument` have been
+  removed.  See [#49536](https://github.com/dart-lang/sdk/issues/49536) for
+  details.
+
 ## 2.19.0
 
 ### Language

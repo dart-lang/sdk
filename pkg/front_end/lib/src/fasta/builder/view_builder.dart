@@ -45,9 +45,16 @@ abstract class ViewBuilder implements DeclarationBuilder {
 abstract class ViewBuilderImpl extends DeclarationBuilderImpl
     with DeclarationBuilderMixin
     implements ViewBuilder {
-  ViewBuilderImpl(List<MetadataBuilder>? metadata, int modifiers, String name,
-      LibraryBuilder parent, int charOffset, Scope scope)
-      : super(metadata, modifiers, name, parent, charOffset, scope);
+  ViewBuilderImpl(
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      String name,
+      LibraryBuilder parent,
+      int charOffset,
+      Scope scope,
+      ConstructorScope constructorScope)
+      : super(metadata, modifiers, name, parent, charOffset, scope,
+            constructorScope);
 
   @override
   DartType buildAliasedTypeWithBuiltArguments(

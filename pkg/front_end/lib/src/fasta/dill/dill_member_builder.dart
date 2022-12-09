@@ -223,7 +223,6 @@ class DillFactoryBuilder extends DillProcedureBuilder {
 
 class DillConstructorBuilder extends DillMemberBuilder
     implements ConstructorBuilder {
-  @override
   final Constructor constructor;
   final Procedure? _constructorTearOff;
 
@@ -238,7 +237,7 @@ class DillConstructorBuilder extends DillMemberBuilder
   Constructor get member => constructor;
 
   @override
-  Member? get readTarget => _constructorTearOff ?? constructor;
+  Member get readTarget => _constructorTearOff ?? constructor;
 
   @override
   Member? get writeTarget => null;

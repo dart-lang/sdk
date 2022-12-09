@@ -57,8 +57,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
   /// The types in the `on` clause of an extension or mixin declaration.
   List<TypeBuilder>? get onTypes;
 
-  ConstructorScope get constructorScope;
-
   @override
   Uri get fileUri;
 
@@ -171,9 +169,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
   List<TypeBuilder>? onTypes;
 
   @override
-  final ConstructorScope constructorScope;
-
-  @override
   bool isNullClass = false;
 
   InterfaceType? _legacyRawType;
@@ -190,10 +185,11 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       this.interfaceBuilders,
       this.onTypes,
       Scope scope,
-      this.constructorScope,
+      ConstructorScope constructorScope,
       LibraryBuilder parent,
       int charOffset)
-      : super(metadata, modifiers, name, parent, charOffset, scope);
+      : super(metadata, modifiers, name, parent, charOffset, scope,
+            constructorScope);
 
   @override
   String get debugName => "ClassBuilder";

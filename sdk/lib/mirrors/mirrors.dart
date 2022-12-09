@@ -60,8 +60,13 @@ import "dart:core";
 import 'dart:async' show Future;
 import "dart:_internal" show Since;
 
-// TODO: Move AbstractClassInstantiationError here when removed from dart:core.
-export "dart:core" show AbstractClassInstantiationError;
+/// Error thrown when trying to instantiate an abstract class.
+class AbstractClassInstantiationError extends Error {
+  final String _className;
+  AbstractClassInstantiationError(String className) : _className = className;
+
+  external String toString();
+}
 
 /**
  * A [MirrorSystem] is the main interface used to reflect on a set of

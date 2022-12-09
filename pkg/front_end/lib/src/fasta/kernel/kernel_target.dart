@@ -1087,7 +1087,7 @@ class KernelTarget extends TargetImplementation {
           tearOff: constructorTearOff,
           declarationConstructor: constructor,
           implementationConstructor: constructor,
-          enclosingClass: classBuilder.cls,
+          enclosingDeclarationTypeParameters: classBuilder.cls.typeParameters,
           libraryBuilder: classBuilder.libraryBuilder);
     }
     SyntheticSourceConstructorBuilder constructorBuilder =
@@ -1166,7 +1166,7 @@ class KernelTarget extends TargetImplementation {
           tearOff: constructorTearOff,
           declarationConstructor: constructor,
           implementationConstructor: constructor,
-          enclosingClass: classBuilder.cls,
+          enclosingDeclarationTypeParameters: classBuilder.cls.typeParameters,
           libraryBuilder: classBuilder.libraryBuilder);
     }
     return new SyntheticSourceConstructorBuilder(
@@ -1404,7 +1404,7 @@ class KernelTarget extends TargetImplementation {
       }
     }
 
-    Map<ConstructorBuilder, Set<SourceFieldBuilder>>
+    Map<DeclaredSourceConstructorBuilder, Set<SourceFieldBuilder>>
         constructorInitializedFields = new Map.identity();
     Set<SourceFieldBuilder>? initializedFields = null;
 
@@ -1467,8 +1467,9 @@ class KernelTarget extends TargetImplementation {
 
     // Run through all fields that are initialized by some constructor, and
     // make sure that all other constructors also initialize them.
-    constructorInitializedFields.forEach((ConstructorBuilder constructorBuilder,
-        Set<FieldBuilder> fieldBuilders) {
+    constructorInitializedFields.forEach(
+        (DeclaredSourceConstructorBuilder constructorBuilder,
+            Set<FieldBuilder> fieldBuilders) {
       for (SourceFieldBuilder fieldBuilder
           in initializedFields!.difference(fieldBuilders)) {
         if (!fieldBuilder.hasInitializer && !fieldBuilder.isLate) {

@@ -1,0 +1,14 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+view Class1 /* representationType = core::int */ {
+  constructor • = self::Class1|;
+}
+view Class2 /* representationType = core::int */ {
+  constructor • = self::Class2|;
+}
+method Class1|(core::int field) → self::Class1
+  ;
+method Class2|(core::int field) → self::Class2
+  ;
