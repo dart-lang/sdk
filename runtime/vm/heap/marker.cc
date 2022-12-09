@@ -442,13 +442,7 @@ typedef MarkingVisitorBase<false> UnsyncMarkingVisitor;
 typedef MarkingVisitorBase<true> SyncMarkingVisitor;
 
 static bool IsUnreachable(const ObjectPtr raw_obj) {
-  if (!raw_obj->IsHeapObject()) {
-    return false;
-  }
-  if (raw_obj == Object::null()) {
-    return true;
-  }
-  if (!raw_obj->IsOldObject()) {
+  if (raw_obj->IsSmiOrNewObject()) {
     return false;
   }
   return !raw_obj->untag()->IsMarked();
@@ -456,9 +450,7 @@ static bool IsUnreachable(const ObjectPtr raw_obj) {
 
 class MarkingWeakVisitor : public HandleVisitor {
  public:
-  explicit MarkingWeakVisitor(Thread* thread)
-      : HandleVisitor(thread),
-        class_table_(thread->isolate_group()->class_table()) {}
+  explicit MarkingWeakVisitor(Thread* thread) : HandleVisitor(thread) {}
 
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
@@ -470,8 +462,6 @@ class MarkingWeakVisitor : public HandleVisitor {
   }
 
  private:
-  ClassTable* class_table_;
-
   DISALLOW_COPY_AND_ASSIGN(MarkingWeakVisitor);
 };
 
