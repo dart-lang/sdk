@@ -60,6 +60,7 @@ class AvoidPositionalBooleanParameters extends LintRule {
     registry.addConstructorDeclaration(this, visitor);
     registry.addFunctionDeclaration(this, visitor);
     registry.addMethodDeclaration(this, visitor);
+    registry.addGenericFunctionType(this, visitor);
   }
 }
 
@@ -103,6 +104,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         !_isOverridingMember(declaredElement)) {
       checkParams(node.parameters?.parameters);
     }
+  }
+
+  @override
+  void visitGenericFunctionType(GenericFunctionType node) {
+    checkParams(node.parameters.parameters);
   }
 
   bool _isOverridingMember(Element member) {
