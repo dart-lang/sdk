@@ -1940,14 +1940,14 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType? visitSwitchStatement(SwitchStatement node) {
     _dispatch(node.expression);
-    _flowAnalysis!.switchStatement_expressionEnd(node);
+    _flowAnalysis!.switchStatement_expressionEnd(node, node.expression);
     var hasDefault = false;
     for (var member in node.members) {
       _postDominatedLocals.doScoped(action: () {
         var hasLabel = member.labels.isNotEmpty;
-        _flowAnalysis!.switchStatement_beginCase();
         _flowAnalysis!.switchStatement_beginAlternatives();
-        _flowAnalysis!.switchStatement_endAlternative();
+        _flowAnalysis!.switchStatement_beginAlternative();
+        _flowAnalysis!.switchStatement_endAlternative(null);
         _flowAnalysis!
             .switchStatement_endAlternatives(node, hasLabels: hasLabel);
         if (member is SwitchCase) {

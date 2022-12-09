@@ -6375,6 +6375,269 @@ main() {
       ]);
     });
   });
+
+  group('Patterns:', () {
+    group('If-case element:', () {
+      test('guarded', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int?'),
+          ifCaseElement(
+                  expr('Object'),
+                  wildcard().when(x.expr.notEq(nullLiteral)),
+                  block([
+                    checkReachable(true),
+                    checkPromoted(x, 'int'),
+                  ]).thenExpr(expr('String')).asCollectionElement,
+                  block([
+                    checkReachable(true),
+                    checkNotPromoted(x),
+                  ]).thenExpr(expr('String')).asCollectionElement)
+              .inContextElementType('String'),
+        ]);
+      });
+
+      test('promotes', () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, type: 'num'),
+          ifCaseElement(
+                  x.expr,
+                  y.pattern(type: 'int'),
+                  block([
+                    checkReachable(true),
+                    checkPromoted(x, 'int'),
+                  ]).thenExpr(expr('String')).asCollectionElement,
+                  block([
+                    checkReachable(true),
+                    checkNotPromoted(x),
+                  ]).thenExpr(expr('String')).asCollectionElement)
+              .inContextElementType('String'),
+        ]);
+      });
+    });
+
+    group('If-case statement:', () {
+      test('guarded', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int?'),
+          ifCase(expr('Object'), wildcard().when(x.expr.notEq(nullLiteral)), [
+            checkReachable(true),
+            checkPromoted(x, 'int'),
+          ], [
+            checkReachable(true),
+            checkNotPromoted(x),
+          ])
+        ]);
+      });
+
+      test('promotes', () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, type: 'num'),
+          ifCase(x.expr, y.pattern(type: 'int'), [
+            checkReachable(true),
+            checkPromoted(x, 'int'),
+          ], [
+            checkReachable(true),
+            checkNotPromoted(x),
+          ]),
+        ]);
+      });
+
+      test('promotion in both pattern and guard', () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, type: 'int?'),
+          declare(y, type: 'String?'),
+          ifCase(
+              x.expr, wildcard(type: 'int').when(y.expr.notEq(nullLiteral)), [
+            checkReachable(true),
+            checkPromoted(x, 'int'),
+            checkPromoted(y, 'String'),
+          ], [
+            checkReachable(true),
+            checkNotPromoted(x),
+            checkNotPromoted(y),
+          ]),
+        ]);
+      });
+    });
+
+    group('Switch expression:', () {
+      test('guarded', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int?'),
+          switchExpr(expr('Object'), [
+            wildcard().when(x.expr.notEq(nullLiteral)).thenExpr(block([
+                  checkReachable(true),
+                  checkPromoted(x, 'int'),
+                ]).thenExpr(expr('String'))),
+            wildcard().thenExpr(block([
+              checkReachable(true),
+              checkNotPromoted(x),
+            ]).thenExpr(expr('String'))),
+          ]).stmt,
+        ]);
+      });
+
+      test('promotes', () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, type: 'num'),
+          switchExpr(x.expr, [
+            y.pattern(type: 'int').thenExpr(block([
+                  checkReachable(true),
+                  checkPromoted(x, 'int'),
+                ]).thenExpr(expr('String'))),
+            wildcard().thenExpr(block([
+              checkReachable(true),
+              checkNotPromoted(x),
+            ]).thenExpr(expr('String'))),
+          ]).stmt,
+        ]);
+      });
+    });
+
+    group('Switch statement:', () {
+      test('guarded', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'int?'),
+          switch_(
+              expr('Object'),
+              [
+                switchStatementMember([
+                  wildcard().when(x.expr.notEq(nullLiteral)).switchCase
+                ], [
+                  checkReachable(true),
+                  checkPromoted(x, 'int'),
+                ]),
+                switchStatementMember([
+                  default_
+                ], [
+                  checkReachable(true),
+                  checkNotPromoted(x),
+                ]),
+              ],
+              isExhaustive: true),
+        ]);
+      });
+
+      test('promotes', () {
+        var x = Var('x');
+        var y = Var('y');
+        h.run([
+          declare(x, type: 'num'),
+          switch_(
+              x.expr,
+              [
+                switchStatementMember([
+                  y.pattern(type: 'int').switchCase
+                ], [
+                  checkReachable(true),
+                  checkPromoted(x, 'int'),
+                ]),
+                switchStatementMember([
+                  default_
+                ], [
+                  checkReachable(true),
+                  checkNotPromoted(x),
+                ]),
+              ],
+              isExhaustive: true),
+        ]);
+      });
+    });
+
+    group('Variable pattern:', () {
+      group('covers matched type:', () {
+        test('without promotion candidate', () {
+          // In `if(<some int> case num x) ...`, the `else` branch should be
+          // unreachable because the type `num` fully covers the type `int`.
+          var x = Var('x');
+          h.run([
+            ifCase(expr('int'), x.pattern(type: 'num'), [
+              checkReachable(true),
+            ], [
+              checkReachable(false),
+            ]),
+          ]);
+        });
+
+        test('with promotion candidate', () {
+          // In `if(x case num y) ...`, the `else` branch should be unreachable
+          // because the type `num` fully covers the type `int`.
+          var x = Var('x');
+          var y = Var('y');
+          h.run([
+            declare(x, type: 'int'),
+            ifCase(x.expr, y.pattern(type: 'num'), [
+              checkReachable(true),
+              checkNotPromoted(x),
+            ], [
+              checkReachable(false),
+              checkNotPromoted(x),
+            ]),
+          ]);
+        });
+      });
+
+      group("doesn't cover matched type:", () {
+        test('without promotion candidate', () {
+          // In `if(<some num> case int x) ...`, the `else` branch should be
+          // reachable because the type `int` doesn't fully cover the type
+          // `num`.
+          var x = Var('x');
+          h.run([
+            ifCase(expr('num'), x.pattern(type: 'int'), [
+              checkReachable(true),
+            ], [
+              checkReachable(true),
+            ]),
+          ]);
+        });
+
+        group('with promotion candidate:', () {
+          test('without factor', () {
+            var x = Var('x');
+            var y = Var('y');
+            h.run([
+              declare(x, type: 'num'),
+              ifCase(x.expr, y.pattern(type: 'int'), [
+                checkReachable(true),
+                checkPromoted(x, 'int'),
+              ], [
+                checkReachable(true),
+                checkNotPromoted(x),
+              ]),
+            ]);
+          });
+
+          test('with factor', () {
+            var x = Var('x');
+            var y = Var('y');
+            h.run([
+              declare(x, type: 'int?'),
+              ifCase(x.expr, y.pattern(type: 'Null'), [
+                checkReachable(true),
+                checkPromoted(x, 'Null'),
+              ], [
+                checkReachable(true),
+                checkPromoted(x, 'int'),
+              ]),
+            ]);
+          });
+        });
+      });
+    });
+  });
 }
 
 /// Returns the appropriate matcher for expecting an assertion error to be
