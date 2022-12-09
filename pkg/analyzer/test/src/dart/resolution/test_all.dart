@@ -67,6 +67,7 @@ import 'object_pattern_test.dart' as object_pattern;
 import 'optional_const_test.dart' as optional_const;
 import 'parenthesized_pattern_test.dart' as parenthesized_pattern;
 import 'part_test.dart' as part_;
+import 'pattern_assignment_test.dart' as pattern_assignment;
 import 'pattern_variable_declaration_statement_test.dart'
     as pattern_variable_declaration_statement;
 import 'postfix_expression_test.dart' as postfix_expression;
@@ -153,6 +154,7 @@ main() {
     optional_const.main();
     parenthesized_pattern.main();
     part_.main();
+    pattern_assignment.main();
     pattern_variable_declaration_statement.main();
     postfix_expression.main();
     postfix_pattern.main();

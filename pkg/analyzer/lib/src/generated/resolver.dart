@@ -1334,6 +1334,41 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     NodeReplacer.replace(oldNode, newNode, parent: parent);
   }
 
+  void resolveAssignedVariablePattern({
+    required AssignedVariablePatternImpl node,
+    required DartType matchedType,
+    required SharedMatchContext context,
+  }) {
+    final element = node.element;
+    if (element is! PromotableElement) {
+      return;
+    }
+
+    if (element.isFinal) {
+      final flow = this.flow;
+      if (flow != null) {
+        if (element.isLate) {
+          if (flow.isAssigned(element)) {
+            errorReporter.reportErrorForToken(
+              CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
+              node.name,
+            );
+          }
+        } else {
+          if (!flow.isUnassigned(element)) {
+            errorReporter.reportErrorForToken(
+              CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+              node.name,
+              [node.name.lexeme],
+            );
+          }
+        }
+      }
+    }
+
+    analyzeAssignedVariablePattern(matchedType, context, node, element);
+  }
+
   /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
   /// or implicit [PrefixExpression] or [PostfixExpression].
   PropertyElementResolverResult resolveForWrite({
@@ -2888,6 +2923,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     checkUnreachableNode(node);
     node.visitChildren(this);
     elementResolver.visitPartOfDirective(node);
+  }
+
+  @override
+  void visitPatternAssignment(covariant PatternAssignmentImpl node) {
+    checkUnreachableNode(node);
+    node.staticType =
+        analyzePatternAssignment(node, node.pattern, node.expression)
+            .resolveShorting();
+    popRewrite(); // expression
   }
 
   @override

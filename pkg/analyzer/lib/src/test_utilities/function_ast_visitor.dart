@@ -16,6 +16,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
   final void Function(IfStatement)? ifStatement;
   final void Function(Label)? label;
   final void Function(MethodInvocation)? methodInvocation;
+  final void Function(PatternAssignment)? patternAssignment;
   final void Function(PatternVariableDeclaration)? patternVariableDeclaration;
   final void Function(PatternVariableDeclarationStatement)?
       patternVariableDeclarationStatement;
@@ -33,6 +34,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
     this.ifStatement,
     this.label,
     this.methodInvocation,
+    this.patternAssignment,
     this.patternVariableDeclaration,
     this.patternVariableDeclarationStatement,
     this.simpleIdentifier,
@@ -99,6 +101,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor<void> {
       methodInvocation!(node);
     }
     super.visitMethodInvocation(node);
+  }
+
+  @override
+  void visitPatternAssignment(PatternAssignment node) {
+    patternAssignment?.call(node);
+    super.visitPatternAssignment(node);
   }
 
   @override

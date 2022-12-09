@@ -53,6 +53,17 @@ class FindNode {
     return nodes.single;
   }
 
+  /// Returns the [PatternAssignment], there must be only one.
+  PatternAssignment get singlePatternAssignment {
+    var nodes = <PatternAssignment>[];
+    unit.accept(
+      FunctionAstVisitor(
+        patternAssignment: nodes.add,
+      ),
+    );
+    return nodes.single;
+  }
+
   /// Returns the [PatternVariableDeclaration], there must be only one.
   PatternVariableDeclaration get singlePatternVariableDeclaration {
     var nodes = <PatternVariableDeclaration>[];

@@ -167,6 +167,29 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitAssignedVariablePattern(
+    covariant AssignedVariablePatternImpl node,
+  ) {
+    var name = node.name.lexeme;
+    var element = _nameScope.lookup(name).getter;
+    node.element = element;
+
+    if (element == null) {
+      _errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.UNDEFINED_IDENTIFIER,
+        node.name,
+        [name],
+      );
+    } else if (!(element is LocalVariableElement ||
+        element is ParameterElement)) {
+      _errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE,
+        node.name,
+      );
+    }
+  }
+
+  @override
   void visitAugmentationImportDirective(AugmentationImportDirective node) {
     final element = node.element;
     if (element is AugmentationImportElementImpl) {
