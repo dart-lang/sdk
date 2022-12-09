@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:test/expect.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -998,6 +999,20 @@ CascadeExpression
       staticType: int
   staticType: A
 ''');
+  }
+
+  test_parameterMember_source() async {
+    // See https://github.com/dart-lang/sdk/issues/50660
+    await assertNoErrorsInCode(r'''
+void foo<T>({int? a}) {}
+
+void f() {
+  foo(a: 0);
+}
+''');
+
+    var element = findNode.simple('a:').staticElement!;
+    expect(element.source, isNull);
   }
 
   test_typeArgumentTypes_generic_inferred_leftTop_dynamic() async {
