@@ -5097,7 +5097,14 @@ void HashDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler::Label hash_double, try_convert;
 
   // extract high 32-bits out of double value.
-  __ pextrd(temp, value, compiler::Immediate(1));
+  if (TargetCPUFeatures::sse4_1_supported()) {
+    __ pextrd(temp, value, compiler::Immediate(1));
+  } else {
+    __ SubImmediate(ESP, compiler::Immediate(kDoubleSize));
+    __ movsd(compiler::Address(ESP, 0), value);
+    __ movl(temp, compiler::Address(ESP, kWordSize));
+    __ AddImmediate(ESP, compiler::Immediate(kDoubleSize));
+  }
   __ andl(temp, compiler::Immediate(0x7FF00000));
   __ cmpl(temp, compiler::Immediate(0x7FF00000));
   __ j(EQUAL, &hash_double);  // is infinity or nan
@@ -5148,8 +5155,16 @@ void HashDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ jmp(&hash_integer);
 
   __ Bind(&hash_double);
-  __ pextrd(EAX, value, compiler::Immediate(0));
-  __ pextrd(temp, value, compiler::Immediate(1));
+  if (TargetCPUFeatures::sse4_1_supported()) {
+    __ pextrd(EAX, value, compiler::Immediate(0));
+    __ pextrd(temp, value, compiler::Immediate(1));
+  } else {
+    __ SubImmediate(ESP, compiler::Immediate(kDoubleSize));
+    __ movsd(compiler::Address(ESP, 0), value);
+    __ movl(EAX, compiler::Address(ESP, 0));
+    __ movl(temp, compiler::Address(ESP, kWordSize));
+    __ AddImmediate(ESP, compiler::Immediate(kDoubleSize));
+  }
   __ xorl(EAX, temp);
   __ andl(EAX, compiler::Immediate(compiler::target::kSmiMax));
 

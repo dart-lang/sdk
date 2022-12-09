@@ -972,6 +972,8 @@ CompileTimeErrorCode.RETURN_WITHOUT_VALUE:
   status: needsEvaluation
 CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY:
   status: needsEvaluation
+CompileTimeErrorCode.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY:
+  status: needsEvaluation
 CompileTimeErrorCode.SET_ELEMENT_FROM_DEFERRED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.SET_ELEMENT_TYPE_NOT_ASSIGNABLE:

@@ -689,6 +689,8 @@ import 'sdk_version_ui_as_code_in_const_context_test.dart'
 import 'sdk_version_ui_as_code_test.dart' as sdk_version_ui_as_code;
 import 'sealed_class_subtype_outside_of_library_test.dart'
     as sealed_class_subtype_outside_of_library;
+import 'sealed_mixin_subtype_outside_of_library_test.dart'
+    as sealed_mixin_subtype_outside_of_library;
 import 'set_element_from_deferred_library_test.dart'
     as set_element_from_deferred_library;
 import 'set_element_type_not_assignable_test.dart'
@@ -1271,6 +1273,7 @@ main() {
     sdk_version_ui_as_code.main();
     sdk_version_ui_as_code_in_const_context.main();
     sealed_class_subtype_outside_of_library.main();
+    sealed_mixin_subtype_outside_of_library.main();
     set_element_type_not_assignable.main();
     shared_deferred_prefix.main();
     size_annotation_dimensions.main();

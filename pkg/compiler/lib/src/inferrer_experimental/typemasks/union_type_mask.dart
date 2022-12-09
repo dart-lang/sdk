@@ -450,11 +450,11 @@ class UnionTypeMask extends TypeMask {
   }
 
   @override
-  Iterable<MemberEntity> findRootsOfTargets(Selector selector,
+  Iterable<DynamicCallTarget> findRootsOfTargets(Selector selector,
       MemberHierarchyBuilder memberHierarchyBuilder, JClosedWorld closedWorld) {
     // Find the ancestors for each disjoint mask separately and combine the
     // results.
-    final Set<MemberEntity> results = {};
+    final Set<DynamicCallTarget> results = {};
     for (final submask in disjointMasks) {
       results.addAll(submask.findRootsOfTargets(
           selector, memberHierarchyBuilder, closedWorld));

@@ -427,6 +427,6 @@ abstract class TypeMask implements AbstractValue {
   /// Returns a set of members that are ancestors of all possible targets for
   /// a call targeting [selector] on a receiver with the type represented by
   /// this mask.
-  Iterable<MemberEntity> findRootsOfTargets(Selector selector,
+  Iterable<DynamicCallTarget> findRootsOfTargets(Selector selector,
       MemberHierarchyBuilder memberHierarchyBuilder, JClosedWorld closedWorld);
 }

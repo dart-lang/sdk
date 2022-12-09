@@ -6015,6 +6015,7 @@ SealedClassSubtypeOutsideOfLibrary:
 
 SealedMixinSubtypeOutsideOfLibrary:
   problemMessage: "Sealed mixin '#name' can't be mixed in outside of its library."
+  analyzerCode: SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY
   experiments: sealed-class
   script:
     main.dart:

@@ -8,6 +8,7 @@ import 'extensions/test_all.dart' as extensions;
 import 'flutter_test.dart' as flutter_test;
 import 'import_analyzer_test.dart' as import_analyzer;
 import 'profiling_test.dart' as profiling_test;
+import 'selection_test.dart' as selection_test;
 import 'strings_test.dart' as strings_test;
 
 void main() {
@@ -16,6 +17,7 @@ void main() {
     flutter_test.main();
     import_analyzer.main();
     profiling_test.main();
+    selection_test.main();
     strings_test.main();
   });
 }

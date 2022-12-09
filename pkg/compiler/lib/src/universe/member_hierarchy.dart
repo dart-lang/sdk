@@ -30,9 +30,34 @@ class _QueuedMember {
   _QueuedMember(this.member, this.cls, {required this.isDeclaration});
 }
 
+class DynamicCallTarget {
+  final MemberEntity member;
+  final bool isVirtual;
+
+  factory DynamicCallTarget.virtual(MemberEntity member) =>
+      DynamicCallTarget(member, isVirtual: true);
+  factory DynamicCallTarget.concrete(MemberEntity member) =>
+      DynamicCallTarget(member, isVirtual: false);
+  DynamicCallTarget(this.member, {required this.isVirtual});
+
+  @override
+  int get hashCode => Object.hash(member, isVirtual);
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other is DynamicCallTarget &&
+            member == other.member &&
+            isVirtual == other.isVirtual);
+  }
+
+  @override
+  String toString() => 'TargetResult($member, virtual: $isVirtual)';
+}
+
 class MemberHierarchyBuilder {
   final JClosedWorld closedWorld;
-  final Map<SelectorMask, Iterable<MemberEntity>> _callCache = {};
+  final Map<SelectorMask, Iterable<DynamicCallTarget>> _callCache = {};
   final Map<Selector, Set<MemberEntity>> _selectorRoots = {};
   final Map<MemberEntity, Set<MemberEntity>> _overrides = {};
 
@@ -56,7 +81,18 @@ class MemberHierarchyBuilder {
     _forEachOverride(entity, f, {});
   }
 
-  MemberEntity? findMatchInSuperclass(ClassEntity cls, Selector selector) {
+  /// Finds the first non-strict superclass of [cls] that contains a member
+  /// matching [selector] and returns that member.
+  ///
+  /// Returns the first non-abstract match found while ascending the class
+  /// hierarchy. If no non-abstract matches are found then the first abstract
+  /// match is used.
+  ///
+  /// If [virtualResult] is true, the resulting [DynamicCallTarget] will be
+  /// virtual when the match is non-abstract and has overrides.
+  /// Otherwise the resulting [DynamicCallTarget] is concrete.
+  DynamicCallTarget? findSuperclassTarget(ClassEntity cls, Selector selector,
+      {required bool virtualResult}) {
     MemberEntity? firstAbstractMatch;
     ClassEntity? current = cls;
     final elementEnv = closedWorld.elementEnvironment;
@@ -67,22 +103,25 @@ class MemberHierarchyBuilder {
         if (match.isAbstract) {
           firstAbstractMatch ??= match;
         } else {
-          return match;
+          return DynamicCallTarget(match,
+              isVirtual: virtualResult && _hasOverride(match));
         }
       }
       current = elementEnv.getSuperClass(current);
     }
-    return firstAbstractMatch;
+    return firstAbstractMatch != null
+        ? DynamicCallTarget.virtual(firstAbstractMatch)
+        : null;
   }
 
   /// For each subclass/subtype try to find a member matching selector.
   ///
   /// If we find a match then it covers the entire subtree below that match so
   /// we do not need to check subclasses/subtypes below it.
-  Iterable<MemberEntity> findMatchingAncestors(
+  Iterable<DynamicCallTarget> findMatchingAncestors(
       ClassEntity baseCls, Selector selector,
       {required bool isSubtype}) {
-    final Set<MemberEntity> results = {};
+    final Set<DynamicCallTarget> results = {};
     final Queue<ClassEntity> toVisit = Queue();
     final Set<ClassEntity> visited = {};
     void addSubclasses(ClassEntity cls) {
@@ -113,7 +152,8 @@ class MemberHierarchyBuilder {
     }
     while (toVisit.isNotEmpty) {
       final current = toVisit.removeFirst();
-      final match = findMatchInSuperclass(current, selector);
+      final match =
+          findSuperclassTarget(current, selector, virtualResult: true);
       if (match != null) {
         results.add(match);
       } else {
@@ -134,7 +174,8 @@ class MemberHierarchyBuilder {
   /// consider each mixin application to declare a "copy" of each member of that
   /// mixin. They share the same [MemberEntity] but each copy is considered a
   /// separate potential root.
-  Iterable<MemberEntity> rootsForSelector(ClassEntity cls, Selector selector) {
+  Iterable<DynamicCallTarget> rootsForSelector(
+      ClassEntity cls, Selector selector) {
     final roots = _selectorRoots[_normalizeSelector(selector)];
     if (roots == null) return const [];
     final classHierarchy = closedWorld.classHierarchy;
@@ -142,6 +183,7 @@ class MemberHierarchyBuilder {
         .where((r) =>
             selector.appliesStructural(r) &&
             classHierarchy.isSubclassOf(r.enclosingClass!, cls))
+        .map((r) => DynamicCallTarget(r, isVirtual: _hasOverride(r)))
         .toSet();
   }
 
@@ -153,7 +195,7 @@ class MemberHierarchyBuilder {
   /// `null` the receiver is considered dynamic and any member that matches
   /// [selector] is a possible target. Also adds relevant [noSuchMethod] and
   /// `null` targets if needed for the call.
-  Iterable<MemberEntity> rootsForCall(
+  Iterable<DynamicCallTarget> rootsForCall(
       AbstractValue? receiverType, Selector selector) {
     final domain = closedWorld.abstractValueDomain;
     receiverType ??= domain.dynamicType;
@@ -161,7 +203,7 @@ class MemberHierarchyBuilder {
     final cachedResult = _callCache[selectorMask];
     if (cachedResult != null) return cachedResult;
 
-    Iterable<MemberEntity> targetsForReceiver =
+    Iterable<DynamicCallTarget> targetsForReceiver =
         domain.findRootsOfTargets(receiverType, selector, this);
 
     // TODO(natebiggs): Can we calculate this as part of the above call to
@@ -178,7 +220,10 @@ class MemberHierarchyBuilder {
       final nullMatch = closedWorld.elementEnvironment.lookupLocalClassMember(
           closedWorld.commonElements.jsNullClass, selector.memberName);
       if (nullMatch != null) {
-        targetsForReceiver = {...targetsForReceiver, nullMatch};
+        targetsForReceiver = {
+          ...targetsForReceiver,
+          DynamicCallTarget.concrete(nullMatch)
+        };
       }
     }
 
@@ -203,6 +248,10 @@ class MemberHierarchyBuilder {
 
   static bool skipMember(MemberEntity member, Selector selector) {
     return _skipMemberInternal(member) || !selector.appliesStructural(member);
+  }
+
+  bool _hasOverride(MemberEntity member) {
+    return _overrides.containsKey(member);
   }
 
   static List<Selector> _selectorsForMember(MemberEntity member) {

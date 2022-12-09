@@ -123,7 +123,7 @@ class SetTracerVisitor extends TracerVisitor {
       }
     } else if (selector.isCall &&
         (info.hasClosureCallTargets ||
-            info.concreteTargets.any((element) => !element.isFunction))) {
+            info.callees.any((element) => !element.isFunction))) {
       bailout('Passed to a closure');
       return;
     }

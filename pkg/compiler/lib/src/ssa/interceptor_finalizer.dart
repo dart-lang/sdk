@@ -9,7 +9,7 @@ import '../js_backend/interceptor_data.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../universe/selector.dart' show Selector;
 import 'nodes.dart';
-import 'optimize_interfaces.dart' show OptimizationPhase;
+import 'optimize.dart' show OptimizationPhase;
 
 /// SsaFinalizeInterceptors makes adjustments for the interceptor calling
 /// convention.

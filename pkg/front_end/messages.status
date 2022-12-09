@@ -865,7 +865,6 @@ SdkSpecificationNotFound/example: Fail
 SdkSummaryNotFound/analyzerCode: Fail
 SdkSummaryNotFound/example: Fail
 SealedClassSubtypeOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
-SealedMixinSubtypeOutsideOfLibrary/analyzerCode: Fail
 SealedMixinSubtypeOutsideOfLibrary/part_wrapped_script: Fail # Uses imports
 SetLiteralTooManyTypeArguments/analyzerCode: Fail
 SetLiteralTooManyTypeArguments/example: Fail

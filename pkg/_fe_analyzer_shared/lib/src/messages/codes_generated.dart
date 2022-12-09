@@ -10733,8 +10733,8 @@ const Template<
 const Code<Message Function(String name)>
     codeSealedMixinSubtypeOutsideOfLibrary =
     const Code<Message Function(String name)>(
-  "SealedMixinSubtypeOutsideOfLibrary",
-);
+        "SealedMixinSubtypeOutsideOfLibrary",
+        analyzerCodes: <String>["SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSealedMixinSubtypeOutsideOfLibrary(String name) {

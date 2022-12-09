@@ -9,14 +9,16 @@
 import 'sealed_class_as_mixin_lib.dart';
 
 abstract class OutsideA with SealedClass {}
+// [error column 1, length 43]
+// [analyzer] COMPILE_TIME_ERROR.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
 //             ^
-// [analyzer] unspecified
 // [cfe] Class 'SealedClass' can't be used as a mixin.
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
 
 class OutsideB with SealedClass {
+// [error column 1, length 299]
+// [analyzer] COMPILE_TIME_ERROR.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
 //    ^
-// [analyzer] unspecified
 // [cfe] Class 'SealedClass' can't be used as a mixin.
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
   @override
@@ -27,27 +29,31 @@ class OutsideB with SealedClass {
 }
 
 abstract class OutsideC = Object with SealedClass;
+// [error column 1, length 50]
+// [analyzer] COMPILE_TIME_ERROR.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
 //             ^
-// [analyzer] unspecified
 // [cfe] Class 'SealedClass' can't be used as a mixin.
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
 
 abstract class OutsideD with SealedClass, Class {}
+// [error column 1, length 50]
+// [analyzer] COMPILE_TIME_ERROR.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
 //             ^
-// [analyzer] unspecified
 // [cfe] Class 'Class' can't be used as a mixin.
 // [cfe] Class 'SealedClass' can't be used as a mixin.
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
 
 class OutsideE with Class, SealedMixin {}
+// [error column 1, length 41]
+// [analyzer] COMPILE_TIME_ERROR.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY
 //    ^
-// [analyzer] unspecified
 // [cfe] Class 'Class' can't be used as a mixin.
 // [cfe] Sealed mixin 'SealedMixin' can't be mixed in outside of its library.
 
 abstract class OutsideF with Mixin, SealedClass {}
+// [error column 1, length 50]
+// [analyzer] COMPILE_TIME_ERROR.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
 //             ^
-// [analyzer] unspecified
 // [cfe] Class 'SealedClass' can't be used as a mixin.
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
 

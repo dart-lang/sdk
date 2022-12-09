@@ -602,7 +602,7 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
       WrappedAbstractValue(_abstractValueDomain.typeType);
 
   @override
-  Iterable<MemberEntity> findRootsOfTargets(
+  Iterable<DynamicCallTarget> findRootsOfTargets(
           covariant WrappedAbstractValue receiver,
           Selector selector,
           MemberHierarchyBuilder memberHierarchyBuilder) =>

@@ -204,38 +204,25 @@ class ConstantInstantiator extends ConstantVisitor<w.ValueType> {
     return const w.RefType.none(nullable: true);
   }
 
-  w.ValueType _maybeBox(w.ValueType wasmType, void Function() pushValue) {
-    if (expectedType is w.RefType) {
-      ClassInfo info = translator.classInfo[translator.boxedClasses[wasmType]]!;
-      b.i32_const(info.classId);
-      pushValue();
-      b.struct_new(info.struct);
-      return info.nonNullableType;
-    } else {
-      pushValue();
-      return wasmType;
-    }
-  }
-
   @override
   w.ValueType visitBoolConstant(BoolConstant constant) {
-    return _maybeBox(w.NumType.i32, () {
-      b.i32_const(constant.value ? 1 : 0);
-    });
+    if (expectedType is w.RefType) return defaultConstant(constant);
+    b.i32_const(constant.value ? 1 : 0);
+    return w.NumType.i32;
   }
 
   @override
   w.ValueType visitIntConstant(IntConstant constant) {
-    return _maybeBox(w.NumType.i64, () {
-      b.i64_const(constant.value);
-    });
+    if (expectedType is w.RefType) return defaultConstant(constant);
+    b.i64_const(constant.value);
+    return w.NumType.i64;
   }
 
   @override
   w.ValueType visitDoubleConstant(DoubleConstant constant) {
-    return _maybeBox(w.NumType.f64, () {
-      b.f64_const(constant.value);
-    });
+    if (expectedType is w.RefType) return defaultConstant(constant);
+    b.f64_const(constant.value);
+    return w.NumType.f64;
   }
 }
 
@@ -295,6 +282,36 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
   @override
   ConstantInfo? defaultConstant(Constant constant) => null;
+
+  @override
+  ConstantInfo? visitBoolConstant(BoolConstant constant) {
+    ClassInfo info = translator.classInfo[translator.boxedBoolClass]!;
+    return createConstant(constant, info.nonNullableType, (function, b) {
+      b.i32_const(info.classId);
+      b.i32_const(constant.value ? 1 : 0);
+      b.struct_new(info.struct);
+    });
+  }
+
+  @override
+  ConstantInfo? visitIntConstant(IntConstant constant) {
+    ClassInfo info = translator.classInfo[translator.boxedIntClass]!;
+    return createConstant(constant, info.nonNullableType, (function, b) {
+      b.i32_const(info.classId);
+      b.i64_const(constant.value);
+      b.struct_new(info.struct);
+    });
+  }
+
+  @override
+  ConstantInfo? visitDoubleConstant(DoubleConstant constant) {
+    ClassInfo info = translator.classInfo[translator.boxedDoubleClass]!;
+    return createConstant(constant, info.nonNullableType, (function, b) {
+      b.i32_const(info.classId);
+      b.f64_const(constant.value);
+      b.struct_new(info.struct);
+    });
+  }
 
   @override
   ConstantInfo? visitStringConstant(StringConstant constant) {

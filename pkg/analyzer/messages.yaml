@@ -12562,6 +12562,11 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the supertype being extended, implemented, or mixed in
+  SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY:
+    problemMessage: "The sealed mixin '{0}' can't be mixed in outside of its library."
+    comment: |-
+      Parameters:
+      0: the name of the supertype being mixed in
   SET_ELEMENT_TYPE_NOT_ASSIGNABLE:
     problemMessage: "The element type '{0}' can't be assigned to the set type '{1}'."
     hasPublishedDocs: true

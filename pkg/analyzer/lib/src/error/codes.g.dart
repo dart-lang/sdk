@@ -4136,6 +4136,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "outside of its library.",
   );
 
+  ///  Parameters:
+  ///  0: the name of the supertype being mixed in
+  static const CompileTimeErrorCode SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY =
+      CompileTimeErrorCode(
+    'SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY',
+    "The sealed mixin '{0}' can't be mixed in outside of its library.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode SET_ELEMENT_FROM_DEFERRED_LIBRARY =
       CompileTimeErrorCode(

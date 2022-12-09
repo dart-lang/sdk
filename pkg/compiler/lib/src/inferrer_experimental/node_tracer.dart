@@ -475,7 +475,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
     final user = currentUser;
     if (user is MemberTypeInformation) {
-      if (info.concreteTargets.contains(user.member)) {
+      if (info.callees.contains(user.member)) {
         addNewEscapeInformation(info);
       }
     }

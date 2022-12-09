@@ -926,7 +926,7 @@ class CommonMasks with AbstractValueDomain {
   }
 
   @override
-  Iterable<MemberEntity> findRootsOfTargets(covariant TypeMask receiver,
+  Iterable<DynamicCallTarget> findRootsOfTargets(covariant TypeMask receiver,
       Selector selector, MemberHierarchyBuilder memberHierarchyBuilder) {
     return const [];
   }

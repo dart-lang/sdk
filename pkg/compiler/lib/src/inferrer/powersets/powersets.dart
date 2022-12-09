@@ -809,8 +809,10 @@ class PowersetDomain with AbstractValueDomain {
       _abstractValueDomain.typeType, _powersetBitsDomain.typeType);
 
   @override
-  Iterable<MemberEntity> findRootsOfTargets(covariant PowersetValue receiver,
-          Selector selector, MemberHierarchyBuilder memberHierarchyBuilder) =>
+  Iterable<DynamicCallTarget> findRootsOfTargets(
+          covariant PowersetValue receiver,
+          Selector selector,
+          MemberHierarchyBuilder memberHierarchyBuilder) =>
       _abstractValueDomain.findRootsOfTargets(
           receiver.abstractValue, selector, memberHierarchyBuilder);
 }
