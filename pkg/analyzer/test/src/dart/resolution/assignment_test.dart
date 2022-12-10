@@ -2200,12 +2200,12 @@ AssignmentExpression
 extension E on ({int foo, String bar}) {
   int get foo => 0;
 }
- 
+
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 105, 3),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
     ]);
 
     final node = findNode.assignment('+= 0');
@@ -2245,12 +2245,12 @@ AssignmentExpression
 extension E on ({int foo, String bar}) {
   int get foo => 0;
 }
- 
+
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 105, 3),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 104, 3),
     ]);
 
     final node = findNode.assignment('= 0');
@@ -2291,12 +2291,12 @@ extension E on ({int foo, String bar}) {
   int get foo => 0;
   set foo(int _) {}
 }
- 
+
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 125, 3),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3),
     ]);
 
     final node = findNode.assignment('+= 0');
@@ -2337,12 +2337,12 @@ extension E on ({int foo, String bar}) {
   int get foo => 0;
   set foo(int _) {}
 }
- 
+
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_SETTER, 125, 3),
+      error(CompileTimeErrorCode.UNDEFINED_SETTER, 124, 3),
     ]);
 
     final node = findNode.assignment('= 0');
@@ -3060,7 +3060,6 @@ AssignmentExpression
 
   test_simpleIdentifier_importPrefix_hasSuperSetter_simple() async {
     await assertErrorsInCode('''
-// ignore:unused_import
 import 'dart:math' as x;
 
 class A {
@@ -3073,7 +3072,7 @@ class B extends A {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 109, 1),
+      error(CompileTimeErrorCode.PREFIX_IDENTIFIER_NOT_FOLLOWED_BY_DOT, 85, 1),
     ]);
 
     var assignment = findNode.assignment('x = 2');
