@@ -564,20 +564,29 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
 typedef ScavengerVisitorBase<false> SerialScavengerVisitor;
 typedef ScavengerVisitorBase<true> ParallelScavengerVisitor;
 
+static bool IsUnreachable(ObjectPtr* ptr) {
+  ObjectPtr raw_obj = *ptr;
+  if (raw_obj->IsSmiOrOldObject()) {
+    return false;
+  }
+  uword raw_addr = UntaggedObject::ToAddr(raw_obj);
+  uword header = *reinterpret_cast<uword*>(raw_addr);
+  if (IsForwarding(header)) {
+    *ptr = ForwardedObj(header);
+    return false;
+  }
+  return true;
+}
+
 class ScavengerWeakVisitor : public HandleVisitor {
  public:
-  ScavengerWeakVisitor(Thread* thread, Scavenger* scavenger)
-      : HandleVisitor(thread),
-        scavenger_(scavenger),
-        class_table_(thread->isolate_group()->class_table()) {
-    ASSERT(scavenger->heap_->isolate_group() == thread->isolate_group());
-  }
+  explicit ScavengerWeakVisitor(Thread* thread) : HandleVisitor(thread) {}
 
   void VisitHandle(uword addr) {
     FinalizablePersistentHandle* handle =
         reinterpret_cast<FinalizablePersistentHandle*>(addr);
     ObjectPtr* p = handle->ptr_addr();
-    if (scavenger_->IsUnreachable(p)) {
+    if (IsUnreachable(p)) {
       handle->UpdateUnreachable(thread()->isolate_group());
     } else {
       handle->UpdateRelocated(thread()->isolate_group());
@@ -585,9 +594,6 @@ class ScavengerWeakVisitor : public HandleVisitor {
   }
 
  private:
-  Scavenger* scavenger_;
-  ClassTable* class_table_;
-
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
 };
 
@@ -1195,27 +1201,10 @@ void Scavenger::IterateRoots(ScavengerVisitorBase<parallel>* visitor) {
   IterateRememberedCards(visitor);
 }
 
-bool Scavenger::IsUnreachable(ObjectPtr* p) {
-  ObjectPtr raw_obj = *p;
-  if (!raw_obj->IsHeapObject()) {
-    return false;
-  }
-  if (!raw_obj->IsNewObject()) {
-    return false;
-  }
-  uword raw_addr = UntaggedObject::ToAddr(raw_obj);
-  uword header = *reinterpret_cast<uword*>(raw_addr);
-  if (IsForwarding(header)) {
-    *p = ForwardedObj(header);
-    return false;
-  }
-  return true;
-}
-
 void Scavenger::MournWeakHandles() {
   Thread* thread = Thread::Current();
   TIMELINE_FUNCTION_GC_DURATION(thread, "MournWeakHandles");
-  ScavengerWeakVisitor weak_visitor(thread, this);
+  ScavengerWeakVisitor weak_visitor(thread);
   heap_->isolate_group()->VisitWeakPersistentHandles(&weak_visitor);
 }
 

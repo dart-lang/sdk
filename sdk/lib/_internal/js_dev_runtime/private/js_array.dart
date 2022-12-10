@@ -24,6 +24,9 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     // TODO(jmesserly): this uses special compiler magic to close over the
     // parameterized ES6 'JSArray' class.
     JS('', '#.__proto__ = JSArray.prototype', list);
+    if (JS_GET_FLAG('NEW_RUNTIME_TYPES'))
+      JS('', '#.# = #', list, JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY),
+          JSArray<E>);
     return JS('-dynamic', '#', list);
   }
 
@@ -31,6 +34,9 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
   factory JSArray.fixed(list) {
     JS('', '#.__proto__ = JSArray.prototype', list);
     JS('', r'#.fixed$length = Array', list);
+    if (JS_GET_FLAG('NEW_RUNTIME_TYPES'))
+      JS('', '#.# = #', list, JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY),
+          JSArray<E>);
     return JS('-dynamic', '#', list);
   }
 
@@ -38,6 +44,9 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     JS('', '#.__proto__ = JSArray.prototype', list);
     JS('', r'#.fixed$length = Array', list);
     JS('', r'#.immutable$list = Array', list);
+    if (JS_GET_FLAG('NEW_RUNTIME_TYPES'))
+      JS('', '#.# = #', list, JS_EMBEDDED_GLOBAL('', ARRAY_RTI_PROPERTY),
+          JSArray<E>);
     return JS('-dynamic', '#', list);
   }
 
@@ -597,8 +606,7 @@ class JSArray<E> implements List<E>, JSIndexable<E> {
     return ListMapView<E>(this);
   }
 
-  Type get runtimeType =>
-      dart.wrapType(JS('', '#(#)', dart.getGenericClassStatic<List>(), E));
+  Type get runtimeType => List<E>;
 
   Iterable<E> followedBy(Iterable<E> other) =>
       FollowedByIterable<E>.firstEfficient(this, other);

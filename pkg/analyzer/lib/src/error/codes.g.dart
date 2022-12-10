@@ -3681,6 +3681,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE =
+      CompileTimeErrorCode(
+    'PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE',
+    "Only local variables or formal parameters can be used in pattern "
+        "assignments.",
+    correctionMessage: "Try assigning to a local variable.",
+  );
+
   ///  Parameters:
   ///  0: the matched type
   ///  1: the required type

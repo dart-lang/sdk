@@ -18,6 +18,16 @@ main() {
 @reflectiveTest
 class UndefinedIdentifierTest extends PubPackageResolutionTest
     with UndefinedIdentifierTestCases {
+  test_assignedPatternVariable() async {
+    await assertErrorsInCode('''
+void f() {
+  (x) = 0;
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 14, 1),
+    ]);
+  }
+
   test_get_from_external_variable_final_valid() async {
     await assertNoErrorsInCode('''
 external final int x;

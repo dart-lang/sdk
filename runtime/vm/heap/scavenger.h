@@ -278,8 +278,6 @@ class Scavenger {
   void MournWeakHandles();
   void Epilogue(SemiSpace* from);
 
-  bool IsUnreachable(ObjectPtr* p);
-
   void VerifyStoreBuffers();
 
   void UpdateMaxHeapCapacity();

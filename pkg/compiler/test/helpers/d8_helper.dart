@@ -48,7 +48,7 @@ Future<D8Result> runWithD8(
   List<String> dart2jsArgs = [
     mainFile.toString(),
     '-o$output',
-    '--packages=${Platform.packageConfig}',
+    if (Platform.packageConfig != null) '--packages=${Platform.packageConfig}',
   ]..addAll(options);
   if (printSteps) print('Running: dart2js ${dart2jsArgs.join(' ')}');
 

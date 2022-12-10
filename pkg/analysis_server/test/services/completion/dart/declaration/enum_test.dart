@@ -123,6 +123,7 @@ suggestions
     await _check_locations(
       declaration: 'enum MyEnum { foo01 }',
       codeAtCompletion: 'MyEnu^',
+      referencesDeclaration: false,
       validator: (response, context) {
         if (isProtocolVersion2) {
           // No enum constants.
@@ -356,6 +357,7 @@ suggestions
     required String declaration,
     String declarationForContextType = '',
     required String codeAtCompletion,
+    bool referencesDeclaration = true,
     required void Function(
       CompletionResponseForTesting response,
       _Context context,
@@ -398,7 +400,7 @@ void f() {
 $declaration
 ''');
       newFile('$testPackageLibPath/context_type.dart', '''
-import 'a.dart'; // ignore: unused_import
+import 'a.dart';${referencesDeclaration ? '' : ' // ignore: unused_import'}
 $declarationForContextType
 ''');
       if (isProtocolVersion1) {

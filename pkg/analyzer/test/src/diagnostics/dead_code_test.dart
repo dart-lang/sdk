@@ -17,7 +17,17 @@ main() {
 
 @reflectiveTest
 class DeadCodeTest extends PubPackageResolutionTest
-    with DeadCodeTestCases, DeadCodeTestCases_Language212 {}
+    with DeadCodeTestCases, DeadCodeTestCases_Language212 {
+  test_ifElement_patternAssignment() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  [if (false) (a) = 0];
+}
+''', [
+      error(HintCode.DEAD_CODE, 30, 7),
+    ]);
+  }
+}
 
 @reflectiveTest
 class DeadCodeTest_Language218 extends PubPackageResolutionTest

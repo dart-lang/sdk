@@ -690,7 +690,11 @@ class AssignedVariablePatternImpl extends DartPatternImpl
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    throw UnimplementedError('TODO(scheglov)');
+    final element = this.element;
+    if (element is PromotableElement) {
+      return resolverVisitor.analyzeAssignedVariablePatternSchema(element);
+    }
+    return resolverVisitor.unknownType;
   }
 
   @override
@@ -699,7 +703,11 @@ class AssignedVariablePatternImpl extends DartPatternImpl
     DartType matchedType,
     SharedMatchContext context,
   ) {
-    throw UnimplementedError('TODO(scheglov)');
+    resolverVisitor.resolveAssignedVariablePattern(
+      node: this,
+      matchedType: matchedType,
+      context: context,
+    );
   }
 
   @override
@@ -10088,8 +10096,7 @@ class PatternAssignmentImpl extends ExpressionImpl
 
   @override
   void resolveExpression(ResolverVisitor resolver, DartType? contextType) {
-    // TODO(brianwilkerson) implement resolveExpression
-    throw UnimplementedError();
+    resolver.visitPatternAssignment(this);
   }
 
   @override

@@ -60,6 +60,17 @@ void f(Object x) {
     ]);
   }
 
+  test_patternAssignment_assignedVariablePattern() async {
+    await assertErrorsInCode(r'''
+void f(int a) {
+  (a) = 1.2;
+}
+''', [
+      error(CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT,
+          19, 1),
+    ]);
+  }
+
   test_recordPattern_notRecord() async {
     await assertErrorsInCode(r'''
 void f(Object x) {

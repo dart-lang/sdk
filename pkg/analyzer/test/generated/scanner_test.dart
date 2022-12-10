@@ -23,8 +23,6 @@ main() {
   });
 }
 
-// TODO(srawlins): Re-enable?
-// ignore: unreachable_from_main
 class CharacterRangeReaderTest {
   void test_advance() {
     CharSequenceReader baseReader = CharSequenceReader("xyzzy");

@@ -7,10 +7,12 @@ library dart._interceptors;
 import 'dart:collection';
 import 'dart:_internal' hide Symbol;
 import 'dart:_js_helper';
-import 'dart:_foreign_helper' show JS, JS_GET_FLAG, JSExportName;
+import 'dart:_foreign_helper'
+    show JS, JS_EMBEDDED_GLOBAL, JS_GET_FLAG, JSExportName;
 import 'dart:math' show Random, ln2;
 import 'dart:_rti' as rti show createRuntimeType, Rti;
 import 'dart:_runtime' as dart;
+import 'dart:_js_shared_embedded_names' show ARRAY_RTI_PROPERTY;
 
 part 'js_array.dart';
 part 'js_number.dart';
@@ -115,6 +117,7 @@ class UnknownJavaScriptObject extends LegacyJavaScriptObject {
   const UnknownJavaScriptObject();
 }
 
+@JsPeerInterface(name: 'Error')
 class NativeError extends Interceptor {
   String dartStack() => JS<String>('!', '#.stack', this);
 }
