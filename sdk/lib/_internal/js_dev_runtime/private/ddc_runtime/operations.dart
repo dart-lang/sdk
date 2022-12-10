@@ -813,6 +813,11 @@ defaultNoSuchMethod(obj, Invocation i) {
   throw NoSuchMethodError.withInvocation(obj, i);
 }
 
+// TODO(nshahan) Replace with rti.getRuntimeType() when classes representing
+// native types don't have to "pretend" to be Dart classes. Ex:
+// JSNumber -> int or double
+// JSArray<E> -> List<E>
+// NativeFloat32List -> Float32List
 runtimeType(obj) {
   return obj == null ? Null : JS('', '#[dartx.runtimeType]', obj);
 }

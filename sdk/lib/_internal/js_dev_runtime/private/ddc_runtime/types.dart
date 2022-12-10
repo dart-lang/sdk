@@ -89,6 +89,9 @@ void nativeNonNullAsserts(bool enable) {
   _nativeNonNullAsserts = enable;
 }
 
+/// A JavaScript Symbol used to store the Rti object on a native array.
+final arrayRti = JS('', r'Symbol("$ti")');
+
 final metadata = JS('', 'Symbol("metadata")');
 
 /// A javascript Symbol used to store a canonical version of T? on T.

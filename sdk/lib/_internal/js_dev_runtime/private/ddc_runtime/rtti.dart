@@ -110,6 +110,34 @@ RecordType getRecordType(_RecordImpl obj) {
   return type;
 }
 
+/// Returns the interceptor for [obj] as needed by the dart:rti library.
+@notNull
+Object getInterceptorForRti(obj) {
+  var classRef;
+  if (obj == null) {
+    classRef = JS_CLASS_REF(Null);
+  } else {
+    switch (JS<String>('!', 'typeof #', obj)) {
+      case 'number':
+        classRef = JS('', 'Math.floor(#) == # ? # : #', obj, obj,
+            JS_CLASS_REF(JSInt), JS_CLASS_REF(JSNumNotInt));
+        break;
+      case 'function':
+        var signature =
+            JS('', '#[#]', obj, JS_GET_NAME(JsGetName.SIGNATURE_NAME));
+        if (signature != null) classRef = JS_CLASS_REF(Function);
+        break;
+      default:
+        // The interceptors for native JavaScript types like bool, string, etc.
+        // (excluding number and function, see above) are stored as a symbolized
+        // property and can be accessed from the native value itself.
+        classRef = JS('', '#[#]', obj, _extensionType);
+    }
+  }
+  if (classRef == null) throw 'Unknown interceptor for object: ($obj)';
+  return JS<Object>('!', '#.prototype', classRef);
+}
+
 /// Returns the runtime representation of the type of obj.
 ///
 /// The resulting object is used internally for runtime type checking. This is
