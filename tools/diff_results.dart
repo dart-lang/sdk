@@ -313,7 +313,6 @@ class Result {
   int get hashCode => name.hashCode ^ builderName.hashCode;
 
   @override
-  // ignore: unnecessary_overrides
   bool operator ==(Object other) {
     // TODO: implement ==
     return super == other;
