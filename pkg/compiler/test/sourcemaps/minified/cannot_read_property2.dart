@@ -4,7 +4,7 @@
 
 // @dart = 2.7
 
-// Error pattern: Cannot read property '([^']*)' of null
+// Error pattern: Cannot read properties of null \(reading '([^']*)'\)
 // Kind of minified name: instance
 // Expected deobfuscated name: method
 
