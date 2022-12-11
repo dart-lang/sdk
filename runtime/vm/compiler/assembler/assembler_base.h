@@ -694,6 +694,19 @@ class AssemblerBase : public StackResource {
   virtual void StoreToOffset(Register src,
                              const Address& address,
                              OperandSize sz = kWordBytes) = 0;
+
+  virtual void BranchIfSmi(Register reg,
+                           Label* label,
+                           JumpDistance distance = kFarJump) = 0;
+
+  virtual void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) = 0;
+  virtual void CompareWords(Register reg1,
+                            Register reg2,
+                            intptr_t offset,
+                            Register count,
+                            Register temp,
+                            Label* equals) = 0;
+
   enum CanBeSmi {
     kValueCanBeSmi,
     kValueIsNotSmi,

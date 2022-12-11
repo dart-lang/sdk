@@ -1082,10 +1082,18 @@ class Assembler : public AssemblerBase {
 
   void BranchIfSmi(Register reg,
                    Label* label,
-                   JumpDistance distance = kFarJump) {
+                   JumpDistance distance = kFarJump) override {
     testl(reg, Immediate(kSmiTagMask));
     j(ZERO, label, distance);
   }
+
+  void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) override;
+  void CompareWords(Register reg1,
+                    Register reg2,
+                    intptr_t offset,
+                    Register count,
+                    Register temp,
+                    Label* equals) override;
 
   void Align(intptr_t alignment, intptr_t offset);
   void Bind(Label* label);

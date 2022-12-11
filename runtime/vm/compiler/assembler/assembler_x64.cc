@@ -1779,6 +1779,26 @@ void Assembler::StoreToOffset(Register reg,
   }
 }
 
+void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
+  sarq(reg, Immediate(shift));
+}
+
+void Assembler::CompareWords(Register reg1,
+                             Register reg2,
+                             intptr_t offset,
+                             Register count,
+                             Register temp,
+                             Label* equals) {
+  Label loop;
+  Bind(&loop);
+  decq(count);
+  j(LESS, equals, Assembler::kNearJump);
+  COMPILE_ASSERT(target::kWordSize == 8);
+  movq(temp, FieldAddress(reg1, count, TIMES_8, offset));
+  cmpq(temp, FieldAddress(reg2, count, TIMES_8, offset));
+  BranchIf(EQUAL, &loop, Assembler::kNearJump);
+}
+
 void Assembler::EnterFrame(intptr_t frame_size) {
   if (prologue_offset_ == -1) {
     prologue_offset_ = CodeSize();
