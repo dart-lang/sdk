@@ -80,6 +80,33 @@ const b = [];
 ''');
   }
 
+  Future<void> test_emptyRecordLiteral() async {
+    await resolveTestCode('''
+final () a = ();
+''');
+    await assertHasFix('''
+const () a = ();
+''');
+  }
+
+  Future<void> test_recordLiteral() async {
+    await resolveTestCode('''
+final (int, int) a = (1, 2);
+''');
+    await assertHasFix('''
+const (int, int) a = (1, 2);
+''');
+  }
+
+  Future<void> test_recordLiteral_nonConst() async {
+    await resolveTestCode('''
+void f(int a) {
+  final (int, int) r = (a, a);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_variable() async {
     await resolveTestCode('''
 final int a = 1;
