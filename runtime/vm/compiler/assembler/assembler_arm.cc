@@ -3172,6 +3172,31 @@ static int NumRegsBelowFP(RegList regs) {
   return count;
 }
 
+void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
+  Asr(reg, reg, Operand(shift));
+}
+
+void Assembler::CompareWords(Register reg1,
+                             Register reg2,
+                             intptr_t offset,
+                             Register count,
+                             Register temp,
+                             Label* equals) {
+  Label loop;
+
+  AddImmediate(reg1, offset - kHeapObjectTag);
+  AddImmediate(reg2, offset - kHeapObjectTag);
+
+  COMPILE_ASSERT(target::kWordSize == 4);
+  Bind(&loop);
+  BranchIfZero(count, equals, Assembler::kNearJump);
+  AddImmediate(count, -1);
+  ldr(temp, Address(reg1, 4, Address::PostIndex));
+  ldr(TMP, Address(reg2, 4, Address::PostIndex));
+  cmp(temp, Operand(TMP));
+  BranchIf(EQUAL, &loop, Assembler::kNearJump);
+}
+
 void Assembler::EnterFrame(RegList regs, intptr_t frame_size) {
   if (prologue_offset_ == -1) {
     prologue_offset_ = CodeSize();

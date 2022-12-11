@@ -1756,7 +1756,7 @@ class Assembler : public AssemblerBase {
   // For ARM, the near argument is ignored.
   void BranchIfSmi(Register reg,
                    Label* label,
-                   JumpDistance distance = kFarJump) {
+                   JumpDistance distance = kFarJump) override {
     tbz(label, reg, kSmiTag);
   }
 
@@ -2172,6 +2172,14 @@ class Assembler : public AssemblerBase {
   void SetupDartSP(intptr_t reserve = 4096);
   void SetupCSPFromThread(Register thr);
   void RestoreCSP();
+
+  void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) override;
+  void CompareWords(Register reg1,
+                    Register reg2,
+                    intptr_t offset,
+                    Register count,
+                    Register temp,
+                    Label* equals) override;
 
   void EnterFrame(intptr_t frame_size);
   void LeaveFrame();

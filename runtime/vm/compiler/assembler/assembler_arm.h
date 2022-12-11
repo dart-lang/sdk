@@ -1345,12 +1345,20 @@ class Assembler : public AssemblerBase {
   // For ARM, the near argument is ignored.
   void BranchIfSmi(Register reg,
                    Label* label,
-                   JumpDistance distance = kFarJump) {
+                   JumpDistance distance = kFarJump) override {
     tst(reg, Operand(kSmiTagMask));
     b(label, EQ);
   }
 
   void CheckCodePointer();
+
+  void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) override;
+  void CompareWords(Register reg1,
+                    Register reg2,
+                    intptr_t offset,
+                    Register count,
+                    Register temp,
+                    Label* equals) override;
 
   // Function frame setup and tear down.
   void EnterFrame(RegList regs, intptr_t frame_space);

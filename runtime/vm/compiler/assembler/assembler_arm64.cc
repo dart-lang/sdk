@@ -1534,6 +1534,31 @@ void Assembler::SetReturnAddress(Register value) {
   RESTORES_RETURN_ADDRESS_FROM_REGISTER_TO_LR(MoveRegister(LR, value));
 }
 
+void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
+  AsrImmediate(reg, reg, shift);
+}
+
+void Assembler::CompareWords(Register reg1,
+                             Register reg2,
+                             intptr_t offset,
+                             Register count,
+                             Register temp,
+                             Label* equals) {
+  Label loop;
+
+  AddImmediate(reg1, offset - kHeapObjectTag);
+  AddImmediate(reg2, offset - kHeapObjectTag);
+
+  COMPILE_ASSERT(target::kWordSize == 8);
+  Bind(&loop);
+  BranchIfZero(count, equals, Assembler::kNearJump);
+  AddImmediate(count, -1);
+  ldr(temp, Address(reg1, 8, Address::PostIndex));
+  ldr(TMP, Address(reg2, 8, Address::PostIndex));
+  cmp(temp, Operand(TMP));
+  BranchIf(EQUAL, &loop, Assembler::kNearJump);
+}
+
 void Assembler::EnterFrame(intptr_t frame_size) {
   SPILLS_LR_TO_FRAME(PushPair(FP, LR));  // low: FP, high: LR.
   mov(FP, SP);

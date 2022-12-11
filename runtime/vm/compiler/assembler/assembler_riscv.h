@@ -959,7 +959,15 @@ class Assembler : public MicroAssembler {
                       JumpDistance distance = kFarJump);
   void BranchIfSmi(Register reg,
                    Label* label,
-                   JumpDistance distance = kFarJump);
+                   JumpDistance distance = kFarJump) override;
+
+  void ArithmeticShiftRightImmediate(Register reg, intptr_t shift) override;
+  void CompareWords(Register reg1,
+                    Register reg2,
+                    intptr_t offset,
+                    Register count,
+                    Register temp,
+                    Label* equals) override;
 
   void Jump(const Code& code,
             Register pp,

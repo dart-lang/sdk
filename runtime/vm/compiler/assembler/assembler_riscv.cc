@@ -2924,6 +2924,27 @@ void Assembler::BranchIfSmi(Register reg, Label* label, JumpDistance distance) {
   beqz(TMP2, label, distance);
 }
 
+void Assembler::ArithmeticShiftRightImmediate(Register reg, intptr_t shift) {
+  srai(reg, reg, shift);
+}
+
+void Assembler::CompareWords(Register reg1,
+                             Register reg2,
+                             intptr_t offset,
+                             Register count,
+                             Register temp,
+                             Label* equals) {
+  Label loop;
+  Bind(&loop);
+  BranchIfZero(count, equals, Assembler::kNearJump);
+  AddImmediate(count, -1);
+  lx(temp, FieldAddress(reg1, offset));
+  lx(TMP, FieldAddress(reg2, offset));
+  addi(reg1, reg1, target::kWordSize);
+  addi(reg2, reg2, target::kWordSize);
+  beq(temp, TMP, &loop, Assembler::kNearJump);
+}
+
 void Assembler::Jump(const Code& target,
                      Register pp,
                      ObjectPoolBuilderEntry::Patchability patchable) {
