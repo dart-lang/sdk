@@ -59,7 +59,7 @@ main() {
   var c2 = new C<int, double, int>();
   Expect.isFalse(c2.m1 is T1, "(int,double)->void is not (int,int)->void");
   Expect.isFalse(
-      c2.m1 is T2, "(int,double)->void is not not (int,[int])->void");
+      c2.m1 is T2, "(int,double)->void is not (int,[int])->void");
   Expect.isFalse(c2.m1 is T3, "(int,double)->void is not ([int,int])->void");
   Expect.isFalse(
       c2.m1 is T4, "(int,double)->void is not (int,[int,int])->void");

@@ -1983,7 +1983,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // field is still unitialized.
       __ cmpl(field_cid_operand, compiler::Immediate(kIllegalCid));
       // Jump to failure path when guard field has been initialized and
-      // the field and value class ids do not not match.
+      // the field and value class ids do not match.
       __ j(NOT_EQUAL, fail);
 
       if (value_cid == kDynamicCid) {
