@@ -15,7 +15,7 @@ abstract class EfficientLengthIterable<T> extends Iterable<T> {
 
 /// Creates errors throw by [Iterable] when the element count is wrong.
 abstract class IterableElementError {
-  /// Error thrown thrown by, e.g., [Iterable.first] when there is no result.
+  /// Error thrown by, e.g., [Iterable.first] when there is no result.
   static StateError noElement() => StateError("No element");
 
   /// Error thrown by, e.g., [Iterable.single] if there are too many results.
