@@ -2,6 +2,16 @@
 
 ### Libraries
 
+#### `dart:core`
+
+- **Breaking change** [#49529][]:
+  - Removed the deprecated [`NoSuchMethodError`][] default constructor.
+    Use the [`NoSuchMethodError.withInvocation`][] named constructor instead.
+
+[#49529]: https://github.com/dart-lang/sdk/issues/49529
+[`NoSuchMethodError`]: https://api.dart.dev/stable/2.18.4/dart-core/NoSuchMethodError/NoSuchMethodError.html
+[`NoSuchMethodError.withInvocation`]: https://api.dart.dev/stable/2.18.4/dart-core/NoSuchMethodError/NoSuchMethodError.withInvocation.html
+
 #### `dart:html`
 
 - **Breaking change**: As previously announced, the deprecated `registerElement`

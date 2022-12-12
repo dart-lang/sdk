@@ -208,18 +208,6 @@ class NoSuchMethodError {
         typeArgumentsLength, typeArguments, arguments, argumentNames);
   }
 
-  // Deprecated constructor.
-  @patch
-  NoSuchMethodError(this._receiver, Symbol memberName,
-      List? positionalArguments, Map<Symbol, dynamic>? namedArguments,
-      [List? existingArgumentNames = null]) // existingArgumentNames ignored.
-      : this._invocation = new _InvocationMirror._withType(
-            memberName,
-            _InvocationMirror._UNINITIALIZED,
-            null, // Type arguments not supported in deprecated constructor.
-            positionalArguments,
-            namedArguments);
-
   // Helper to build a map of named arguments.
   static Map<Symbol, dynamic> _NamedArgumentsMap(
       List arguments, List argumentNames) {

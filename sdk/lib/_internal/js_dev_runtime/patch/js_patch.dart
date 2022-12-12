@@ -139,7 +139,8 @@ class JsObject {
     if (args != null) args = List.from(args.map(_convertToJS));
     var fn = JS('', '#[#]', _jsObject, method);
     if (JS<bool>('!', 'typeof(#) !== "function"', fn)) {
-      throw NoSuchMethodError(_jsObject, Symbol('$method'), args, {});
+      final invocation = Invocation.method(Symbol('$method'), args, {});
+      throw NoSuchMethodError.withInvocation(_jsObject, invocation);
     }
     return _convertToDart(JS('', '#.apply(#, #)', fn, _jsObject, args));
   }
