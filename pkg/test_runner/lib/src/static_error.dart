@@ -702,8 +702,6 @@ class _ErrorExpectationParser {
     return line;
   }
 
-  // TODO(athom): remove when migrated to null safety.
-  // ignore: sdk_version_never
   Never _fail(String message) {
     throw FormatException("Test error on line ${_currentLine + 1}: $message");
   }
