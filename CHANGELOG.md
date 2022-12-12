@@ -9,6 +9,16 @@
   removed.  See [#49536](https://github.com/dart-lang/sdk/issues/49536) for
   details.
 
+#### `dart:async`
+
+- **Breaking change** [#49529][]:
+  - Removed the deprecated [`DeferredLibrary`][] class.
+    Use the [`deferred as`][] import syntax instead.
+
+[#49529]: https://github.com/dart-lang/sdk/issues/49529
+[`DeferredLibrary`]: https://api.dart.dev/stable/2.18.4/dart-async/DeferredLibrary-class.html
+[`deferred as`]: https://dart.dev/guides/language/language-tour#deferred-loading
+
 ## 2.19.0
 
 ### Language
