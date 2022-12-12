@@ -6,13 +6,13 @@ import 'package:test/test.dart';
 
 import 'analytics_test.dart' as analytics;
 import 'commands/analyze_test.dart' as analyze;
-import 'commands/bug_test.dart' as bug;
 import 'commands/compile_test.dart' as compile;
 import 'commands/create_test.dart' as create;
 import 'commands/fix_test.dart' as fix;
 import 'commands/flag_test.dart' as flag;
 import 'commands/format_test.dart' as format;
 import 'commands/help_test.dart' as help;
+import 'commands/info_test.dart' as info;
 import 'commands/language_server_test.dart' as language_server;
 import 'commands/migrate_test.dart' as migrate;
 import 'commands/pub_test.dart' as pub;
@@ -32,26 +32,26 @@ void main() {
   group('dart', () {
     analytics.main();
     analyze.main();
-    bug.main();
+    compile.main();
+    core.main();
     create.main();
     experiments.main();
-    fix.main();
     fix_driver.main();
+    fix.main();
     flag.main();
     format.main();
     help.main();
     implicit_smoke.main();
+    info.main();
     invalid_smoke.main();
     language_server.main();
     migrate.main();
     no_such_file.main();
     pub.main();
     run.main();
-    compile.main();
-    test.main();
-    core.main();
     sdk.main();
     smoke.main();
+    test.main();
     utils.main();
   });
 }

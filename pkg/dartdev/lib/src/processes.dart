@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-// TODO(devoncarew): Support windows.
+import 'package:meta/meta.dart';
 
 /// A utility class to get information about the Dart related process running on
 /// this machine.
@@ -12,8 +12,8 @@ class ProcessInfo {
   static final wsRegex = RegExp(r'\s+');
 
   final int memoryMb;
-  final double cpuPercent;
-  final String elapsedTime;
+  final double? cpuPercent;
+  final String? elapsedTime;
   final String command;
   final String commandLine;
 
@@ -91,6 +91,36 @@ class ProcessInfo {
     }
   }
 
+  @visibleForTesting
+  static ProcessInfo? parseWindows(String line) {
+    String stripQuotes(String item) {
+      if (item.startsWith('"')) item = item.substring(1);
+      if (item.endsWith('"')) item = item.substring(0, item.length - 1);
+      return item;
+    }
+
+    // "dart.exe","12068","Console","1","233,384 K"
+    var items = stripQuotes(line).split('","');
+
+    if (items.isEmpty) {
+      return null;
+    }
+
+    int parseMemory(String value) {
+      if (value.contains(' ')) value = value.substring(0, value.indexOf(' '));
+      value = value.replaceAll(',', '');
+      return (int.tryParse(value) ?? 0) ~/ 1024;
+    }
+
+    return ProcessInfo._(
+      command: items.first,
+      memoryMb: parseMemory(items.length >= 5 ? items[4] : '0'),
+      cpuPercent: null,
+      elapsedTime: null,
+      commandLine: items.first,
+    );
+  }
+
   const ProcessInfo._({
     required this.memoryMb,
     required this.cpuPercent,
@@ -102,7 +132,7 @@ class ProcessInfo {
   /// Return the Dart related processes.
   ///
   /// This will try to exclude the process for the VM currently running
-  /// 'dart bug'.
+  /// 'dart info'.
   ///
   /// This will return `null` if we don't support listing the process on the
   /// current platform.
@@ -113,12 +143,14 @@ class ProcessInfo {
       processInfo = _getProcessInfoMacOS(elideFilePaths: elideFilePaths);
     } else if (Platform.isLinux) {
       processInfo = _getProcessInfoLinux(elideFilePaths: elideFilePaths);
+    } else if (Platform.isWindows) {
+      processInfo = _getProcessInfoWindows();
     }
 
     if (processInfo != null) {
-      // Remove the 'dart bug' entry.
+      // Remove the 'dart info' entry.
       processInfo = processInfo
-          .where((process) => process.commandLine != 'dart bug')
+          .where((process) => process.commandLine != 'dart info')
           .toList();
 
       // Sort.
@@ -162,6 +194,11 @@ class ProcessInfo {
       ...args.skip(1).map(sanitizeArg),
     ].join(' ');
   }
+
+  @override
+  String toString() =>
+      'ProcessInfo(memoryMb: $memoryMb, cpuPercent: $cpuPercent, elapsedTime:'
+      ' $elapsedTime, command: $command, commandLine: $commandLine)';
 }
 
 List<ProcessInfo> _getProcessInfoMacOS({bool elideFilePaths = true}) {
@@ -204,8 +241,31 @@ List<ProcessInfo> _getProcessInfoLinux({bool elideFilePaths = true}) {
       .toList();
 }
 
+List<ProcessInfo> _getProcessInfoWindows() {
+  // TODO(devoncarew): Use tasklist /v to retrieve process elapsed time info.
+  var result = Process.runSync('tasklist', ['/nh', '/fo', 'csv']);
+  if (result.exitCode != 0) {
+    return const [];
+  }
+
+  // "smss.exe","608","Services","0","288 K"
+  // "csrss.exe","888","Services","0","3,084 K"
+  // "wininit.exe","628","Services","0","1,104 K"
+  // "dart.exe","12068","Console","1","233,384 K"
+
+  var lines = (result.stdout as String).split('\n');
+  return lines
+      .skip(1)
+      .map((line) => line.trim())
+      .where((line) => line.isNotEmpty)
+      .map((line) => ProcessInfo.parseWindows(line))
+      .whereType<ProcessInfo>()
+      .where(_isProcessDartRelated)
+      .toList();
+}
+
 bool _isProcessDartRelated(ProcessInfo process) {
-  return process.command == 'dart';
+  return process.command == 'dart' || process.command == 'dart.exe';
 }
 
 String _getCommandFrom(String commandLine) {

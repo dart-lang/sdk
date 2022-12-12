@@ -220,10 +220,10 @@ async/test/stream_zip_test: SkipSlow # Times out. Issue 22050
 collection/test/unmodifiable_collection_test: SkipSlow # Times out. Issue 22050
 
 [ $runtime == vm && $system != linux ]
-dartdev/test/commands/bug_linux_test: SkipByDesign
+dartdev/test/commands/info_linux_test: SkipByDesign
 
 [ $runtime == vm && $system != macos ]
-dartdev/test/commands/bug_macos_test: SkipByDesign
+dartdev/test/commands/info_macos_test: SkipByDesign
 
 [ $runtime == vm && $system == windows ]
 analysis_server/test/analysis/get_errors_test: Skip # runtime error, Issue 22180
@@ -233,6 +233,9 @@ analyzer/tool/task_dependency_graph/check_test: Slow, Pass
 
 [ $runtime == vm && $system == windows && $checked ]
 front_end/tool/perf_test: Slow, Pass
+
+[ $runtime == vm && $system != windows ]
+dartdev/test/commands/info_windows_test: SkipByDesign
 
 [ $runtime == vm && $checked ]
 analysis_server/test/completion_test: Slow, Pass

@@ -2,21 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:dartdev/src/commands/bug.dart';
+import 'package:dartdev/src/commands/info.dart';
 import 'package:dartdev/src/core.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
 
 void main() {
-  group('bug', () {
+  group('info', () {
     late TestProject p;
 
     tearDown(() async => await p.dispose());
 
     test('--help', () async {
       p = project();
-      final result = await p.run(['bug', '--help']);
+      final result = await p.run(['info', '--help']);
 
       expect(result.stdout, isNotEmpty);
       expect(result.stdout,
@@ -27,7 +27,7 @@ void main() {
 
     test('shows general info', () async {
       p = project(mainSrc: 'void main() {}');
-      final runResult = await p.run(['bug']);
+      final runResult = await p.run(['info']);
 
       expect(runResult.stderr, isEmpty);
       expect(runResult.exitCode, 0);
@@ -40,7 +40,7 @@ void main() {
 
     test('shows project info', () async {
       p = project(mainSrc: 'void main() {}');
-      final runResult = await p.run(['bug']);
+      final runResult = await p.run(['info']);
 
       expect(runResult.stderr, isEmpty);
       expect(runResult.exitCode, 0);
