@@ -7,7 +7,7 @@
 
 import "package:expect/expect.dart";
 
-// Test error message with noSuchMethodError: non-existent names
+// Test error message with noSuchMethodError: nonexistent names
 // should result in a message that reports the missing method.
 
 call_bar(x) => x.bar();

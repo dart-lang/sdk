@@ -67,7 +67,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     final importElement = node.element;
     if (importElement != null) {
       // The element is null when the URI is invalid, but not when the URI is
-      // valid but refers to a non-existent file.
+      // valid but refers to a nonexistent file.
       LibraryElement? library = importElement.importedLibrary;
       if (library != null && !library.isSynthetic) {
         for (Combinator combinator in node.combinators) {

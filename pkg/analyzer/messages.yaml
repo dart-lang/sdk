@@ -15246,7 +15246,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the URI pointing to a non-existent file
+      0: the URI pointing to a nonexistent file
     documentation: |-
       #### Description
 
@@ -15273,7 +15273,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the URI pointing to a non-existent file
+      0: the URI pointing to a nonexistent file
     documentation: |-
       #### Description
 

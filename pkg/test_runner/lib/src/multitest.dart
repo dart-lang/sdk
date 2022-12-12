@@ -290,7 +290,7 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
       if (match == null) continue;
       var relativePath = match.group(3)!;
 
-      // If a multitest deliberately imports a non-existent file, don't try to
+      // If a multitest deliberately imports a nonexistent file, don't try to
       // include it.
       if (relativePath.contains("nonexistent")) continue;
 

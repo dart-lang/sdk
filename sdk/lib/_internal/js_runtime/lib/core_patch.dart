@@ -1999,7 +1999,7 @@ class _BigIntImpl implements BigInt {
       resultDigits[resultUsed++] = 0;
     }
 
-    // Negate y so we can later use _mulAdd instead of non-existent _mulSub.
+    // Negate y so we can later use _mulAdd instead of nonexistent _mulSub.
     var nyDigits = new Uint16List(yUsed + 2);
     nyDigits[yUsed] = 1;
     _absSub(nyDigits, yUsed + 1, yDigits, yUsed, nyDigits);

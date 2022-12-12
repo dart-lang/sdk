@@ -216,7 +216,7 @@ FileStat: type $type
 /// Here's the exists method in action:
 /// ```dart
 /// var isThere = await entity.exists();
-/// print(isThere ? 'exists' : 'non-existent');
+/// print(isThere ? 'exists' : 'nonexistent');
 /// ```
 ///
 /// ## Other resources

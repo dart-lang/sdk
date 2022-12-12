@@ -5018,7 +5018,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the URI pointing to a non-existent file
+  ///  0: the URI pointing to a nonexistent file
   static const CompileTimeErrorCode URI_DOES_NOT_EXIST = CompileTimeErrorCode(
     'URI_DOES_NOT_EXIST',
     "Target of URI doesn't exist: '{0}'.",
@@ -5029,7 +5029,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the URI pointing to a non-existent file
+  ///  0: the URI pointing to a nonexistent file
   static const CompileTimeErrorCode URI_HAS_NOT_BEEN_GENERATED =
       CompileTimeErrorCode(
     'URI_HAS_NOT_BEEN_GENERATED',
