@@ -84,7 +84,7 @@ struct MultiCharacterSpecialCase {
 // Look up the mapping for the given character in the specified table,
 // which is of the specified length and uses the specified special case
 // mapping for multi-char mappings.  The next parameter is the character
-// following the one to map.  The result will be written in to the result
+// following the one to map.  The result will be written into the result
 // buffer and the number of characters written will be returned.  Finally,
 // if the allow_caching_ptr is non-null then false will be stored in
 // it if the result contains multiple characters or depends on the

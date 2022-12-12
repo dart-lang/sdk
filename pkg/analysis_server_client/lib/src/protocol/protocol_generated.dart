@@ -16478,7 +16478,7 @@ class TypeHierarchyItem implements HasToJson {
   List<int> interfaces;
 
   /// The indexes of the items representing the mixins referenced by this
-  /// class. The list will be empty if there are no classes mixed in to this
+  /// class. The list will be empty if there are no classes mixed into this
   /// class.
   List<int> mixins;
 

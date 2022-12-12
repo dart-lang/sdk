@@ -6567,7 +6567,7 @@ class C {
 
 #### Common fixes
 
-If the value should be passed in to the constructor directly, then use an
+If the value should be passed into the constructor directly, then use an
 initializing formal parameter to initialize the field `value`:
 
 {% prettify dart tag=pre+code %}

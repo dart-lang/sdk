@@ -1506,7 +1506,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
 /// Helper methods that aid in parser tests.
 ///
-/// Intended to be mixed in to parser test case classes.
+/// Intended to be mixed into parser test case classes.
 mixin ParserTestHelpers {
   ExpectedError error(ErrorCode code, int offset, int length,
           {Pattern? correctionContains,

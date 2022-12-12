@@ -3294,7 +3294,7 @@ DART_EXPORT Dart_Handle Dart_ListLength(Dart_Handle list, intptr_t* len) {
   if ((index >= 0) && (index < array_obj.Length())) {                          \
     return Api::NewHandle(thread, array_obj.At(index));                        \
   }                                                                            \
-  return Api::NewError("Invalid index passed in to access list element");
+  return Api::NewError("Invalid index passed into access list element");
 
 DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
   DARTSCOPE(Thread::Current());
@@ -3327,7 +3327,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAt(Dart_Handle list, intptr_t index) {
     }                                                                          \
     return Api::Success();                                                     \
   }                                                                            \
-  return Api::NewError("Invalid offset/length passed in to access list");
+  return Api::NewError("Invalid offset/length passed into access list");
 
 DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
                                           intptr_t offset,
@@ -3380,7 +3380,7 @@ DART_EXPORT Dart_Handle Dart_ListGetRange(Dart_Handle list,
     array.SetAt(index, value_obj);                                             \
     return Api::Success();                                                     \
   }                                                                            \
-  return Api::NewError("Invalid index passed in to set list element");
+  return Api::NewError("Invalid index passed into set list element");
 
 DART_EXPORT Dart_Handle Dart_ListSetAt(Dart_Handle list,
                                        intptr_t index,
@@ -3499,7 +3499,7 @@ static ObjectPtr ThrowArgumentError(const char* exception_message) {
     }                                                                          \
     return Api::Success();                                                     \
   }                                                                            \
-  return Api::NewError("Invalid length passed in to access array elements");
+  return Api::NewError("Invalid length passed into access array elements");
 
 DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
                                             intptr_t offset,
@@ -3516,7 +3516,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
                 reinterpret_cast<uint8_t*>(array.DataAddr(offset)), length);
         return Api::Success();
       }
-      return Api::NewError("Invalid length passed in to access list elements");
+      return Api::NewError("Invalid length passed into access list elements");
     }
   }
   if (obj.IsArray()) {
@@ -3578,7 +3578,7 @@ DART_EXPORT Dart_Handle Dart_ListGetAsBytes(Dart_Handle list,
     }                                                                          \
     return Api::Success();                                                     \
   }                                                                            \
-  return Api::NewError("Invalid length passed in to set array elements");
+  return Api::NewError("Invalid length passed into set array elements");
 
 DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                                             intptr_t offset,
@@ -3595,7 +3595,7 @@ DART_EXPORT Dart_Handle Dart_ListSetAsBytes(Dart_Handle list,
                 native_array, length);
         return Api::Success();
       }
-      return Api::NewError("Invalid length passed in to access list elements");
+      return Api::NewError("Invalid length passed into access list elements");
     }
   }
   if (obj.IsArray() && !Array::Cast(obj).IsImmutable()) {
@@ -5026,7 +5026,7 @@ DART_EXPORT Dart_Handle Dart_GetNativeInstanceField(Dart_Handle obj,
     RETURN_TYPE_ERROR(thread->zone(), obj, Instance);
   }
   return Api::NewError(
-      "%s: invalid index %d passed in to access native instance field",
+      "%s: invalid index %d passed into access native instance field",
       CURRENT_FUNC, index);
 }
 
@@ -5040,7 +5040,7 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
   }
   if (!instance.IsValidNativeIndex(index)) {
     return Api::NewError(
-        "%s: invalid index %d passed in to set native instance field",
+        "%s: invalid index %d passed into set native instance field",
         CURRENT_FUNC, index);
   }
   instance.SetNativeField(index, value);

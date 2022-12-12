@@ -42,7 +42,7 @@ abstract class SecurityContext {
   /// certificate authorities as its trusted roots. On Linux and Windows, this
   /// list is taken from Mozilla, who maintains it as part of Firefox. On,
   /// MacOS, iOS, and Android, this list comes from the trusted certificates
-  /// stores built in to the platforms.
+  /// stores built into the platforms.
   external static SecurityContext get defaultContext;
 
   /// Sets the private key for a server certificate or client certificate.
