@@ -4,7 +4,7 @@
 
 import "package:expect/expect.dart";
 
-// Test re-entrant initializer - calls throw StackOverflowError.
+// Test reentrant initializer - calls throw StackOverflowError.
 
 var trace;
 

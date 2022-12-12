@@ -470,7 +470,7 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
     // if we hit an assert while printing the stack.
     static RelaxedAtomic<uintptr_t> started_dump = 0;
     if (started_dump.fetch_add(1u) != 0) {
-      OS::PrintErr("Aborting re-entrant request for stack trace.\n");
+      OS::PrintErr("Aborting reentrant request for stack trace.\n");
       return;
     }
   }

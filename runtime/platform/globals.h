@@ -674,7 +674,7 @@ DART_FORCE_INLINE D bit_copy(const S& source) {
   return destination;
 }
 
-// On Windows the reentrent version of strtok is called
+// On Windows the reentrant version of strtok is called
 // strtok_s. Unify on the posix name strtok_r.
 #if defined(DART_HOST_OS_WINDOWS)
 #define snprintf _sprintf_p
