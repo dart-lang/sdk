@@ -6883,7 +6883,7 @@ Patch release, resolves one issue:
   `dart:indexed_db`, `dart:svg`, `dart:web_audio`, and `dart:web_gl` that
   correspond to changes to Chrome APIs between v39 and v45. Many of the breaking
   changes represent APIs that would have caused runtime exceptions when compiled
-  to Javascript and run on recent Chrome releases.
+  to JavaScript and run on recent Chrome releases.
 
 - `dart:io`
   - Added `SecurityContext.alpnSupported`, which is true if a platform supports
@@ -7265,7 +7265,7 @@ Patch release, resolves three issues:
 
 ### Tool changes
 
-- `dart2js` and Dartium now support improved Javascript Interoperability via the
+- `dart2js` and Dartium now support improved JavaScript Interoperability via the
   [js package](https://pub.dev/packages/js).
 
 - `docgen` and `dartdocgen` no longer ship in the SDK. The `docgen` sources have
@@ -7626,7 +7626,7 @@ Patch release, resolves three issues:
 
 This is a bug fix release which merges a number of commits from `bleeding_edge`.
 
-- dart2js: Addresses as issue with minified Javascript output with CSP enabled -
+- dart2js: Addresses as issue with minified JavaScript output with CSP enabled -
   [r44453](https://code.google.com/p/dart/source/detail?r=44453)
 
 - Editor: Fixes accidental updating of files in the pub cache during rename

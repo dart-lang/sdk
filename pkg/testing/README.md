@@ -21,9 +21,9 @@ This package is not:
 
 We want to test tool chains, for example, a Dart compiler. Depending on the tool chain, it may comprise several individual steps. For example, to test dart2js, you have these steps:
 
-  1. Run dart2js on a Dart source file to produce a Javascript output file.
+  1. Run dart2js on a Dart source file to produce a JavaScript output file.
 
-  2. Run the Javascript file from step 1 on a Javascript interpreter and report if the program threw an exception.
+  2. Run the JavaScript file from step 1 on a JavaScript interpreter and report if the program threw an exception.
 
 On the other hand, to test a Dart VM, there's only one step:
 

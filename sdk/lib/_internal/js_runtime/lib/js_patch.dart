@@ -414,7 +414,7 @@ final _dartProxyCtor = JS('', 'function DartObject(o) { this.o = o; }');
 Object? _convertToJS(Object? o) {
   // Note: we don't write `if (o == null) return null;` to make sure dart2js
   // doesn't convert `return null;` into `return;` (which would make `null` be
-  // `undefined` in Javascprit). See dartbug.com/20305 for details.
+  // `undefined` in JavaScript). See dartbug.com/20305 for details.
   if (o == null || o is String || o is num || o is bool) {
     return o;
   }

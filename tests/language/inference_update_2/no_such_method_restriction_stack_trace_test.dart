@@ -22,7 +22,7 @@ main() {
       // files from this stack trace, so just let the test pass.
       //
       // Note: it's not sufficient to check for the absence of `.dart` in the
-      // stacktrace, because obfuscated Javascript stacktraces often contain
+      // stacktrace, because obfuscated JavaScript stacktraces often contain
       // `self.dartMainRunner`.
     } else {
       Expect.contains(

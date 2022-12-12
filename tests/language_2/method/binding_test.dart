@@ -153,7 +153,7 @@ class MethodBindingTest {
     A.func = A.foo;
     Expect.equals(4, A.func());
 
-    // bind a function that is possibly native in Javascript.
+    // bind a function that is possibly native in JavaScript.
     String o15 = 'hithere';
     var f15 = o15.substring;
     Expect.equals('i', f15(1, 2));

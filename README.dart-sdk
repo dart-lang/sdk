@@ -8,7 +8,7 @@ bin/               Binaries/scripts to compile, run, and manage Dart apps.
   dart             Command line Dart tool
   dartaotruntime   Minimal Dart runtime for running AOT modules
   dart2js          Dart to JavaScript production compiler
-  dartdevc         Dart to Javascript development compiler
+  dartdevc         Dart to JavaScript development compiler
   dartdoc          Dart documentation generator
   analyze_snapshot Standalone tool to dump information on AOT snapshots 
 

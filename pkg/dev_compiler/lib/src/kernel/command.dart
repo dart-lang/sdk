@@ -736,7 +736,7 @@ JSCode jsProgramToCode(js_ast.Program moduleTree, ModuleFormat format,
 /// names used when outputting the JavaScript.
 ModuleSymbols _emitSymbols(ProgramCompiler compiler, String moduleName,
     Map<js_ast.Identifier, String> identifierNames, Component component) {
-  /// Returns the name selected in the final Javascript for [id].
+  /// Returns the name selected in the final JavaScript for [id].
   String lookupName(js_ast.Identifier id) {
     var name = identifierNames[id];
     if (name == null) {
