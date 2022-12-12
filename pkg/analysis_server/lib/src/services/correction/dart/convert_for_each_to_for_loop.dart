@@ -52,6 +52,9 @@ class ConvertForEachToForLoop extends CorrectionProducer {
     }
     var target = utils.getNodeText(invocation.target!);
     var body = argument.body;
+    if (body.isAsynchronous || body.isGenerator) {
+      return;
+    }
     if (body is BlockFunctionBody) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addReplacement(range.startStart(invocation, body), (builder) {

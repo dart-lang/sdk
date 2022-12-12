@@ -129,6 +129,39 @@ void f(List<String> list) {
 ''');
   }
 
+  Future<void> test_blockBody_async() async {
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) async {
+    e.length / 2;
+  });
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_blockBody_asyncStar() async {
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) async* {
+    e.length / 2;
+  });
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_blockBody_syncStar() async {
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) sync* {
+    e.length / 2;
+  });
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_expressionBody() async {
     await resolveTestCode('''
 void f(List<String> list) {
@@ -142,6 +175,39 @@ void f(List<String> list) {
   }
 }
 ''');
+  }
+
+  Future<void> test_expressionBody_async() async {
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) async => e.substring(3, 7));
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_expressionBody_asyncStar() async {
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) async* => e.substring(3, 7));
+}
+''');
+    await assertNoFix(
+        errorFilter: (error) =>
+            error.errorCode.name ==
+            LintNames.avoid_function_literals_in_foreach_calls);
+  }
+
+  Future<void> test_expressionBody_syncStar() async {
+    await resolveTestCode('''
+void f(List<String> list) {
+  list.forEach((e) sync* => e.substring(3, 7));
+}
+''');
+    await assertNoFix(
+        errorFilter: (error) =>
+            error.errorCode.name ==
+            LintNames.avoid_function_literals_in_foreach_calls);
   }
 
   Future<void> test_return() async {
