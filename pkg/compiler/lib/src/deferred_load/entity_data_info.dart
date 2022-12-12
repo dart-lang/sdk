@@ -107,7 +107,7 @@ class EntityDataInfoBuilder {
 
   /// Collects all direct dependencies of [element].
   ///
-  /// The collected dependent elements and constants are are added to
+  /// The collected dependent elements and constants are added to
   /// [elements] and [constants] respectively.
   void addDirectMemberDependencies(MemberEntity element) {
     // TODO(sigurdm): We want to be more specific about this - need a better
