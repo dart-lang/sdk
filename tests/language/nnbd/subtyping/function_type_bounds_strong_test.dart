@@ -15,7 +15,7 @@ main() {
   Expect.isFalse(fnWithNonNullObjectBound is fnTypeWithNullableObjectBound);
 
   // void fn<T extends Null>() is void Function<T extends Never>()
-  // Should fail with strong checking because because Null and Never are treated
+  // Should fail with strong checking because Null and Never are treated
   // as distinct.
   Expect.isFalse(fnWithNullBound is fnTypeWithNeverBound);
 }

@@ -349,7 +349,7 @@ D3SymbolTreeMap.prototype._clone = function(datum, filter) {
         this.__cloneState.accepted + ' accepted on their own merits), ' +
         this.__cloneState.rejected + ' nodes (and their children) ' +
                                      'filtered out,' +
-        this.__cloneState.pruned + ' nodes pruned because because no ' +
+        this.__cloneState.pruned + ' nodes pruned because no ' +
                                    'children remained.');
     delete this.__cloneState;
   }
