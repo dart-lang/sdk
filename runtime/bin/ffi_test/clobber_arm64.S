@@ -11,7 +11,7 @@ ClobberAndCall:
 _ClobberAndCall:
 #endif
 
-/* Save link register register and thread register. Keep stack aligned to 16 bytes. */
+/* Save link register and thread register. Keep stack aligned to 16 bytes. */
 stp lr, x26, [sp, #-16]!
 mov lr, #1
 mov x26, #1
