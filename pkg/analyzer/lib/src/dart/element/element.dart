@@ -1943,10 +1943,6 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// protected.
   static const String _protectedVariableName = 'protected';
 
-  /// The name of the top-level variable used to mark a class as implementing a
-  /// proxy object.
-  static const String _proxyVariableName = 'proxy';
-
   /// The name of the class used to mark a parameter as being required.
   static const String _requiredClassName = 'Required';
 
@@ -2081,7 +2077,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   bool get isProtected => _isPackageMetaGetter(_protectedVariableName);
 
   @override
-  bool get isProxy => _isDartCoreGetter(_proxyVariableName);
+  bool get isProxy => false;
 
   @override
   bool get isRequired =>

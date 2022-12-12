@@ -89,7 +89,6 @@ import self as self2;
 import "dart:core" as core;
 import "dart:async" as asy;
 additionalExports = (core::Deprecated,
-  core::Provisional,
   core::pragma,
   core::BigInt,
   core::bool,
@@ -160,8 +159,6 @@ additionalExports = (core::Deprecated,
   core::Comparator,
   core::deprecated,
   core::override,
-  core::provisional,
-  core::proxy,
   asy::Future,
   asy::Stream,
   asy::FutureExtensions)

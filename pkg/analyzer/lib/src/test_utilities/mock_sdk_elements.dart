@@ -52,7 +52,6 @@ class _MockSdkElementsBuilder {
   ClassElementImpl? _numElement;
   ClassElementImpl? _objectElement;
   ClassElementImpl? _overrideElement;
-  ClassElementImpl? _proxyElement;
   ClassElementImpl? _recordElement;
   ClassElementImpl? _setElement;
   ClassElementImpl? _stackTraceElement;
@@ -628,20 +627,6 @@ class _MockSdkElementsBuilder {
     return overrideElement;
   }
 
-  ClassElementImpl get proxyElement {
-    var proxyElement = _proxyElement;
-    if (proxyElement != null) return proxyElement;
-
-    _proxyElement = proxyElement = _class(name: '_Proxy');
-    proxyElement.supertype = objectType;
-
-    proxyElement.constructors = [
-      _constructor(isConst: true),
-    ];
-
-    return proxyElement;
-  }
-
   ClassElementImpl get recordElement {
     var recordElement = _recordElement;
     if (recordElement != null) return recordElement;
@@ -930,7 +915,6 @@ class _MockSdkElementsBuilder {
       numElement,
       objectElement,
       overrideElement,
-      proxyElement,
       recordElement,
       setElement,
       stackTraceElement,
@@ -959,20 +943,13 @@ class _MockSdkElementsBuilder {
       _interfaceType(overrideElement),
     );
 
-    var proxyVariable = _topLevelVariableConst(
-      'proxy',
-      _interfaceType(proxyElement),
-    );
-
     coreUnit.accessors = <PropertyAccessorElementImpl>[
       deprecatedVariable.getter!,
       overrideVariable.getter!,
-      proxyVariable.getter!,
     ];
     coreUnit.topLevelVariables = <TopLevelVariableElementImpl>[
       deprecatedVariable,
       overrideVariable,
-      proxyVariable,
     ];
 
     var coreLibrary = LibraryElementImpl(
