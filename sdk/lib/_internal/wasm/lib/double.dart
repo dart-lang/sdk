@@ -137,6 +137,9 @@ class _BoxedDouble extends double {
   bool operator <=(num other) => this <= other.toDouble(); // Intrinsic <=
 
   bool get isNegative {
+    if (isNaN) {
+      return false;
+    }
     int bits = doubleToIntBits(this);
     return (bits & _signMask) != 0;
   }
