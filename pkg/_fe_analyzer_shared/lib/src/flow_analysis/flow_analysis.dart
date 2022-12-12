@@ -5102,7 +5102,7 @@ class _PropertyReferenceWithType<Type extends Object>
   /// The name of the property.
   final String propertyName;
 
-  /// /// The field or property being accessed.  This matches a `propertyMember`
+  /// The field or property being accessed.  This matches a `propertyMember`
   /// value that was passed to either [FlowAnalysis.propertyGet] or
   /// [FlowAnalysis.thisOrSuperPropertyGet].
   final Object? propertyMember;
