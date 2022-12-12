@@ -1409,7 +1409,7 @@ class TypeSystemImpl implements TypeSystem {
     }
   }
 
-  /// Given two lists of type parameters, check that that they have the same
+  /// Given two lists of type parameters, check that they have the same
   /// number of elements, and their bounds are equal.
   ///
   /// The return value will be a new list of fresh type parameters, that can

@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 main.dart.patch: |
-  // Test that that isolate support works
+  // Test that isolate support works
   main(arguments) { print(
   <<<< "Hello, Isolated World!"
   'Hello, Isolated World!'

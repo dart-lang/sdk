@@ -19,7 +19,7 @@ class TopLevelDeclarations {
     return analysisContext as DriverBasedAnalysisContext;
   }
 
-  /// Return the first public library that that exports (but does not necessary
+  /// Return the first public library that exports (but does not necessary
   /// declare) [element].
   Future<LibraryElement?> publiclyExporting(Element element,
       {Map<Element, LibraryElement?>? resultCache}) async {

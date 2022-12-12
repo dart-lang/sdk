@@ -29,7 +29,7 @@ class InferredType {
   // Each component may be null if that particular type argument was not
   // inferred.
   //
-  // Otherwise, a non-null type argument indicates that that particular type
+  // Otherwise, a non-null type argument indicates that particular type
   // argument (in the runtime type) is always exactly a particular `DartType`.
   final List<DartType?>? exactTypeArguments;
 
