@@ -716,7 +716,7 @@ Future<api.CompilationResult> compile(List<String> argv,
   if (invoker == null) {
     warning("The 'dart2js' entrypoint script is deprecated, "
         "please use 'dart compile js' instead.");
-  } else if (verbose != null) {
+  } else if (verbose != null && !wantHelp) {
     print("Compiler invoked from: '$invoker'");
   }
 
