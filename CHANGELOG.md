@@ -5,6 +5,8 @@
 #### `dart:core`
 
 - **Breaking change** [#49529][]:
+  - Removed the deprecated `onError` argument on [`int.parse`][], [`double.parse`][],
+    and [`num.parse`][]. Use the [`tryParse`][] method instead.
   - Removed the deprecated [`NoSuchMethodError`][] default constructor.
     Use the [`NoSuchMethodError.withInvocation`][] named constructor instead.
   - Removed the deprecated [`proxy`][] and [`Provisional`][] annotations.
@@ -15,6 +17,10 @@
     Use [`Deprecated.message`][] instead.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
+[`int.parse`]: https://api.dart.dev/stable/2.18.4/dart-core/int/parse.html
+[`double.parse`]: https://api.dart.dev/stable/2.18.4/dart-core/double/parse.html
+[`num.parse`]: https://api.dart.dev/stable/2.18.4/dart-core/num/parse.html
+[`tryParse`]: https://api.dart.dev/stable/2.18.4/dart-core/num/tryParse.html
 [`Deprecated.expires`]: https://api.dart.dev/stable/2.18.4/dart-core/Deprecated/expires.html
 [`Deprecated.message`]: https://api.dart.dev/stable/2.18.4/dart-core/Deprecated/message.html
 [`NoSuchMethodError`]: https://api.dart.dev/stable/2.18.4/dart-core/NoSuchMethodError/NoSuchMethodError.html
