@@ -52,7 +52,7 @@ main() {
     parseCompilationUnit('D? foo(X? x) { X? x1; X? x2 = x; }');
   }
 
-  void test_bangBeforeFuctionCall1() {
+  void test_bangBeforeFunctionCall1() {
     // https://github.com/dart-lang/sdk/issues/39776
     var unit = parseCompilationUnit('f() { Function? f1; f1!(42); }');
     var funct = unit.declarations[0] as FunctionDeclaration;
@@ -77,7 +77,7 @@ main() {
     expect(argument.value, 42);
   }
 
-  void test_bangBeforeFuctionCall2() {
+  void test_bangBeforeFunctionCall2() {
     // https://github.com/dart-lang/sdk/issues/39776
     var unit = parseCompilationUnit('f() { Function f2; f2!<int>(42); }');
     var funct = unit.declarations[0] as FunctionDeclaration;

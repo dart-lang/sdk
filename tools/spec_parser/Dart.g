@@ -129,7 +129,7 @@ import java.util.Stack;
   // neither `async`, `async*`, nor `sync*`.
   void startNonAsyncFunction() { asyncEtcAreKeywords.push(false); }
 
-  // Use this to indicate that we are now leaving any funciton.
+  // Use this to indicate that we are now leaving any function.
   void endFunction() { asyncEtcAreKeywords.pop(); }
 
   // Whether we can recognize AWAIT/YIELD as an identifier/typeIdentifier.

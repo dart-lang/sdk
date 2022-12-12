@@ -51,7 +51,7 @@ void main() {
     expectStringContains("too few arguments", message);
   }
 
-  // Dynamic call of a top level funciton with too many arguments.
+  // Dynamic call of a top level function with too many arguments.
   try {
     dynamicFunction(1, 2);
   } on NoSuchMethodError catch (error) {
@@ -60,7 +60,7 @@ void main() {
     expectStringContains("too many arguments", message);
   }
 
-  // Dynamic call of a top level funciton with too few arguments.
+  // Dynamic call of a top level function with too few arguments.
   try {
     dynamicFunction();
   } on NoSuchMethodError catch (error) {
