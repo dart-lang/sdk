@@ -6,6 +6,7 @@ Before releasing there are a few boxes to tick off.
 
 * [ ] Is there a [milestone plan](https://github.com/dart-lang/linter/issues?q=is%3Aopen+is%3Aissue+label%3Amilestone-plan) for the release? If so, has it been updated?
 * [ ] Is the changelog up to date? (Look at commit history to verify.)
+  * [ ] Chronological order is fine.
 * [ ] Does the `AUTHORS` file need updating?
 * [ ] Spot check new lint rules for [naming consistency](https://github.com/dart-lang/linter/blob/main/doc/writing-lints.md).  Rename as needed.
 
