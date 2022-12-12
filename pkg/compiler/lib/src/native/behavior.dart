@@ -21,7 +21,7 @@ export 'native_throw_behavior.dart';
 typedef TypeLookup = Object? /*DartType|SpecialType*/
     Function(String typeString, {bool required});
 
-/// This class is a temporary work-around until we get a more powerful DartType.
+/// This class is a temporary workaround until we get a more powerful DartType.
 class SpecialType {
   final String name;
   const SpecialType._(this.name);

@@ -114,7 +114,7 @@ class RedirectingFactoryBody extends ReturnStatement {
   }
 
   static void restoreFromDill(Procedure factory) {
-    // This is a hack / work around for storing redirecting constructors in
+    // This is a hack / workaround for storing redirecting constructors in
     // dill files. See `ClassBuilder.addRedirectingConstructor` in
     // [kernel_class_builder.dart](kernel_class_builder.dart).
     FunctionNode function = factory.function;

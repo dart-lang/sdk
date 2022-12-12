@@ -3393,7 +3393,7 @@ static void GenerateIdenticalWithNumberCheckStub(Assembler* assembler,
   __ CompareObjectRegisters(left, right);
   // None of the branches above go directly here to avoid generating a
   // conditional branch to a ret instruction.
-  // This is an attempt to work-around a possible CPU on Exynos 2100 SoC.
+  // This is an attempt to workaround a possible CPU on Exynos 2100 SoC.
   // See https://github.com/flutter/flutter/issues/88261
   __ ret();
 }
