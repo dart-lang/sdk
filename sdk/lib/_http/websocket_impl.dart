@@ -294,7 +294,7 @@ class _WebSocketProtocolTransformer extends StreamTransformerBase<List<int>,
   }
 
   void _startPayload() {
-    // If there is no actual payload perform perform callbacks without
+    // If there is no actual payload perform callbacks without
     // going through the PAYLOAD state.
     if (_remainingPayloadBytes == 0) {
       if (_isControlFrame()) {
