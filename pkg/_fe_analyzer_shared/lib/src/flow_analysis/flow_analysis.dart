@@ -3266,6 +3266,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   FlowModel<Type> _current = new FlowModel<Type>(Reachability.initial);
 
+  /// If a pattern is being analyzed, flow model representing all code paths
+  /// accumulated so far in which the pattern fails to match.  Otherwise `null`.
+  FlowModel<Type>? _unmatched;
+
   /// The most recently visited expression for which an [ExpressionInfo] object
   /// exists, or `null` if no expression has been visited that has a
   /// corresponding [ExpressionInfo] object.
@@ -3396,8 +3400,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // This avoids some bogus "unreachable code" warnings in analyzer tests.
     // TODO(paulberry): replace this with an implementation that does similar
     // promotion to `==` operations.
-    _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
-    context._unmatched = _join(context._unmatched, _current);
+    _unmatched = _join(_unmatched!, _current);
   }
 
   @override
@@ -3418,10 +3421,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           _current.tryPromoteForTypeCheck(this, scrutineeReference, staticType);
       _current = promotionInfo.ifTrue;
       if (!coversMatchedType) {
-        context._unmatched = _join(context._unmatched, promotionInfo.ifFalse);
+        _unmatched = _join(_unmatched!, promotionInfo.ifFalse);
       }
     } else if (!coversMatchedType) {
-      context._unmatched = _join(context._unmatched, _current);
+      _unmatched = _join(_unmatched!, _current);
     }
   }
 
@@ -3507,6 +3510,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void finish() {
     assert(_stack.isEmpty);
     assert(_current.reachable.parent == null);
+    assert(_unmatched == null);
   }
 
   @override
@@ -4357,9 +4361,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       FlowModel.merge(operations, first, second, _current._emptyVariableMap);
 
   FlowModel<Type> _popPattern(Expression? guard) {
-    _TopPatternContext<Type> context =
-        _stack.removeLast() as _TopPatternContext<Type>;
-    FlowModel<Type> unmatched = context._unmatched;
+    _FlowContext context = _stack.removeLast();
+    assert(context is _TopPatternContext<Type>);
+    FlowModel<Type> unmatched = _unmatched!;
+    _unmatched = null;
     if (guard != null) {
       ExpressionInfo<Type> guardInfo = _expressionEnd(guard);
       _current = guardInfo.ifTrue;
@@ -4369,8 +4374,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   void _pushPattern(ReferenceWithType<Type>? scrutineeReference) {
-    _stack.add(new _TopPatternContext<Type>(
-        scrutineeReference, _current.setUnreachable()));
+    assert(_unmatched == null);
+    _unmatched = _current.setUnreachable();
+    _stack.add(new _TopPatternContext<Type>(scrutineeReference));
   }
 
   /// Associates [expression], which should be the most recently visited
@@ -5088,10 +5094,6 @@ class _NullInfo<Type extends Object> implements ExpressionInfo<Type> {
 
 /// Base class for [_FlowContext]s representing patterns.
 abstract class _PatternContext<Type extends Object> extends _FlowContext {
-  /// Flow model representing all code paths accumulated so far in which the
-  /// pattern fails to match.
-  abstract FlowModel<Type> _unmatched;
-
   /// Reference for the value being matched, if any.
   ReferenceWithType<Type>? get _scrutineeReference;
 }
@@ -5185,15 +5187,11 @@ class _TopPatternContext<Type extends Object> extends _PatternContext<Type> {
   @override
   final ReferenceWithType<Type>? _scrutineeReference;
 
-  @override
-  FlowModel<Type> _unmatched;
-
-  _TopPatternContext(this._scrutineeReference, this._unmatched);
+  _TopPatternContext(this._scrutineeReference);
 
   @override
   String toString() =>
-      '_TopPatternContext(scrutineeReference: $_scrutineeReference, '
-      'unmatched: $_unmatched)';
+      '_TopPatternContext(scrutineeReference: $_scrutineeReference)';
 }
 
 /// Specialization of [ExpressionInfo] for the case where the information we
