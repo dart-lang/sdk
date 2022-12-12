@@ -2105,7 +2105,7 @@ class TargetEntryInstr : public BlockEntryInstr {
 // Represents an entrypoint to a function which callers can invoke (i.e. not
 // used for OSR entries).
 //
-// The flow graph builder might decide to create create multiple entrypoints
+// The flow graph builder might decide to create multiple entrypoints
 // (e.g. checked/unchecked entrypoints) and will attach those to the
 // [GraphEntryInstr].
 //
