@@ -92,15 +92,6 @@ class _AsyncRun {
 }
 
 @patch
-class DeferredLibrary {
-  @patch
-  Future<Null> load() {
-    throw 'DeferredLibrary not supported. '
-        'please use the `import "lib.dart" deferred as lib` syntax.';
-  }
-}
-
-@patch
 class Timer {
   @patch
   static Timer _createTimer(Duration duration, void callback()) {

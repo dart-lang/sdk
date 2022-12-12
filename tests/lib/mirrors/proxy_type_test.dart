@@ -56,7 +56,10 @@ class CarolCaretaker implements Carol {
   CarolCaretaker(this._carol, this._gate);
 
   foo() {
-    if (!_gate()) throw new NoSuchMethodError(this, #foo, [], {});
+    if (!_gate()) throw new NoSuchMethodError.withInvocation(
+      this,
+      Invocation.method(#foo, [], {}),
+    );
     return _carol.foo();
   }
 

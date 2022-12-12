@@ -92,12 +92,9 @@ void main() {
   Expect.equals(1, int.parse("+1", radix: 2));
 
   void testFails(String source, int radix) {
-    Expect.throws(() {
-      throw int.parse(source, radix: radix, onError: (s) {
-        throw "FAIL";
-      });
-    }, isFail, "$source/$radix");
-    Expect.equals(-999, int.parse(source, radix: radix, onError: (s) => -999));
+   Expect.throwsFormatException(
+      () => int.parse(source, radix: radix), "$source/$radix");
+    Expect.equals(-999, int.tryParse(source, radix: radix) ?? -999);
   }
 
   for (int i = 2; i < 36; i++) {
@@ -114,19 +111,10 @@ void main() {
     testFails("0x10", i);
   }
 
-  testBadTypes(var source, var radix) {
-    Expect.throwsTypeError(() => int.parse(source, radix: radix, onError: (s) => 0)); //# badTypes: ok
-  }
-
-  testBadTypes(9, 10);
-  testBadTypes(true, 10);
-  testBadTypes("0", true);
-  testBadTypes("0", "10");
-
   testBadArguments(String source, int radix) {
     // If the types match, it should be an ArgumentError of some sort.
     Expect.throwsArgumentError(
-        () => int.parse(source, radix: radix, onError: (s) => 0));
+        () => int.parse(source, radix: radix));
   }
 
   testBadArguments("0", -1);
@@ -136,5 +124,3 @@ void main() {
 
   // See also int_parse_radix_bad_handler_test.dart
 }
-
-bool isFail(e) => e == "FAIL";

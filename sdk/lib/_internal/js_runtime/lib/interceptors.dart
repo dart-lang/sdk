@@ -334,8 +334,7 @@ abstract class Interceptor {
   // calls to use interceptor calling convention).  If we did allow it, the
   // interceptor context would select the correct `this`.
   dynamic noSuchMethod(Invocation invocation) {
-    throw new NoSuchMethodError(this, invocation.memberName,
-        invocation.positionalArguments, invocation.namedArguments);
+    throw new NoSuchMethodError.withInvocation(this, invocation);
   }
 
   Type get runtimeType => getRuntimeType(this);

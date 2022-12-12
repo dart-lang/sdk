@@ -103,13 +103,10 @@ void testDouble(double value) {
 
 void testFail(String source) {
   var object = new Object();
-  Expect.throws(() {
-    double.parse(source, (s) {
-      Expect.equals(source, s);
-      throw object;
-    });
-  }, (e) => identical(object, e), "Fail: '$source'");
-  Expect.equals(1.5, double.parse(source, (s) => 1.5));
+  Expect.throwsFormatException(() { 
+    double.parse(source);
+  });
+  Expect.equals(1.5, double.tryParse(source) ?? 1.5);
 }
 
 void main() {

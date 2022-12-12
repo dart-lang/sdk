@@ -551,31 +551,6 @@ class NoSuchMethodError extends Error {
   external factory NoSuchMethodError.withInvocation(
       Object? receiver, Invocation invocation);
 
-  /// Create a [NoSuchMethodError] corresponding to a failed method call.
-  ///
-  /// The [receiver] is the receiver of the method call.
-  /// That is, the object on which the method was attempted called.
-  /// If the receiver is `null`, it is interpreted as a call to a top-level
-  /// function of a library.
-  ///
-  /// The [memberName] is a [Symbol] representing the name of the called method
-  /// or accessor.
-  ///
-  /// The [positionalArguments] is a list of the positional arguments that the
-  /// method was called with. If `null`, it is considered equivalent to the
-  /// empty list.
-  ///
-  /// The [namedArguments] is a map from [Symbol]s to the values of named
-  /// arguments that the method was called with. If `null`, it is considered
-  /// equivalent to the empty map.
-  ///
-  /// This constructor does not handle type arguments.
-  /// To include type variables, create an [Invocation] and use
-  /// [NoSuchMethodError.withInvocation].
-  @Deprecated("Use NoSuchMethod.withInvocation instead")
-  external NoSuchMethodError(Object? receiver, Symbol memberName,
-      List? positionalArguments, Map<Symbol, dynamic>? namedArguments);
-
   external String toString();
 }
 

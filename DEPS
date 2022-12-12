@@ -136,7 +136,7 @@ vars = {
   "http_parser_rev": "c73967535ce31120e218120f70ef98cc22688c82",
   "http_rev": "46a7708b2075a807d44afbe39496e1c0c7802f4e",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
-  "intl_rev": "a127902594a964f2090239fb454adadf7c1a77ef",
+  "intl_rev": "881e53e921e23bdcc2fb9d51b0a9cba769c8f75f",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "16fed53fbebd38edf170f58c1da1de2a325b2b98",
   "linter_rev": "7fe671cdadb52139295bae0abf62c014369af93a", # 1.31.0
@@ -168,7 +168,7 @@ vars = {
   "test_descriptor_rev": "13dbc20e9d5c354b670353220c3ab95642ae228c",
   "test_process_rev": "1774aa7a94ebbc60924a7f7174adb02e84458c25",
   "test_reflective_loader_rev": "52b6753852661787208e003f9716b079026c7ac7",
-  "test_rev": "73cd75404cea342cce06361d4e2fc1069f69122b",
+  "test_rev": "09fb067979684dbd0918f664ec4d178975c84283",
   "typed_data_rev": "1e838b8ec85699b5b99e793d004ae315e72fcbc0",
   "usage_rev": "fee1d9d9c295362f6edebfeebb9f8187711c55ab",
   "vector_math_rev": "1eee95b15e5d35cf519514cc253037b19705fb7a",

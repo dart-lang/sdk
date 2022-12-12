@@ -2,12 +2,32 @@
 
 ### Libraries
 
+#### `dart:core`
+
+- **Breaking change** [#49529][]:
+  - Removed the deprecated [`NoSuchMethodError`][] default constructor.
+    Use the [`NoSuchMethodError.withInvocation`][] named constructor instead.
+
+[#49529]: https://github.com/dart-lang/sdk/issues/49529
+[`NoSuchMethodError`]: https://api.dart.dev/stable/2.18.4/dart-core/NoSuchMethodError/NoSuchMethodError.html
+[`NoSuchMethodError.withInvocation`]: https://api.dart.dev/stable/2.18.4/dart-core/NoSuchMethodError/NoSuchMethodError.withInvocation.html
+
 #### `dart:html`
 
 - **Breaking change**: As previously announced, the deprecated `registerElement`
   and `registerElement2` methods in `Document` and `HtmlDocument` have been
   removed.  See [#49536](https://github.com/dart-lang/sdk/issues/49536) for
   details.
+
+#### `dart:async`
+
+- **Breaking change** [#49529][]:
+  - Removed the deprecated [`DeferredLibrary`][] class.
+    Use the [`deferred as`][] import syntax instead.
+
+[#49529]: https://github.com/dart-lang/sdk/issues/49529
+[`DeferredLibrary`]: https://api.dart.dev/stable/2.18.4/dart-async/DeferredLibrary-class.html
+[`deferred as`]: https://dart.dev/guides/language/language-tour#deferred-loading
 
 ## 2.19.0
 
