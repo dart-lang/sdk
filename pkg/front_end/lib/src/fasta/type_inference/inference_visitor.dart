@@ -7759,6 +7759,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 noLength));
       }
     }
+    if (isNonNullableByDefault &&
+        expressionResult.inferredType.isPotentiallyNullable) {
+      node.expression =
+          new AsExpression(node.expression, coreTypes.objectNonNullableRawType)
+            ..isTypeError = true
+            ..isForNonNullableByDefault = true
+            ..fileOffset = node.expression.fileOffset
+            ..parent = node;
+    }
     // Return BottomType in legacy mode for compatibility.
     return new ExpressionInferenceResult(
         isNonNullableByDefault
