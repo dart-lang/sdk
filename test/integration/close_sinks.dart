@@ -26,13 +26,7 @@ void main() {
     });
 
     test('close sinks', () async {
-      var packagesFilePath = File('.packages').absolute.path;
-      await cli.run([
-        '--packages',
-        packagesFilePath,
-        '$integrationTestDir/close_sinks',
-        '--rules=close_sinks'
-      ]);
+      await cli.run(['$integrationTestDir/close_sinks', '--rules=close_sinks']);
       expect(
           collectingOut.trim(),
           stringContainsInOrder([
