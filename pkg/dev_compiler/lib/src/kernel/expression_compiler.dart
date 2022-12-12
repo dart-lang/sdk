@@ -220,7 +220,7 @@ class FileEndOffsetCalculator extends Visitor<int?> with VisitorNullMixin<int> {
   /// can give such information for a given [node], i.e. satisfies one
   /// of the following conditions:
   ///
-  /// - a node with with a greater start offset that is a child of the
+  /// - a node with a greater start offset that is a child of the
   ///   closest ancestor. The start offset of this child is used as a
   ///   file end offset of the [node].
   ///
