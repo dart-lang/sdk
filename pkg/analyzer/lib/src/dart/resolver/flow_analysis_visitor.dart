@@ -694,16 +694,18 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
           member.expression.accept(this);
         } else if (member is SwitchPatternCaseImpl) {
           var guardedPattern = member.guardedPattern;
-          assignedVariables.beginNode();
+          guardedPattern.pattern.accept(this);
           for (var variable in guardedPattern.variables.values) {
             assignedVariables.declare(variable);
           }
           guardedPattern.whenClause?.accept(this);
-          assignedVariables.endNode(node);
         }
       }
       for (var variable in group.variables.values) {
-        assignedVariables.declare(variable);
+        // We pass `ignoreDuplicates: true` because this variable might be the
+        // same as one of the variables declared earlier under a specific switch
+        // case.
+        assignedVariables.declare(variable, ignoreDuplicates: true);
       }
       group.statements.accept(this);
     }
