@@ -6879,8 +6879,20 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   }
 
   @override
-  js_ast.Expression visitAwaitExpression(AwaitExpression node) =>
-      js_ast.Yield(_visitExpression(node.operand));
+  js_ast.Expression visitAwaitExpression(AwaitExpression node) {
+    var expression = _visitExpression(node.operand);
+    var type = node.runtimeCheckType;
+    if (type != null) {
+      // When an expected runtime type is present there is a possible soundness
+      // issue with the static types. The type of the await expression must be
+      // checked at runtime to ensure soundness.
+      var expectedType = _emitType(type);
+      var asyncLibrary = emitLibraryName(_coreTypes.asyncLibrary);
+      expression = js.call('#.awaitWithTypeCheck(#, #)',
+          [asyncLibrary, expectedType, expression]);
+    }
+    return js_ast.Yield(expression);
+  }
 
   @override
   js_ast.Expression visitFunctionExpression(FunctionExpression node) {
