@@ -71,7 +71,6 @@ Future testAsync(VmService service, IsolateRef isolateRef) async {
   final hits = <Breakpoint>[];
   await service.streamListen(EventStreams.kDebug);
 
-  // ignore: unawaited_futures
   service
       .evaluate(isolateId, lib.id!, 'testerReady = true')
       .then((Response result) async {
