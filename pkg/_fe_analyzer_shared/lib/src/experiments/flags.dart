@@ -79,6 +79,13 @@ enum ExperimentalFlag {
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0)),
 
+  inlineClass(
+      name: 'inline-class',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0)),
+
   macros(
       name: 'macros',
       isEnabledByDefault: false,
@@ -179,13 +186,6 @@ enum ExperimentalFlag {
 
   variance(
       name: 'variance',
-      isEnabledByDefault: false,
-      isExpired: false,
-      experimentEnabledVersion: const Version(3, 0),
-      experimentReleasedVersion: const Version(3, 0)),
-
-  views(
-      name: 'views',
       isEnabledByDefault: false,
       isExpired: false,
       experimentEnabledVersion: const Version(3, 0),

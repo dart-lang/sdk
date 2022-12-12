@@ -144,7 +144,7 @@ class AstBuilder extends StackListener {
   final bool enableUnnamedLibraries;
 
   /// `true` if views are enabled
-  final bool enableViews;
+  final bool enableInlineClass;
 
   /// `true` if sealed-class is enabled
   final bool enableSealedClass;
@@ -173,7 +173,7 @@ class AstBuilder extends StackListener {
         enableRecords = _featureSet.isEnabled(Feature.records),
         enableUnnamedLibraries =
             _featureSet.isEnabled(Feature.unnamedLibraries),
-        enableViews = _featureSet.isEnabled(Feature.views),
+        enableInlineClass = _featureSet.isEnabled(Feature.inline_class),
         enableSealedClass = _featureSet.isEnabled(Feature.sealed_class),
         uri = uri ?? fileUri;
 
@@ -236,10 +236,10 @@ class AstBuilder extends StackListener {
         macroToken = null;
       }
     }
-    if (!enableViews) {
+    if (!enableInlineClass) {
       if (viewToken != null) {
         _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.views,
+          feature: ExperimentalFeatures.inline_class,
           startToken: viewToken,
         );
         // Pretend that 'view' didn't occur while this feature is incomplete.
@@ -417,10 +417,10 @@ class AstBuilder extends StackListener {
         macroToken = null;
       }
     }
-    if (!enableViews) {
+    if (!enableInlineClass) {
       if (viewToken != null) {
         _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.views,
+          feature: ExperimentalFeatures.inline_class,
           startToken: viewToken,
         );
         // Pretend that 'view' didn't occur while this feature is incomplete.

@@ -883,8 +883,8 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
     if (viewToken != null) {
-      if (reportIfNotEnabled(
-          libraryFeatures.views, viewToken.charOffset, viewToken.length)) {
+      if (reportIfNotEnabled(libraryFeatures.inlineClass, viewToken.charOffset,
+          viewToken.length)) {
         viewToken = null;
       }
     }
@@ -1013,8 +1013,8 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
     if (viewToken != null) {
-      if (reportIfNotEnabled(
-          libraryFeatures.views, viewToken.charOffset, viewToken.length)) {
+      if (reportIfNotEnabled(libraryFeatures.inlineClass, viewToken.charOffset,
+          viewToken.length)) {
         viewToken = null;
       }
     }
