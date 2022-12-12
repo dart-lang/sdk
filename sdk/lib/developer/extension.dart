@@ -146,41 +146,13 @@ external bool get extensionStreamHasListener;
 /// event stream.
 ///
 /// If [extensionStreamHasListener] is false, this method is a no-op.
-/// Override [stream] to set the destination stream that the event should be
-/// posted to. The [stream] may not start with an underscore or be a core VM
-/// Service stream.
-void postEvent(String eventKind, Map eventData, {String stream = 'Extension'}) {
-  const destinationStreamKey = '__destinationStream';
-  // Keep protected streams in sync with `streams_` in runtime/vm/service.cc
-  // `Extension` is the only stream that should not be protected here.
-  final protectedStreams = <String>[
-    'VM',
-    'Isolate',
-    'Debug',
-    'GC',
-    '_Echo',
-    'HeapSnapshot',
-    'Logging',
-    'Timeline',
-    'Profiler',
-  ];
-
-  if (protectedStreams.contains(stream)) {
-    throw ArgumentError.value(
-        stream, 'stream', 'Cannot be a protected stream.');
-  } else if (stream.startsWith('_')) {
-    throw ArgumentError.value(
-        stream, 'stream', 'Cannot start with and underscore.');
-  }
-
+void postEvent(String eventKind, Map eventData) {
   if (!extensionStreamHasListener) {
     return;
   }
   // TODO: When NNBD is complete, delete the following two lines.
   checkNotNullable(eventKind, 'eventKind');
   checkNotNullable(eventData, 'eventData');
-  checkNotNullable(stream, 'stream');
-  eventData[destinationStreamKey] = stream;
   String eventDataAsString = json.encode(eventData);
   _postEvent(eventKind, eventDataAsString);
 }

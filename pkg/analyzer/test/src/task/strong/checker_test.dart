@@ -2825,53 +2825,6 @@ class Child extends helper.Base {
     ]);
   }
 
-  test_proxy() {
-    return assertErrorsInCode(r'''
-@proxy class C {}
-@proxy class D {
-  var f;
-  m() => null;
-  operator -() => null;
-  operator +(int other) => null;
-  operator [](int index) => null;
-  call() => null;
-}
-
-@proxy class F implements Function { noSuchMethod(i) => 42; }
-
-m() {
-  D d = new D();
-  d.m();
-  d.m;
-  d.f;
-  -d;
-  d + 7;
-  d[7];
-  d();
-
-  C c = new C();
-  c.m();
-  c.m;
-  -c;
-  c + 7;
-  c[7];
-  c();
-
-  F f = new F();
-  f();
-}
-''', [
-      error(HintCode.DEPRECATED_IMPLEMENTS_FUNCTION, 197, 8),
-      error(CompileTimeErrorCode.UNDEFINED_METHOD, 332, 1),
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 341, 1),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 346, 1),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 354, 1),
-      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 362, 3),
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 369, 1),
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 394, 1),
-    ]);
-  }
-
   test_redirectingConstructor() async {
     await assertErrorsInCode('''
 class A {

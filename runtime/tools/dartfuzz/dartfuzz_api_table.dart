@@ -66,8 +66,6 @@ class DartLib {
     DartType.LIST_INT_NULLABLE: listLibsNullable,
     DartType.MAP_INT_STRING: mapLibs,
     DartType.MAP_INT_STRING_NULLABLE: mapLibsNullable,
-    DartType.NULL: nullLibs,
-    DartType.NULL_NULLABLE: nullLibsNullable,
     DartType.RUNEITERATOR: runeIteratorLibs,
     DartType.RUNEITERATOR_NULLABLE: runeIteratorLibsNullable,
     DartType.RUNES: runesLibs,
@@ -1955,14 +1953,6 @@ class DartLib {
     DartLib('Map<int, String>.unmodifiable',
         [DartType.VOID, DartType.MAP_INT_STRING], true),
   ];
-  static const nullLibs = [
-    DartLib('provisional', [DartType.VOID, DartType.VOID], false),
-    DartLib('proxy', [DartType.VOID, DartType.VOID], false),
-  ];
-  static const nullLibsNullable = [
-    DartLib('provisional', [DartType.VOID, DartType.VOID], false),
-    DartLib('proxy', [DartType.VOID, DartType.VOID], false),
-  ];
   static const runeIteratorLibs = [
     DartLib('iterator', [DartType.RUNES, DartType.VOID], false),
   ];
@@ -2004,7 +1994,6 @@ class DartLib {
     DartLib('base64Encode', [DartType.VOID, DartType.LIST_INT], true),
     DartLib('base64UrlEncode', [DartType.VOID, DartType.LIST_INT], true),
     DartLib('currentAsString', [DartType.RUNEITERATOR, DartType.VOID], false),
-    DartLib('expires', [DartType.DEPRECATED, DartType.VOID], false),
     DartLib('message', [DartType.DEPRECATED, DartType.VOID], false),
     DartLib('message', [DartType.FORMATEXCEPTION, DartType.VOID], false),
     DartLib('message', [DartType.STATEERROR, DartType.VOID], false),
@@ -2072,12 +2061,10 @@ class DartLib {
     DartLib('base64Encode', [DartType.VOID, DartType.LIST_INT], true),
     DartLib('base64UrlEncode', [DartType.VOID, DartType.LIST_INT], true),
     DartLib('currentAsString', [DartType.RUNEITERATOR, DartType.VOID], false),
-    DartLib('expires', [DartType.DEPRECATED, DartType.VOID], false),
     DartLib('message', [DartType.DEPRECATED, DartType.VOID], false),
     DartLib('message', [DartType.FORMATEXCEPTION, DartType.VOID], false),
     DartLib('message', [DartType.INTEGERDIVISIONBYZEROEXCEPTION, DartType.VOID],
         false),
-    DartLib('message', [DartType.PROVISIONAL, DartType.VOID], false),
     DartLib('message', [DartType.STATEERROR, DartType.VOID], false),
     DartLib('message', [DartType.UNIMPLEMENTEDERROR, DartType.VOID], false),
     DartLib('message', [DartType.UNSUPPORTEDERROR, DartType.VOID], false),

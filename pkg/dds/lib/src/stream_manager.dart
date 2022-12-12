@@ -29,9 +29,8 @@ class StreamManager {
     data, {
     DartDevelopmentServiceClient? excludedClient,
   }) {
-    final listeners =
-        streamListeners[streamId] ?? customStreamListeners[streamId];
-    if (listeners != null) {
+    if (streamListeners.containsKey(streamId)) {
+      final listeners = streamListeners[streamId]!;
       final isBinaryData = data is Uint8List;
       for (final listener in listeners) {
         if (listener == excludedClient) {
@@ -143,29 +142,6 @@ class StreamManager {
         final streamId = parameters['streamId'].asString;
         final event =
             Event.parse(parameters['event'].asMap.cast<String, dynamic>())!;
-        final destinationStreamId =
-            event.extensionData?.data[destinationStreamKey];
-
-        if (destinationStreamId != null) {
-          // Strip [destinationStreamKey] from the extension data so it is not
-          // passed along.
-          (parameters.value['event']['extensionData'] as Map<String, dynamic>)
-              .remove(destinationStreamKey);
-          if (destinationStreamId != kExtensionStream) {
-            if (streamListeners.containsKey(destinationStreamId)) {
-              // __destinationStream is only used by developer.postEvent.
-              // developer.postEvent is only supposed to postEvents to the
-              // Extension stream or to custom streams
-              return;
-            }
-            final values = parameters.value;
-
-            values['streamId'] = destinationStreamId;
-
-            streamNotify(destinationStreamId, values);
-            return;
-          }
-        }
 
         // Forward events from the streams IsolateManager subscribes to.
         if (isolateManagerStreams.contains(streamId)) {
@@ -205,46 +181,27 @@ class StreamManager {
       () async {
         assert(stream.isNotEmpty);
         bool streamNewlySubscribed = false;
-        bool isNewCustomStream = false;
-
-        if (!streamListeners.containsKey(stream) &&
-            !customStreamListeners.containsKey(stream)) {
+        if (!streamListeners.containsKey(stream)) {
           // Initialize the list of clients for the new stream before we do
           // anything else to ensure multiple clients registering for the same
           // stream in quick succession doesn't result in multiple streamListen
           // requests being sent to the VM service.
           streamNewlySubscribed = true;
+          streamListeners[stream] = <DartDevelopmentServiceClient>[];
           if ((stream == kDebugStream && client == null) ||
               stream != kDebugStream) {
             // This will return an RPC exception if the stream doesn't exist. This
             // will throw and the exception will be forwarded to the client.
-            try {
-              final result =
-                  await dds.vmServiceClient.sendRequest('streamListen', {
-                'streamId': stream,
-                if (includePrivates != null)
-                  '_includePrivateMembers': includePrivates,
-              });
-              assert(result['type'] == 'Success');
-            } on json_rpc.RpcException catch (e) {
-              if (e.code == RpcErrorCodes.kInvalidParams) {
-                // catching kInvalid params means that the vmServiceClient
-                // does not know about the stream we passed. So assume that
-                // the stream is a custom stream.
-                isNewCustomStream = true;
-              } else {
-                rethrow;
-              }
-            }
-          }
-          if (isNewCustomStream) {
-            customStreamListeners[stream] = <DartDevelopmentServiceClient>[];
-          } else {
-            streamListeners[stream] = <DartDevelopmentServiceClient>[];
+            final result =
+                await dds.vmServiceClient.sendRequest('streamListen', {
+              'streamId': stream,
+              if (includePrivates != null)
+                '_includePrivateMembers': includePrivates,
+            });
+            assert(result['type'] == 'Success');
           }
         }
-        if (streamListeners[stream]?.contains(client) == true ||
-            customStreamListeners[stream]?.contains(client) == true) {
+        if (streamListeners[stream]!.contains(client)) {
           throw kStreamAlreadySubscribedException;
         } else if (!streamNewlySubscribed && includePrivates != null) {
           try {
@@ -262,11 +219,7 @@ class StreamManager {
           }
         }
         if (client != null) {
-          if (isNewCustomStream || customStreamListeners[stream] != null) {
-            customStreamListeners[stream]!.add(client);
-          } else {
-            streamListeners[stream]!.add(client);
-          }
+          streamListeners[stream]!.add(client);
           if (loggingRepositories.containsKey(stream)) {
             loggingRepositories[stream]!.sendHistoricalLogs(client);
           } else if (stream == kServiceStream) {
@@ -315,12 +268,6 @@ class StreamManager {
     await _streamSubscriptionMutex.runGuarded(
       () async {
         assert(stream.isNotEmpty);
-        final customListeners = customStreamListeners[stream];
-        if (customListeners != null && customListeners.contains(client)) {
-          customListeners.remove(client);
-          return;
-        }
-
         final listeners = streamListeners[stream];
         if (listeners == null ||
             client != null && !listeners.contains(client)) {
@@ -370,12 +317,7 @@ class StreamManager {
 
   /// Cleanup stream subscriptions for `client` when it has disconnected.
   void clientDisconnect(DartDevelopmentServiceClient client) {
-    final allStreamListenerKeys = <String>[
-      ...streamListeners.keys,
-      ...customStreamListeners.keys,
-    ];
-
-    for (final streamId in allStreamListenerKeys) {
+    for (final streamId in streamListeners.keys.toList()) {
       streamCancel(client, streamId).catchError(
         (_) => null,
         // Ignore 'stream not subscribed' errors and StateErrors which arise
@@ -412,8 +354,6 @@ class StreamManager {
   static const kStderrStream = 'Stderr';
   static const kStdoutStream = 'Stdout';
 
-  static const destinationStreamKey = '__destinationStream';
-
   static Map<String, LoggingRepository> loggingRepositories = {};
 
   // Never cancel the Debug or Isolate stream as `IsolateManager` requires
@@ -446,7 +386,6 @@ class StreamManager {
 
   final DartDevelopmentServiceImpl dds;
   final streamListeners = <String, List<DartDevelopmentServiceClient>>{};
-  final customStreamListeners = <String, List<DartDevelopmentServiceClient>>{};
   final _profilerUserTagSubscriptions = <String>{};
   final _streamSubscriptionMutex = Mutex();
   final _profilerUserTagSubscriptionsMutex = Mutex();

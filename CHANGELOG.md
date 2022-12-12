@@ -5,12 +5,29 @@
 #### `dart:core`
 
 - **Breaking change** [#49529][]:
+  - Removed the deprecated `onError` argument on [`int.parse`][], [`double.parse`][],
+    and [`num.parse`][]. Use the [`tryParse`][] method instead.
   - Removed the deprecated [`NoSuchMethodError`][] default constructor.
     Use the [`NoSuchMethodError.withInvocation`][] named constructor instead.
+  - Removed the deprecated [`proxy`][] and [`Provisional`][] annotations.
+    The original `proxy` annotation has no effect in Dart 2,
+    and the `Provisional` type and [`provisional`][] constant
+    were only used internally during the Dart 2.0 development process.
+  - Removed the deprecated [`Deprecated.expires`][] getter.
+    Use [`Deprecated.message`][] instead.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
+[`int.parse`]: https://api.dart.dev/stable/2.18.4/dart-core/int/parse.html
+[`double.parse`]: https://api.dart.dev/stable/2.18.4/dart-core/double/parse.html
+[`num.parse`]: https://api.dart.dev/stable/2.18.4/dart-core/num/parse.html
+[`tryParse`]: https://api.dart.dev/stable/2.18.4/dart-core/num/tryParse.html
+[`Deprecated.expires`]: https://api.dart.dev/stable/2.18.4/dart-core/Deprecated/expires.html
+[`Deprecated.message`]: https://api.dart.dev/stable/2.18.4/dart-core/Deprecated/message.html
 [`NoSuchMethodError`]: https://api.dart.dev/stable/2.18.4/dart-core/NoSuchMethodError/NoSuchMethodError.html
 [`NoSuchMethodError.withInvocation`]: https://api.dart.dev/stable/2.18.4/dart-core/NoSuchMethodError/NoSuchMethodError.withInvocation.html
+[`Provisional`]: https://api.dart.dev/stable/2.18.4/dart-core/Provisional-class.html
+[`provisional`]: https://api.dart.dev/stable/2.18.4/dart-core/provisional-constant.html
+[`proxy`]: https://api.dart.dev/stable/2.18.4/dart-core/proxy-constant.html
 
 #### `dart:html`
 
@@ -28,6 +45,16 @@
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [`DeferredLibrary`]: https://api.dart.dev/stable/2.18.4/dart-async/DeferredLibrary-class.html
 [`deferred as`]: https://dart.dev/guides/language/language-tour#deferred-loading
+
+#### `dart:developer`
+
+- **Breaking change** [#49529][]:
+  - Removed the deprecated [`MAX_USER_TAGS`][] constant. 
+    Use [`maxUserTags`][] instead.
+
+[#49529]: https://github.com/dart-lang/sdk/issues/49529
+[`MAX_USER_TAGS`]: https://api.dart.dev/stable/dart-developer/UserTag/MAX_USER_TAGS-constant.html
+[`maxUserTags`]: https://api.dart.dev/beta/2.19.0-255.2.beta/dart-developer/UserTag/maxUserTags-constant.html
 
 ## 2.19.0
 
@@ -120,7 +147,6 @@
   constructor.
 - Deprecated `NullThrownError` and `CyclicInitializationError`.
   Neither error is thrown by null safe code.
-
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [#24644]: https://github.com/dart-lang/sdk/issues/24644
 
@@ -332,7 +358,7 @@ Updated the Linter to `1.31.0`, which includes changes that
 - Update `dart pub publish` to require a working resolution.
   If publishing a breaking release of mutually dependent packages use `dependency_overrides`
   to obtain a resolution.
-- `dart pub add` will now allow adding multiple packages from any source using 
+- `dart pub add` will now allow adding multiple packages from any source using
   the same YAML syntax as in `pubspec.yaml`.
 
   For example:

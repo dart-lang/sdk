@@ -274,8 +274,6 @@ const deprecated = const Deprecated("next release");
 
 const override = const _Override();
 
-const proxy = const _Proxy();
-
 external bool identical(Object? a, Object? b);
 
 void print(Object? object) {}
@@ -318,8 +316,8 @@ class DateTime extends Object {
 }
 
 class Deprecated extends Object {
-  final String expires;
-  const Deprecated(this.expires);
+  final String message;
+  const Deprecated(this.message);
 }
 
 class pragma {
@@ -667,10 +665,6 @@ class Uri {
 
 class _Override {
   const _Override();
-}
-
-class _Proxy {
-  const _Proxy();
 }
 
 @Since("2.15")
