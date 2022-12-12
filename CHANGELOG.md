@@ -184,7 +184,7 @@
 
 #### Linter
 
-Updated the Linter to `1.30.0`, which includes changes that
+Updated the Linter to `1.31.0`, which includes changes that
 
 - add new lint: `enable_null_safety`.
 - add new lint: `library_annotations`.
