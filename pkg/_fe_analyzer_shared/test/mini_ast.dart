@@ -1279,7 +1279,7 @@ abstract class Pattern extends Node
   }
 
   Pattern and(Pattern other) =>
-      _LogicalPattern(this, other, isAnd: true, location: computeLocation());
+      _LogicalAndPattern(this, other, location: computeLocation());
 
   Pattern as_(String type) =>
       new _CastPattern(this, Type(type), location: computeLocation());
@@ -1291,7 +1291,7 @@ abstract class Pattern extends Node
   Type computeSchema(Harness h);
 
   Pattern or(Pattern other) =>
-      _LogicalPattern(this, other, isAnd: false, location: computeLocation());
+      _LogicalOrPattern(this, other, location: computeLocation());
 
   RecordPatternField recordField([String? name]) {
     return RecordPatternField(
@@ -2774,34 +2774,23 @@ class _Logical extends Expression {
   }
 }
 
-class _LogicalPattern extends Pattern {
+class _LogicalAndPattern extends Pattern {
   final Pattern _lhs;
 
   final Pattern _rhs;
 
-  final bool isAnd;
-
-  _LogicalPattern(this._lhs, this._rhs,
-      {required this.isAnd, required super.location})
+  _LogicalAndPattern(this._lhs, this._rhs, {required super.location})
       : super._();
 
   @override
   Type computeSchema(Harness h) =>
-      h.typeAnalyzer.analyzeLogicalPatternSchema(_lhs, _rhs, isAnd: isAnd);
+      h.typeAnalyzer.analyzeLogicalAndPatternSchema(_lhs, _rhs);
 
   @override
   void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
       {required bool isInAssignment}) {
-    if (isAnd) {
-      _lhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
-      _rhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
-    } else {
-      variableBinder.logicalOrPatternStart();
-      _lhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
-      variableBinder.logicalOrPatternFinishLeft();
-      _rhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
-      variableBinder.logicalOrPatternFinish(this);
-    }
+    _lhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
+    _rhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
   }
 
   @override
@@ -2810,10 +2799,10 @@ class _LogicalPattern extends Pattern {
     Type matchedType,
     SharedMatchContext context,
   ) {
-    h.typeAnalyzer.analyzeLogicalPattern(matchedType, context, this, _lhs, _rhs,
-        isAnd: isAnd);
+    h.typeAnalyzer
+        .analyzeLogicalAndPattern(matchedType, context, this, _lhs, _rhs);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
-    h.irBuilder.apply(isAnd ? 'logicalAndPattern' : 'logicalOrPattern',
+    h.irBuilder.apply('logicalAndPattern',
         [Kind.pattern, Kind.pattern, Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
   }
@@ -2821,7 +2810,51 @@ class _LogicalPattern extends Pattern {
   @override
   _debugString({required bool needsKeywordOrType}) => [
         _lhs._debugString(needsKeywordOrType: false),
-        isAnd ? '&' : '|',
+        '&&',
+        _rhs._debugString(needsKeywordOrType: false)
+      ].join(' ');
+}
+
+class _LogicalOrPattern extends Pattern {
+  final Pattern _lhs;
+
+  final Pattern _rhs;
+
+  _LogicalOrPattern(this._lhs, this._rhs, {required super.location})
+      : super._();
+
+  @override
+  Type computeSchema(Harness h) =>
+      h.typeAnalyzer.analyzeLogicalOrPatternSchema(_lhs, _rhs);
+
+  @override
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {
+    variableBinder.logicalOrPatternStart();
+    _lhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
+    variableBinder.logicalOrPatternFinishLeft();
+    _rhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
+    variableBinder.logicalOrPatternFinish(this);
+  }
+
+  @override
+  void visit(
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
+    h.typeAnalyzer
+        .analyzeLogicalOrPattern(matchedType, context, this, _lhs, _rhs);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.apply('logicalOrPattern',
+        [Kind.pattern, Kind.pattern, Kind.type], Kind.pattern,
+        names: ['matchedType'], location: location);
+  }
+
+  @override
+  _debugString({required bool needsKeywordOrType}) => [
+        _lhs._debugString(needsKeywordOrType: false),
+        '||',
         _rhs._debugString(needsKeywordOrType: false)
       ].join(' ');
 }
@@ -4521,7 +4554,7 @@ class _VariableBinder extends VariableBinder<Node, Var> {
       components.first.name,
       components: [
         for (var variable in components)
-          if (key is _LogicalPattern && variable is PatternVariableJoin)
+          if (key is _LogicalOrPattern && variable is PatternVariableJoin)
             ...variable.components
           else
             variable

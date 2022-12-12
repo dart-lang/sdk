@@ -1178,12 +1178,13 @@ class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
 
   @override
   DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeLogicalPatternSchema(
-      leftOperand,
-      rightOperand,
-      isAnd: operator.type == TokenType.AMPERSAND ||
-          operator.type == TokenType.AMPERSAND_AMPERSAND,
-    );
+    if (operator.type == TokenType.AMPERSAND_AMPERSAND) {
+      return resolverVisitor.analyzeLogicalAndPatternSchema(
+          leftOperand, rightOperand);
+    } else {
+      return resolverVisitor.analyzeLogicalOrPatternSchema(
+          leftOperand, rightOperand);
+    }
   }
 
   @override
@@ -1194,9 +1195,13 @@ class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
   ) {
     assert(operator.type == TokenType.AMPERSAND_AMPERSAND ||
         operator.type == TokenType.BAR_BAR);
-    resolverVisitor.analyzeLogicalPattern(
-        matchedType, context, this, leftOperand, rightOperand,
-        isAnd: operator.type == TokenType.AMPERSAND_AMPERSAND);
+    if (operator.type == TokenType.AMPERSAND_AMPERSAND) {
+      resolverVisitor.analyzeLogicalAndPattern(
+          matchedType, context, this, leftOperand, rightOperand);
+    } else {
+      resolverVisitor.analyzeLogicalOrPattern(
+          matchedType, context, this, leftOperand, rightOperand);
+    }
   }
 
   @override
