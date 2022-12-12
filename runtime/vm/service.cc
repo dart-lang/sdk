@@ -4002,7 +4002,7 @@ static void RemoveBreakpoint(Thread* thread, JSONStream* js) {
   ObjectIdRing::LookupResult lookup_result;
   Isolate* isolate = thread->isolate();
   Breakpoint* bpt = LookupBreakpoint(isolate, bpt_id, &lookup_result);
-  // TODO(turnidge): Should we return a different error for bpts whic
+  // TODO(turnidge): Should we return a different error for bpts which
   // have been already removed?
   if (bpt == NULL) {
     PrintInvalidParamError(js, "breakpointId");
