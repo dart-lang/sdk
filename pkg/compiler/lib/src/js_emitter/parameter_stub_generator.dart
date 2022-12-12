@@ -321,7 +321,7 @@ class ParameterStubGenerator {
 
     Set<Selector> stubSelectors = {};
 
-    // Start with closure-call selectors, since since they imply the generation
+    // Start with closure-call selectors, since they imply the generation
     // of the non-call version.
     if (canBeApplied && memberTypeParameters > 0) {
       // Function.apply calls the function with no type arguments, so generic
