@@ -8281,7 +8281,7 @@ class TypeArguments : public Instance {
     // If an entry in the given array contains the given instantiator and
     // function type arguments, returns a KeyLocation with the index of the
     // entry and true. Otherwise, returns a KeyLocation with the index that
-    // would be used if the instantiation for the the given type arguments is
+    // would be used if the instantiation for the given type arguments is
     // added and false.
     static KeyLocation FindKeyOrUnused(const Array& array,
                                        const TypeArguments& instantiator_tav,
