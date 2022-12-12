@@ -580,7 +580,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   ///
   /// This function is non-blocking and will only return data
   /// if data is available.
-  /// The number of bytes read can be less then [len] if fewer bytes are
+  /// The number of bytes read can be less than [len] if fewer bytes are
   /// available for immediate reading. If no data is available `null`
   /// is returned.
   Uint8List? read([int? len]);
@@ -592,7 +592,7 @@ abstract class RawSocket implements Stream<RawSocketEvent> {
   ///
   /// This function is non-blocking and will only return data
   /// if data is available.
-  /// The number of bytes read can be less then [count] if fewer bytes are
+  /// The number of bytes read can be less than [count] if fewer bytes are
   /// available for immediate reading.
   /// Length of data buffer in [SocketMessage] indicates number of bytes read.
   ///
