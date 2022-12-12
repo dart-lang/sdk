@@ -27,9 +27,19 @@ class InstrumentationLogAdapter implements InstrumentationService {
   /// A logger used to log instrumentation in string format.
   final InstrumentationLogger _instrumentationLogger;
 
+  /// Files that should not have their watch events logged (to prevent feedback
+  /// loops).
+  final Set<String>? _watchEventExclusionFiles;
+
   /// Initialize a newly created instrumentation service to communicate with the
   /// given [_instrumentationLogger].
-  InstrumentationLogAdapter(this._instrumentationLogger);
+  ///
+  /// Any file paths in [watchEventExclusionFiles] will be excluded from the
+  /// logging of watch events (to prevent feedback loops).
+  InstrumentationLogAdapter(
+    this._instrumentationLogger, {
+    Set<String>? watchEventExclusionFiles,
+  }) : _watchEventExclusionFiles = watchEventExclusionFiles;
 
   /// The current time, expressed as a decimal encoded number of milliseconds.
   String get _timestamp => DateTime.now().millisecondsSinceEpoch.toString();
@@ -142,6 +152,10 @@ class InstrumentationLogAdapter implements InstrumentationService {
 
   @override
   void logWatchEvent(String folderPath, String filePath, String changeType) {
+    if (_watchEventExclusionFiles?.contains(filePath) ?? false) {
+      return;
+    }
+
     _instrumentationLogger
         .log(_join([TAG_WATCH_EVENT, folderPath, filePath, changeType]));
   }
