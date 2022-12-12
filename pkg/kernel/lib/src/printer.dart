@@ -458,7 +458,6 @@ class AstPrinter {
     }
     _sb.write(')');
     Statement? body = node.body;
-    // ignore: unnecessary_null_comparison
     if (body != null) {
       if (body is ReturnStatement) {
         _sb.write(' => ');

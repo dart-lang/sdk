@@ -1671,7 +1671,6 @@ class Transformer extends TreeVisitor<TreeNode> {
           result != null,
           'Attempting to remove ${nodes[i]} (${nodes[i].runtimeType}) '
           'in transformer.');
-      // ignore: invalid_null_aware_operator
       result.parent = parent;
       nodes[i] = result;
     }

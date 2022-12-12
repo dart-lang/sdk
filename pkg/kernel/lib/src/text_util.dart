@@ -101,7 +101,6 @@ String qualifiedClassNameToStringByReference(Reference? reference,
           includeLibraryName: includeLibraryName);
     } else {
       CanonicalName? canonicalName = reference.canonicalName;
-      // ignore: unnecessary_null_comparison
       if (canonicalName != null) {
         return qualifiedCanonicalNameToString(canonicalName,
             includeLibraryName: includeLibraryName);
@@ -137,7 +136,6 @@ String qualifiedExtensionNameToStringByReference(Reference? reference,
           includeLibraryName: includeLibraryName);
     } else {
       CanonicalName? canonicalName = reference.canonicalName;
-      // ignore: unnecessary_null_comparison
       if (canonicalName != null) {
         return qualifiedCanonicalNameToString(canonicalName,
             includeLibraryName: includeLibraryName);
@@ -172,7 +170,6 @@ String qualifiedViewNameToStringByReference(Reference? reference,
           includeLibraryName: includeLibraryName);
     } else {
       CanonicalName? canonicalName = reference.canonicalName;
-      // ignore: unnecessary_null_comparison
       if (canonicalName != null) {
         return qualifiedCanonicalNameToString(canonicalName,
             includeLibraryName: includeLibraryName);
@@ -208,7 +205,6 @@ String qualifiedTypedefNameToStringByReference(Reference? reference,
           includeLibraryName: includeLibraryName);
     } else {
       CanonicalName? canonicalName = reference.canonicalName;
-      // ignore: unnecessary_null_comparison
       if (canonicalName != null) {
         return qualifiedCanonicalNameToString(canonicalName,
             includeLibraryName: includeLibraryName);
@@ -249,7 +245,6 @@ String qualifiedMemberNameToStringByReference(Reference? reference,
           includeLibraryName: includeLibraryName);
     } else {
       CanonicalName? canonicalName = reference.canonicalName;
-      // ignore: unnecessary_null_comparison
       if (canonicalName != null) {
         return qualifiedCanonicalNameToString(canonicalName,
             includeLibraryName: includeLibraryName);
