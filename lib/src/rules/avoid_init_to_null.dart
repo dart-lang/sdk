@@ -16,42 +16,44 @@ const _desc = r"Don't explicitly initialize variables to null.";
 const _details = r'''
 From [Effective Dart](https://dart.dev/guides/language/effective-dart/usage#dont-explicitly-initialize-variables-to-null):
 
-**DON'T** explicitly initialize variables to null.
+**DON'T** explicitly initialize variables to `null`.
 
-In Dart, a variable or field that is not explicitly initialized automatically
-gets initialized to null.  This is reliably specified by the language.  There's
-no concept of "uninitialized memory" in Dart.  Adding `= null` is redundant and
-unneeded.
+If a variable has a non-nullable type or is `final`, 
+Dart reports a compile error if you try to use it
+before it has been definitely initialized. 
+If the variable is nullable and not `const` or `final`, 
+then it is implicitly initialized to `null` for you. 
+There's no concept of "uninitialized memory" in Dart 
+and no need to explicitly initialize a variable to `null` to be "safe".
+Adding `= null` is redundant and unneeded.
 
 **BAD:**
 ```dart
-int _nextId = null;
+Item? bestDeal(List<Item> cart) {
+  Item? bestItem = null;
 
-class LazyId {
-  int _id = null;
-
-  int get id {
-    if (_nextId == null) _nextId = 0;
-    if (_id == null) _id = _nextId++;
-
-    return _id;
+  for (final item in cart) {
+    if (bestItem == null || item.price < bestItem.price) {
+      bestItem = item;
+    }
   }
+
+  return bestItem;
 }
 ```
 
 **GOOD:**
 ```dart
-int _nextId;
+Item? bestDeal(List<Item> cart) {
+  Item? bestItem;
 
-class LazyId {
-  int _id;
-
-  int get id {
-    if (_nextId == null) _nextId = 0;
-    if (_id == null) _id = _nextId++;
-
-    return _id;
+  for (final item in cart) {
+    if (bestItem == null || item.price < bestItem.price) {
+      bestItem = item;
+    }
   }
+
+  return bestItem;
 }
 ```
 
