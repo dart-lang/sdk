@@ -68,8 +68,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
-    if (node.parent is GenericFunctionType) return;
-
     for (var parameter in node.parameters) {
       var declaredElement = parameter.declaredElement;
       var name = parameter.name;
@@ -87,7 +85,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     var result = context.resolveNameInScope(name.lexeme, false, scope);
     if (result.isRequestedName) {
       var element = result.element;
-      return element is ClassElement || element is TypeAliasElement;
+      return element is ClassElement ||
+          element is TypeAliasElement ||
+          element is TypeParameterElement;
     }
     return false;
   }

@@ -46,3 +46,13 @@ class FieldFormalParameter {
   final int num;
   FieldFormalParameter(this.num); // OK
 }
+
+void m11<X>(X) {} // LINT
+
+void m12(int Function<T>(T) g) {} // OK
+
+class C<X> {
+  C.name();
+  factory C(X) => C.name(); // LINT
+  void m(void Function(X) h) {} // OK
+}
