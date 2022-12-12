@@ -130,7 +130,7 @@ abstract class FileEditBuilder {
 
   /// Add the region of text specified by the given [range] to the linked edit
   /// group with the given [groupName]. The [range] is relative to the original
-  /// source. This is typically used to include pre-existing regions of text in
+  /// source. This is typically used to include preexisting regions of text in
   /// a group. If the region to be included is part of newly generated text,
   /// then the method [EditBuilder.addLinkedEdit] should be used instead.
   void addLinkedPosition(SourceRange range, String groupName);

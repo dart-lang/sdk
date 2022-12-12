@@ -224,7 +224,7 @@ class NativeBehavior {
   ///    created by the call to JS.  'var' (and '') are like 'dynamic' or
   ///    'Object' except that 'dynamic' would indicate that objects of any type
   ///    are created, which defeats tree-shaking.  Think of 'var' (and '') as
-  ///    meaning 'any pre-existing type'.
+  ///    meaning 'any preexisting type'.
   ///
   ///    The types Ti are non-nullable, so add class `Null` to specify a
   ///    nullable type, e.g `'String|Null'`.

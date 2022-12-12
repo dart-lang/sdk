@@ -589,12 +589,12 @@ class FileTest {
     try {
       tmp = tempDirectory.createTempSync('write_from_offset_test_');
       File f = new File('${tmp.path}/file')..createSync();
-      f.writeAsStringSync('pre-existing content\n', flush: true);
+      f.writeAsStringSync('preexisting content\n', flush: true);
       raf = f.openSync(mode: FileMode.append);
       String truth = "Hello world";
       raf.writeFromSync(utf8.encode('Hello world'), 2, 5);
       raf.flushSync();
-      Expect.equals(f.readAsStringSync(), 'pre-existing content\nllo');
+      Expect.equals(f.readAsStringSync(), 'preexisting content\nllo');
     } finally {
       if (raf != null) {
         raf.closeSync();

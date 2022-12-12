@@ -80,7 +80,7 @@ char kLSanDefaultSuppressions[] =
 // Instead, commits that introduce memory leaks should be reverted. Suppressing
 // the leak is acceptable in some cases when reverting is impossible, i.e. when
 // enabling leak detection for the first time for a test target with
-// pre-existing leaks.
+// preexisting leaks.
 
 // Small test-only leak in ppapi_unittests. http://crbug.com/258113
 "leak:ppapi::proxy::PPP_Instance_Private_ProxyTest_PPPInstancePrivate_Test\n"
