@@ -187,7 +187,7 @@ abstract class CompilerDiagnostics {
   /// `null`, neither are [begin] and [end]. [uri] indicates the compilation
   /// unit from where the diagnostic originates. [begin] and [end] are
   /// zero-based character offsets from the beginning of the compilation unit.
-  /// [message] is the diagnostic message, and [kind] indicates indicates what
+  /// [message] is the diagnostic message, and [kind] indicates what
   /// kind of diagnostic it is.
   ///
   /// Experimental: [code] gives access to an id for the messages. Currently it
