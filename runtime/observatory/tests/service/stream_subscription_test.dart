@@ -44,6 +44,15 @@ var tests = <VMTest>[
       expect(e.message, 'Stream not subscribed');
     }
   },
+  // Check subscription to invalid stream fails.
+  (VM vm) async {
+    try {
+      await streamListen(vm, 'Foo');
+      fail('Subscribed to invalid stream');
+    } on ServerRpcException catch (e) {
+      expect(e.message, "streamListen: invalid 'streamId' parameter: Foo");
+    }
+  }
 ];
 
 main(args) => runVMTests(args, tests);
