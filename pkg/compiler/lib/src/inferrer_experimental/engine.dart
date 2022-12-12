@@ -946,7 +946,7 @@ class InferrerEngine {
         assert(override is FieldEntity);
         types.strategy.forEachParameter(parent as FunctionEntity,
             (Local parameter) {
-          final paramInfo = types.getInferredTypeOfParameter(parameter);
+          final paramInfo = types.getInferredTypeOfVirtualParameter(parameter);
           overrideType.addInput(paramInfo);
         });
       }
