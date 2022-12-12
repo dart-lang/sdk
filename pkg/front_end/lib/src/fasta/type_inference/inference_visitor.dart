@@ -7674,7 +7674,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // to call `isSwitchExhaustive` to figure out whether the switch is
     // *explicitly* exhaustive.
     node.isExplicitlyExhaustive = analysisResult.hasDefault
-        ? isSwitchExhaustive(node, analysisResult.scrutineeType)
+        ? isLegacySwitchExhaustive(node, analysisResult.scrutineeType)
         : analysisResult.isExhaustive;
     _enumFields = previousEnumFields;
     // Stack: (Expression)
@@ -8773,7 +8773,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   DartType get intType => throw new UnimplementedError('TODO(paulberry)');
 
   @override
-  bool isSwitchExhaustive(Node node, DartType expressionType) {
+  bool isAlwaysExhaustiveType(DartType type) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  bool isLegacySwitchExhaustive(Node node, DartType expressionType) {
     Set<Field?>? enumFields = _enumFields;
     return enumFields != null && enumFields.isEmpty;
   }

@@ -1344,7 +1344,14 @@ mixin TypeAnalyzer<
       // Stack: (Expression, (numExecutionPaths + 1) * StatementCase)
     }
     // Stack: (Expression, numExecutionPaths * StatementCase)
-    bool isExhaustive = hasDefault || isSwitchExhaustive(node, scrutineeType);
+    bool isExhaustive;
+    if (hasDefault) {
+      isExhaustive = true;
+    } else if (options.patternsEnabled) {
+      isExhaustive = isAlwaysExhaustiveType(scrutineeType);
+    } else {
+      isExhaustive = isLegacySwitchExhaustive(node, scrutineeType);
+    }
     flow?.switchStatement_end(isExhaustive);
     return new SwitchStatementTypeAnalysisResult<Type>(
       hasDefault: hasDefault,
@@ -1606,15 +1613,20 @@ mixin TypeAnalyzer<
   /// Stack effect: none.
   void handleSwitchScrutinee(Type type);
 
-  /// Returns whether [node] is a rest element in a list or map pattern.
-  bool isRestPatternElement(Node node);
+  /// Queries whether [type] is an "always-exhaustive" type (as defined in the
+  /// patterns spec).  Exhaustive types are types for which the switch statement
+  /// is required to be exhaustive when patterns support is enabled.
+  bool isAlwaysExhaustiveType(Type type);
 
   /// Queries whether the switch statement or expression represented by [node]
   /// was exhaustive.  [expressionType] is the static type of the scrutinee.
   ///
   /// Will only be called if the switch statement or expression lacks a
-  /// `default` clause.
-  bool isSwitchExhaustive(Node node, Type expressionType);
+  /// `default` clause, and patterns support is disabled.
+  bool isLegacySwitchExhaustive(Node node, Type expressionType);
+
+  /// Returns whether [node] is a rest element in a list or map pattern.
+  bool isRestPatternElement(Node node);
 
   /// Returns whether [node] is final.
   bool isVariableFinal(Variable node);

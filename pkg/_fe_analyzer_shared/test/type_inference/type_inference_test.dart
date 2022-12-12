@@ -442,22 +442,21 @@ main() {
           switch_(
             expr('int'),
             [],
-            isExhaustive: false,
             expectLastCaseTerminates: true,
           ),
         ]);
       });
 
       test('Exhaustive', () {
+        h.addExhaustiveness('E', true);
         h.run([
           switch_(
-            expr('int'),
+            expr('E'),
             [
-              intLiteral(0).pattern.then([
+              expr('E').pattern.then([
                 break_(),
               ]),
             ],
-            isExhaustive: true,
             expectIsExhaustive: true,
           ),
         ]);
@@ -472,7 +471,6 @@ main() {
                 break_(),
               ]),
             ],
-            isExhaustive: false,
             expectHasDefault: false,
             expectIsExhaustive: false,
           ),
@@ -491,7 +489,6 @@ main() {
                 break_(),
               ]),
             ],
-            isExhaustive: false,
             expectHasDefault: true,
             expectIsExhaustive: true,
           ),
@@ -510,7 +507,6 @@ main() {
                 break_(),
               ]),
             ],
-            isExhaustive: false,
             expectLastCaseTerminates: true,
           ),
         ]);
@@ -528,7 +524,6 @@ main() {
                 expr('int').stmt,
               ]),
             ],
-            isExhaustive: false,
             expectLastCaseTerminates: false,
           ),
         ]);
@@ -536,8 +531,7 @@ main() {
 
       test('Scrutinee type', () {
         h.run([
-          switch_(expr('int'), [],
-              isExhaustive: false, expectScrutineeType: 'int'),
+          switch_(expr('int'), [], expectScrutineeType: 'int'),
         ]);
       });
 
@@ -550,7 +544,6 @@ main() {
                 break_(),
               ]),
             ],
-            isExhaustive: false,
           ).checkIr('switch(expr(int), '
               'case(heads(head(const(0, matchedType: int), true), '
               'variables()), block(break())))'),
@@ -568,7 +561,6 @@ main() {
                   break_(),
                 ]),
               ],
-              isExhaustive: false,
             ).checkIr('switch(expr(int), '
                 'case(heads(head(varPattern(x, matchedType: int, '
                 'staticType: int), true), variables(x)), '
@@ -586,7 +578,6 @@ main() {
                   break_(),
                 ]),
               ],
-              isExhaustive: false,
             ).checkIr('switch(expr(int), '
                 'case(heads(head(varPattern(x, matchedType: int, '
                 'staticType: num), true), variables(x)), '
@@ -604,7 +595,6 @@ main() {
                 break_(),
               ]),
             ],
-            isExhaustive: false,
           ),
         ]);
       });
@@ -619,7 +609,6 @@ main() {
               ]),
               intLiteral(1).pattern.then([]),
             ],
-            isExhaustive: false,
           ).checkIr('switch(expr(int), case(heads(head(const(0, matchedType: '
               'int), true), variables()), block(break())), case(heads('
               'head(const(1, matchedType: int), true), variables()), '
@@ -643,7 +632,6 @@ main() {
                 break_(),
               ]),
             ],
-            isExhaustive: true,
           ).checkIr('switch(expr(int), case(heads(head(varPattern(i, '
               'matchedType: int, staticType: int), ==(i, expr(num))), '
               'variables(i)), block(break())))'),
@@ -665,7 +653,6 @@ main() {
                   break_(),
                 ]),
               ],
-              isExhaustive: true,
             ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
                 'matchedType: int, staticType: int), true), variables(x)), '
                 'block(break())), case(heads(head(varPattern(y, '
@@ -689,7 +676,6 @@ main() {
                       break_(),
                     ]),
                   ],
-                  isExhaustive: true,
                 ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
                     'matchedType: int, staticType: int), true), '
                     'head(varPattern(x, matchedType: int, staticType: int), '
@@ -711,7 +697,6 @@ main() {
                       break_(),
                     ]),
                   ],
-                  isExhaustive: true,
                 ).checkIr('switch(expr(int), case(heads(head(logicalOrPattern('
                     'varPattern(x, matchedType: int, staticType: int), '
                     'varPattern(x, matchedType: int, staticType: int), '
@@ -735,7 +720,6 @@ main() {
                         break_(),
                       ]),
                     ],
-                    isExhaustive: true,
                   ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
                       'matchedType: int, staticType: num), true), '
                       'head(varPattern(x, matchedType: int, staticType: int), '
@@ -757,7 +741,6 @@ main() {
                         break_(),
                       ]),
                     ],
-                    isExhaustive: true,
                   ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
                       'matchedType: int, staticType: num), true), '
                       'head(varPattern(x, matchedType: int, staticType: int), '
@@ -779,7 +762,6 @@ main() {
                         break_(),
                       ]),
                     ],
-                    isExhaustive: true,
                   ).checkIr(
                       'switch(expr(List<int>), case(heads(head(varPattern(x, '
                       'matchedType: List<int>, staticType: List<int>), true), '
@@ -805,7 +787,6 @@ main() {
                       break_(),
                     ]),
                   ],
-                  isExhaustive: true,
                 ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
                     'matchedType: int, staticType: int), true), '
                     'head(varPattern(x, matchedType: int, staticType: int), '
@@ -827,7 +808,6 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: true,
               ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
                   'matchedType: int, staticType: int), true), '
                   'head(const(0, matchedType: int), true), '
@@ -847,7 +827,6 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: true,
               ).checkIr('switch(expr(int), case(heads(head(const(0, '
                   'matchedType: int), true), head(varPattern(x, matchedType: '
                   'int, staticType: int), true), '
@@ -868,7 +847,6 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: true,
               ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
                   'matchedType: int, staticType: int), true), default, '
                   'variables(notConsistent int x = [x1])), block(break())))'),
@@ -886,7 +864,6 @@ main() {
                     break_(),
                   ], hasLabels: true),
                 ],
-                isExhaustive: true,
               ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
                   'matchedType: int, staticType: int), true), '
                   'variables(notConsistent int x = [x1])), '
@@ -910,7 +887,7 @@ main() {
                   break_(),
                 ]),
               ],
-              isExhaustive: true,
+              isLegacyExhaustive: true,
             )..errorId = 'SWITCH'),
           ], expectedErrors: {
             'switchCaseCompletesNormally(SWITCH, 0, 1)'
@@ -934,7 +911,7 @@ main() {
                   break_(),
                 ]),
               ],
-              isExhaustive: true,
+              isLegacyExhaustive: true,
             )..errorId = 'SWITCH'),
           ], expectedErrors: {
             'switchCaseCompletesNormally(SWITCH, 0, 1)'
@@ -954,7 +931,7 @@ main() {
                   break_(),
                 ]),
               ],
-              isExhaustive: true,
+              isLegacyExhaustive: true,
             ),
           ], expectedErrors: {});
         });
@@ -969,7 +946,7 @@ main() {
                   expr('int').stmt,
                 ]),
               ],
-              isExhaustive: false,
+              isLegacyExhaustive: false,
             ),
           ], expectedErrors: {});
         });
@@ -991,7 +968,7 @@ main() {
                   break_(),
                 ]),
               ],
-              isExhaustive: false,
+              isLegacyExhaustive: false,
             ),
           ], expectedErrors: {});
         });
@@ -1011,7 +988,6 @@ main() {
                   break_(),
                 ]),
               ],
-              isExhaustive: false,
             ),
           ], expectedErrors: {});
         });
@@ -1029,7 +1005,7 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
+                isLegacyExhaustive: false,
               ),
             ]);
           });
@@ -1044,7 +1020,7 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
+                isLegacyExhaustive: false,
               ),
             ]);
           });
@@ -1059,7 +1035,7 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
+                isLegacyExhaustive: false,
               )
             ], expectedErrors: {
               'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
@@ -1078,7 +1054,7 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
+                isLegacyExhaustive: false,
               ),
             ]);
           });
@@ -1093,7 +1069,7 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
+                isLegacyExhaustive: false,
               ),
             ]);
           });
@@ -1110,7 +1086,7 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
+                isLegacyExhaustive: false,
               ),
             ]);
           });
@@ -1125,7 +1101,7 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
+                isLegacyExhaustive: false,
               )
             ], expectedErrors: {
               'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
@@ -1144,7 +1120,7 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
+                isLegacyExhaustive: false,
               )
             ], expectedErrors: {
               'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
@@ -1163,7 +1139,7 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
+                isLegacyExhaustive: false,
               ),
             ]);
           });
@@ -1178,7 +1154,7 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
+                isLegacyExhaustive: false,
               )
             ], expectedErrors: {
               'caseExpressionTypeMismatch(scrutinee: SCRUTINEE, '
@@ -1198,7 +1174,6 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
               ),
             ]);
           });
@@ -1212,7 +1187,6 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
               ),
             ]);
           });
@@ -1226,7 +1200,6 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
               ),
             ]);
           });
@@ -1240,7 +1213,6 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
               ),
             ]);
           });
@@ -1254,7 +1226,6 @@ main() {
                     break_(),
                   ]),
                 ],
-                isExhaustive: false,
               ),
             ]);
           });
@@ -1274,7 +1245,6 @@ main() {
                   break_(),
                 ]),
               ],
-              isExhaustive: false,
             ).checkIr('switch(expr(int), case(heads(variables()), '
                 'block(break())))'),
           ], errorRecoveryOk: true);
@@ -1292,7 +1262,6 @@ main() {
                   break_(),
                 ]),
               ],
-              isExhaustive: false,
             ).checkIr('switch(expr(int), case(heads(head(const(0, '
                 'matchedType: int), true), head(const(1, matchedType: '
                 'int), true), variables()), block(break())))'),
@@ -1311,7 +1280,6 @@ main() {
                   break_(),
                 ]),
               ],
-              isExhaustive: false,
             ),
           ], expectedErrors: {
             'nonBooleanCondition(GUARD)'
@@ -1328,7 +1296,6 @@ main() {
                   break_(),
                 ]),
               ],
-              isExhaustive: false,
             ),
           ], expectedErrors: {});
         });
@@ -1343,7 +1310,6 @@ main() {
                   break_(),
                 ]),
               ],
-              isExhaustive: false,
             ),
           ], expectedErrors: {});
         });

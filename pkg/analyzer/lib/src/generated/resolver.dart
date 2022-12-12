@@ -160,12 +160,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// The element for the library containing the compilation unit being visited.
   final LibraryElementImpl definingLibrary;
 
-  /// If the resolver visitor is visiting a switch statement, the tracker that
-  /// determines whether the switch is exhaustive.
-  ///
-  /// TODO(paulberry): move exhaustiveness computation into the shared
-  /// [TypeAnalyzer].
-  SwitchExhaustiveness? switchExhaustiveness;
+  /// If the resolver visitor is visiting a switch statement and patterns
+  /// support is disabled, the tracker that determines whether the switch is
+  /// exhaustive.
+  SwitchExhaustiveness? legacySwitchExhaustiveness;
 
   @override
   final TypeAnalyzerOptions options;
@@ -1051,14 +1049,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     popRewrite(); // "when" expression
     // Stack: ()
     if (node is SwitchStatementImpl) {
-      switchExhaustiveness!.visitSwitchMember(node.memberGroups[caseIndex]);
+      legacySwitchExhaustiveness
+          ?.visitSwitchMember(node.memberGroups[caseIndex]);
     }
     // TODO(scheglov) Exhaustiveness for SwitchExpressions?
   }
 
   @override
   void handleDefault(covariant SwitchStatementImpl node, int caseIndex) {
-    switchExhaustiveness!.visitSwitchMember(node.memberGroups[caseIndex]);
+    legacySwitchExhaustiveness?.visitSwitchMember(node.memberGroups[caseIndex]);
   }
 
   @override
@@ -1105,7 +1104,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void handleSwitchScrutinee(DartType type) {
-    switchExhaustiveness = SwitchExhaustiveness(type);
+    if (!options.patternsEnabled) {
+      legacySwitchExhaustiveness = SwitchExhaustiveness(type);
+    }
   }
 
   /// If generic function instantiation should be performed on `expression`,
@@ -1165,13 +1166,35 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  bool isRestPatternElement(AstNode node) {
-    return node is RestPatternElementImpl;
+  bool isAlwaysExhaustiveType(DartType type) {
+    if (type is InterfaceType) {
+      if (type.isDartCoreBool) return true;
+      if (type.isDartCoreNull) return true;
+      var element = type.element;
+      if (element is EnumElement) return true;
+      // TODO(paulberry): return `true` if `element` is a sealed class
+      if (type.isDartAsyncFutureOr) {
+        return isAlwaysExhaustiveType(type.typeArguments[0]);
+      }
+      return false;
+    } else if (type is RecordType) {
+      for (var field in type.fields) {
+        if (!isAlwaysExhaustiveType(field.type)) return false;
+      }
+      return true;
+    } else {
+      return false;
+    }
   }
 
   @override
-  bool isSwitchExhaustive(AstNode node, DartType expressionType) =>
-      switchExhaustiveness!.isExhaustive;
+  bool isLegacySwitchExhaustive(AstNode node, DartType expressionType) =>
+      legacySwitchExhaustiveness!.isExhaustive;
+
+  @override
+  bool isRestPatternElement(AstNode node) {
+    return node is RestPatternElementImpl;
+  }
 
   @override
   bool isVariableFinal(PromotableElement element) {
@@ -3226,12 +3249,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     // Stack: ()
     checkUnreachableNode(node);
 
-    var previousExhaustiveness = switchExhaustiveness;
+    var previousExhaustiveness = legacySwitchExhaustiveness;
     analyzeSwitchStatement(node, node.expression, node.memberGroups.length);
     // Stack: (Expression)
     popRewrite();
     // Stack: ()
-    switchExhaustiveness = previousExhaustiveness;
+    legacySwitchExhaustiveness = previousExhaustiveness;
   }
 
   @override
