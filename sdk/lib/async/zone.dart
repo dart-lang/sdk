@@ -676,7 +676,7 @@ abstract class Zone {
   /// Creates a new zone as a child zone of this zone.
   ///
   /// The new zone uses the closures in the given [specification] to override
-  /// the current's zone behavior. All specification entries that are `null`
+  /// the parent zone's behavior. All specification entries that are `null`
   /// inherit the behavior from the parent zone (`this`).
   ///
   /// The new zone inherits the stored values (accessed through [operator []])
@@ -684,7 +684,7 @@ abstract class Zone {
   /// adds new values or overrides existing ones.
   ///
   /// Note that the fork operation is interceptable. A zone can thus change
-  /// the zone specification (or zone values), giving the forking zone full
+  /// the zone specification (or zone values), giving the parent zone full
   /// control over the child zone.
   Zone fork(
       {ZoneSpecification? specification, Map<Object?, Object?>? zoneValues});
