@@ -395,7 +395,7 @@ bool FastFixedDtoa(double v,
   buffer[*length] = '\0';
   if ((*length) == 0) {
     // The string is empty and the decimal_point thus has no importance. Mimick
-    // Gay's dtoa and and set it to -fractional_count.
+    // Gay's dtoa and set it to -fractional_count.
     *decimal_point = -fractional_count;
   }
   return true;
