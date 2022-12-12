@@ -379,11 +379,10 @@ abstract class int extends num {
   /// `n == int.parse(n.toRadixString(r), radix: r)`.
   ///
   /// If the [source] string does not contain a valid integer literal,
-  /// optionally prefixed by a sign, a [FormatException] is thrown
-  /// (unless the deprecated [onError] parameter is used, see below).
+  /// optionally prefixed by a sign, a [FormatException] is thrown.
   ///
-  /// Instead of throwing and immediately catching the [FormatException],
-  /// instead use [tryParse] to handle a parsing error.
+  /// Rather than throwing and immediately catching the [FormatException],
+  /// instead use [tryParse] to handle a potential parsing error.
   ///
   /// Example:
   /// ```dart
@@ -393,17 +392,7 @@ abstract class int extends num {
   ///   // ...
   /// }
   /// ```
-  ///
-  /// The [onError] parameter is deprecated and will be removed.
-  /// Instead of `int.parse(string, onError: (string) => ...)`,
-  /// you should use `int.tryParse(string) ?? (...)`.
-  ///
-  /// When the source string is not valid and [onError] is provided,
-  /// whenever a [FormatException] would be thrown,
-  /// [onError] is instead called with [source] as argument,
-  /// and the result of that call is returned by [parse].
-  external static int parse(String source,
-      {int? radix, @deprecated int onError(String source)?});
+  external static int parse(String source, {int? radix});
 
   /// Parse [source] as a, possibly signed, integer literal.
   ///
