@@ -6658,7 +6658,7 @@ class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(RecordCoverageInstr);
 };
 
-// Note overrideable, built-in: value ? false : true.
+// Note overridable, built-in: value ? false : true.
 class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
  public:
   explicit BooleanNegateInstr(Value* value) { SetInputAt(0, value); }
