@@ -10345,7 +10345,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
 // All SIMD intrinsics and recognized methods are represented via instances
 // of SimdOpInstr, a particular type of SimdOp is selected by SimdOpInstr::Kind.
 //
-// Defines below are used to contruct SIMD_OP_LIST - a list of all SIMD
+// Defines below are used to construct SIMD_OP_LIST - a list of all SIMD
 // operations. SIMD_OP_LIST contains information such as arity, input types and
 // output type for each SIMD op and is used to derive things like input
 // and output representations, type of return value, etc.
