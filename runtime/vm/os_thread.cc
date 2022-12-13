@@ -153,7 +153,7 @@ void OSThread::Init() {
   // Enable creation of OSThread structures in the VM.
   EnableOSThreadCreation();
 
-  // Create a new OSThread strcture and set it as the TLS.
+  // Create a new OSThread structure and set it as the TLS.
   OSThread* os_thread = CreateOSThread();
   ASSERT(os_thread != NULL);
   OSThread::SetCurrent(os_thread);
