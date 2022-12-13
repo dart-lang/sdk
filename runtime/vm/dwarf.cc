@@ -876,7 +876,7 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
       stream->u1(0);  // DW_LNS_const_add_pc, 0 operands
       stream->u1(1);  // DW_LNS_fixed_advance_pc, 1 operands
       stream->u1(0);  // DW_LNS_set_prolog_end, 0 operands
-      stream->u1(0);  // DW_LNS_set_epligoue_begin, 0 operands
+      stream->u1(0);  // DW_LNS_set_epilogue_begin, 0 operands
       stream->u1(1);  // DW_LNS_set_isa, 1 operands
 
       // 10. include_directories (sequence of path names)
