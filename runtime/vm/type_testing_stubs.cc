@@ -1509,7 +1509,7 @@ void TypeUsageInfo::UseTypeArgumentsInInstanceCreation(
     // of type arguments the class expects.
     ASSERT(ta.IsNull() || klass.NumTypeArguments() <= ta.Length());
 
-    // If this is a non-instantiated [TypeArguments] object, then it referes to
+    // If this is a non-instantiated [TypeArguments] object, then it refers to
     // type parameters.  We need to ensure the type parameters in [ta] only
     // refer to type parameters in the class.
     if (!ta.IsNull() && !ta.IsInstantiated() &&

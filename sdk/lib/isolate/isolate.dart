@@ -733,7 +733,7 @@ abstract class SendPort implements Capability {
   /// contain any object, with the following exceptions:
   ///
   ///   - Objects with native resources (subclasses of e.g.
-  ///     `NativeFieldWrapperClass1`). A [Socket] object for example referrs
+  ///     `NativeFieldWrapperClass1`). A [Socket] object for example refers
   ///     internally to objects that have native resources attached and can
   ///     therefore not be sent.
   ///   - [ReceivePort]
