@@ -1643,7 +1643,7 @@ void FlowGraph::ValidatePhis() {
           if (phi == nullptr && !IsImmortalVariable(j)) {
             // We have no phi node for the this variable.
             // Double check we do not have a different value in our env.
-            // If we do, we would have needed a phi-node in the successsor.
+            // If we do, we would have needed a phi-node in the successor.
             ASSERT(last_instruction->env() != nullptr);
             Definition* current_definition =
                 last_instruction->env()->ValueAt(j)->definition();
