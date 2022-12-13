@@ -2193,7 +2193,7 @@ class ObjectGraphCopier : public StackResource {
 
           // There are left-over uninitialized objects we'll have to make GC
           // visible.
-          SwitchToSlowFowardingList();
+          SwitchToSlowForwardingList();
         }
       }
 
@@ -2235,7 +2235,7 @@ class ObjectGraphCopier : public StackResource {
     return result_array.ptr();
   }
 
-  void SwitchToSlowFowardingList() {
+  void SwitchToSlowForwardingList() {
     auto& fast_forward_map = fast_object_copy_.fast_forward_map_;
     auto& slow_forward_map = slow_object_copy_.slow_forward_map_;
 

@@ -34,19 +34,19 @@ void TestBecomeForward(Heap::Space before_space, Heap::Space after_space) {
   EXPECT(container.At(0) == after_obj.ptr());
 }
 
-ISOLATE_UNIT_TEST_CASE(BecomeFowardOldToOld) {
+ISOLATE_UNIT_TEST_CASE(BecomeForwardOldToOld) {
   TestBecomeForward(Heap::kOld, Heap::kOld);
 }
 
-ISOLATE_UNIT_TEST_CASE(BecomeFowardNewToNew) {
+ISOLATE_UNIT_TEST_CASE(BecomeForwardNewToNew) {
   TestBecomeForward(Heap::kNew, Heap::kNew);
 }
 
-ISOLATE_UNIT_TEST_CASE(BecomeFowardOldToNew) {
+ISOLATE_UNIT_TEST_CASE(BecomeForwardOldToNew) {
   TestBecomeForward(Heap::kOld, Heap::kNew);
 }
 
-ISOLATE_UNIT_TEST_CASE(BecomeFowardNewToOld) {
+ISOLATE_UNIT_TEST_CASE(BecomeForwardNewToOld) {
   TestBecomeForward(Heap::kNew, Heap::kOld);
 }
 
