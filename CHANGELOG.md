@@ -1078,7 +1078,7 @@ them, you must set the lower bound on the SDK constraint for your package to
 
 - **Breaking change** [#46100](https://github.com/dart-lang/sdk/issues/46100):
   The standalone `dartdevc` tool has been marked deprecated as previously
-  announced and will be deleted in a future Dart stable relase.  This tool
+  announced and will be deleted in a future Dart stable release.  This tool
   was intended for use only by build systems like bazel, `build_web_compilers`
   and `flutter_tools`. The functionality remains available for those systems,
   but it is no longer exposed as a command-line tool in the SDK.
