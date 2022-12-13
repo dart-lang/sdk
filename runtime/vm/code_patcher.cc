@@ -41,7 +41,7 @@ bool MatchesPattern(uword end, const int16_t* pattern, intptr_t size) {
   // instructions with trap instructions, which can cause this test to fail.
   //
   // Ignoring trap instructions would work well enough within GDB alone, but it
-  // doesn't work in RR, because the check for the trap instrution itself will
+  // doesn't work in RR, because the check for the trap instruction itself will
   // cause replay to diverge from the original record.
   if (FLAG_support_rr) return true;
 
