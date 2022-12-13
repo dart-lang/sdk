@@ -22,7 +22,7 @@
 namespace dart {
 
 // This cache needs to be at least as big as FLAG_new_gen_semi_max_size or
-// munmap will noticably impact performance.
+// munmap will noticeably impact performance.
 static constexpr intptr_t kPageCacheCapacity = 8 * kWordSize;
 static Mutex* page_cache_mutex = nullptr;
 static VirtualMemory* page_cache[kPageCacheCapacity] = {nullptr};
