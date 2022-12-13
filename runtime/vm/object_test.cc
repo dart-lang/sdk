@@ -5403,7 +5403,7 @@ import 'dart:ffi';
 
 class AImpl implements A {}
 class ASub extends A {}
-// Wonky class order and non-alhpabetic naming on purpose.
+// Wonky class order and non-alphabetic naming on purpose.
 class C extends Z {}
 class E extends D {}
 class A implements Finalizable {}
