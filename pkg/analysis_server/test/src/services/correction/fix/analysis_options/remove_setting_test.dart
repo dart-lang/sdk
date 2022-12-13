@@ -28,20 +28,6 @@ analyzer:
 ''');
   }
 
-  Future<void> test_enableSuperMixins() async {
-    await assertHasFix('''
-analyzer:
-  enable-experiment:
-    - test-experiment
-  language:
-    enableSuperMixins: true
-''', '''
-analyzer:
-  enable-experiment:
-    - test-experiment
-''');
-  }
-
   Future<void> test_invalidExperiment_first() async {
     await assertHasFix('''
 analyzer:

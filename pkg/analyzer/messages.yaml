@@ -64,12 +64,6 @@ AnalysisOptionsHintCode:
     problemMessage: "The 'strong-mode: true' setting is deprecated."
     correctionMessage: It is no longer necessary to explicitly enable strong mode.
     comment: "An error code indicating that strong-mode: true is deprecated."
-  SUPER_MIXINS_SETTING_DEPRECATED:
-    problemMessage: "The 'enableSuperMixins' setting is deprecated."
-    correctionMessage: "Support has been added to the language for 'mixin' based mixins."
-    comment: |-
-      An error code indicating that the enablePreviewDart2 setting is
-      deprecated.
 AnalysisOptionsWarningCode:
   INCLUDED_FILE_WARNING:
     problemMessage: "Warning in the included options file {0}({1}..{2}): {3}"

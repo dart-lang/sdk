@@ -70,9 +70,6 @@ class AnalysisOptionsFixGenerator {
       await _addFix_removeSetting(coveringNodePath);
     } else if (errorCode == DEPRECATED_LINT_HINT) {
       await _addFix_removeLint(coveringNodePath);
-    } else if (errorCode ==
-        AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED) {
-      await _addFix_removeSetting(coveringNodePath);
 //    } else if (errorCode == AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING) {
 //    } else if (errorCode == AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND) {
 //    } else if (errorCode == AnalysisOptionsWarningCode.INVALID_OPTION) {
