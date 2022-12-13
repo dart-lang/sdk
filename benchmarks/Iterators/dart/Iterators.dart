@@ -63,7 +63,7 @@
 ///
 /// ### Iterators.poly.Runes.1
 ///
-/// An interation over the String.runes iterable of a single character String
+/// An iteration over the String.runes iterable of a single character String
 /// using the shared polymorphic loop.
 ///
 /// ### Iterators.poly.HashMap.Hard.keys.100
