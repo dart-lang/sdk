@@ -270,7 +270,7 @@ DEFINE_RUNTIME_ENTRY(DispatchTableNullError, 1) {
   const Smi& cid = Smi::CheckedHandle(zone, arguments.ArgAt(0));
   if (cid.Value() != kNullCid) {
     // We hit null error, but receiver is not null itself. This most likely
-    // is a memory corruption. Crash the VM but provide some additonal
+    // is a memory corruption. Crash the VM but provide some additional
     // information about the arguments on the stack.
     DartFrameIterator iterator(thread,
                                StackFrameIterator::kNoCrossThreadIteration);
