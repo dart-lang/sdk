@@ -1314,6 +1314,70 @@ main() {
           ], expectedErrors: {});
         });
       });
+
+      group('requiresExhaustivenessValidation:', () {
+        test('When a `default` clause is present', () {
+          h.addExhaustiveness('E', true);
+          h.run([
+            switch_(
+              expr('E'),
+              [
+                default_.then([
+                  break_(),
+                ]),
+              ],
+              expectRequiresExhaustivenessValidation: false,
+            ),
+          ]);
+        });
+
+        test('When the scrutinee is an always-exhaustive type', () {
+          h.addExhaustiveness('E', true);
+          h.run([
+            switch_(
+              expr('E'),
+              [
+                expr('E').pattern.then([
+                  break_(),
+                ]),
+              ],
+              expectRequiresExhaustivenessValidation: true,
+            ),
+          ]);
+        });
+
+        test('When the scrutinee is not an always-exhaustive type', () {
+          h.addExhaustiveness('C', false);
+          h.run([
+            switch_(
+              expr('C'),
+              [
+                expr('C').pattern.then([
+                  break_(),
+                ]),
+              ],
+              expectRequiresExhaustivenessValidation: false,
+            ),
+          ]);
+        });
+
+        test('When pattern support is disabled', () {
+          h.patternsEnabled = false;
+          h.addExhaustiveness('E', true);
+          h.run([
+            switch_(
+              expr('E'),
+              [
+                expr('E').pattern.then([
+                  break_(),
+                ]),
+              ],
+              isLegacyExhaustive: true,
+              expectRequiresExhaustivenessValidation: false,
+            ),
+          ]);
+        });
+      });
     });
 
     group('Variable declaration:', () {
