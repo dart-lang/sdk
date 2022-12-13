@@ -13,6 +13,11 @@ main() {
 
 @reflectiveTest
 class InstrumentationServiceTest {
+  void assertNoLogs(TestInstrumentationLogger logger) {
+    String sent = logger.logged.toString();
+    expect(sent, isEmpty);
+  }
+
   void assertNormal(
       TestInstrumentationLogger logger, String tag, String message) {
     String sent = logger.logged.toString();
@@ -170,6 +175,37 @@ class InstrumentationServiceTest {
         logger.logged.toString(),
         endsWith(
             ':myUuid:someClientId:someClientVersion:aServerVersion:anSdkVersion\n'));
+  }
+
+  void test_logWatch() {
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger);
+    service.logWatchEvent('/folder', '/folder/file.txt', 'modify');
+    assertNormal(
+      logger,
+      InstrumentationLogAdapter.TAG_WATCH_EVENT,
+      '/folder:/folder/file.txt:modify',
+    );
+  }
+
+  void test_logWatch_exclusions_excluded() {
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger,
+        watchEventExclusionFiles: {'/folder/excluded.txt'});
+    service.logWatchEvent('/folder', '/folder/excluded.txt', 'modify');
+    assertNoLogs(logger);
+  }
+
+  void test_logWatch_exclusions_notExcluded() {
+    TestInstrumentationLogger logger = TestInstrumentationLogger();
+    InstrumentationService service = InstrumentationLogAdapter(logger,
+        watchEventExclusionFiles: {'/folder/excluded.txt'});
+    service.logWatchEvent('/folder', '/folder/file.txt', 'modify');
+    assertNormal(
+      logger,
+      InstrumentationLogAdapter.TAG_WATCH_EVENT,
+      '/folder:/folder/file.txt:modify',
+    );
   }
 }
 

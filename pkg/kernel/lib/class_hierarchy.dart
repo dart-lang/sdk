@@ -306,9 +306,7 @@ abstract class ClassHierarchy
     Library? firstLibrary = firstName.library;
     Library? secondLibrary = secondName.library;
     if (firstLibrary != secondLibrary) {
-      // ignore: unnecessary_null_comparison
       if (firstLibrary == null) return -1;
-      // ignore: unnecessary_null_comparison
       if (secondLibrary == null) return 1;
       return firstLibrary.compareTo(secondLibrary);
     }

@@ -330,7 +330,8 @@ DEFINE_NATIVE_ENTRY(Internal_nativeEffect, 0, 1) {
 }
 
 DEFINE_NATIVE_ENTRY(Internal_collectAllGarbage, 0, 0) {
-  isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging);
+  isolate->group()->heap()->CollectAllGarbage(GCReason::kDebugging,
+                                              /*compact=*/true);
   return Object::null();
 }
 

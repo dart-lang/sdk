@@ -137,8 +137,8 @@ features:
   patterns:
     help: "Patterns"
 
-  views:
-    help: "Views"
+  inline-class:
+    help: "Inline class"
 
   sealed-class:
     help: "Sealed class"

@@ -3248,11 +3248,9 @@ void FlowGraphCompiler::GenerateCallerChecksForAssertAssignable(
     __ BranchIf(EQUAL, done);
     // Put the instantiated type parameter into the scratch register, so its
     // TTS can be called by the caller.
-    __ LoadCompressedField(
-        TypeTestABI::kScratchReg,
-        compiler::FieldAddress(kTypeArgumentsReg,
-                               compiler::target::TypeArguments::type_at_offset(
-                                   type_param.index())));
+    __ LoadCompressedFieldFromOffset(
+        TypeTestABI::kScratchReg, kTypeArgumentsReg,
+        compiler::target::TypeArguments::type_at_offset(type_param.index()));
     return output_dst_type();
   }
 

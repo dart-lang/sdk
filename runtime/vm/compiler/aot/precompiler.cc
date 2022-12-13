@@ -1043,6 +1043,7 @@ void Precompiler::AddCalleesOfHelper(const Object& entry,
         if (!callback_target.IsNull()) {
           AddFunction(callback_target, RetainReasons::kFfiCallbackTarget);
         }
+        AddTypesOf(target);
       }
       break;
     }
@@ -1108,6 +1109,10 @@ void Precompiler::AddTypesOf(const Function& function) {
   // A class may have all functions inlined except a local function.
   const Class& owner = Class::Handle(Z, function.Owner());
   AddTypesOf(owner);
+
+  if (function.IsFfiTrampoline()) {
+    AddType(FunctionType::Handle(Z, function.FfiCSignature()));
+  }
 
   const auto& parent_function = Function::Handle(Z, function.parent_function());
   if (parent_function.IsNull()) {

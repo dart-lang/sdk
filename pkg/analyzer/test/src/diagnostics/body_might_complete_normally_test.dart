@@ -16,13 +16,21 @@ main() {
 
 @reflectiveTest
 class BodyMayCompleteNormallyTest extends PubPackageResolutionTest
-    with BodyMayCompleteNormallyTestCases {}
+    with BodyMayCompleteNormallyTestCases {
+  @override
+  bool get _arePatternsEnabled => true;
+}
 
 @reflectiveTest
 class BodyMayCompleteNormallyTest_Language218 extends PubPackageResolutionTest
-    with WithLanguage218Mixin, BodyMayCompleteNormallyTestCases {}
+    with WithLanguage218Mixin, BodyMayCompleteNormallyTestCases {
+  @override
+  bool get _arePatternsEnabled => false;
+}
 
 mixin BodyMayCompleteNormallyTestCases on PubPackageResolutionTest {
+  bool get _arePatternsEnabled;
+
   test_enum_method_nonNullable_blockBody_switchStatement_notNullable_exhaustive() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -54,7 +62,8 @@ enum E {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 28, 5),
+      if (!_arePatternsEnabled)
+        error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 28, 5),
       error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 40, 13),
     ]);
   }
@@ -180,7 +189,8 @@ int f(Foo foo) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
+      if (!_arePatternsEnabled)
+        error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
       error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 38, 12),
     ]);
   }
@@ -200,7 +210,8 @@ int f(E e) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 47, 1),
+      if (!_arePatternsEnabled)
+        error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 47, 1),
       error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 58, 10),
     ]);
   }
@@ -252,7 +263,8 @@ int f(Foo? foo) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
+      if (!_arePatternsEnabled)
+        error(CompileTimeErrorCode.BODY_MIGHT_COMPLETE_NORMALLY, 23, 1),
       error(StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH, 39, 12),
     ]);
   }

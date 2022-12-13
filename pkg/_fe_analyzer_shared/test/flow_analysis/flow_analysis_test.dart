@@ -2000,17 +2000,14 @@ main() {
 
     test('switchStatement throw in scrutinee makes all cases unreachable', () {
       h.run([
-        switch_(
-            throw_(expr('C')),
-            [
-              intLiteral(0).pattern.then([
-                checkReachable(false),
-              ]),
-              intLiteral(1).pattern.then([
-                checkReachable(false),
-              ]),
-            ],
-            isExhaustive: false),
+        switch_(throw_(expr('int')), [
+          intLiteral(0).pattern.then([
+            checkReachable(false),
+          ]),
+          intLiteral(1).pattern.then([
+            checkReachable(false),
+          ]),
+        ]),
         checkReachable(false),
       ]);
     });
@@ -2018,28 +2015,22 @@ main() {
     test('switchStatement var promotes', () {
       var x = Var('x');
       h.run([
-        switch_(
-            expr('int'),
-            [
-              x.pattern(type: 'int?').then([
-                checkPromoted(x, 'int'),
-              ]),
-            ],
-            isExhaustive: true),
+        switch_(expr('int'), [
+          x.pattern(type: 'int?').then([
+            checkPromoted(x, 'int'),
+          ]),
+        ]),
       ]);
     });
 
     test('switchStatement_afterWhen() promotes', () {
       var x = Var('x');
       h.run([
-        switch_(
-            expr('num'),
-            [
-              x.pattern().when(x.expr.is_('int')).then([
-                checkPromoted(x, 'int'),
-              ]),
-            ],
-            isExhaustive: true),
+        switch_(expr('num'), [
+          x.pattern().when(x.expr.is_('int')).then([
+            checkPromoted(x, 'int'),
+          ]),
+        ]),
       ]);
     });
 
@@ -2060,21 +2051,18 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
-        switch_(
-            expr('int'),
-            [
-              intLiteral(0).pattern.then([
-                checkPromoted(x, 'int'),
-                x.write(expr('int?')).stmt,
-                checkNotPromoted(x),
-              ]),
-              intLiteral(1).pattern.then([
-                checkPromoted(x, 'int'),
-                x.write(expr('int?')).stmt,
-                checkNotPromoted(x),
-              ]),
-            ],
-            isExhaustive: false),
+        switch_(expr('int'), [
+          intLiteral(0).pattern.then([
+            checkPromoted(x, 'int'),
+            x.write(expr('int?')).stmt,
+            checkNotPromoted(x),
+          ]),
+          intLiteral(1).pattern.then([
+            checkPromoted(x, 'int'),
+            x.write(expr('int?')).stmt,
+            checkNotPromoted(x),
+          ]),
+        ]),
       ]);
     });
 
@@ -2083,16 +2071,13 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr.as_('int').stmt,
-        switch_(
-            expr('int'),
-            [
-              intLiteral(0).pattern.then([
-                checkPromoted(x, 'int'),
-                x.write(expr('int?')).stmt,
-                checkNotPromoted(x),
-              ])
-            ],
-            isExhaustive: false),
+        switch_(expr('int'), [
+          intLiteral(0).pattern.then([
+            checkPromoted(x, 'int'),
+            x.write(expr('int?')).stmt,
+            checkNotPromoted(x),
+          ])
+        ]),
       ]);
     });
 
@@ -2113,7 +2098,6 @@ main() {
               checkNotPromoted(x),
             ]),
           ],
-          isExhaustive: false,
         ),
       ]);
     });
@@ -2139,7 +2123,6 @@ main() {
               checkNotPromoted(x),
             ], hasLabels: true),
           ],
-          isExhaustive: false,
         ),
       ]);
     });
@@ -2163,7 +2146,6 @@ main() {
               checkNotPromoted(x),
             ], hasLabels: true),
           ],
-          isExhaustive: false,
         ),
       ]);
     });
@@ -2178,16 +2160,13 @@ main() {
         declare(z, type: 'int?', initializer: expr('int?')),
         y.expr.as_('int').stmt,
         z.expr.as_('int').stmt,
-        switch_(
-            expr('int'),
-            [
-              intLiteral(0).pattern.then([
-                x.expr.as_('int').stmt,
-                y.write(expr('int?')).stmt,
-                break_(),
-              ]),
-            ],
-            isExhaustive: false),
+        switch_(expr('int'), [
+          intLiteral(0).pattern.then([
+            x.expr.as_('int').stmt,
+            y.write(expr('int?')).stmt,
+            break_(),
+          ]),
+        ]),
         checkNotPromoted(x),
         checkNotPromoted(y),
         checkPromoted(z, 'int'),
@@ -2207,23 +2186,20 @@ main() {
         x.expr.as_('int').stmt,
         y.expr.as_('int').stmt,
         z.expr.as_('int').stmt,
-        switch_(
-            expr('int'),
-            [
-              intLiteral(0).pattern.then([
-                w.expr.as_('int').stmt,
-                y.expr.as_('int').stmt,
-                x.write(expr('int?')).stmt,
-                break_(),
-              ]),
-              default_.then([
-                w.expr.as_('int').stmt,
-                x.expr.as_('int').stmt,
-                y.write(expr('int?')).stmt,
-                break_(),
-              ]),
-            ],
-            isExhaustive: true),
+        switch_(expr('int'), [
+          intLiteral(0).pattern.then([
+            w.expr.as_('int').stmt,
+            y.expr.as_('int').stmt,
+            x.write(expr('int?')).stmt,
+            break_(),
+          ]),
+          default_.then([
+            w.expr.as_('int').stmt,
+            x.expr.as_('int').stmt,
+            y.write(expr('int?')).stmt,
+            break_(),
+          ]),
+        ]),
         checkPromoted(w, 'int'),
         checkNotPromoted(x),
         checkNotPromoted(y),
@@ -2235,16 +2211,13 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        switch_(
-            expr('int'),
-            [
-              intLiteral(0).pattern.then([
-                x.expr.as_('int').stmt,
-                break_(),
-              ]),
-              default_.then([]),
-            ],
-            isExhaustive: true),
+        switch_(expr('int'), [
+          intLiteral(0).pattern.then([
+            x.expr.as_('int').stmt,
+            break_(),
+          ]),
+          default_.then([]),
+        ]),
         checkNotPromoted(x),
       ]);
     });
@@ -2275,7 +2248,6 @@ main() {
               checkNotPromoted(z),
             ]),
           ],
-          isExhaustive: true,
         ),
       ]);
     });
@@ -6642,23 +6614,20 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, type: 'int?'),
-          switch_(
-              expr('Object'),
-              [
-                switchStatementMember([
-                  wildcard().when(x.expr.notEq(nullLiteral)).switchCase
-                ], [
-                  checkReachable(true),
-                  checkPromoted(x, 'int'),
-                ]),
-                switchStatementMember([
-                  default_
-                ], [
-                  checkReachable(true),
-                  checkNotPromoted(x),
-                ]),
-              ],
-              isExhaustive: true),
+          switch_(expr('Object'), [
+            switchStatementMember([
+              wildcard().when(x.expr.notEq(nullLiteral)).switchCase
+            ], [
+              checkReachable(true),
+              checkPromoted(x, 'int'),
+            ]),
+            switchStatementMember([
+              default_
+            ], [
+              checkReachable(true),
+              checkNotPromoted(x),
+            ]),
+          ]),
         ]);
       });
 
@@ -6667,23 +6636,20 @@ main() {
         var y = Var('y');
         h.run([
           declare(x, type: 'num'),
-          switch_(
-              x.expr,
-              [
-                switchStatementMember([
-                  y.pattern(type: 'int').switchCase
-                ], [
-                  checkReachable(true),
-                  checkPromoted(x, 'int'),
-                ]),
-                switchStatementMember([
-                  default_
-                ], [
-                  checkReachable(true),
-                  checkNotPromoted(x),
-                ]),
-              ],
-              isExhaustive: true),
+          switch_(x.expr, [
+            switchStatementMember([
+              y.pattern(type: 'int').switchCase
+            ], [
+              checkReachable(true),
+              checkPromoted(x, 'int'),
+            ]),
+            switchStatementMember([
+              default_
+            ], [
+              checkReachable(true),
+              checkNotPromoted(x),
+            ]),
+          ]),
         ]);
       });
 
@@ -6691,25 +6657,87 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, type: 'Object'),
-          switch_(
-              expr('Object'),
-              [
-                switchStatementMember([
-                  wildcard(type: 'int').switchCase
-                ], [
-                  x.expr.as_('int').stmt,
-                ]),
-                switchStatementMember([default_], [return_()])
-              ],
-              isExhaustive: true),
+          switch_(expr('Object'), [
+            switchStatementMember([
+              wildcard(type: 'int').switchCase
+            ], [
+              x.expr.as_('int').stmt,
+            ]),
+            switchStatementMember([default_], [return_()])
+          ]),
           checkReachable(true),
           checkPromoted(x, 'int'),
         ]);
       });
 
+      group('exhaustiveness:', () {
+        test('exhaustive', () {
+          h.addExhaustiveness('E', true);
+          h.run([
+            switch_(expr('E'), [
+              switchStatementMember([
+                expr('E').pattern.switchCase,
+              ], [
+                return_(),
+              ])
+            ]),
+            checkReachable(false),
+          ]);
+        });
+
+        test('non-exhaustive', () {
+          h.run([
+            switch_(expr('int'), [
+              switchStatementMember([
+                intLiteral(0).pattern.switchCase,
+              ], [
+                return_(),
+              ])
+            ]),
+            checkReachable(true),
+          ]);
+        });
+      });
+
+      group('pre-patterns exhaustiveness:', () {
+        test('exhaustive', () {
+          h.patternsEnabled = false;
+          h.run([
+            switch_(
+                expr('E'),
+                [
+                  switchStatementMember([
+                    expr('E').pattern.switchCase,
+                  ], [
+                    return_(),
+                  ])
+                ],
+                isLegacyExhaustive: true),
+            checkReachable(false),
+          ]);
+        });
+
+        test('non-exhaustive', () {
+          h.patternsEnabled = false;
+          h.run([
+            switch_(
+                expr('E'),
+                [
+                  switchStatementMember([
+                    expr('E').pattern.switchCase,
+                  ], [
+                    return_(),
+                  ])
+                ],
+                isLegacyExhaustive: false),
+            checkReachable(true),
+          ]);
+        });
+      });
+
       test('empty exhaustive', () {
         h.run([
-          switch_(expr('()'), [], isExhaustive: true),
+          switch_(expr('()'), []),
           checkReachable(true),
         ]);
       });

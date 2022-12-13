@@ -49,6 +49,7 @@ class FeatureSets {
     flags: [
       EnableString.enhanced_enums,
       EnableString.extension_types,
+      EnableString.inline_class,
       EnableString.macros,
       EnableString.named_arguments_anywhere,
       EnableString.patterns,
@@ -56,7 +57,6 @@ class FeatureSets {
       EnableString.sealed_class,
       EnableString.super_parameters,
       EnableString.unnamed_libraries,
-      EnableString.views,
     ],
   );
 

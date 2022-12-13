@@ -5071,7 +5071,9 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     push(parameter);
-    typeInferrer.assignedVariables.declare(variable);
+    // We pass `ignoreDuplicates: true` because the variable might have been
+    // previously passed to `declare` in the `BodyBuilder` constructor.
+    typeInferrer.assignedVariables.declare(variable, ignoreDuplicates: true);
   }
 
   @override

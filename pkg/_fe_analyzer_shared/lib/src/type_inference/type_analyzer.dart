@@ -697,58 +697,69 @@ mixin TypeAnalyzer<
     return listType(currentGLB);
   }
 
-  /// Analyzes a logical-or or logical-and pattern.  [node] is the pattern
-  /// itself, and [lhs] and [rhs] are the left and right sides of the `|` or `&`
-  /// operator.  [isAnd] indicates whether [node] is a logical-or or a
-  /// logical-and.
+  /// Analyzes a logical-and pattern.  [node] is the pattern itself, and [lhs]
+  /// and [rhs] are the left and right sides of the `&&` operator.
   ///
   /// See [dispatchPattern] for the meanings of [matchedType] and [context].
   ///
   /// Stack effect: pushes (Pattern left, Pattern right)
-  void analyzeLogicalPattern(
+  void analyzeLogicalAndPattern(
       Type matchedType,
       MatchContext<Node, Expression, Pattern, Type, Variable> context,
       Pattern node,
       Node lhs,
-      Node rhs,
-      {required bool isAnd}) {
-    if (isAnd) {
-      // Stack: ()
-      dispatchPattern(matchedType, context, lhs);
-      // Stack: (Pattern left)
-      dispatchPattern(matchedType, context, rhs);
-      // Stack: (Pattern left, Pattern right)
-    } else {
-      Node? irrefutableContext = context.irrefutableContext;
-      if (irrefutableContext != null) {
-        errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
-        // Avoid cascading errors
-        context = context.makeRefutable();
-      }
-      // Stack: ()
-      dispatchPattern(matchedType, context, lhs);
-      // Stack: (Pattern left)
-      dispatchPattern(matchedType, context, rhs);
-      // Stack: (Pattern left, Pattern right)
-    }
+      Node rhs) {
+    // Stack: ()
+    dispatchPattern(matchedType, context, lhs);
+    // Stack: (Pattern left)
+    dispatchPattern(matchedType, context, rhs);
+    // Stack: (Pattern left, Pattern right)
   }
 
-  /// Computes the type schema for a logical-or or logical-and pattern.  [lhs]
-  /// and [rhs] are the left and right sides of the `|` or `&` operator.
-  /// [isAnd] indicates whether [node] is a logical-or or a logical-and.
+  /// Computes the type schema for a logical-and pattern.  [lhs] and [rhs] are
+  /// the left and right sides of the `&&` operator.
   ///
   /// Stack effect: none.
-  Type analyzeLogicalPatternSchema(Node lhs, Node rhs, {required bool isAnd}) {
-    if (isAnd) {
-      return operations.glb(
-          dispatchPatternSchema(lhs), dispatchPatternSchema(rhs));
-    } else {
-      // Logical-or patterns are only allowed in refutable contexts, and
-      // refutable contexts don't propagate a type schema into the scrutinee.
-      // So this code path is only reachable if the user's code contains errors.
-      errors?.assertInErrorRecovery();
-      return unknownType;
+  Type analyzeLogicalAndPatternSchema(Node lhs, Node rhs) {
+    return operations.glb(
+        dispatchPatternSchema(lhs), dispatchPatternSchema(rhs));
+  }
+
+  /// Analyzes a logical-or pattern.  [node] is the pattern itself, and [lhs]
+  /// and [rhs] are the left and right sides of the `||` operator.
+  ///
+  /// See [dispatchPattern] for the meanings of [matchedType] and [context].
+  ///
+  /// Stack effect: pushes (Pattern left, Pattern right)
+  void analyzeLogicalOrPattern(
+      Type matchedType,
+      MatchContext<Node, Expression, Pattern, Type, Variable> context,
+      Pattern node,
+      Node lhs,
+      Node rhs) {
+    Node? irrefutableContext = context.irrefutableContext;
+    if (irrefutableContext != null) {
+      errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
+      // Avoid cascading errors
+      context = context.makeRefutable();
     }
+    // Stack: ()
+    dispatchPattern(matchedType, context, lhs);
+    // Stack: (Pattern left)
+    dispatchPattern(matchedType, context, rhs);
+    // Stack: (Pattern left, Pattern right)
+  }
+
+  /// Computes the type schema for a logical-or pattern.  [lhs] and [rhs] are
+  /// the left and right sides of the `|` or `&` operator.
+  ///
+  /// Stack effect: none.
+  Type analyzeLogicalOrPatternSchema(Node lhs, Node rhs) {
+    // Logical-or patterns are only allowed in refutable contexts, and
+    // refutable contexts don't propagate a type schema into the scrutinee.
+    // So this code path is only reachable if the user's code contains errors.
+    errors?.assertInErrorRecovery();
+    return unknownType;
   }
 
   /// Analyzes a map pattern.  [node] is the pattern itself, [typeArguments]
@@ -1344,7 +1355,14 @@ mixin TypeAnalyzer<
       // Stack: (Expression, (numExecutionPaths + 1) * StatementCase)
     }
     // Stack: (Expression, numExecutionPaths * StatementCase)
-    bool isExhaustive = hasDefault || isSwitchExhaustive(node, scrutineeType);
+    bool isExhaustive;
+    if (hasDefault) {
+      isExhaustive = true;
+    } else if (options.patternsEnabled) {
+      isExhaustive = isAlwaysExhaustiveType(scrutineeType);
+    } else {
+      isExhaustive = isLegacySwitchExhaustive(node, scrutineeType);
+    }
     flow?.switchStatement_end(isExhaustive);
     return new SwitchStatementTypeAnalysisResult<Type>(
       hasDefault: hasDefault,
@@ -1606,15 +1624,20 @@ mixin TypeAnalyzer<
   /// Stack effect: none.
   void handleSwitchScrutinee(Type type);
 
-  /// Returns whether [node] is a rest element in a list or map pattern.
-  bool isRestPatternElement(Node node);
+  /// Queries whether [type] is an "always-exhaustive" type (as defined in the
+  /// patterns spec).  Exhaustive types are types for which the switch statement
+  /// is required to be exhaustive when patterns support is enabled.
+  bool isAlwaysExhaustiveType(Type type);
 
   /// Queries whether the switch statement or expression represented by [node]
   /// was exhaustive.  [expressionType] is the static type of the scrutinee.
   ///
   /// Will only be called if the switch statement or expression lacks a
-  /// `default` clause.
-  bool isSwitchExhaustive(Node node, Type expressionType);
+  /// `default` clause, and patterns support is disabled.
+  bool isLegacySwitchExhaustive(Node node, Type expressionType);
+
+  /// Returns whether [node] is a rest element in a list or map pattern.
+  bool isRestPatternElement(Node node);
 
   /// Returns whether [node] is final.
   bool isVariableFinal(Variable node);

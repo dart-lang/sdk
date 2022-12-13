@@ -27,6 +27,7 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.generic_metadata: ExperimentalFeatures.generic_metadata,
   EnableString.inference_update_1: ExperimentalFeatures.inference_update_1,
   EnableString.inference_update_2: ExperimentalFeatures.inference_update_2,
+  EnableString.inline_class: ExperimentalFeatures.inline_class,
   EnableString.macros: ExperimentalFeatures.macros,
   EnableString.named_arguments_anywhere:
       ExperimentalFeatures.named_arguments_anywhere,
@@ -44,7 +45,6 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.unnamed_libraries: ExperimentalFeatures.unnamed_libraries,
   EnableString.value_class: ExperimentalFeatures.value_class,
   EnableString.variance: ExperimentalFeatures.variance,
-  EnableString.views: ExperimentalFeatures.views,
 };
 
 /// Constant strings for enabling each of the currently known experimental
@@ -79,6 +79,9 @@ class EnableString {
 
   /// String to enable the experiment "inference-update-2"
   static const String inference_update_2 = 'inference-update-2';
+
+  /// String to enable the experiment "inline-class"
+  static const String inline_class = 'inline-class';
 
   /// String to enable the experiment "macros"
   static const String macros = 'macros';
@@ -124,9 +127,6 @@ class EnableString {
 
   /// String to enable the experiment "variance"
   static const String variance = 'variance';
-
-  /// String to enable the experiment "views"
-  static const String views = 'views';
 }
 
 class ExperimentalFeatures {
@@ -234,8 +234,18 @@ class ExperimentalFeatures {
     releaseVersion: null,
   );
 
-  static final macros = ExperimentalFeature(
+  static final inline_class = ExperimentalFeature(
     index: 10,
+    enableString: EnableString.inline_class,
+    isEnabledByDefault: IsEnabledByDefault.inline_class,
+    isExpired: IsExpired.inline_class,
+    documentation: 'Inline class',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+  );
+
+  static final macros = ExperimentalFeature(
+    index: 11,
     enableString: EnableString.macros,
     isEnabledByDefault: IsEnabledByDefault.macros,
     isExpired: IsExpired.macros,
@@ -245,7 +255,7 @@ class ExperimentalFeatures {
   );
 
   static final named_arguments_anywhere = ExperimentalFeature(
-    index: 11,
+    index: 12,
     enableString: EnableString.named_arguments_anywhere,
     isEnabledByDefault: IsEnabledByDefault.named_arguments_anywhere,
     isExpired: IsExpired.named_arguments_anywhere,
@@ -255,7 +265,7 @@ class ExperimentalFeatures {
   );
 
   static final non_nullable = ExperimentalFeature(
-    index: 12,
+    index: 13,
     enableString: EnableString.non_nullable,
     isEnabledByDefault: IsEnabledByDefault.non_nullable,
     isExpired: IsExpired.non_nullable,
@@ -265,7 +275,7 @@ class ExperimentalFeatures {
   );
 
   static final nonfunction_type_aliases = ExperimentalFeature(
-    index: 13,
+    index: 14,
     enableString: EnableString.nonfunction_type_aliases,
     isEnabledByDefault: IsEnabledByDefault.nonfunction_type_aliases,
     isExpired: IsExpired.nonfunction_type_aliases,
@@ -275,7 +285,7 @@ class ExperimentalFeatures {
   );
 
   static final patterns = ExperimentalFeature(
-    index: 14,
+    index: 15,
     enableString: EnableString.patterns,
     isEnabledByDefault: IsEnabledByDefault.patterns,
     isExpired: IsExpired.patterns,
@@ -285,7 +295,7 @@ class ExperimentalFeatures {
   );
 
   static final records = ExperimentalFeature(
-    index: 15,
+    index: 16,
     enableString: EnableString.records,
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
@@ -295,7 +305,7 @@ class ExperimentalFeatures {
   );
 
   static final sealed_class = ExperimentalFeature(
-    index: 16,
+    index: 17,
     enableString: EnableString.sealed_class,
     isEnabledByDefault: IsEnabledByDefault.sealed_class,
     isExpired: IsExpired.sealed_class,
@@ -305,7 +315,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 17,
+    index: 18,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -315,7 +325,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 18,
+    index: 19,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -325,7 +335,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 19,
+    index: 20,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -335,7 +345,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 20,
+    index: 21,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -346,7 +356,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 21,
+    index: 22,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -356,7 +366,7 @@ class ExperimentalFeatures {
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 22,
+    index: 23,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
@@ -366,7 +376,7 @@ class ExperimentalFeatures {
   );
 
   static final value_class = ExperimentalFeature(
-    index: 23,
+    index: 24,
     enableString: EnableString.value_class,
     isEnabledByDefault: IsEnabledByDefault.value_class,
     isExpired: IsExpired.value_class,
@@ -376,21 +386,11 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 24,
+    index: 25,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
     documentation: 'Sound variance',
-    experimentalReleaseVersion: null,
-    releaseVersion: null,
-  );
-
-  static final views = ExperimentalFeature(
-    index: 25,
-    enableString: EnableString.views,
-    isEnabledByDefault: IsEnabledByDefault.views,
-    isExpired: IsExpired.views,
-    documentation: 'Views',
     experimentalReleaseVersion: null,
     releaseVersion: null,
   );
@@ -428,6 +428,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "inference-update-2"
   static const bool inference_update_2 = false;
+
+  /// Default state of the experiment "inline-class"
+  static const bool inline_class = false;
 
   /// Default state of the experiment "macros"
   static const bool macros = false;
@@ -473,9 +476,6 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "variance"
   static const bool variance = false;
-
-  /// Default state of the experiment "views"
-  static const bool views = false;
 }
 
 /// Constant bools indicating whether each experimental flag is currently
@@ -511,6 +511,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "inference-update-2"
   static const bool inference_update_2 = false;
+
+  /// Expiration status of the experiment "inline-class"
+  static const bool inline_class = false;
 
   /// Expiration status of the experiment "macros"
   static const bool macros = false;
@@ -556,9 +559,6 @@ class IsExpired {
 
   /// Expiration status of the experiment "variance"
   static const bool variance = false;
-
-  /// Expiration status of the experiment "views"
-  static const bool views = false;
 }
 
 mixin _CurrentState {
@@ -597,6 +597,9 @@ mixin _CurrentState {
   /// Current state for the flag "inference-update-2"
   bool get inference_update_2 =>
       isEnabled(ExperimentalFeatures.inference_update_2);
+
+  /// Current state for the flag "inline-class"
+  bool get inline_class => isEnabled(ExperimentalFeatures.inline_class);
 
   /// Current state for the flag "macros"
   bool get macros => isEnabled(ExperimentalFeatures.macros);
@@ -646,9 +649,6 @@ mixin _CurrentState {
 
   /// Current state for the flag "variance"
   bool get variance => isEnabled(ExperimentalFeatures.variance);
-
-  /// Current state for the flag "views"
-  bool get views => isEnabled(ExperimentalFeatures.views);
 
   bool isEnabled(covariant ExperimentalFeature feature);
 }

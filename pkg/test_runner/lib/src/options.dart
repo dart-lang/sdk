@@ -1005,7 +1005,6 @@ void listConfigurations(Map<String, dynamic> options) {
 }
 
 /// Throws an [OptionParseException] with [message].
-// ignore: sdk_version_never
 Never _fail(String message) {
   throw OptionParseException(message);
 }

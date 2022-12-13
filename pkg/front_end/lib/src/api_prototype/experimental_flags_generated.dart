@@ -139,6 +139,14 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
 
+  static const ExperimentalFlag inlineClass = const ExperimentalFlag(
+      name: 'inline-class',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
+
   static const ExperimentalFlag macros = const ExperimentalFlag(
       name: 'macros',
       isEnabledByDefault: false,
@@ -258,14 +266,6 @@ class ExperimentalFlag {
       enabledVersion: const Version(3, 0),
       experimentEnabledVersion: const Version(3, 0),
       experimentReleasedVersion: const Version(3, 0));
-
-  static const ExperimentalFlag views = const ExperimentalFlag(
-      name: 'views',
-      isEnabledByDefault: false,
-      isExpired: false,
-      enabledVersion: const Version(3, 0),
-      experimentEnabledVersion: const Version(3, 0),
-      experimentReleasedVersion: const Version(3, 0));
 }
 
 /// Interface for accessing the global state of experimental features.
@@ -358,6 +358,10 @@ class GlobalFeatures {
   GlobalFeature get inferenceUpdate2 => _inferenceUpdate2 ??=
       _computeGlobalFeature(ExperimentalFlag.inferenceUpdate2);
 
+  GlobalFeature? _inlineClass;
+  GlobalFeature get inlineClass =>
+      _inlineClass ??= _computeGlobalFeature(ExperimentalFlag.inlineClass);
+
   GlobalFeature? _macros;
   GlobalFeature get macros =>
       _macros ??= _computeGlobalFeature(ExperimentalFlag.macros);
@@ -417,10 +421,6 @@ class GlobalFeatures {
   GlobalFeature? _variance;
   GlobalFeature get variance =>
       _variance ??= _computeGlobalFeature(ExperimentalFlag.variance);
-
-  GlobalFeature? _views;
-  GlobalFeature get views =>
-      _views ??= _computeGlobalFeature(ExperimentalFlag.views);
 }
 
 /// Interface for accessing the state of experimental features within a
@@ -491,6 +491,11 @@ class LibraryFeatures {
   LibraryFeature get inferenceUpdate2 =>
       _inferenceUpdate2 ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.inferenceUpdate2, canonicalUri, libraryVersion);
+
+  LibraryFeature? _inlineClass;
+  LibraryFeature get inlineClass =>
+      _inlineClass ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.inlineClass, canonicalUri, libraryVersion);
 
   LibraryFeature? _macros;
   LibraryFeature get macros =>
@@ -571,10 +576,6 @@ class LibraryFeatures {
       _variance ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.variance, canonicalUri, libraryVersion);
 
-  LibraryFeature? _views;
-  LibraryFeature get views => _views ??= globalFeatures._computeLibraryFeature(
-      ExperimentalFlag.views, canonicalUri, libraryVersion);
-
   /// Returns the [LibraryFeature] corresponding to [experimentalFlag].
   LibraryFeature fromSharedExperimentalFlags(
       shared.ExperimentalFlag experimentalFlag) {
@@ -599,6 +600,8 @@ class LibraryFeatures {
         return inferenceUpdate1;
       case shared.ExperimentalFlag.inferenceUpdate2:
         return inferenceUpdate2;
+      case shared.ExperimentalFlag.inlineClass:
+        return inlineClass;
       case shared.ExperimentalFlag.macros:
         return macros;
       case shared.ExperimentalFlag.namedArgumentsAnywhere:
@@ -629,8 +632,6 @@ class LibraryFeatures {
         return valueClass;
       case shared.ExperimentalFlag.variance:
         return variance;
-      case shared.ExperimentalFlag.views:
-        return views;
       default:
         throw new UnsupportedError(
             'LibraryFeatures.fromSharedExperimentalFlags($experimentalFlag)');
@@ -662,6 +663,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.inferenceUpdate1;
     case "inference-update-2":
       return ExperimentalFlag.inferenceUpdate2;
+    case "inline-class":
+      return ExperimentalFlag.inlineClass;
     case "macros":
       return ExperimentalFlag.macros;
     case "named-arguments-anywhere":
@@ -692,8 +695,6 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.valueClass;
     case "variance":
       return ExperimentalFlag.variance;
-    case "views":
-      return ExperimentalFlag.views;
   }
   return null;
 }
@@ -721,6 +722,7 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.inferenceUpdate1.isEnabledByDefault,
   ExperimentalFlag.inferenceUpdate2:
       ExperimentalFlag.inferenceUpdate2.isEnabledByDefault,
+  ExperimentalFlag.inlineClass: ExperimentalFlag.inlineClass.isEnabledByDefault,
   ExperimentalFlag.macros: ExperimentalFlag.macros.isEnabledByDefault,
   ExperimentalFlag.namedArgumentsAnywhere:
       ExperimentalFlag.namedArgumentsAnywhere.isEnabledByDefault,
@@ -742,7 +744,6 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.unnamedLibraries.isEnabledByDefault,
   ExperimentalFlag.valueClass: ExperimentalFlag.valueClass.isEnabledByDefault,
   ExperimentalFlag.variance: ExperimentalFlag.variance.isEnabledByDefault,
-  ExperimentalFlag.views: ExperimentalFlag.views.isEnabledByDefault,
 };
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
     const AllowedExperimentalFlags(sdkDefaultExperiments: {
@@ -940,6 +941,7 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,
   shared.ExperimentalFlag.inferenceUpdate1: ExperimentalFlag.inferenceUpdate1,
   shared.ExperimentalFlag.inferenceUpdate2: ExperimentalFlag.inferenceUpdate2,
+  shared.ExperimentalFlag.inlineClass: ExperimentalFlag.inlineClass,
   shared.ExperimentalFlag.macros: ExperimentalFlag.macros,
   shared.ExperimentalFlag.namedArgumentsAnywhere:
       ExperimentalFlag.namedArgumentsAnywhere,
@@ -957,5 +959,4 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.unnamedLibraries: ExperimentalFlag.unnamedLibraries,
   shared.ExperimentalFlag.valueClass: ExperimentalFlag.valueClass,
   shared.ExperimentalFlag.variance: ExperimentalFlag.variance,
-  shared.ExperimentalFlag.views: ExperimentalFlag.views,
 };

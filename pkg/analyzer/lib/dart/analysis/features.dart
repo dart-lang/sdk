@@ -40,6 +40,9 @@ abstract class Feature {
   /// Feature information for inference-update-2.
   static final inference_update_2 = ExperimentalFeatures.inference_update_2;
 
+  /// Feature information for inline classes.
+  static final inline_class = ExperimentalFeatures.inline_class;
+
   /// Feature information for macros.
   static final macros = ExperimentalFeatures.macros;
 
@@ -74,9 +77,6 @@ abstract class Feature {
 
   /// Feature information for unnamed libraries.
   static final unnamedLibraries = ExperimentalFeatures.unnamed_libraries;
-
-  /// Feature information for views.
-  static final views = ExperimentalFeatures.views;
 
   /// Feature information for variance.
   static final variance = ExperimentalFeatures.variance;

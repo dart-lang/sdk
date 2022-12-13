@@ -1404,12 +1404,10 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(FfiTrampolineData);
 
-  // Not traced. We don't need this info after precompilation, and FFI
-  // trampolines are not supported in JIT snapshots.
-  COMPRESSED_POINTER_FIELD(FunctionTypePtr, c_signature)
-
   COMPRESSED_POINTER_FIELD(TypePtr, signature_type)
   VISIT_FROM(signature_type)
+
+  COMPRESSED_POINTER_FIELD(FunctionTypePtr, c_signature)
 
   // Target Dart method for callbacks, otherwise null.
   COMPRESSED_POINTER_FIELD(FunctionPtr, callback_target)

@@ -1456,7 +1456,6 @@ mixin _StaticErrorOutput on CommandOutput {
   /// Same as `int.parse`, but allows nulls to simply pass through.
   static int? _parseNullableInt(String? s) {
     if (s == null) {
-      // ignore: avoid_returning_null
       return null;
     }
     return int.parse(s);

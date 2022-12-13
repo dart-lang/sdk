@@ -323,12 +323,12 @@ Pattern relationalPattern(
 Statement return_() => new _Return(location: computeLocation());
 
 Statement switch_(Expression expression, List<_SwitchStatementMember> cases,
-        {required bool isExhaustive,
+        {bool? isLegacyExhaustive,
         bool? expectHasDefault,
         bool? expectIsExhaustive,
         bool? expectLastCaseTerminates,
         String? expectScrutineeType}) =>
-    new _SwitchStatement(expression, cases, isExhaustive,
+    new _SwitchStatement(expression, cases, isLegacyExhaustive,
         location: computeLocation(),
         expectHasDefault: expectHasDefault,
         expectIsExhaustive: expectIsExhaustive,
@@ -625,6 +625,12 @@ class Harness {
     );
   }
 
+  /// Updates the harness so that when an [isAlwaysExhaustiveType] query is
+  /// invoked on type [type], [isExhaustive] will be returned.
+  void addExhaustiveness(String type, bool isExhaustive) {
+    _operations.addExhaustiveness(type, isExhaustive);
+  }
+
   /// Updates the harness so that when a [factor] query is invoked on types
   /// [from] and [what], [result] will be returned.
   void addFactor(String from, String what, String result) {
@@ -750,6 +756,15 @@ abstract class MapPatternElement implements _ListOrMapPatternElement {}
 class MiniAstOperations
     with TypeOperations<Type>
     implements Operations<Var, Type> {
+  static const Map<String, bool> _coreExhaustiveness = const {
+    '()': true,
+    'dynamic': false,
+    'int': false,
+    'List<int>': false,
+    'Never': false,
+    'num': false,
+  };
+
   static const Map<String, bool> _coreSubtypes = const {
     'bool <: int': false,
     'bool <: Object': true,
@@ -955,6 +970,8 @@ class MiniAstOperations
 
   bool? _legacy;
 
+  final Map<String, bool> _exhaustiveness = Map.of(_coreExhaustiveness);
+
   final Map<String, bool> _subtypes = Map.of(_coreSubtypes);
 
   final Map<String, Type> _factorResults = Map.of(_coreFactors);
@@ -989,6 +1006,12 @@ class MiniAstOperations
   }) {
     var query = '$name <: $context';
     _downwardInferenceResults[query] = Type(result);
+  }
+
+  /// Updates the harness so that when an [isExhaustiveType] query is invoked on
+  /// type [type], [isExhaustive] will be returned.
+  void addExhaustiveness(String type, bool isExhaustive) {
+    _exhaustiveness[type] = isExhaustive;
   }
 
   /// Updates the harness so that when a [factor] query is invoked on types
@@ -1050,6 +1073,15 @@ class MiniAstOperations
     typeNames.sort();
     var query = typeNames.join(', ');
     return _glbs[query] ?? fail('Unknown glb query: $query');
+  }
+
+  /// Queries whether [type] is an "always exhaustive" type (as defined in the
+  /// patterns spec).  Exhaustive types are types for which the switch statement
+  /// is required to be exhaustive when patterns support is enabled.
+  bool isAlwaysExhaustiveType(Type type) {
+    var query = type.type;
+    return _exhaustiveness[query] ??
+        fail('Unknown exhaustiveness query: $query');
   }
 
   @override
@@ -1247,7 +1279,7 @@ abstract class Pattern extends Node
   }
 
   Pattern and(Pattern other) =>
-      _LogicalPattern(this, other, isAnd: true, location: computeLocation());
+      _LogicalAndPattern(this, other, location: computeLocation());
 
   Pattern as_(String type) =>
       new _CastPattern(this, Type(type), location: computeLocation());
@@ -1259,7 +1291,7 @@ abstract class Pattern extends Node
   Type computeSchema(Harness h);
 
   Pattern or(Pattern other) =>
-      _LogicalPattern(this, other, isAnd: false, location: computeLocation());
+      _LogicalOrPattern(this, other, location: computeLocation());
 
   RecordPatternField recordField([String? name]) {
     return RecordPatternField(
@@ -2742,34 +2774,23 @@ class _Logical extends Expression {
   }
 }
 
-class _LogicalPattern extends Pattern {
+class _LogicalAndPattern extends Pattern {
   final Pattern _lhs;
 
   final Pattern _rhs;
 
-  final bool isAnd;
-
-  _LogicalPattern(this._lhs, this._rhs,
-      {required this.isAnd, required super.location})
+  _LogicalAndPattern(this._lhs, this._rhs, {required super.location})
       : super._();
 
   @override
   Type computeSchema(Harness h) =>
-      h.typeAnalyzer.analyzeLogicalPatternSchema(_lhs, _rhs, isAnd: isAnd);
+      h.typeAnalyzer.analyzeLogicalAndPatternSchema(_lhs, _rhs);
 
   @override
   void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
       {required bool isInAssignment}) {
-    if (isAnd) {
-      _lhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
-      _rhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
-    } else {
-      variableBinder.logicalOrPatternStart();
-      _lhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
-      variableBinder.logicalOrPatternFinishLeft();
-      _rhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
-      variableBinder.logicalOrPatternFinish(this);
-    }
+    _lhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
+    _rhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
   }
 
   @override
@@ -2778,10 +2799,10 @@ class _LogicalPattern extends Pattern {
     Type matchedType,
     SharedMatchContext context,
   ) {
-    h.typeAnalyzer.analyzeLogicalPattern(matchedType, context, this, _lhs, _rhs,
-        isAnd: isAnd);
+    h.typeAnalyzer
+        .analyzeLogicalAndPattern(matchedType, context, this, _lhs, _rhs);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
-    h.irBuilder.apply(isAnd ? 'logicalAndPattern' : 'logicalOrPattern',
+    h.irBuilder.apply('logicalAndPattern',
         [Kind.pattern, Kind.pattern, Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
   }
@@ -2789,7 +2810,51 @@ class _LogicalPattern extends Pattern {
   @override
   _debugString({required bool needsKeywordOrType}) => [
         _lhs._debugString(needsKeywordOrType: false),
-        isAnd ? '&' : '|',
+        '&&',
+        _rhs._debugString(needsKeywordOrType: false)
+      ].join(' ');
+}
+
+class _LogicalOrPattern extends Pattern {
+  final Pattern _lhs;
+
+  final Pattern _rhs;
+
+  _LogicalOrPattern(this._lhs, this._rhs, {required super.location})
+      : super._();
+
+  @override
+  Type computeSchema(Harness h) =>
+      h.typeAnalyzer.analyzeLogicalOrPatternSchema(_lhs, _rhs);
+
+  @override
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {
+    variableBinder.logicalOrPatternStart();
+    _lhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
+    variableBinder.logicalOrPatternFinishLeft();
+    _rhs.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
+    variableBinder.logicalOrPatternFinish(this);
+  }
+
+  @override
+  void visit(
+    Harness h,
+    Type matchedType,
+    SharedMatchContext context,
+  ) {
+    h.typeAnalyzer
+        .analyzeLogicalOrPattern(matchedType, context, this, _lhs, _rhs);
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.apply('logicalOrPattern',
+        [Kind.pattern, Kind.pattern, Kind.type], Kind.pattern,
+        names: ['matchedType'], location: location);
+  }
+
+  @override
+  _debugString({required bool needsKeywordOrType}) => [
+        _lhs._debugString(needsKeywordOrType: false),
+        '||',
         _rhs._debugString(needsKeywordOrType: false)
       ].join(' ');
 }
@@ -3647,14 +3712,18 @@ class _MiniAstTypeAnalyzer
   void handleSwitchScrutinee(Type type) {}
 
   @override
-  bool isRestPatternElement(Node element) {
-    return element is _RestPatternElement;
+  bool isAlwaysExhaustiveType(Type type) =>
+      operations.isAlwaysExhaustiveType(type);
+
+  @override
+  bool isLegacySwitchExhaustive(
+      covariant _SwitchStatement node, Type expressionType) {
+    return node.isLegacyExhaustive!;
   }
 
   @override
-  bool isSwitchExhaustive(
-      covariant _SwitchStatement node, Type expressionType) {
-    return node.isExhaustive;
+  bool isRestPatternElement(Node element) {
+    return element is _RestPatternElement;
   }
 
   @override
@@ -4211,7 +4280,7 @@ class _SwitchStatement extends Statement {
 
   final List<_SwitchStatementMember> cases;
 
-  final bool isExhaustive;
+  final bool? isLegacyExhaustive;
 
   final bool? expectHasDefault;
 
@@ -4221,7 +4290,7 @@ class _SwitchStatement extends Statement {
 
   final String? expectScrutineeType;
 
-  _SwitchStatement(this.scrutinee, this.cases, this.isExhaustive,
+  _SwitchStatement(this.scrutinee, this.cases, this.isLegacyExhaustive,
       {required super.location,
       required this.expectHasDefault,
       required this.expectIsExhaustive,
@@ -4240,7 +4309,12 @@ class _SwitchStatement extends Statement {
 
   @override
   String toString() {
-    var exhaustiveness = isExhaustive ? 'exhaustive' : 'non-exhaustive';
+    var isLegacyExhaustive = this.isLegacyExhaustive;
+    var exhaustiveness = isLegacyExhaustive == null
+        ? ''
+        : isLegacyExhaustive
+            ? '<exhaustive>'
+            : '<non-exhaustive>';
     String body;
     if (cases.isEmpty) {
       body = '{}';
@@ -4248,11 +4322,18 @@ class _SwitchStatement extends Statement {
       var contents = cases.join(' ');
       body = '{ $contents }';
     }
-    return 'switch<$exhaustiveness> ($scrutinee) $body';
+    return 'switch$exhaustiveness ($scrutinee) $body';
   }
 
   @override
   void visit(Harness h) {
+    if (h.patternsEnabled && isLegacyExhaustive != null) {
+      fail('isExhaustive should not be specified when patterns enabled, '
+          'at $location');
+    } else if (!h.patternsEnabled && isLegacyExhaustive == null) {
+      fail('isExhaustive should be specified when patterns disabled, '
+          'at $location');
+    }
     var previousBreakTarget = h.typeAnalyzer._currentBreakTarget;
     h.typeAnalyzer._currentBreakTarget = this;
     var previousContinueTarget = h.typeAnalyzer._currentContinueTarget;
@@ -4473,7 +4554,7 @@ class _VariableBinder extends VariableBinder<Node, Var> {
       components.first.name,
       components: [
         for (var variable in components)
-          if (key is _LogicalPattern && variable is PatternVariableJoin)
+          if (key is _LogicalOrPattern && variable is PatternVariableJoin)
             ...variable.components
           else
             variable
