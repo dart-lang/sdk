@@ -26,7 +26,7 @@ class Emitter(object):
         self._bindings = bindings or Emitter.Frame({}, None)
 
     def EmitRaw(self, item):
-        """Emits literal string with no substitition."""
+        """Emits literal string with no substitution."""
         self._items.append(item)
 
     def Emit(self, template_source, **parameters):
