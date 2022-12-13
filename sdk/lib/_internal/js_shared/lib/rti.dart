@@ -2336,7 +2336,7 @@ class _Universe {
 ///
 ///   When first element is an Rti: Creates binding Rti wrapping the first
 ///   element. Binding Rtis are flattened: if the first element is a binding
-///   Rti, the new binding Rti has the concatentation of the first element
+///   Rti, the new binding Rti has the concatenation of the first element
 ///   bindings and new type.
 ///
 ///
