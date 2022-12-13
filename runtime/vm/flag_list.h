@@ -253,7 +253,7 @@ constexpr bool FLAG_support_il_printer = false;
     "Eliminate type checks when allowed by static type analysis.")             \
   D(support_rr, bool, false, "Support running within RR.")                     \
   P(verify_entry_points, bool, false,                                          \
-    "Throw API error on invalid member access throuh native API. See "         \
+    "Throw API error on invalid member access through native API. See "        \
     "entry_point_pragma.md")                                                   \
   P(sound_null_safety, bool, true,                                             \
     "Respect the nullability of types at runtime.")                            \

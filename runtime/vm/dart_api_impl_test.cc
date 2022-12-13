@@ -590,7 +590,7 @@ static Dart_NativeFunction CurrentStackTraceNativeLookup(
 
 TEST_CASE(DartAPI_CurrentStackTraceInfo) {
   const char* kScriptChars = R"(
-@pragma("vm:external-name", "CurrentStackTraceNatve")
+@pragma("vm:external-name", "CurrentStackTraceNative")
 external inspectStack();
 foo(n) => n == 1 ? inspectStack() : foo(n-1);
 testMain() => foo(100);
