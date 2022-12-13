@@ -425,13 +425,13 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   @override
   String get debugName => '$member';
 
-  void addCall(MemberEntity caller, ir.Node? node) {
-    (_callers ??= <MemberEntity, Setlet<ir.Node?>>{})
+  void addCall(MemberEntity caller, ir.Node node) {
+    (_callers ??= <MemberEntity, Setlet<ir.Node>>{})
         .putIfAbsent(caller, () => Setlet())
         .add(node);
   }
 
-  void removeCall(MemberEntity caller, Object node) {
+  void removeCall(MemberEntity caller, ir.Node node) {
     final callers = _callers;
     if (callers == null) return;
     final calls = callers[caller];

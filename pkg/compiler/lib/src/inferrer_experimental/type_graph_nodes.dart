@@ -426,13 +426,13 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   @override
   String get debugName => '$member';
 
-  void addCall(MemberEntity caller, ir.Node? node) {
-    (_callers ??= <MemberEntity, Setlet<ir.Node?>>{})
+  void addCall(MemberEntity caller, ir.Node node) {
+    (_callers ??= <MemberEntity, Setlet<ir.Node>>{})
         .putIfAbsent(caller, () => Setlet())
         .add(node);
   }
 
-  void removeCall(MemberEntity caller, Object node) {
+  void removeCall(MemberEntity caller, ir.Node node) {
     final callers = _callers;
     if (callers == null) return;
     final calls = callers[caller];
@@ -942,7 +942,7 @@ bool validCallType(CallType callType, ir.Node? call) {
 
 /// A [CallSiteTypeInformation] is a call found in the AST, or a
 /// synthesized call for implicit calls in Dart (such as forwarding
-/// factories). The [_call] field is a [ast.Node] for the former, and an
+/// factories). The [callNode] field is a [ast.Node] for the former, and an
 /// [Element] for the latter.
 ///
 /// In the inferrer graph, [CallSiteTypeInformation] nodes do not have
@@ -950,7 +950,7 @@ bool validCallType(CallType callType, ir.Node? call) {
 /// and [selector] and [receiver] fields for dynamic calls.
 abstract class CallSiteTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
-  final ir.Node? _call;
+  final ir.Node? callNode;
   final MemberEntity caller;
   final Selector? selector;
   final ArgumentsTypes? arguments;
@@ -959,12 +959,13 @@ abstract class CallSiteTypeInformation extends TypeInformation
   CallSiteTypeInformation(
       AbstractValueDomain abstractValueDomain,
       MemberTypeInformation? context,
-      this._call,
+      this.callNode,
       this.caller,
       this.selector,
       this.arguments,
       this.inLoop)
-      : assert(_call is ir.Node || (_call == null && selector?.name == '==')),
+      : assert(callNode is ir.Node ||
+            (callNode == null && selector?.name == '==')),
         super.noInputs(abstractValueDomain.uncomputedType, context);
 
   @override
@@ -976,7 +977,7 @@ abstract class CallSiteTypeInformation extends TypeInformation
   /// Return an iterable over the targets of this call.
   Iterable<MemberEntity> get callees;
 
-  String get debugName => '$_call';
+  String get debugName => '$callNode';
 }
 
 class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
@@ -985,14 +986,14 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   StaticCallSiteTypeInformation(
       super.abstractValueDomain,
       super.context,
-      super.call,
+      super.callNode,
       super.enclosing,
       this.calledElement,
       super.selector,
       super.arguments,
       super.inLoop);
 
-  ir.StaticInvocation get invocationNode => _call as ir.StaticInvocation;
+  ir.StaticInvocation get invocationNode => callNode as ir.StaticInvocation;
 
   MemberTypeInformation _getCalledTypeInfo(InferrerEngine inferrer) {
     return inferrer.types.getInferredTypeOfMember(calledElement);
@@ -1001,7 +1002,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   @override
   void addToGraph(InferrerEngine inferrer) {
     MemberTypeInformation callee = _getCalledTypeInfo(inferrer);
-    callee.addCall(caller, _call!);
+    callee.addCall(caller, callNode!);
     callee.addUser(this);
     if (arguments != null) {
       arguments!.forEach((info) => info.addUser(this));
@@ -1078,7 +1079,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
       super.abstractValueDomain,
       super.ontext,
       this._callType,
-      super.call,
+      super.callNode,
       super.enclosing,
       super.selector,
       this.mask,
@@ -1086,15 +1087,15 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
       super.arguments,
       super.inLoop,
       this.isConditional) {
-    assert(validCallType(_callType, _call));
+    assert(validCallType(_callType, callNode));
   }
 
   void _addCall(MemberTypeInformation callee) {
-    callee.addCall(caller, _call!);
+    callee.addCall(caller, callNode!);
   }
 
   void _removeCall(MemberTypeInformation callee) {
-    callee.removeCall(caller, _call!);
+    callee.removeCall(caller, callNode!);
   }
 
   late final Set<MemberEntity> closurizedTargets = {};
@@ -1294,7 +1295,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     final typeMask = computeTypedSelector(inferrer);
     final localSelector = selector!;
     inferrer.updateSelectorInMember(
-        caller, _callType, _call as ir.TreeNode, localSelector, typeMask);
+        caller, _callType, callNode as ir.TreeNode, localSelector, typeMask);
 
     _hasClosureCallTargets =
         closedWorld.includesClosureCall(localSelector, typeMask);
@@ -1384,7 +1385,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   @override
   void giveUp(InferrerEngine inferrer, {bool clearInputs = true}) {
     if (!abandonInferencing) {
-      final call = _call!;
+      final call = callNode!;
       inferrer.updateSelectorInMember(
           caller, _callType, call as ir.TreeNode, selector, mask);
       final oldTargets = concreteTargets;
@@ -1441,7 +1442,7 @@ class ClosureCallSiteTypeInformation extends CallSiteTypeInformation {
   ClosureCallSiteTypeInformation(
       super.abstractValueDomain,
       super.context,
-      super.call,
+      super.callNode,
       super.enclosing,
       super.selector,
       this.closure,
