@@ -19856,7 +19856,7 @@ bool Instance::IsCallable(Function* function) const {
   // Try to resolve a "call" method.
   Zone* zone = Thread::Current()->zone();
   Function& call_function = Function::Handle(
-      zone, Resolver::ResolveDynamicAnyArgs(zone, cls, Symbols::Call(),
+      zone, Resolver::ResolveDynamicAnyArgs(zone, cls, Symbols::DynamicCall(),
                                             /*allow_add=*/false));
   if (call_function.IsNull()) {
     return false;
