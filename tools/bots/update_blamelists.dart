@@ -140,7 +140,7 @@ void updateBlameLists(String configuration, String commit,
       result.blamelistStartIndex = newStartIndex;
       var updateIndex = Update(['blamelist_start_index'], result.data);
       if (!await database.commit(writes: [updateIndex])) {
-        // Commiting the change to the database had a conflict, retry.
+        // Committing the change to the database had a conflict, retry.
         needsRetry = true;
         if (++attempts == maxAttempts) {
           throw Exception('Exceeded maximum retry attempts ($maxAttempts).');
