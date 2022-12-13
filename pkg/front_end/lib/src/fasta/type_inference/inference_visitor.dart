@@ -8103,6 +8103,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const StatementInferenceResult();
   }
 
+  StatementInferenceResult visitPatternVariableDeclaration(
+      PatternVariableDeclaration node) {
+    return new StatementInferenceResult.single(
+        new ExpressionStatement(new InvalidExpression('$node')));
+  }
+
   @override
   ExpressionInferenceResult visitVariableGet(
       covariant VariableGetImpl node, DartType typeContext) {

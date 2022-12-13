@@ -1,0 +1,12 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static const field core::int annotation = #C1;
+static method f(dynamic x) → dynamic {
+  invalid-expression "PatternVariableDeclaration(var {\"a\": var a} = x;)";
+}
+
+constants  {
+  #C1 = 0
+}

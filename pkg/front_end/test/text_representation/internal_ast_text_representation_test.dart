@@ -129,6 +129,7 @@ void main() {
     _testIfCaseStatement();
     _testPatternSwitchStatement();
     _testSwitchExpression();
+    _testPatternVariableDeclaration();
   });
 }
 
@@ -1311,4 +1312,20 @@ if (0 case 1 when 2) return;''');
           TreeNode.noOffset),
       '''
 if (0 case 1 when 2) return 3; else return 4;''');
+}
+
+void _testPatternVariableDeclaration() {
+  testStatement(
+      new PatternVariableDeclaration(
+          new ExpressionPattern(new IntLiteral(0)), new IntLiteral(1),
+          isFinal: false, offset: TreeNode.noOffset),
+      '''
+var 0 = 1;''');
+
+  testStatement(
+      new PatternVariableDeclaration(
+          new ExpressionPattern(new IntLiteral(0)), new IntLiteral(1),
+          isFinal: true, offset: TreeNode.noOffset),
+      '''
+final 0 = 1;''');
 }

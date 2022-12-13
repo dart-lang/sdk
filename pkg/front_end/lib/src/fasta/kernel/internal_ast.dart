@@ -4742,38 +4742,29 @@ class WildcardPattern extends Pattern {
 class PatternVariableDeclaration extends InternalStatement {
   final Pattern pattern;
   final Expression initializer;
+  final bool isFinal;
 
   PatternVariableDeclaration(this.pattern, this.initializer,
-      {required int offset}) {
+      {required int offset, required this.isFinal}) {
     fileOffset = offset;
   }
 
   @override
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    throw new UnimplementedError("PatternVariableDeclaration.acceptInference");
-  }
-
-  @override
-  R accept<R>(StatementVisitor<R> visitor) {
-    if (visitor is Printer || visitor is Precedence || visitor is Transformer) {
-      // Allow visitors needed for toString and replaceWith.
-      return visitor.defaultStatement(this);
-    }
-    return unsupported(
-        "${runtimeType}.accept on ${visitor.runtimeType}", -1, null);
-  }
-
-  @override
-  R accept1<R, A>(StatementVisitor1<R, A> visitor, A arg) {
-    return unsupported(
-        "${runtimeType}.accept1 on ${visitor.runtimeType}", -1, null);
+    return visitor.visitPatternVariableDeclaration(this);
   }
 
   @override
   void toTextInternal(AstPrinter printer) {
+    if (isFinal) {
+      printer.write('final ');
+    } else {
+      printer.write('var ');
+    }
     pattern.toTextInternal(printer);
     printer.write(" = ");
     printer.writeExpression(initializer);
+    printer.write(';');
   }
 
   @override
