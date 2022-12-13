@@ -4,7 +4,7 @@
 
 // SharedOptions=--enable-experiment=sealed-class
 
-// Error when attempting to mix in a sealed class inside of library.
+// Allow mixing in a sealed class inside of library.
 
 sealed class SealedClass {
   int nonAbstractFoo = 0;
@@ -17,14 +17,8 @@ class Class {}
 mixin Mixin {}
 
 abstract class A with SealedClass {}
-//             ^
-// [analyzer] unspecified
-// [cfe] Class 'SealedClass' can't be used as a mixin.
 
 class B with SealedClass {
-//    ^
-// [analyzer] unspecified
-// [cfe] Class 'SealedClass' can't be used as a mixin.
   @override
   int nonAbstractFoo = 100;
 
@@ -36,27 +30,11 @@ class B with SealedClass {
 }
 
 abstract class C = Object with SealedClass;
-//             ^
-// [analyzer] unspecified
-// [cfe] Class 'SealedClass' can't be used as a mixin.
 
 abstract class D with SealedClass, Class {}
-//             ^
-// [analyzer] unspecified
-// [cfe] Class 'Class' can't be used as a mixin.
-// [cfe] Class 'SealedClass' can't be used as a mixin.
 
 class E with Class, SealedMixin {}
-//    ^
-// [analyzer] unspecified
-// [cfe] Class 'Class' can't be used as a mixin.
 
 abstract class F with Mixin, SealedClass {}
-//             ^
-// [analyzer] unspecified
-// [cfe] Class 'SealedClass' can't be used as a mixin.
 
 class G with Mixin, Class {}
-//    ^
-// [analyzer] unspecified
-// [cfe] Class 'Class' can't be used as a mixin.

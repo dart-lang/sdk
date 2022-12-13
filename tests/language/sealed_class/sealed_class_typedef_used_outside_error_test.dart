@@ -19,7 +19,7 @@ class A extends ATypeDef {}
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
 
 class B implements ATypeDef {
-// [error column 1, length 184]
+// [error column 1, length 263]
 // [analyzer] COMPILE_TIME_ERROR.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
 //    ^
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
