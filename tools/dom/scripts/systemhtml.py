@@ -755,7 +755,7 @@ class HtmlDartInterfaceGenerator(object):
                 class_modifiers = ''
             else:
                 # For Dartium w/ JsInterop these suppressed interfaces are needed to
-                # instanciate the internal classes.
+                # instantiate the internal classes.
                 if (self._renamer.ShouldSuppressInterface(self._interface) and
                         not (isinstance(self._backend, Dart2JSBackend)) and
                         self._options.dart_js_interop):
