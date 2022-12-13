@@ -250,7 +250,7 @@ class _NumberBuffer {
   }
 
   // TODO(lrn): See if parsing of numbers can be abstracted to something
-  // not only working on strings, but also on char-code lists, without lossing
+  // not only working on strings, but also on char-code lists, without losing
   // performance.
   num parseNum() => num.parse(getString());
   double parseDouble() => double.parse(getString());
