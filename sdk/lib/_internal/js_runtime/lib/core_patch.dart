@@ -1825,7 +1825,7 @@ class _BigIntImpl implements BigInt {
   /// The [multiplicandDigits] in the range [i] to [i]+[n]-1 are the
   /// multiplicand digits.
   ///
-  /// The [acculumatorDigits] in the range [j] to [j]+[n]-1 are the accumulator
+  /// The [accumulatorDigits] in the range [j] to [j]+[n]-1 are the accumulator
   /// digits.
   ///
   /// Adds the result of the multiplicand-digits * [x] to the accumulator.
