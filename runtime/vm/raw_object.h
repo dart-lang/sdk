@@ -1845,7 +1845,7 @@ class UntaggedObjectPool : public UntaggedObject {
   DEFINE_CONTAINS_COMPRESSED(decltype(Entry::raw_obj_));
 
   // The entry bits are located after the last entry. They are encoded versions
-  // of `ObjectPool::TypeBits() | ObjectPool::PatchabililtyBit()`.
+  // of `ObjectPool::TypeBits() | ObjectPool::PatchabilityBit()`.
   uint8_t* entry_bits() { return reinterpret_cast<uint8_t*>(&data()[length_]); }
   uint8_t const* entry_bits() const {
     return reinterpret_cast<uint8_t const*>(&data()[length_]);
