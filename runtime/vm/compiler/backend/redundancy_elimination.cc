@@ -169,7 +169,7 @@ class Place : public ValueObject {
     // nullptr instance.
     kStaticField,
 
-    // Instance field location. It is reprensented by a pair of instance
+    // Instance field location. It is represented by a pair of instance
     // and a Slot.
     kInstanceField,
 
