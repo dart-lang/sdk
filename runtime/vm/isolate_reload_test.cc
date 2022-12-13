@@ -2974,7 +2974,7 @@ TEST_CASE(IsolateReload_ShapeChange_Const_AddSlot) {
   // change, they are allocated old. Because instructions normally contain
   // pointers only to old objects, the scavenger does not bother to ensure code
   // pages are writable when visiting the remembered set. Visiting the
-  // remembered involes writing to update the pointer for any target that gets
+  // remembered involves writing to update the pointer for any target that gets
   // promoted.
   const char* kScript = R"(
     import 'file:///test:isolate_reload_helper';
