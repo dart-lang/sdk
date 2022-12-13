@@ -89,7 +89,7 @@ class NativeType : public ZoneAllocated {
   // Does not take into account padding required if repeating.
   virtual intptr_t SizeInBytes() const = 0;
 
-  // The alignment in bytes of this represntation on the stack.
+  // The alignment in bytes of this representation on the stack.
   virtual intptr_t AlignmentInBytesStack() const = 0;
 
   // The alignment in bytes of this representation as member of a composite.

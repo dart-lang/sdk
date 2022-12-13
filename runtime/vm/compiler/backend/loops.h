@@ -288,7 +288,7 @@ class LoopInfo : public ZoneAllocated {
   // Header of loop.
   BlockEntryInstr* header_;
 
-  // Compact represention of every block in the loop,
+  // Compact representation of every block in the loop,
   // indexed by its "preorder_number".
   BitVector* blocks_;
 
