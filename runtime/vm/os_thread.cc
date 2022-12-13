@@ -96,7 +96,7 @@ void OSThread::SetName(const char* name) {
   set_name(name);
 }
 
-// Disable AdressSanitizer and SafeStack transformation on this function. In
+// Disable AddressSanitizer and SafeStack transformation on this function. In
 // particular, taking the address of a local gives an address on the stack
 // instead of an address in the shadow memory (AddressSanitizer) or the safe
 // stack (SafeStack).

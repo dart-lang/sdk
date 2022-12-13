@@ -61,7 +61,7 @@ COMPILE_ASSERT(kAbiPreservedFpuRegCount == 8);
 // For FFI native -> Dart callbacks, this is the number of stack slots between
 // arguments passed on stack and arguments saved in callback prologue.
 //
-// 2 = return adddress (1) + saved frame pointer (1).
+// 2 = return address (1) + saved frame pointer (1).
 //
 // If NativeCallbackTrampolines::Enabled(), then
 // kNativeCallbackTrampolineStackDelta must be added as well.
