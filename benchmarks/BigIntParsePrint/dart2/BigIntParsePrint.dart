@@ -14,7 +14,7 @@ import 'package:fixnum/fixnum.dart';
 import 'native_version_dummy.dart'
     if (dart.library.js) 'native_version_javascript.dart';
 
-// Benckmark BigInt and Int64 formatting and parsing.
+// Benchmark BigInt and Int64 formatting and parsing.
 
 // A global sink that is used in the [check] method ensures that the results are
 // not optimized.
