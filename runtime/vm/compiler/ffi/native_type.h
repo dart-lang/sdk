@@ -312,7 +312,7 @@ class NativeCompoundType : public NativeType {
   //
   // Useful for determining whether struct is passed in FP registers in hardfp
   // and arm64.
-  bool ContainsHomogenuousFloats() const;
+  bool ContainsHomogeneousFloats() const;
 
   virtual intptr_t NumPrimitiveMembersRecursive() const = 0;
   virtual const NativePrimitiveType& FirstPrimitiveMember() const;
