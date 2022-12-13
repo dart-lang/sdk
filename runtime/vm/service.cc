@@ -409,6 +409,8 @@ StreamInfo Service::profiler_stream("Profiler");
 const uint8_t* Service::dart_library_kernel_ = NULL;
 intptr_t Service::dart_library_kernel_len_ = 0;
 
+// Keep streams_ in sync with the protected streams in
+// lib/developer/extension.dart
 static StreamInfo* const streams_[] = {
     &Service::vm_stream,       &Service::isolate_stream,
     &Service::debug_stream,    &Service::gc_stream,

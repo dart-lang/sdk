@@ -19,7 +19,7 @@ abstract class RpcErrorCodes {
   // static const kInvalidRequest = -32600;
   static const kMethodNotFound = -32601;
 
-  // static const kInvalidParams = -32602;
+  static const kInvalidParams = -32602;
   // static const kInternalError = -32603;
 
   // static const kExtensionError = -32000;
