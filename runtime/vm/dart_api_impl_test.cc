@@ -3287,7 +3287,7 @@ static void SlowWeakPersistentHandle(void* isolate_callback_data, void* peer) {
   (*count)++;
 }
 
-TEST_CASE(DartAPI_SlowWeakPersistenhandle) {
+TEST_CASE(DartAPI_SlowWeakPersistentHandle) {
   Dart_WeakPersistentHandle handles[20];
   intptr_t count = 0;
 
