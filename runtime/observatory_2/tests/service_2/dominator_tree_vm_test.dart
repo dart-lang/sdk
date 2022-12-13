@@ -10,7 +10,7 @@ import 'package:observatory_2/service_io.dart';
 import 'package:test/test.dart';
 import 'test_helper.dart';
 
-// small example from [Lenguaer & Tarjan 1979]
+// small example from [Lengauer & Tarjan 1979]
 class R {
   // All fields are marked with @pragma("vm:entry-point")
   // in order to make sure they are not removed by the tree shaker

@@ -12,7 +12,7 @@ class StringVertex extends Vertex<StringVertex> {
 }
 
 main() {
-  // small example from [Lenguaer & Tarjan 1979]
+  // small example from [Lengauer & Tarjan 1979]
   var R = new StringVertex("R");
   var A = new StringVertex("A");
   var B = new StringVertex("B");
