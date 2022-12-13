@@ -431,7 +431,7 @@ abstract class _ChunkedJsonParser<T> {
    *      ..0ddd0011 : Partial 'null' keyword.
    *      ..0ddd0111 : Partial 'true' keyword.
    *      ..0ddd1011 : Partial 'false' keyword.
-   *      ..0ddd1111 : Partial UTF-8 BOM byte seqeuence ("\xEF\xBB\xBF").
+   *      ..0ddd1111 : Partial UTF-8 BOM byte sequence ("\xEF\xBB\xBF").
    *                   For all keywords, the `ddd` bits encode the number
    *                   of letters seen.
    *                   The BOM byte sequence is only used by [_JsonUtf8Parser],
