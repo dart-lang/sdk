@@ -101,6 +101,20 @@ void f() {
     ]);
   }
 
+  test_class_field_initializer_listLiteral() async {
+    // Based on https://github.com/dart-lang/sdk/issues/49701
+    await assertErrorsInCode(
+      '''
+Never f() { throw ''; }
+
+class C {
+  static final x = [1, 2, f(), 4];
+}
+''',
+      isNullSafetyEnabled ? [error(HintCode.DEAD_CODE, 66, 2)] : [],
+    );
+  }
+
   test_deadBlock_conditionalElse() async {
     await assertErrorsInCode(r'''
 f() {
@@ -937,6 +951,18 @@ void f(int a) {
   }
 }
 ''', expectedErrors);
+  }
+
+  test_topLevelVariable_initializer_listLiteral() async {
+    // Based on https://github.com/dart-lang/sdk/issues/49701
+    await assertErrorsInCode(
+      '''
+Never f() { throw ''; }
+
+var x = [1, 2, f(), 4];
+''',
+      isNullSafetyEnabled ? [error(HintCode.DEAD_CODE, 45, 2)] : [],
+    );
   }
 
   test_yield() async {
