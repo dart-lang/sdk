@@ -309,7 +309,7 @@ getNativeInterceptor(object) {}
 setDispatchProperty(object, value) {}
 
 // Added to allow dart2js and dartdevc to share tests
-// TODO(sigmund): revisit whether this method is still needed after reoganizing
+// TODO(sigmund): revisit whether this method is still needed after reorganizing
 // all web tests.
 findInterceptorForType(Type? type) {}
 
