@@ -2357,7 +2357,7 @@ static void PrintInboundReferences(Thread* thread,
   }
 
   // We nil out the array after generating the response to prevent
-  // reporting suprious references when repeatedly looking for the
+  // reporting spurious references when repeatedly looking for the
   // references to an object.
   for (intptr_t i = 0; i < path.Length(); i++) {
     path.SetAt(i, Object::null_object());
