@@ -207,7 +207,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
           return kListLink;
         } else {
           // Regular files, character devices, block devices, fifos, sockets and
-          // unknown types are all considerred as files.
+          // unknown types are all considered as files.
           return kListFile;
         }
       }
