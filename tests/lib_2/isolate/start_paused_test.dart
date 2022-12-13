@@ -30,7 +30,7 @@ void test1() {
   // We start two isolates, one paused and one not.
   // The unpaused one must send an event, after which
   // we resume that paused isolate, and expect the second event.
-  // This is not a guaranteed test, since it can succeede even if the
+  // This is not a guaranteed test, since it can succeed even if the
   // paused isolate isn't really paused.
   // However, it must never fail, since that would mean that a paused
   // isolate sends a message.
