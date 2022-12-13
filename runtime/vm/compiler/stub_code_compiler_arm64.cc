@@ -2147,7 +2147,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
           AllocateObjectABI::kTypeArgumentsReg);
 
       __ Bind(&not_parameterized_case);
-    }  // kClsIdReg = R4, kTypeOffestReg = R5
+    }  // kClsIdReg = R4, kTypeOffsetReg = R5
 
     __ AddImmediate(AllocateObjectABI::kResultReg,
                     AllocateObjectABI::kResultReg, kHeapObjectTag);

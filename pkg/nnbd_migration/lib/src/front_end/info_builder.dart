@@ -551,7 +551,7 @@ class InfoBuilder {
   /// into [declarationList], or `null` if none is possible.
   int? _offsetForPossibleLateModifier(VariableDeclarationList declarationList) {
     if (declarationList.isLate || declarationList.isConst) {
-      // Don't offer an ofset.
+      // Don't offer an offset.
       return null;
     }
     var keyword = declarationList.keyword;
