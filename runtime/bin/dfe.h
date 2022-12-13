@@ -96,7 +96,7 @@ class DFE {
   // If 'kernel_blob_ptr' is not nullptr, then this function can also
   // read kernel blobs. In such case it sets 'kernel_blob_ptr'
   // to a shared pointer which owns the kernel buffer.
-  // Othwerise, the caller is responsible for free()ing 'kernel_buffer'.
+  // Otherwise, the caller is responsible for free()ing 'kernel_buffer'.
   void ReadScript(const char* script_uri,
                   uint8_t** kernel_buffer,
                   intptr_t* kernel_buffer_size,
@@ -112,7 +112,7 @@ class DFE {
   // If 'kernel_blob_ptr' is not nullptr, then this function can also
   // read kernel blobs. In such case it sets 'kernel_blob_ptr'
   // to a shared pointer which owns the kernel buffer.
-  // Othwerise, the caller is responsible for free()ing 'kernel_buffer'
+  // Otherwise, the caller is responsible for free()ing 'kernel_buffer'
   // if `true` was returned.
   bool TryReadKernelFile(const char* script_uri,
                          uint8_t** kernel_buffer,
