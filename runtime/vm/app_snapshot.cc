@@ -8030,7 +8030,7 @@ void Serializer::WriteDispatchTable(const Array& entries) {
       }
       continue;
     }
-    // Emit any outsanding repeat count before handling the new code value.
+    // Emit any outstanding repeat count before handling the new code value.
     if (repeat_count > 0) {
       Write(repeat_count);
       repeat_count = 0;
