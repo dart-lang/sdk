@@ -3316,7 +3316,7 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
   UnboxInt64Instr* unbox_defn = value()->definition()->AsUnboxInt64();
   if (unbox_defn != NULL && (from() == kUnboxedInt64) &&
       (to() == kUnboxedInt32) && unbox_defn->HasOnlyInputUse(value())) {
-    // TODO(vegorov): there is a duplication of code between UnboxedIntCoverter
+    // TODO(vegorov): there is a duplication of code between UnboxedIntConverter
     // and code path that unboxes Mint into Int32. We should just schedule
     // these instructions close to each other instead of fusing them.
     Definition* replacement =
