@@ -231,11 +231,7 @@ mixin TypeAnalyzer<
       get errors;
 
   /// Returns the client's [FlowAnalysis] object.
-  ///
-  /// May be `null`, because the analyzer doesn't have a flow analysis object
-  /// in play when analyzing top level initializers (see
-  /// https://github.com/dart-lang/sdk/issues/49701).
-  FlowAnalysis<Node, Statement, Expression, Variable, Type>? get flow;
+  FlowAnalysis<Node, Statement, Expression, Variable, Type> get flow;
 
   /// Returns the type `int`.
   Type get intType;
@@ -280,13 +276,13 @@ mixin TypeAnalyzer<
           matchedType: matchedType,
           requiredType: variableDeclaredType);
     }
-    flow?.write(node, variable, matchedType, context.getInitializer(node));
+    flow.write(node, variable, matchedType, context.getInitializer(node));
   }
 
   /// Computes the type schema for a variable pattern appearing in an assignment
   /// context.  [variable] is the variable being referenced.
   Type analyzeAssignedVariablePatternSchema(Variable variable) =>
-      flow?.promotedType(variable) ?? operations.variableType(variable);
+      flow.promotedType(variable) ?? operations.variableType(variable);
 
   /// Analyzes a cast pattern.  [innerPattern] is the sub-pattern] and [type] is
   /// the type to cast to.
@@ -328,7 +324,7 @@ mixin TypeAnalyzer<
       errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
     }
     Type staticType = analyzeExpression(expression, matchedType);
-    flow?.constantPattern_end(expression);
+    flow.constantPattern_end(expression);
     // Stack: (Expression)
     if (errors != null && !options.patternsEnabled) {
       Expression? switchScrutinee = context.getSwitchScrutinee(node);
@@ -392,7 +388,7 @@ mixin TypeAnalyzer<
           matchedType: matchedType,
           requiredType: staticType);
     }
-    flow?.declaredVariablePattern(
+    flow.declaredVariablePattern(
         matchedType: matchedType, staticType: staticType);
     bool isImplicitlyTyped = declaredType == null;
     if (variable != null) {
@@ -400,10 +396,10 @@ mixin TypeAnalyzer<
         throw new StateError(
             'When the variable is not null, the name must also be not null');
       }
-      flow?.declare(variable, false);
+      flow.declare(variable, false);
       setVariableType(variable, staticType);
       // TODO(paulberry): are we handling _isFinal correctly?
-      flow?.initialize(variable, matchedType, context.getInitializer(node),
+      flow.initialize(variable, matchedType, context.getInitializer(node),
           isFinal: context.isFinal || isVariableFinal(variable),
           isLate: context.isLate,
           isImplicitlyTyped: isImplicitlyTyped);
@@ -433,7 +429,7 @@ mixin TypeAnalyzer<
         dispatchExpression(node, context);
     // Stack: (Expression)
     if (operations.isNever(result.provisionalType)) {
-      flow?.handleExit();
+      flow.handleExit();
     }
     return result.resolveShorting();
   }
@@ -461,9 +457,9 @@ mixin TypeAnalyzer<
     required Object? context,
   }) {
     // Stack: ()
-    flow?.ifCaseStatement_begin();
+    flow.ifCaseStatement_begin();
     Type initializerType = analyzeExpression(expression, unknownType);
-    flow?.ifCaseStatement_afterExpression(expression);
+    flow.ifCaseStatement_afterExpression(expression);
     // Stack: (Expression)
     // TODO(paulberry): rework handling of isFinal
     dispatchPattern(
@@ -478,7 +474,7 @@ mixin TypeAnalyzer<
       handleNoGuard(node, 0);
     }
     // Stack: (Expression, Pattern, Guard)
-    flow?.ifCaseStatement_thenBegin(guard);
+    flow.ifCaseStatement_thenBegin(guard);
     _analyzeIfElementCommon(node, ifTrue, ifFalse, context);
   }
 
@@ -506,9 +502,9 @@ mixin TypeAnalyzer<
     Map<String, Variable> variables,
   ) {
     // Stack: ()
-    flow?.ifCaseStatement_begin();
+    flow.ifCaseStatement_begin();
     Type initializerType = analyzeExpression(expression, unknownType);
-    flow?.ifCaseStatement_afterExpression(expression);
+    flow.ifCaseStatement_afterExpression(expression);
     // Stack: (Expression)
     // TODO(paulberry): rework handling of isFinal
     dispatchPattern(
@@ -526,7 +522,7 @@ mixin TypeAnalyzer<
     );
 
     for (Variable variable in variables.values) {
-      flow?.declare(variable, true);
+      flow.declare(variable, true);
     }
 
     handle_ifCaseStatement_afterPattern(
@@ -540,7 +536,7 @@ mixin TypeAnalyzer<
       handleNoGuard(node, 0);
     }
     // Stack: (Expression, Pattern, Guard)
-    flow?.ifCaseStatement_thenBegin(guard);
+    flow.ifCaseStatement_thenBegin(guard);
     _analyzeIfCommon(node, ifTrue, ifFalse);
     return initializerType;
   }
@@ -564,11 +560,11 @@ mixin TypeAnalyzer<
     required Object? context,
   }) {
     // Stack: ()
-    flow?.ifStatement_conditionBegin();
+    flow.ifStatement_conditionBegin();
     analyzeExpression(condition, boolType);
     handle_ifElement_conditionEnd(node);
     // Stack: (Expression condition)
-    flow?.ifStatement_thenBegin(condition, node);
+    flow.ifStatement_thenBegin(condition, node);
     _analyzeIfElementCommon(node, ifTrue, ifFalse, context);
   }
 
@@ -585,11 +581,11 @@ mixin TypeAnalyzer<
   void analyzeIfStatement(Statement node, Expression condition,
       Statement ifTrue, Statement? ifFalse) {
     // Stack: ()
-    flow?.ifStatement_conditionBegin();
+    flow.ifStatement_conditionBegin();
     analyzeExpression(condition, boolType);
     handle_ifStatement_conditionEnd(node);
     // Stack: (Expression condition)
-    flow?.ifStatement_thenBegin(condition, node);
+    flow.ifStatement_thenBegin(condition, node);
     _analyzeIfCommon(node, ifTrue, ifFalse);
   }
 
@@ -984,7 +980,7 @@ mixin TypeAnalyzer<
     // Stack: ()
     Type rhsType = analyzeExpression(rhs, dispatchPatternSchema(pattern));
     // Stack: (Expression)
-    flow?.patternAssignment_afterRhs(rhs);
+    flow.patternAssignment_afterRhs(rhs);
     dispatchPattern(
       rhsType,
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
@@ -995,7 +991,7 @@ mixin TypeAnalyzer<
       ),
       pattern,
     );
-    flow?.patternAssignment_end();
+    flow.patternAssignment_end();
     // Stack: (Expression, Pattern)
     return new SimpleTypeAnalysisResult<Type>(type: rhsType);
   }
@@ -1021,15 +1017,15 @@ mixin TypeAnalyzer<
       errors?.patternDoesNotAllowLate(pattern);
     }
     if (isLate) {
-      flow?.lateInitializer_begin(node);
+      flow.lateInitializer_begin(node);
     }
     Type initializerType =
         analyzeExpression(initializer, dispatchPatternSchema(pattern));
     // Stack: (Expression)
     if (isLate) {
-      flow?.lateInitializer_end();
+      flow.lateInitializer_end();
     }
-    flow?.patternVariableDeclaration_afterInitializer(initializer);
+    flow.patternVariableDeclaration_afterInitializer(initializer);
     dispatchPattern(
       initializerType,
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
@@ -1041,7 +1037,7 @@ mixin TypeAnalyzer<
       ),
       pattern,
     );
-    flow?.patternVariableDeclaration_end();
+    flow.patternVariableDeclaration_end();
     // Stack: (Expression, Pattern)
   }
 
@@ -1209,14 +1205,14 @@ mixin TypeAnalyzer<
     Type expressionType = analyzeExpression(scrutinee, unknownType);
     // Stack: (Expression)
     handleSwitchScrutinee(expressionType);
-    flow?.switchStatement_expressionEnd(null, scrutinee);
+    flow.switchStatement_expressionEnd(null, scrutinee);
     Type? lubType;
     for (int i = 0; i < numCases; i++) {
       // Stack: (Expression, i * ExpressionCase)
       SwitchExpressionMemberInfo<Node, Expression, Variable> memberInfo =
           getSwitchExpressionMemberInfo(node, i);
-      flow?.switchStatement_beginAlternatives();
-      flow?.switchStatement_beginAlternative();
+      flow.switchStatement_beginAlternatives();
+      flow.switchStatement_beginAlternative();
       Node? pattern = memberInfo.head.pattern;
       Expression? guard;
       if (pattern != null) {
@@ -1243,11 +1239,11 @@ mixin TypeAnalyzer<
       } else {
         handleDefault(node, i);
       }
-      flow?.switchStatement_endAlternative(guard);
-      flow?.switchStatement_endAlternatives(null, hasLabels: false);
+      flow.switchStatement_endAlternative(guard);
+      flow.switchStatement_endAlternatives(null, hasLabels: false);
       // Stack: (Expression, i * ExpressionCase, CaseHead)
       Type type = analyzeExpression(memberInfo.expression, context);
-      flow?.switchStatement_afterCase();
+      flow.switchStatement_afterCase();
       // Stack: (Expression, i * ExpressionCase, CaseHead, Expression)
       if (lubType == null) {
         lubType = type;
@@ -1258,7 +1254,7 @@ mixin TypeAnalyzer<
       // Stack: (Expression, (i + 1) * ExpressionCase)
     }
     // Stack: (Expression, numCases * ExpressionCase)
-    flow?.switchStatement_end(true);
+    flow.switchStatement_end(true);
     return new SimpleTypeAnalysisResult<Type>(type: lubType!);
   }
 
@@ -1272,12 +1268,12 @@ mixin TypeAnalyzer<
     Type scrutineeType = analyzeExpression(scrutinee, unknownType);
     // Stack: (Expression)
     handleSwitchScrutinee(scrutineeType);
-    flow?.switchStatement_expressionEnd(node, scrutinee);
+    flow.switchStatement_expressionEnd(node, scrutinee);
     bool hasDefault = false;
     bool lastCaseTerminates = true;
     for (int caseIndex = 0; caseIndex < numCases; caseIndex++) {
       // Stack: (Expression, numExecutionPaths * StatementCase)
-      flow?.switchStatement_beginAlternatives();
+      flow.switchStatement_beginAlternatives();
       // Stack: (Expression, numExecutionPaths * StatementCase,
       //         numHeads * CaseHead)
       SwitchStatementMemberInfo<Node, Statement, Expression, Variable>
@@ -1288,7 +1284,7 @@ mixin TypeAnalyzer<
         CaseHeadOrDefaultInfo<Node, Expression, Variable> head =
             heads[headIndex];
         Node? pattern = head.pattern;
-        flow?.switchStatement_beginAlternative();
+        flow.switchStatement_beginAlternative();
         Expression? guard;
         if (pattern != null) {
           dispatchPattern(
@@ -1321,11 +1317,11 @@ mixin TypeAnalyzer<
         }
         // Stack: (Expression, numExecutionPaths * StatementCase,
         //         numHeads * CaseHead),
-        flow?.switchStatement_endAlternative(guard);
+        flow.switchStatement_endAlternative(guard);
       }
       // Stack: (Expression, numExecutionPaths * StatementCase,
       //         numHeads * CaseHead)
-      flow?.switchStatement_endAlternatives(node,
+      flow.switchStatement_endAlternatives(node,
           hasLabels: memberInfo.hasLabels);
       Map<String, Variable> variables = memberInfo.variables;
       _finishJoinedVariables(variables, reportErrors: false);
@@ -1334,7 +1330,7 @@ mixin TypeAnalyzer<
       // If there are joined variables, declare them.
       if (heads.length > 1 || memberInfo.hasLabels) {
         for (Variable variable in variables.values) {
-          flow?.declare(variable, true);
+          flow.declare(variable, true);
         }
       }
       for (Statement statement in memberInfo.body) {
@@ -1342,14 +1338,14 @@ mixin TypeAnalyzer<
       }
       // Stack: (Expression, numExecutionPaths * StatementCase, CaseHeads,
       //         n * Statement), where n = body.length
-      lastCaseTerminates = flow == null || !flow!.isReachable;
+      lastCaseTerminates = !flow.isReachable;
       if (caseIndex < numCases - 1 &&
           options.nullSafetyEnabled &&
           !options.patternsEnabled &&
           !lastCaseTerminates) {
         errors?.switchCaseCompletesNormally(node, caseIndex, 1);
       }
-      flow?.switchStatement_afterCase();
+      flow.switchStatement_afterCase();
       handleMergedStatementCase(node,
           caseIndex: caseIndex, isTerminating: lastCaseTerminates);
       // Stack: (Expression, (numExecutionPaths + 1) * StatementCase)
@@ -1363,7 +1359,7 @@ mixin TypeAnalyzer<
     } else {
       isExhaustive = isLegacySwitchExhaustive(node, scrutineeType);
     }
-    flow?.switchStatement_end(isExhaustive);
+    flow.switchStatement_end(isExhaustive);
     return new SwitchStatementTypeAnalysisResult<Type>(
       hasDefault: hasDefault,
       isExhaustive: isExhaustive,
@@ -1387,7 +1383,7 @@ mixin TypeAnalyzer<
       Node node, Variable variable, Type? declaredType,
       {required bool isFinal, required bool isLate}) {
     Type inferredType = declaredType ?? dynamicType;
-    flow?.declare(variable, false);
+    flow.declare(variable, false);
     setVariableType(variable, inferredType);
     return inferredType;
   }
@@ -1686,11 +1682,11 @@ mixin TypeAnalyzer<
     // Stack: (Statement ifTrue)
     if (ifFalse == null) {
       handleNoStatement(node);
-      flow?.ifStatement_end(false);
+      flow.ifStatement_end(false);
     } else {
-      flow?.ifStatement_elseBegin();
+      flow.ifStatement_elseBegin();
       dispatchStatement(ifFalse);
-      flow?.ifStatement_end(true);
+      flow.ifStatement_end(true);
       handle_ifStatement_elseEnd(node, ifFalse);
     }
     // Stack: (Statement ifTrue, Statement ifFalse)
@@ -1709,11 +1705,11 @@ mixin TypeAnalyzer<
     // Stack: (CollectionElement ifTrue)
     if (ifFalse == null) {
       handleNoCollectionElement(node);
-      flow?.ifStatement_end(false);
+      flow.ifStatement_end(false);
     } else {
-      flow?.ifStatement_elseBegin();
+      flow.ifStatement_elseBegin();
       dispatchCollectionElement(ifFalse, context);
-      flow?.ifStatement_end(true);
+      flow.ifStatement_end(true);
       handle_ifElement_elseEnd(node, ifFalse);
     }
     // Stack: (CollectionElement ifTrue, CollectionElement ifFalse)

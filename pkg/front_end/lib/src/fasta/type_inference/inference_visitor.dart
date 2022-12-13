@@ -8680,7 +8680,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  FlowAnalysis<Node, Statement, Expression, VariableDeclaration, DartType>?
+  FlowAnalysis<Node, Statement, Expression, VariableDeclaration, DartType>
       get flow => flowAnalysis;
 
   @override

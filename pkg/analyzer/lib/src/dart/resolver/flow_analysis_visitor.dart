@@ -664,7 +664,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
     if (element is PromotableElement &&
         node.inGetterContext() &&
         node.parent is! FormalParameter &&
-        node.parent is! CatchClause) {
+        node.parent is! CatchClause &&
+        node.parent is! CommentReference) {
       assignedVariables.read(element);
     }
   }

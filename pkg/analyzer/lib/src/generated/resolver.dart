@@ -458,8 +458,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   ExecutableElement? get enclosingFunction => _enclosingFunction;
 
   @override
-  FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>?
-      get flow => flowAnalysis.flow;
+  FlowAnalysis<AstNode, Statement, Expression, PromotableElement, DartType>
+      get flow => flowAnalysis.flow!;
 
   @override
   DartType get intType => throw UnimplementedError('TODO(paulberry)');
@@ -1369,22 +1369,20 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     if (element.isFinal) {
       final flow = this.flow;
-      if (flow != null) {
-        if (element.isLate) {
-          if (flow.isAssigned(element)) {
-            errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
-              node.name,
-            );
-          }
-        } else {
-          if (!flow.isUnassigned(element)) {
-            errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
-              node.name,
-              [node.name.lexeme],
-            );
-          }
+      if (element.isLate) {
+        if (flow.isAssigned(element)) {
+          errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.LATE_FINAL_LOCAL_ALREADY_ASSIGNED,
+            node.name,
+          );
+        }
+      } else {
+        if (!flow.isUnassigned(element)) {
+          errorReporter.reportErrorForToken(
+            CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_LOCAL,
+            node.name,
+            [node.name.lexeme],
+          );
         }
       }
     }
@@ -1765,11 +1763,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
+    // Annotations can contain expressions, so we need flow analysis to be
+    // available to process those expressions.
+    var isTopLevel = flowAnalysis.flow == null;
+    if (isTopLevel) {
+      flowAnalysis.topLevelDeclaration_enter(node, null);
+    }
+    assert(flowAnalysis.flow != null);
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
     _annotationResolver.resolve(node, whyNotPromotedList);
     var arguments = node.arguments;
     if (arguments != null) {
       checkForArgumentTypesNotAssignableInList(arguments, whyNotPromotedList);
+    }
+    if (isTopLevel) {
+      flowAnalysis.topLevelDeclaration_exit();
     }
   }
 
@@ -2433,8 +2441,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
+    // Formal parameter lists can contain default values, which in turn contain
+    // expressions, so we need flow analysis to be available to process those
+    // expressions.
+    var isTopLevel = flowAnalysis.flow == null;
+    if (isTopLevel) {
+      flowAnalysis.topLevelDeclaration_enter(node, null);
+    }
     checkUnreachableNode(node);
     node.visitChildren(this);
+    if (isTopLevel) {
+      flowAnalysis.topLevelDeclaration_exit();
+    }
   }
 
   @override
