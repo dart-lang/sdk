@@ -61,8 +61,8 @@ class KernelAnnotationProcessor {
 
     ir.Library libraryNode = elementMap.getLibraryNode(library);
     String? libraryName = annotationData.getJsInteropLibraryName(libraryNode);
-    final bool isExplicitlylyJsLibrary = libraryName != null;
-    bool isJsLibrary = isExplicitlylyJsLibrary;
+    final bool isExplicitlyJsLibrary = libraryName != null;
+    bool isJsLibrary = isExplicitlyJsLibrary;
 
     elementEnvironment.forEachLibraryMember(library, (MemberEntity member) {
       ir.Member memberNode = elementMap.getMemberNode(member);
@@ -75,7 +75,7 @@ class KernelAnnotationProcessor {
         }
       } else {
         FunctionEntity function = member as FunctionEntity;
-        if (function.isExternal && isExplicitlylyJsLibrary) {
+        if (function.isExternal && isExplicitlyJsLibrary) {
           // External members of explicit js-interop library are implicitly
           // js-interop members.
           memberName ??= function.name;
