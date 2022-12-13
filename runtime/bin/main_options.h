@@ -99,7 +99,7 @@ class Options {
   // Returns true if argument parsing succeeded. False otherwise.
   static bool ParseArguments(int argc,
                              char** argv,
-                             bool vm_run_app_shapshot,
+                             bool vm_run_app_snapshot,
                              CommandLineOptions* vm_options,
                              char** script_name,
                              CommandLineOptions* dart_options,
