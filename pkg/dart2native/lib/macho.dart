@@ -6,8 +6,6 @@
 // part of the Apple system headers. All comments, which detail the format of
 // Mach-O files, have been reproduced from the orginal header.
 
-// ignore_for_file: non_constant_identifier_names, constant_identifier_names
-
 import 'dart:io';
 import 'dart:typed_data';
 
