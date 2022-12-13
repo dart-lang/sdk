@@ -939,7 +939,7 @@ class BaseCoreDumpArchiver(object):
 
     def _find_all_coredumps(self):
         """Return coredumps that were recorded (if supported by the platform).
-        This method will be overriden by concrete platform specific implementations.
+        This method will be overridden by concrete platform specific implementations.
         """
         return []
 
