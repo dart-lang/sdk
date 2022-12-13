@@ -1358,7 +1358,7 @@ class Thread : public ThreadState {
   void FinishEntering(TaskKind kind);
   void PrepareLeaving();
 
-  // Ensures that we have allocated neccessary thread-local data structures for
+  // Ensures that we have allocated necessary thread-local data structures for
   // [callback_id].
   void EnsureFfiCallbackMetadata(intptr_t callback_id);
 
