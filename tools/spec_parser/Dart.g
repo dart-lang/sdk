@@ -4,9 +4,12 @@
 
 // CHANGES:
 //
-// v0.24 Change constant pattern rules to allow Symbols and negative numbers
+// v0.25 Update pattern rules following changes to the patterns feature
+// specification since v0.24.
 //
-// v0.23 Change logical pattern rules to || and &&
+// v0.24 Change constant pattern rules to allow Symbols and negative numbers.
+//
+// v0.23 Change logical pattern rules to || and &&.
 //
 // v0.22 Change pattern rules, following updated feature specification.
 //
@@ -656,7 +659,7 @@ spreadElement
     ;
 
 ifElement
-    : IF '(' expression ')' element (ELSE element)?
+    : ifCondition element (ELSE element)?
     ;
 
 forElement
@@ -669,15 +672,11 @@ constructorTearoff
 
 switchExpression
     :    SWITCH '(' expression ')'
-         LBRACE switchExpressionCase* switchExpressionDefault? RBRACE
+         LBRACE switchExpressionCase (',' switchExpressionCase)* ','? RBRACE
     ;
 
 switchExpressionCase
-    :    caseHead '=>' expression ';'
-    ;
-
-switchExpressionDefault
-    : DEFAULT '=>' expression ';'
+    :    guardedPattern '=>' expression
     ;
 
 throwExpression
@@ -1031,7 +1030,7 @@ logicalAndPattern
     ;
 
 relationalPattern
-    :    (equalityOperator | relationalOperator) relationalExpression
+    :    (equalityOperator | relationalOperator) bitwiseOrExpression
     |    unaryPattern
     ;
 
@@ -1087,7 +1086,20 @@ parenthesizedPattern
     ;
 
 listPattern
-    :    typeArguments? '[' patterns? ']'
+    :    typeArguments? '[' listPatternElements? ']'
+    ;
+
+listPatternElements
+    :    listPatternElement (',' listPatternElement)* ','?
+    ;
+
+listPatternElement
+    :    pattern
+    |    restPattern
+    ;
+
+restPattern
+    :    '...' pattern?
     ;
 
 mapPattern
@@ -1100,6 +1112,7 @@ mapPatternEntries
 
 mapPatternEntry
     :    expression ':' pattern
+    |    '...'
     ;
 
 recordPattern
@@ -1186,7 +1199,11 @@ localFunctionDeclaration
     ;
 
 ifStatement
-    :    IF '(' expression caseHead? ')' statement (ELSE statement)?
+    :    ifCondition statement (ELSE statement)?
+    ;
+
+ifCondition
+    :    IF '(' expression (CASE guardedPattern)? ')'
     ;
 
 forStatement
@@ -1222,11 +1239,11 @@ switchStatement
     ;
 
 switchStatementCase
-    :    label* caseHead ':' statements
+    :    label* CASE guardedPattern ':' statements
     ;
 
-caseHead
-    :    CASE pattern (WHEN expression)?
+guardedPattern
+    :    pattern (WHEN expression)?
     ;
 
 switchStatementDefault
@@ -1393,7 +1410,7 @@ recordType
     :    '(' ')'
     |    '(' recordTypeFields ',' recordTypeNamedFields ')'
     |    '(' recordTypeFields ','? ')'
-    |    '(' recordTypeNamedFields? ')'
+    |    '(' recordTypeNamedFields ')'
     ;
 
 recordTypeFields
