@@ -6258,7 +6258,7 @@ Definition* PhiInstr::Canonicalize(FlowGraph* flow_graph) {
     // If we are replacing a Phi which has redefinitions as all of its inputs
     // then to maintain the redefinition chain we are going to insert a
     // redefinition. If any input is *not* a redefinition that means that
-    // whatever properties were infered for a Phi also hold on a path
+    // whatever properties were inferred for a Phi also hold on a path
     // that does not pass through any redefinitions so there is no need
     // to redefine this value.
     auto zone = flow_graph->zone();
