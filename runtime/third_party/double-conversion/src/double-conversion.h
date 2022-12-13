@@ -138,7 +138,7 @@ class DoubleToStringConverter {
   // Example with decimal_in_shortest_low = -6,
   //              decimal_in_shortest_high = 21,
   //              EMIT_POSITIVE_EXPONENT_SIGN activated, and
-  //              EMIT_TRAILING_DECIMAL_POINT deactived:
+  //              EMIT_TRAILING_DECIMAL_POINT deactivated:
   //   ToShortest(0.000001)  -> "0.000001"
   //   ToShortest(0.0000001) -> "1e-7"
   //   ToShortest(111111111111111111111.0)  -> "111111111111111110000"
