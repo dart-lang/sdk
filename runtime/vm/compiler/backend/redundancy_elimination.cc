@@ -949,7 +949,7 @@ class AliasedSet : public ZoneAllocated {
   }
 
   // When computing kill sets we let less generic alias insert its
-  // representatives into more generic alias'es kill set. For example
+  // representatives into more generic aliases kill set. For example
   // when visiting alias X[*] instead of searching for all aliases X[C]
   // and inserting their representatives into kill set for X[*] we update
   // kill set for X[*] each time we visit new X[C] for some C.
