@@ -369,7 +369,7 @@ void ConstantPropagator::VisitPhi(PhiInstr* instr) {
                  info->visit_count);
     NOT_IN_PRODUCT(
         FlowGraphPrinter::PrintGraph("Constant Propagation", graph_));
-    FATAL("Aborting due to non-covergence.");
+    FATAL("Aborting due to non-convergence.");
   }
 
   // Compute the join over all the reachable predecessor values.
