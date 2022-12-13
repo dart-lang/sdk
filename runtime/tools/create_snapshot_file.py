@@ -90,7 +90,7 @@ def GenerateFileFromTemplate(output_file, input_cc_file, vm_isolate_input_file,
                              isolate_input_file):
     """Generates C++ file based on a input_cc_file template and two binary files
 
-  Template is expected to have two %s placehoders which would be filled
+  Template is expected to have two %s placeholders which would be filled
   with binary contents of the given files each formatted as a comma separated
   list of integers.
   """
