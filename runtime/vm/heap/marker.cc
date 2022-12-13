@@ -880,7 +880,7 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
   {
     // Bulk increase task count before starting any task, instead of
     // incrementing as each task is started, to prevent a task which
-    // races ahead from falsly beleiving it was the last task to complete.
+    // races ahead from falsly believing it was the last task to complete.
     MonitorLocker ml(page_space->tasks_lock());
     ASSERT(page_space->phase() == PageSpace::kDone);
     page_space->set_phase(PageSpace::kMarking);
