@@ -3087,6 +3087,16 @@ void Precompiler::DiscardCodeObjects() {
 }
 
 void Precompiler::PruneDictionaries() {
+#if defined(DEBUG)
+  // Verify that api_uses_ is stable: any entry in it can be found. This
+  // check serves to catch bugs when ProgramElementSet::Hash is accidentally
+  // defined using unstable values.
+  ProgramElementSet::Iterator it = api_uses_.GetIterator();
+  while (auto entry = it.Next()) {
+    ASSERT(api_uses_.HasKey(*entry));
+  }
+#endif
+
   // PRODUCT-only: pruning interferes with various uses of the service protocol,
   // including heap analysis tools.
 #if defined(PRODUCT)
