@@ -214,7 +214,7 @@ void printAnimal(obj) {
   print('}');
 }
 
-// Call printAnimal(...) a lot of times with an intance of Cat.
+// Call printAnimal(...) a lot of times with an instance of Cat.
 // As a result printAnimal(...) will be optimized under the
 // assumption that obj is always a Cat.
 for (var i = 0; i < 50000; i++)
