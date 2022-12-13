@@ -12146,7 +12146,7 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
   // However this would complicate fast path in the native code. To avoid this
   // complication we would optimize for the trivial case: we check if
   // C<X0, ..., Xn> at G is exactly G<X0, ..., Xn> which means we can simply
-  // compare values type arguements (<T0, ..., Tn>) to fields type arguments
+  // compare values type arguments (<T0, ..., Tn>) to fields type arguments
   // (<U0, ..., Un>) to establish if field type is exact.
   ASSERT(cls.IsGeneric());
   const intptr_t num_type_params = cls.NumTypeParameters();
