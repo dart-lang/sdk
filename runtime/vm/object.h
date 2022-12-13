@@ -4137,11 +4137,11 @@ class Field : public Object {
   }
 
   bool initializer_changed_after_initialization() const {
-    return InitializerChangedAfterInitializatonBit::decode(kind_bits());
+    return InitializerChangedAfterInitializationBit::decode(kind_bits());
   }
   void set_initializer_changed_after_initialization(bool value) const {
     // TODO(36097): Once concurrent access is possible ensure updates are safe.
-    set_kind_bits(InitializerChangedAfterInitializatonBit::update(
+    set_kind_bits(InitializerChangedAfterInitializationBit::update(
         value, untag()->kind_bits_));
   }
 
@@ -4526,7 +4526,7 @@ class Field : public Object {
     kHasNontrivialInitializerBit,
     kUnboxedBit,
     kReflectableBit,
-    kInitializerChangedAfterInitializatonBit,
+    kInitializerChangedAfterInitializationBit,
     kHasPragmaBit,
     kCovariantBit,
     kGenericCovariantImplBit,
@@ -4542,10 +4542,10 @@ class Field : public Object {
       : public BitField<uint16_t, bool, kHasNontrivialInitializerBit, 1> {};
   class UnboxedBit : public BitField<uint16_t, bool, kUnboxedBit, 1> {};
   class ReflectableBit : public BitField<uint16_t, bool, kReflectableBit, 1> {};
-  class InitializerChangedAfterInitializatonBit
+  class InitializerChangedAfterInitializationBit
       : public BitField<uint16_t,
                         bool,
-                        kInitializerChangedAfterInitializatonBit,
+                        kInitializerChangedAfterInitializationBit,
                         1> {};
   class HasPragmaBit : public BitField<uint16_t, bool, kHasPragmaBit, 1> {};
   class CovariantBit : public BitField<uint16_t, bool, kCovariantBit, 1> {};
