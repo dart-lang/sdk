@@ -405,7 +405,7 @@ void Dart_DumpSnapshotInformationAsJson(
   // Open empty object so output is valid/parsable JSON.
   js.OpenObject();
   js.OpenObject("snapshot_data");
-  // Base addreses of the snapshot data, useful to calculate relative offsets.
+  // Base addresses of the snapshot data, useful to calculate relative offsets.
   js.PrintfProperty("vm_data", "%p", info->vm_snapshot_data);
   js.PrintfProperty("vm_instructions", "%p", info->vm_snapshot_instructions);
   js.PrintfProperty("isolate_data", "%p", info->vm_isolate_data);
