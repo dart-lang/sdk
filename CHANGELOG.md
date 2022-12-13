@@ -2648,7 +2648,7 @@ This is a patch release that fixes the following issues:
 - compiler error causing incorrect use of positional parameters when named
   parameters should be used instead (issues [flutter/flutter#65324][] and
   [flutter/flutter#68092][]).
-- crashes and/or undefined behavor in AOT compiled code (issues [#43770][] and
+- crashes and/or undefined behavior in AOT compiled code (issues [#43770][] and
   [#43786][]).
 - AOT compilation of classes with more than 64 unboxed fields (issue
   [flutter/flutter#67803][]).
