@@ -58,7 +58,7 @@ abstract class C5Bar implements C5 {
 // Valid abstract class, super-invocation of foo hits implementation,
 // even if bar is still abstract.
 abstract class A5Foo = C5Foo with M5;
-// Invalid since super-invocaton of foo does not hit concrete implementation.
+// Invalid since super-invocation of foo does not hit concrete implementation.
 abstract class _ = C5Bar with M5;  //# 08: compile-time error
 
 class A5FooConcrete = A5Foo with C5Bar;
