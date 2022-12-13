@@ -141,7 +141,7 @@ class NativeType : public ZoneAllocated {
   virtual intptr_t NumPrimitiveMembersRecursive() const = 0;
   virtual const NativePrimitiveType& FirstPrimitiveMember() const = 0;
 
-  // Returns the number of primitive members when this aggregrate is flattened
+  // Returns the number of primitive members when this aggregate is flattened
   // out, and sets the out-parameters to the first two such primitive members.
   virtual intptr_t PrimitivePairMembers(
       const NativePrimitiveType** first,
