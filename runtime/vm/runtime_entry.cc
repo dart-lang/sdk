@@ -2399,7 +2399,7 @@ FunctionPtr PatchableCallHandler::ResolveTargetFunction(const Object& data) {
 }
 
 void PatchableCallHandler::ResolveSwitchAndReturn(const Object& old_data) {
-  // Find out actual target (which can be time consuminmg) without holding any
+  // Find out actual target (which can be time consuming) without holding any
   // locks.
   const auto& target_function =
       Function::Handle(zone_, ResolveTargetFunction(old_data));
