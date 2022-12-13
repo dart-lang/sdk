@@ -1015,7 +1015,7 @@ class FlowGraphCompiler : public ValueObject {
   friend class StoreIndexedInstr;        // For AddPcRelativeCallStubTarget().
   friend class StoreFieldInstr;          // For AddPcRelativeCallStubTarget().
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
-  friend class GraphInstrinsicCodeGenScope;   // For optimizing_.
+  friend class GraphIntrinsicCodeGenScope;   // For optimizing_.
 
   // Architecture specific implementation of simple native moves.
   void EmitNativeMoveArchitecture(const compiler::ffi::NativeLocation& dst,
