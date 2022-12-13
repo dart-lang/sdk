@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library persitent_handles_page;
+library persistent_handles_page;
 
 import 'dart:async';
 import 'dart:html';
