@@ -8,7 +8,7 @@ contents.
 Each folder contains a file named `expectation.txt` which shows a plain text
 summary of what we expect to extract or report from the test:
 
- * for invalid inputs it shows the error mesage produced by the modular\_test
+ * for invalid inputs it shows the error message produced by the modular\_test
    loader logic
 
  * for valid inputs it shows the test layout, highlighting what each module
