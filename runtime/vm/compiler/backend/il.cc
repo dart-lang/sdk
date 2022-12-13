@@ -3936,7 +3936,7 @@ const CallTargets* CallTargets::CreateAndExpand(Zone* zone,
     // into a suffix that consists purely of abstract classes to
     // shorten the range.
     // However such spreading is beneficial when it allows to
-    // merge to consequtive ranges.
+    // merge to consecutive ranges.
     intptr_t cid_end_including_abstract = target_info->cid_end;
     for (int i = target_info->cid_end + 1; i < upper_limit_cid; i++) {
       bool class_is_abstract = false;
