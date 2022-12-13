@@ -26,7 +26,7 @@ var newLines;
 @pragma("vm:entry-point") // Prevent obfuscation
 var tabs;
 @pragma("vm:entry-point") // Prevent obfuscation
-var suggrogatePairs;
+var surrogatePairs;
 @pragma("vm:entry-point") // Prevent obfuscation
 var nullInTheMiddle;
 @pragma("vm:entry-point") // Prevent obfuscation
@@ -49,7 +49,7 @@ void script() {
   doubleQuotes = '"Two," he said.';
   newLines = "Windows\r\nSmalltalk\rUnix\n";
   tabs = "One\tTwo\tThree";
-  suggrogatePairs = "1𝄞2𝄞𝄞3𝄞𝄞𝄞";
+  surrogatePairs = "1𝄞2𝄞𝄞3𝄞𝄞𝄞";
   nullInTheMiddle = "There are four\u0000 words.";
   escapedUnicodeEscape = "Should not be A: \\u0041";
 
@@ -93,7 +93,7 @@ Future testStrings(Isolate isolate) async {
   expectFullString('doubleQuotes', doubleQuotes);
   expectFullString('newLines', newLines);
   expectFullString('tabs', tabs);
-  expectFullString('suggrogatePairs', suggrogatePairs);
+  expectFullString('surrogatePairs', surrogatePairs);
   expectFullString('nullInTheMiddle', nullInTheMiddle);
   expectTruncatedString('longStringEven', longStringEven);
   expectTruncatedString('longStringOdd', longStringOdd);
