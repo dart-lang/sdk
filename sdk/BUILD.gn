@@ -45,6 +45,7 @@ declare_args() {
 # ........dart2js.dart.snapshot
 # ........dart2wasm_product.snapshot (if not on ia32)
 # ........dartdev.dart.snapshot
+# ........dartdev.dill
 # ........dartdevc.dart.snapshot
 # ........dds.dart.snapshot
 # ........frontend_server.dart.snapshot
@@ -454,6 +455,17 @@ copy("copy_vm_dill_files") {
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]
 }
 
+copy("copy_dartdev_dill_files") {
+  visibility = [ ":create_common_sdk" ]
+  deps = [
+    ":copy_libraries",
+    "../utils/dartdev:dartdev",
+  ]
+  sources = [ "$root_out_dir/dartdev.dill" ]
+  outputs =
+      [ "$root_out_dir/$dart_sdk_output/bin/snapshots/{{source_file_part}}" ]
+}
+
 copy("copy_dart2js_dill_files") {
   visibility = [ ":create_full_sdk" ]
   deps = [
@@ -753,6 +765,7 @@ group("create_common_sdk") {
     ":copy_analysis_summaries",
     ":copy_api_readme",
     ":copy_dart",
+    ":copy_dartdev_dill_files",
     ":copy_dartdoc_files",
     ":copy_headers",
     ":copy_libraries_dart",
