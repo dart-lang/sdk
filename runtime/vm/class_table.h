@@ -39,7 +39,7 @@ class PersistentHandle;
 // There is a bit for each word in an instance of the class.
 //
 // Words corresponding to set bits must be ignored by the GC because they
-// don't contain pointers. All words beyound the first 64 words of an object
+// don't contain pointers. All words beyond the first 64 words of an object
 // are expected to contain pointers.
 class UnboxedFieldBitmap {
  public:
