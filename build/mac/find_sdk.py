@@ -77,7 +77,7 @@ def main():
         action="store_true",
         dest="print_sdk_path",
         default=False,
-        help="Additionaly print the path the SDK (appears first).")
+        help="Additionally print the path the SDK (appears first).")
     parser.add_option(
         "--create_symlink_at",
         action="store",
