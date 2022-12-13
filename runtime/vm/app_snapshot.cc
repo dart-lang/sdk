@@ -7780,7 +7780,7 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
   // computation. Note that reachability is computed monotonically (an object
   // can change from not reachable to reachable, but never the reverse), which
   // is technically a conservative approximation for WSRs, but doing a strict
-  // analysis that allows non-motonoic reachability may not halt.
+  // analysis that allows non-monotonic reachability may not halt.
   //
   // To see this, take a WSR whose replacement causes the target of another WSR
   // to become reachable, which then causes the target of the first WSR to
