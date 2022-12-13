@@ -250,7 +250,7 @@ class Emitter(object):
         """A lookup operation that is deferred until final string generation."""
 
         # TODO(sra): A deferred lookup will be useful when we add expansions that
-        # have behaviour condtional on the contents, e.g. adding separators between
+        # have behaviour conditional on the contents, e.g. adding separators between
         # a list of items.
         def __init__(self, lookup, environment):
             self._lookup = lookup
