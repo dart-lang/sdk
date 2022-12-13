@@ -3225,7 +3225,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
 // 1) can be used for GVN, and
 // 2) do not use definitions of their own block.
 //
-// A basic block looks at its sucessors and finds the intersection of
+// A basic block looks at its successors and finds the intersection of
 // these computed ValueSet. It moves all instructions of the
 // intersection into its own list of instructions.
 class SsaCodeMotion extends HBaseVisitor<void> implements OptimizationPhase {
