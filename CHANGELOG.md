@@ -1037,7 +1037,7 @@ them, you must set the lower bound on the SDK constraint for your package to
   removed (they were previously deprecated).  Please use the corresponding
   `lowerCamelCase` constants instead.
 - **Breaking Change** [#48513](https://github.com/dart-lang/sdk/issues/48513):
-  Add a new `allowLegacyUnsafeRenegotiation` poperty to `SecurityContext`,
+  Add a new `allowLegacyUnsafeRenegotiation` property to `SecurityContext`,
   which allows TLS renegotiation for client secure sockets.
 - Add a optional `keyLog` parameter to `SecureSocket.connect` and
   `SecureSocket.startConnect`.
