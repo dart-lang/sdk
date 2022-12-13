@@ -22,7 +22,7 @@ class TypeTestingStubNamer {
   // Simple helper for stringinfying a [type] and prefix it with the type
   // testing
   //
-  // (only during dart_boostrap).
+  // (only during dart_bootstrap).
   const char* StubNameForType(const AbstractType& type) const;
   void WriteStubNameForTypeTo(BaseTextBuffer* buffer,
                               const AbstractType& type) const;
