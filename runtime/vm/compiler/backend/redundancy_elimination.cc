@@ -792,7 +792,7 @@ class AliasedSet : public ZoneAllocated {
 
   const PhiPlaceMoves* phi_moves() const { return phi_moves_; }
 
-  void RollbackAliasedIdentites() {
+  void RollbackAliasedIdentities() {
     for (intptr_t i = 0; i < identity_rollback_.length(); ++i) {
       identity_rollback_[i]->SetIdentity(AliasIdentity::Unknown());
     }
@@ -1783,7 +1783,7 @@ class LoadOptimizer : public ValueObject {
     }
   }
 
-  ~LoadOptimizer() { aliased_set_->RollbackAliasedIdentites(); }
+  ~LoadOptimizer() { aliased_set_->RollbackAliasedIdentities(); }
 
   Zone* zone() const { return graph_->zone(); }
 
