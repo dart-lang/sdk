@@ -4676,7 +4676,7 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
 
   virtual intptr_t CallCount() const;
 
-  // If this polymophic call site was created to cover the remaining cids after
+  // If this polymorphic call site was created to cover the remaining cids after
   // inlining then we need to keep track of the total number of calls including
   // the ones that we inlined. This is different from the CallCount above:  Eg
   // if there were 100 calls originally, distributed across three class-ids in
