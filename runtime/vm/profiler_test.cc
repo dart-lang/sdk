@@ -1487,7 +1487,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_FunctionInline) {
   }
 }
 
-ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundry) {
+ISOLATE_UNIT_TEST_CASE(Profiler_InliningIntervalBoundary) {
   // The PC of frames below the top frame is a call's return address,
   // which can belong to a different inlining interval than the call.
   // This test checks the profiler service takes this into account; see

@@ -17,7 +17,7 @@ cc/Fail0: Fail # These tests are expected to crash on all platforms.
 cc/Fail1: Fail # These tests are expected to crash on all platforms.
 cc/Fail2: Fail # These tests are expected to crash on all platforms.
 
-cc/Profiler_InliningIntervalBoundry: Skip # Differences in ia32, debug, release
+cc/Profiler_InliningIntervalBoundary: Skip # Differences in ia32, debug, release
 
 cc/Sleep: Skip # Flaky # Flaky on buildbot. Issue 5133 and 10409.
 
@@ -64,7 +64,7 @@ cc/Profiler_CodeTicks: Skip
 cc/Profiler_ContextAllocation: Skip
 cc/Profiler_FunctionInline: Skip
 cc/Profiler_FunctionTicks: Skip
-cc/Profiler_InliningIntervalBoundry: Skip
+cc/Profiler_InliningIntervalBoundary: Skip
 cc/Profiler_IntrinsicAllocation: Skip
 cc/Profiler_SampleBufferIterateTest: Skip
 cc/Profiler_SampleBufferWrapTest: Skip

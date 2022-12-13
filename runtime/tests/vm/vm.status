@@ -372,7 +372,7 @@ cc/Profiler_ContextAllocation: SkipByDesign
 cc/Profiler_FunctionInline: SkipByDesign
 cc/Profiler_FunctionTicks: SkipByDesign
 cc/Profiler_GetSourceReport: SkipByDesign
-cc/Profiler_InliningIntervalBoundry: SkipByDesign
+cc/Profiler_InliningIntervalBoundary: SkipByDesign
 cc/Profiler_IntrinsicAllocation: SkipByDesign
 cc/Profiler_SampleBufferIterateTest: SkipByDesign
 cc/Profiler_SampleBufferWrapTest: SkipByDesign
