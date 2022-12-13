@@ -447,7 +447,7 @@ bool UntaggedObject::FindObject(FindObjectVisitor* visitor) {
 // last cells that need visiting.
 //
 // Though as opposed to Similar to [REGULAR_VISITOR] this visitor will call the
-// specializd VisitTypedDataViewPointers
+// specialized VisitTypedDataViewPointers
 #define TYPED_DATA_VIEW_VISITOR(Type)                                          \
   intptr_t Untagged##Type::Visit##Type##Pointers(                              \
       Type##Ptr raw_obj, ObjectPointerVisitor* visitor) {                      \
