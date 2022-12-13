@@ -87,16 +87,20 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitParenthesizedExpression(ParenthesizedExpression node) {
     var parent = node.parent;
     var expression = node.expression;
-    if (expression is SimpleIdentifier) {
+    if (expression is SimpleIdentifier ||
+        (expression is CascadeExpression && expression.isNullAware) ||
+        (expression is PropertyAccess && expression.isNullAware) ||
+        (expression is MethodInvocation && expression.isNullAware) ||
+        (expression is IndexExpression && expression.isNullAware)) {
       if (parent is PropertyAccess) {
-        if (parent.propertyName.name == 'hashCode' ||
-            parent.propertyName.name == 'runtimeType') {
+        var name = parent.propertyName.name;
+        if (name == 'hashCode' || name == 'runtimeType') {
           // Code like `(String).hashCode` is allowed.
           return;
         }
       } else if (parent is MethodInvocation) {
-        if (parent.methodName.name == 'noSuchMethod' ||
-            parent.methodName.name == 'toString') {
+        var name = parent.methodName.name;
+        if (name == 'noSuchMethod' || name == 'toString') {
           // Code like `(String).noSuchMethod()` is allowed.
           return;
         }
@@ -238,7 +242,7 @@ extension on Expression? {
             (self is InstanceCreationExpression && self.keyword != null) ||
             // No TypedLiteral (ListLiteral, MapLiteral, SetLiteral) accepts `-`
             // or `!` as a prefix operator, but this method can be called
-            // rescursively, so this catches things like
+            // recursively, so this catches things like
             // `!(const [].contains(42))`.
             (self is TypedLiteral && self.constKeyword != null) ||
             // As in, `!(const List(3).contains(7))`, and chains like

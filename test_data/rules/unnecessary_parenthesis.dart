@@ -116,6 +116,10 @@ main() async {
   List<String> list = <String>[];
   (list[list.length]).toString(); // LINT
 
+  (a?.sign).hashCode;
+  (a?.abs()).hashCode;
+  (a?..abs()).hashCode;
+  (a?[0]).hashCode;
 }
 
 Invocation? invocation() => null;
