@@ -2,19 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-view class Missing {}
+inline class Missing {}
 
-view class Static {
+inline class Static {
   static int staticField = 42;
   final bool instanceField;
 }
 
-view class Multiple {
+inline class Multiple {
   final bool instanceField1;
   final int instanceField2;
 }
 
-view class Duplicate {
+inline class Duplicate {
   final bool instanceField;
   final int instanceField;
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-view class Class {
+inline class Class {
   final int it;
 
   void instanceMethod() {
@@ -35,7 +35,7 @@ view class Class {
   static S genericStaticMethod<S>(S s) => s;
 }
 
-view class GenericClass<T> {
+inline class GenericClass<T> {
   final T it;
 
   void instanceMethod() {

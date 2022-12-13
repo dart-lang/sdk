@@ -5,5 +5,5 @@
 // @dart=2.18
 
 mixin Mixin {}
-view class Class1 {}
-view class Class2 = Object with Mixin;
+inline class Class1 {}
+inline class Class2 = Object with Mixin;

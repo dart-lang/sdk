@@ -1,9 +1,9 @@
-view
+inline
 class Class1 {
   final int field;
   Class1(this.field);
 }
-view
+inline
 class Class2 {
   final int field;
   Class2(this.field);

@@ -1909,8 +1909,8 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   /// The 'macro' keyword, or `null` if the keyword was absent.
   final Token? macroKeyword;
 
-  /// The 'view' keyword, or `null` if the keyword was absent.
-  final Token? viewKeyword;
+  /// The 'inline' keyword, or `null` if the keyword was absent.
+  final Token? inlineKeyword;
 
   /// The 'sealed' keyword, or `null` if the keyword was absent.
   final Token? sealedKeyword;
@@ -1969,7 +1969,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required super.metadata,
     required this.abstractKeyword,
     required this.macroKeyword,
-    required this.viewKeyword,
+    required this.inlineKeyword,
     required this.sealedKeyword,
     required this.augmentKeyword,
     required this.classKeyword,
@@ -2013,7 +2013,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   Token get firstTokenAfterCommentAndMetadata {
     return abstractKeyword ??
         macroKeyword ??
-        viewKeyword ??
+        inlineKeyword ??
         sealedKeyword ??
         augmentKeyword ??
         classKeyword;
@@ -2054,7 +2054,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   ChildEntities get _childEntities => super._childEntities
     ..addToken('abstractKeyword', abstractKeyword)
     ..addToken('macroKeyword', macroKeyword)
-    ..addToken('viewKeyword', viewKeyword)
+    ..addToken('inlineKeyword', inlineKeyword)
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('classKeyword', classKeyword)
@@ -2120,9 +2120,9 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   /// macro class.
   final Token? macroKeyword;
 
-  /// The token for the 'view' keyword, or `null` if this is not defining a
-  /// view class.
-  final Token? viewKeyword;
+  /// The token for the 'inline' keyword, or `null` if this is not defining an
+  /// inline class.
+  final Token? inlineKeyword;
 
   /// The token for the 'sealed' keyword, or `null` if this is not defining a
   /// sealed class.
@@ -2160,7 +2160,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     required this.equals,
     required this.abstractKeyword,
     required this.macroKeyword,
-    required this.viewKeyword,
+    required this.inlineKeyword,
     required this.sealedKeyword,
     required this.augmentKeyword,
     required NamedTypeImpl superclass,
@@ -2185,7 +2185,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   Token get firstTokenAfterCommentAndMetadata {
     return abstractKeyword ??
         macroKeyword ??
-        viewKeyword ??
+        inlineKeyword ??
         sealedKeyword ??
         augmentKeyword ??
         typedefKeyword;
@@ -2226,7 +2226,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     ..addNode('typeParameters', typeParameters)
     ..addToken('equals', equals)
     ..addToken('abstractKeyword', abstractKeyword)
-    ..addToken('viewKeyword', viewKeyword)
+    ..addToken('inlineKeyword', inlineKeyword)
     ..addToken('macroKeyword', macroKeyword)
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('augmentKeyword', augmentKeyword)

@@ -1,16 +1,16 @@
-view
+inline
 class Missing {}
-view
+inline
 class Static {
   static int staticField = 42;
   final bool instanceField;
 }
-view
+inline
 class Multiple {
   final bool instanceField1;
   final int instanceField2;
 }
-view
+inline
 class Duplicate {
   final bool instanceField;
   final int instanceField;

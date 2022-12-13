@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-view class Class1 {
+inline class Class1 {
   final int field;
 
   Class1(this.field);
 }
 
-view class Class2 {
+inline class Class2 {
   final int field;
 
   Class2(this.field);

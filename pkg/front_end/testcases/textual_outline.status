@@ -83,6 +83,7 @@ general/error_recovery/issue_43090.crash: FormatterCrash
 general/extension_types_feature_not_enabled: FormatterCrash
 general/function_type_default_value: FormatterCrash
 general/incomplete_field_formal_parameter: FormatterCrash
+general/inline_class_declaration: FormatterCrash
 general/invalid_operator2: FormatterCrash
 general/invalid_operator: FormatterCrash
 general/invalid_super_initializer: FormatterCrash
@@ -113,7 +114,10 @@ general/sealed_class_declaration: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash
-general/view_class_declaration: FormatterCrash
+inline_class/constructors: FormatterCrash
+inline_class/inline_class_declaration: FormatterCrash
+inline_class/procedures: FormatterCrash
+inline_class/representation: FormatterCrash
 late_lowering/later: FormatterCrash
 macros/augment_class: FormatterCrash
 macros/augment_concrete: FormatterCrash
@@ -215,7 +219,3 @@ variance/class_type_parameter_modifier: FormatterCrash
 variance/generic_covariance_sound_variance: FormatterCrash
 variance/mixin_type_parameter_modifier: FormatterCrash
 variance/unconstrained_inference: FormatterCrash
-views/constructors: FormatterCrash
-views/procedures: FormatterCrash
-views/representation: FormatterCrash
-views/view_class_declaration: FormatterCrash

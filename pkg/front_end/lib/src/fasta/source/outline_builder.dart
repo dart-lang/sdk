@@ -865,7 +865,7 @@ class OutlineBuilder extends StackListenerImpl {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
       Token name) {
@@ -882,10 +882,10 @@ class OutlineBuilder extends StackListenerImpl {
         macroToken = null;
       }
     }
-    if (viewToken != null) {
-      if (reportIfNotEnabled(libraryFeatures.inlineClass, viewToken.charOffset,
-          viewToken.length)) {
-        viewToken = null;
+    if (inlineToken != null) {
+      if (reportIfNotEnabled(libraryFeatures.inlineClass,
+          inlineToken.charOffset, inlineToken.length)) {
+        inlineToken = null;
       }
     }
     if (sealedToken != null) {
@@ -894,7 +894,7 @@ class OutlineBuilder extends StackListenerImpl {
         sealedToken = null;
       }
     }
-    if (viewToken != null) {
+    if (inlineToken != null) {
       libraryBuilder.currentTypeParameterScopeBuilder
           .markAsViewDeclaration(name.lexeme, name.charOffset, typeVariables);
     } else {
@@ -905,7 +905,7 @@ class OutlineBuilder extends StackListenerImpl {
     inAbstractClass = abstractToken != null;
     push(abstractToken != null ? abstractMask : 0);
     push(macroToken ?? NullValue.Token);
-    push(viewToken ?? NullValue.Token);
+    push(inlineToken ?? NullValue.Token);
     push(sealedToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
   }
@@ -992,7 +992,7 @@ class OutlineBuilder extends StackListenerImpl {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
       Token name) {
@@ -1012,10 +1012,10 @@ class OutlineBuilder extends StackListenerImpl {
         macroToken = null;
       }
     }
-    if (viewToken != null) {
-      if (reportIfNotEnabled(libraryFeatures.inlineClass, viewToken.charOffset,
-          viewToken.length)) {
-        viewToken = null;
+    if (inlineToken != null) {
+      if (reportIfNotEnabled(libraryFeatures.inlineClass,
+          inlineToken.charOffset, inlineToken.length)) {
+        inlineToken = null;
       }
     }
     if (sealedToken != null) {
@@ -1025,7 +1025,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
     push(macroToken ?? NullValue.Token);
-    push(viewToken ?? NullValue.Token);
+    push(inlineToken ?? NullValue.Token);
     push(sealedToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
   }
@@ -1182,7 +1182,7 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
       /* augment token */ ValueKinds.TokenOrNull,
       /* sealed token */ ValueKinds.TokenOrNull,
-      /* view token */ ValueKinds.TokenOrNull,
+      /* inline token */ ValueKinds.TokenOrNull,
       /* macro token */ ValueKinds.TokenOrNull,
       /* modifiers */ ValueKinds.Integer,
       /* type variables */ ValueKinds.TypeVariableListOrNull,
@@ -1200,9 +1200,9 @@ class OutlineBuilder extends StackListenerImpl {
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
     Token? augmentToken = pop(NullValue.Token) as Token?;
     Token? sealedToken = pop(NullValue.Token) as Token?;
-    // TODO(johnniwinther): Create builder for view.
+    // TODO(johnniwinther): Create builder for inline.
     // ignore: unused_local_variable
-    Token? viewToken = pop(NullValue.Token) as Token?;
+    Token? inlineToken = pop(NullValue.Token) as Token?;
     Token? macroToken = pop(NullValue.Token) as Token?;
     int modifiers = pop() as int;
     List<TypeVariableBuilder>? typeVariables =
@@ -1268,7 +1268,7 @@ class OutlineBuilder extends StackListenerImpl {
       if (sealedToken != null) {
         modifiers |= abstractMask;
       }
-      if (viewToken != null) {
+      if (inlineToken != null) {
         libraryBuilder.addViewDeclaration(
           metadata,
           modifiers,
@@ -2154,7 +2154,7 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
       /* augment token */ ValueKinds.TokenOrNull,
       /* sealed token */ ValueKinds.TokenOrNull,
-      /* view token */ ValueKinds.TokenOrNull,
+      /* inline token */ ValueKinds.TokenOrNull,
       /* macro token */ ValueKinds.TokenOrNull,
       /* modifiers */ ValueKinds.Integer,
       /* type variables */ ValueKinds.TypeVariableListOrNull,
@@ -2170,10 +2170,10 @@ class OutlineBuilder extends StackListenerImpl {
     Object? supertype = pop();
     Token? augmentToken = pop(NullValue.Token) as Token?;
     Token? sealedToken = pop(NullValue.Token) as Token?;
-    // TODO(johnniwinther): Report error on 'view' here; it can't be used on
+    // TODO(johnniwinther): Report error on 'inline' here; it can't be used on
     // named mixin applications.
     // ignore: unused_local_variable
-    Token? viewToken = pop(NullValue.Token) as Token?;
+    Token? inlineToken = pop(NullValue.Token) as Token?;
     Token? macroToken = pop(NullValue.Token) as Token?;
     int modifiers = pop() as int;
     List<TypeVariableBuilder>? typeVariables =

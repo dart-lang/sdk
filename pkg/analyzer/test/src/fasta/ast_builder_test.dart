@@ -280,6 +280,23 @@ ClassDeclaration
         withOffsets: true);
   }
 
+  void test_class_inline() {
+    var parseResult = parseStringWithErrors(r'''
+inline class A {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  inlineKeyword: inline
+  classKeyword: class
+  name: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   void test_class_macro() {
     var parseResult = parseStringWithErrors(r'''
 macro class A {}
@@ -327,23 +344,6 @@ sealed abstract class A {}
 ClassDeclaration
   abstractKeyword: abstract
   sealedKeyword: sealed
-  classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
-''');
-  }
-
-  void test_class_view() {
-    var parseResult = parseStringWithErrors(r'''
-view class A {}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.classDeclaration('class A {}');
-    assertParsedNodeText(node, r'''
-ClassDeclaration
-  viewKeyword: view
   classKeyword: class
   name: A
   leftBracket: {

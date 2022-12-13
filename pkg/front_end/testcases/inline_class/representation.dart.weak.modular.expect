@@ -2,10 +2,10 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/views/representation.dart:19:13: Error: 'instanceField' is already declared in this scope.
+// pkg/front_end/testcases/inline_class/representation.dart:19:13: Error: 'instanceField' is already declared in this scope.
 //   final int instanceField;
 //             ^^^^^^^^^^^^^
-// pkg/front_end/testcases/views/representation.dart:18:14: Context: Previous declaration of 'instanceField'.
+// pkg/front_end/testcases/inline_class/representation.dart:18:14: Context: Previous declaration of 'instanceField'.
 //   final bool instanceField;
 //              ^^^^^^^^^^^^^
 //

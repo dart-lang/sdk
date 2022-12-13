@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 mixin Mixin {}
-view class Class1 {
+inline class Class1 {
   final int it;
 }
-view class Class2 = Object with Mixin;
-view class Class3<T> {
+inline class Class2 = Object with Mixin;
+inline class Class3<T> {
   final List<T> it;
 }
 
