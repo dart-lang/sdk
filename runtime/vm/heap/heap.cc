@@ -977,7 +977,7 @@ void Heap::ForwardWeakTables(ObjectPointerVisitor* visitor) {
     GetWeakTable(Heap::kOld, selector)->Forward(visitor);
   }
 
-  // Isolates might have forwarding tables (used for during snapshoting in
+  // Isolates might have forwarding tables (used for during snapshotting in
   // isolate communication).
   isolate_group()->ForEachIsolate(
       [&](Isolate* isolate) {
