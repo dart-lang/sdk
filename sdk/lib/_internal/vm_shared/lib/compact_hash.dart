@@ -148,7 +148,7 @@ abstract class _HashVMImmutableBase extends _HashVMBase
 }
 
 // This mixin can be applied to _HashFieldBase or _HashVMBase (for
-// normal and VM-internalized classes, respectiveley), which provide the
+// normal and VM-internalized classes, respectively), which provide the
 // actual fields/accessors that this mixin assumes.
 mixin _HashBase on _HashAbstractBase {
   // The number of bits used for each component is determined by table size.
