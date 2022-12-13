@@ -295,7 +295,7 @@ class NativeCompoundType : public NativeType {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   virtual bool ContainsOnlyFloats(Range range) const = 0;
 
-  // Returns how many word-sized chuncks _only_ contain floats.
+  // Returns how many word-sized chunks _only_ contain floats.
   //
   // Useful for determining whether struct is passed in FP registers on x64.
   intptr_t NumberOfWordSizeChunksOnlyFloat() const;

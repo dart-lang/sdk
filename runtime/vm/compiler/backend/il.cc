@@ -6905,7 +6905,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
                    compiler::FieldAddress(
                        temp0, compiler::target::PointerBase::data_offset()));
 
-      // Copy chuncks.
+      // Copy chunks.
       const intptr_t sp_offset =
           marshaller_.PassByPointerStackOffset(arg_index);
       // Struct size is rounded up to a multiple of target::kWordSize.
