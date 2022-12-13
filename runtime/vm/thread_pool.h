@@ -55,7 +55,7 @@ class ThreadPool {
 
   // Mark the current thread as being unblocked. Must be called iff
   // [MarkCurrentWorkerAsBlocked] was called before and the thread is now ready
-  // to coninue executing.
+  // to continue executing.
   void MarkCurrentWorkerAsUnBlocked();
 
   // Triggers shutdown, prevents scheduling of new tasks.
