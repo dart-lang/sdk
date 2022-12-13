@@ -3310,7 +3310,7 @@ enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
 //     - strict, when only marked allocations are assumed to be allocation
 //       sinking candidates.
 //
-// Fix-point algorithm in CollectCandiates first collects a set of allocations
+// Fix-point algorithm in CollectCandidates first collects a set of allocations
 // optimistically and then checks each collected candidate strictly and unmarks
 // invalid candidates transitively until only strictly valid ones remain.
 static bool IsSafeUse(Value* use, SafeUseCheck check_type) {
