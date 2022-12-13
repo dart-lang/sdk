@@ -50,6 +50,23 @@ void test() {
   Expect.equals(0x00000000000000F0, 0xF00000000000000F << 4);
   Expect.equals(0xF00000000, 15 << 32);
 
+  // Test bitwise operations on booleans
+  // This avoids frontend optimizations
+  final trueValue = int.parse("1") == 1;
+  final falseValue = int.parse("2") == 1;
+  Expect.equals(trueValue, trueValue & trueValue);
+  Expect.equals(falseValue, trueValue & falseValue);
+  Expect.equals(falseValue, falseValue & trueValue);
+  Expect.equals(falseValue, falseValue & falseValue);
+  Expect.equals(trueValue, trueValue | trueValue);
+  Expect.equals(trueValue, trueValue | falseValue);
+  Expect.equals(trueValue, falseValue | trueValue);
+  Expect.equals(falseValue, falseValue | falseValue);
+  Expect.equals(falseValue, trueValue ^ trueValue);
+  Expect.equals(trueValue, trueValue ^ falseValue);
+  Expect.equals(trueValue, falseValue ^ trueValue);
+  Expect.equals(falseValue, falseValue ^ falseValue);
+
   testNegativeValueShifts();
   testPositiveValueShifts();
   testNoMaskingOfShiftCount();
