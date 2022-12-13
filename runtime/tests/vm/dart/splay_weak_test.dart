@@ -46,7 +46,7 @@ class Payload {
     this.right = right;
   }
 
-  // This ordering of fields is delibrate: one strong reference visited before
+  // This ordering of fields is deliberate: one strong reference visited before
   // the weak reference and one after.
   var leftWeak;
   @pragma("vm:entry-point") // TODO(50571): Remove illegal optimization.
@@ -78,7 +78,7 @@ class Payload {
 class WeakNode extends Node {
   WeakNode(num key, Object? value) : super(key, value);
 
-  // This ordering of fields is delibrate: one strong reference visited before
+  // This ordering of fields is deliberate: one strong reference visited before
   // the weak reference and one after.
   var leftWeak;
   @pragma("vm:entry-point") // TODO(50571): Remove illegal optimization.
