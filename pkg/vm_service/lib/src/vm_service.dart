@@ -7074,7 +7074,7 @@ class ProcessMemoryItem {
   /// size. That is, it includes the size of children.
   int? size;
 
-  /// Subdivisons of this bucket of memory.
+  /// Subdivisions of this bucket of memory.
   List<ProcessMemoryItem>? children;
 
   ProcessMemoryItem({

@@ -3745,7 +3745,7 @@ class ProcessMemoryItem {
   // of children.
   int size;
 
-  // Subdivisons of this bucket of memory.
+  // Subdivisions of this bucket of memory.
   ProcessMemoryItem[] children;
 }
 ```
