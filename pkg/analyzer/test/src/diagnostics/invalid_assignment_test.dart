@@ -11,8 +11,6 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InvalidAssignment_ImplicitCallReferenceTest);
     defineReflectiveTests(InvalidAssignmentTest);
-    defineReflectiveTests(
-        InvalidAssignmentWithoutNullSafetyAndNoImplicitCastsTest);
     defineReflectiveTests(InvalidAssignmentWithoutNullSafetyTest);
     defineReflectiveTests(InvalidAssignmentWithStrictCastsTest);
   });
@@ -1019,76 +1017,6 @@ main() {
 }
 ''', [
       error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 218, 7),
-    ]);
-  }
-}
-
-@reflectiveTest
-class InvalidAssignmentWithoutNullSafetyAndNoImplicitCastsTest
-    extends PubPackageResolutionTest
-    with WithoutNullSafetyMixin, WithNoImplicitCastsMixin {
-  test_assignment() async {
-    await assertErrorsWithNoImplicitCasts('''
-void f(num n, int i) {
-  i = n;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 29, 1),
-    ]);
-  }
-
-  test_compoundAssignment() async {
-    await assertErrorsWithNoImplicitCasts('''
-void f(num n, int i) {
-  i += n;
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 30, 1),
-    ]);
-  }
-
-  @failingTest
-  test_list_spread_dynamic() async {
-    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/36267
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(dynamic a) {
-  [...a];
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 26, 1),
-    ]);
-  }
-
-  @failingTest
-  test_map_spread_dynamic() async {
-    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/36267
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(dynamic a) {
-  <dynamic, dynamic>{...a};
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 44, 1),
-    ]);
-  }
-
-  test_numericOps() async {
-    // Regression test for https://github.com/dart-lang/sdk/issues/26912
-    await assertNoErrorsWithNoImplicitCasts('''
-void f(int x, int y) {
-  x += y;
-}
-''');
-  }
-
-  @failingTest
-  test_set_spread_dynamic() async {
-    // TODO(mfairhurst) fix this, see https://github.com/dart-lang/sdk/issues/36267
-    await assertErrorsWithNoImplicitCasts(r'''
-void f(dynamic a) {
-  <dynamic>{...a};
-}
-''', [
-      error(CompileTimeErrorCode.INVALID_ASSIGNMENT, 35, 1),
     ]);
   }
 }

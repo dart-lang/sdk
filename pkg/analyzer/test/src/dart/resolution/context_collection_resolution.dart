@@ -41,8 +41,6 @@ export 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 
 class AnalysisOptionsFileConfig {
   final List<String> experiments;
-  final bool implicitCasts;
-  final bool implicitDynamic;
   final List<String> lints;
   final bool strictCasts;
   final bool strictInference;
@@ -51,8 +49,6 @@ class AnalysisOptionsFileConfig {
 
   AnalysisOptionsFileConfig({
     this.experiments = const [],
-    this.implicitCasts = true,
-    this.implicitDynamic = true,
     this.lints = const [],
     this.strictCasts = false,
     this.strictInference = false,
@@ -72,9 +68,6 @@ class AnalysisOptionsFileConfig {
     buffer.writeln('    strict-casts: $strictCasts');
     buffer.writeln('    strict-inference: $strictInference');
     buffer.writeln('    strict-raw-types: $strictRawTypes');
-    buffer.writeln('  strong-mode:');
-    buffer.writeln('    implicit-casts: $implicitCasts');
-    buffer.writeln('    implicit-dynamic: $implicitDynamic');
     buffer.writeln('  cannot-ignore:');
     for (var name in unignorableNames) {
       buffer.writeln('    - $name');
@@ -533,35 +526,6 @@ class PubspecYamlFileDependency {
 mixin WithLanguage218Mixin on PubPackageResolutionTest {
   @override
   String? get testPackageLanguageVersion => '2.18';
-}
-
-mixin WithNoImplicitCastsMixin on PubPackageResolutionTest {
-  /// Asserts that no errors are reported in [code] when implicit casts are
-  /// allowed, and that [expectedErrors] are reported for the same [code] when
-  /// implicit casts are not allowed.
-  Future<void> assertErrorsWithNoImplicitCasts(
-    String code,
-    List<ExpectedError> expectedErrors,
-  ) async {
-    await resolveTestCode(code);
-    assertNoErrorsInResult();
-
-    await disposeAnalysisContextCollection();
-
-    writeTestPackageAnalysisOptionsFile(
-      AnalysisOptionsFileConfig(
-        implicitCasts: false,
-      ),
-    );
-
-    await resolveTestFile();
-    assertErrorsInResult(expectedErrors);
-  }
-
-  /// Asserts that no errors are reported in [code], both when implicit casts
-  /// are allowed and when implicit casts are not allowed.
-  Future<void> assertNoErrorsWithNoImplicitCasts(String code) async =>
-      assertErrorsWithNoImplicitCasts(code, []);
 }
 
 mixin WithoutConstructorTearoffsMixin on PubPackageResolutionTest {

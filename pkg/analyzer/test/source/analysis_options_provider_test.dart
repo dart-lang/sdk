@@ -70,7 +70,7 @@ linter:
     test('test_bad_yaml (1)', () {
       var src = '''
     analyzer: # <= bang
-strong-mode: true
+language: true
 ''';
 
       var optionsProvider = AnalysisOptionsProvider();
@@ -81,7 +81,7 @@ strong-mode: true
     test('test_bad_yaml (2)', () {
       var src = '''
 analyzer:
-  strong-mode:true # missing space (sdk/issues/24885)
+  language:true # missing space (sdk/issues/24885)
 ''';
 
       var optionsProvider = AnalysisOptionsProvider();

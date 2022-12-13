@@ -452,8 +452,6 @@ class ContextsPage extends DiagnosticPageWithNav {
   String describe(AnalysisOptionsImpl options) {
     var b = StringBuffer();
 
-    b.write(writeOption('Implicit dynamic', options.implicitDynamic));
-    b.write(writeOption('Implicit casts', options.implicitCasts));
     b.write(writeOption('Feature set', options.contextFeatures.toString()));
     b.write('<br>');
 

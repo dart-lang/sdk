@@ -56,6 +56,15 @@
 [`MAX_USER_TAGS`]: https://api.dart.dev/stable/dart-developer/UserTag/MAX_USER_TAGS-constant.html
 [`maxUserTags`]: https://api.dart.dev/beta/2.19.0-255.2.beta/dart-developer/UserTag/maxUserTags-constant.html
 
+### Tools
+
+#### Analyzer
+
+- Remove deprecated 'strong-mode' analysis options from `analysis_options.yaml`
+  files. These options are replaced by the supported "strict" options
+  documented at
+  [dart.dev](https://dart.dev/guides/language/analysis-options#enabling-additional-type-checks).
+
 ## 2.19.0
 
 ### Language

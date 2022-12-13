@@ -706,7 +706,6 @@ class FileResolver {
     }
 
     var analysisOptions = AnalysisOptionsImpl()
-      ..implicitCasts = fileAnalysisOptions.implicitCasts
       ..strictInference = fileAnalysisOptions.strictInference;
 
     if (fsState == null) {

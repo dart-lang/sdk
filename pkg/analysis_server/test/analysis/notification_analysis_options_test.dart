@@ -28,7 +28,7 @@ class AnalysisOptionsFileNotificationTest extends PubPackageAnalysisServerTest {
   final testSource = '''
 void f() {
   var x = '';
-  int y = x; // Not assignable in strong-mode
+  int y = x; // Not assignable.
   print(y);
 }''';
 

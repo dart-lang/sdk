@@ -41,13 +41,11 @@ class AnalysisContextImpl implements AnalysisContext {
 
     // TODO() remove this method as well
     _typeSystemLegacy?.updateOptions(
-      implicitCasts: analysisOptions.implicitCasts,
       strictCasts: analysisOptions.strictCasts,
       strictInference: analysisOptions.strictInference,
     );
 
     _typeSystemNonNullableByDefault?.updateOptions(
-      implicitCasts: analysisOptions.implicitCasts,
       strictCasts: analysisOptions.strictCasts,
       strictInference: analysisOptions.strictInference,
     );
@@ -91,7 +89,6 @@ class AnalysisContextImpl implements AnalysisContext {
     }
 
     _typeSystemLegacy = TypeSystemImpl(
-      implicitCasts: analysisOptions.implicitCasts,
       isNonNullableByDefault: false,
       strictCasts: analysisOptions.strictCasts,
       strictInference: analysisOptions.strictInference,
@@ -99,7 +96,6 @@ class AnalysisContextImpl implements AnalysisContext {
     );
 
     _typeSystemNonNullableByDefault = TypeSystemImpl(
-      implicitCasts: analysisOptions.implicitCasts,
       isNonNullableByDefault: true,
       strictCasts: analysisOptions.strictCasts,
       strictInference: analysisOptions.strictInference,

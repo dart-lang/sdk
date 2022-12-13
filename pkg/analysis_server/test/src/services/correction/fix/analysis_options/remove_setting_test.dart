@@ -62,11 +62,4 @@ analyzer:
 ''', '''
 ''');
   }
-
-  Future<void> test_strong_mode_settings_deprecated() async {
-    await assertHasFix('''
-analyzer:
-  strong-mode: true
-''', '');
-  }
 }
