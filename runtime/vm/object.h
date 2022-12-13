@@ -2185,7 +2185,7 @@ class UnlinkedCall : public CallSiteData {
 // compilation. Code may contain only original ICData objects.
 //
 // ICData's backing store is an array that logically contains several valid
-// entries followed by a sentinal entry.
+// entries followed by a sentinel entry.
 //
 //   [<entry-0>, <...>, <entry-N>, <sentinel>]
 //
