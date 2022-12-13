@@ -352,7 +352,7 @@ Fragment PrologueBuilder::BuildClosureContextHandling() {
   LocalVariable* context = parsed_function_->current_context_var();
 
   // Load closure.context & store it into the context variable.
-  // (both load/store happen on the copyied-down places).
+  // (both load/store happen on the copied-down places).
   Fragment populate_context;
   populate_context += LoadLocal(closure_parameter);
   populate_context += LoadNativeField(Slot::Closure_context());
