@@ -19,7 +19,7 @@ class TypeTestingStubNamer {
  public:
   TypeTestingStubNamer();
 
-  // Simple helper for stringinfying a [type] and prefix it with the type
+  // Simple helper for stringifying a [type] and prefix it with the type
   // testing
   //
   // (only during dart_bootstrap).
