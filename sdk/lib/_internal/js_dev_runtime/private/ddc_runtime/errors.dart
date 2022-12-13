@@ -22,7 +22,7 @@ throwDeferredIsLoadedError(
   throw DeferredNotLoadedError(enclosingLibrary, importPrefix);
 }
 
-// TODO(nshahan) Cleanup embeded strings and extract file location at runtime
+// TODO(nshahan) Cleanup embedded strings and extract file location at runtime
 // from the stacktrace.
 assertFailed(String? message,
     [String? fileUri, int? line, int? column, String? conditionSource]) {
