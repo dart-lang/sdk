@@ -516,7 +516,7 @@ void IsolateGroup::Shutdown() {
     while (old_space->tasks() > 0) {
       ml.Wait();
     }
-    // Needs to happen before ~PageSpace so TLS and the thread registery are
+    // Needs to happen before ~PageSpace so TLS and the thread registry are
     // still valid.
     old_space->AbandonMarkingForShutdown();
   }
