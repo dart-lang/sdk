@@ -19,7 +19,7 @@ AVAILABLE_ARCHS = utils.ARCH_FAMILY.keys()
 GN = os.path.join(DART_ROOT, 'buildtools', 'gn')
 
 # Environment variables for default settings.
-DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instread of --toolchain-prefix
+DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instead of --toolchain-prefix
 DART_USE_SYSROOT = "DART_USE_SYSROOT"  # Use instead of --target-sysroot
 DART_USE_CRASHPAD = "DART_USE_CRASHPAD"  # Use instead of --use-crashpad
 # use instead of --platform-sdk
