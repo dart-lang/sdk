@@ -6,7 +6,7 @@ import "dart:async";
 import "dart:io";
 import "package:expect/expect.dart";
 
-/// Creates a callback that listens for incomming connections.
+/// Creates a callback that listens for incoming connections.
 /// If [remotePorts] is not null then callback would add remote port of each
 /// new connection to the given list.
 makeListener([List<int>? remotePorts]) {

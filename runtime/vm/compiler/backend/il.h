@@ -2800,8 +2800,8 @@ class PhiInstr : public VariadicDefinition {
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
 
-// This instruction represents an incomming parameter for a function entry,
-// or incoming value for OSR entry or incomming value for a catch entry.
+// This instruction represents an incoming parameter for a function entry,
+// or incoming value for OSR entry or incoming value for a catch entry.
 // Value [index] always denotes the position of the parameter. When [base_reg]
 // is set to FPREG, value [index] corresponds to environment variable index
 // (0 is the very first parameter, 1 is next and so on). When [base_reg] is
