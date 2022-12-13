@@ -9104,7 +9104,7 @@ class FunctionType : public AbstractType {
                                 Heap::Space space) const;
 
   // Returns the index in the parameter names array of the corresponding flag
-  // for the given parametere index. Also returns (via flag_mask) the
+  // for the given parameter index. Also returns (via flag_mask) the
   // corresponding mask within the flag.
   intptr_t GetRequiredFlagIndex(intptr_t index, intptr_t* flag_mask) const;
 
