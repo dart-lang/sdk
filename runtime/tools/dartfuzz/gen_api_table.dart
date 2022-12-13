@@ -688,7 +688,7 @@ enum Restriction {
 
 /// Class that represents Dart library methods.
 ///
-/// The invididual lists are organized by return type.
+/// The individual lists are organized by return type.
 /// Proto is a list of DartTypes whose first element is the type of the
 /// DartType of the receiver (DartType.VOID if none). The remaining elements are
 /// DartTypes of the parameters. The second element is DartType.VOID if there
