@@ -504,7 +504,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
 
   // If we eliminate a generational write barriers on allocations of an object
   // we need to ensure it's either a new-space object or it has been added to
-  // the remebered set.
+  // the remembered set.
   //
   // NOTE: We use reinterpret_cast<>() instead of ::RawCast() to avoid handle
   // allocations in debug mode. Handle allocations in leaf runtimes can cause
