@@ -256,7 +256,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       // failing to acquire the mark bit here doesn't reliably indicate the
       // object was already encountered through the deferred marking stack. Our
       // processing here is idempotent, so repeated visits only hurt performance
-      // but not correctness. Duplicatation is expected to be low.
+      // but not correctness. Duplication is expected to be low.
       // By the absence of a special case, we are treating WeakProperties as
       // strong references here. This guarantees a WeakProperty will only be
       // added to the delayed_weak_properties_ list of the worker that
