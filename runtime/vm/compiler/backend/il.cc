@@ -375,7 +375,7 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
       TypeArguments::Handle(zone, Type::Cast(type).arguments());
   ASSERT(ta.Length() == num_type_arguments);
 
-  // The last [num_type_pararameters] entries in the [TypeArguments] vector [ta]
+  // The last [num_type_parameters] entries in the [TypeArguments] vector [ta]
   // are the values we have to check against.  Ensure we can handle all of them
   // via [CidRange]-based checks or that it is a type parameter.
   AbstractType& type_arg = AbstractType::Handle(zone);
