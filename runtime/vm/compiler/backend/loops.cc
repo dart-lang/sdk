@@ -445,7 +445,7 @@ void InductionVarAnalysis::ClassifyControl(LoopInfo* loop) {
     // conditions like i <= U as upperbound or i >= L as lowerbound since this
     // could loop forever when U is kMaxInt64 or L is kMinInt64 under Dart's
     // 64-bit arithmetic wrap-around. Non-unit strides could overshoot the
-    // bound due to aritmetic wrap-around.
+    // bound due to arithmetic wrap-around.
     switch (cmp) {
       case Token::kLT:
         // Accept i < U (i++).
