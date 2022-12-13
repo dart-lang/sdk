@@ -25,7 +25,7 @@ The TTS has a special calling convention which accepts:
 
 This calling convention is the same as for the SubtypeTestCache-based implementation.
 
-We distuinguish between different type tests (based on the `<destination-type>`):
+We distinguish between different type tests (based on the `<destination-type>`):
 
 #### Simple Subtype ClassId-based range checks
 
