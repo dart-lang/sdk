@@ -6513,7 +6513,7 @@ TEST_CASE(HashCode) {
   EXPECT(result.IsIdenticalTo(expected));
 }
 
-const uint32_t kCalculateCanonizalizeHash = 0;
+const uint32_t kCalculateCanonicalizeHash = 0;
 
 // Checks that the .hashCode equals the VM CanonicalizeHash() for keys in
 // constant maps.
@@ -6524,7 +6524,7 @@ const uint32_t kCalculateCanonizalizeHash = 0;
 // is not executed but the provided value is used.
 static bool HashCodeEqualsCanonicalizeHash(
     const char* value_script,
-    uint32_t hashcode_canonicalize_vm = kCalculateCanonizalizeHash,
+    uint32_t hashcode_canonicalize_vm = kCalculateCanonicalizeHash,
     bool check_identity = true,
     bool check_hashcode = true) {
   auto kScriptChars = Utils::CStringUniquePtr(
@@ -6651,7 +6651,7 @@ TEST_CASE(HashCode_Symbol) {
       "value() {\n"
       "  return #A;\n"
       "}\n";
-  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonizalizeHash,
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonicalizeHash,
                                         /*check_identity=*/false));
 }
 
@@ -6670,7 +6670,7 @@ TEST_CASE(HashCode_Type_Dynamic) {
       "value() {\n"
       "  return type;\n"
       "}\n";
-  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonizalizeHash,
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonicalizeHash,
                                         /*check_identity=*/false));
 }
 
@@ -6681,7 +6681,7 @@ TEST_CASE(HashCode_Type_Int) {
       "value() {\n"
       "  return type;\n"
       "}\n";
-  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonizalizeHash,
+  EXPECT(HashCodeEqualsCanonicalizeHash(kScript, kCalculateCanonicalizeHash,
                                         /*check_identity=*/false));
 }
 
