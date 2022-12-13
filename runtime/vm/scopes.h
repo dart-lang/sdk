@@ -27,7 +27,7 @@ class Slot;
 //
 // There are generally 4 different kinds of [LocalVariable]s:
 //
-//    a) [LocalVariable]s refering to a parameter: The indices for those
+//    a) [LocalVariable]s referring to a parameter: The indices for those
 //       variables are assigned by the flow graph builder. Parameter n gets
 //       assigned the index (function.num_parameters - n - 1). I.e. the last
 //       parameter has index 1.

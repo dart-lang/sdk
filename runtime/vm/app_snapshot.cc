@@ -1100,7 +1100,7 @@ DART_FORCE_INLINE static CodePtr GetCodeAndEntryPointByIndex(
   }
   code_index -= base;
 
-  // At this point code_index is refering to a code object which is either
+  // At this point code_index is referring to a code object which is either
   // discarded or exists in the Code cluster. Non-discarded Code objects
   // are associated with the tail of the instruction table and have the
   // same order there and in the Code cluster. This means that
