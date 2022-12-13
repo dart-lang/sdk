@@ -645,16 +645,9 @@ void FlowGraphCompiler::EmitDispatchTableCall(
   // Would like cid_reg to be available on entry to the target function
   // for checking purposes.
   ASSERT(cid_reg != TMP);
-  intx_t imm = offset << compiler::target::kWordSizeLog2;
-  intx_t lo = ImmLo(imm);
-  intx_t hi = ImmHi(imm);
-  __ slli(TMP, cid_reg, compiler::target::kWordSizeLog2);
-  if (hi != 0) {
-    __ lui(TMP2, hi);
-    __ add(TMP, TMP, TMP2);
-  }
-  __ add(TMP, TMP, DISPATCH_TABLE_REG);
-  __ lx(TMP, compiler::Address(TMP, lo));
+  __ AddShifted(TMP, DISPATCH_TABLE_REG, cid_reg,
+                compiler::target::kWordSizeLog2);
+  __ LoadFromOffset(TMP, TMP, offset << compiler::target::kWordSizeLog2);
   __ jalr(TMP);
 }
 

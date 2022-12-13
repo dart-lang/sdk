@@ -2779,11 +2779,11 @@ void Assembler::SetIf(Condition condition, Register rd) {
     intx_t right = deferred_imm_;
     switch (condition) {
       case EQUAL:
-        xori(rd, left, right);
+        subi(rd, left, right);
         seqz(rd, rd);
         break;
       case NOT_EQUAL:
-        xori(rd, left, right);
+        subi(rd, left, right);
         snez(rd, rd);
         break;
       case LESS:
@@ -2868,18 +2868,53 @@ void Assembler::SetIf(Condition condition, Register rd) {
       default:
         UNREACHABLE();
     }
-  } else if (deferred_compare_ == kTestImm || deferred_compare_ == kTestReg) {
-    if (deferred_compare_ == kTestImm) {
-      AndImmediate(TMP2, deferred_left_, deferred_imm_);
+  } else if (deferred_compare_ == kTestImm) {
+    uintx_t uimm = deferred_imm_;
+    if (deferred_imm_ == 1) {
+      switch (condition) {
+        case ZERO:
+          andi(rd, deferred_left_, 1);
+          xori(rd, rd, 1);
+          break;
+        case NOT_ZERO:
+          andi(rd, deferred_left_, 1);
+          break;
+        default:
+          UNREACHABLE();
+      }
+    } else if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(uimm)) {
+      switch (condition) {
+        case ZERO:
+          bexti(rd, deferred_left_, Utils::ShiftForPowerOfTwo(uimm));
+          xori(rd, rd, 1);
+          break;
+        case NOT_ZERO:
+          bexti(rd, deferred_left_, Utils::ShiftForPowerOfTwo(uimm));
+          break;
+        default:
+          UNREACHABLE();
+      }
     } else {
-      and_(TMP2, deferred_left_, deferred_reg_);
+      AndImmediate(rd, deferred_left_, deferred_imm_);
+      switch (condition) {
+        case ZERO:
+          seqz(rd, rd);
+          break;
+        case NOT_ZERO:
+          snez(rd, rd);
+          break;
+        default:
+          UNREACHABLE();
+      }
     }
+  } else if (deferred_compare_ == kTestReg) {
+    and_(rd, deferred_left_, deferred_reg_);
     switch (condition) {
       case ZERO:
-        seqz(rd, TMP2);
+        seqz(rd, rd);
         break;
       case NOT_ZERO:
-        snez(rd, TMP2);
+        snez(rd, rd);
         break;
       default:
         UNREACHABLE();
@@ -2981,6 +3016,29 @@ void Assembler::Call(Register target) {
   jalr(target);
 }
 
+void Assembler::AddShifted(Register dest,
+                           Register base,
+                           Register index,
+                           intx_t shift) {
+  if (shift == 0) {
+    add(dest, index, base);
+  } else if (Supports(RV_Zba) && (shift == 1)) {
+    sh1add(dest, index, base);
+  } else if (Supports(RV_Zba) && (shift == 2)) {
+    sh2add(dest, index, base);
+  } else if (Supports(RV_Zba) && (shift == 3)) {
+    sh3add(dest, index, base);
+  } else if (shift < 0) {
+    ASSERT(base != dest);
+    srai(dest, index, -shift);
+    add(dest, dest, base);
+  } else {
+    ASSERT(base != dest);
+    slli(dest, index, shift);
+    add(dest, dest, base);
+  }
+}
+
 void Assembler::AddImmediate(Register rd,
                              Register rs1,
                              intx_t imm,
@@ -3034,8 +3092,21 @@ void Assembler::AndImmediate(Register rd,
                              Register rs1,
                              intx_t imm,
                              OperandSize sz) {
-  if (IsITypeImm(imm)) {
+  uintx_t uimm = imm;
+  if (imm == -1) {
+    MoveRegister(rd, rs1);
+  } else if (IsITypeImm(imm)) {
     andi(rd, rs1, imm);
+  } else if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(~uimm)) {
+    bclri(rd, rs1, Utils::ShiftForPowerOfTwo(~uimm));
+  } else if (Utils::IsPowerOfTwo(uimm + 1)) {
+    intptr_t shift = Utils::ShiftForPowerOfTwo(uimm + 1);
+    if (Supports(RV_Zbb) && (shift == 16)) {
+      zexth(rd, rs1);
+    } else {
+      slli(rd, rs1, XLEN - shift);
+      srli(rd, rd, XLEN - shift);
+    }
   } else {
     ASSERT(rs1 != TMP2);
     LoadImmediate(TMP2, imm);
@@ -3046,8 +3117,13 @@ void Assembler::OrImmediate(Register rd,
                             Register rs1,
                             intx_t imm,
                             OperandSize sz) {
-  if (IsITypeImm(imm)) {
+  uintx_t uimm = imm;
+  if (imm == 0) {
+    MoveRegister(rd, rs1);
+  } else if (IsITypeImm(imm)) {
     ori(rd, rs1, imm);
+  } else if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(uimm)) {
+    bseti(rd, rs1, Utils::ShiftForPowerOfTwo(uimm));
   } else {
     ASSERT(rs1 != TMP2);
     LoadImmediate(TMP2, imm);
@@ -3058,8 +3134,13 @@ void Assembler::XorImmediate(Register rd,
                              Register rs1,
                              intx_t imm,
                              OperandSize sz) {
-  if (IsITypeImm(imm)) {
+  uintx_t uimm = imm;
+  if (imm == 0) {
+    MoveRegister(rd, rs1);
+  } else if (IsITypeImm(imm)) {
     xori(rd, rs1, imm);
+  } else if (Supports(RV_Zbs) && Utils::IsPowerOfTwo(uimm)) {
+    binvi(rd, rs1, Utils::ShiftForPowerOfTwo(uimm));
   } else {
     ASSERT(rs1 != TMP2);
     LoadImmediate(TMP2, imm);
@@ -3136,8 +3217,7 @@ void Assembler::LoadIndexedPayload(Register dest,
                                    Register index,
                                    ScaleFactor scale,
                                    OperandSize sz) {
-  slli(TMP, index, scale);
-  add(TMP, TMP, base);
+  AddShifted(TMP, base, index, scale);
   LoadFromOffset(dest, TMP, payload_offset - kHeapObjectTag, sz);
 }
 void Assembler::LoadIndexedCompressed(Register dest,
@@ -4520,16 +4600,7 @@ Address Assembler::ElementAddressForRegIndexWithSize(bool is_external,
   const int32_t offset = HeapDataOffset(is_external, cid);
   ASSERT(array != temp);
   ASSERT(index != temp);
-  if (shift == 0) {
-    add(temp, array, index);
-  } else if (shift < 0) {
-    ASSERT(shift == -1);
-    srai(temp, index, 1);
-    add(temp, array, temp);
-  } else {
-    slli(temp, index, shift);
-    add(temp, array, temp);
-  }
+  AddShifted(temp, array, index, shift);
   return Address(temp, offset);
 }
 
@@ -4546,16 +4617,7 @@ void Assembler::ComputeElementAddressForRegIndex(Register address,
   const int32_t offset = HeapDataOffset(is_external, cid);
   ASSERT(array != address);
   ASSERT(index != address);
-  if (shift == 0) {
-    add(address, array, index);
-  } else if (shift < 0) {
-    ASSERT(shift == -1);
-    srai(address, index, 1);
-    add(address, array, address);
-  } else {
-    slli(address, index, shift);
-    add(address, array, address);
-  }
+  AddShifted(address, array, index, shift);
   if (offset != 0) {
     AddImmediate(address, address, offset);
   }
@@ -4782,10 +4844,10 @@ void Assembler::MultiplyBranchOverflow(Register rd,
 }
 
 void Assembler::CountLeadingZeroes(Register rd, Register rs) {
-  // Note: clz will appear in the Zbb extension.
-  // if (Supports(RV_Zbb)) {
-  //   clz(rd, rs);
-  // }
+  if (Supports(RV_Zbb)) {
+    clz(rd, rs);
+    return;
+  }
 
   //  n = XLEN
   //  y = x >>32; if (y != 0) { n = n - 32; x = y; }

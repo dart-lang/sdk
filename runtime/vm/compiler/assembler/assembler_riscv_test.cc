@@ -7239,6 +7239,54 @@ ASSEMBLER_TEST_RUN(LoadImmediate_LiSlliAddi, test) {
 }
 #endif
 
+ASSEMBLER_TEST_GENERATE(BitwiseImmediates_GC, assembler) {
+  FLAG_use_compressed_instructions = true;
+  __ SetExtensions(RV_GC);
+  __ AndImmediate(A0, A1, ~0x10000000);
+  __ OrImmediate(A0, A1, 0x10000000);
+  __ XorImmediate(A0, A1, 0x10000000);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitwiseImmediates_GC, test) {
+#if XLEN == 32
+  EXPECT_DISASSEMBLY(
+      "f0000737 lui tmp2, -268435456\n"
+      "    177d addi tmp2, tmp2, -1\n"
+      "00e5f533 and a0, a1, tmp2\n"
+      "10000737 lui tmp2, 268435456\n"
+      "00e5e533 or a0, a1, tmp2\n"
+      "10000737 lui tmp2, 268435456\n"
+      "00e5c533 xor a0, a1, tmp2\n"
+      "    8082 ret\n");
+#else
+  EXPECT_DISASSEMBLY(
+      "f0000737 lui tmp2, -268435456\n"
+      "    377d addiw tmp2, tmp2, -1\n"
+      "00e5f533 and a0, a1, tmp2\n"
+      "10000737 lui tmp2, 268435456\n"
+      "00e5e533 or a0, a1, tmp2\n"
+      "10000737 lui tmp2, 268435456\n"
+      "00e5c533 xor a0, a1, tmp2\n"
+      "    8082 ret\n");
+#endif
+}
+
+ASSEMBLER_TEST_GENERATE(BitwiseImmediates_GCB, assembler) {
+  FLAG_use_compressed_instructions = true;
+  __ SetExtensions(RV_GCB);
+  __ AndImmediate(A0, A1, ~0x10000000);
+  __ OrImmediate(A0, A1, 0x10000000);
+  __ XorImmediate(A0, A1, 0x10000000);
+  __ ret();
+}
+ASSEMBLER_TEST_RUN(BitwiseImmediates_GCB, test) {
+  EXPECT_DISASSEMBLY(
+      "49c59513 bclri a0, a1, 0x1c\n"
+      "29c59513 bseti a0, a1, 0x1c\n"
+      "69c59513 binvi a0, a1, 0x1c\n"
+      "    8082 ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(AddImmediateBranchOverflow, assembler) {
   FLAG_use_compressed_instructions = true;
   __ SetExtensions(RV_GC);

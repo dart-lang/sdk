@@ -1013,9 +1013,14 @@ class Assembler : public MicroAssembler {
                  Register src,
                  ScaleFactor scale,
                  int32_t value) {
-    slli(dest, src, scale);
-    addi(dest, dest, value);
+    if (scale == 0) {
+      AddImmediate(dest, src, value);
+    } else {
+      slli(dest, src, scale);
+      AddImmediate(dest, dest, value);
+    }
   }
+  void AddShifted(Register dest, Register base, Register index, intx_t shift);
   void SubRegisters(Register dest, Register src) {
     sub(dest, dest, src);
   }
