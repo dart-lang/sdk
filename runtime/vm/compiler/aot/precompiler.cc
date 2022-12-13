@@ -3544,7 +3544,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // too big). If we were adding objects into the global pool directly
       // these recompilations would leave dead entries behind.
       // Instead we add objects into an intermediary pool which gets
-      // commited into the global object pool at the end of the compilation.
+      // committed into the global object pool at the end of the compilation.
       // This makes an assumption that global object pool itself does not
       // grow during code generation - unfortunately this is not the case
       // becase we might have nested code generation (i.e. we might generate
