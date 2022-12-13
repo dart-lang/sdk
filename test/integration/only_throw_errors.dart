@@ -36,7 +36,7 @@ void main() {
             "throw 'hello world!'; // LINT",
             'throw null; // LINT',
             'throw 7; // LINT',
-            'throw new Object(); // LINT',
+            'throw Object(); // LINT',
             'throw returnString(); // LINT',
             'throw error; // LINT',
             '1 file analyzed, 6 issues found, in'

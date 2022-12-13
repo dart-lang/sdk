@@ -19,11 +19,11 @@ void throwNumber() {
 }
 
 void throwObject() {
-  throw new Object(); // LINT
+  throw Object(); // LINT
 }
 
 void throwError() {
-  throw new Error(); // OK
+  throw Error(); // OK
 }
 
 void throwDynamicPrebuiltError() {
@@ -32,17 +32,17 @@ void throwDynamicPrebuiltError() {
 }
 
 void throwStaticPrebuiltError() {
-  Error error = new Error();
+  Error error = Error();
   throw error; // OK
 }
 
 void throwArgumentError() {
-  Error error = new ArgumentError('oh!');
+  Error error = ArgumentError('oh!');
   throw error; // OK
 }
 
 void throwException() {
-  Exception exception = new Exception('oh!');
+  Exception exception = Exception('oh!');
   throw exception; // OK
 }
 
@@ -56,18 +56,17 @@ void throwExceptionFromFunction() {
   throw returnException();
 }
 
-Exception returnException() => new Exception('oh!');
+Exception returnException() => Exception('oh!');
 
 // TODO: Even though in the test this does not get linted, it does while
 // analyzing the SDK code. Find out why.
 dynamic noSuchMethod(Invocation invocation) {
-  throw new NoSuchMethodError(new Object(), invocation.memberName,
-      invocation.positionalArguments, invocation.namedArguments);
+  throw NoSuchMethodError.withInvocation(Object(), invocation);
 }
 
 class Err extends Object with Exception {
   static throws() {
-    throw new Err(); // OK
+    throw Err(); // OK
   }
 }
 
