@@ -257,7 +257,7 @@ class PriorityQueue {
   //
   // Deletion operations can be performed by replacing the minimum element
   // (first entry) by the last entry (bottom right) and bubbling it down until
-  // the tree invariant is satisified again.
+  // the tree invariant is satisfied again.
   Entry* min_heap_;
   intptr_t min_heap_size_;
   intptr_t size_;
