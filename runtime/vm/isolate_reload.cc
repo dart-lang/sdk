@@ -199,7 +199,7 @@ InstanceMorpher* InstanceMorpher::CreateFromClassDescriptors(
         mapping->Add({from_field.HostOffset(), from_box_cid});
         mapping->Add({to_field.HostOffset(), to_box_cid});
 
-        // Field did exist in old class deifnition.
+        // Field did exist in old class definition.
         new_field = false;
         break;
       }
