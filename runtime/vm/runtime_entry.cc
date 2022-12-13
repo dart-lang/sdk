@@ -509,7 +509,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
   // NOTE: We use reinterpret_cast<>() instead of ::RawCast() to avoid handle
   // allocations in debug mode. Handle allocations in leaf runtimes can cause
   // memory leaks because they will allocate into a handle scope from the next
-  // outermost runtime code (to which the genenerated Dart code might not return
+  // outermost runtime code (to which the generated Dart code might not return
   // in a long time).
   bool add_to_remembered_set = true;
   if (object->untag()->IsRemembered()) {
