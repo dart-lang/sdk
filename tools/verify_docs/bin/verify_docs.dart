@@ -221,7 +221,7 @@ class ValidateCommentCodeSamplesVisitor extends GeneralizingAstVisitor {
   // instead of writing them explicitly to.
   //
   // Captures:
-  // 1/libdecl: Non-null if mathcing a `library` declaration.
+  // 1/libdecl: Non-null if matching a `library` declaration.
   // 2: Internal use, quote around import URI.
   // 3/importuri: Import URI.
   final _toplevelDeclarationRE = RegExp(r'^\s*(?:'
