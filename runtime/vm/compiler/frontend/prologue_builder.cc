@@ -244,7 +244,7 @@ Fragment PrologueBuilder::BuildParameterHandling() {
       LocalVariable* tuple_diff = MakeTemporary();
 
       // Let's load position from arg descriptor (to see which parameter is the
-      // name) and move kEntrySize forward in ArgDescriptopr names array.
+      // name) and move kEntrySize forward in ArgDescriptor names array.
       //
       // Later we'll either add this fragment directly to the copy_args_prologue
       // if no check is needed or add an appropriate check.
