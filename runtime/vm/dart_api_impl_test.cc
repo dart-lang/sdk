@@ -5091,7 +5091,7 @@ TEST_CASE(DartAPI_SetStickyError) {
   EXPECT(Dart_GetStickyError() == Dart_Null());
 }
 
-TEST_CASE(DartAPI_TypeGetNonParamtericTypes) {
+TEST_CASE(DartAPI_TypeGetNonParametricTypes) {
   const char* kScriptChars =
       "class MyClass0 {\n"
       "}\n"
