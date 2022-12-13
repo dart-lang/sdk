@@ -530,7 +530,7 @@ abstract class _ChunkedJsonParser<T> {
   T get chunk;
 
   /**
-   * Get charcacter/code unit of current chunk.
+   * Get character/code unit of current chunk.
    *
    * The [index] must be non-negative and less than `chunkEnd`.
    * In practive, [index] will be no smaller than the `start` argument passed
