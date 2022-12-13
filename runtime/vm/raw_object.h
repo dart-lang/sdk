@@ -1946,7 +1946,7 @@ class UntaggedPcDescriptors : public UntaggedObject {
   static const char* KindToCString(Kind k);
   static bool ParseKind(const char* cstr, Kind* out);
 
-  // Used to represent the absense of a yield index in PcDescriptors.
+  // Used to represent the absence of a yield index in PcDescriptors.
   static constexpr intptr_t kInvalidYieldIndex = -1;
 
   class KindAndMetadata {
