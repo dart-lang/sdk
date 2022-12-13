@@ -438,7 +438,7 @@ var frameModelEventsWaterfall = [
     });
     return input;
   },
-  // Add auxilary events to frame (Frame Budget and Frame Length).
+  // Add auxiliary events to frame (Frame Budget and Frame Length).
   // Example:
   // Before
   //              |[GPU1--------------------]|         |[GPU2-----]
@@ -450,7 +450,7 @@ var frameModelEventsWaterfall = [
   //              |[GPU1--------------------]|         |[GPU2-----]
   //     [VSYNC1] |                          |[VSYNC2] |
   //  [SHIFTABLE1]|[FRAMEWORK1]              |         |[FRAMEWORK2]
-  function addAuxilaryEvents(input) {
+  function addAuxiliaryEvents(input) {
     input.frames.forEach(function (frame) {
       frame.events.unshift({
         args: {name: "Frame Budgets"},
