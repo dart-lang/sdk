@@ -72,7 +72,7 @@ class InductionVar : public ZoneAllocated {
     }
   }
 
-  // Returns true if the other induction is structually equivalent.
+  // Returns true if the other induction is structurally equivalent.
   bool IsEqual(const InductionVar* other) const {
     ASSERT(other != nullptr);
     if (kind_ == other->kind_) {
