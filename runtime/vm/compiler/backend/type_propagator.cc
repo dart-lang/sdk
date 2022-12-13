@@ -1016,7 +1016,7 @@ CompileType* Value::Type() {
 
 void Value::SetReachingType(CompileType* type) {
   // If [type] is owned but not by the definition which flows into this use
-  // then we need to disconect the type from original owner by cloning it.
+  // then we need to disconnect the type from original owner by cloning it.
   // This is done to prevent situations when [type] is updated by its owner
   // but [owner] is no longer connected to this use through def-use chain
   // and as a result type propagator does not recompute type of the current
