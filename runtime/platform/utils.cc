@@ -86,7 +86,7 @@ uint32_t Utils::ReverseBits32(uint32_t x) {
 }
 
 // Implementation according to H.S.Warren's "Hacker's Delight"
-// (Addison Wesley, 2002) Chapter 10 and T.Grablund, P.L.Montogomery's
+// (Addison Wesley, 2002) Chapter 10 and T.Grablund, P.L.Montgomery's
 // "Division by Invariant Integers Using Multiplication" (PLDI 1994).
 void Utils::CalculateMagicAndShiftForDivRem(int64_t divisor,
                                             int64_t* magic,
