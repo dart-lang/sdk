@@ -1523,7 +1523,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       // We don't expect a non-integer first input to the fixed-size allocation,
       // but checking the input is an integer ensures we do not replace a
       // HGetlength with a reference to something with a type that will confuse
-      // bounds check eliminiation.
+      // bounds check elimination.
       if (lengthInput.isInteger(_abstractValueDomain).isDefinitelyTrue) {
         // TODO(sra). HGetLength may have a better type than [lengthInput] as
         // the allocation may throw on an out-of-range input. Typically the
