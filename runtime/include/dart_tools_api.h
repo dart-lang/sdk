@@ -518,7 +518,7 @@ typedef void (*Dart_TimelineRecorderCallback)(
  * will be remembered. Providing a NULL callback will clear the registration
  * (i.e., a NULL callback produced a no-op instead of a crash).
  *
- * Setting a callback is insuffient to receive events through the callback. The
+ * Setting a callback is insufficient to receive events through the callback. The
  * VM flag `timeline_recorder` must also be set to `callback`.
  */
 DART_EXPORT void Dart_SetTimelineRecorderCallback(
