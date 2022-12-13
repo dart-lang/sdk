@@ -69,7 +69,7 @@ main() {
   });
 }
 
-/// Generate a component for a modular complation unit.
+/// Generate a component for a modular compilation unit.
 Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
     {List<String> deps = const []}) async {
   var fs = MemoryFileSystem(_defaultDir);

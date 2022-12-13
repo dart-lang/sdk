@@ -292,7 +292,7 @@ bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
 }
 
 bool Compiler::IsBackgroundCompilation() {
-  // For now: compilation in non mutator thread is the background compoilation.
+  // For now: compilation in non mutator thread is the background compilation.
   return !Thread::Current()->IsMutatorThread();
 }
 
