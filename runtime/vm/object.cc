@@ -2730,7 +2730,7 @@ void Object::InitializeObject(uword address,
         cur += kWordSize;
       }
     } else {
-      // Check that MemorySantizer understands this is initialized.
+      // Check that MemorySanitizer understands this is initialized.
       MSAN_CHECK_INITIALIZED(reinterpret_cast<void*>(address), size);
 #if defined(DEBUG)
       while (cur < end) {
