@@ -2791,7 +2791,11 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitYieldStatement(YieldStatement node) => _throw(node);
 
   Never _throw(AstNode node) {
-    throw Exception('Missing implementation of visit${node.runtimeType}');
+    var typeName = node.runtimeType.toString();
+    if (typeName.endsWith('Impl')) {
+      typeName = typeName.substring(0, typeName.length - 4);
+    }
+    throw Exception('Missing implementation of visit$typeName');
   }
 }
 
