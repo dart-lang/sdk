@@ -1,3 +1,14 @@
+## 2.18.6 - 2022-12-14
+
+This is a patch release that:
+
+- fixes a call-through-getter runtime issue (issue [#116405][]).
+- fixes a Dart VM hang when running tests using the
+  `--coverage` flag (issue [#50389][]).
+
+[#116405]: https://github.com/flutter/flutter/issues/116405
+[#50389]: https://github.com/dart-lang/sdk/issues/50389
+
 ## 2.18.5 - 2022-11-23
 
 This is a patch release that:
