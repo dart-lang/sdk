@@ -748,7 +748,7 @@ void IsolateGroup::IncreaseMutatorCount(Isolate* mutator,
   {
     // NOTE: This is performance critical code, we should avoid monitors and use
     // std::atomics in the fast case (where active_mutators <
-    // max_active_mutators) and only use montiors in the uncommon case.
+    // max_active_mutators) and only use monitors in the uncommon case.
     MonitorLocker ml(active_mutators_monitor_.get());
     ASSERT(active_mutators_ <= max_active_mutators_);
     while (active_mutators_ == max_active_mutators_) {
@@ -774,7 +774,7 @@ void IsolateGroup::DecreaseMutatorCount(Isolate* mutator, bool is_nested_exit) {
   {
     // NOTE: This is performance critical code, we should avoid monitors and use
     // std::atomics in the fast case (where active_mutators <
-    // max_active_mutators) and only use montiors in the uncommon case.
+    // max_active_mutators) and only use monitors in the uncommon case.
     MonitorLocker ml(active_mutators_monitor_.get());
     ASSERT(active_mutators_ <= max_active_mutators_);
     active_mutators_--;
