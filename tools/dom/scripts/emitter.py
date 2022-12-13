@@ -49,7 +49,7 @@ class Emitter(object):
     corresponding emitter.
 
     Subtemplates can be created by using $#NAME(...), where text can be placed
-    inside of the parentheses and will conditionally expand depdending on if
+    inside of the parentheses and will conditionally expand depending on if
     NAME is set to True or False. The text inside the parentheses may use
     further $#NAME and $NAME substitutions, but is not permitted to create
     holes.
