@@ -753,7 +753,7 @@ LayoutTests/fast/text/font-fallback-synthetic-italics_t01: Pass, RuntimeError  #
 LayoutTests/fast/text/glyph-reordering_t01: Pass, RuntimeError # Issue 747, This is a false pass. The font gets sanitized, so whether it works or not probably depends on default sizes.
 LayoutTests/fast/text/international/rtl-text-wrapping_t01: Pass # Issue 747, This is a false pass. All the content gets sanitized, so there's nothing to assert fail on. If the code did anything it would fail.
 LayoutTests/fast/text/line-break-after-empty-inline-hebrew_t01: Pass, RuntimeError # Issue 747
-LayoutTests/fast/text/regional-indicator-symobls_t01: Pass, Fail # Issue 747
+LayoutTests/fast/text/regional-indicator-symbols_t01: Pass, Fail # Issue 747
 LayoutTests/fast/text/font-fallback-synthetic-italics_t01: RuntimeError # Issue 747
 LayoutTests/fast/text/font-ligatures-linebreak_t01: Skip # Issue 747
 LayoutTests/fast/text/font-ligatures-linebreak-word_t01: Skip # Issue 747
@@ -1814,7 +1814,7 @@ LayoutTests/fast/shapes/shape-outside-floats/shape-outside-floats-inset-rounded-
 LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t02: RuntimeError # Please triage this failure
 LayoutTests/fast/text/international/combining-marks-position_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/line-break-after-question-mark_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/text/regional-indicator-symobls_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/text/regional-indicator-symbols_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/text-combine-shrink-to-fit_t01: RuntimeError # Please triage this failure
 LibTest/math/log_A01_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/index-validation-verifies-too-many-indices_t01: RuntimeError, Pass # Please triage this flake
