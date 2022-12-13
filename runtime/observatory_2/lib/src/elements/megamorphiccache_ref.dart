@@ -55,7 +55,7 @@ class MegamorphicCacheRefElement extends CustomElement implements Renderable {
         ..children = <Element>[
           new SpanElement()
             ..classes = ['emphasize']
-            ..text = 'MegarmorphicCache',
+            ..text = 'MegamorphicCache',
           new SpanElement()..text = ' (${_cache.selector})'
         ]
     ];
