@@ -1496,7 +1496,7 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator <<(int shiftAmount) {
     if (shiftAmount < 0) {
-      throw ArgumentError("shift-amount must be posititve $shiftAmount");
+      throw ArgumentError("shift-amount must be positive $shiftAmount");
     }
     if (_isZero) return this;
     final digitShift = shiftAmount ~/ _digitBits;
@@ -1560,7 +1560,7 @@ class _BigIntImpl implements BigInt {
    */
   _BigIntImpl operator >>(int shiftAmount) {
     if (shiftAmount < 0) {
-      throw ArgumentError("shift-amount must be posititve $shiftAmount");
+      throw ArgumentError("shift-amount must be positive $shiftAmount");
     }
     if (_isZero) return this;
     final digitShift = shiftAmount ~/ _digitBits;

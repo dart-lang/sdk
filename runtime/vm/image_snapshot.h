@@ -564,7 +564,7 @@ class ImageWriter : public ValueObject {
 
   SnapshotTextObjectNamer namer_;
 
-  // Reserve two postive labels for each of the ProgramSection values (one for
+  // Reserve two positive labels for each of the ProgramSection values (one for
   // vm, one for isolate).
   intptr_t next_label_ = 1 + 2 * kNumProgramSections;
 #endif

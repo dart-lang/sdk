@@ -1327,7 +1327,7 @@ void RegisterTypeArgumentsUse(const Function& function,
       // subclass.
       // We try to strengthen this assumption further down by checking the offset
       // of the type argument vector, but generally speaking this could be a
-      // false-postive, which is still ok!
+      // false-positive, which is still ok!
       const AbstractType& type = *instance->Type()->ToAbstractType();
       if (type.IsType()) {
         const Class& type_class = Class::Handle(type.type_class());
