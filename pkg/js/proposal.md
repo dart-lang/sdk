@@ -1588,7 +1588,7 @@ a shared way.
 
 Dynamic dispatch, calling conventions, and runtime type checks, and native SDK
 types are different between the two compilers, so those details would require
-separete work.
+separate work.
 
 
 ### Q: If a JS API returns "Object" does this break dart2js tree shaking?

@@ -1614,7 +1614,7 @@ void f() {
     // but 'b'` to have its own.
     //
     // Additionally, because the caret is before the identifier, we will have
-    // seperate default insert/replace ranges.
+    // separate default insert/replace ranges.
     final content = '''
 void f(String a, {String? b}) {
   f([[^b]]);

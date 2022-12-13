@@ -1536,7 +1536,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitDynamicInvocation(
       DynamicInvocation node, w.ValueType expectedType) {
-    // Handle dynamic 'call' seperately.
+    // Handle dynamic 'call' separately.
     if (node.name.text == "call") {
       return _functionCall(node.receiver, node.arguments);
     }
