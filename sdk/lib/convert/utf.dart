@@ -287,7 +287,7 @@ class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
     if (isLast) close();
   }
 
-  // TODO(floitsch): implement asUtf8Sink. Sligthly complicated because it
+  // TODO(floitsch): implement asUtf8Sink. Slightly complicated because it
   // needs to deal with malformed input.
 }
 
