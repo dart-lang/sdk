@@ -1570,8 +1570,8 @@ void TypeUsageInfo::PropagateTypeArguments(ClassTable* class_table,
 
   TypeArgumentInstantiator instantiator(zone_);
 
-  const intptr_t kPropgationRounds = 2;
-  for (intptr_t round = 0; round < kPropgationRounds; ++round) {
+  const intptr_t kPropagationRounds = 2;
+  for (intptr_t round = 0; round < kPropagationRounds; ++round) {
     for (intptr_t cid = 0; cid < cid_count; ++cid) {
       if (!class_table->IsValidIndex(cid) ||
           !class_table->HasValidClassAt(cid)) {
