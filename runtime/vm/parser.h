@@ -39,6 +39,32 @@ template <typename T>
 class GrowableArray;
 class Parser;
 
+class FieldKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Field* Key;
+  typedef const Field* Value;
+  typedef const Field* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline uword Hash(Key key) {
+    const TokenPosition token_pos = key->token_pos();
+    if (token_pos.IsReal()) {
+      return token_pos.Hash();
+    }
+    return key->kernel_offset();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->Original() == key->Original();
+  }
+};
+
+typedef DirectChainedHashMap<FieldKeyValueTrait> FieldSet;
+
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
  public:
@@ -153,9 +179,7 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* EnsureExpressionTemp();
   LocalVariable* EnsureEntryPointsTemp();
 
-  ZoneGrowableArray<const Field*>* guarded_fields() const {
-    return guarded_fields_;
-  }
+  const FieldSet* guarded_fields() const { return &guarded_fields_; }
 
   VariableIndex first_parameter_index() const { return first_parameter_index_; }
   int num_stack_locals() const { return num_stack_locals_; }
@@ -274,7 +298,7 @@ class ParsedFunction : public ZoneAllocated {
   LocalVariable* entry_points_temp_var_;
   LocalVariable* finally_return_temp_var_;
   DynamicClosureCallVars* dynamic_closure_call_vars_;
-  ZoneGrowableArray<const Field*>* guarded_fields_;
+  mutable FieldSet guarded_fields_;
   ZoneGrowableArray<const Instance*>* default_parameter_values_;
 
   LocalVariable* raw_type_arguments_var_;

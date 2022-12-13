@@ -82,32 +82,6 @@ struct FunctionKeyTraits {
 
 typedef UnorderedHashSet<FunctionKeyTraits> FunctionSet;
 
-class FieldKeyValueTrait {
- public:
-  // Typedefs needed for the DirectChainedHashMap template.
-  typedef const Field* Key;
-  typedef const Field* Value;
-  typedef const Field* Pair;
-
-  static Key KeyOf(Pair kv) { return kv; }
-
-  static Value ValueOf(Pair kv) { return kv; }
-
-  static inline uword Hash(Key key) {
-    const TokenPosition token_pos = key->token_pos();
-    if (token_pos.IsReal()) {
-      return token_pos.Hash();
-    }
-    return key->kernel_offset();
-  }
-
-  static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->ptr() == key->ptr();
-  }
-};
-
-typedef DirectChainedHashMap<FieldKeyValueTrait> FieldSet;
-
 class ClassKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.

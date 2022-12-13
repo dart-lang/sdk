@@ -342,6 +342,51 @@ class MetadataMapTraits {
 };
 typedef UnorderedHashMap<MetadataMapTraits> MetadataMap;
 
+class DispatcherKey {
+ public:
+  DispatcherKey(const String& name,
+                const Array& args_desc,
+                UntaggedFunction::Kind kind)
+      : name_(name), args_desc_(args_desc), kind_(kind) {}
+  bool Equals(const Function& other) const {
+    return (name_.ptr() == other.name()) &&
+           (args_desc_.ptr() == other.saved_args_desc()) &&
+           (kind_ == other.kind());
+  }
+  uword Hash() const { return CombineHashes(name_.Hash(), kind_); }
+
+ private:
+  const String& name_;
+  const Array& args_desc_;
+  UntaggedFunction::Kind kind_;
+};
+
+class DispatcherTraits {
+ public:
+  static const char* Name() { return "DispatcherTraits"; }
+  static bool ReportStats() { return false; }
+
+  // Called when growing the table.
+  static bool IsMatch(const Object& a, const Object& b) {
+    const Function& a_func = Function::Cast(a);
+    const Function& b_func = Function::Cast(b);
+    return (a_func.name() == b_func.name()) &&
+           (a_func.kind() == b_func.kind()) &&
+           (a_func.saved_args_desc() == b_func.saved_args_desc());
+  }
+  static bool IsMatch(const DispatcherKey& key, const Object& obj) {
+    return key.Equals(Function::Cast(obj));
+  }
+  static uword Hash(const Object& key) {
+    const Function& func = Function::Cast(key);
+    return CombineHashes(String::Hash(func.name()), func.kind());
+  }
+  static uword Hash(const DispatcherKey& key) { return key.Hash(); }
+  static ObjectPtr NewKey(const DispatcherKey& key) { UNREACHABLE(); }
+};
+
+typedef UnorderedHashSet<DispatcherTraits, AcqRelStorageTraits> DispatcherSet;
+
 class CanonicalInstanceKey {
  public:
   explicit CanonicalInstanceKey(const Instance& key);

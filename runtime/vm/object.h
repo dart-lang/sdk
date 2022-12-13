@@ -13147,10 +13147,6 @@ class ArrayOfTuplesView {
   const Array& array_;
 };
 
-using InvocationDispatcherTable =
-    ArrayOfTuplesView<Class::InvocationDispatcherEntry,
-                      std::tuple<String, Array, Function>>;
-
 using StaticCallsTable =
     ArrayOfTuplesView<Code::SCallTableEntry, std::tuple<Smi, Object, Function>>;
 

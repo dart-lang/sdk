@@ -2126,8 +2126,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   classid_t cls_id = target::Class::GetId(cls);
   ASSERT(cls_id != kIllegalCid);
 
-  RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
-
   const intptr_t cls_type_arg_field_offset =
       target::Class::TypeArgumentsFieldOffset(cls);
 
@@ -2138,9 +2136,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
 
   const intptr_t instance_size = target::Class::GetInstanceSize(cls);
   ASSERT(instance_size > 0);
-  // User-defined classes should always be allocatable in new space.
-  RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
-
   const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
 
@@ -2152,6 +2147,9 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   if (!FLAG_use_slow_path && FLAG_inline_alloc &&
       !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
+    RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
+    RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
+
     if (is_cls_parameterized) {
       if (!IsSameObject(NullObject(),
                         CastHandle<Object>(allocat_object_parametrized))) {

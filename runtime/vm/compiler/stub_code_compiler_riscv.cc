@@ -2023,8 +2023,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   classid_t cls_id = target::Class::GetId(cls);
   ASSERT(cls_id != kIllegalCid);
 
-  RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
-
   // The generated code is different if the class is parameterized.
   const bool is_cls_parameterized = target::Class::NumTypeArguments(cls) > 0;
   ASSERT(!is_cls_parameterized || target::Class::TypeArgumentsFieldOffset(
@@ -2032,7 +2030,6 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
 
   const intptr_t instance_size = target::Class::GetInstanceSize(cls);
   ASSERT(instance_size > 0);
-  RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
 
   const uword tags =
       target::MakeTagWordForNewSpaceObject(cls_id, instance_size);
@@ -2046,6 +2043,8 @@ void StubCodeCompiler::GenerateAllocationStubForClass(
   if (!FLAG_use_slow_path && FLAG_inline_alloc &&
       !target::Class::TraceAllocation(cls) &&
       target::SizeFitsInSizeTag(instance_size)) {
+    RELEASE_ASSERT(AllocateObjectInstr::WillAllocateNewOrRemembered(cls));
+    RELEASE_ASSERT(target::Heap::IsAllocatableInNewSpace(instance_size));
     if (is_cls_parameterized) {
       if (!IsSameObject(NullObject(),
                         CastHandle<Object>(allocat_object_parametrized))) {

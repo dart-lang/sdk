@@ -1446,11 +1446,11 @@ class CallSiteInliner : public ValueObject {
 
         // When inlined, we add the guarded fields of the callee to the caller's
         // list of guarded fields.
-        const ZoneGrowableArray<const Field*>& callee_guarded_fields =
-            *callee_graph->parsed_function().guarded_fields();
-        for (intptr_t i = 0; i < callee_guarded_fields.length(); ++i) {
-          caller_graph()->parsed_function().AddToGuardedFields(
-              callee_guarded_fields[i]);
+        const FieldSet* callee_guarded_fields =
+            callee_graph->parsed_function().guarded_fields();
+        FieldSet::Iterator it = callee_guarded_fields->GetIterator();
+        while (const Field** field = it.Next()) {
+          caller_graph()->parsed_function().AddToGuardedFields(*field);
         }
 
         {

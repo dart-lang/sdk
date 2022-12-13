@@ -3739,41 +3739,14 @@ void Class::AddInvocationDispatcher(const String& target_name,
   auto thread = Thread::Current();
   ASSERT(thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
 
-  auto zone = thread->zone();
-  auto& cache = Array::Handle(zone, invocation_dispatcher_cache());
-  InvocationDispatcherTable dispatchers(cache);
-  intptr_t i = 0;
-#if defined(DEBUG)
-  auto& function = Function::Handle();
-#endif
-  for (auto entry : dispatchers) {
-    if (entry.Get<kInvocationDispatcherName>() == String::null()) {
-      break;
-    }
+  ASSERT(target_name.ptr() == dispatcher.name());
 
-#if defined(DEBUG)
-    // Check for duplicate entries in the cache.
-    function = entry.Get<kInvocationDispatcherFunction>();
-    ASSERT(entry.Get<kInvocationDispatcherName>() != target_name.ptr() ||
-           function.kind() != dispatcher.kind() ||
-           entry.Get<kInvocationDispatcherArgsDesc>() != args_desc.ptr());
-#endif  // defined(DEBUG)
-    i++;
-  }
-  if (i == dispatchers.Length()) {
-    const intptr_t new_len =
-        cache.Length() == 0
-            ? static_cast<intptr_t>(Class::kInvocationDispatcherEntrySize)
-            : cache.Length() * 2;
-    cache = Array::Grow(cache, new_len);
-    set_invocation_dispatcher_cache(cache);
-  }
-  // Ensure all stores are visible at the point the name is visible.
-  auto entry = dispatchers[i];
-  entry.Set<Class::kInvocationDispatcherArgsDesc>(args_desc);
-  entry.Set<Class::kInvocationDispatcherFunction>(dispatcher);
-  entry.Set<Class::kInvocationDispatcherName, std::memory_order_release>(
-      target_name);
+  DispatcherSet dispatchers(invocation_dispatcher_cache() ==
+                                    Array::empty_array().ptr()
+                                ? HashTables::New<DispatcherSet>(4, Heap::kOld)
+                                : invocation_dispatcher_cache());
+  dispatchers.Insert(dispatcher);
+  set_invocation_dispatcher_cache(dispatchers.Release());
 }
 
 FunctionPtr Class::GetInvocationDispatcher(const String& target_name,
@@ -3786,32 +3759,14 @@ FunctionPtr Class::GetInvocationDispatcher(const String& target_name,
   auto thread = Thread::Current();
   auto Z = thread->zone();
   auto& function = Function::Handle(Z);
-  auto& name = String::Handle(Z);
-  auto& desc = Array::Handle(Z);
-  auto& cache = Array::Handle(Z);
-
-  auto find_entry = [&]() {
-    cache = invocation_dispatcher_cache();
-    ASSERT(!cache.IsNull());
-    InvocationDispatcherTable dispatchers(cache);
-    for (auto dispatcher : dispatchers) {
-      // Ensure all loads are done after loading the name.
-      name = dispatcher.Get<Class::kInvocationDispatcherName,
-                            std::memory_order_acquire>();
-      if (name.IsNull()) break;  // Reached last entry.
-      if (!name.Equals(target_name)) continue;
-      desc = dispatcher.Get<Class::kInvocationDispatcherArgsDesc>();
-      if (desc.ptr() != args_desc.ptr()) continue;
-      function = dispatcher.Get<Class::kInvocationDispatcherFunction>();
-      if (function.kind() == kind) {
-        return function.ptr();
-      }
-    }
-    return Function::null();
-  };
 
   // First we'll try to find it without using locks.
-  function = find_entry();
+  DispatcherKey key(target_name, args_desc, kind);
+  if (invocation_dispatcher_cache() != Array::empty_array().ptr()) {
+    DispatcherSet dispatchers(Z, invocation_dispatcher_cache());
+    function ^= dispatchers.GetOrNull(key);
+    dispatchers.Release();
+  }
   if (!function.IsNull() || !create_if_absent) {
     return function.ptr();
   }
@@ -3820,7 +3775,11 @@ FunctionPtr Class::GetInvocationDispatcher(const String& target_name,
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
 
   // Try to find it again & return if it was added in the meantime.
-  function = find_entry();
+  if (invocation_dispatcher_cache() != Array::empty_array().ptr()) {
+    DispatcherSet dispatchers(Z, invocation_dispatcher_cache());
+    function ^= dispatchers.GetOrNull(key);
+    dispatchers.Release();
+  }
   if (!function.IsNull()) return function.ptr();
 
   // Otherwise create it & add it.
@@ -7832,11 +7791,12 @@ void Function::set_extracted_method_closure(const Function& value) const {
 }
 
 ArrayPtr Function::saved_args_desc() const {
+  if (kind() == UntaggedFunction::kDynamicInvocationForwarder) {
+    return Array::null();
+  }
   ASSERT(kind() == UntaggedFunction::kNoSuchMethodDispatcher ||
          kind() == UntaggedFunction::kInvokeFieldDispatcher);
-  const Object& obj = Object::Handle(untag()->data());
-  ASSERT(obj.IsArray());
-  return Array::Cast(obj).ptr();
+  return Array::RawCast(untag()->data());
 }
 
 void Function::set_saved_args_desc(const Array& value) const {
@@ -11042,12 +11002,10 @@ FieldPtr Field::Original() const {
   if (IsNull()) {
     return Field::null();
   }
-  Object& obj = Object::Handle(untag()->owner());
-  if (obj.IsField()) {
-    return Field::RawCast(obj.ptr());
-  } else {
-    return this->ptr();
+  if (untag()->owner()->IsField()) {
+    return static_cast<FieldPtr>(untag()->owner());
   }
+  return this->ptr();
 }
 
 intptr_t Field::guarded_cid() const {
@@ -16199,12 +16157,10 @@ ICDataPtr ICData::Original() const {
   if (IsNull()) {
     return ICData::null();
   }
-  Object& obj = Object::Handle(untag()->owner());
-  if (obj.IsFunction()) {
-    return this->ptr();
-  } else {
-    return ICData::RawCast(obj.ptr());
+  if (untag()->owner()->IsICData()) {
+    return static_cast<ICDataPtr>(untag()->owner());
   }
+  return this->ptr();
 }
 
 void ICData::SetOriginal(const ICData& value) const {
