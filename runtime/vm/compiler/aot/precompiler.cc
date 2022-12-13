@@ -3767,7 +3767,7 @@ Obfuscator::Obfuscator(Thread* thread, const String& private_key)
   }
   auto zone = thread->zone();
 
-  // Create ObfuscationState from ObjectStore::obfusction_map().
+  // Create ObfuscationState from ObjectStore::obfuscation_map().
   ObjectStore* store = isolate_group->object_store();
   Array& obfuscation_state = Array::Handle(zone, store->obfuscation_map());
 
