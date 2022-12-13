@@ -157,7 +157,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     // update is needed. If the underlying typed data is internal, the pointer
     // must be updated if the typed data was copied or promoted. We cannot
     // safely dereference the underlying typed data to make this distinction.
-    // It may have been forwarded by a different scavanger worker, so the access
+    // It may have been forwarded by a different scavenger worker, so the access
     // could have a data race. Rather than checking the CID of the underlying
     // typed data, which requires dereferencing the copied/promoted header, we
     // compare the view's internal pointer to what it should be if the
