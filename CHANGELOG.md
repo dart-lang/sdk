@@ -648,7 +648,7 @@ them, you must set the lower bound on the SDK constraint for your package to
     ```
 
     This change is needed to fix [#36453][] where the dart programs not caring
-    about the terminal settings can inadverently corrupt the terminal settings
+    about the terminal settings can inadvertently corrupt the terminal settings
     when e.g. piping into less.
 
     Furthermore the `echoMode` setting now only controls the `echo` local mode
