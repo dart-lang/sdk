@@ -150,7 +150,7 @@ class D<T extends B> {}
     ]);
   }
 
-  test_indirect_notInstantiatedt() async {
+  test_indirect_notInstantiated() async {
     await assertErrorsInCode(r'''
 class A<K, V extends K> {}
 class C<T extends List<A>> {}
