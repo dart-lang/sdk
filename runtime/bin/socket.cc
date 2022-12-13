@@ -772,7 +772,7 @@ void FUNCTION_NAME(Socket_SendMessage)(Dart_NativeArguments args) {
   intptr_t offset = DartUtils::GetNativeIntptrArgument(args, 2);
   intptr_t length = DartUtils::GetNativeIntptrArgument(args, 3);
 
-  // List of triples <level, type, data> aranged to minimize dart api use in
+  // List of triples <level, type, data> arranged to minimize dart api use in
   // native methods.
   Dart_Handle control_message_list_dart =
       ThrowIfError(Dart_GetNativeArgument(args, 4));
