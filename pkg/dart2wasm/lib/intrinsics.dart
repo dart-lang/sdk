@@ -1173,25 +1173,39 @@ class Intrinsifier {
       ClassInfo intInfo = translator.classInfo[translator.boxedIntClass]!;
       ClassInfo doubleInfo = translator.classInfo[translator.boxedDoubleClass]!;
       w.Local cid = function.addLocal(w.NumType.i32);
-      w.Label refEq = b.block();
+
+      // If the references are identical, return true.
       b.local_get(first);
-      b.br_on_null(refEq);
+      b.local_get(second);
+      b.ref_eq();
+      b.if_();
+      b.i32_const(1);
+      b.return_();
+      b.end();
+
+      w.Label fail = b.block();
+
+      // If either is `null`, or their class IDs are different, return false.
+      b.local_get(first);
+      b.br_on_null(fail);
       b.struct_get(translator.topInfo.struct, FieldIndex.classId);
       b.local_tee(cid);
+      b.local_get(second);
+      b.br_on_null(fail);
+      b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+      b.i32_ne();
+      b.br_if(fail);
 
       // Both bool?
+      b.local_get(cid);
       b.i32_const(boolInfo.classId);
       b.i32_eq();
       b.if_();
       b.local_get(first);
       b.ref_cast(boolInfo.struct);
       b.struct_get(boolInfo.struct, FieldIndex.boxValue);
-      w.Label bothBool = b.block(const [], [boolInfo.nullableType]);
       b.local_get(second);
-      b.br_on_cast(bothBool, boolInfo.struct);
-      b.i32_const(0);
-      b.return_();
-      b.end();
+      b.ref_cast(boolInfo.struct);
       b.struct_get(boolInfo.struct, FieldIndex.boxValue);
       b.i32_eq();
       b.return_();
@@ -1205,12 +1219,8 @@ class Intrinsifier {
       b.local_get(first);
       b.ref_cast(intInfo.struct);
       b.struct_get(intInfo.struct, FieldIndex.boxValue);
-      w.Label bothInt = b.block(const [], [intInfo.nullableType]);
       b.local_get(second);
-      b.br_on_cast(bothInt, intInfo.struct);
-      b.i32_const(0);
-      b.return_();
-      b.end();
+      b.ref_cast(intInfo.struct);
       b.struct_get(intInfo.struct, FieldIndex.boxValue);
       b.i64_eq();
       b.return_();
@@ -1225,23 +1235,17 @@ class Intrinsifier {
       b.ref_cast(doubleInfo.struct);
       b.struct_get(doubleInfo.struct, FieldIndex.boxValue);
       b.i64_reinterpret_f64();
-      w.Label bothDouble = b.block(const [], [doubleInfo.nullableType]);
       b.local_get(second);
-      b.br_on_cast(bothDouble, doubleInfo.struct);
-      b.i32_const(0);
-      b.return_();
-      b.end();
+      b.ref_cast(doubleInfo.struct);
       b.struct_get(doubleInfo.struct, FieldIndex.boxValue);
       b.i64_reinterpret_f64();
       b.i64_eq();
       b.return_();
       b.end();
 
-      // Compare as references
-      b.end();
-      b.local_get(first);
-      b.local_get(second);
-      b.ref_eq();
+      // Not identical
+      b.end(); // fail
+      b.i32_const(0);
 
       return true;
     }
