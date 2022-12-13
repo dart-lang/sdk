@@ -98,7 +98,7 @@ external int passAsPointerAndValue(NativeFieldWrapperClass1 obj, int value);
 @FfiNative<IntPtr Function(IntPtr, Pointer<Void>)>('PassAsValueAndPointer')
 external int passAsValueAndPointer(int value, NativeFieldWrapperClass1 obj);
 
-// Helpers for testing argumnent evaluation order is preserved.
+// Helpers for testing argument evaluation order is preserved.
 int state = 0;
 int setState(int value) {
   state = value;
