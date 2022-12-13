@@ -748,7 +748,7 @@ static const NativeLocation& CompoundResultLocation(
 
 #if defined(TARGET_ARCH_ARM)
 // Arm passes homogenous float return values in FPU registers and small
-// composities in a single integer register. The rest is stored into the
+// composites in a single integer register. The rest is stored into the
 // location passed in by pointer.
 static const NativeLocation& CompoundResultLocation(
     Zone* zone,
