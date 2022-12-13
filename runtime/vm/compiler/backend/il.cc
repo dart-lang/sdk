@@ -3239,7 +3239,7 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
 
   IntConverterInstr* box_defn = value()->definition()->AsIntConverter();
   if ((box_defn != NULL) && (box_defn->representation() == from())) {
-    // If the first convertion can erase bits (or deoptimize) we can't
+    // If the first conversion can erase bits (or deoptimize) we can't
     // canonicalize it away.
     auto src_defn = box_defn->value()->definition();
     if ((box_defn->from() == kUnboxedInt64) &&

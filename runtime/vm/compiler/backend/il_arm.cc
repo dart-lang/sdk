@@ -4761,7 +4761,7 @@ DEFINE_EMIT(Float32x4Unary, (QRegister result, QRegister left)) {
   }
 }
 
-DEFINE_EMIT(Simd32x4ToSimd32x4Convertion, (SameAsFirstInput, QRegister left)) {
+DEFINE_EMIT(Simd32x4ToSimd32x4Conversion, (SameAsFirstInput, QRegister left)) {
   // TODO(dartbug.com/30949) these operations are essentially nop and should
   // not generate any code. They should be removed from the graph before
   // code generation.
@@ -5107,7 +5107,7 @@ DEFINE_EMIT(Int32x4WithFlag,
   ____(Float32x4Unary)                                                         \
   CASE(Float32x4ToInt32x4)                                                     \
   CASE(Int32x4ToFloat32x4)                                                     \
-  ____(Simd32x4ToSimd32x4Convertion)                                           \
+  ____(Simd32x4ToSimd32x4Conversion)                                           \
   SIMPLE(Float32x4Clamp)                                                       \
   SIMPLE(Float64x2Clamp)                                                       \
   CASE(Float32x4WithX)                                                         \

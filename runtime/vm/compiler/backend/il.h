@@ -10350,14 +10350,14 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
   M(Arity, _, Name##Z, Inputs, Output)                                         \
   M(Arity, _, Name##W, Inputs, Output)
 
-// Define convertion between two SIMD types.
+// Define conversion between two SIMD types.
 #define SIMD_CONVERSION(M, FromType, ToType)                                   \
   M(1, _, FromType##To##ToType, (FromType), ToType)
 
 // List of all recognized SIMD operations.
 // Note: except for operations that map to operators (Add, Mul, Sub, Div,
 // BitXor, BitOr) all other operations must match names used by
-// MethodRecognizer. This allows to autogenerate convertion from
+// MethodRecognizer. This allows to autogenerate conversion from
 // MethodRecognizer::Kind into SimdOpInstr::Kind (see KindForMethod helper).
 // Note: M is for those SimdOp that are recognized methods and BINARY_OP
 // is for operators.
