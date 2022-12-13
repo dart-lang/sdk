@@ -2977,7 +2977,7 @@ class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
 //
 // Currently this instruction uses pinpoints the register to be FP.
 //
-// This lowlevel instruction is non-inlinable since it makes assumptons about
+// This lowlevel instruction is non-inlinable since it makes assumptions about
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
 class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
  public:
@@ -3116,7 +3116,7 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 // usual location (stack or LR).  The arguments descriptor supplied by the
 // original caller will be put into ARGS_DESC_REG.
 //
-// This lowlevel instruction is non-inlinable since it makes assumptons about
+// This lowlevel instruction is non-inlinable since it makes assumptions about
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
 class TailCallInstr : public TemplateInstruction<1, Throws, Pure> {
  public:
