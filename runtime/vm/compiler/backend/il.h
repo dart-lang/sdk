@@ -3491,7 +3491,7 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 // The FlowGraphCompiler will - as a post-processing step - invoke
 // [ComputeOffsetTable] of all [IndirectGotoInstr]s. In there we initialize a
 // TypedDataInt32Array containing offsets of all [IndirectEntryInstr]s (the
-// offests are relative to start of the instruction payload).
+// offsets are relative to start of the instruction payload).
 //
 //  => See `FlowGraphCompiler::CompileGraph()`
 //  => See `IndirectGotoInstr::ComputeOffsetTable`
