@@ -661,7 +661,7 @@ LocationSummary* AssertAssignableInstr::MakeLocationSummary(Zone* zone,
   // We invoke a stub that can potentially clobber any CPU register
   // but can only clobber FPU registers on the slow path when
   // entering runtime. Preserve all FPU registers that are
-  // not guarateed to be preserved by the ABI.
+  // not guaranteed to be preserved by the ABI.
   const intptr_t kCpuRegistersToPreserve =
       kDartAvailableCpuRegs & ~kNonChangeableInputRegs;
   const intptr_t kFpuRegistersToPreserve =
