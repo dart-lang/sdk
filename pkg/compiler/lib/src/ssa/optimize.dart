@@ -72,7 +72,7 @@ class SsaOptimizerTask extends CompilerTask {
       codegen.tracer.traceGraph(phase.name, graph);
       assert(graph.isValid(), 'Graph not valid after ${phase.name}');
       assert(phase.validPostcondition(graph),
-          'Graph does not satify phase postcondition after ${phase.name}');
+          'Graph does not satisfy phase postcondition after ${phase.name}');
     }
 
     SsaCodeMotion codeMotion;
