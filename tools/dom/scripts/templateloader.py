@@ -26,7 +26,7 @@ class TemplateLoader(object):
     Args:
       root - a string, the directory under which the templates are stored.
       subpaths - a list of strings, subpaths of root in search order.
-      conditions - a dictionay from strings to booleans.  Any conditional
+      conditions - a dictionary from strings to booleans.  Any conditional
         expression must be a key in the map.
     """
         self._root = root
