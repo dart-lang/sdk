@@ -387,7 +387,7 @@ class BaseFlowGraphBuilder {
   // NoSuchMethod message).
   // Sets 'receiver' to 'null' after the check if 'clear_the_temp'.
   // Note that this does _not_ use the result of the CheckNullInstr, so it does
-  // not create a data depedency and might break with code motion.
+  // not create a data dependency and might break with code motion.
   Fragment CheckNull(TokenPosition position,
                      LocalVariable* receiver,
                      const String& function_name,
