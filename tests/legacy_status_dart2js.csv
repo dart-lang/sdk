@@ -432,7 +432,7 @@ $compiler == dart2js && $checked,symbol_reserved_word_test/03,RuntimeError,"Issu
 $compiler == dart2js && $minified,error_stack_trace1_test,RuntimeError,Issue 12399,https://dartbug.com/12399,closed
 $compiler == dart2js && $minified,iterable_return_type_test/02,RuntimeError,Dart2js does not support Uint64*.,,
 $compiler == dart2js && $minified,list_concurrent_modify_test,RuntimeError,dart2js does not fully implement these,,
-$compiler == dart2js && $minified,nsm_invocation_test,RuntimeError,Symbols don't match due to minifiaction.,,
+$compiler == dart2js && $minified,nsm_invocation_test,RuntimeError,Symbols don't match due to minification.,,
 $compiler == dart2js && $minified,symbol_reserved_word_test/03,RuntimeError,"Issue 19972, new Symbol('void') should be allowed.",https://dartbug.com/19972,closed
 $runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),bit_twiddling_test/int64,"RuntimeError, OK",Requires fixed-size int64 support.,,
 $runtime != none && ($compiler == dart2js || $compiler == dartdevc || $compiler == dartdevk),compare_to2_test,"RuntimeError, OK",Requires fixed-size int64 support.,,
