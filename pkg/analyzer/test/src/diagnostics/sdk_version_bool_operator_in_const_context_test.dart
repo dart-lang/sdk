@@ -26,7 +26,8 @@ const c = true & false;
     await verifyVersion('2.2.0', '''
 const c = true & false;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT, 15, 1),
+      error(
+          StaticWarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT, 15, 1),
     ]);
   }
 
@@ -52,7 +53,8 @@ const c = true | false;
     await verifyVersion('2.2.0', '''
 const c = true | false;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT, 15, 1),
+      error(
+          StaticWarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT, 15, 1),
     ]);
   }
 
@@ -78,7 +80,8 @@ const c = true ^ false;
     await verifyVersion('2.2.0', '''
 const c = true ^ false;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT, 15, 1),
+      error(
+          StaticWarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT, 15, 1),
     ]);
   }
 

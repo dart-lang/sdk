@@ -901,7 +901,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         // This is a case where the parser does not report an error, because the
         // parser thinks this could be an InstanceCreationExpression.
         _errorReporter.reportErrorForNode(
-            HintCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
+            StaticWarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
       }
       return newNode.accept(this);
     }

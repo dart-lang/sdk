@@ -28,7 +28,8 @@ const c = (a as int) + 2;
 const dynamic a = 2;
 const c = (a as int) + 2;
 ''', expectedErrors: [
-      error(HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT, 32, 8),
+      error(
+          StaticWarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT, 32, 8),
     ]);
   }
 }
