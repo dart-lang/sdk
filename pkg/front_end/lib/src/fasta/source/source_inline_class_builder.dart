@@ -7,11 +7,11 @@ import 'package:kernel/ast.dart';
 
 import '../../base/common.dart';
 import '../builder/builder.dart';
+import '../builder/inline_class_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
-import '../builder/view_builder.dart';
 import '../fasta_codes.dart'
     show
         messagePatchDeclarationMismatch,
@@ -23,12 +23,12 @@ import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 
-class SourceViewBuilder extends ViewBuilderImpl
+class SourceInlineClassBuilder extends InlineClassBuilderImpl
     with SourceDeclarationBuilderMixin {
-  final InlineClass _view;
+  final InlineClass _inlineClass;
 
-  SourceViewBuilder? _origin;
-  SourceViewBuilder? patchForTesting;
+  SourceInlineClassBuilder? _origin;
+  SourceInlineClassBuilder? patchForTesting;
 
   MergedClassMemberScope? _mergedScope;
 
@@ -37,7 +37,7 @@ class SourceViewBuilder extends ViewBuilderImpl
 
   final SourceFieldBuilder? representationFieldBuilder;
 
-  SourceViewBuilder(
+  SourceInlineClassBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
       String name,
@@ -50,7 +50,7 @@ class SourceViewBuilder extends ViewBuilderImpl
       int endOffset,
       InlineClass? referenceFrom,
       this.representationFieldBuilder)
-      : _view = new InlineClass(
+      : _inlineClass = new InlineClass(
             name: name,
             fileUri: parent.fileUri,
             typeParameters:
@@ -65,27 +65,27 @@ class SourceViewBuilder extends ViewBuilderImpl
       super.libraryBuilder as SourceLibraryBuilder;
 
   @override
-  SourceViewBuilder get origin => _origin ?? this;
+  SourceInlineClassBuilder get origin => _origin ?? this;
 
-  // TODO(johnniwinther): Add merged scope for views.
+  // TODO(johnniwinther): Add merged scope for inline classes.
   MergedClassMemberScope get mergedScope => _mergedScope ??= isPatch
       ? origin.mergedScope
-      : throw new UnimplementedError("SourceViewBuilder.mergedScope");
+      : throw new UnimplementedError("SourceInlineClassBuilder.mergedScope");
 
   @override
-  InlineClass get view => isPatch ? origin._view : _view;
+  InlineClass get inlineClass => isPatch ? origin._inlineClass : _inlineClass;
 
   @override
-  Annotatable get annotatable => view;
+  Annotatable get annotatable => inlineClass;
 
-  /// Builds the [InlineClass] for this view builder and inserts the members
-  /// into the [Library] of [libraryBuilder].
+  /// Builds the [InlineClass] for this inline class builder and inserts the
+  /// members into the [Library] of [libraryBuilder].
   ///
-  /// [addMembersToLibrary] is `true` if the view members should be added
-  /// to the library. This is `false` if the view is in conflict with
-  /// another library member. In this case, the view member should not be
-  /// added to the library to avoid name clashes with other members in the
-  /// library.
+  /// [addMembersToLibrary] is `true` if the inline class members should be
+  /// added to the library. This is `false` if the inline class is in conflict
+  /// with another library member. In this case, the inline class member should
+  /// not be added to the library to avoid name clashes with other members in
+  /// the library.
   InlineClass build(LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
     DartType representationType;
@@ -100,11 +100,11 @@ class SourceViewBuilder extends ViewBuilderImpl
     } else {
       representationType = const InvalidType();
     }
-    _view.declaredRepresentationType = representationType;
+    _inlineClass.declaredRepresentationType = representationType;
 
     buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
 
-    return _view;
+    return _inlineClass;
   }
 
   @override
@@ -128,33 +128,33 @@ class SourceViewBuilder extends ViewBuilderImpl
       case BuiltMemberKind.LateIsSetField:
         kind = InlineClassMemberKind.Field;
         break;
-      case BuiltMemberKind.ViewConstructor:
+      case BuiltMemberKind.InlineClassConstructor:
         kind = InlineClassMemberKind.Constructor;
         break;
-      case BuiltMemberKind.ViewMethod:
+      case BuiltMemberKind.InlineClassMethod:
         kind = InlineClassMemberKind.Method;
         break;
-      case BuiltMemberKind.ViewGetter:
+      case BuiltMemberKind.InlineClassGetter:
       case BuiltMemberKind.LateGetter:
         kind = InlineClassMemberKind.Getter;
         break;
-      case BuiltMemberKind.ViewSetter:
+      case BuiltMemberKind.InlineClassSetter:
       case BuiltMemberKind.LateSetter:
         kind = InlineClassMemberKind.Setter;
         break;
-      case BuiltMemberKind.ViewOperator:
+      case BuiltMemberKind.InlineClassOperator:
         kind = InlineClassMemberKind.Operator;
         break;
-      case BuiltMemberKind.ViewTearOff:
+      case BuiltMemberKind.InlineClassTearOff:
         kind = InlineClassMemberKind.TearOff;
         break;
-      case BuiltMemberKind.ViewFactory:
+      case BuiltMemberKind.InlineClassFactory:
         kind = InlineClassMemberKind.Factory;
         break;
     }
     // ignore: unnecessary_null_comparison
     assert(kind != null);
-    view.members.add(new InlineClassMemberDescriptor(
+    inlineClass.members.add(new InlineClassMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
         member: memberReference,
         isStatic: memberBuilder.isStatic,
@@ -163,7 +163,7 @@ class SourceViewBuilder extends ViewBuilderImpl
 
   @override
   void applyPatch(Builder patch) {
-    if (patch is SourceViewBuilder) {
+    if (patch is SourceInlineClassBuilder) {
       patch._origin = this;
       if (retainDataForTesting) {
         patchForTesting = patch;
@@ -196,5 +196,5 @@ class SourceViewBuilder extends ViewBuilderImpl
 
   // TODO(johnniwinther): Implement representationType.
   @override
-  DartType get representationType => throw new UnimplementedError();
+  DartType get declaredRepresentationType => throw new UnimplementedError();
 }

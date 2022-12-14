@@ -40,6 +40,7 @@ import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
+import '../builder/inline_class_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -56,7 +57,6 @@ import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
-import '../builder/view_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../combinator.dart' show CombinatorBuilder;
 import '../configuration.dart' show Configuration;
@@ -115,11 +115,11 @@ import 'source_extension_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
+import 'source_inline_class_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'source_member_builder.dart';
 import 'source_procedure_builder.dart';
 import 'source_type_alias_builder.dart';
-import 'source_view_builder.dart';
 
 class SourceLibraryBuilder extends LibraryBuilderImpl {
   static const String MALFORMED_URI_SCHEME = "org-dartlang-malformed-uri";
@@ -2170,7 +2170,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         getterReference: referenceFrom?.reference);
   }
 
-  void addViewDeclaration(
+  void addInlineClassDeclaration(
       List<MetadataBuilder>? metadata,
       int modifiers,
       String name,
@@ -2179,9 +2179,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int nameOffset,
       int endOffset) {
     // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
-    TypeParameterScopeBuilder declaration =
-        endNestedDeclaration(TypeParameterScopeKind.viewDeclaration, name)
-          ..resolveNamedTypes(typeVariables, this);
+    TypeParameterScopeBuilder declaration = endNestedDeclaration(
+        TypeParameterScopeKind.inlineClassDeclaration, name)
+      ..resolveNamedTypes(typeVariables, this);
     assert(declaration.parent == _libraryTypeParameterScopeBuilder);
     Map<String, Builder> members = declaration.members!;
     Map<String, MemberBuilder> constructors = declaration.constructors!;
@@ -2191,7 +2191,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         local: members,
         setters: setters,
         parent: scope.withTypeVariables(typeVariables),
-        debugName: "view $name",
+        debugName: "inline class $name",
         isModifiable: false);
     ConstructorScope constructorScope =
         new ConstructorScope(name, constructors);
@@ -2212,7 +2212,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    ViewBuilder viewBuilder = new SourceViewBuilder(
+    InlineClassBuilder inlineClassBuilder = new SourceInlineClassBuilder(
         metadata,
         modifiers,
         declaration.name,
@@ -2227,10 +2227,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         representationFieldBuilder);
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
-        checkTypeVariables(typeVariables, viewBuilder);
+        checkTypeVariables(typeVariables, inlineClassBuilder);
     void setParent(String name, MemberBuilder? member) {
       while (member != null) {
-        member.parent = viewBuilder;
+        member.parent = inlineClassBuilder;
         member = member.next as MemberBuilder?;
       }
     }
@@ -2239,7 +2239,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (typeVariablesByName != null) {
         TypeVariableBuilder? tv = typeVariablesByName[name];
         if (tv != null) {
-          viewBuilder.addProblem(
+          inlineClassBuilder.addProblem(
               templateConflictsWithTypeVariable.withArguments(name),
               member.charOffset,
               name.length,
@@ -2255,7 +2255,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
-    addBuilder(viewBuilder.name, viewBuilder, nameOffset,
+    addBuilder(inlineClassBuilder.name, inlineClassBuilder, nameOffset,
         getterReference: referenceFrom?.reference);
   }
 
@@ -2749,8 +2749,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             ? new LibraryName(referencesFrom!.reference)
             : libraryName);
     if (currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.viewDeclaration) {
-      constructorBuilder = new SourceViewConstructorBuilder(
+        TypeParameterScopeKind.inlineClassDeclaration) {
+      constructorBuilder = new SourceInlineClassConstructorBuilder(
           metadata,
           modifiers & ~abstractMask,
           addInferableType(),
@@ -3248,7 +3248,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else if (declaration is SourceExtensionBuilder) {
         declaration.buildOutlineExpressions(classHierarchy,
             delayedActionPerformers, delayedDefaultValueCloners);
-      } else if (declaration is SourceViewBuilder) {
+      } else if (declaration is SourceInlineClassBuilder) {
         declaration.buildOutlineExpressions(classHierarchy,
             delayedActionPerformers, delayedDefaultValueCloners);
       } else if (declaration is SourceMemberBuilder) {
@@ -3291,11 +3291,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
         library.addExtension(extension);
       }
-    } else if (declaration is SourceViewBuilder) {
-      InlineClass view = declaration.build(coreLibrary,
+    } else if (declaration is SourceInlineClassBuilder) {
+      InlineClass inlineClass = declaration.build(coreLibrary,
           addMembersToLibrary: !declaration.isDuplicate);
       if (!declaration.isPatch && !declaration.isDuplicate) {
-        library.addInlineClass(view);
+        library.addInlineClass(inlineClass);
       }
     } else if (declaration is SourceMemberBuilder) {
       declaration
@@ -4061,7 +4061,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 "Unexpected extension member $member (${member.runtimeType}).");
           }
         });
-      } else if (declaration is SourceViewBuilder) {
+      } else if (declaration is SourceInlineClassBuilder) {
         List<NonSimplicityIssue> issues = getNonSimplicityIssuesForDeclaration(
             declaration,
             performErrorRecovery: true);
@@ -4074,8 +4074,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             processSourceMemberBuilder(member,
                 inErrorRecovery: issues.isNotEmpty);
           } else {
-            assert(false,
-                "Unexpected view member $member (${member.runtimeType}).");
+            assert(
+                false,
+                "Unexpected inline class member "
+                "$member (${member.runtimeType}).");
           }
         });
       } else {
@@ -4162,7 +4164,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else if (builder is SourceExtensionBuilder) {
         count +=
             builder.buildBodyNodes(addMembersToLibrary: !builder.isDuplicate);
-      } else if (builder is SourceViewBuilder) {
+      } else if (builder is SourceInlineClassBuilder) {
         count +=
             builder.buildBodyNodes(addMembersToLibrary: !builder.isDuplicate);
       } else if (builder is SourceClassBuilder) {
@@ -4635,7 +4637,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
-      } else if (declaration is SourceViewBuilder) {
+      } else if (declaration is SourceInlineClassBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceTypeAliasBuilder) {
         // Do nothing.
@@ -5073,7 +5075,7 @@ enum TypeParameterScopeKind {
   unnamedMixinApplication,
   namedMixinApplication,
   extensionDeclaration,
-  viewDeclaration,
+  inlineClassDeclaration,
   typedef,
   staticMethod,
   instanceMethod,
@@ -5097,7 +5099,7 @@ extension on TypeParameterScopeBuilder {
       case TypeParameterScopeKind.unnamedMixinApplication:
       case TypeParameterScopeKind.namedMixinApplication:
       case TypeParameterScopeKind.enumDeclaration:
-      case TypeParameterScopeKind.viewDeclaration:
+      case TypeParameterScopeKind.inlineClassDeclaration:
         return new ClassName(name);
       case TypeParameterScopeKind.extensionDeclaration:
         return extensionName;
@@ -5126,8 +5128,8 @@ extension on TypeParameterScopeBuilder {
         return ContainerType.Class;
       case TypeParameterScopeKind.extensionDeclaration:
         return ContainerType.Extension;
-      case TypeParameterScopeKind.viewDeclaration:
-        return ContainerType.View;
+      case TypeParameterScopeKind.inlineClassDeclaration:
+        return ContainerType.InlineClass;
       case TypeParameterScopeKind.typedef:
       case TypeParameterScopeKind.staticMethod:
       case TypeParameterScopeKind.instanceMethod:
@@ -5270,13 +5272,13 @@ class TypeParameterScopeBuilder {
     _typeVariables = typeVariables;
   }
 
-  /// Registers that this builder is preparing for a view declaration with the
-  /// given [name] and [typeVariables] located [charOffset].
-  void markAsViewDeclaration(
+  /// Registers that this builder is preparing for an inline class declaration
+  /// with the given [name] and [typeVariables] located [charOffset].
+  void markAsInlineClassDeclaration(
       String name, int charOffset, List<TypeVariableBuilder>? typeVariables) {
     assert(_kind == TypeParameterScopeKind.classOrNamedMixinApplication,
         "Unexpected declaration kind: $_kind");
-    _kind = TypeParameterScopeKind.viewDeclaration;
+    _kind = TypeParameterScopeKind.inlineClassDeclaration;
     _name = name;
     _charOffset = charOffset;
     _typeVariables = typeVariables;

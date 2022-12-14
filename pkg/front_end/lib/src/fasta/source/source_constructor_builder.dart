@@ -56,7 +56,7 @@ import '../util/helpers.dart' show DelayedActionPerformer;
 import 'name_scheme.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
-import 'source_view_builder.dart';
+import 'source_inline_class_builder.dart';
 
 abstract class SourceConstructorBuilder
     implements ConstructorBuilder, SourceMemberBuilder {
@@ -1023,14 +1023,15 @@ class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {}
 }
 
-class SourceViewConstructorBuilder extends AbstractSourceConstructorBuilder {
+class SourceInlineClassConstructorBuilder
+    extends AbstractSourceConstructorBuilder {
   late final Procedure _constructor;
   late final Procedure? _constructorTearOff;
 
   @override
   final List<Initializer> initializers = [];
 
-  SourceViewConstructorBuilder(
+  SourceInlineClassConstructorBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
       OmittedTypeBuilder returnType,
@@ -1081,7 +1082,8 @@ class SourceViewConstructorBuilder extends AbstractSourceConstructorBuilder {
     }
   }
 
-  SourceViewBuilder get viewBuilder => parent as SourceViewBuilder;
+  SourceInlineClassBuilder get inlineClassBuilder =>
+      parent as SourceInlineClassBuilder;
 
   @override
   Member get member => _constructor;
@@ -1117,7 +1119,7 @@ class SourceViewConstructorBuilder extends AbstractSourceConstructorBuilder {
   @override
   void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
     _build();
-    f(_constructor, BuiltMemberKind.ViewConstructor);
+    f(_constructor, BuiltMemberKind.InlineClassConstructor);
     if (_constructorTearOff != null) {
       f(_constructorTearOff!, BuiltMemberKind.Method);
     }
@@ -1131,16 +1133,16 @@ class SourceViewConstructorBuilder extends AbstractSourceConstructorBuilder {
     // function is its enclosing class.
     super.buildFunction();
 
-    InlineClass view = viewBuilder.view;
+    InlineClass inlineClass = inlineClassBuilder.inlineClass;
     List<DartType> typeParameterTypes = <DartType>[];
-    for (int i = 0; i < view.typeParameters.length; i++) {
-      TypeParameter typeParameter = view.typeParameters[i];
+    for (int i = 0; i < inlineClass.typeParameters.length; i++) {
+      TypeParameter typeParameter = inlineClass.typeParameters[i];
       typeParameterTypes.add(
           new TypeParameterType.withDefaultNullabilityForLibrary(
               typeParameter, libraryBuilder.library));
     }
-    InlineType type =
-        new InlineType(view, libraryBuilder.nonNullable, typeParameterTypes);
+    InlineType type = new InlineType(
+        inlineClass, libraryBuilder.nonNullable, typeParameterTypes);
     returnType.registerInferredType(type);
   }
 
@@ -1158,7 +1160,8 @@ class SourceViewConstructorBuilder extends AbstractSourceConstructorBuilder {
             tearOff: _constructorTearOff!,
             declarationConstructor: _constructor,
             implementationConstructor: _constructor,
-            enclosingDeclarationTypeParameters: viewBuilder.view.typeParameters,
+            enclosingDeclarationTypeParameters:
+                inlineClassBuilder.inlineClass.typeParameters,
             libraryBuilder: libraryBuilder);
       }
 

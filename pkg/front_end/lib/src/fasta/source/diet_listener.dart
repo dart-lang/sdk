@@ -56,8 +56,8 @@ import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
+import 'source_inline_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
-import 'source_view_builder.dart';
 import 'stack_listener_impl.dart';
 
 class DietListener extends StackListenerImpl {
@@ -1169,7 +1169,7 @@ class DietListener extends StackListenerImpl {
   Builder? lookupConstructor(Token token, Object nameOrQualified) {
     assert(currentDeclaration != null);
     assert(currentDeclaration is SourceClassBuilder ||
-        currentDeclaration is SourceViewBuilder);
+        currentDeclaration is SourceInlineClassBuilder);
     Builder? declaration;
     String suffix;
     if (nameOrQualified is QualifiedName) {
