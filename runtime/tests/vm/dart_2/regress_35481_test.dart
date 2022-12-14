@@ -10,7 +10,7 @@
 //
 // Here, all phi nodes generated within the try block are kept alive, and one of
 // the phi nodes within toList (which gets inlined) uses the value of an
-// instance call to setLength. Inlining setLength wthin toList replaced the
+// instance call to setLength. Inlining setLength within toList replaced the
 // (binding) InstanceCall instruction with a (non-binding) StoreInstanceField
 // instruction, which caused the phi node to have an invalid SSA index argument.
 
