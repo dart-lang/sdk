@@ -81,7 +81,7 @@ extern "C" int LLVMFuzzerInitialize(int* argc_in, char*** argv_in) {
 
 // Libfuzzer target functions:
 //  0 : unicode
-//  1 : utilies
+//  1 : utilities
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* Data, size_t Size) {
   switch (target) {
     case 0:
