@@ -1505,7 +1505,7 @@ class ObservatoryDebugger extends Debugger {
   S.VM get vm => page.app.vm;
 
   void init() {
-    console.printBold('Debugging isolate isolate ${isolate.number} '
+    console.printBold('Debugging isolate ${isolate.number} '
         '\'${isolate.name}\' ');
     console.printBold('Type \'h\' for help');
     // Wait a bit and if polymer still hasn't set up the isolate,
