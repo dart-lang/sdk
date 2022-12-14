@@ -8,7 +8,7 @@
 /// This test was failing in the past because the deferred-loading algorithm was
 /// adding entities to the K-element-map after we had closed the world and we
 /// had created the J-element-map.  Later, when we convert the K annotation to
-/// its J conterpart, we couldn't find it in the conversion maps because it was
+/// its J counterpart, we couldn't find it in the conversion maps because it was
 /// added too late.
 ///
 /// If we add support for mirrors in the future, we just need to ensure that
