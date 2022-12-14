@@ -142,7 +142,7 @@ class TouchHandler {
     return absVelocity * (velocity < 0 ? -1 : 1);
   }
 
-  /// Start listenting for events.
+  /// Start listening for events.
   /// If [capture] is True the TouchHandler should listen during the capture
   /// phase.
   void enable([bool capture = false]) {
