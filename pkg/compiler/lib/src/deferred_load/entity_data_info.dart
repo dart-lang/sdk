@@ -555,7 +555,7 @@ class ConstantCollector extends ir.RecursiveVisitor {
   void visitTypeLiteral(ir.TypeLiteral node) {
     // Type literals may be [ir.TypeParameterType] or contain TypeParameterType
     // variables nested within (e.g. in a generic type literals). As such,
-    // we can't assume that all type literals are constnat.
+    // we can't assume that all type literals are constant.
     add(node, requireConstant: false);
   }
 
