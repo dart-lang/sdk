@@ -261,7 +261,7 @@ import 'field_initializing_formal_not_assignable_test.dart'
     as field_initializing_formal_not_assignable;
 import 'field_must_be_external_in_struct_test.dart'
     as field_must_be_external_in_struct;
-import 'final_initialized_in_delcaration_and_constructor_test.dart'
+import 'final_initialized_in_declaration_and_constructor_test.dart'
     as final_initialized_in_declaration_and_constructor;
 import 'final_not_initialized_constructor_test.dart'
     as final_not_initialized_constructor;
