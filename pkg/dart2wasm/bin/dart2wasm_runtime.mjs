@@ -13,12 +13,18 @@ export const instantiate = async (modulePromise, importObjectPromise) => {
     let asyncBridge;
     let dartInstance;
     function stringFromDartString(string) {
-        const length = dartInstance.exports.$stringLength(string);
-        const array = new Array(length);
-        for (let i = 0; i < length; i++) {
-            array[i] = dartInstance.exports.$stringRead(string, i);
+        const totalLength = dartInstance.exports.$stringLength(string);
+        let result = '';
+        let index = 0;
+        while (index < totalLength) {
+          let chunkLength = Math.min(totalLength - index, 0xFFFF);
+          const array = new Array(chunkLength);
+          for (let i = 0; i < chunkLength; i++) {
+              array[i] = dartInstance.exports.$stringRead(string, index++);
+          }
+          result += String.fromCharCode(...array);
         }
-        return String.fromCharCode(...array);
+        return result;
     }
 
     function stringToDartString(string) {
