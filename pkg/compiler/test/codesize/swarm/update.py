@@ -37,7 +37,7 @@ def convertOne(infile, options):
 
 
 def Flags():
-    """ Consturcts a parser for extracting flags from the command line. """
+    """ Constructs a parser for extracting flags from the command line. """
     result = optparse.OptionParser()
     result.add_option("-t",
                       "--target",

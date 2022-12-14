@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-// Tests that language operators and constructrs requiring non-nullable values
+// Tests that language operators and constructs requiring non-nullable values
 // will not accept an operand with a nullable static type.
 // See: https://github.com/dart-lang/language/issues/298
 
