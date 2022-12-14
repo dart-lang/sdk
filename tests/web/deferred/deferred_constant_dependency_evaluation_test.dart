@@ -7,7 +7,7 @@
 //
 // Today the task uses constant values to calculate dependencies, and only uses
 // those values that were previously computed by resolution. A change to compute
-// the value on-demmand made the deferred task evaluate more expressions,
+// the value on-demand made the deferred task evaluate more expressions,
 // including expressions with free variables (which can't be evaluated). See the
 // dartbug.com/26406 for details on how we plan to make the task more robust.
 
