@@ -2345,7 +2345,7 @@ class HLocalSet extends HLocalAccess {
 ///
 /// HInvokeDynamicMethod can be lowered to HInvokeExternal with the same
 /// [element]. The difference is a HInvokeDynamicMethod is a call to a
-/// Dart-calling-convention stub identifed by [element] that contains a call to
+/// Dart-calling-convention stub identified by [element] that contains a call to
 /// the external method, whereas a HInvokeExternal instruction is a direct
 /// JavaScript call to the external method identified by [element].
 class HInvokeExternal extends HInvoke {
