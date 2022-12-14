@@ -619,7 +619,7 @@ class NonStreamingWriteStream : public BaseWriteStream {
 };
 
 // A non-streaming write stream that uses realloc for reallocation, and frees
-// the buffer when destructed unless ownership is transfered using Steal().
+// the buffer when destructed unless ownership is transferred using Steal().
 class MallocWriteStream : public NonStreamingWriteStream {
  public:
   explicit MallocWriteStream(intptr_t initial_size)
