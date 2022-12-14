@@ -1307,11 +1307,7 @@ abstract class Pattern extends Node
   @override
   String toString() => _debugString(needsKeywordOrType: true);
 
-  void visit(
-    Harness h,
-    Type matchedType,
-    SharedMatchContext context,
-  );
+  void visit(Harness h, SharedMatchContext context);
 
   GuardedPattern when(Expression? guard) {
     return GuardedPattern._(
@@ -1679,12 +1675,9 @@ class _CastPattern extends Pattern {
   }
 
   @override
-  void visit(
-    Harness h,
-    Type matchedType,
-    SharedMatchContext context,
-  ) {
-    h.typeAnalyzer.analyzeCastPattern(matchedType, context, _inner, _type);
+  void visit(Harness h, SharedMatchContext context) {
+    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+    h.typeAnalyzer.analyzeCastPattern(context, _inner, _type);
     h.irBuilder.atom(_type.type, Kind.type, location: location);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -2027,12 +2020,9 @@ class _ConstantPattern extends Pattern {
   }
 
   @override
-  void visit(
-    Harness h,
-    Type matchedType,
-    SharedMatchContext context,
-  ) {
-    h.typeAnalyzer.analyzeConstantPattern(matchedType, context, this, constant);
+  void visit(Harness h, SharedMatchContext context) {
+    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+    h.typeAnalyzer.analyzeConstantPattern(context, this, constant);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply('const', [Kind.expression, Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
@@ -2695,13 +2685,9 @@ class _ListPattern extends Pattern {
   }
 
   @override
-  void visit(
-    Harness h,
-    Type matchedType,
-    SharedMatchContext context,
-  ) {
-    var requiredType = h.typeAnalyzer.analyzeListPattern(
-        matchedType, context, this,
+  void visit(Harness h, SharedMatchContext context) {
+    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+    var requiredType = h.typeAnalyzer.analyzeListPattern(context, this,
         elementType: _elementType, elements: _elements);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
@@ -2797,13 +2783,9 @@ class _LogicalAndPattern extends Pattern {
   }
 
   @override
-  void visit(
-    Harness h,
-    Type matchedType,
-    SharedMatchContext context,
-  ) {
-    h.typeAnalyzer
-        .analyzeLogicalAndPattern(matchedType, context, this, _lhs, _rhs);
+  void visit(Harness h, SharedMatchContext context) {
+    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+    h.typeAnalyzer.analyzeLogicalAndPattern(context, this, _lhs, _rhs);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply('logicalAndPattern',
         [Kind.pattern, Kind.pattern, Kind.type], Kind.pattern,
@@ -2841,13 +2823,9 @@ class _LogicalOrPattern extends Pattern {
   }
 
   @override
-  void visit(
-    Harness h,
-    Type matchedType,
-    SharedMatchContext context,
-  ) {
-    h.typeAnalyzer
-        .analyzeLogicalOrPattern(matchedType, context, this, _lhs, _rhs);
+  void visit(Harness h, SharedMatchContext context) {
+    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+    h.typeAnalyzer.analyzeLogicalOrPattern(context, this, _lhs, _rhs);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply('logicalOrPattern',
         [Kind.pattern, Kind.pattern, Kind.type], Kind.pattern,
@@ -2899,9 +2877,9 @@ class _MapPattern extends Pattern {
   }
 
   @override
-  void visit(Harness h, Type matchedType, SharedMatchContext context) {
-    var requiredType = h.typeAnalyzer.analyzeMapPattern(
-        matchedType, context, this,
+  void visit(Harness h, SharedMatchContext context) {
+    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+    var requiredType = h.typeAnalyzer.analyzeMapPattern(context, this,
         typeArguments: _typeArguments, elements: _elements);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
@@ -3429,9 +3407,8 @@ class _MiniAstTypeAnalyzer
       _irBuilder.guard(expression, () => expression.visit(_harness, context));
 
   @override
-  void dispatchPattern(
-      Type matchedType, SharedMatchContext context, covariant Pattern node) {
-    return node.visit(_harness, matchedType, context);
+  void dispatchPattern(SharedMatchContext context, covariant Pattern node) {
+    return node.visit(_harness, context);
   }
 
   @override
@@ -3906,13 +3883,9 @@ class _NullCheckOrAssertPattern extends Pattern {
   }
 
   @override
-  void visit(
-    Harness h,
-    Type matchedType,
-    SharedMatchContext context,
-  ) {
-    h.typeAnalyzer.analyzeNullCheckOrAssertPattern(
-        matchedType, context, this, _inner,
+  void visit(Harness h, SharedMatchContext context) {
+    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+    h.typeAnalyzer.analyzeNullCheckOrAssertPattern(context, this, _inner,
         isAssert: _isAssert);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(_isAssert ? 'nullAssertPattern' : 'nullCheckPattern',
@@ -3967,13 +3940,10 @@ class _ObjectPattern extends Pattern {
   }
 
   @override
-  void visit(
-    Harness h,
-    Type matchedType,
-    SharedMatchContext context,
-  ) {
-    var requiredType = h.typeAnalyzer
-        .analyzeObjectPattern(matchedType, context, this, fields: fields);
+  void visit(Harness h, SharedMatchContext context) {
+    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+    var requiredType =
+        h.typeAnalyzer.analyzeObjectPattern(context, this, fields: fields);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -4126,13 +4096,10 @@ class _RecordPattern extends Pattern {
   }
 
   @override
-  void visit(
-    Harness h,
-    Type matchedType,
-    SharedMatchContext context,
-  ) {
-    var requiredType = h.typeAnalyzer
-        .analyzeRecordPattern(matchedType, context, this, fields: fields);
+  void visit(Harness h, SharedMatchContext context) {
+    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+    var requiredType =
+        h.typeAnalyzer.analyzeRecordPattern(context, this, fields: fields);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.atom(requiredType.type, Kind.type, location: location);
     h.irBuilder.apply(
@@ -4172,13 +4139,9 @@ class _RelationalPattern extends Pattern {
   }
 
   @override
-  void visit(
-    Harness h,
-    Type matchedType,
-    SharedMatchContext context,
-  ) {
-    h.typeAnalyzer.analyzeRelationalPattern(
-        matchedType, context, this, operator, operand);
+  void visit(Harness h, SharedMatchContext context) {
+    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+    h.typeAnalyzer.analyzeRelationalPattern(context, this, operator, operand);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
     h.irBuilder.apply(
         'relationalPattern', [Kind.expression, Kind.type], Kind.pattern,
@@ -4611,18 +4574,14 @@ class _VariablePattern extends Pattern {
   }
 
   @override
-  void visit(
-    Harness h,
-    Type matchedType,
-    SharedMatchContext context,
-  ) {
+  void visit(Harness h, SharedMatchContext context) {
     if (isAssignedVariable) {
-      h.typeAnalyzer.analyzeAssignedVariablePattern(
-          matchedType, context, this, variable!);
+      h.typeAnalyzer.analyzeAssignedVariablePattern(context, this, variable!);
       h.typeAnalyzer.handleAssignedVariablePattern(this);
     } else {
+      var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
       var staticType = h.typeAnalyzer.analyzeDeclaredVariablePattern(
-          matchedType, context, this, variable, variable?.name, declaredType);
+          context, this, variable, variable?.name, declaredType);
       h.typeAnalyzer.handleDeclaredVariablePattern(this,
           matchedType: matchedType, staticType: staticType);
     }

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -15,7 +14,6 @@ class ListPatternResolver {
 
   void resolve({
     required ListPatternImpl node,
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
     var typeArguments = node.typeArguments;
@@ -32,8 +30,7 @@ class ListPatternResolver {
       }
     }
 
-    node.requiredType = resolverVisitor.analyzeListPattern(
-        matchedType, context, node,
+    node.requiredType = resolverVisitor.analyzeListPattern(context, node,
         elementType: typeArguments?.arguments.first.typeOrThrow,
         elements: node.elements);
   }

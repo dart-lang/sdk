@@ -3696,7 +3696,6 @@ abstract class Pattern extends TreeNode with InternalTreeNode {
 
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   });
 
@@ -3730,11 +3729,9 @@ class DummyPattern extends Pattern {
   @override
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitDummyPattern(this,
-        matchedType: matchedType, context: context);
+    return visitor.visitDummyPattern(this, context: context);
   }
 
   @override
@@ -3772,11 +3769,9 @@ class ExpressionPattern extends Pattern {
   @override
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitExpressionPattern(this,
-        matchedType: matchedType, context: context);
+    return visitor.visitExpressionPattern(this, context: context);
   }
 
   @override
@@ -3830,11 +3825,9 @@ class AndPattern extends Pattern {
   @override
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitAndPattern(this,
-        matchedType: matchedType, context: context);
+    return visitor.visitAndPattern(this, context: context);
   }
 
   @override
@@ -3909,11 +3902,9 @@ class OrPattern extends Pattern {
   @override
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitOrPattern(this,
-        matchedType: matchedType, context: context);
+    return visitor.visitOrPattern(this, context: context);
   }
 
   @override
@@ -4138,11 +4129,9 @@ class CastPattern extends Pattern {
   @override
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitCastPattern(this,
-        matchedType: matchedType, context: context);
+    return visitor.visitCastPattern(this, context: context);
   }
 
   @override
@@ -4206,11 +4195,9 @@ class NullAssertPattern extends Pattern {
   @override
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitNullAssertPattern(this,
-        matchedType: matchedType, context: context);
+    return visitor.visitNullAssertPattern(this, context: context);
   }
 
   @override
@@ -4276,11 +4263,9 @@ class NullCheckPattern extends Pattern {
   @override
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitNullCheckPattern(this,
-        matchedType: matchedType, context: context);
+    return visitor.visitNullCheckPattern(this, context: context);
   }
 
   @override
@@ -4361,11 +4346,9 @@ class ListPattern extends Pattern {
   @override
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitListPattern(this,
-        matchedType: matchedType, context: context);
+    return visitor.visitListPattern(this, context: context);
   }
 
   @override
@@ -4565,11 +4548,9 @@ class RelationalPattern extends Pattern {
   @override
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitRelationalPattern(this,
-        matchedType: matchedType, context: context);
+    return visitor.visitRelationalPattern(this, context: context);
   }
 
   @override
@@ -4695,11 +4676,9 @@ class WildcardPattern extends Pattern {
   @override
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitWildcardBinder(this,
-        matchedType: matchedType, context: context);
+    return visitor.visitWildcardBinder(this, context: context);
   }
 
   @override
@@ -4887,11 +4866,9 @@ class MapPattern extends Pattern {
   @override
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitMapPattern(this,
-        matchedType: matchedType, context: context);
+    return visitor.visitMapPattern(this, context: context);
   }
 
   @override
@@ -5073,11 +5050,9 @@ class NamedPattern extends Pattern {
   @override
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitNamedPattern(this,
-        matchedType: matchedType, context: context);
+    return visitor.visitNamedPattern(this, context: context);
   }
 
   @override
@@ -5128,11 +5103,9 @@ class RecordPattern extends Pattern {
   @override
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitRecordPattern(this,
-        matchedType: matchedType, context: context);
+    return visitor.visitRecordPattern(this, context: context);
   }
 
   @override
@@ -5269,11 +5242,9 @@ class VariablePattern extends Pattern {
   @override
   PatternInferenceResult acceptInference(
     InferenceVisitorImpl visitor, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    return visitor.visitVariablePattern(this,
-        matchedType: matchedType, context: context);
+    return visitor.visitVariablePattern(this, context: context);
   }
 
   @override

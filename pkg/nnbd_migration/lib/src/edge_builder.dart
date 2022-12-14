@@ -1939,8 +1939,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
 
   @override
   DecoratedType? visitSwitchStatement(SwitchStatement node) {
-    _dispatch(node.expression);
-    _flowAnalysis!.switchStatement_expressionEnd(node, node.expression);
+    var scrutineeType = _dispatch(node.expression)!;
+    _flowAnalysis!
+        .switchStatement_expressionEnd(node, node.expression, scrutineeType);
     var hasDefault = false;
     for (var member in node.members) {
       _postDominatedLocals.doScoped(action: () {

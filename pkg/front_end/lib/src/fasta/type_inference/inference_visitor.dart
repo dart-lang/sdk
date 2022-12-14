@@ -8626,15 +8626,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  void dispatchPattern(
-      DartType matchedType, SharedMatchContext context, Node node) {
+  void dispatchPattern(SharedMatchContext context, Node node) {
     if (node is Pattern) {
-      node.acceptInference(this, matchedType: matchedType, context: context);
+      node.acceptInference(this, context: context);
     } else {
       // The front end's representation of a switch cases currently doesn't have
       // any support for patterns; each case is represented as an expression.
       // So analyze it as a constant pattern.
-      analyzeConstantPattern(matchedType, context, node, node as Expression);
+      analyzeConstantPattern(context, node, node as Expression);
     }
   }
 
@@ -8824,7 +8823,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   PatternInferenceResult visitDummyPattern(
     DummyPattern pattern, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
     return const PatternInferenceResult();
@@ -8832,11 +8830,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   PatternInferenceResult visitVariablePattern(
     VariablePattern binder, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    DartType inferredType = analyzeDeclaredVariablePattern(matchedType, context,
-        binder, binder.variable, binder.variable.name, binder.type);
+    DartType inferredType = analyzeDeclaredVariablePattern(
+        context, binder, binder.variable, binder.variable.name, binder.type);
     instrumentation?.record(uriForInstrumentation, binder.variable.fileOffset,
         'type', new InstrumentationValueForType(inferredType));
     if (binder.type == null) {
@@ -8847,7 +8844,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   PatternInferenceResult visitWildcardBinder(
     WildcardPattern binder, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
     return const PatternInferenceResult();
@@ -8855,9 +8851,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   PatternInferenceResult visitExpressionPattern(
     ExpressionPattern pattern, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
+    DartType matchedType = flow.getMatchedValueType();
     ExpressionInferenceResult expressionResult =
         inferExpression(pattern.expression, matchedType);
     pattern.expression = expressionResult.expression;
@@ -8866,65 +8862,64 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   PatternInferenceResult visitAndPattern(
     AndPattern pattern, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    pattern.left
-        .acceptInference(this, matchedType: matchedType, context: context);
-    pattern.right
-        .acceptInference(this, matchedType: matchedType, context: context);
+    pattern.left.acceptInference(this, context: context);
+    pattern.right.acceptInference(this, context: context);
     return const PatternInferenceResult();
   }
 
   PatternInferenceResult visitOrPattern(
     OrPattern pattern, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    pattern.left
-        .acceptInference(this, matchedType: matchedType, context: context);
-    pattern.right
-        .acceptInference(this, matchedType: matchedType, context: context);
+    pattern.left.acceptInference(this, context: context);
+    pattern.right.acceptInference(this, context: context);
     return const PatternInferenceResult();
   }
 
   PatternInferenceResult visitCastPattern(
     CastPattern pattern, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
-    pattern.pattern
-        .acceptInference(this, matchedType: pattern.type, context: context);
+    flow.pushSubpattern(pattern.type);
+    pattern.pattern.acceptInference(this, context: context);
+    flow.popSubpattern();
     return const PatternInferenceResult();
   }
 
   PatternInferenceResult visitNullAssertPattern(
     NullAssertPattern pattern, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
+    DartType matchedType = flow.getMatchedValueType();
     DartType nestedMatchedType = computeTypeWithoutNullabilityMarker(
         matchedType,
         isNonNullableByDefault: isNonNullableByDefault);
-    return pattern.pattern.acceptInference(this,
-        matchedType: nestedMatchedType, context: context);
+    flow.pushSubpattern(nestedMatchedType);
+    PatternInferenceResult result =
+        pattern.pattern.acceptInference(this, context: context);
+    flow.popSubpattern();
+    return result;
   }
 
   PatternInferenceResult visitNullCheckPattern(
     NullCheckPattern pattern, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
+    DartType matchedType = flow.getMatchedValueType();
     DartType nestedMatchedType = computeTypeWithoutNullabilityMarker(
         matchedType,
         isNonNullableByDefault: isNonNullableByDefault);
-    return pattern.pattern.acceptInference(this,
-        matchedType: nestedMatchedType, context: context);
+    flow.pushSubpattern(nestedMatchedType);
+    PatternInferenceResult result =
+        pattern.pattern.acceptInference(this, context: context);
+    flow.popSubpattern();
+    return result;
   }
 
   PatternInferenceResult visitListPattern(
     ListPattern pattern, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
     // TODO(cstefantsova): Should we infer a more precise type than DynamicType?
@@ -8935,16 +8930,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       elementType = pattern.typeArgument;
     }
     for (Pattern pattern in pattern.patterns) {
-      pattern.acceptInference(this, matchedType: elementType, context: context);
+      flow.pushSubpattern(elementType);
+      pattern.acceptInference(this, context: context);
+      flow.popSubpattern();
     }
     return const PatternInferenceResult();
   }
 
   PatternInferenceResult visitRelationalPattern(
     RelationalPattern pattern, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
+    DartType matchedType = flow.getMatchedValueType();
     ExpressionInferenceResult expressionResult =
         inferExpression(pattern.expression, matchedType);
     pattern.expression = expressionResult.expression..parent = pattern;
@@ -8953,13 +8950,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   PatternInferenceResult visitMapPattern(
     MapPattern pattern, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
     // TODO(cstefantsova): Use [analyzeMapPattern] when it's available.
     // Until then, an ad-hoc inference is used.
     DartType keyType = const DynamicType();
     DartType valueType = const DynamicType();
+    DartType matchedType = flow.getMatchedValueType();
     if (matchedType is InterfaceType) {
       List<DartType>? typeArguments = hierarchyBuilder
           .getTypeArgumentsAsInstanceOf(matchedType, coreTypes.mapClass);
@@ -8975,7 +8972,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   PatternInferenceResult visitNamedPattern(
     NamedPattern pattern, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
     // TODO(cstefantsova): Implement visitNamedPattern.
@@ -8984,7 +8980,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   PatternInferenceResult visitRecordPattern(
     RecordPattern pattern, {
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
     List<RecordPatternField<Node, Pattern>> fields = [
@@ -8995,7 +8990,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             name: fieldPattern is NamedPattern ? fieldPattern.name : null)
     ];
     DartType patternType =
-        analyzeRecordPattern(matchedType, context, pattern, fields: fields);
+        analyzeRecordPattern(context, pattern, fields: fields);
     pattern.type = patternType as RecordType;
     return const PatternInferenceResult();
   }
