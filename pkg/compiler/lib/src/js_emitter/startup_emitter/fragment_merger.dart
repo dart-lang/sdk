@@ -474,7 +474,7 @@ class FragmentMerger {
     });
   }
 
-  /// Given a list of OutputUnits sorted by their import entites,
+  /// Given a list of OutputUnits sorted by their import entities,
   /// returns a map of all the direct edges between output units.
   Map<OutputUnit, Set<OutputUnit>> createDirectEdges(
       List<OutputUnit> allOutputUnits) {
