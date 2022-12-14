@@ -8490,6 +8490,27 @@ class BodyBuilder extends StackListenerImpl
       push(pattern);
     }
   }
+
+  @override
+  void handlePatternVariableDeclarationStatement(
+      Token keyword, Token equals, Token semicolon) {
+    debugEvent('PatternVariableDeclarationStatement');
+    assert(checkState(keyword, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
+      ValueKinds.Pattern,
+      ValueKinds.AnnotationListOrNull,
+    ]));
+    Expression initializer = popForValue();
+    Pattern pattern = toPattern(pop());
+    // TODO(johnniwinther,cstefantsova): Handle metadata.
+    pop(NullValue.Metadata) as List<Expression>?;
+    push(new PatternVariableDeclaration(pattern, initializer,
+        offset: keyword.charOffset, isFinal: keyword.lexeme == 'final'));
+  }
 }
 
 abstract class EnsureLoaded {

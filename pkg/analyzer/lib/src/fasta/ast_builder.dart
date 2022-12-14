@@ -143,7 +143,7 @@ class AstBuilder extends StackListener {
   /// `true` if unnamed-library behavior is enabled
   final bool enableUnnamedLibraries;
 
-  /// `true` if views are enabled
+  /// `true` if inline-class is enabled
   final bool enableInlineClass;
 
   /// `true` if sealed-class is enabled
@@ -220,7 +220,7 @@ class AstBuilder extends StackListener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
       Token name) {
@@ -237,13 +237,13 @@ class AstBuilder extends StackListener {
       }
     }
     if (!enableInlineClass) {
-      if (viewToken != null) {
+      if (inlineToken != null) {
         _reportFeatureNotEnabled(
           feature: ExperimentalFeatures.inline_class,
-          startToken: viewToken,
+          startToken: inlineToken,
         );
-        // Pretend that 'view' didn't occur while this feature is incomplete.
-        viewToken = null;
+        // Pretend that 'inline' didn't occur while this feature is incomplete.
+        inlineToken = null;
       }
     }
     if (!enableSealedClass) {
@@ -257,7 +257,7 @@ class AstBuilder extends StackListener {
       }
     }
     push(macroToken ?? NullValue.Token);
-    push(viewToken ?? NullValue.Token);
+    push(inlineToken ?? NullValue.Token);
     push(sealedToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
   }
@@ -402,7 +402,7 @@ class AstBuilder extends StackListener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
       Token name) {
@@ -418,13 +418,13 @@ class AstBuilder extends StackListener {
       }
     }
     if (!enableInlineClass) {
-      if (viewToken != null) {
+      if (inlineToken != null) {
         _reportFeatureNotEnabled(
           feature: ExperimentalFeatures.inline_class,
-          startToken: viewToken,
+          startToken: inlineToken,
         );
-        // Pretend that 'view' didn't occur while this feature is incomplete.
-        viewToken = null;
+        // Pretend that 'inline' didn't occur while this feature is incomplete.
+        inlineToken = null;
       }
     }
     if (!enableSealedClass) {
@@ -438,7 +438,7 @@ class AstBuilder extends StackListener {
       }
     }
     push(macroToken ?? NullValue.Token);
-    push(viewToken ?? NullValue.Token);
+    push(inlineToken ?? NullValue.Token);
     push(sealedToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
   }
@@ -647,7 +647,7 @@ class AstBuilder extends StackListener {
       metadata: null,
       abstractKeyword: null,
       macroKeyword: null,
-      viewKeyword: null,
+      inlineKeyword: null,
       sealedKeyword: null,
       augmentKeyword: null,
       classKeyword: Token(Keyword.CLASS, 0),
@@ -2646,7 +2646,7 @@ class AstBuilder extends StackListener {
     }
     var augmentKeyword = pop(NullValue.Token) as Token?;
     var sealedKeyword = pop(NullValue.Token) as Token?;
-    var viewKeyword = pop(NullValue.Token) as Token?;
+    var inlineKeyword = pop(NullValue.Token) as Token?;
     var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
@@ -2664,7 +2664,7 @@ class AstBuilder extends StackListener {
         equals: equalsToken,
         abstractKeyword: abstractKeyword,
         macroKeyword: macroKeyword,
-        viewKeyword: viewKeyword,
+        inlineKeyword: inlineKeyword,
         sealedKeyword: sealedKeyword,
         augmentKeyword: augmentKeyword,
         superclass: superclass,
@@ -3629,7 +3629,7 @@ class AstBuilder extends StackListener {
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClauseImpl?;
     var augmentKeyword = pop(NullValue.Token) as Token?;
     var sealedKeyword = pop(NullValue.Token) as Token?;
-    var viewKeyword = pop(NullValue.Token) as Token?;
+    var inlineKeyword = pop(NullValue.Token) as Token?;
     var macroKeyword = pop(NullValue.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
@@ -3644,7 +3644,7 @@ class AstBuilder extends StackListener {
       metadata: metadata,
       abstractKeyword: abstractKeyword,
       macroKeyword: macroKeyword,
-      viewKeyword: viewKeyword,
+      inlineKeyword: inlineKeyword,
       sealedKeyword: sealedKeyword,
       augmentKeyword: augmentKeyword,
       classKeyword: classKeyword,
@@ -5544,7 +5544,7 @@ class AstBuilder extends StackListener {
 class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? abstractKeyword;
   final Token? macroKeyword;
-  final Token? viewKeyword;
+  final Token? inlineKeyword;
   final Token? sealedKeyword;
   final Token? augmentKeyword;
   final Token classKeyword;
@@ -5562,7 +5562,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.rightBracket,
     required this.abstractKeyword,
     required this.macroKeyword,
-    required this.viewKeyword,
+    required this.inlineKeyword,
     required this.sealedKeyword,
     required this.augmentKeyword,
     required this.classKeyword,
@@ -5579,7 +5579,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       metadata: metadata,
       abstractKeyword: abstractKeyword,
       macroKeyword: macroKeyword,
-      viewKeyword: viewKeyword,
+      inlineKeyword: inlineKeyword,
       sealedKeyword: sealedKeyword,
       augmentKeyword: augmentKeyword,
       classKeyword: classKeyword,

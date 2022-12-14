@@ -492,7 +492,7 @@ class _MacroListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
       Token name) {
@@ -816,7 +816,7 @@ class _MacroListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
       Token name) {

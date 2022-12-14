@@ -1352,18 +1352,23 @@ mixin TypeAnalyzer<
     }
     // Stack: (Expression, numExecutionPaths * StatementCase)
     bool isExhaustive;
+    bool requiresExhaustivenessValidation;
     if (hasDefault) {
       isExhaustive = true;
+      requiresExhaustivenessValidation = false;
     } else if (options.patternsEnabled) {
-      isExhaustive = isAlwaysExhaustiveType(scrutineeType);
+      requiresExhaustivenessValidation =
+          isExhaustive = isAlwaysExhaustiveType(scrutineeType);
     } else {
       isExhaustive = isLegacySwitchExhaustive(node, scrutineeType);
+      requiresExhaustivenessValidation = false;
     }
     flow.switchStatement_end(isExhaustive);
     return new SwitchStatementTypeAnalysisResult<Type>(
       hasDefault: hasDefault,
       isExhaustive: isExhaustive,
       lastCaseTerminates: lastCaseTerminates,
+      requiresExhaustivenessValidation: requiresExhaustivenessValidation,
       scrutineeType: scrutineeType,
     );
   }

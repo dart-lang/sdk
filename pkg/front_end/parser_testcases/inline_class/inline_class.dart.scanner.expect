@@ -1,0 +1,5 @@
+inline class Class {}
+inline class Class = Object with Mixin;
+
+inline[StringToken] class[KeywordToken] Class[StringToken] {[BeginToken]}[SimpleToken]
+inline[StringToken] class[KeywordToken] Class[StringToken] =[SimpleToken] Object[StringToken] with[KeywordToken] Mixin[StringToken];[SimpleToken][SimpleToken]

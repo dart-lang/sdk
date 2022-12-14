@@ -1945,7 +1945,6 @@ void Precompiler::TraceForRetainedFunctions() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
   Array& functions = Array::Handle(Z);
-  String& name = String::Handle(Z);
   Function& function = Function::Handle(Z);
   Function& function2 = Function::Handle(Z);
   Array& fields = Array::Handle(Z);
@@ -1997,17 +1996,16 @@ void Precompiler::TraceForRetainedFunctions() {
         }
       }
 
-      {
-        functions = cls.invocation_dispatcher_cache();
-        InvocationDispatcherTable dispatchers(functions);
-        for (auto dispatcher : dispatchers) {
-          name = dispatcher.Get<Class::kInvocationDispatcherName>();
-          if (name.IsNull()) break;  // Reached last entry.
-          function = dispatcher.Get<Class::kInvocationDispatcherFunction>();
+      if (cls.invocation_dispatcher_cache() != Array::empty_array().ptr()) {
+        DispatcherSet dispatchers(cls.invocation_dispatcher_cache());
+        DispatcherSet::Iterator it(&dispatchers);
+        while (it.MoveNext()) {
+          function ^= dispatchers.GetKey(it.Current());
           if (possibly_retained_functions_.ContainsKey(function)) {
             AddTypesOf(function);
           }
         }
+        dispatchers.Release();
       }
     }
   }
@@ -2253,9 +2251,6 @@ void Precompiler::DropFunctions() {
   };
 
   SafepointWriteRwLocker ml(T, T->isolate_group()->program_lock());
-  auto& dispatchers_array = Array::Handle(Z);
-  auto& name = String::Handle(Z);
-  auto& desc = Array::Handle(Z);
   for (intptr_t i = 0; i < libraries_.Length(); i++) {
     lib ^= libraries_.At(i);
     HANDLESCOPE(T);
@@ -2283,30 +2278,32 @@ void Precompiler::DropFunctions() {
       }
 
       retained_functions = GrowableObjectArray::New();
-      {
-        dispatchers_array = cls.invocation_dispatcher_cache();
-        InvocationDispatcherTable dispatchers(dispatchers_array);
-        for (auto dispatcher : dispatchers) {
-          name = dispatcher.Get<Class::kInvocationDispatcherName>();
-          if (name.IsNull()) break;  // Reached last entry.
-          desc = dispatcher.Get<Class::kInvocationDispatcherArgsDesc>();
-          function = dispatcher.Get<Class::kInvocationDispatcherFunction>();
+      if (cls.invocation_dispatcher_cache() != Array::empty_array().ptr()) {
+        DispatcherSet dispatchers(Z, cls.invocation_dispatcher_cache());
+        DispatcherSet::Iterator it(&dispatchers);
+        while (it.MoveNext()) {
+          function ^= dispatchers.GetKey(it.Current());
           if (functions_to_retain_.ContainsKey(function)) {
-            retained_functions.Add(name);
-            retained_functions.Add(desc);
             trim_function(function);
             retained_functions.Add(function);
           } else {
             drop_function(function);
           }
         }
+        dispatchers.Release();
       }
-      if (retained_functions.Length() > 0) {
-        functions = Array::MakeFixedLength(retained_functions);
+      if (retained_functions.Length() == 0) {
+        cls.set_invocation_dispatcher_cache(Array::empty_array());
       } else {
-        functions = Object::empty_array().ptr();
+        DispatcherSet retained_dispatchers(
+            Z, HashTables::New<DispatcherSet>(retained_functions.Length(),
+                                              Heap::kOld));
+        for (intptr_t j = 0; j < retained_functions.Length(); j++) {
+          function ^= retained_functions.At(j);
+          retained_dispatchers.Insert(function);
+        }
+        cls.set_invocation_dispatcher_cache(retained_dispatchers.Release());
       }
-      cls.set_invocation_dispatcher_cache(functions);
     }
   }
 
@@ -3090,6 +3087,16 @@ void Precompiler::DiscardCodeObjects() {
 }
 
 void Precompiler::PruneDictionaries() {
+#if defined(DEBUG)
+  // Verify that api_uses_ is stable: any entry in it can be found. This
+  // check serves to catch bugs when ProgramElementSet::Hash is accidentally
+  // defined using unstable values.
+  ProgramElementSet::Iterator it = api_uses_.GetIterator();
+  while (auto entry = it.Next()) {
+    ASSERT(api_uses_.HasKey(*entry));
+  }
+#endif
+
   // PRODUCT-only: pruning interferes with various uses of the service protocol,
   // including heap analysis tools.
 #if defined(PRODUCT)

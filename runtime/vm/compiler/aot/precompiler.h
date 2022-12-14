@@ -82,32 +82,6 @@ struct FunctionKeyTraits {
 
 typedef UnorderedHashSet<FunctionKeyTraits> FunctionSet;
 
-class FieldKeyValueTrait {
- public:
-  // Typedefs needed for the DirectChainedHashMap template.
-  typedef const Field* Key;
-  typedef const Field* Value;
-  typedef const Field* Pair;
-
-  static Key KeyOf(Pair kv) { return kv; }
-
-  static Value ValueOf(Pair kv) { return kv; }
-
-  static inline uword Hash(Key key) {
-    const TokenPosition token_pos = key->token_pos();
-    if (token_pos.IsReal()) {
-      return token_pos.Hash();
-    }
-    return key->kernel_offset();
-  }
-
-  static inline bool IsKeyEqual(Pair pair, Key key) {
-    return pair->ptr() == key->ptr();
-  }
-};
-
-typedef DirectChainedHashMap<FieldKeyValueTrait> FieldSet;
-
 class ClassKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -225,11 +199,15 @@ class ProgramElementKeyValueTrait {
     if (key->IsFunction()) {
       return Function::Cast(*key).Hash();
     } else if (key->IsField()) {
-      return Field::Cast(*key).kernel_offset();
+      return Utils::WordHash(Field::Cast(*key).kernel_offset());
     } else if (key->IsClass()) {
-      return Class::Cast(*key).kernel_offset();
+      return Utils::WordHash(Class::Cast(*key).kernel_offset());
     } else if (key->IsLibrary()) {
-      return Library::Cast(*key).index();
+      // This must not use library's index or url hash because both
+      // of these might change during precompilation: urls are changed
+      // by |Precompiler::Obfuscate| and library index is changed by
+      // |Precompiler::DropLibraries|.
+      return Utils::WordHash(Library::Cast(*key).kernel_offset());
     }
     FATAL("Unexpected type: %s\n", key->ToCString());
   }

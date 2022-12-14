@@ -46,9 +46,6 @@ AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED:
 AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED:
   status: needsFix
   notes: Fixed.
-AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED:
-  status: needsFix
-  notes: Fixed.
 AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
   status: noFix
   notes: |-

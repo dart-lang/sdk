@@ -327,12 +327,15 @@ Statement switch_(Expression expression, List<_SwitchStatementMember> cases,
         bool? expectHasDefault,
         bool? expectIsExhaustive,
         bool? expectLastCaseTerminates,
+        bool? expectRequiresExhaustivenessValidation,
         String? expectScrutineeType}) =>
     new _SwitchStatement(expression, cases, isLegacyExhaustive,
         location: computeLocation(),
         expectHasDefault: expectHasDefault,
         expectIsExhaustive: expectIsExhaustive,
         expectLastCaseTerminates: expectLastCaseTerminates,
+        expectRequiresExhaustivenessValidation:
+            expectRequiresExhaustivenessValidation,
         expectScrutineeType: expectScrutineeType);
 
 Expression switchExpr(Expression expression, List<ExpressionCase> cases) =>
@@ -4288,6 +4291,8 @@ class _SwitchStatement extends Statement {
 
   final bool? expectLastCaseTerminates;
 
+  final bool? expectRequiresExhaustivenessValidation;
+
   final String? expectScrutineeType;
 
   _SwitchStatement(this.scrutinee, this.cases, this.isLegacyExhaustive,
@@ -4295,6 +4300,7 @@ class _SwitchStatement extends Statement {
       required this.expectHasDefault,
       required this.expectIsExhaustive,
       required this.expectLastCaseTerminates,
+      required this.expectRequiresExhaustivenessValidation,
       required this.expectScrutineeType});
 
   @override
@@ -4344,6 +4350,8 @@ class _SwitchStatement extends Statement {
     expect(analysisResult.isExhaustive, expectIsExhaustive ?? anything);
     expect(analysisResult.lastCaseTerminates,
         expectLastCaseTerminates ?? anything);
+    expect(analysisResult.requiresExhaustivenessValidation,
+        expectRequiresExhaustivenessValidation ?? anything);
     expect(analysisResult.scrutineeType.type, expectScrutineeType ?? anything);
     h.irBuilder.apply(
       'switch',

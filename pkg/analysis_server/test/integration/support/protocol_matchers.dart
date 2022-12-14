@@ -97,7 +97,6 @@ final Matcher isAnalysisErrorType = MatchesEnum('AnalysisErrorType', [
 ///   "enableDeferredLoading": optional bool
 ///   "enableEnums": optional bool
 ///   "enableNullAwareOperators": optional bool
-///   "enableSuperMixins": optional bool
 ///   "generateDart2jsHints": optional bool
 ///   "generateHints": optional bool
 ///   "generateLints": optional bool
@@ -108,7 +107,6 @@ final Matcher isAnalysisOptions = LazyMatcher(
           'enableDeferredLoading': isBool,
           'enableEnums': isBool,
           'enableNullAwareOperators': isBool,
-          'enableSuperMixins': isBool,
           'generateDart2jsHints': isBool,
           'generateHints': isBool,
           'generateLints': isBool

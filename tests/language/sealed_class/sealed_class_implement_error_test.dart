@@ -15,7 +15,7 @@ abstract class OutsideA implements SealedClass {}
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
 
 class OutsideB implements SealedClass {
-// [error column 1, length 344]
+// [error column 1, length 423]
 // [analyzer] COMPILE_TIME_ERROR.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
 //    ^
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.

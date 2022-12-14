@@ -77,16 +77,6 @@ class AnalysisOptionsHintCode extends ErrorCode {
         "It is no longer necessary to explicitly enable strong mode.",
   );
 
-  ///  An error code indicating that the enablePreviewDart2 setting is
-  ///  deprecated.
-  static const AnalysisOptionsHintCode SUPER_MIXINS_SETTING_DEPRECATED =
-      AnalysisOptionsHintCode(
-    'SUPER_MIXINS_SETTING_DEPRECATED',
-    "The 'enableSuperMixins' setting is deprecated.",
-    correctionMessage:
-        "Support has been added to the language for 'mixin' based mixins.",
-  );
-
   /// Initialize a newly created error code to have the given [name].
   const AnalysisOptionsHintCode(
     String name,

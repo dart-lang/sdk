@@ -15,7 +15,7 @@ abstract class OutsideA with SealedMixin {}
 // [cfe] Sealed mixin 'SealedMixin' can't be mixed in outside of its library.
 
 class OutsideB with SealedMixin {
-// [error column 1, length 218]
+// [error column 1, length 297]
 // [analyzer] COMPILE_TIME_ERROR.SEALED_MIXIN_SUBTYPE_OUTSIDE_OF_LIBRARY
 //    ^
 // [cfe] Sealed mixin 'SealedMixin' can't be mixed in outside of its library.

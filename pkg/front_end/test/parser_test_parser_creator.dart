@@ -130,7 +130,7 @@ class ParserCreatorListener extends Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
       Token name) {

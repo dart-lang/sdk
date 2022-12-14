@@ -524,7 +524,7 @@ class Parser {
           /* start = */ token,
           /* keyword = */ next,
           /* macroToken = */ null,
-          /* viewToken = */ null,
+          /* inlineToken = */ null,
           /* sealedToken = */ null,
           directiveState);
     }
@@ -546,12 +546,12 @@ class Parser {
     }
     next = token.next!;
     Token? macroToken;
-    Token? viewToken;
+    Token? inlineToken;
     Token? sealedToken;
     if (next.isIdentifier &&
-        next.lexeme == 'view' &&
+        next.lexeme == 'inline' &&
         optional('class', next.next!)) {
-      viewToken = next;
+      inlineToken = next;
       next = next.next!;
     } else if (next.isIdentifier &&
         next.lexeme == 'macro' &&
@@ -575,7 +575,7 @@ class Parser {
           /* start = */ start,
           /* keyword = */ next,
           /* macroToken = */ macroToken,
-          /* viewToken = */ viewToken,
+          /* inlineToken = */ inlineToken,
           /* sealedToken = */ sealedToken,
           directiveState);
     } else if (next.isKeywordOrIdentifier) {
@@ -613,7 +613,7 @@ class Parser {
       Token start,
       Token keyword,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
       DirectiveContext? directiveState) {
     assert(keyword.isTopLevelKeyword);
@@ -625,7 +625,7 @@ class Parser {
       Token? abstractToken = context.abstractToken;
       Token? augmentToken = context.augmentToken;
       return parseClassOrNamedMixinApplication(abstractToken, macroToken,
-          viewToken, sealedToken, augmentToken, keyword);
+          inlineToken, sealedToken, augmentToken, keyword);
     } else if (identical(value, 'enum')) {
       directiveState?.checkDeclaration();
       ModifierContext context = new ModifierContext(this);
@@ -2464,7 +2464,7 @@ class Parser {
   Token parseClassOrNamedMixinApplication(
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
       Token classKeyword) {
@@ -2481,11 +2481,11 @@ class Parser {
     }
     if (optional('=', token.next!)) {
       listener.beginNamedMixinApplication(begin, abstractToken, macroToken,
-          viewToken, sealedToken, augmentToken, name);
+          inlineToken, sealedToken, augmentToken, name);
       return parseNamedMixinApplication(token, begin, classKeyword);
     } else {
       listener.beginClassDeclaration(begin, abstractToken, macroToken,
-          viewToken, sealedToken, augmentToken, name);
+          inlineToken, sealedToken, augmentToken, name);
       return parseClass(token, begin, classKeyword, name.lexeme);
     }
   }

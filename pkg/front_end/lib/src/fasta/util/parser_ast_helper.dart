@@ -180,7 +180,7 @@ abstract class AbstractParserAstListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
       Token name) {
@@ -188,7 +188,7 @@ abstract class AbstractParserAstListener implements Listener {
         begin: begin,
         abstractToken: abstractToken,
         macroToken: macroToken,
-        viewToken: viewToken,
+        inlineToken: inlineToken,
         sealedToken: sealedToken,
         augmentToken: augmentToken,
         name: name);
@@ -966,7 +966,7 @@ abstract class AbstractParserAstListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
       Token name) {
@@ -975,7 +975,7 @@ abstract class AbstractParserAstListener implements Listener {
         begin: begin,
         abstractToken: abstractToken,
         macroToken: macroToken,
-        viewToken: viewToken,
+        inlineToken: inlineToken,
         sealedToken: sealedToken,
         augmentToken: augmentToken,
         name: name);
@@ -3202,7 +3202,7 @@ class ClassDeclarationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
   final Token? macroToken;
-  final Token? viewToken;
+  final Token? inlineToken;
   final Token? sealedToken;
   final Token? augmentToken;
   final Token name;
@@ -3211,7 +3211,7 @@ class ClassDeclarationBegin extends ParserAstNode {
       {required this.begin,
       this.abstractToken,
       this.macroToken,
-      this.viewToken,
+      this.inlineToken,
       this.sealedToken,
       this.augmentToken,
       required this.name})
@@ -3222,7 +3222,7 @@ class ClassDeclarationBegin extends ParserAstNode {
         "begin": begin,
         "abstractToken": abstractToken,
         "macroToken": macroToken,
-        "viewToken": viewToken,
+        "inlineToken": inlineToken,
         "sealedToken": sealedToken,
         "augmentToken": augmentToken,
         "name": name,
@@ -4616,7 +4616,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
   final Token? macroToken;
-  final Token? viewToken;
+  final Token? inlineToken;
   final Token? sealedToken;
   final Token? augmentToken;
   final Token name;
@@ -4625,7 +4625,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
       {required this.begin,
       this.abstractToken,
       this.macroToken,
-      this.viewToken,
+      this.inlineToken,
       this.sealedToken,
       this.augmentToken,
       required this.name})
@@ -4636,7 +4636,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
         "begin": begin,
         "abstractToken": abstractToken,
         "macroToken": macroToken,
-        "viewToken": viewToken,
+        "inlineToken": inlineToken,
         "sealedToken": sealedToken,
         "augmentToken": augmentToken,
         "name": name,

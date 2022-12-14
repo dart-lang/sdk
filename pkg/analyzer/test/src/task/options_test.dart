@@ -410,7 +410,7 @@ analyzer:
     validate('''
 analyzer:
   language:
-    - enableSuperMixins: true
+    - notAnOption: true
 ''', [AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT]);
   }
 

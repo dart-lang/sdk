@@ -50,37 +50,4 @@ void f() {
     expect(errors, hasLength(1));
     expect(errors[0].location.file, equals(pathname));
   }
-
-  @failingTest
-  Future<void> test_super_mixins_enabled() async {
-    // We see errors here with the new driver (#28870).
-    //  Expected: empty
-    //    Actual: [
-    //    AnalysisError:{"severity":"ERROR","type":"COMPILE_TIME_ERROR","location":{"file":"/var/folders/00/0w95r000h01000cxqpysvccm003j4q/T/analysisServerfbuOQb/test.dart","offset":31,"length":1,"startLine":1,"startColumn":32},"message":"The class 'C' can't be used as a mixin because it extends a class other than Object.","correction":"","code":"mixin_inherits_from_not_object","hasFix":false},
-    //    AnalysisError:{"severity":"ERROR","type":"COMPILE_TIME_ERROR","location":{"file":"/var/folders/00/0w95r000h01000cxqpysvccm003j4q/T/analysisServerfbuOQb/test.dart","offset":31,"length":1,"startLine":1,"startColumn":32},"message":"The class 'C' can't be used as a mixin because it references 'super'.","correction":"","code":"mixin_references_super","hasFix":false}
-    //  ]
-
-    var pathname = sourcePath('test.dart');
-    writeFile(pathname, '''
-class Test extends Object with C {
-  void foo() {}
-}
-abstract class B {
-  void foo() {}
-}
-abstract class C extends B {
-  void bar() {
-    super.foo();
-  }
-}
-''');
-    // ignore: deprecated_member_use_from_same_package
-    await sendAnalysisUpdateOptions(
-        AnalysisOptions()..enableSuperMixins = true);
-    await standardAnalysisSetup();
-    await analysisFinished;
-    expect(currentAnalysisErrors[pathname], isList);
-    var errors = currentAnalysisErrors[pathname];
-    expect(errors, isEmpty);
-  }
 }

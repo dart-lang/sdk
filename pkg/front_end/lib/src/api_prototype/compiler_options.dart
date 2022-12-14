@@ -322,7 +322,7 @@ class CompilerOptions {
     if (sdkSummary != other.sdkSummary) return false;
     if (!equalMaps(declaredVariables, other.declaredVariables)) return false;
     if (fileSystem != other.fileSystem) return false;
-    if (compileSdk != compileSdk) return false;
+    if (compileSdk != other.compileSdk) return false;
     // chaseDependencies aren't used anywhere, so ignored here.
     // targetPatches aren't used anywhere, so ignored here.
     if (!equalMaps(

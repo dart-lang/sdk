@@ -59,6 +59,7 @@ class VariableDeclarationResolver {
 
     if (isTopLevel) {
       _resolver.flowAnalysis.topLevelDeclaration_exit();
+      _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
     } else if (element.isLate) {
       _resolver.flowAnalysis.flow?.lateInitializer_end();
     }

@@ -125,6 +125,14 @@ class SwitchStatementTypeAnalysisResult<Type> {
   /// Whether the last case body in the switch statement terminated.
   final bool lastCaseTerminates;
 
+  /// If `true`, patterns support is enabled, there is no default clause, and
+  /// the static type of the scrutinee expression is an "always exhaustive"
+  /// type.  Therefore, flow analysis has assumed (without checking) that the
+  /// switch statement is exhaustive.  So at a later stage of compilation, the
+  /// exhaustiveness checking algorithm should check whether this switch
+  /// statement was exhaustive, and report a compile-time error if it wasn't.
+  final bool requiresExhaustivenessValidation;
+
   /// The static type of the scrutinee expression.
   final Type scrutineeType;
 
@@ -132,6 +140,7 @@ class SwitchStatementTypeAnalysisResult<Type> {
     required this.hasDefault,
     required this.isExhaustive,
     required this.lastCaseTerminates,
+    required this.requiresExhaustivenessValidation,
     required this.scrutineeType,
   });
 }

@@ -71,12 +71,12 @@ class ForwardingListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
       Token name) {
-    listener?.beginClassDeclaration(begin, abstractToken, macroToken, viewToken,
-        sealedToken, augmentToken, name);
+    listener?.beginClassDeclaration(begin, abstractToken, macroToken,
+        inlineToken, sealedToken, augmentToken, name);
   }
 
   @override
@@ -401,12 +401,12 @@ class ForwardingListener implements Listener {
       Token begin,
       Token? abstractToken,
       Token? macroToken,
-      Token? viewToken,
+      Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
       Token name) {
     listener?.beginNamedMixinApplication(begin, abstractToken, macroToken,
-        viewToken, sealedToken, augmentToken, name);
+        inlineToken, sealedToken, augmentToken, name);
   }
 
   @override

@@ -6736,9 +6736,20 @@ main() {
       });
 
       test('empty exhaustive', () {
+        // This can happen if a class is marked `sealed` but has no subclasses.
+        // Note that exhaustiveness checking of "always exhaustive" types is
+        // deferred until a later analysis stage (so that it can take constant
+        // evaluation into account), so flow analysis simply assumes that the
+        // switch is exhaustive without checking, and sets the
+        // `requiresExhaustivenessValidation` flag to let the client know that
+        // exhaustiveness checking must be performed later.  Had this been a
+        // real compilation (and not just a unit test), exhaustiveness checking
+        // would later confirm that the class `C` has no subclasses, or report
+        // a compile-time error.
+        h.addExhaustiveness('C', true);
         h.run([
-          switch_(expr('()'), []),
-          checkReachable(true),
+          switch_(expr('C'), [], expectRequiresExhaustivenessValidation: true),
+          checkReachable(false),
         ]);
       });
     });

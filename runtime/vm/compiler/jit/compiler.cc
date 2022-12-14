@@ -389,19 +389,19 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
     const bool trace_compiler =
         FLAG_trace_compiler || FLAG_trace_optimizing_compiler;
     bool code_is_valid = true;
-    if (!flow_graph->parsed_function().guarded_fields()->is_empty()) {
-      const ZoneGrowableArray<const Field*>& guarded_fields =
-          *flow_graph->parsed_function().guarded_fields();
+    if (flow_graph->parsed_function().guarded_fields()->Length() != 0) {
+      const FieldSet* guarded_fields =
+          flow_graph->parsed_function().guarded_fields();
       Field& original = Field::Handle();
-      for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-        const Field& field = *guarded_fields[i];
-        ASSERT(!field.IsOriginal());
-        original = field.Original();
-        if (!field.IsConsistentWith(original)) {
+      FieldSet::Iterator it = guarded_fields->GetIterator();
+      while (const Field** field = it.Next()) {
+        ASSERT(!(*field)->IsOriginal());
+        original = (*field)->Original();
+        if (!(*field)->IsConsistentWith(original)) {
           code_is_valid = false;
           if (trace_compiler) {
             THR_Print("--> FAIL: Field %s guarded state changed.",
-                      field.ToCString());
+                      (*field)->ToCString());
           }
           break;
         }
@@ -444,11 +444,12 @@ CodePtr CompileParsedFunctionHelper::FinalizeCompilation(
       // to ensure that the code will be deoptimized if they are violated.
       thread()->compiler_state().cha().RegisterDependencies(code);
 
-      const ZoneGrowableArray<const Field*>& guarded_fields =
-          *flow_graph->parsed_function().guarded_fields();
+      const FieldSet* guarded_fields =
+          flow_graph->parsed_function().guarded_fields();
       Field& field = Field::Handle();
-      for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-        field = guarded_fields[i]->Original();
+      FieldSet::Iterator it = guarded_fields->GetIterator();
+      while (const Field** guarded_field = it.Next()) {
+        field = (*guarded_field)->Original();
         field.RegisterDependentCode(code);
       }
     }

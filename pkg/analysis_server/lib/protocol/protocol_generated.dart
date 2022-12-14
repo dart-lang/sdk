@@ -2037,7 +2037,6 @@ class AnalysisOccurrencesParams implements HasToJson {
 ///   "enableDeferredLoading": optional bool
 ///   "enableEnums": optional bool
 ///   "enableNullAwareOperators": optional bool
-///   "enableSuperMixins": optional bool
 ///   "generateDart2jsHints": optional bool
 ///   "generateHints": optional bool
 ///   "generateLints": optional bool
@@ -2068,10 +2067,6 @@ class AnalysisOptions implements HasToJson {
   /// operators" feature.
   bool? enableNullAwareOperators;
 
-  /// True if the client wants to enable support for the proposed "less
-  /// restricted mixins" proposal (DEP 34).
-  bool? enableSuperMixins;
-
   /// True if hints that are specific to dart2js should be generated. This
   /// option is ignored if generateHints is false.
   bool? generateDart2jsHints;
@@ -2089,7 +2084,6 @@ class AnalysisOptions implements HasToJson {
       this.enableDeferredLoading,
       this.enableEnums,
       this.enableNullAwareOperators,
-      this.enableSuperMixins,
       this.generateDart2jsHints,
       this.generateHints,
       this.generateLints});
@@ -2119,11 +2113,6 @@ class AnalysisOptions implements HasToJson {
             '$jsonPath.enableNullAwareOperators',
             json['enableNullAwareOperators']);
       }
-      bool? enableSuperMixins;
-      if (json.containsKey('enableSuperMixins')) {
-        enableSuperMixins = jsonDecoder.decodeBool(
-            '$jsonPath.enableSuperMixins', json['enableSuperMixins']);
-      }
       bool? generateDart2jsHints;
       if (json.containsKey('generateDart2jsHints')) {
         generateDart2jsHints = jsonDecoder.decodeBool(
@@ -2144,7 +2133,6 @@ class AnalysisOptions implements HasToJson {
           enableDeferredLoading: enableDeferredLoading,
           enableEnums: enableEnums,
           enableNullAwareOperators: enableNullAwareOperators,
-          enableSuperMixins: enableSuperMixins,
           generateDart2jsHints: generateDart2jsHints,
           generateHints: generateHints,
           generateLints: generateLints);
@@ -2172,10 +2160,6 @@ class AnalysisOptions implements HasToJson {
     if (enableNullAwareOperators != null) {
       result['enableNullAwareOperators'] = enableNullAwareOperators;
     }
-    var enableSuperMixins = this.enableSuperMixins;
-    if (enableSuperMixins != null) {
-      result['enableSuperMixins'] = enableSuperMixins;
-    }
     var generateDart2jsHints = this.generateDart2jsHints;
     if (generateDart2jsHints != null) {
       result['generateDart2jsHints'] = generateDart2jsHints;
@@ -2201,7 +2185,6 @@ class AnalysisOptions implements HasToJson {
           enableDeferredLoading == other.enableDeferredLoading &&
           enableEnums == other.enableEnums &&
           enableNullAwareOperators == other.enableNullAwareOperators &&
-          enableSuperMixins == other.enableSuperMixins &&
           generateDart2jsHints == other.generateDart2jsHints &&
           generateHints == other.generateHints &&
           generateLints == other.generateLints;
@@ -2215,7 +2198,6 @@ class AnalysisOptions implements HasToJson {
         enableDeferredLoading,
         enableEnums,
         enableNullAwareOperators,
-        enableSuperMixins,
         generateDart2jsHints,
         generateHints,
         generateLints,

@@ -3987,10 +3987,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // If there were no breaks (neither implicit nor explicit), then
     // `breakState` will be `null`.  This means this is an empty switch
     // statement and the type of the scrutinee is an exhaustive type.  This
-    // could happen, for instance, if the scrutinee type is the empty record
-    // type.  We need to consider the code after the switch statement reachable
-    // if this happens.
-    breakState ??= context._previous;
+    // could happen, for instance, if the scrutinee type is an abstract sealed
+    // class that has no subclasses.  It makes the most sense to treat the code
+    // after the switch as unreachable, because that's the normal behavior of a
+    // switch over an exhaustive type with no `break`s.  It is sound to do so
+    // because the type is uninhabited, therefore the body of the switch
+    // statement itself will never be reached.
+    breakState ??= context._previous.setUnreachable();
 
     _current = breakState.unsplit();
   }

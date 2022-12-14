@@ -118,7 +118,6 @@ void applyToAnalysisOptions(AnalysisOptionsImpl options, YamlMap optionMap) {
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
   static const String analyzer = 'analyzer';
-  static const String enableSuperMixins = 'enableSuperMixins';
   static const String enablePreviewDart2 = 'enablePreviewDart2';
 
   static const String cannotIgnore = 'cannot-ignore';
@@ -509,10 +508,6 @@ class LanguageOptionValidator extends OptionsValidator {
             if (AnalyzerOptions.enablePreviewDart2 == key) {
               reporter.reportErrorForSpan(
                   AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED,
-                  k.span);
-            } else if (AnalyzerOptions.enableSuperMixins == key) {
-              reporter.reportErrorForSpan(
-                  AnalysisOptionsHintCode.SUPER_MIXINS_SETTING_DEPRECATED,
                   k.span);
             } else if (!AnalyzerOptions.languageOptions.contains(key)) {
               _builder.reportError(reporter, AnalyzerOptions.language, k);

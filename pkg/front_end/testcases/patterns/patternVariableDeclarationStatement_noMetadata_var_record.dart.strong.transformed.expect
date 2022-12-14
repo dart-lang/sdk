@@ -1,0 +1,6 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static method f(dynamic x) → dynamic {
+  invalid-expression "PatternVariableDeclaration(var (var a) = x;)";
+}
