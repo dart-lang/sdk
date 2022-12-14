@@ -60,7 +60,7 @@ class C<@A<int>(0) T> {
   @A<int>(0)
   factory C.facRed(@A<int>(0) int x) = C;
 
-  // Instance (virtual) declartions.
+  // Instance (virtual) declarations.
   @A<int>(0)
   final f = 0;
 
@@ -79,7 +79,7 @@ class C<@A<int>(0) T> {
   @A<int>(0)
   int operator +(@A<int>(0) int x) => x;
 
-  // Static declartions.
+  // Static declarations.
   @A<int>(0)
   static const sc = C<int>(0);
 
@@ -101,7 +101,7 @@ class C<@A<int>(0) T> {
 
 @A<int>(0)
 abstract class AC<@A<int>(0) T> {
-  // Instance (virtual) declartions.
+  // Instance (virtual) declarations.
   @A<int>(0)
   abstract final f;
 
@@ -123,7 +123,7 @@ abstract class AC<@A<int>(0) T> {
 
 @A<int>(0)
 extension E<@A<int>(0) T> on T {
-  // Instance extension member declartions.
+  // Instance extension member declarations.
   @A<int>(0)
   void mp(@A<int>(0) Object x, [@A<int>(0) int y = 0]) {}
 
@@ -139,7 +139,7 @@ extension E<@A<int>(0) T> on T {
   @A<int>(0)
   int operator +(@A<int>(0) int x) => x;
 
-  // Static declartions.
+  // Static declarations.
   @A<int>(0)
   static const sc = C<int>(0);
 
@@ -161,7 +161,7 @@ extension E<@A<int>(0) T> on T {
 
 @A<int>(0)
 mixin M<@A<int>(0) T> {
-  // Instance member declartions.
+  // Instance member declarations.
   @A<int>(0)
   final f = 0;
 
@@ -180,7 +180,7 @@ mixin M<@A<int>(0) T> {
   @A<int>(0)
   int operator +(@A<int>(0) int x) => x;
 
-  // Static declartions.
+  // Static declarations.
   @A<int>(0)
   static const sc = C<int>(0);
 
