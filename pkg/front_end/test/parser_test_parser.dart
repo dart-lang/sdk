@@ -656,6 +656,7 @@ class TestParser extends Parser {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token classKeyword) {
     doPrint('parseClassOrNamedMixinApplication('
         '$abstractToken, '
@@ -663,10 +664,17 @@ class TestParser extends Parser {
         '$inlineToken, '
         '$sealedToken, '
         '$augmentToken, '
+        '$mixinToken, '
         '$classKeyword)');
     indent++;
-    var result = super.parseClassOrNamedMixinApplication(abstractToken,
-        macroToken, inlineToken, sealedToken, augmentToken, classKeyword);
+    var result = super.parseClassOrNamedMixinApplication(
+        abstractToken,
+        macroToken,
+        inlineToken,
+        sealedToken,
+        augmentToken,
+        mixinToken,
+        classKeyword);
     indent--;
     return result;
   }

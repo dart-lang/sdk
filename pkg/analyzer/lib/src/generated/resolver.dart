@@ -1557,6 +1557,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return typeProvider.dynamicType;
   }
 
+  @override
   RelationalOperatorResolution<DartType>? resolveRelationalPatternOperator(
     covariant RelationalPatternImpl node,
     DartType matchedType,

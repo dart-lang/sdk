@@ -183,6 +183,7 @@ abstract class AbstractParserAstListener implements Listener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     ClassDeclarationBegin data = new ClassDeclarationBegin(ParserAstType.BEGIN,
         begin: begin,
@@ -191,6 +192,7 @@ abstract class AbstractParserAstListener implements Listener {
         inlineToken: inlineToken,
         sealedToken: sealedToken,
         augmentToken: augmentToken,
+        mixinToken: mixinToken,
         name: name);
     seen(data);
   }
@@ -969,6 +971,7 @@ abstract class AbstractParserAstListener implements Listener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     NamedMixinApplicationBegin data = new NamedMixinApplicationBegin(
         ParserAstType.BEGIN,
@@ -978,6 +981,7 @@ abstract class AbstractParserAstListener implements Listener {
         inlineToken: inlineToken,
         sealedToken: sealedToken,
         augmentToken: augmentToken,
+        mixinToken: mixinToken,
         name: name);
     seen(data);
   }
@@ -3205,6 +3209,7 @@ class ClassDeclarationBegin extends ParserAstNode {
   final Token? inlineToken;
   final Token? sealedToken;
   final Token? augmentToken;
+  final Token? mixinToken;
   final Token name;
 
   ClassDeclarationBegin(ParserAstType type,
@@ -3214,6 +3219,7 @@ class ClassDeclarationBegin extends ParserAstNode {
       this.inlineToken,
       this.sealedToken,
       this.augmentToken,
+      this.mixinToken,
       required this.name})
       : super("ClassDeclaration", type);
 
@@ -3225,6 +3231,7 @@ class ClassDeclarationBegin extends ParserAstNode {
         "inlineToken": inlineToken,
         "sealedToken": sealedToken,
         "augmentToken": augmentToken,
+        "mixinToken": mixinToken,
         "name": name,
       };
 }
@@ -4619,6 +4626,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
   final Token? inlineToken;
   final Token? sealedToken;
   final Token? augmentToken;
+  final Token? mixinToken;
   final Token name;
 
   NamedMixinApplicationBegin(ParserAstType type,
@@ -4628,6 +4636,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
       this.inlineToken,
       this.sealedToken,
       this.augmentToken,
+      this.mixinToken,
       required this.name})
       : super("NamedMixinApplication", type);
 
@@ -4639,6 +4648,7 @@ class NamedMixinApplicationBegin extends ParserAstNode {
         "inlineToken": inlineToken,
         "sealedToken": sealedToken,
         "augmentToken": augmentToken,
+        "mixinToken": mixinToken,
         "name": name,
       };
 }

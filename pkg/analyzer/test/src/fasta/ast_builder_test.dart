@@ -314,6 +314,23 @@ ClassDeclaration
 ''');
   }
 
+  void test_class_mixin() {
+    var parseResult = parseStringWithErrors(r'''
+mixin class A {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  mixinKeyword: mixin
+  classKeyword: class
+  name: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   void test_class_sealed() {
     var parseResult = parseStringWithErrors(r'''
 sealed class A {}
@@ -392,6 +409,33 @@ ClassTypeAlias
   name: A
   equals: =
   macroKeyword: macro
+  superclass: NamedType
+    name: SimpleIdentifier
+      token: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: SimpleIdentifier
+          token: M
+  semicolon: ;
+''');
+  }
+
+  void test_classAlias_mixin() {
+    var parseResult = parseStringWithErrors(r'''
+mixin M {}
+mixin class A = Object with M;
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classTypeAlias('class A');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  typedefKeyword: class
+  name: A
+  equals: =
+  mixinKeyword: mixin
   superclass: NamedType
     name: SimpleIdentifier
       token: Object

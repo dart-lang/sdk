@@ -93,9 +93,10 @@ class ForwardingTestListener extends ForwardingListener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     super.beginClassDeclaration(beginToken, abstractToken, macroToken,
-        inlineToken, sealedToken, augmentToken, name);
+        inlineToken, sealedToken, augmentToken, mixinToken, name);
     begin('ClassDeclaration');
   }
 
@@ -407,9 +408,10 @@ class ForwardingTestListener extends ForwardingListener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     super.beginNamedMixinApplication(beginToken, abstractToken, macroToken,
-        inlineToken, sealedToken, augmentToken, name);
+        inlineToken, sealedToken, augmentToken, mixinToken, name);
     begin('NamedMixinApplication');
   }
 

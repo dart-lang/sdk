@@ -309,8 +309,7 @@ Pattern objectPattern({
 Pattern recordPattern(List<RecordPatternField> fields) =>
     _RecordPattern(fields, location: computeLocation());
 
-Pattern relationalPattern(
-    RelationalOperatorResolution<Type>? operator, Expression operand,
+Pattern relationalPattern(String operator, Expression operand,
     {String? errorId}) {
   var result =
       _RelationalPattern(operator, operand, location: computeLocation());
@@ -566,6 +565,11 @@ class GuardedPattern extends Node with PossiblyGuardedPattern {
 }
 
 class Harness {
+  static Map<String, Type> _coreMemberTypes = {
+    'int.>': Type('bool Function(num)'),
+    'int.>=': Type('bool Function(num)'),
+  };
+
   final MiniAstOperations _operations = MiniAstOperations();
 
   bool _started = false;
@@ -576,7 +580,10 @@ class Harness {
 
   Type? _thisType;
 
-  final Map<String, _PropertyElement> _members = {};
+  late final Map<String, _PropertyElement?> _members = {
+    for (var entry in _coreMemberTypes.entries)
+      entry.key: _PropertyElement(entry.value)
+  };
 
   late final typeAnalyzer = _MiniAstTypeAnalyzer(
       this,
@@ -642,9 +649,21 @@ class Harness {
 
   /// Updates the harness so that when member [memberName] is looked up on type
   /// [targetType], a member is found having the given [type].
-  void addMember(String targetType, String memberName, String type,
+  ///
+  /// If [type] is `null`, then an attempt to look up [memberName] on type
+  /// [targetType] should result in `null` (no such member) rather than a test
+  /// failure.
+  void addMember(String targetType, String memberName, String? type,
       {bool promotable = false}) {
     var query = '$targetType.$memberName';
+    if (type == null) {
+      if (promotable) {
+        fail("It doesn't make sense to specify `promotable: true` "
+            "when the type is `null`");
+      }
+      _members[query] = null;
+      return;
+    }
     var member = _PropertyElement(Type(type));
     _members[query] = member;
     if (promotable) {
@@ -663,11 +682,44 @@ class Harness {
   }
 
   /// Attempts to look up a member named [memberName] in the given [type].  If
-  /// a member is found, returns its [_PropertyElement] object.  Otherwise the
-  /// test fails.
-  _PropertyElement getMember(Type type, String memberName) {
+  /// a member is found, returns its [_PropertyElement] object; otherwise `null`
+  /// is returned.
+  ///
+  /// If test hasn't been configured in such a way that the result of the query
+  /// is known, the test fails.
+  _PropertyElement? getMember(Type type, String memberName) {
     var query = '$type.$memberName';
-    return _members[query] ?? fail('Unknown member query: $query');
+    var member = _members[query];
+    if (member == null && !_members.containsKey(query)) {
+      fail('Unknown member query: $query');
+    }
+    return member;
+  }
+
+  /// See [TypeAnalyzer.resolveRelationalPatternOperator].
+  RelationalOperatorResolution<Type>? resolveRelationalPatternOperator(
+      Type matchedValueType, String operator) {
+    if (operator == '==' || operator == '!=') {
+      return RelationalOperatorResolution(
+          isEquality: true,
+          parameterType: Type('Object'),
+          returnType: Type('bool'));
+    }
+    var member = getMember(matchedValueType, operator);
+    if (member == null) return null;
+    var memberType = member._type;
+    if (memberType is! FunctionType) {
+      fail('$matchedValueType.operator$operator has type $memberType; '
+          'must be a function type');
+    }
+    if (memberType.positionalParameters.isEmpty) {
+      fail('$matchedValueType.operator$operator has type $memberType; '
+          'must accept a parameter');
+    }
+    return RelationalOperatorResolution(
+        isEquality: operator == '==' || operator == '!=',
+        parameterType: memberType.positionalParameters[0],
+        returnType: memberType.returnType);
   }
 
   /// Runs the given [statements] through flow analysis, checking any assertions
@@ -3284,11 +3336,11 @@ class _MiniAstTypeAnalyzer
       Expression node, Expression receiver, String propertyName) {
     var receiverType = analyzeExpression(receiver, unknownType);
     var member = _lookupMember(node, receiverType, propertyName);
+    var memberType = member?._type ?? dynamicType;
     var promotedType =
-        flow.propertyGet(node, receiver, propertyName, member, member._type);
+        flow.propertyGet(node, receiver, propertyName, member, memberType);
     // TODO(paulberry): handle null shorting
-    return new SimpleTypeAnalysisResult<Type>(
-        type: promotedType ?? member._type);
+    return new SimpleTypeAnalysisResult<Type>(type: promotedType ?? memberType);
   }
 
   void analyzeReturnStatement() {
@@ -3304,10 +3356,10 @@ class _MiniAstTypeAnalyzer
   SimpleTypeAnalysisResult<Type> analyzeThisPropertyGet(
       Expression node, String propertyName) {
     var member = _lookupMember(node, thisType, propertyName);
+    var memberType = member?._type ?? dynamicType;
     var promotedType =
-        flow.thisOrSuperPropertyGet(node, propertyName, member, member._type);
-    return new SimpleTypeAnalysisResult<Type>(
-        type: promotedType ?? member._type);
+        flow.thisOrSuperPropertyGet(node, propertyName, member, memberType);
+    return new SimpleTypeAnalysisResult<Type>(type: promotedType ?? memberType);
   }
 
   SimpleTypeAnalysisResult<Type> analyzeThrow(
@@ -3719,7 +3771,7 @@ class _MiniAstTypeAnalyzer
   @override
   Type listType(Type elementType) => PrimaryType('List', args: [elementType]);
 
-  _PropertyElement lookupInterfaceMember(
+  _PropertyElement? lookupInterfaceMember(
       Node node, Type receiverType, String memberName) {
     return _harness.getMember(receiverType, memberName);
   }
@@ -3747,7 +3799,14 @@ class _MiniAstTypeAnalyzer
     required Type receiverType,
     required shared.RecordPatternField<Node, Pattern> field,
   }) {
-    return _harness.getMember(receiverType, field.name!)._type;
+    return _harness.getMember(receiverType, field.name!)?._type ?? dynamicType;
+  }
+
+  @override
+  RelationalOperatorResolution<Type>? resolveRelationalPatternOperator(
+      covariant _RelationalPattern node, Type matchedValueType) {
+    return _harness.resolveRelationalPatternOperator(
+        matchedValueType, node.operator);
   }
 
   @override
@@ -3774,7 +3833,7 @@ class _MiniAstTypeAnalyzer
     return type.recursivelyDemote(covariant: true) ?? type;
   }
 
-  _PropertyElement _lookupMember(
+  _PropertyElement? _lookupMember(
       Expression node, Type receiverType, String memberName) {
     return lookupInterfaceMember(node, receiverType, memberName);
   }
@@ -4055,7 +4114,7 @@ class _Property extends PromotableLValue {
         h.typeAnalyzer.analyzeExpression(target, h.typeAnalyzer.unknownType);
     var member = h.typeAnalyzer._lookupMember(this, receiverType, propertyName);
     return h.flow
-        .promotedPropertyType(target, propertyName, member, member._type);
+        .promotedPropertyType(target, propertyName, member, member!._type);
   }
 
   @override
@@ -4122,7 +4181,7 @@ class _RecordPattern extends Pattern {
 }
 
 class _RelationalPattern extends Pattern {
-  final RelationalOperatorResolution<Type>? operator;
+  final String operator;
   final Expression operand;
 
   _RelationalPattern(this.operator, this.operand, {required super.location})
@@ -4141,10 +4200,9 @@ class _RelationalPattern extends Pattern {
   @override
   void visit(Harness h, SharedMatchContext context) {
     var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
-    h.typeAnalyzer.analyzeRelationalPattern(context, this, operator, operand);
+    h.typeAnalyzer.analyzeRelationalPattern(context, this, operand);
     h.irBuilder.atom(matchedType.type, Kind.type, location: location);
-    h.irBuilder.apply(
-        'relationalPattern', [Kind.expression, Kind.type], Kind.pattern,
+    h.irBuilder.apply(operator, [Kind.expression, Kind.type], Kind.pattern,
         names: ['matchedType'], location: location);
   }
 
@@ -4413,7 +4471,7 @@ class _ThisOrSuperProperty extends PromotableLValue {
     h.irBuilder.atom('this.$propertyName', Kind.expression, location: location);
     var member = h.typeAnalyzer._lookupMember(this, h._thisType!, propertyName);
     return h.flow
-        .promotedPropertyType(null, propertyName, member, member._type);
+        .promotedPropertyType(null, propertyName, member, member!._type);
   }
 
   @override

@@ -112,6 +112,7 @@ class ParserCreatorListener extends Listener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     if (name.lexeme == "Listener") insideListenerClass = true;
   }

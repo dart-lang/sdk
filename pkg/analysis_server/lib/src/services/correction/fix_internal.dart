@@ -889,7 +889,7 @@ class FixProcessor extends BaseProcessor {
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
       DataDriven.new,
     ],
-    HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
+    StaticWarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
       ImportLibrary.dartAsync,
     ],
   };
@@ -1401,33 +1401,6 @@ class FixProcessor extends BaseProcessor {
     ],
     // TODO(brianwilkerson) Add a fix to normalize the path.
 //    HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT: [],
-    HintCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    HintCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
-      UpdateSdkConstraints.version_2_1_0,
-    ],
-    HintCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    HintCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    HintCode.SDK_VERSION_EXTENSION_METHODS: [
-      UpdateSdkConstraints.version_2_6_0,
-    ],
-    HintCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
-      UpdateSdkConstraints.version_2_14_0,
-    ],
-    HintCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    HintCode.SDK_VERSION_SET_LITERAL: [
-      UpdateSdkConstraints.version_2_2_0,
-    ],
-    HintCode.SDK_VERSION_UI_AS_CODE: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
     HintCode.TYPE_CHECK_IS_NOT_NULL: [
       UseNotEqNull.new,
     ],
@@ -1523,6 +1496,33 @@ class FixProcessor extends BaseProcessor {
     ],
     StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH: [
       AddMissingEnumCaseClauses.new,
+    ],
+    StaticWarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    StaticWarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
+      UpdateSdkConstraints.version_2_1_0,
+    ],
+    StaticWarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    StaticWarningCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    StaticWarningCode.SDK_VERSION_EXTENSION_METHODS: [
+      UpdateSdkConstraints.version_2_6_0,
+    ],
+    StaticWarningCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
+      UpdateSdkConstraints.version_2_14_0,
+    ],
+    StaticWarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    StaticWarningCode.SDK_VERSION_SET_LITERAL: [
+      UpdateSdkConstraints.version_2_2_0,
+    ],
+    StaticWarningCode.SDK_VERSION_UI_AS_CODE: [
+      UpdateSdkConstraints.version_2_2_2,
     ],
     StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION: [
       RemoveNonNullAssertion.new,

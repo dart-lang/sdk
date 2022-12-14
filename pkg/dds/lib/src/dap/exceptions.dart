@@ -12,3 +12,42 @@ class DebugAdapterException implements Exception {
 
   String toString() => 'DebugAdapterException: $message';
 }
+
+/// Exception thrown when failing to read arguments supplied by the user because
+/// they are not the correct type.
+///
+/// This is usually because a user customised their launch configuration (for
+/// example in `.vscode/launch.json` for VS Code) with values that are not
+/// valid, such as putting a `String` in a field intended to be a `Map`:
+///
+/// ```
+///     // Bad.
+///     "env": "foo"
+///
+///     // Good.
+///     "env": {
+///         "FLUTTER_ROOT": "foo",
+///     }
+/// ```
+class DebugAdapterInvalidArgumentException implements DebugAdapterException {
+  final String requestName;
+  final String argumentName;
+  final Type expectedType;
+  final Type actualType;
+  final Object? actualValue;
+
+  DebugAdapterInvalidArgumentException({
+    required this.requestName,
+    required this.argumentName,
+    required this.expectedType,
+    required this.actualType,
+    required this.actualValue,
+  });
+
+  @override
+  String get message =>
+      '"$argumentName" argument in $requestName configuration must be a '
+      '$expectedType but provided value was a $actualType ($actualValue)';
+
+  String toString() => 'DebugAdapterInvalidArgumentException: $message';
+}

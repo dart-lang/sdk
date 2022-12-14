@@ -102,6 +102,10 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
   /// Either this or [vmServiceUri] must be supplied.
   final String? vmServiceInfoFile;
 
+  /// A reader for protocol arguments that throws detailed exceptions if
+  /// arguments aren't of the correct type.
+  static final arg = DebugAdapterArgumentReader('attach');
+
   DartAttachRequestArguments({
     this.vmServiceUri,
     this.vmServiceInfoFile,
@@ -131,8 +135,8 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
         );
 
   DartAttachRequestArguments.fromMap(Map<String, Object?> obj)
-      : vmServiceUri = obj['vmServiceUri'] as String?,
-        vmServiceInfoFile = obj['vmServiceInfoFile'] as String?,
+      : vmServiceUri = arg.read<String?>(obj, 'vmServiceUri'),
+        vmServiceInfoFile = arg.read<String?>(obj, 'vmServiceInfoFile'),
         super.fromMap(obj);
 
   @override
@@ -149,6 +153,10 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
 /// A common base for [DartLaunchRequestArguments] and
 /// [DartAttachRequestArguments] for fields that are common to both.
 class DartCommonLaunchAttachRequestArguments extends RequestArguments {
+  /// A reader for protocol arguments that throws detailed exceptions if
+  /// arguments aren't of the correct type.
+  static final arg = DebugAdapterArgumentReader('launch/attach');
+
   /// Optional data from the previous, restarted session.
   /// The data is sent as the 'restart' attribute of the 'terminated' event.
   /// The client should leave the data intact.
@@ -226,21 +234,22 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   });
 
   DartCommonLaunchAttachRequestArguments.fromMap(Map<String, Object?> obj)
-      : restart = obj['restart'],
-        name = obj['name'] as String?,
-        cwd = obj['cwd'] as String?,
-        env = (obj['env'] as Map<String, Object?>?)?.cast<String, String>(),
+      : restart = arg.read<Object?>(obj, 'restart'),
+        name = arg.read<String?>(obj, 'name'),
+        cwd = arg.read<String?>(obj, 'cwd'),
+        env = arg.readOptionalMap<String, String>(obj, 'env'),
         additionalProjectPaths =
-            (obj['additionalProjectPaths'] as List?)?.cast<String>(),
-        debugSdkLibraries = obj['debugSdkLibraries'] as bool?,
+            arg.readOptionalList<String>(obj, 'additionalProjectPaths'),
+        debugSdkLibraries = arg.read<bool?>(obj, 'debugSdkLibraries'),
         debugExternalPackageLibraries =
-            obj['debugExternalPackageLibraries'] as bool?,
+            arg.read<bool?>(obj, 'debugExternalPackageLibraries'),
         evaluateGettersInDebugViews =
-            obj['evaluateGettersInDebugViews'] as bool?,
+            arg.read<bool?>(obj, 'evaluateGettersInDebugViews'),
         evaluateToStringInDebugViews =
-            obj['evaluateToStringInDebugViews'] as bool?,
-        sendLogsToClient = obj['sendLogsToClient'] as bool?,
-        sendCustomProgressEvents = obj['sendCustomProgressEvents'] as bool?;
+            arg.read<bool?>(obj, 'evaluateToStringInDebugViews'),
+        sendLogsToClient = arg.read<bool?>(obj, 'sendLogsToClient'),
+        sendCustomProgressEvents =
+            arg.read<bool?>(obj, 'sendCustomProgressEvents');
 
   Map<String, Object?> toJson() => {
         if (restart != null) 'restart': restart,
@@ -2213,6 +2222,10 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 /// class.
 class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     implements LaunchRequestArguments {
+  /// A reader for protocol arguments that throws detailed exceptions if
+  /// arguments aren't of the correct type.
+  static final arg = DebugAdapterArgumentReader('launch');
+
   /// If noDebug is true the launch request should launch the program without
   /// enabling debugging.
   final bool? noDebug;
@@ -2304,15 +2317,16 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
         );
 
   DartLaunchRequestArguments.fromMap(Map<String, Object?> obj)
-      : noDebug = obj['noDebug'] as bool?,
-        program = obj['program'] as String,
-        args = (obj['args'] as List?)?.cast<String>(),
-        toolArgs = (obj['toolArgs'] as List?)?.cast<String>(),
-        vmAdditionalArgs = (obj['vmAdditionalArgs'] as List?)?.cast<String>(),
-        vmServicePort = obj['vmServicePort'] as int?,
-        console = obj['console'] as String?,
-        customTool = obj['customTool'] as String?,
-        customToolReplacesArgs = obj['customToolReplacesArgs'] as int?,
+      : noDebug = arg.read<bool?>(obj, 'noDebug'),
+        program = arg.read<String>(obj, 'program'),
+        args = arg.readOptionalList<String>(obj, 'args'),
+        toolArgs = arg.readOptionalList<String>(obj, 'toolArgs'),
+        vmAdditionalArgs =
+            arg.readOptionalList<String>(obj, 'vmAdditionalArgs'),
+        vmServicePort = arg.read<int?>(obj, 'vmServicePort'),
+        console = arg.read<String?>(obj, 'console'),
+        customTool = arg.read<String?>(obj, 'customTool'),
+        customToolReplacesArgs = arg.read<int?>(obj, 'customToolReplacesArgs'),
         super.fromMap(obj);
 
   @override

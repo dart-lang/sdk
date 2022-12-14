@@ -1913,6 +1913,9 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   /// The 'augment' keyword, or `null` if the keyword was absent.
   final Token? augmentKeyword;
 
+  /// The 'mixin' keyword, or `null` if the keyword was absent.
+  final Token? mixinKeyword;
+
   /// The token representing the 'class' keyword.
   @override
   final Token classKeyword;
@@ -1967,6 +1970,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.inlineKeyword,
     required this.sealedKeyword,
     required this.augmentKeyword,
+    required this.mixinKeyword,
     required this.classKeyword,
     required super.name,
     required TypeParameterListImpl? typeParameters,
@@ -2011,6 +2015,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
         inlineKeyword ??
         sealedKeyword ??
         augmentKeyword ??
+        mixinKeyword ??
         classKeyword;
   }
 
@@ -2052,6 +2057,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..addToken('inlineKeyword', inlineKeyword)
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('mixinKeyword', mixinKeyword)
     ..addToken('classKeyword', classKeyword)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
@@ -2127,6 +2133,10 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   /// augmentation class.
   final Token? augmentKeyword;
 
+  /// The token for the 'mixin' keyword, or `null` if this is not defining a
+  /// mixin class.
+  final Token? mixinKeyword;
+
   /// The name of the superclass of the class being declared.
   NamedTypeImpl _superclass;
 
@@ -2158,6 +2168,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     required this.inlineKeyword,
     required this.sealedKeyword,
     required this.augmentKeyword,
+    required this.mixinKeyword,
     required NamedTypeImpl superclass,
     required WithClauseImpl withClause,
     required ImplementsClauseImpl? implementsClause,
@@ -2183,6 +2194,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
         inlineKeyword ??
         sealedKeyword ??
         augmentKeyword ??
+        mixinKeyword ??
         typedefKeyword;
   }
 
@@ -2225,6 +2237,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     ..addToken('macroKeyword', macroKeyword)
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('mixinKeyword', mixinKeyword)
     ..addNode('superclass', superclass)
     ..addNode('withClause', withClause)
     ..addNode('implementsClause', implementsClause)
@@ -11152,13 +11165,7 @@ class RelationalPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeRelationalPattern(
-      context,
-      this,
-      resolverVisitor.resolveRelationalPatternOperator(
-          this, resolverVisitor.flowAnalysis.flow!.getMatchedValueType()),
-      operand,
-    );
+    resolverVisitor.analyzeRelationalPattern(context, this, operand);
     resolverVisitor.popRewrite();
   }
 

@@ -217,6 +217,7 @@ class ParserTestListener implements Listener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     seen(begin);
     seen(abstractToken);
@@ -224,6 +225,7 @@ class ParserTestListener implements Listener {
     seen(inlineToken);
     seen(sealedToken);
     seen(augmentToken);
+    seen(mixinToken);
     seen(name);
     doPrint('beginClassDeclaration('
         '$begin, '
@@ -232,6 +234,7 @@ class ParserTestListener implements Listener {
         '$inlineToken, '
         '$sealedToken, '
         '$augmentToken, '
+        '$mixinToken, '
         '$name)');
     indent++;
   }
@@ -1083,6 +1086,7 @@ class ParserTestListener implements Listener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     seen(begin);
     seen(abstractToken);
@@ -1090,6 +1094,7 @@ class ParserTestListener implements Listener {
     seen(inlineToken);
     seen(sealedToken);
     seen(augmentToken);
+    seen(mixinToken);
     seen(name);
     doPrint('beginNamedMixinApplication('
         '$begin, '
@@ -1098,6 +1103,7 @@ class ParserTestListener implements Listener {
         '$inlineToken, '
         '$sealedToken, '
         '$augmentToken, '
+        '$mixinToken, '
         '$name)');
     indent++;
   }

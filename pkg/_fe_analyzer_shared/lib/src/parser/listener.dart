@@ -140,6 +140,7 @@ class Listener implements UnescapeErrorListener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {}
 
   /// Handle an extends clause in a class declaration. Substructures:
@@ -785,6 +786,7 @@ class Listener implements UnescapeErrorListener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {}
 
   /// Handle a named mixin application with clause (e.g. "A with B, C").

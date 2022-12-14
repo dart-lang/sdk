@@ -23,7 +23,7 @@ class MixinDeclarationTest extends PartialCodeTest {
                 ParserErrorCode.EXPECTED_BODY
               ],
               'mixin _s_ {}',
-              failing: ['functionNonVoid', 'getter']),
+              failing: ['class', 'functionNonVoid', 'getter']),
           TestDescriptor('named', 'mixin A', [ParserErrorCode.EXPECTED_BODY],
               'mixin A {}'),
           TestDescriptor(
