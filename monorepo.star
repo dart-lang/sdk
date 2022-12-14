@@ -93,7 +93,7 @@ def monorepo_tester(name, short_name, category):
         channels = [],
         dimensions = {"pool": "dart.tests"},
         executable = dart.flutter_recipe("engine_v2/tester"),
-        execution_timeout = 60 * time.minute,
+        execution_timeout = 90 * time.minute,
         notifies = None,
         priority = priority.normal,
         triggered_by = [],
@@ -105,5 +105,21 @@ def monorepo_tester(name, short_name, category):
         category = category,
         console_view = "monorepo",
     )
+    dart.try_builder(
+        name,
+        executable = dart.flutter_recipe("engine_v2/tester"),
+        execution_timeout = 90 * time.minute,
+        pool = "dart.tests",
+        on_cq = False,
+        cq_branches = [],
+    )
 
-monorepo_tester("flutter-tester", "tester", "test")
+monorepo_tester("flutter-linux-web-tests-0", "wt0", "web_test")
+monorepo_tester("flutter-linux-web-tests-1", "wt1", "web_test")
+monorepo_tester("flutter-linux-web-tests-2", "wt2", "web_test")
+monorepo_tester("flutter-linux-web-tests-3", "wt3", "web_test")
+monorepo_tester("flutter-linux-web-tests-4", "wt4", "web_test")
+monorepo_tester("flutter-linux-web-tests-5", "wt5", "web_test")
+monorepo_tester("flutter-linux-web-tests-6", "wt6", "web_test")
+monorepo_tester("flutter-linux-web-tests-7-last", "wt7", "web_test")
+monorepo_tester("flutter-linux-web-tool-tests", "wtool", "web_test")
