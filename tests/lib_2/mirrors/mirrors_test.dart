@@ -62,7 +62,7 @@ testInvoke(mirrors) {
 }
 
 /// In dart2js, lists, numbers, and other objects are treated special
-/// and their methods are invoked through a techique called interceptors.
+/// and their methods are invoked through a technique called interceptors.
 testIntercepted(mirrors) {
   {
     var instance = 1;
