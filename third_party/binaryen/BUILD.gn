@@ -44,7 +44,7 @@ source_set("binaryen_sources") {
   # We avoid listing all sources manually, this means when updating
   # binaryen in DEPS (or manually editing) one has to ensure to
   # re-run GN in DEPS to ensure new dependencies are picked up.
-  # (this lowers the maintainaince burden of GN build support for binaryen)
+  # (this lowers the maintenance burden of GN build support for binaryen)
   sources = exec_script("list_sources.py",
                         src_dirs,
                         "list lines",
