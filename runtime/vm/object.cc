@@ -3727,8 +3727,16 @@ UnboxedFieldBitmap Class::CalculateFieldOffsets() const {
       }
     }
   }
-  set_instance_size(RoundedAllocationSize(host_offset),
-                    compiler::target::RoundedAllocationSize(target_offset));
+
+  const intptr_t host_instance_size = RoundedAllocationSize(host_offset);
+  const intptr_t target_instance_size =
+      compiler::target::RoundedAllocationSize(target_offset);
+  if (!Utils::IsInt(32, target_instance_size)) {
+    // Many parts of the compiler assume offsets can be represented with
+    // int32_t.
+    FATAL("Too many fields in %s\n", UserVisibleNameCString());
+  }
+  set_instance_size(host_instance_size, target_instance_size);
   set_next_field_offset(host_offset, target_offset);
   return host_bitmap;
 }

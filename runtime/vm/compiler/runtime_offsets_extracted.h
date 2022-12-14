@@ -542,7 +542,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 16;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 24;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 29;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 30;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 12;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 4;
@@ -1215,7 +1215,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 32;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 48;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 53;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 54;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 24;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
@@ -1880,7 +1880,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 16;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 24;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 29;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 30;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 12;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 4;
@@ -2553,7 +2553,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 32;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 48;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 53;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 54;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 24;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
@@ -3226,7 +3226,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 32;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 37;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 38;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 16;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
@@ -3898,7 +3898,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 32;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 37;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 38;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 16;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
@@ -4564,7 +4564,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 16;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 24;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 29;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 30;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 12;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 4;
@@ -5239,7 +5239,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 32;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 48;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 53;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 54;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 24;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
@@ -5899,7 +5899,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 16;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 24;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 29;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 30;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 12;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 4;
@@ -6564,7 +6564,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 32;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 48;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 53;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 54;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 24;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
@@ -7221,7 +7221,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 16;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 24;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 29;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 30;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 12;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 4;
@@ -7886,7 +7886,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 32;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 48;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 53;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 54;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 24;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
@@ -8551,7 +8551,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 32;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 37;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 38;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 16;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
@@ -9215,7 +9215,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 24;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 32;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 37;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 38;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 16;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
@@ -9873,7 +9873,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 16;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 24;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 29;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 30;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 12;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 4;
@@ -10540,7 +10540,7 @@ static constexpr dart::compiler::target::word
     FunctionType_type_parameters_offset = 32;
 static constexpr dart::compiler::target::word
     TypeParameter_parameterized_class_id_offset = 48;
-static constexpr dart::compiler::target::word TypeParameter_index_offset = 53;
+static constexpr dart::compiler::target::word TypeParameter_index_offset = 54;
 static constexpr dart::compiler::target::word TypeArguments_hash_offset = 24;
 static constexpr dart::compiler::target::word
     TypeArguments_instantiations_offset = 8;
@@ -11259,7 +11259,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_TypeParameter_parameterized_class_id_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
-    29;
+    30;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
     12;
 static constexpr dart::compiler::target::word
@@ -12002,7 +12002,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_TypeParameter_parameterized_class_id_offset = 48;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
-    53;
+    54;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
     24;
 static constexpr dart::compiler::target::word
@@ -12750,7 +12750,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_TypeParameter_parameterized_class_id_offset = 48;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
-    53;
+    54;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
     24;
 static constexpr dart::compiler::target::word
@@ -13497,7 +13497,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_TypeParameter_parameterized_class_id_offset = 32;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
-    37;
+    38;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -14243,7 +14243,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_TypeParameter_parameterized_class_id_offset = 32;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
-    37;
+    38;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -14985,7 +14985,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_TypeParameter_parameterized_class_id_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
-    29;
+    30;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
     12;
 static constexpr dart::compiler::target::word
@@ -15730,7 +15730,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_TypeParameter_parameterized_class_id_offset = 48;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
-    53;
+    54;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
     24;
 static constexpr dart::compiler::target::word
@@ -16465,7 +16465,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_TypeParameter_parameterized_class_id_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
-    29;
+    30;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
     12;
 static constexpr dart::compiler::target::word
@@ -17199,7 +17199,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_TypeParameter_parameterized_class_id_offset = 48;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
-    53;
+    54;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
     24;
 static constexpr dart::compiler::target::word
@@ -17938,7 +17938,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_TypeParameter_parameterized_class_id_offset = 48;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
-    53;
+    54;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
     24;
 static constexpr dart::compiler::target::word
@@ -18676,7 +18676,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_TypeParameter_parameterized_class_id_offset = 32;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
-    37;
+    38;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -19413,7 +19413,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_TypeParameter_parameterized_class_id_offset = 32;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
-    37;
+    38;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
     16;
 static constexpr dart::compiler::target::word
@@ -20146,7 +20146,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_TypeParameter_parameterized_class_id_offset = 24;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
-    29;
+    30;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
     12;
 static constexpr dart::compiler::target::word
@@ -20882,7 +20882,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_TypeParameter_parameterized_class_id_offset = 48;
 static constexpr dart::compiler::target::word AOT_TypeParameter_index_offset =
-    53;
+    54;
 static constexpr dart::compiler::target::word AOT_TypeArguments_hash_offset =
     24;
 static constexpr dart::compiler::target::word

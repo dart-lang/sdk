@@ -796,8 +796,13 @@ AbstractTypePtr ClassFinalizer::FinalizeType(const AbstractType& type,
       // parameterized class.
       const intptr_t offset = parameterized_class.NumTypeArguments() -
                               parameterized_class.NumTypeParameters();
+      const intptr_t index = type_parameter.index() + offset;
+      if (!Utils::IsUint(16, index)) {
+        FATAL("Too many type parameters in %s",
+              parameterized_class.UserVisibleNameCString());
+      }
       type_parameter.set_base(offset);  // Informative, but not needed.
-      type_parameter.set_index(type_parameter.index() + offset);
+      type_parameter.set_index(index);
 
       // Remove the reference to the parameterized class.
       type_parameter.set_parameterized_class_id(kClassCid);

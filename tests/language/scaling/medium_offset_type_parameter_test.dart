@@ -260,10 +260,12 @@ class C<
     T252,
     T253,
     T254,
-    T255> {
+    T255,
+    T256> {
   @pragma("vm:never-inline")
   static create<T>() {
     return new C<
+        double,
         double,
         double,
         double,
@@ -525,17 +527,17 @@ class C<
   @pragma("vm:never-inline")
   @pragma("vm:entry-point") // Stop TFA
   @pragma("dart2js:noInline")
-  dynamic checkIs(dynamic x) => x is T255;
+  dynamic checkIs(dynamic x) => x is T256;
 
   @pragma("vm:never-inline")
   @pragma("vm:entry-point") // Stop TFA
   @pragma("dart2js:noInline")
-  dynamic checkAs(dynamic x) => x as T255;
+  dynamic checkAs(dynamic x) => x as T256;
 
   @pragma("vm:never-inline")
   @pragma("vm:entry-point") // Stop TFA
   @pragma("dart2js:noInline")
-  dynamic checkInstantiate() => new G<G<T255>>();
+  dynamic checkInstantiate() => new G<G<T256>>();
 }
 
 class G<T> {}
