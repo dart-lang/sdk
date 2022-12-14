@@ -2468,7 +2468,7 @@ static bool IsUserDefinedClass(Zone* zone,
 }
 
 /// Updates |visited| weak table with information about whether object
-/// (transitevly) references constants of user-defined classes: |kDrop|
+/// (transitively) references constants of user-defined classes: |kDrop|
 /// indicates it does, |kRetain| - does not.
 class ConstantInstanceVisitor {
  public:
