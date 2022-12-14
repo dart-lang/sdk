@@ -1867,7 +1867,7 @@ This is a patch release that fixes:
   `a.toUnsigned(32) >>> b` on the VM.
 
 - Prior to Dart 2.14, metadata (annotations) were not permitted to be specified
-  with generic type arguments. This restriction is lifted in Dart Dart 2.14.
+  with generic type arguments. This restriction is lifted in Dart 2.14.
 
   ```dart
   class C<T> {
