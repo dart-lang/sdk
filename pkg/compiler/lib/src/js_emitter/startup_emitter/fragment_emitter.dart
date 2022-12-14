@@ -2136,7 +2136,7 @@ class DeferredLoadingState {
 class DeferredPrimaryExpression extends js.DeferredExpression {
   late final js.Expression _value;
 
-  /// Set the value for this defferred expression.
+  /// Set the value for this deferred expression.
   ///
   /// Ensure this is called exactly once before calling the [value] getter.
   void setValue(js.Expression value) {
