@@ -9,7 +9,7 @@ import 'package:expect/minitest.dart';
 import 'utils.dart';
 
 main() {
-  var isSpanElement = predicate((x) => x is SpanElement, 'is a SpanElemt');
+  var isSpanElement = predicate((x) => x is SpanElement, 'is a SpanElement');
   var isDivElement = predicate((x) => x is DivElement, 'is a DivElement');
   var isText = predicate((x) => x is Text, 'is a Text');
 
