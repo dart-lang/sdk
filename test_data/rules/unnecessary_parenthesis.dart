@@ -120,6 +120,11 @@ main() async {
   (a?.abs()).hashCode;
   (a?..abs()).hashCode;
   (a?[0]).hashCode;
+
+  (a?.sign)!;
+  (a?.abs())!;
+  (a?..abs())!;
+  (a?[0])!;
 }
 
 Invocation? invocation() => null;
