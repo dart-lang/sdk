@@ -1,3 +1,6 @@
+# 2.5.1
+- [DAP] Supplying incorrect types of arguments in `launch`/`attach` requests will now result in a clear error message in an error response instead of terminating the adapter.
+
 # 2.5.0
 - [DAP] `variables` requests now treat lists from `dart:typed_data` (such as `Uint8List`) like standard `List` instances and return their elements instead of class fields.
 - [DAP] `variables` requests now return information about the number of items in lists to allow the client to page through them.
