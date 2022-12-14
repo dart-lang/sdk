@@ -12,6 +12,6 @@ class ClassInOtherFile {
 
 topLevelInOtherFile() {}
 
-  spaceIdentedInOtherFile() {}
+  spaceIndentedInOtherFile() {}
 
-	tabIdentedInOtherFile() {}
+	tabIndentedInOtherFile() {}
