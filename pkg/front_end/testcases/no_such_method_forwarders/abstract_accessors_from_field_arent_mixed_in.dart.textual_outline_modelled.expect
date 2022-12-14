@@ -1,6 +1,5 @@
-// @dart = 2.9
 abstract class A {
-  int foo;
+  int? foo;
 }
 
 class B implements A {
@@ -8,8 +7,8 @@ class B implements A {
 }
 
 class C extends Object with B {
-  int get foo => 42;
-  void set foo(int value) {}
+  int? get foo => 42;
+  void set foo(int? value) {}
 }
 
 int count = 0;

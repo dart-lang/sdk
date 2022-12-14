@@ -1,29 +1,19 @@
-library;
+library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
 abstract class Foo extends core::Object {
-  synthetic constructor •() → self::Foo*
+  synthetic constructor •() → self::Foo
     ;
   abstract method _foo() → void;
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
-  abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
-  abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
-  abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
-  abstract member-signature method _simpleInstanceOfTrue(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfTrue
-  abstract member-signature method _simpleInstanceOfFalse(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOfFalse
-  abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
-  abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
-  abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Bar extends self::Foo {
-  synthetic constructor •() → self::Bar*
+  synthetic constructor •() → self::Bar
     ;
-  method noSuchMethod(core::Invocation* invocation) → dynamic
+  method noSuchMethod(core::Invocation invocation) → dynamic
     ;
   no-such-method-forwarder method _foo() → void
-    return this.{self::Bar::noSuchMethod}(new core::_InvocationMirror::_withType(#_foo, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation*) →* dynamic};
+    return this.{self::Bar::noSuchMethod}(new core::_InvocationMirror::_withType(#_foo, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic};
 }
 static method main() → dynamic
   ;
