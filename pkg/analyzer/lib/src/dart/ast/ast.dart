@@ -11165,13 +11165,7 @@ class RelationalPatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeRelationalPattern(
-      context,
-      this,
-      resolverVisitor.resolveRelationalPatternOperator(
-          this, resolverVisitor.flowAnalysis.flow!.getMatchedValueType()),
-      operand,
-    );
+    resolverVisitor.analyzeRelationalPattern(context, this, operand);
     resolverVisitor.popRewrite();
   }
 

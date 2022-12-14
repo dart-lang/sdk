@@ -1152,17 +1152,19 @@ mixin TypeAnalyzer<
     return recordType(positional: positional, named: named);
   }
 
-  /// Analyzes a relational pattern.  [node] is the pattern itself, [operator]
-  /// is the resolution of the used relational operator, and [operand] is a
-  /// constant expression.
+  /// Analyzes a relational pattern.  [node] is the pattern itself, and
+  /// [operand] is a constant expression that will be passed to the relational
+  /// operator.
+  ///
+  /// This method will invoke [resolveRelationalPatternOperator] to obtain
+  /// information about the operator.
   ///
   /// See [dispatchPattern] for the meaning of [context].
   ///
   /// Stack effect: pushes (Expression).
   void analyzeRelationalPattern(
       MatchContext<Node, Expression, Pattern, Type, Variable> context,
-      Node node,
-      RelationalOperatorResolution<Type>? operator,
+      Pattern node,
       Expression operand) {
     // Stack: ()
     TypeAnalyzerErrors<Node, Node, Expression, Variable, Type, Pattern>?
@@ -1171,6 +1173,9 @@ mixin TypeAnalyzer<
     if (irrefutableContext != null) {
       errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
     }
+    Type matchedValueType = flow.getMatchedValueType();
+    RelationalOperatorResolution<Type>? operator =
+        resolveRelationalPatternOperator(node, matchedValueType);
     Type operandContext = operator?.parameterType ?? unknownType;
     Type operandType = analyzeExpression(operand, operandContext);
     // Stack: (Expression)
@@ -1668,6 +1673,15 @@ mixin TypeAnalyzer<
     required Type receiverType,
     required RecordPatternField<Node, Pattern> field,
   });
+
+  /// Resolves the relational operator for [node] assuming that the value being
+  /// matched has static type [matchedValueType].
+  ///
+  /// If no operator is found, `null` should be returned.  (This could happen
+  /// either because the code is invalid, or because [matchedValueType] is
+  /// `dynamic`).
+  RelationalOperatorResolution<Type>? resolveRelationalPatternOperator(
+      Pattern node, Type matchedValueType);
 
   /// Records that type inference has assigned a [type] to a [variable].  This
   /// is called once per variable, regardless of whether the variable's type is

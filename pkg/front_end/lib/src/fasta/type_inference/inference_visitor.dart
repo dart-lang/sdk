@@ -9123,6 +9123,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // TODO(scheglov): implement mapType
     throw new UnimplementedError('TODO(scheglov)');
   }
+
+  @override
+  RelationalOperatorResolution<DartType>? resolveRelationalPatternOperator(
+      Pattern node, DartType matchedValueType) {
+    throw new UnimplementedError('TODO(paulberry)');
+  }
 }
 
 /// Offset and type information collection in [InferenceVisitor.inferMapEntry].

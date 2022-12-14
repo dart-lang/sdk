@@ -2,12 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    hide RecordPatternField, NamedType, RecordType;
 import 'package:test/test.dart';
 
 import '../mini_ast.dart';
-import '../mini_types.dart';
 
 main() {
   late Harness h;
@@ -2782,31 +2779,26 @@ main() {
       test('Refutability', () {
         h.run([
           (match(
-            relationalPattern(
-              RelationalOperatorResolution<Type>(
-                isEquality: false,
-                parameterType: Type('num'),
-                returnType: Type('bool'),
-              ),
-              intLiteral(0).checkContext('num'),
-            )..errorId = 'PATTERN',
+            relationalPattern('>', intLiteral(0).checkContext('num'))
+              ..errorId = 'PATTERN',
             intLiteral(1).checkContext('?'),
           )..errorId = 'CONTEXT')
-              .checkIr('match(1, relationalPattern(0, matchedType: int))'),
+              .checkIr('match(1, >(0, matchedType: int))'),
         ], expectedErrors: {
           'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
         });
       });
       test('no operator', () {
+        h.addMember('C', '>', null);
         h.run([
           ifCase(
-            expr('int').checkContext('?'),
+            expr('C').checkContext('?'),
             relationalPattern(
-              null,
+              '>',
               intLiteral(0).checkContext('?'),
             ),
             [],
-          ).checkIr('ifCase(expr(int), relationalPattern(0, matchedType: int), '
+          ).checkIr('ifCase(expr(C), >(0, matchedType: C), '
               'variables(), true, block(), noop)')
         ]);
       });
@@ -2815,16 +2807,9 @@ main() {
           h.run([
             ifCase(
               expr('int').checkContext('?'),
-              relationalPattern(
-                RelationalOperatorResolution<Type>(
-                  isEquality: false,
-                  parameterType: Type('num'),
-                  returnType: Type('bool'),
-                ),
-                intLiteral(0).checkContext('num'),
-              ),
+              relationalPattern('>=', intLiteral(0).checkContext('num')),
               [],
-            ).checkIr('ifCase(expr(int), relationalPattern(0, matchedType: '
+            ).checkIr('ifCase(expr(int), >=(0, matchedType: '
                 'int), variables(), true, block(), noop)')
           ]);
         });
@@ -2832,16 +2817,9 @@ main() {
           h.run([
             ifCase(
               expr('Object').checkContext('?'),
-              relationalPattern(
-                RelationalOperatorResolution<Type>(
-                  isEquality: true,
-                  parameterType: Type('Object'),
-                  returnType: Type('bool'),
-                ),
-                expr('int?').checkContext('Object'),
-              ),
+              relationalPattern('==', expr('int?').checkContext('Object')),
               [],
-            ).checkIr('ifCase(expr(Object), relationalPattern(expr(int?), '
+            ).checkIr('ifCase(expr(Object), ==(expr(int?), '
                 'matchedType: Object), variables(), true, block(), noop)')
           ]);
         });
@@ -2849,16 +2827,9 @@ main() {
           h.run([
             ifCase(
               expr('Object').checkContext('?'),
-              relationalPattern(
-                RelationalOperatorResolution<Type>(
-                  isEquality: true,
-                  parameterType: Type('Object'),
-                  returnType: Type('bool'),
-                ),
-                expr('int?').checkContext('Object'),
-              ),
+              relationalPattern('!=', expr('int?').checkContext('Object')),
               [],
-            ).checkIr('ifCase(expr(Object), relationalPattern(expr(int?), '
+            ).checkIr('ifCase(expr(Object), !=(expr(int?), '
                 'matchedType: Object), variables(), true, block(), noop)')
           ]);
         });
@@ -2866,16 +2837,9 @@ main() {
           h.run([
             ifCase(
               expr('int').checkContext('?'),
-              relationalPattern(
-                RelationalOperatorResolution<Type>(
-                  isEquality: false,
-                  parameterType: Type('num'),
-                  returnType: Type('bool'),
-                ),
-                expr('String')..errorId = 'OPERAND',
-              ),
+              relationalPattern('>', expr('String')..errorId = 'OPERAND'),
               [],
-            ).checkIr('ifCase(expr(int), relationalPattern(expr(String), '
+            ).checkIr('ifCase(expr(int), >(expr(String), '
                 'matchedType: int), variables(), true, block(), noop)')
           ], expectedErrors: {
             'argumentTypeNotAssignable(argument: OPERAND, '
@@ -2883,20 +2847,17 @@ main() {
           });
         });
         test('return type is not assignable to bool', () {
+          h.addMember('A', '>', 'int Function(Object)');
           h.run([
             ifCase(
               expr('A').checkContext('?'),
               relationalPattern(
-                RelationalOperatorResolution(
-                  isEquality: false,
-                  parameterType: Type('Object'),
-                  returnType: Type('int'),
-                ),
+                '>',
                 expr('String').checkContext('Object'),
                 errorId: 'PATTERN',
               ),
               [],
-            ).checkIr('ifCase(expr(A), relationalPattern(expr(String), '
+            ).checkIr('ifCase(expr(A), >(expr(String), '
                 'matchedType: A), variables(), true, block(), noop)')
           ], expectedErrors: {
             'relationalPatternOperatorReturnTypeNotAssignableToBool('
