@@ -1065,8 +1065,10 @@ class MemoryAndCpuPage extends DiagnosticPageWithNav {
     var serviceProtocolInfo = await developer.Service.getInfo();
 
     if (usage != null) {
-      buf.writeln(
-          writeOption('CPU', printPercentage(usage.cpuPercentage / 100.0)));
+      var cpuPercentage = usage.cpuPercentage;
+      if (cpuPercentage != null) {
+        buf.writeln(writeOption('CPU', printPercentage(cpuPercentage / 100.0)));
+      }
       buf.writeln(writeOption('Memory', '${usage.memoryMB.round()} MB'));
 
       h3('VM');
