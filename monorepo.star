@@ -20,7 +20,7 @@ dart.ci_sandbox_builder(
     name = "flutter-linux",
     channels = [],
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
-    execution_timeout = 60 * time.minute,
+    execution_timeout = 120 * time.minute,
     notifies = None,
     priority = priority.normal,
     properties = {
@@ -41,7 +41,7 @@ luci.console_view_entry(
 dart.try_builder(
     "flutter-linux",
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
-    execution_timeout = 60 * time.minute,
+    execution_timeout = 120 * time.minute,
     properties = {
         "$fuchsia/goma": {"server": "goma.chromium.org"},
         "builder_name_suffix": "-try",
