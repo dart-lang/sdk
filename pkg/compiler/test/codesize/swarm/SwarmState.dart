@@ -47,7 +47,7 @@ class SwarmState extends UIState {
         storyTextMode = ObservableValue<bool>(true) {
     startHistoryTracking();
     // TODO(efortuna): consider having this class just hold observable
-    // currentIndecies instead of iterators with observablevalues..
+    // currentIndices instead of iterators with observablevalues..
     _sectionIterator = BiIterator<Section>(_dataModel.sections);
     _feedIterator = BiIterator<Feed>(_sectionIterator.current.feeds);
     _articleIterator = BiIterator<Article>(_feedIterator.current.articles);
