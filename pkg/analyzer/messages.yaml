@@ -60,10 +60,6 @@ AnalysisOptionsHintCode:
     comment: |-
       An error code indicating that the enablePreviewDart2 setting is
       deprecated.
-  STRONG_MODE_SETTING_DEPRECATED:
-    problemMessage: "The 'strong-mode: true' setting is deprecated."
-    correctionMessage: It is no longer necessary to explicitly enable strong mode.
-    comment: "An error code indicating that strong-mode: true is deprecated."
 AnalysisOptionsWarningCode:
   INCLUDED_FILE_WARNING:
     problemMessage: "Warning in the included options file {0}({1}..{2}): {3}"
@@ -100,10 +96,6 @@ AnalysisOptionsWarningCode:
 
       Parameters:
       0: the section name
-  SPEC_MODE_REMOVED:
-    problemMessage: "The option 'strong-mode: false' is no longer supported."
-    correctionMessage: "It's recommended to remove the 'strong-mode:' setting (and make your code Dart 2 compliant)."
-    comment: "An error code indicating that strong-mode: false is has been removed."
   UNRECOGNIZED_ERROR_CODE:
     problemMessage: "'{0}' isn't a recognized error code."
     comment: |-
@@ -22140,63 +22132,6 @@ HintCode:
 
       var x = min(0, 1);
       ```
-LanguageCode:
-  IMPLICIT_DYNAMIC_FIELD:
-    problemMessage: "Missing field type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the field
-  IMPLICIT_DYNAMIC_FUNCTION:
-    problemMessage: "Missing type arguments for generic function '{0}<{1}>'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the function
-      1: the names of the type arguments
-  IMPLICIT_DYNAMIC_INVOKE:
-    problemMessage: "Missing type arguments for calling generic function type '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of type
-  IMPLICIT_DYNAMIC_LIST_LITERAL:
-    problemMessage: Missing type argument for list literal.
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-  IMPLICIT_DYNAMIC_MAP_LITERAL:
-    problemMessage: Missing type arguments for map literal.
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-  IMPLICIT_DYNAMIC_METHOD:
-    problemMessage: "Missing type arguments for generic method '{0}<{1}>'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the function
-      1: the names of the type arguments
-  IMPLICIT_DYNAMIC_PARAMETER:
-    problemMessage: "Missing parameter type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the parameter
-  IMPLICIT_DYNAMIC_RETURN:
-    problemMessage: "Missing return type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the function or method
-  IMPLICIT_DYNAMIC_TYPE:
-    problemMessage: "Missing type arguments for generic type '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the type
-  IMPLICIT_DYNAMIC_VARIABLE:
-    problemMessage: "Missing variable type for '{0}'."
-    correctionMessage: Try adding an explicit type, or remove implicit-dynamic from your analysis options file.
-    comment: |-
-      Parameters:
-      0: the name of the variable
 ManifestWarningCode:
   CAMERA_PERMISSIONS_INCOMPATIBLE:
     problemMessage: Camera permissions make app incompatible for Chrome OS, consider adding optional features "android.hardware.camera" and "android.hardware.camera.autofocus".

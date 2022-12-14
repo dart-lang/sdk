@@ -25,8 +25,8 @@ import 'source_builder_mixins.dart';
 import 'source_class_builder.dart';
 import 'source_extension_builder.dart';
 import 'source_function_builder.dart';
+import 'source_inline_class_builder.dart';
 import 'source_member_builder.dart';
-import 'source_view_builder.dart';
 
 class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     implements ProcedureBuilder {
@@ -38,7 +38,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   final bool isExtensionInstanceMember;
 
   @override
-  final bool isViewInstanceMember;
+  final bool isInlineClassInstanceMember;
 
   @override
   final TypeBuilder returnType;
@@ -95,13 +95,13 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       : assert(kind != ProcedureKind.Factory),
         this.isExtensionInstanceMember =
             nameScheme.isInstanceMember && nameScheme.isExtensionMember,
-        this.isViewInstanceMember =
-            nameScheme.isInstanceMember && nameScheme.isViewMember,
+        this.isInlineClassInstanceMember =
+            nameScheme.isInstanceMember && nameScheme.isInlineClassMember,
         super(metadata, modifiers, name, typeVariables, formals, libraryBuilder,
             charOffset, nativeMethodName) {
     _procedure = new Procedure(
         dummyName,
-        isExtensionInstanceMember || isViewInstanceMember
+        isExtensionInstanceMember || isInlineClassInstanceMember
             ? ProcedureKind.Method
             : kind,
         new FunctionNode(null),
@@ -114,7 +114,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault;
     nameScheme.getProcedureMemberName(kind, name).attachMember(_procedure);
     this.asyncModifier = asyncModifier;
-    if ((isExtensionInstanceMember || isViewInstanceMember) &&
+    if ((isExtensionInstanceMember || isInlineClassInstanceMember) &&
         kind == ProcedureKind.Method) {
       _extensionTearOff = new Procedure(
           dummyName, ProcedureKind.Method, new FunctionNode(null),
@@ -152,8 +152,8 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
     return parent is SourceExtensionBuilder;
   }
 
-  bool get isViewMethod {
-    return parent is SourceViewBuilder;
+  bool get isInlineClassMethod {
+    return parent is SourceInlineClassBuilder;
   }
 
   @override
@@ -275,26 +275,26 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       if (extensionTearOff != null) {
         f(extensionTearOff!, BuiltMemberKind.ExtensionTearOff);
       }
-    } else if (isViewMethod) {
+    } else if (isInlineClassMethod) {
       switch (kind) {
         case ProcedureKind.Method:
-          f(_procedure, BuiltMemberKind.ViewMethod);
+          f(_procedure, BuiltMemberKind.InlineClassMethod);
           break;
         case ProcedureKind.Getter:
-          f(_procedure, BuiltMemberKind.ViewGetter);
+          f(_procedure, BuiltMemberKind.InlineClassGetter);
           break;
         case ProcedureKind.Setter:
-          f(_procedure, BuiltMemberKind.ViewSetter);
+          f(_procedure, BuiltMemberKind.InlineClassSetter);
           break;
         case ProcedureKind.Operator:
-          f(_procedure, BuiltMemberKind.ViewOperator);
+          f(_procedure, BuiltMemberKind.InlineClassOperator);
           break;
         case ProcedureKind.Factory:
-          f(_procedure, BuiltMemberKind.ViewFactory);
+          f(_procedure, BuiltMemberKind.InlineClassFactory);
           break;
       }
       if (extensionTearOff != null) {
-        f(extensionTearOff!, BuiltMemberKind.ViewTearOff);
+        f(extensionTearOff!, BuiltMemberKind.InlineClassTearOff);
       }
     } else {
       f(member, BuiltMemberKind.Method);
@@ -314,10 +314,10 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
       if (isExtensionInstanceMember) {
         assert(_procedure.kind == ProcedureKind.Method);
       }
-    } else if (isViewMethod) {
-      _procedure.isViewMember = true;
+    } else if (isInlineClassMethod) {
+      _procedure.isInlineClassMember = true;
       _procedure.isStatic = true;
-      if (isViewInstanceMember) {
+      if (isInlineClassInstanceMember) {
         assert(_procedure.kind == ProcedureKind.Method);
       }
     } else {

@@ -12,10 +12,10 @@ void main() {
     //   (A)
     //   / \
     //  B   C
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var t = StaticType('T', fields: {'x': a, 'y': a});
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var t = StaticTypeImpl('T', fields: {'x': a, 'y': a});
 
     expectExhaustiveOnlyAll(t, [
       {'x': b, 'y': b},
@@ -29,11 +29,11 @@ void main() {
     //   (A)
     //   /|\
     //  B C D
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [a]);
-    var t = StaticType('T', fields: {'y': a, 'z': a});
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [a]);
+    var t = StaticTypeImpl('T', fields: {'y': a, 'z': a});
 
     expectExhaustiveOnlyAll(t, [
       {'y': b, 'z': b},
@@ -52,11 +52,11 @@ void main() {
     //   (A)
     //   /|\
     //  B C D
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [a]);
-    var t = StaticType('T', fields: {'w': a, 'x': a, 'y': a, 'z': a});
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [a]);
+    var t = StaticTypeImpl('T', fields: {'w': a, 'x': a, 'y': a, 'z': a});
 
     expectExhaustiveOnlyAll(t, [
       {'w': b, 'x': b, 'y': b, 'z': b},
@@ -149,14 +149,14 @@ void main() {
     //   (B) (C)
     //   / \   \
     //  D   E   F
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', isSealed: true, inherits: [a]);
-    var c = StaticType('C', isSealed: true, inherits: [a]);
-    var d = StaticType('D', inherits: [b]);
-    var e = StaticType('E', inherits: [b]);
-    var f = StaticType('F', inherits: [c]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
+    var c = StaticTypeImpl('C', isSealed: true, inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [b]);
+    var e = StaticTypeImpl('E', inherits: [b]);
+    var f = StaticTypeImpl('F', inherits: [c]);
 
-    var t = StaticType('T', fields: {'x': a, 'y': a});
+    var t = StaticTypeImpl('T', fields: {'x': a, 'y': a});
     expectExhaustiveOnlyAll(t, [
       {'x': a, 'y': a},
     ]);
@@ -182,12 +182,12 @@ void main() {
     //    A
     //   / \
     //  B   C
-    var a = StaticType('A');
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
+    var a = StaticTypeImpl('A');
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
 
     // Not exhaustive even when known subtypes covered.
-    var t = StaticType('T', fields: {'x': a, 'y': a});
+    var t = StaticTypeImpl('T', fields: {'x': a, 'y': a});
     expectNeverExhaustive(t, [
       {'x': b, 'y': b},
       {'x': b, 'y': c},
@@ -196,7 +196,7 @@ void main() {
     ]);
 
     // Exhaustive if field static type is a covered subtype.
-    var u = StaticType('T', fields: {'x': b, 'y': c});
+    var u = StaticTypeImpl('T', fields: {'x': b, 'y': c});
     expectExhaustiveOnlyAll(u, [
       {'x': b, 'y': c},
     ]);
@@ -206,10 +206,10 @@ void main() {
     //   (A)
     //   / \
     //  B   C
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var t = StaticType('T', fields: {'x': a, 'y': a, 'z': a});
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var t = StaticTypeImpl('T', fields: {'x': a, 'y': a, 'z': a});
 
     expectNeverExhaustive(t, [
       {'x': b},
@@ -234,10 +234,10 @@ void main() {
     //   (A)
     //   / \
     //  B   C
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var t = StaticType('T', fields: {'x': a, 'y': b, 'z': c});
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var t = StaticTypeImpl('T', fields: {'x': a, 'y': b, 'z': c});
 
     expectExhaustiveOnlyAll(t, [
       {'x': a, 'y': b, 'z': c},

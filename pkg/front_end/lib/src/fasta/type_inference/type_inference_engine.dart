@@ -50,7 +50,7 @@ class IncludesTypeParametersNonCovariantly implements DartTypeVisitor<bool> {
   bool visitExtensionType(ExtensionType node) => false;
 
   @override
-  bool visitViewType(ViewType node) => false;
+  bool visitInlineType(InlineType node) => false;
 
   @override
   bool visitNeverType(NeverType node) => false;

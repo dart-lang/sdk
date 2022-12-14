@@ -228,6 +228,12 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   }
 
   @override
+  void visitFieldInRecordTypeInformation(FieldInRecordTypeInformation info) {
+    // TODO(50701): Implement better inference for records.
+    bailout('Used as field of Record');
+  }
+
+  @override
   void visitValueInMapTypeInformation(ValueInMapTypeInformation info) {
     addNewEscapeInformation(info);
   }
@@ -245,6 +251,11 @@ abstract class TracerVisitor implements TypeInformationVisitor {
   @override
   void visitMapTypeInformation(MapTypeInformation info) {
     mapsToAnalyze.add(info);
+  }
+
+  @override
+  void visitRecordTypeInformation(RecordTypeInformation info) {
+    // TODO(50701): Implement better inference for records.
   }
 
   @override

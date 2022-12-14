@@ -122,13 +122,13 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       case BuiltMemberKind.RedirectingFactory:
       case BuiltMemberKind.Field:
       case BuiltMemberKind.Method:
-      case BuiltMemberKind.ViewConstructor:
-      case BuiltMemberKind.ViewMethod:
-      case BuiltMemberKind.ViewGetter:
-      case BuiltMemberKind.ViewSetter:
-      case BuiltMemberKind.ViewOperator:
-      case BuiltMemberKind.ViewTearOff:
-      case BuiltMemberKind.ViewFactory:
+      case BuiltMemberKind.InlineClassConstructor:
+      case BuiltMemberKind.InlineClassMethod:
+      case BuiltMemberKind.InlineClassGetter:
+      case BuiltMemberKind.InlineClassSetter:
+      case BuiltMemberKind.InlineClassOperator:
+      case BuiltMemberKind.InlineClassTearOff:
+      case BuiltMemberKind.InlineClassFactory:
         unhandled("${member.runtimeType}:${memberKind}", "buildMembers",
             memberBuilder.charOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:

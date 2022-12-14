@@ -16,6 +16,7 @@ class AdaptorElement extends obj::RenderObject {
   method foo() → void {
     core::print(this.{self::AdaptorElement::renderObject}{mai::Adaptor*}.{mai::_Adaptor&RenderFoo&LibMixin::constraints}{obj::FooConstraints*}.{obj::FooConstraints::axis}{core::String*});
   }
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get constraints() → obj::Constraints*; -> obj::RenderObject::constraints
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -25,7 +26,6 @@ class AdaptorElement extends obj::RenderObject {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method main() → dynamic {}
@@ -76,6 +76,7 @@ abstract class _Adaptor&RenderFoo&LibMixin = obj::RenderFoo with mai2::LibMixin 
   synthetic constructor •() → mai::_Adaptor&RenderFoo&LibMixin*
     : super obj::RenderFoo::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get constraints() → obj::FooConstraints*; -> obj::RenderFoo::constraints
   abstract member-signature get renderObject() → obj::RenderObject*; -> obj::RenderObject::renderObject
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -86,7 +87,6 @@ abstract class _Adaptor&RenderFoo&LibMixin = obj::RenderFoo with mai2::LibMixin 
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class Adaptor extends mai::_Adaptor&RenderFoo&LibMixin {
@@ -103,6 +103,7 @@ import "dart:core" as core;
 import "org-dartlang-testcase:///object_lib.dart";
 
 abstract class LibMixin extends obj::RenderObject /*isMixinDeclaration*/  {
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get constraints() → obj::Constraints*; -> obj::RenderObject::constraints
   abstract member-signature get renderObject() → obj::RenderObject*; -> obj::RenderObject::renderObject
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -113,6 +114,5 @@ abstract class LibMixin extends obj::RenderObject /*isMixinDeclaration*/  {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }

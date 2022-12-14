@@ -683,6 +683,7 @@ enum TypeUseKind {
   INSTANTIATION,
   NATIVE_INSTANTIATION,
   CONST_INSTANTIATION,
+  RECORD_INSTANTIATION,
   CONSTRUCTOR_REFERENCE,
   IMPLICIT_CAST,
   PARAMETER_CHECK,
@@ -745,6 +746,9 @@ class TypeUse {
         break;
       case TypeUseKind.CONST_INSTANTIATION:
         sb.write('const:');
+        break;
+      case TypeUseKind.RECORD_INSTANTIATION:
+        sb.write('record:');
         break;
       case TypeUseKind.CONSTRUCTOR_REFERENCE:
         sb.write('constructor:');
@@ -833,6 +837,11 @@ class TypeUse {
   /// [type] used in a native instantiation.
   factory TypeUse.nativeInstantiation(InterfaceType type) {
     return TypeUse.internal(type, TypeUseKind.NATIVE_INSTANTIATION);
+  }
+
+  /// [type] used in a record instantiation, like `(1, 2)` or `const (1, 2)`.
+  factory TypeUse.recordInstantiation(RecordType type) {
+    return TypeUse.internal(type, TypeUseKind.RECORD_INSTANTIATION);
   }
 
   /// [type] used as a direct RTI value.

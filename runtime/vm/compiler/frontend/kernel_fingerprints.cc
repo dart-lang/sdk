@@ -272,8 +272,8 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       }
       break;
     }
-    case kViewType: {
-      // We skip the view type and only use the representation type.
+    case kInlineType: {
+      // We skip the inline type and only use the representation type.
       ReadNullability();
       SkipCanonicalNameReference();    // read index for canonical name.
       SkipListOfDartTypes();           // read type arguments

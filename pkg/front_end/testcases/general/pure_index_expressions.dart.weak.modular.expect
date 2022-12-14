@@ -80,6 +80,7 @@ class Class extends core::Object {
     v = let final core::int* #t55 = i in let final self::Class* #t56 = self::Extension|[](#t55, this).{self::Class::+}(this){(self::Class*) →* self::Class*} in let final void #t57 = self::Extension|[]=(#t55, this, #t56) in #t56;
     v = let final core::int* #t58 = i in let final self::Class* #t59 = self::Extension|[](#t58, self).{self::Class::+}(self){(self::Class*) →* self::Class*} in let final void #t60 = self::Extension|[]=(#t58, self, #t59) in #t59;
   }
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -88,7 +89,6 @@ class Class extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class Subclass extends self::Class {
@@ -171,6 +171,7 @@ class Class2 extends core::Object {
     v = let final self::Class2* #t87 = self::Extension2|[](this, this).{self::Class2::+}(this){(self::Class2*) →* self::Class2*} in let final void #t88 = self::Extension2|[]=(this, this, #t87) in #t87;
     v = let final self::Class2* #t89 = self::Extension2|[](self, self).{self::Class2::+}(self){(self::Class2*) →* self::Class2*} in let final void #t90 = self::Extension2|[]=(self, self, #t89) in #t89;
   }
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -179,7 +180,6 @@ class Class2 extends core::Object {
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 extension Extension on core::int* {

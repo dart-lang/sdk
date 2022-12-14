@@ -284,6 +284,14 @@ abstract class StaticTypeBase extends ir.TreeVisitor<ir.DartType> {
       node.getStaticType(staticTypeContext);
 
   @override
+  ir.DartType visitRecordIndexGet(ir.RecordIndexGet node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
+  ir.DartType visitRecordNameGet(ir.RecordNameGet node) =>
+      node.getStaticType(staticTypeContext);
+
+  @override
   ir.DartType visitDynamicSet(ir.DynamicSet node) =>
       node.getStaticType(staticTypeContext);
 

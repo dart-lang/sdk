@@ -115,6 +115,10 @@ abstract class AbstractValueDomain {
   /// runtime.
   AbstractValue get functionType;
 
+  /// The [AbstractValue] that represents a non-null subtype of `Record` at
+  /// runtime.
+  AbstractValue get recordType;
+
   /// The [AbstractValue] that represents a non-null subtype of `bool` at
   /// runtime.
   AbstractValue get boolType;

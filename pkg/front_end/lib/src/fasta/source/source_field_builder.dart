@@ -700,12 +700,12 @@ class RegularFieldEncoding implements FieldEncoding {
       SourceLibraryBuilder library,
       SourceFieldBuilder fieldBuilder,
       void Function(Member, BuiltMemberKind) f) {
-    if (fieldBuilder.isViewMember && !fieldBuilder.isStatic) {
+    if (fieldBuilder.isInlineClassMember && !fieldBuilder.isStatic) {
       return;
     }
     f(
         _field,
-        fieldBuilder.isExtensionMember || fieldBuilder.isViewMember
+        fieldBuilder.isExtensionMember || fieldBuilder.isInlineClassMember
             ? BuiltMemberKind.ExtensionField
             : BuiltMemberKind.Field);
   }
@@ -1125,7 +1125,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
       void Function(Member, BuiltMemberKind) f) {
     f(
         _field,
-        fieldBuilder.isExtensionMember || fieldBuilder.isViewMember
+        fieldBuilder.isExtensionMember || fieldBuilder.isInlineClassMember
             ? BuiltMemberKind.ExtensionField
             : BuiltMemberKind.Field);
     if (_lateIsSetField != null) {
@@ -1551,6 +1551,9 @@ class _SynthesizedFieldClassMember implements ClassMember {
         fieldBuilder == other.fieldBuilder &&
         _kind == other._kind;
   }
+
+  @override
+  bool get isNoSuchMethodForwarder => false;
 
   @override
   String toString() => '_SynthesizedFieldClassMember('

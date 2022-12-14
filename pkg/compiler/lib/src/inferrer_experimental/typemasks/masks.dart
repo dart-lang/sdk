@@ -110,6 +110,10 @@ class CommonMasks with AbstractValueDomain {
       TypeMask.nonNullSubtype(commonElements.functionClass, _closedWorld);
 
   @override
+  late final TypeMask recordType =
+      TypeMask.nonNullSubtype(commonElements.recordClass, _closedWorld);
+
+  @override
   late final TypeMask listType =
       TypeMask.nonNullSubtype(commonElements.jsArrayClass, _closedWorld);
 

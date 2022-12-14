@@ -137,7 +137,10 @@ abstract class AbstractClass implements Interface1, Interface2 {
 /*class: ConcreteSub:
  abstractMembers=[
   AbstractClass.declareAbstractImplementMultipleField,
-  AbstractClass.implementMultipleField],
+  Interface1.declareAbstractImplementMultipleField,
+  Interface1.implementMultipleField,
+  Interface2.declareAbstractImplementMultipleField,
+  Interface2.implementMultipleField],
  interfaces=[
   Interface1,
   Interface2],

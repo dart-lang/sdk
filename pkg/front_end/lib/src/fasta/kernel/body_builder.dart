@@ -52,6 +52,7 @@ import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
+import '../builder/inline_class_builder.dart';
 import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
@@ -67,7 +68,6 @@ import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/variable_builder.dart';
-import '../builder/view_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../constant_context.dart' show ConstantContext;
 import '../dill/dill_library_builder.dart' show DillLibraryBuilder;
@@ -3208,8 +3208,9 @@ class BodyBuilder extends StackListenerImpl
           extensionTypeParameters,
           getterBuilder,
           setterBuilder);
-    } else if (declaration.isViewInstanceMember) {
-      ViewBuilder viewBuilder = declarationBuilder as ViewBuilder;
+    } else if (declaration.isInlineClassInstanceMember) {
+      InlineClassBuilder inlineClassBuilder =
+          declarationBuilder as InlineClassBuilder;
       MemberBuilder? setterBuilder =
           _getCorrespondingSetterBuilder(scope, declaration, name, charOffset);
       // TODO(johnniwinther): Check for constantContext like below?
@@ -3227,10 +3228,10 @@ class BodyBuilder extends StackListenerImpl
       }
       MemberBuilder? getterBuilder =
           declaration is MemberBuilder ? declaration : null;
-      return new ViewInstanceAccessGenerator.fromBuilder(
+      return new InlineClassInstanceAccessGenerator.fromBuilder(
           this,
           token,
-          viewBuilder.view,
+          inlineClassBuilder.inlineClass,
           name,
           extensionThis!,
           extensionTypeParameters,

@@ -896,7 +896,8 @@ class OutlineBuilder extends StackListenerImpl {
     }
     if (inlineToken != null) {
       libraryBuilder.currentTypeParameterScopeBuilder
-          .markAsViewDeclaration(name.lexeme, name.charOffset, typeVariables);
+          .markAsInlineClassDeclaration(
+              name.lexeme, name.charOffset, typeVariables);
     } else {
       libraryBuilder.currentTypeParameterScopeBuilder
           .markAsClassDeclaration(name.lexeme, name.charOffset, typeVariables);
@@ -1269,7 +1270,7 @@ class OutlineBuilder extends StackListenerImpl {
         modifiers |= abstractMask;
       }
       if (inlineToken != null) {
-        libraryBuilder.addViewDeclaration(
+        libraryBuilder.addInlineClassDeclaration(
           metadata,
           modifiers,
           name as String,
@@ -1950,7 +1951,7 @@ class OutlineBuilder extends StackListenerImpl {
           (libraryBuilder.currentTypeParameterScopeBuilder.kind ==
                   TypeParameterScopeKind.extensionDeclaration ||
               libraryBuilder.currentTypeParameterScopeBuilder.kind ==
-                  TypeParameterScopeKind.viewDeclaration)) {
+                  TypeParameterScopeKind.inlineClassDeclaration)) {
         TypeParameterScopeBuilder extension =
             libraryBuilder.currentTypeParameterScopeBuilder;
         Map<TypeVariableBuilder, TypeBuilder>? substitution;

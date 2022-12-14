@@ -13,25 +13,25 @@ import 'metadata_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
-abstract class ViewBuilder implements DeclarationBuilder {
-  /// Type parameters declared on the view.
+abstract class InlineClassBuilder implements DeclarationBuilder {
+  /// Type parameters declared on the inline class.
   ///
-  /// This is `null` if the view is not generic.
+  /// This is `null` if the inline class is not generic.
   List<TypeVariableBuilder>? get typeParameters;
 
   /// The type of the underlying representation.
-  DartType get representationType;
+  DartType get declaredRepresentationType;
 
-  /// Return the [View] built by this builder.
-  View get view;
+  /// Return the [InlineClass] built by this builder.
+  InlineClass get inlineClass;
 
-  /// Looks up extension member by [name] taking privacy into account.
+  /// Looks up inline class member by [name] taking privacy into account.
   ///
   /// If [setter] is `true` the sought member is a setter or assignable field.
   /// If [required] is `true` and no member is found an internal problem is
   /// reported.
   ///
-  /// If the extension member is a duplicate, `null` is returned.
+  /// If the inline class member is a duplicate, `null` is returned.
   // TODO(johnniwinther): Support [AmbiguousBuilder] here and in instance
   // member lookup to avoid reporting that the member doesn't exist when it is
   // duplicate.
@@ -42,10 +42,10 @@ abstract class ViewBuilder implements DeclarationBuilder {
   void forEach(void f(String name, Builder builder));
 }
 
-abstract class ViewBuilderImpl extends DeclarationBuilderImpl
+abstract class InlineClassBuilderImpl extends DeclarationBuilderImpl
     with DeclarationBuilderMixin
-    implements ViewBuilder {
-  ViewBuilderImpl(
+    implements InlineClassBuilder {
+  InlineClassBuilderImpl(
       List<MetadataBuilder>? metadata,
       int modifiers,
       String name,
@@ -65,9 +65,9 @@ abstract class ViewBuilderImpl extends DeclarationBuilderImpl
       Uri fileUri,
       int charOffset,
       {required bool hasExplicitTypeArguments}) {
-    return new ViewType(view, nullability, arguments);
+    return new InlineType(inlineClass, nullability, arguments);
   }
 
   @override
-  String get debugName => "ViewBuilder";
+  String get debugName => "InlineClassBuilder";
 }

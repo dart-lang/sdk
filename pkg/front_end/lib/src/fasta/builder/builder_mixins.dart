@@ -18,7 +18,7 @@ import 'nullability_builder.dart';
 import 'type_builder.dart';
 import 'type_variable_builder.dart';
 
-/// Shared implementation between extension and view builders.
+/// Shared implementation between extension and inline class builders.
 mixin DeclarationBuilderMixin implements DeclarationBuilder {
   /// Type parameters declared.
   ///
@@ -38,7 +38,7 @@ mixin DeclarationBuilderMixin implements DeclarationBuilder {
     Builder? declaration = isSetter
         ? scope.lookupSetter(name, charOffset, fileUri, isInstanceScope: false)
         : scope.lookup(name, charOffset, fileUri, isInstanceScope: false);
-    // TODO(johnniwinther): Handle patched extensions/views.
+    // TODO(johnniwinther): Handle patched extensions/inline classes.
     return declaration;
   }
 
@@ -116,7 +116,7 @@ mixin DeclarationBuilderMixin implements DeclarationBuilder {
   @override
   Builder? lookupLocalMember(String name,
       {bool setter = false, bool required = false}) {
-    // TODO(johnniwinther): Support patching on extensions/views.
+    // TODO(johnniwinther): Support patching on extensions/inline classes.
     Builder? builder = scope.lookupLocalMember(name, setter: setter);
     if (required && builder == null) {
       internalProblem(

@@ -68,15 +68,6 @@ class AnalysisOptionsHintCode extends ErrorCode {
     correctionMessage: "It is no longer necessary to explicitly enable Dart 2.",
   );
 
-  ///  An error code indicating that strong-mode: true is deprecated.
-  static const AnalysisOptionsHintCode STRONG_MODE_SETTING_DEPRECATED =
-      AnalysisOptionsHintCode(
-    'STRONG_MODE_SETTING_DEPRECATED',
-    "The 'strong-mode: true' setting is deprecated.",
-    correctionMessage:
-        "It is no longer necessary to explicitly enable strong mode.",
-  );
-
   /// Initialize a newly created error code to have the given [name].
   const AnalysisOptionsHintCode(
     String name,
@@ -144,16 +135,6 @@ class AnalysisOptionsWarningCode extends ErrorCode {
       AnalysisOptionsWarningCode(
     'INVALID_SECTION_FORMAT',
     "Invalid format for the '{0}' section.",
-  );
-
-  ///  An error code indicating that strong-mode: false is has been removed.
-  static const AnalysisOptionsWarningCode SPEC_MODE_REMOVED =
-      AnalysisOptionsWarningCode(
-    'SPEC_MODE_REMOVED',
-    "The option 'strong-mode: false' is no longer supported.",
-    correctionMessage:
-        "It's recommended to remove the 'strong-mode:' setting (and make your "
-        "code Dart 2 compliant).",
   );
 
   ///  An error code indicating that an unrecognized error code is being used to

@@ -78,6 +78,10 @@ class ComputableAbstractValueDomain with AbstractValueDomain {
       ComputableAbstractValue(_wrappedDomain.functionType);
 
   @override
+  AbstractValue get recordType =>
+      ComputableAbstractValue(_wrappedDomain.recordType);
+
+  @override
   AbstractValue get boolType =>
       ComputableAbstractValue(_wrappedDomain.boolType);
 

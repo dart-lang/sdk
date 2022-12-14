@@ -29,6 +29,8 @@ class ConstantValueTypeMasks
     return TypeMask.nonNullExact(constant.type.element, closedWorld);
   }
 
+  // TODO(49718): Record constants.
+
   @override
   TypeMask visitDeferredGlobal(
       DeferredGlobalConstantValue constant, JClosedWorld closedWorld) {

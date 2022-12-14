@@ -13,9 +13,9 @@ void main() {
   //   (A)
   //   / \
   //  B   C
-  var a = StaticType('A', isSealed: true);
-  var b = StaticType('B', inherits: [a]);
-  var c = StaticType('C', inherits: [a]);
+  var a = StaticTypeImpl('A', isSealed: true);
+  var b = StaticTypeImpl('B', inherits: [a]);
+  var c = StaticTypeImpl('C', inherits: [a]);
 
   Space A({StaticType? x, StaticType? y, StaticType? z}) => ty(
       a, {if (x != null) 'x': x, if (y != null) 'y': y, if (z != null) 'z': z});
@@ -39,6 +39,12 @@ void main() {
     expectIntersect(a, b, b);
     expectIntersect(a, c, c);
     expectIntersect(b, c, '∅');
+    expectIntersect(
+        StaticType.nullableObject, StaticType.nullType, StaticType.nullType);
+    expectIntersect(StaticType.nonNullableObject, StaticType.nullType, '∅');
+    expectIntersect(StaticType.neverType, StaticType.nullType, '∅');
+    expectIntersect(StaticType.nonNullableObject, StaticType.nullableObject,
+        StaticType.nonNullableObject);
   });
 
   test('field types', () {

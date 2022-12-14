@@ -1390,8 +1390,8 @@ void ScopeBuilder::VisitDartType() {
     case kIntersectionType:
       VisitIntersectionType();
       return;
-    case kViewType:
-      VisitViewType();
+    case kInlineType:
+      VisitInlineType();
       return;
     default:
       ReportUnexpectedTag("type", tag);
@@ -1505,8 +1505,8 @@ void ScopeBuilder::VisitIntersectionType() {
   helper_.SkipDartType();  // read right.
 }
 
-void ScopeBuilder::VisitViewType() {
-  // We skip the view type and only use the representation type.
+void ScopeBuilder::VisitInlineType() {
+  // We skip the inline type and only use the representation type.
   helper_.ReadNullability();
   helper_.SkipCanonicalNameReference();  // read index for canonical name.
   helper_.SkipListOfDartTypes();         // read type arguments

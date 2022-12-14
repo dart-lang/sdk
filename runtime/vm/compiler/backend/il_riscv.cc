@@ -117,8 +117,7 @@ void LoadIndexedUnsafeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (representation()) {
     case kTagged: {
       const auto out = locs()->out(0).reg();
-      __ slli(TMP, index, kWordSizeLog2 - kSmiTagSize);
-      __ add(TMP, TMP, base_reg());
+      __ AddShifted(TMP, base_reg(), index, kWordSizeLog2 - kSmiTagSize);
       __ LoadFromOffset(out, TMP, offset());
       break;
     }
@@ -126,22 +125,19 @@ void LoadIndexedUnsafeInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 #if XLEN == 32
       const auto out_lo = locs()->out(0).AsPairLocation()->At(0).reg();
       const auto out_hi = locs()->out(0).AsPairLocation()->At(1).reg();
-      __ slli(TMP, index, kWordSizeLog2 - kSmiTagSize);
-      __ add(TMP, TMP, base_reg());
+      __ AddShifted(TMP, base_reg(), index, kWordSizeLog2 - kSmiTagSize);
       __ LoadFromOffset(out_lo, TMP, offset());
       __ LoadFromOffset(out_hi, TMP, offset() + compiler::target::kWordSize);
 #else
       const auto out = locs()->out(0).reg();
-      __ slli(TMP, index, kWordSizeLog2 - kSmiTagSize);
-      __ add(TMP, TMP, base_reg());
+      __ AddShifted(TMP, base_reg(), index, kWordSizeLog2 - kSmiTagSize);
       __ LoadFromOffset(out, TMP, offset());
 #endif
       break;
     }
     case kUnboxedDouble: {
       const auto out = locs()->out(0).fpu_reg();
-      __ slli(TMP, index, kWordSizeLog2 - kSmiTagSize);
-      __ add(TMP, TMP, base_reg());
+      __ AddShifted(TMP, base_reg(), index, kWordSizeLog2 - kSmiTagSize);
       __ LoadDFromOffset(out, TMP, offset());
       break;
     }
@@ -7372,10 +7368,12 @@ void ComparisonInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     // offsets to true or false.
     ASSERT(kTrueOffsetFromNull + (1 << kBoolValueBitPosition) ==
            kFalseOffsetFromNull);
+    ASSERT(((kTrueOffsetFromNull >> kBoolValueBitPosition)
+            << kBoolValueBitPosition) == kTrueOffsetFromNull);
     __ SetIf(InvertCondition(true_condition), result);
+    __ addi(result, result, kTrueOffsetFromNull >> kBoolValueBitPosition);
     __ slli(result, result, kBoolValueBitPosition);
     __ add(result, result, NULL_REG);
-    __ addi(result, result, kTrueOffsetFromNull);
   }
 }
 

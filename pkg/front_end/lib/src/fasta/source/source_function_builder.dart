@@ -387,7 +387,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       function.returnType =
           returnType.build(libraryBuilder, TypeUse.returnType);
     }
-    if (isExtensionInstanceMember || isViewInstanceMember) {
+    if (isExtensionInstanceMember || isInlineClassInstanceMember) {
       SourceDeclarationBuilderMixin extensionBuilder =
           parent as SourceDeclarationBuilderMixin;
       _extensionThis = function.positionalParameters.first;
@@ -402,7 +402,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
 
   @override
   VariableDeclaration getFormalParameter(int index) {
-    if (isExtensionInstanceMember || isViewInstanceMember) {
+    if (isExtensionInstanceMember || isInlineClassInstanceMember) {
       return formals![index + 1].variable!;
     } else {
       return formals![index].variable!;
@@ -416,7 +416,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   VariableDeclaration? get extensionThis {
     assert(
         _extensionThis != null ||
-            !(isExtensionInstanceMember || isViewInstanceMember),
+            !(isExtensionInstanceMember || isInlineClassInstanceMember),
         "ProcedureBuilder.extensionThis has not been set.");
     return _extensionThis;
   }
@@ -427,7 +427,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
     // been computed.
     assert(
         _extensionThis != null ||
-            !(isExtensionInstanceMember || isViewInstanceMember),
+            !(isExtensionInstanceMember || isInlineClassInstanceMember),
         "ProcedureBuilder.extensionTypeParameters has not been set.");
     return _extensionTypeParameters;
   }

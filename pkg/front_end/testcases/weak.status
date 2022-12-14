@@ -111,6 +111,7 @@ nnbd/issue43918: semiFuzzFailureOnForceRebuildBodies # private class
 nnbd/issue44595: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 nnbd/nullable_extension: semiFuzzFailureOnForceRebuildBodies # unnamed extension
 nnbd/nullable_setter: semiFuzzFailureOnForceRebuildBodies # unnamed extension
+no_such_method_forwarders/mixin_nsm: TypeCheckError
 none/mixin_super: semiFuzzFailureOnForceRebuildBodies # has private name mixin
 regress/issue_39682: semiFuzzFailureOnForceRebuildBodies # has private method
 

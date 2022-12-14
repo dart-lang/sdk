@@ -1135,10 +1135,11 @@ class CoreTypes {
       return isTop(type.typeArgument);
     }
 
-    // If the representation type, R, is a top type then the view type, V0, is a
-    // top type, otherwise V0 is a proper subtype of Object?.
-    if (type is ViewType) {
-      return isTop(type.representationType);
+    // If the instantiated representation type, R, is a top type then the inline
+    // type, V0, is a top type, otherwise V0 is a proper subtype of Object?.
+    // TODO(johnniwinther): Is this correct?
+    if (type is InlineType) {
+      return isTop(type.instantiatedRepresentationType);
     }
 
     return false;

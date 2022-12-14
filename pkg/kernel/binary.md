@@ -229,8 +229,8 @@ type TypedefReference {
   CanonicalNameReference canonicalName;
 }
 
-type ViewReference {
-  // Must be populated by a view (possibly later in the file).
+type InlineClassReference {
+  // Must be populated by an inline class (possibly later in the file).
   CanonicalNameReference canonicalName;
 }
 
@@ -257,7 +257,7 @@ type Library {
   List<Typedef> typedefs;
   List<Class> classes;
   List<Extension> extensions;
-  List<View> views;
+  List<InlineClass> inlineClasses;
   List<Field> fields;
   List<Procedure> procedures;
 
@@ -375,7 +375,7 @@ type ExtensionMemberDescriptor {
   MemberReference member;
 }
 
-type View extends Node {
+type InlineClass extends Node {
   Byte tag = 85;
   CanonicalNameReference canonicalName;
   StringReference name;
@@ -385,14 +385,14 @@ type View extends Node {
   Byte flags ();
   List<TypeParameter> typeParameters;
   DartType representationType;
-  List<ViewMemberDescriptor> members;
+  List<InlineClassMemberDescriptor> members;
 }
 
-enum ViewMemberKind { Constructor = 0, Factory = 1, Field = 2, Method = 3, Getter = 4, Setter = 5, Operator = 6, TearOff = 7, }
+enum InlineClassMemberKind { Constructor = 0, Factory = 1, Field = 2, Method = 3, Getter = 4, Setter = 5, Operator = 6, TearOff = 7, }
 
-type ViewMemberDescriptor {
+type InlineClassMemberDescriptor {
   Name name;
-  ViewMemberKind kind;
+  InlineClassMemberKind kind;
   Byte flags (isStatic);
   MemberReference member;
 }
@@ -411,7 +411,7 @@ type Field extends Member {
   UInt flags (isFinal, isConst, isStatic, isCovariantByDeclaration,
                 isCovariantByClass, isLate, isExtensionMember,
                 isNonNullableByDefault, isInternalImplementation,
-                isEnumElement, isViewMember);
+                isEnumElement, isInlineClassMember);
   Name name;
   List<Expression> annotations;
   DartType type;
@@ -467,7 +467,7 @@ type Procedure extends Member {
   UInt flags (isStatic, isAbstract, isExternal, isConst,
               isRedirectingFactory, isExtensionMember,
               isNonNullableByDefault, isSynthetic, isInternalImplementation,
-              isViewMember);
+              isInlineClassMember);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.
@@ -1614,10 +1614,10 @@ type IntersectionType extends DartType {
   DartType right;
 }
 
-type ViewType extends DartType {
+type InlineType extends DartType {
   Byte tag = 103;
   Byte nullability; // Index into the Nullability enum above.
-  ViewReference viewReference;
+  InlineClassReference inlineClassReference;
   List<DartType> typeArguments;
   DartType representationType;
 }

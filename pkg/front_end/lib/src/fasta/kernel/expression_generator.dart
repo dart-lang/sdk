@@ -1566,13 +1566,13 @@ class StaticAccessGenerator extends Generator {
   }
 }
 
-/// An [ViewInstanceAccessGenerator] represents a subexpression whose
-/// prefix is a view instance member.
+/// An [InlineClassInstanceAccessGenerator] represents a subexpression whose
+/// prefix is an inline class instance member.
 ///
 /// For instance
 ///
 ///   class A {}
-///   view class B {
+///   inline class B {
 ///     final A it;
 ///     B(this.it);
 ///     get property => 0;
@@ -1585,14 +1585,14 @@ class StaticAccessGenerator extends Generator {
 ///     }
 ///   }
 ///
-/// These can only occur within a view instance member.
-class ViewInstanceAccessGenerator extends Generator {
-  final View view;
+/// These can only occur within an inline class instance member.
+class InlineClassInstanceAccessGenerator extends Generator {
+  final InlineClass inlineClass;
 
   /// The original name of the target.
   final String targetName;
 
-  /// The static [Member] generated for an instance view member which is
+  /// The static [Member] generated for an inline class instance member which is
   /// used for performing a read on this subexpression.
   ///
   /// This can be `null` if the subexpression doesn't have a readable target.
@@ -1600,14 +1600,14 @@ class ViewInstanceAccessGenerator extends Generator {
   /// getter.
   final Procedure? readTarget;
 
-  /// The static [Member] generated for an instance view member which is
+  /// The static [Member] generated for an inline class instance member which is
   /// used for performing an invocation on this subexpression.
   ///
   /// This can be `null` if the subexpression doesn't have an invokable target.
   /// For instance if the subexpression is a getter or setter.
   final Procedure? invokeTarget;
 
-  /// The static [Member] generated for an instance view member which is
+  /// The static [Member] generated for an inline class instance member which is
   /// used for performing a write on this subexpression.
   ///
   /// This can be `null` if the subexpression doesn't have a writable target.
@@ -1615,35 +1615,35 @@ class ViewInstanceAccessGenerator extends Generator {
   /// without a corresponding setter.
   final Procedure? writeTarget;
 
-  /// The parameter holding the value for `this` within the current view
+  /// The parameter holding the value for `this` within the current inline class
   /// instance method.
-  final VariableDeclaration viewThis;
+  final VariableDeclaration inlineClassThis;
 
-  /// The type parameters synthetically added to  the current view
+  /// The type parameters synthetically added to  the current inline class
   /// instance method.
-  final List<TypeParameter>? viewTypeParameters;
+  final List<TypeParameter>? inlineClassTypeParameters;
 
-  ViewInstanceAccessGenerator(
+  InlineClassInstanceAccessGenerator(
       ExpressionGeneratorHelper helper,
       Token token,
-      this.view,
+      this.inlineClass,
       this.targetName,
       this.readTarget,
       this.invokeTarget,
       this.writeTarget,
-      this.viewThis,
-      this.viewTypeParameters)
+      this.inlineClassThis,
+      this.inlineClassTypeParameters)
       : assert(
             readTarget != null || invokeTarget != null || writeTarget != null),
         super(helper, token);
 
-  factory ViewInstanceAccessGenerator.fromBuilder(
+  factory InlineClassInstanceAccessGenerator.fromBuilder(
       ExpressionGeneratorHelper helper,
       Token token,
-      View view,
+      InlineClass inlineClass,
       String? targetName,
-      VariableDeclaration viewThis,
-      List<TypeParameter>? viewTypeParameters,
+      VariableDeclaration inlineClassThis,
+      List<TypeParameter>? inlineClassTypeParameters,
       MemberBuilder? getterBuilder,
       MemberBuilder? setterBuilder) {
     Procedure? readTarget;
@@ -1662,7 +1662,7 @@ class ViewInstanceAccessGenerator extends Generator {
       } else {
         return unhandled(
             "${getterBuilder.runtimeType}",
-            "ViewInstanceAccessGenerator.fromBuilder",
+            "InlineClassInstanceAccessGenerator.fromBuilder",
             offsetForToken(token),
             helper.uri);
       }
@@ -1676,34 +1676,43 @@ class ViewInstanceAccessGenerator extends Generator {
       } else {
         return unhandled(
             "${setterBuilder.runtimeType}",
-            "ViewInstanceAccessGenerator.fromBuilder",
+            "InlineClassInstanceAccessGenerator.fromBuilder",
             offsetForToken(token),
             helper.uri);
       }
     }
-    return new ViewInstanceAccessGenerator(helper, token, view, targetName!,
-        readTarget, invokeTarget, writeTarget, viewThis, viewTypeParameters);
+    return new InlineClassInstanceAccessGenerator(
+        helper,
+        token,
+        inlineClass,
+        targetName!,
+        readTarget,
+        invokeTarget,
+        writeTarget,
+        inlineClassThis,
+        inlineClassTypeParameters);
   }
 
   @override
-  String get _debugName => "ViewInstanceAccessGenerator";
+  String get _debugName => "InlineClassInstanceAccessGenerator";
 
   @override
   String get _plainNameForRead => targetName;
 
-  int get _viewTypeParameterCount => viewTypeParameters?.length ?? 0;
+  int get _inlineClassTypeParameterCount =>
+      inlineClassTypeParameters?.length ?? 0;
 
-  List<DartType> _createViewTypeArguments() {
-    List<DartType> viewTypeArguments = const <DartType>[];
-    if (viewTypeParameters != null) {
-      viewTypeArguments = [];
-      for (TypeParameter typeParameter in viewTypeParameters!) {
-        viewTypeArguments.add(
+  List<DartType> _createInlineClassTypeArguments() {
+    List<DartType> inlineClassTypeArguments = const <DartType>[];
+    if (inlineClassTypeParameters != null) {
+      inlineClassTypeArguments = [];
+      for (TypeParameter typeParameter in inlineClassTypeParameters!) {
+        inlineClassTypeArguments.add(
             _forest.createTypeParameterTypeWithDefaultNullabilityForLibrary(
-                typeParameter, view.enclosingLibrary));
+                typeParameter, inlineClass.enclosingLibrary));
       }
     }
-    return viewTypeArguments;
+    return inlineClassTypeArguments;
   }
 
   @override
@@ -1721,10 +1730,10 @@ class ViewInstanceAccessGenerator extends Generator {
           readTarget!,
           _helper.forest.createArgumentsForExtensionMethod(
               fileOffset,
-              _viewTypeParameterCount,
+              _inlineClassTypeParameterCount,
               0,
-              _helper.createVariableGet(viewThis, fileOffset),
-              extensionTypeArguments: _createViewTypeArguments()),
+              _helper.createVariableGet(inlineClassThis, fileOffset),
+              extensionTypeArguments: _createInlineClassTypeArguments()),
           isTearOff: invokeTarget != null);
     }
     return read;
@@ -1741,12 +1750,12 @@ class ViewInstanceAccessGenerator extends Generator {
     if (writeTarget == null) {
       write = _makeInvalidWrite(value);
     } else {
-      // TODO(johnniwinther): Support view instance setter writes.
-      throw new UnsupportedError("ViewSet");
-      /*write = new ViewSet(
-          view,
-          _createViewTypeArguments(),
-          _helper.createVariableGet(viewThis, fileOffset),
+      // TODO(johnniwinther): Support inline class instance setter writes.
+      throw new UnsupportedError("InlineClassSet");
+      /*write = new InlineClassSet(
+          inlineClass,
+          _createInlineClassTypeArguments(),
+          _helper.createVariableGet(inlineClassThis, fileOffset),
           writeTarget!,
           value,
           forEffect: forEffect);*/
@@ -1802,11 +1811,11 @@ class ViewInstanceAccessGenerator extends Generator {
           invokeTarget!,
           _forest.createArgumentsForExtensionMethod(
               fileOffset,
-              _viewTypeParameterCount,
+              _inlineClassTypeParameterCount,
               invokeTarget!.function.typeParameters.length -
-                  _viewTypeParameterCount,
-              _helper.createVariableGet(viewThis, offset),
-              extensionTypeArguments: _createViewTypeArguments(),
+                  _inlineClassTypeParameterCount,
+              _helper.createVariableGet(inlineClassThis, offset),
+              extensionTypeArguments: _createInlineClassTypeArguments(),
               typeArguments: arguments.types,
               positionalArguments: arguments.positional,
               namedArguments: arguments.named,

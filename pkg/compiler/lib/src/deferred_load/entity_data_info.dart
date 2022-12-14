@@ -200,6 +200,7 @@ class EntityDataInfoBuilder {
         break;
       case TypeUseKind.INSTANTIATION:
       case TypeUseKind.NATIVE_INSTANTIATION:
+      case TypeUseKind.RECORD_INSTANTIATION:
         addClassIfInterfaceType(type);
         addTypeDependencies(type);
         break;

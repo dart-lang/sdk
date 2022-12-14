@@ -495,7 +495,7 @@ class FieldHelper {
     kNonNullableByDefault = 1 << 7,
     kInternalImplementation = 1 << 8,
     kEnumElement = 1 << 9,
-    kViewMember = 1 << 10,
+    kInlineClassMember = 1 << 10,
   };
 
   explicit FieldHelper(KernelReaderHelper* helper)
@@ -521,7 +521,9 @@ class FieldHelper {
   }
   bool IsLate() const { return (flags_ & kIsLate) != 0; }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
-  bool IsViewMember() const { return (flags_ & kViewMember) != 0; }
+  bool IsInlineClassMember() const {
+    return (flags_ & kInlineClassMember) != 0;
+  }
 
   NameIndex canonical_name_field_;
   NameIndex canonical_name_getter_;
@@ -596,7 +598,7 @@ class ProcedureHelper {
     kSyntheticProcedure = 1 << 7,
     kInternalImplementation = 1 << 8,
     kIsAbstractFieldAccessor = 1 << 9,
-    kViewMember = 1 << 10,
+    kInlineClassMember = 1 << 10,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -630,7 +632,9 @@ class ProcedureHelper {
     return stub_kind_ == kNoSuchMethodForwarderStubKind;
   }
   bool IsExtensionMember() const { return (flags_ & kExtensionMember) != 0; }
-  bool IsViewMember() const { return (flags_ & kViewMember) != 0; }
+  bool IsInlineClassMember() const {
+    return (flags_ & kInlineClassMember) != 0;
+  }
   bool IsMemberSignature() const {
     return stub_kind_ == kMemberSignatureStubKind;
   }
@@ -822,7 +826,7 @@ class LibraryHelper {
     // * kTypedefs
     // * kClasses
     // * kExtensions
-    // * kViews
+    // * kInlineClasses
     // * kToplevelField
     // * kToplevelProcedures
     // * kSourceReferences
@@ -1555,7 +1559,7 @@ class TypeTranslator {
   void BuildRecordType();
   void BuildTypeParameterType();
   void BuildIntersectionType();
-  void BuildViewType();
+  void BuildInlineType();
 
   class TypeParameterScope {
    public:

@@ -42,8 +42,8 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitView(View node) {
-    visited.add(NodeKind.View);
+  void visitInlineClass(InlineClass node) {
+    visited.add(NodeKind.InlineClass);
     node.visitChildren(this);
   }
 
@@ -768,8 +768,8 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitViewType(ViewType node) {
-    visited.add(DartTypeKind.ViewType);
+  void visitInlineType(InlineType node) {
+    visited.add(DartTypeKind.InlineType);
     node.visitChildren(this);
   }
 
@@ -921,7 +921,7 @@ class CoverageVisitor implements Visitor<void> {
   @override
   void visitExtensionReference(Extension node) {}
   @override
-  void visitViewReference(View node) {}
+  void visitInlineClassReference(InlineClass node) {}
   @override
   void defaultMemberReference(Member node) {}
   @override
@@ -1053,6 +1053,7 @@ enum NodeKind {
   Component,
   Extension,
   FunctionNode,
+  InlineClass,
   Library,
   LibraryDependency,
   LibraryPart,
@@ -1064,7 +1065,6 @@ enum NodeKind {
   SwitchCase,
   TypeParameter,
   Typedef,
-  View,
 }
 
 enum MemberKind {
@@ -1180,6 +1180,7 @@ enum DartTypeKind {
   ExtensionType,
   FunctionType,
   FutureOrType,
+  InlineType,
   InterfaceType,
   IntersectionType,
   InvalidType,
@@ -1188,7 +1189,6 @@ enum DartTypeKind {
   RecordType,
   TypeParameterType,
   TypedefType,
-  ViewType,
   VoidType,
 }
 

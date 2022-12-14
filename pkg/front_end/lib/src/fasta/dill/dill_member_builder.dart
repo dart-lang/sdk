@@ -5,7 +5,14 @@
 library fasta.dill_member_builder;
 
 import 'package:kernel/ast.dart'
-    show Constructor, Field, FunctionNode, Member, Procedure, ProcedureKind;
+    show
+        Constructor,
+        Field,
+        FunctionNode,
+        Member,
+        Procedure,
+        ProcedureKind,
+        ProcedureStubKind;
 
 import '../builder/builder.dart';
 import '../builder/constructor_builder.dart';
@@ -266,6 +273,13 @@ class DillClassMember extends BuilderClassMember {
   bool get isInternalImplementation {
     Member member = memberBuilder.member;
     return member.isInternalImplementation;
+  }
+
+  @override
+  bool get isNoSuchMethodForwarder {
+    Member member = memberBuilder.member;
+    return member is Procedure &&
+        member.stubKind == ProcedureStubKind.NoSuchMethodForwarder;
   }
 
   @override

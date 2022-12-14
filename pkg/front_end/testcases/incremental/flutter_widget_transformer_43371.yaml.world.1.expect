@@ -51,11 +51,11 @@ library from "org-dartlang-test:///foo.dart" as foo {
       ;
     static method _#new#tearOff([dart.core::Object* key = #C1]) → foo::Foo*
       return new foo::Foo::•(key);
+    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
     abstract member-signature get key() → dart.core::Object*; -> fra::Widget::key
     abstract member-signature operator ==(dynamic other) → dart.core::bool*; -> dart.core::Object::==
     abstract member-signature get hashCode() → dart.core::int*; -> dart.core::Object::hashCode
     abstract member-signature method toString() → dart.core::String*; -> dart.core::Object::toString
-    abstract member-signature method noSuchMethod(dart.core::Invocation* invocation) → dynamic; -> dart.core::Object::noSuchMethod
     abstract member-signature get runtimeType() → dart.core::Type*; -> dart.core::Object::runtimeType
   }
 }

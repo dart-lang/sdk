@@ -26,6 +26,13 @@ class Intrinsifier {
 
   static final Map<w.ValueType, Map<w.ValueType, Map<String, CodeGenCallback>>>
       binaryOperatorMap = {
+    boolType: {
+      boolType: {
+        '|': (b) => b.i32_or(),
+        '^': (b) => b.i32_xor(),
+        '&': (b) => b.i32_and(),
+      }
+    },
     intType: {
       intType: {
         '+': (b) => b.i64_add(),

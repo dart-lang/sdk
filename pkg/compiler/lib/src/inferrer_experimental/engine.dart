@@ -985,7 +985,7 @@ class InferrerEngine {
   void _registerOverridesCalled(
       DynamicCallTarget target,
       DynamicCallSiteTypeInformation callSiteType,
-      ir.Node? callSite,
+      ir.Node callSite,
       Set<MemberEntity> visited) {
     final member = target.member;
     final isClosurized = callSiteType.closurizedTargets.contains(member);
@@ -1011,7 +1011,7 @@ class InferrerEngine {
     for (final call in types.allocatedCalls) {
       if (call is! DynamicCallSiteTypeInformation) continue;
       for (final target in call.concreteTargets) {
-        _registerOverridesCalled(target, call, null, visited);
+        _registerOverridesCalled(target, call, call.callNode, visited);
       }
     }
   }

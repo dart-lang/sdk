@@ -27,7 +27,7 @@ class Y extends core::Object implements self::X {
 }
 static method main() → dynamic {
   self::Y y = new self::Y::•();
-  y.{self::X::foo}(){() → void};
+  y.{self::Y::foo}(){() → void};
 }
 
 constants  {

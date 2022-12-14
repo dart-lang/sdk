@@ -175,6 +175,9 @@ class CodegenEnqueuer extends Enqueuer {
       case TypeUseKind.NATIVE_INSTANTIATION:
         _registerInstantiatedType(type as InterfaceType, nativeUsage: true);
         break;
+      case TypeUseKind.RECORD_INSTANTIATION:
+        // TODO(49718): Collect record types for conversion to classes.
+        throw UnimplementedError('processTypeUse  $member  $typeUse');
       case TypeUseKind.IS_CHECK:
       case TypeUseKind.CATCH_TYPE:
         _registerIsCheck(type);

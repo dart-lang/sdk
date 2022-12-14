@@ -79,7 +79,7 @@ static method main() → dynamic {
   self::C* c = new self::C::•();
   self::expectTypeError(() → core::String* => (c as dynamic){dynamic}.foo = "bar");
   self::E* e = new self::E::•();
-  self::expectTypeError(() → core::int* => e.{self::A::foo}{core::int*});
+  self::expectTypeError(() → core::int* => e.{self::E::foo}{core::int*});
 }
 
 constants  {

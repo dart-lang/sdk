@@ -71,4 +71,5 @@ nnbd_mixed/inheritance_from_opt_in: TypeCheckError
 nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
+no_such_method_forwarders/mixin_nsm: TypeCheckError
 rasta/native_is_illegal: Pass # Issue 29763

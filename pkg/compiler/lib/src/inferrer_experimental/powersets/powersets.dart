@@ -805,6 +805,9 @@ class PowersetDomain with AbstractValueDomain {
       _abstractValueDomain.functionType, _powersetBitsDomain.functionType);
 
   @override
+  AbstractValue get recordType => throw UnimplementedError();
+
+  @override
   AbstractValue get typeType => PowersetValue(
       _abstractValueDomain.typeType, _powersetBitsDomain.typeType);
 

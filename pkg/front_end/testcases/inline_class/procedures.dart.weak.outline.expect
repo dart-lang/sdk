@@ -2,7 +2,7 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-view Class /* representationType = core::int */ {
+inline class Class /* declaredRepresentationType = core::int */ {
   method instanceMethod = self::Class|instanceMethod;
   tearoff instanceMethod = self::Class|get#instanceMethod;
   get instanceGetter = self::Class|get#instanceGetter;
@@ -13,7 +13,7 @@ view Class /* representationType = core::int */ {
   static method staticMethod = self::Class|staticMethod;
   static method genericStaticMethod = self::Class|genericStaticMethod;
 }
-view GenericClass<T extends core::Object? = dynamic> /* representationType = T% */ {
+inline class GenericClass<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
   method instanceMethod = self::GenericClass|instanceMethod;
   tearoff instanceMethod = self::GenericClass|get#instanceMethod;
   get instanceGetter = self::GenericClass|get#instanceGetter;

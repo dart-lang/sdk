@@ -43,9 +43,6 @@ AnalysisOptionsErrorCode.PARSE_ERROR:
 AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED:
   status: needsFix
   notes: Fixed.
-AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED:
-  status: needsFix
-  notes: Fixed.
 AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
   status: noFix
   notes: |-
@@ -66,10 +63,6 @@ AnalysisOptionsWarningCode.INVALID_OPTION:
     replace the invalid option with the selected replacement.
 AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT:
   status: needsEvaluation
-AnalysisOptionsWarningCode.SPEC_MODE_REMOVED:
-  status: needsFix
-  notes: |-
-    Provide a fix to remove the deprecated setting.
 AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE:
   status: needsEvaluation
 AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE:
@@ -1714,56 +1707,6 @@ HintCode.UNUSED_RESULT_WITH_MESSAGE:
     There is no predictable common way in which a result _should_ be used.
 HintCode.UNUSED_SHOWN_NAME:
   status: hasFix
-LanguageCode.IMPLICIT_DYNAMIC_FIELD:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_FUNCTION:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_INVOKE:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_LIST_LITERAL:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_MAP_LITERAL:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_METHOD:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_PARAMETER:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_RETURN:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_TYPE:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
-LanguageCode.IMPLICIT_DYNAMIC_VARIABLE:
-  status: needsFix
-  notes: |-
-    The correction says to add an explicit type or remove implicit-dynamic from
-    analysis options. We can add a fix to add an explicit `dynamic`.
 LintCode.always_declare_return_types:
   status: hasFix
 LintCode.always_put_control_body_on_new_line:

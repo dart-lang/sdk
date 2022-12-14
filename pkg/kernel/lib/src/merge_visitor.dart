@@ -252,13 +252,13 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   }
 
   @override
-  DartType? visitViewType(ViewType a, DartType b) {
-    if (b is ViewType &&
-        a.view == b.view &&
+  DartType? visitInlineType(InlineType a, DartType b) {
+    if (b is InlineType &&
+        a.inlineClass == b.inlineClass &&
         a.typeArguments.length == b.typeArguments.length) {
       Nullability? nullability = mergeNullability(a.nullability, b.nullability);
       if (nullability != null) {
-        return mergeViewTypes(a, b, nullability);
+        return mergeInlineTypes(a, b, nullability);
       }
     }
     if (b is InvalidType) {
@@ -267,11 +267,12 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     return null;
   }
 
-  DartType? mergeViewTypes(ViewType a, ViewType b, Nullability nullability) {
-    assert(a.view == b.view);
+  DartType? mergeInlineTypes(
+      InlineType a, InlineType b, Nullability nullability) {
+    assert(a.inlineClass == b.inlineClass);
     assert(a.typeArguments.length == b.typeArguments.length);
     if (a.typeArguments.isEmpty) {
-      return new ViewType(a.view, nullability);
+      return new InlineType(a.inlineClass, nullability);
     }
     List<DartType> newTypeArguments =
         new List<DartType>.filled(a.typeArguments.length, dummyDartType);
@@ -282,7 +283,7 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       }
       newTypeArguments[i] = newType;
     }
-    return new ViewType(a.view, nullability, newTypeArguments);
+    return new InlineType(a.inlineClass, nullability, newTypeArguments);
   }
 
   @override

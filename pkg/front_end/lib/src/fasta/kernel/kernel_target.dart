@@ -526,10 +526,6 @@ class KernelTarget extends TargetImplementation {
       loader.checkAbstractMembers(sortedSourceClassBuilders);
 
       benchmarker
-          ?.enterPhase(BenchmarkPhases.outline_addNoSuchMethodForwarders);
-      loader.addNoSuchMethodForwarders(sortedSourceClassBuilders);
-
-      benchmarker
           ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
       loader.computeFieldPromotability(sortedSourceClassBuilders);
 

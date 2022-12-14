@@ -130,8 +130,8 @@ class TypeTextVisitor implements ir.DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
-  void visitViewType(ir.ViewType node, StringBuffer sb) {
-    writeType(node.representationType, sb);
+  void visitInlineType(ir.InlineType node, StringBuffer sb) {
+    writeType(node.instantiatedRepresentationType, sb);
   }
 
   @override

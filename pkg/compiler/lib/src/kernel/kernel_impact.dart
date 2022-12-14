@@ -307,9 +307,8 @@ class KernelImpactConverter implements ImpactRegistry {
   @override
   void registerRecordLiteral(ir.RecordType recordType,
       {required bool isConst}) {
-    final type = elementMap.getDartType(recordType);
-    // TODO(50081): We need a TypeUse for instantiating a record.
-    throw UnimplementedError('registerRecordLiteral $recordType -> $type');
+    final type = elementMap.getDartType(recordType) as RecordType;
+    impactBuilder.registerTypeUse(TypeUse.recordInstantiation(type));
   }
 
   @override

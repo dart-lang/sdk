@@ -150,23 +150,24 @@ String extensionNameToString(Extension? node) {
   return node == null ? 'null' : node.name;
 }
 
-String qualifiedViewNameToString(View node, {bool includeLibraryName = false}) {
+String qualifiedInlineClassNameToString(InlineClass node,
+    {bool includeLibraryName = false}) {
   TreeNode? parent = node.parent;
   if (parent is Library && includeLibraryName) {
-    return libraryNameToString(parent) + '::' + viewNameToString(node);
+    return libraryNameToString(parent) + '::' + inlineClassNameToString(node);
   } else {
-    return viewNameToString(node);
+    return inlineClassNameToString(node);
   }
 }
 
-String qualifiedViewNameToStringByReference(Reference? reference,
+String qualifiedInlineClassNameToStringByReference(Reference? reference,
     {bool includeLibraryName = false}) {
   if (reference == null) {
-    return '<missing-view-reference>';
+    return '<missing-inline-class-reference>';
   } else {
-    View? node = reference.node as View?;
+    InlineClass? node = reference.node as InlineClass?;
     if (node != null) {
-      return qualifiedViewNameToString(node,
+      return qualifiedInlineClassNameToString(node,
           includeLibraryName: includeLibraryName);
     } else {
       CanonicalName? canonicalName = reference.canonicalName;
@@ -174,13 +175,13 @@ String qualifiedViewNameToStringByReference(Reference? reference,
         return qualifiedCanonicalNameToString(canonicalName,
             includeLibraryName: includeLibraryName);
       } else {
-        return '<unlinked-view-reference>';
+        return '<unlinked-inline-class-reference>';
       }
     }
   }
 }
 
-String viewNameToString(View? node) {
+String inlineClassNameToString(InlineClass? node) {
   return node == null ? 'null' : node.name;
 }
 
