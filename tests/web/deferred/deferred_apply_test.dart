@@ -9,7 +9,7 @@ import 'deferred_apply_lib.dart' deferred as lib;
 
 // Test that the `_Required` sentinel in apply-metadata is initialized.
 //
-// This test is structured so that `Function.apply` is partioned out of the main
+// This test is structured so that `Function.apply` is partitioned out of the main
 // unit into a 'part' file. `Function.apply` contains a reference to the
 // `_Required` sentinel marker, which causes the marker to also be in that part.
 // The apply-metadata for the functions [foo1] and [foo2] contains references to
