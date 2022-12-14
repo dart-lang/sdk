@@ -385,7 +385,7 @@ class ModelEmitter {
 var ${startupMetricsGlobal} =
 (function(){
   // The timestamp metrics use `performance.now()`. We feature-detect and
-  // fall back on `Date.now()` for JavaScript run in a non-browser evironment.
+  // fall back on `Date.now()` for JavaScript run in a non-browser environment.
   var _performance =
       (typeof performance == "object" &&
        performance != null &&
