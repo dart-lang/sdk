@@ -1805,8 +1805,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     Member target = node.target;
     if (target is Field) {
       w.Global global = translator.globals.getGlobal(target);
+      w.Global? flag = translator.globals.getGlobalInitializedFlag(target);
       wrap(node.value, global.type.type);
       b.global_set(global);
+      if (flag != null) {
+        b.i32_const(1); // true
+        b.global_set(flag);
+      }
       if (preserved) {
         b.global_get(global);
         return global.type.type;
