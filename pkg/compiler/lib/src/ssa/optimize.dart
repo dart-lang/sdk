@@ -930,7 +930,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         method, [receiver], returnType, nativeBehavior,
         sourceInformation: node.sourceInformation);
     _registry.registerStaticUse(StaticUse.methodInlining(method, null));
-    // Assume Native getters effect-free as an approximantion to being
+    // Assume Native getters effect-free as an approximation to being
     // idempotent.
     // TODO(sra): [native.BehaviorBuilder.buildMethodBehavior] should do this
     // for us.
