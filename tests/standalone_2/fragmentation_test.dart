@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// Deliberately fragment the heap and test that GC peformance does not
+// Deliberately fragment the heap and test that GC performance does not
 // break down.  See https://github.com/dart-lang/sdk/issues/29588
 // Normally runs in about 6-7 seconds on an x64 machine, using about 2.5Gbytes
 // of memory.
