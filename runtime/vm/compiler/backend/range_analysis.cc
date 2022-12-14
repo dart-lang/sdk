@@ -1367,7 +1367,7 @@ void RangeAnalysis::MarkUnreachableBlocks() {
     if (Range::IsUnknown(constraints_[i]->range())) {
       TargetEntryInstr* target = constraints_[i]->target();
       if (target == NULL) {
-        // TODO(vegorov): replace Constraint with an uncoditional
+        // TODO(vegorov): replace Constraint with an unconditional
         // deoptimization and kill all dominated dead code.
         continue;
       }
