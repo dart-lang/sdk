@@ -19,10 +19,12 @@ void main() {
 
   var st0s = findMain(st0);
   var st1s = findMain(st1);
-  // Stack traces are not equal (contains at least a different line number,
-  // and possible different frame numbers).
+  // Stack traces are not equal (contains at least a different line number, and
+  // possibly different frame numbers).
   // They are *similar*, so check that they agree on everything but numbers.
-  var digits = new RegExp(r"\d+");
+  // Also match hex digits as V8 (used by dart2wasm) shows function offsets in
+  // hex.
+  final digits = new RegExp(r"(0[xX][0-9a-fA-F]+)|\d+");
   Expect.equals(st0s.replaceAll(digits, "0"), st1s.replaceAll(digits, "0"));
 }
 
