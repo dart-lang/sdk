@@ -61,7 +61,7 @@ The current compiler phases are:
      further understand what values flow through the program. This phase is
      very valuable in narrowing down possibilities that are ambiguous based
      solely on type information written by developers. It often finds
-     oportunities that enable the compiler to devirtualize or inline method
+     opportunities that enable the compiler to devirtualize or inline method
      calls, generate code specializations, or trigger performance optimizations.
 
      The result of this phase is a "global result" (g).
