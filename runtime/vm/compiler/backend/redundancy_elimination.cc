@@ -142,7 +142,7 @@ class CSEInstructionSet : public ValueObject {
 //     of the data type. Obviously X[C|S] and X[K|U] alias if and only if either
 //     C = RoundDown(K, S) or K = RoundDown(C, U).
 //     Note that not all accesses to typed data are aligned: e.g. ByteData
-//     allows unanaligned access through it's get*/set* methods.
+//     allows unaligned access through it's get*/set* methods.
 //     Check in Place::SetIndex ensures that we never create a place X[C|S]
 //     such that C is not aligned by S.
 //
