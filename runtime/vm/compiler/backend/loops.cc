@@ -65,7 +65,7 @@ class InductionVarAnalysis : public ValueObject {
   void ClassifyControl(LoopInfo* loop);
 
   // Transfer methods. Compute how induction of the operands, if any,
-  // tranfers over the operation performed by the given definition.
+  // transfers over the operation performed by the given definition.
   InductionVar* TransferPhi(LoopInfo* loop, Definition* def, intptr_t idx = -1);
   InductionVar* TransferDef(LoopInfo* loop, Definition* def);
   InductionVar* TransferBinary(LoopInfo* loop, Definition* def);
