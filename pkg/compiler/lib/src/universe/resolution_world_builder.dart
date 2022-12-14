@@ -239,6 +239,8 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
   final Set<DartType> _isChecks = {};
   final Set<TypeVariableType> _namedTypeVariablesNewRti = {};
 
+  final Set<RecordType> _instantiatedRecordTypes = {};
+
   /// Set of all closures in the program. Used by the mirror tracking system
   /// to find all live closure instances.
   final Set<Local> _localFunctions = {};
@@ -382,6 +384,10 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
         }
       });
     }
+  }
+
+  void registerRecordTypeInstantiation(RecordType type) {
+    _instantiatedRecordTypes.add(type);
   }
 
   Iterable<CallStructure> _getMatchingCallStructures(
@@ -1019,6 +1025,7 @@ class ResolutionWorldBuilder extends WorldBuilder implements World {
             _closurizedMembersWithFreeTypeVariables,
         localFunctions: _localFunctions,
         instantiatedTypes: instantiatedTypes,
+        instantiatedRecordTypes: _instantiatedRecordTypes,
         namedTypeVariablesNewRti: _namedTypeVariablesNewRti);
     if (retainDataForTesting) {
       _closedWorldCache = closedWorld;

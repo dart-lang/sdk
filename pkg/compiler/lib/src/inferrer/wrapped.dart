@@ -598,6 +598,10 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
       WrappedAbstractValue(_abstractValueDomain.functionType);
 
   @override
+  AbstractValue get recordType =>
+      WrappedAbstractValue(_abstractValueDomain.recordType);
+
+  @override
   AbstractValue get typeType =>
       WrappedAbstractValue(_abstractValueDomain.typeType);
 

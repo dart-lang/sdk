@@ -36,6 +36,7 @@ runTests(List<String> args, [int shardIndex]) {
         testedConfigs: allInternalConfigs,
         perTestOptions: {
           "issue48304.dart": [Flags.soundNullSafety],
+          "record_1.dart": ['--enable-experiment=records'],
         },
         skip: skip,
         shardIndex: shardIndex ?? 0,

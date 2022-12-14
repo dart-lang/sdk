@@ -362,6 +362,18 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
   }
 
   @override
+  ir.DartType visitRecordIndexGet(ir.RecordIndexGet node) {
+    visitNode(node.receiver);
+    return super.visitRecordIndexGet(node);
+  }
+
+  @override
+  ir.DartType visitRecordNameGet(ir.RecordNameGet node) {
+    visitNode(node.receiver);
+    return super.visitRecordNameGet(node);
+  }
+
+  @override
   ir.DartType visitFunctionTearOff(ir.FunctionTearOff node) {
     ir.DartType receiverType = visitNode(node.receiver);
     handleDynamicGet(node, receiverType, ir.Name.callName, receiverType);

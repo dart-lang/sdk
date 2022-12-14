@@ -178,6 +178,9 @@ class ResolutionEnqueuer extends Enqueuer {
         _registerInstantiatedType(type as InterfaceType,
             nativeUsage: true, globalDependency: true);
         break;
+      case TypeUseKind.RECORD_INSTANTIATION:
+        _registerInstantiatedRecordType(type as RecordType);
+        break;
       case TypeUseKind.IS_CHECK:
       case TypeUseKind.CATCH_TYPE:
         _registerIsCheck(type);
@@ -211,6 +214,10 @@ class ResolutionEnqueuer extends Enqueuer {
         _registerNamedTypeVariableNewRti(type as TypeVariableType);
         break;
     }
+  }
+
+  void _registerInstantiatedRecordType(RecordType type) {
+    worldBuilder.registerRecordTypeInstantiation(type);
   }
 
   void _registerIsCheck(DartType type) {

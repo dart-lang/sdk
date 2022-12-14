@@ -452,6 +452,9 @@ class TrivialAbstractValueDomain with AbstractValueDomain {
   AbstractValue get functionType => const TrivialAbstractValue();
 
   @override
+  AbstractValue get recordType => const TrivialAbstractValue();
+
+  @override
   AbstractValue get typeType => const TrivialAbstractValue();
 }
 
