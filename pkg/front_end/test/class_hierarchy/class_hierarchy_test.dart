@@ -249,14 +249,15 @@ class InheritanceDataExtractor extends CfeDataExtractor<Features> {
       features.addElement(Tag.interfaces, supertypeToText(supertype));
     });
     if (data.abstractMembers.isNotEmpty) {
-      for (ClassMember abstractMember in data.abstractMembers) {
+      for (ClassMember abstractMember
+          in unfoldDeclarations(data.abstractMembers)) {
         features.addElement(
             Tag.abstractMembers, classMemberQualifiedName(abstractMember));
       }
     }
     features[Tag.maxInheritancePath] =
         '${classHierarchyNode.maxInheritancePath}';
-    if (classMembersNode.hasNoSuchMethod) {
+    if (classMembersNode.userNoSuchMethodMember != null) {
       features.add(Tag.hasNoSuchMethod);
     }
     return features;

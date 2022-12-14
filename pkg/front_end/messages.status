@@ -710,13 +710,13 @@ NonAgnosticConstant/example: Fail
 NonAsciiIdentifier/expression: Fail
 NonAsciiIdentifier/part_wrapped_expression: Fail
 NonAugmentationClassConflict/analyzerCode: Fail
-NonAugmentationClassConflict/part_wrapped_script: Crash # TODO(johnniwinther): Investigate this.
+NonAugmentationClassConflict/part_wrapped_script: Fail
 NonAugmentationClassMemberConflict/analyzerCode: Fail
 NonAugmentationClassMemberConflict/part_wrapped_script: Fail # Uses imports
 NonAugmentationConstructorConflict/analyzerCode: Fail
 NonAugmentationConstructorConflict/part_wrapped_script: Fail # Uses imports
 NonAugmentationLibraryConflict/analyzerCode: Fail
-NonAugmentationLibraryConflict/part_wrapped_script: Crash # TODO(johnniwinther): Investigate this.
+NonAugmentationLibraryConflict/part_wrapped_script: Fail
 NonAugmentationLibraryMemberConflict/analyzerCode: Fail
 NonAugmentationLibraryMemberConflict/part_wrapped_script: Fail # Uses imports
 NonConstConstructor/example: Fail
@@ -939,7 +939,7 @@ UndefinedExtensionSetter/example: Fail
 UnexpectedToken/part_wrapped_script1: Fail
 UnexpectedToken/script1: Fail
 UnmatchedAugmentationClass/analyzerCode: Fail
-UnmatchedAugmentationClass/part_wrapped_script: Crash # TODO(johnniwinther): Investigate this.
+UnmatchedAugmentationClass/part_wrapped_script: Fail
 UnmatchedAugmentationClassMember/analyzerCode: Fail
 UnmatchedAugmentationClassMember/part_wrapped_script: Fail # Uses imports
 UnmatchedAugmentationConstructor/analyzerCode: Fail

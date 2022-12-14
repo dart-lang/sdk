@@ -85,5 +85,6 @@ nnbd_mixed/inheritance_from_opt_in: TypeCheckError
 nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
+no_such_method_forwarders/mixin_nsm: TypeCheckError
 rasta/malformed_function: Crash # https://github.com/dart-lang/sdk/issues/50575
 runtime_checks_new/mixin_forwarding_stub_getter: TypeCheckError

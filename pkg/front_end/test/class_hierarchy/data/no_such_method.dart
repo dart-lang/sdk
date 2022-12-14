@@ -130,13 +130,6 @@ class SuperConcrete {
 }
 
 /*class: FromSuperConcrete:
- abstractMembers=[
-  Interface.field,
-  Interface.field=,
-  Interface.finalField,
-  Interface.getter,
-  Interface.method,
-  Interface.setter=],
  hasNoSuchMethod,
  interfaces=[Interface],
  maxInheritancePath=2,
@@ -159,45 +152,39 @@ class FromSuperConcrete extends SuperConcrete implements Interface {
    isSynthesized,
    member=SuperConcrete.noSuchMethod
   */
-
-  /*member: FromSuperConcrete.field#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromSuperConcrete.method#cls:
+   classBuilder=FromSuperConcrete,
+   declarations=[Interface.method],
+   isSynthesized
   */
-  /*member: FromSuperConcrete.field=#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromSuperConcrete.getter#cls:
+   classBuilder=FromSuperConcrete,
+   declarations=[Interface.getter],
+   isSynthesized
   */
-
-  /*member: FromSuperConcrete.finalField#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromSuperConcrete.field#cls:
+   classBuilder=FromSuperConcrete,
+   declarations=[Interface.field],
+   isSynthesized
   */
-
-  /*member: FromSuperConcrete.method#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromSuperConcrete.finalField#cls:
+   classBuilder=FromSuperConcrete,
+   declarations=[Interface.finalField],
+   isSynthesized
   */
-
-  /*member: FromSuperConcrete.getter#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromSuperConcrete.field=#cls:
+   classBuilder=FromSuperConcrete,
+   declarations=[Interface.field=],
+   isSynthesized
   */
-
-  /*member: FromSuperConcrete.setter=#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromSuperConcrete.setter=#cls:
+   classBuilder=FromSuperConcrete,
+   declarations=[Interface.setter=],
+   isSynthesized
   */
 }
 
 /*class: FromSuperConcreteAbstract:
- abstractMembers=[
-  Interface.field,
-  Interface.field=,
-  Interface.finalField,
-  Interface.getter,
-  Interface.method,
-  Interface.setter=],
  hasNoSuchMethod,
  interfaces=[
   Interface,
@@ -224,34 +211,35 @@ class FromSuperConcreteAbstract extends SuperConcrete
    isSynthesized,
    member=SuperConcrete.noSuchMethod
   */
-
-  /*member: FromSuperConcreteAbstract.field#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromSuperConcreteAbstract.method#cls:
+   classBuilder=FromSuperConcreteAbstract,
+   declarations=[Interface.method],
+   isSynthesized
   */
-  /*member: FromSuperConcreteAbstract.field=#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromSuperConcreteAbstract.getter#cls:
+   classBuilder=FromSuperConcreteAbstract,
+   declarations=[Interface.getter],
+   isSynthesized
   */
-
-  /*member: FromSuperConcreteAbstract.finalField#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromSuperConcreteAbstract.field#cls:
+   classBuilder=FromSuperConcreteAbstract,
+   declarations=[Interface.field],
+   isSynthesized
   */
-
-  /*member: FromSuperConcreteAbstract.method#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromSuperConcreteAbstract.finalField#cls:
+   classBuilder=FromSuperConcreteAbstract,
+   declarations=[Interface.finalField],
+   isSynthesized
   */
-
-  /*member: FromSuperConcreteAbstract.getter#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromSuperConcreteAbstract.field=#cls:
+   classBuilder=FromSuperConcreteAbstract,
+   declarations=[Interface.field=],
+   isSynthesized
   */
-
-  /*member: FromSuperConcreteAbstract.setter=#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromSuperConcreteAbstract.setter=#cls:
+   classBuilder=FromSuperConcreteAbstract,
+   declarations=[Interface.setter=],
+   isSynthesized
   */
 }
 
@@ -366,13 +354,6 @@ class MixinConcrete {
 */
 
 /*class: FromMixinConcrete:
- abstractMembers=[
-  Interface.field,
-  Interface.field=,
-  Interface.finalField,
-  Interface.getter,
-  Interface.method,
-  Interface.setter=],
  hasNoSuchMethod,
  interfaces=[
   Interface,
@@ -397,34 +378,35 @@ class FromMixinConcrete with MixinConcrete implements Interface {
    isSynthesized,
    member=_FromMixinConcrete&Object&MixinConcrete.noSuchMethod
   */
-
-  /*member: FromMixinConcrete.field#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromMixinConcrete.method#cls:
+   classBuilder=FromMixinConcrete,
+   declarations=[Interface.method],
+   isSynthesized
   */
-  /*member: FromMixinConcrete.field=#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromMixinConcrete.getter#cls:
+   classBuilder=FromMixinConcrete,
+   declarations=[Interface.getter],
+   isSynthesized
   */
-
-  /*member: FromMixinConcrete.finalField#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromMixinConcrete.field#cls:
+   classBuilder=FromMixinConcrete,
+   declarations=[Interface.field],
+   isSynthesized
   */
-
-  /*member: FromMixinConcrete.method#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromMixinConcrete.finalField#cls:
+   classBuilder=FromMixinConcrete,
+   declarations=[Interface.finalField],
+   isSynthesized
   */
-
-  /*member: FromMixinConcrete.getter#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromMixinConcrete.field=#cls:
+   classBuilder=FromMixinConcrete,
+   declarations=[Interface.field=],
+   isSynthesized
   */
-
-  /*member: FromMixinConcrete.setter=#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromMixinConcrete.setter=#cls:
+   classBuilder=FromMixinConcrete,
+   declarations=[Interface.setter=],
+   isSynthesized
   */
 }
 
@@ -481,13 +463,6 @@ class FromMixinConcrete with MixinConcrete implements Interface {
 */
 
 /*class: FromMixinConcreteAbstract:
- abstractMembers=[
-  Interface.field,
-  Interface.field=,
-  Interface.finalField,
-  Interface.getter,
-  Interface.method,
-  Interface.setter=],
  hasNoSuchMethod,
  interfaces=[
   Interface,
@@ -516,34 +491,35 @@ class FromMixinConcreteAbstract
    isSynthesized,
    member=_FromMixinConcreteAbstract&Object&MixinConcrete&MixinAbstract.noSuchMethod
   */
-
-  /*member: FromMixinConcreteAbstract.field#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromMixinConcreteAbstract.method#cls:
+   classBuilder=FromMixinConcreteAbstract,
+   declarations=[Interface.method],
+   isSynthesized
   */
-  /*member: FromMixinConcreteAbstract.field=#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromMixinConcreteAbstract.getter#cls:
+   classBuilder=FromMixinConcreteAbstract,
+   declarations=[Interface.getter],
+   isSynthesized
   */
-
-  /*member: FromMixinConcreteAbstract.finalField#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromMixinConcreteAbstract.field#cls:
+   classBuilder=FromMixinConcreteAbstract,
+   declarations=[Interface.field],
+   isSynthesized
   */
-
-  /*member: FromMixinConcreteAbstract.method#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromMixinConcreteAbstract.finalField#cls:
+   classBuilder=FromMixinConcreteAbstract,
+   declarations=[Interface.finalField],
+   isSynthesized
   */
-
-  /*member: FromMixinConcreteAbstract.getter#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromMixinConcreteAbstract.field=#cls:
+   classBuilder=FromMixinConcreteAbstract,
+   declarations=[Interface.field=],
+   isSynthesized
   */
-
-  /*member: FromMixinConcreteAbstract.setter=#int:
-   classBuilder=Interface,
-   isSourceDeclaration
+  /*member: FromMixinConcreteAbstract.setter=#cls:
+   classBuilder=FromMixinConcreteAbstract,
+   declarations=[Interface.setter=],
+   isSynthesized
   */
 }
 
@@ -724,48 +700,12 @@ class DeclaredAbstract implements Interface {
 }
 
 /*class: DeclaredConcrete:
- abstractMembers=[
-  Interface.field,
-  Interface.field=,
-  Interface.finalField,
-  Interface.getter,
-  Interface.method,
-  Interface.setter=],
  hasNoSuchMethod,
  interfaces=[Interface],
  maxInheritancePath=2,
  superclasses=[Object]
 */
 class DeclaredConcrete implements Interface {
-  /*member: DeclaredConcrete.field#int:
-   classBuilder=Interface,
-   isSourceDeclaration
-  */
-  /*member: DeclaredConcrete.field=#int:
-   classBuilder=Interface,
-   isSourceDeclaration
-  */
-
-  /*member: DeclaredConcrete.finalField#int:
-   classBuilder=Interface,
-   isSourceDeclaration
-  */
-
-  /*member: DeclaredConcrete.method#int:
-   classBuilder=Interface,
-   isSourceDeclaration
-  */
-
-  /*member: DeclaredConcrete.getter#int:
-   classBuilder=Interface,
-   isSourceDeclaration
-  */
-
-  /*member: DeclaredConcrete.setter=#int:
-   classBuilder=Interface,
-   isSourceDeclaration
-  */
-
   /*member: DeclaredConcrete.noSuchMethod#cls:
    classBuilder=DeclaredConcrete,
    declared-overrides=[Object.noSuchMethod],
@@ -775,6 +715,36 @@ class DeclaredConcrete implements Interface {
   noSuchMethod(Invocation invocation) {
     return null;
   }
+  /*member: DeclaredConcrete.method#cls:
+   classBuilder=DeclaredConcrete,
+   declarations=[Interface.method],
+   isSynthesized
+  */
+  /*member: DeclaredConcrete.getter#cls:
+   classBuilder=DeclaredConcrete,
+   declarations=[Interface.getter],
+   isSynthesized
+  */
+  /*member: DeclaredConcrete.field#cls:
+   classBuilder=DeclaredConcrete,
+   declarations=[Interface.field],
+   isSynthesized
+  */
+  /*member: DeclaredConcrete.finalField#cls:
+   classBuilder=DeclaredConcrete,
+   declarations=[Interface.finalField],
+   isSynthesized
+  */
+  /*member: DeclaredConcrete.field=#cls:
+   classBuilder=DeclaredConcrete,
+   declarations=[Interface.field=],
+   isSynthesized
+  */
+  /*member: DeclaredConcrete.setter=#cls:
+   classBuilder=DeclaredConcrete,
+   declarations=[Interface.setter=],
+   isSynthesized
+  */
 }
 
 main() {}

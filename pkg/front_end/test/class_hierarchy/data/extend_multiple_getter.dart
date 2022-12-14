@@ -163,9 +163,12 @@ abstract class AbstractClass extends Super implements Interface1, Interface2 {
 
 /*class: ConcreteSub:
  abstractMembers=[
-  AbstractClass.extendedAbstractImplementedGetter,
-  AbstractClass.extendedAbstractImplementedMultipleGetter,
-  Super.extendedAbstractGetter],
+  Interface1.extendedAbstractImplementedGetter,
+  Interface1.extendedAbstractImplementedMultipleGetter,
+  Interface2.extendedAbstractImplementedMultipleGetter,
+  Super.extendedAbstractGetter,
+  Super.extendedAbstractImplementedGetter,
+  Super.extendedAbstractImplementedMultipleGetter],
  interfaces=[
   Interface1,
   Interface2],

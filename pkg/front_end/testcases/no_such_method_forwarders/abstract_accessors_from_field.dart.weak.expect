@@ -24,6 +24,10 @@ class A extends core::Object implements self::I {
     ;
   method noSuchMethod(core::Invocation* i) → dynamic
     return "bar";
+  no-such-method-forwarder get foo() → core::int*
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} core::int*;
+  no-such-method-forwarder set foo(core::int* value) → void
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -33,10 +37,6 @@ class A extends core::Object implements self::I {
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
-  no-such-method-forwarder get foo() → core::int*
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 1, #C2, #C3, core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic} as{TypeError,ForDynamic} core::int*;
-  no-such-method-forwarder set foo(core::int* value) → void
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation*) →* dynamic};
 }
 class B extends self::A {
   synthetic constructor •() → self::B*
@@ -53,7 +53,7 @@ static method expectTypeError(() →* dynamic callback) → void {
 }
 static method main() → dynamic {
   self::A* a = new self::A::•();
-  self::expectTypeError(() → core::int* => a.{self::I::foo}{core::int*});
+  self::expectTypeError(() → core::int* => a.{self::A::foo}{core::int*});
   self::expectTypeError(() → core::String* => (a as dynamic){dynamic}.foo = "bar");
 }
 

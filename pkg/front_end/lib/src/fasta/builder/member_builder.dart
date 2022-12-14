@@ -233,6 +233,9 @@ abstract class BuilderClassMember implements ClassMember {
   bool get isInternalImplementation => false;
 
   @override
+  bool get isNoSuchMethodForwarder => false;
+
+  @override
   bool get hasDeclarations => false;
 
   @override

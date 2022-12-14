@@ -10,6 +10,7 @@ abstract class _Class&Object&Mixin1<T extends core::Object* = dynamic> = core::O
   const synthetic constructor •() → self::_Class&Object&Mixin1<self::_Class&Object&Mixin1::T*>*
     : super core::Object::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -18,7 +19,6 @@ abstract class _Class&Object&Mixin1<T extends core::Object* = dynamic> = core::O
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class _Class&Object&Mixin1&Mixin2<T extends core::Object* = dynamic> = self::_Class&Object&Mixin1<self::_Class&Object&Mixin1&Mixin2::T*> with mai::Mixin2<self::_Class&Object&Mixin1&Mixin2::T*> /*isAnonymousMixin*/  {
@@ -57,6 +57,7 @@ abstract class Mixin1<T extends core::Object* = dynamic> extends core::Object im
   abstract member-signature set field((core::Object*) →* core::Type* value) → void; -> mai2::Interface::field
   abstract member-signature method method1() → (core::Object*) →* core::Type*; -> mai2::Interface::method1
   abstract member-signature method method2((core::Object*) →* core::Type* t) → void; -> mai2::Interface::method2
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -65,7 +66,6 @@ abstract class Mixin1<T extends core::Object* = dynamic> extends core::Object im
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class Mixin2<T extends core::Object* = dynamic> extends core::Object implements mai2::Interface<mai2::Value<dynamic>*, core::Object*> {
@@ -76,6 +76,7 @@ abstract class Mixin2<T extends core::Object* = dynamic> extends core::Object im
     ;
   method method2((dynamic) →* core::Type* t) → void
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -84,7 +85,6 @@ abstract class Mixin2<T extends core::Object* = dynamic> extends core::Object im
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 

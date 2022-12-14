@@ -77,6 +77,7 @@ abstract class _SubClass&Class&Mixin extends self2::Class implements self2::Mixi
     ;
   abstract member-signature get classField1() → core::int*; -> self2::Class::classField1
   abstract member-signature get classField2() → core::int*; -> self2::Class::classField2
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   method /*isNonNullableByDefault, from org-dartlang-testcase:///opt_in_lib.dart */ mixinMethod(core::int i) → core::int? {}
   abstract member-signature method classMethod(core::int* i) → core::int*; -> self2::Class::classMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
@@ -87,7 +88,6 @@ abstract class _SubClass&Class&Mixin extends self2::Class implements self2::Mixi
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   abstract member-signature set classField1(core::int* value) → void; -> self2::Class::classField1
   abstract member-signature set classField2(core::int* value) → void; -> self2::Class::classField2

@@ -67,6 +67,9 @@ abstract class ClassMember {
   /// lowering.
   bool get isInternalImplementation;
 
+  /// Returns `true` if this member is a noSuchMethod forwarder.
+  bool get isNoSuchMethodForwarder;
+
   /// Returns `true` if this member is composed from a list of class members
   /// accessible through [declarations].
   bool get hasDeclarations;
@@ -297,17 +300,21 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
   Member? _member;
   Covariance? _covariance;
 
+  ClassMember? _noSuchMethodTarget;
+
   SynthesizedInterfaceMember(
       ClassBuilder classBuilder, Name name, this.declarations,
       {ClassMember? superClassMember,
       ClassMember? canonicalMember,
       ClassMember? mixedInMember,
+      ClassMember? noSuchMethodTarget,
       required bool isProperty,
       required bool forSetter,
       required bool shouldModifyKernel})
       : this._superClassMember = superClassMember,
         this._canonicalMember = canonicalMember,
         this._mixedInMember = mixedInMember,
+        this._noSuchMethodTarget = noSuchMethodTarget,
         this._shouldModifyKernel = shouldModifyKernel,
         super(classBuilder, name, isProperty: isProperty, forSetter: forSetter);
 
@@ -376,8 +383,8 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
         kind = ProcedureKind.Operator;
       }
 
-      Procedure? stub = new ForwardingNode(
-              combinedMemberSignature, kind, _superClassMember, _mixedInMember)
+      Procedure? stub = new ForwardingNode(combinedMemberSignature, kind,
+              _superClassMember, _mixedInMember, _noSuchMethodTarget)
           .finalize();
       if (stub != null) {
         assert(classBuilder.cls == stub.enclosingClass);
@@ -434,13 +441,17 @@ class SynthesizedInterfaceMember extends SynthesizedMember {
   }
 
   @override
+  bool get isNoSuchMethodForwarder =>
+      _noSuchMethodTarget != null && _shouldModifyKernel;
+
+  @override
   int get charOffset => declarations.first.charOffset;
 
   @override
   Uri get fileUri => declarations.first.fileUri;
 
   @override
-  bool get isAbstract => true;
+  bool get isAbstract => _noSuchMethodTarget == null;
 
   @override
   String get fullNameForErrors =>
@@ -580,6 +591,48 @@ class InheritedClassMemberImplementsInterface extends SynthesizedMember {
   bool isSameDeclaration(ClassMember other) {
     // TODO(johnniwinther): Optimize this.
     return false;
+  }
+
+  @override
+  bool get isNoSuchMethodForwarder {
+    // [implementedInterfaceMember] can only be a noSuchMethod forwarder if
+    // [inheritedClassMember] also is, since we don't allow overriding a regular
+    // member with a noSuchMethodForwarder.
+    //
+    // If the current class is abstract, [inheritedClassMember] can be a
+    // a noSuchMethod forwarder while [implementedInterfaceMember] is not,
+    // because we only insert noSuchMethod forwarders into non-abstract classes.
+    //
+    // For instance
+    //
+    //     class Super {
+    //       noSuchMethod(_) => null;
+    //       method1(); // noSuchMethod forwarder created for this.
+    //       method2(int i); // noSuchMethod forwarder created for this.
+    //       method3(int i); // noSuchMethod forwarder created for this.
+    //       method4(int i) {}
+    //     }
+    //     abstract class Abstract extends Super {
+    //       method2(num i); // No noSuchMethod forwarder will be inserted here.
+    //     }
+    //     class Class extends Abstract {
+    //       method1(); // noSuchMethod forwarder from Super is valid.
+    //       /* method2(num i) */ // A new noSuchMethod forwarder is created.
+    //       method3(num i); // A new noSuchMethod forwarder is created.
+    //       method4(num i); // No noSuchMethod forwarder will be inserted
+    //                       // and this will be an error.
+    //     }
+    //
+    assert(
+        !(implementedInterfaceMember.isNoSuchMethodForwarder &&
+            !inheritedClassMember.isNoSuchMethodForwarder),
+        "The inherited $inheritedClassMember has "
+        "isNoSuchMethodForwarder="
+        "${inheritedClassMember.isNoSuchMethodForwarder} but "
+        "the implemented $implementedInterfaceMember has "
+        "isNoSuchMethodForwarder="
+        "${implementedInterfaceMember.isNoSuchMethodForwarder}.");
+    return inheritedClassMember.isNoSuchMethodForwarder;
   }
 
   @override

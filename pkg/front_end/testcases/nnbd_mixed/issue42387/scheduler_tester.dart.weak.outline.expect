@@ -14,6 +14,7 @@ abstract class _TestSchedulerBinding&BindingBase&SchedulerBinding = fou::Binding
   synthetic constructor •() → self::_TestSchedulerBinding&BindingBase&SchedulerBinding*
     : super fou::BindingBase::•()
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature method registerSignalServiceExtension({core::String* name, () →* asy::Future<Null>* callback}) → void; -> fou::BindingBase::registerSignalServiceExtension
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -23,7 +24,6 @@ abstract class _TestSchedulerBinding&BindingBase&SchedulerBinding = fou::Binding
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 abstract class _TestSchedulerBinding&BindingBase&SchedulerBinding&ServicesBinding = self::_TestSchedulerBinding&BindingBase&SchedulerBinding with ser::ServicesBinding /*isAnonymousMixin*/  {
@@ -78,6 +78,7 @@ import "dart:async" as asy;
 import "org-dartlang-testcase:///foundation_lib.dart";
 
 abstract class SchedulerBinding extends fou::BindingBase /*isMixinDeclaration*/  {
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature method registerSignalServiceExtension({core::String* name, () →* asy::Future<Null>* callback}) → void; -> fou::BindingBase::registerSignalServiceExtension
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
@@ -87,7 +88,6 @@ abstract class SchedulerBinding extends fou::BindingBase /*isMixinDeclaration*/ 
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 
@@ -112,6 +112,7 @@ import "org-dartlang-testcase:///scheduler_lib.dart";
 abstract class _ServicesBinding&BindingBase&SchedulerBinding extends core::Object implements fou::BindingBase, sch::SchedulerBinding /*isAnonymousMixin*/  {
   synthetic constructor •() → ser::_ServicesBinding&BindingBase&SchedulerBinding*
     ;
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -120,7 +121,6 @@ abstract class _ServicesBinding&BindingBase&SchedulerBinding extends core::Objec
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
   abstract member-signature method registerSignalServiceExtension({core::String* name, () →* asy::Future<Null>* callback}) → void; -> fou::BindingBase::registerSignalServiceExtension
 }

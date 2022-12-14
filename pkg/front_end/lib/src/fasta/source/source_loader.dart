@@ -2401,22 +2401,6 @@ severity: $severity
     ticker.logMs("Checked redirecting factories");
   }
 
-  void addNoSuchMethodForwarders(List<SourceClassBuilder> sourceClasses) {
-    // TODO(ahe): Move this to [ClassHierarchyBuilder].
-    if (!target.backendTarget.enableNoSuchMethodForwarders) return;
-
-    List<Class> changedClasses = <Class>[];
-    for (SourceClassBuilder builder in sourceClasses) {
-      if (builder.libraryBuilder.loader == this && !builder.isPatch) {
-        if (builder.addNoSuchMethodForwarders(target, hierarchy)) {
-          changedClasses.add(builder.cls);
-        }
-      }
-    }
-    hierarchy.applyMemberChanges(changedClasses, findDescendants: true);
-    ticker.logMs("Added noSuchMethod forwarders");
-  }
-
   /// Sets [SourceLibraryBuilder.unpromotablePrivateFieldNames] based on all the
   /// classes in [sourceClasses].
   void computeFieldPromotability(List<SourceClassBuilder> sourceClasses) {

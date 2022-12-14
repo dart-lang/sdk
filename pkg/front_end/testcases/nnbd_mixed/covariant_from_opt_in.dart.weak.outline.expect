@@ -25,6 +25,7 @@ abstract class _SubClass&Class&Mixin = cov::Class with cov::Mixin /*isAnonymousM
   abstract member-signature method covariant(covariant-by-declaration cov::Class* cls) → void; -> cov::Class::covariant
   abstract member-signature method invariant(cov::Class* cls) → void; -> cov::Class::invariant
   abstract member-signature method contravariant(cov::Class* cls) → void; -> cov::Class::contravariant
+  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf
   abstract member-signature method _simpleInstanceOf(dynamic type) → core::bool*; -> core::Object::_simpleInstanceOf
@@ -33,7 +34,6 @@ abstract class _SubClass&Class&Mixin = cov::Class with cov::Mixin /*isAnonymousM
   abstract member-signature operator ==(dynamic other) → core::bool*; -> core::Object::==
   abstract member-signature get hashCode() → core::int*; -> core::Object::hashCode
   abstract member-signature method toString() → core::String*; -> core::Object::toString
-  abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 class SubClass extends self::_SubClass&Class&Mixin {

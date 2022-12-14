@@ -163,9 +163,12 @@ abstract class AbstractClass extends Super implements Interface1, Interface2 {
 
 /*class: ConcreteSub:
  abstractMembers=[
-  AbstractClass.extendedAbstractImplementedField,
-  AbstractClass.extendedAbstractImplementedMultipleField,
-  Super.extendedAbstractField],
+  Interface1.extendedAbstractImplementedField,
+  Interface1.extendedAbstractImplementedMultipleField,
+  Interface2.extendedAbstractImplementedMultipleField,
+  Super.extendedAbstractField,
+  Super.extendedAbstractImplementedField,
+  Super.extendedAbstractImplementedMultipleField],
  interfaces=[
   Interface1,
   Interface2],

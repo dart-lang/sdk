@@ -114,10 +114,6 @@ class ClassImplements extends core::Object implements self2::Class {
     : super core::Object::•()
     ;
   method _privateInstanceMember() → void {}
-  no-such-method-forwarder method _privateInjectedInstanceMember1(self2::Class c) → void
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[c]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic};
-  no-such-method-forwarder method _privateInjectedInstanceMember2(self2::Class c) → void
-    return this.{core::Object::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[c]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4))){(core::Invocation) → dynamic};
 }
 static method _privateTopLevelMember() → void {
   self2::_privateTopLevelMember();
@@ -137,8 +133,4 @@ static method /* from org-dartlang-testcase:///patch_lib2.dart */ _privateInject
 
 constants  {
   #C1 = _in::_Patch {}
-  #C2 = #dart:test::_privateInjectedInstanceMember1
-  #C3 = <core::Type*>[]
-  #C4 = <core::Symbol*, dynamic>{)
-  #C5 = #dart:test::_privateInjectedInstanceMember2
 }

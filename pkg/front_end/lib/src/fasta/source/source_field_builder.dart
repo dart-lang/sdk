@@ -1553,6 +1553,9 @@ class _SynthesizedFieldClassMember implements ClassMember {
   }
 
   @override
+  bool get isNoSuchMethodForwarder => false;
+
+  @override
   String toString() => '_SynthesizedFieldClassMember('
       '$fieldBuilder,$_member,$_kind,forSetter=${forSetter})';
 }

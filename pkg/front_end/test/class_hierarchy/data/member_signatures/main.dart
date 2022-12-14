@@ -89,18 +89,20 @@ abstract class AbstractClass extends Super implements Interface1, Interface2 {
 
 /*class: ConcreteSub:
  abstractMembers=[
-  AbstractClass.extendedAbstractImplementedMethod,
-  AbstractClass.extendedAbstractMethod,
-  AbstractClass.implementedMethod,
-  AbstractClass.implementedMultipleMethod],
+  Interface1.extendedAbstractImplementedMethod,
+  Interface1.implementedMethod,
+  Interface1.implementedMultipleMethod,
+  Interface2.implementedMultipleMethod,
+  Super.extendedAbstractImplementedMethod,
+  Super.extendedAbstractMethod],
  interfaces=[
   Interface1,
   Interface2],
  maxInheritancePath=3,
  superclasses=[
-  Super,
   AbstractClass,
-  Object]
+  Object,
+  Super]
 */
 class ConcreteSub extends AbstractClass {
   /*member: ConcreteSub.extendedConcreteMethod#cls:
@@ -166,19 +168,19 @@ class ConcreteSub extends AbstractClass {
 
 /*class: ConcreteClass:
  abstractMembers=[
-  Super.extendedAbstractImplementedMethod,
-  Super.extendedAbstractMethod,
   Interface1.extendedAbstractImplementedMethod,
   Interface1.implementedMethod,
   Interface1.implementedMultipleMethod,
-  Interface2.implementedMultipleMethod],
+  Interface2.implementedMultipleMethod,
+  Super.extendedAbstractImplementedMethod,
+  Super.extendedAbstractMethod],
  interfaces=[
   Interface1,
   Interface2],
  maxInheritancePath=2,
  superclasses=[
-  Super,
-  Object]
+  Object,
+  Super]
 */
 class ConcreteClass extends Super implements Interface1, Interface2 {
   /*member: ConcreteClass.extendedConcreteMethod#cls:
