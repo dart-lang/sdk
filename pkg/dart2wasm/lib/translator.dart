@@ -196,9 +196,12 @@ class Translator with KernelNodes {
     voidMarker = w.RefType.def(w.StructType("void"), nullable: true);
     mainFunction = _findMainMethod(libraries.first);
 
+    // Collect imports and exports as the very first thing so the function types
+    // for the imports can be places in singleton recursion groups.
+    functions.collectImportsAndExports();
+
     closureLayouter.collect([mainFunction.function]);
     classInfoCollector.collect();
-    functions.collectImportsAndExports();
 
     initFunction =
         m.addFunction(m.addFunctionType(const [], const []), "#init");
@@ -493,6 +496,30 @@ class Translator with KernelNodes {
   w.ArrayType wasmArrayType(w.StorageType type, String name) {
     return arrayTypeCache.putIfAbsent(type,
         () => m.addArrayType("Array<$name>", elementType: w.FieldType(type)));
+  }
+
+  /// Translate a Dart type as it should appear on parameters and returns of
+  /// imported and exported functions. The only reference types allowed here
+  /// for JS interop are `externref` and `funcref`.
+  ///
+  /// This function can be called before the class info is built.
+  w.ValueType translateExternalType(DartType type) {
+    if (type is InterfaceType) {
+      Class cls = type.classNode;
+      if (cls == wasmFuncRefClass || cls == wasmFunctionClass) {
+        return w.RefType.func(nullable: true);
+      }
+      if (!type.isPotentiallyNullable) {
+        w.StorageType? builtin = builtinTypes[cls];
+        if (builtin != null && builtin.isPrimitive) {
+          return builtin as w.ValueType;
+        }
+        if (isFfiCompound(cls)) {
+          return w.NumType.i32;
+        }
+      }
+    }
+    return w.RefType.extern(nullable: true);
   }
 
   w.DefinedGlobal makeFunctionRef(w.BaseFunction f) {

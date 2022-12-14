@@ -66,9 +66,14 @@ class FunctionCollector {
         String module = importName.substring(0, dot);
         String name = importName.substring(dot + 1);
         if (member is Procedure) {
+          // Define the function type in a singular recursion group to enable it
+          // to be unified with function types defined in FFI modules or using
+          // `WebAssembly.Function`.
+          m.splitRecursionGroup();
           w.FunctionType ftype = _makeFunctionType(
               translator, member.reference, member.function.returnType, null,
               isImportOrExport: true);
+          m.splitRecursionGroup();
           _functions[member.reference] =
               m.importFunction(module, name, ftype, "$importName (import)");
         }
@@ -242,34 +247,29 @@ w.FunctionType _makeFunctionType(Translator translator, Reference target,
     function.positionalParameters.map((p) => p.type);
   }
 
-  List<w.ValueType> typeParameters = List.filled(typeParamCount,
-      translator.classInfo[translator.typeClass]!.nonNullableType);
+  // Translate types differently for imports and exports.
+  w.ValueType translateType(DartType type) => isImportOrExport
+      ? translator.translateExternalType(type)
+      : translator.translateType(type);
 
-  // The only reference types allowed as parameters and returns on imported or
-  // exported functions for JS interop are `externref` and `funcref`.
-  w.ValueType adjustExternalType(w.ValueType type) {
-    if (isImportOrExport && type is w.RefType) {
-      if (type.heapType.isSubtypeOf(w.HeapType.func)) {
-        return w.RefType.func(nullable: true);
-      }
-      return w.RefType.extern(nullable: true);
-    }
-    return type;
-  }
+  List<w.ValueType> typeParameters = List.filled(
+      typeParamCount,
+      translateType(
+          InterfaceType(translator.typeClass, Nullability.nonNullable)));
 
   List<w.ValueType> inputs = [];
   if (receiverType != null) {
-    inputs.add(adjustExternalType(receiverType));
+    assert(!isImportOrExport);
+    inputs.add(receiverType);
   }
-  inputs.addAll(typeParameters.map(adjustExternalType));
-  inputs.addAll(
-      params.map((t) => adjustExternalType(translator.translateType(t))));
+  inputs.addAll(typeParameters);
+  inputs.addAll(params.map(translateType));
 
   List<w.ValueType> outputs = returnType is VoidType
       ? member.function?.asyncMarker == AsyncMarker.Async
-          ? [adjustExternalType(translator.topInfo.nullableType)]
+          ? [translateType(translator.coreTypes.objectNullableRawType)]
           : const []
-      : [adjustExternalType(translator.translateType(returnType))];
+      : [translateType(returnType)];
 
   return translator.m.addFunctionType(inputs, outputs);
 }
