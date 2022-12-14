@@ -319,11 +319,11 @@ On arm, arguments are 4 byte aligned."""),
   FunctionType(
       [
         uint8,
-        struct32bytesInlineArrayMultiDimesional,
+        struct32bytesInlineArrayMultiDimensional,
         uint8,
-        struct8bytesInlineArrayMultiDimesional,
+        struct8bytesInlineArrayMultiDimensional,
         uint8,
-        struct8bytesInlineArrayMultiDimesional,
+        struct8bytesInlineArrayMultiDimensional,
         uint8
       ],
       uint32,
@@ -667,9 +667,9 @@ final compounds = [
   struct16bytesFloatInlineNested,
   struct32bytesDoubleInlineNested,
   struct16bytesMixedInlineNested,
-  struct8bytesInlineArrayMultiDimesional,
-  struct32bytesInlineArrayMultiDimesional,
-  struct64bytesInlineArrayMultiDimesional,
+  struct8bytesInlineArrayMultiDimensional,
+  struct32bytesInlineArrayMultiDimensional,
+  struct64bytesInlineArrayMultiDimensional,
   structMultiDimensionalStruct,
   struct3bytesPacked,
   struct3bytesPackedMembersAligned,
@@ -817,15 +817,15 @@ final struct16bytesMixedInlineNested = StructType.override([
   FixedLengthArrayType(int16, 2),
 ], "Struct16BytesMixed3");
 
-final struct8bytesInlineArrayMultiDimesional = StructType([
+final struct8bytesInlineArrayMultiDimensional = StructType([
   FixedLengthArrayType.multi(uint8, [2, 2, 2])
 ]);
 
-final struct32bytesInlineArrayMultiDimesional = StructType([
+final struct32bytesInlineArrayMultiDimensional = StructType([
   FixedLengthArrayType.multi(uint8, [2, 2, 2, 2, 2])
 ]);
 
-final struct64bytesInlineArrayMultiDimesional = StructType([
+final struct64bytesInlineArrayMultiDimensional = StructType([
   FixedLengthArrayType.multi(uint8, [2, 2, 2, 2, 2, 2])
 ]);
 
