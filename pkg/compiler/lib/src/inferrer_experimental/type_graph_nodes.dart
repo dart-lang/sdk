@@ -950,7 +950,7 @@ bool validCallType(CallType callType, ir.Node? call) {
 /// and [selector] and [receiver] fields for dynamic calls.
 abstract class CallSiteTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
-  final ir.Node? callNode;
+  final ir.Node callNode;
   final MemberEntity caller;
   final Selector? selector;
   final ArgumentsTypes? arguments;
@@ -964,9 +964,7 @@ abstract class CallSiteTypeInformation extends TypeInformation
       this.selector,
       this.arguments,
       this.inLoop)
-      : assert(callNode is ir.Node ||
-            (callNode == null && selector?.name == '==')),
-        super.noInputs(abstractValueDomain.uncomputedType, context);
+      : super.noInputs(abstractValueDomain.uncomputedType, context);
 
   @override
   String toString() => 'Call site $debugName $type';
@@ -1002,7 +1000,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   @override
   void addToGraph(InferrerEngine inferrer) {
     MemberTypeInformation callee = _getCalledTypeInfo(inferrer);
-    callee.addCall(caller, callNode!);
+    callee.addCall(caller, callNode);
     callee.addUser(this);
     if (arguments != null) {
       arguments!.forEach((info) => info.addUser(this));
@@ -1091,11 +1089,11 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   }
 
   void _addCall(MemberTypeInformation callee) {
-    callee.addCall(caller, callNode!);
+    callee.addCall(caller, callNode);
   }
 
   void _removeCall(MemberTypeInformation callee) {
-    callee.removeCall(caller, callNode!);
+    callee.removeCall(caller, callNode);
   }
 
   late final Set<MemberEntity> closurizedTargets = {};
@@ -1385,9 +1383,8 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   @override
   void giveUp(InferrerEngine inferrer, {bool clearInputs = true}) {
     if (!abandonInferencing) {
-      final call = callNode!;
       inferrer.updateSelectorInMember(
-          caller, _callType, call as ir.TreeNode, selector, mask);
+          caller, _callType, callNode as ir.TreeNode, selector, mask);
       final oldTargets = concreteTargets;
       final localSelector = selector!;
       _hasClosureCallTargets =

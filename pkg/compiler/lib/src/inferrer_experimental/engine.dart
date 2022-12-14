@@ -1011,7 +1011,7 @@ class InferrerEngine {
     for (final call in types.allocatedCalls) {
       if (call is! DynamicCallSiteTypeInformation) continue;
       for (final target in call.concreteTargets) {
-        _registerOverridesCalled(target, call, call.callNode!, visited);
+        _registerOverridesCalled(target, call, call.callNode, visited);
       }
     }
   }

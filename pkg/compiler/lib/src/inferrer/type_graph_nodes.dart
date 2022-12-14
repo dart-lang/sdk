@@ -950,7 +950,7 @@ bool validCallType(CallType callType, ir.Node? call) {
 /// and [selector] and [receiver] fields for dynamic calls.
 abstract class CallSiteTypeInformation extends TypeInformation
     with ApplyableTypeInformation {
-  final ir.Node? _call;
+  final ir.Node _call;
   final MemberEntity caller;
   final Selector? selector;
   final ArgumentsTypes? arguments;
@@ -964,8 +964,7 @@ abstract class CallSiteTypeInformation extends TypeInformation
       this.selector,
       this.arguments,
       this.inLoop)
-      : assert(_call is ir.Node || (_call == null && selector?.name == '==')),
-        super.noInputs(abstractValueDomain.uncomputedType, context);
+      : super.noInputs(abstractValueDomain.uncomputedType, context);
 
   @override
   String toString() => 'Call site $debugName $type';
@@ -1001,7 +1000,7 @@ class StaticCallSiteTypeInformation extends CallSiteTypeInformation {
   @override
   void addToGraph(InferrerEngine inferrer) {
     MemberTypeInformation callee = _getCalledTypeInfo(inferrer);
-    callee.addCall(caller, _call!);
+    callee.addCall(caller, _call);
     callee.addUser(this);
     if (arguments != null) {
       arguments!.forEach((info) => info.addUser(this));
@@ -1089,11 +1088,11 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   }
 
   void _addCall(MemberTypeInformation callee) {
-    callee.addCall(caller, _call!);
+    callee.addCall(caller, _call);
   }
 
   void _removeCall(MemberTypeInformation callee) {
-    callee.removeCall(caller, _call!);
+    callee.removeCall(caller, _call);
   }
 
   @override
@@ -1362,9 +1361,8 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   @override
   void giveUp(InferrerEngine inferrer, {bool clearInputs = true}) {
     if (!abandonInferencing) {
-      final call = _call!;
       inferrer.updateSelectorInMember(
-          caller, _callType, call as ir.TreeNode, selector, mask);
+          caller, _callType, _call as ir.TreeNode, selector, mask);
       final oldTargets = concreteTargets;
       final localSelector = selector!;
       _hasClosureCallTargets =
@@ -1376,7 +1374,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
         if (!oldTargets.contains(element)) {
           MemberTypeInformation callee =
               inferrer.types.getInferredTypeOfMember(element);
-          callee.addCall(caller, call);
+          callee.addCall(caller, _call);
           inferrer.updateParameterInputs(this, element, arguments, selector,
               remove: false, addToQueue: true);
         }
