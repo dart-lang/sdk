@@ -34,22 +34,22 @@ Space intersect(Space left, Space right) {
 
 /// Returns the intersection of two static types [left] and [right].
 ///
-/// Returns `null` if the intersection is empty.
-StaticType? intersectTypes(StaticType left, StaticType right) {
+/// Returns `StaticType.neverType` if the intersection is empty.
+StaticType intersectTypes(StaticType left, StaticType right) {
   // If one type is a subtype, the subtype is the intersection.
   if (left.isSubtypeOf(right)) return left;
   if (right.isSubtypeOf(left)) return right;
 
-  if (left.isNullable) {
-    if (right.isNullable) {
-      StaticType? intersection =
+  if (left is NullableStaticType) {
+    if (right is NullableStaticType) {
+      StaticType intersection =
           intersectTypes(left.underlying, right.underlying);
-      if (intersection == null) return null;
+      if (intersection == StaticType.neverType) return StaticType.neverType;
       return intersection.nullable;
     } else {
       return intersectTypes(left.underlying, right);
     }
-  } else if (right.isNullable) {
+  } else if (right is NullableStaticType) {
     return intersectTypes(left, right.underlying);
   }
 
@@ -71,15 +71,15 @@ StaticType? intersectTypes(StaticType left, StaticType right) {
   // It should be D, E.
 
   // Unrelated types.
-  return null;
+  return StaticType.neverType;
 }
 
 /// Returns the interaction of extract spaces [left] and [right].
 Space _intersectExtracts(ExtractSpace left, ExtractSpace right) {
-  StaticType? type = intersectTypes(left.type, right.type);
+  StaticType type = intersectTypes(left.type, right.type);
 
   // If the types are disjoint, the intersection is empty.
-  if (type == null) return Space.empty;
+  if (type == StaticType.neverType) return Space.empty;
 
   // Recursively intersect the fields.
   List<String> fieldNames =

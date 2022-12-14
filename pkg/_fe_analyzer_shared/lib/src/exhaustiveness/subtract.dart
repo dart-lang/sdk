@@ -12,12 +12,13 @@ import 'static_type.dart';
 List<StaticType> expandType(StaticType left, StaticType right) {
   // If [left] is nullable and right is null or non-nullable, then expand the
   // nullable type.
-  if (left.isNullable && (right == StaticType.nullType || !right.isNullable)) {
+  if (left is NullableStaticType &&
+      (right == StaticType.nullType || right is! NullableStaticType)) {
     return [...expandType(left.underlying, right), StaticType.nullType];
   }
 
   // If [right] is nullable, then expand using its underlying type.
-  if (right.isNullable) {
+  if (right is NullableStaticType) {
     return expandType(left, right.underlying);
   }
 

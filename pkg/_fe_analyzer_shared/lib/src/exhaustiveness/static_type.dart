@@ -5,20 +5,28 @@
 // TODO(paulberry,rnystrom): Generics.
 
 /// A static type in the type system.
-class StaticType {
+abstract class StaticType {
   /// Built-in top type that all types are a subtype of.
-  static final StaticType top = new StaticType('top', inherits: []);
+  static const StaticType nullableObject =
+      const NullableStaticType(nonNullableObject);
 
-  static final StaticType nullType = new StaticType('Null');
+  /// Built-in top type that all types are a subtype of.
+  static const StaticType nonNullableObject = const _NonNullableObject();
 
-  final String name;
+  /// Built-in `Null` type.
+  static const StaticType nullType = const _NullType(neverType);
 
-  late final StaticType nullable = new StaticType._nullable(this);
+  /// Built-in `Never` type.
+  static const StaticType neverType = const _NeverType();
 
-  /// If this type is a nullable type, then this is the underlying type.
+  /// The static types of the fields this type exposes for record destructuring.
   ///
-  /// Otherwise `null`.
-  final StaticType? _underlying;
+  /// Includes inherited fields.
+  Map<String, StaticType> get fields;
+
+  /// Returns `true` if this static type is a subtype of [other], taking the
+  /// nullability and subtyping relation into account.
+  bool isSubtypeOf(StaticType other);
 
   /// Whether this type is sealed. A sealed type is implicitly abstract and has
   /// a closed set of known subtypes. This means that every instance of the
@@ -38,27 +46,115 @@ class StaticType {
   /// doesn't interfere with exhaustiveness checking because it's still the
   /// case that any instance of A must be either a B or C *or some subtype of
   /// one of those two types*.
+  bool get isSealed;
+
+  /// Returns the name of this static type.
+  ///
+  /// This is used for printing [Space]s.
+  String get name;
+
+  /// Returns the nullable static type corresponding to this type.
+  StaticType get nullable;
+
+  /// The immediate subtypes of this type.
+  Iterable<StaticType> get subtypes;
+}
+
+abstract class _BaseStaticType implements StaticType {
+  const _BaseStaticType();
+
+  @override
+  Map<String, StaticType> get fields => const {};
+
+  @override
+  Iterable<StaticType> get subtypes => const [];
+
+  @override
+  String toString() => name;
+}
+
+class _NonNullableObject extends _BaseStaticType {
+  const _NonNullableObject();
+
+  @override
+  bool get isSealed => false;
+
+  @override
+  bool isSubtypeOf(StaticType other) {
+    // Object? is a subtype of itself and Object?.
+    return this == other || other == StaticType.nullableObject;
+  }
+
+  @override
+  String get name => 'Object';
+
+  @override
+  StaticType get nullable => StaticType.nullableObject;
+}
+
+class _NeverType extends _BaseStaticType {
+  const _NeverType();
+
+  @override
+  bool get isSealed => false;
+
+  @override
+  bool isSubtypeOf(StaticType other) {
+    // Never is a subtype of all types.
+    return true;
+  }
+
+  @override
+  String get name => 'Never';
+
+  @override
+  StaticType get nullable => StaticType.nullType;
+}
+
+class _NullType extends NullableStaticType {
+  const _NullType(super.underlying);
+
+  @override
+  bool get isSealed {
+    // Avoid splitting into [nullType] and [neverType].
+    return false;
+  }
+
+  @override
+  Iterable<StaticType> get subtypes {
+    // Avoid splitting into [nullType] and [neverType].
+    return const [];
+  }
+
+  @override
+  String get name => 'Null';
+}
+
+class StaticTypeImpl extends NonNullableStaticType {
+  @override
+  final String name;
+
+  @override
   final bool isSealed;
 
   final Map<String, StaticType> _fields;
 
   final List<StaticType> _supertypes = [];
 
-  final List<StaticType> _subtypes = [];
+  final List<StaticTypeImpl> _subtypes = [];
 
-  StaticType(this.name,
+  StaticTypeImpl(this.name,
       {this.isSealed = false,
-      List<StaticType>? inherits,
+      List<StaticTypeImpl>? inherits,
       Map<String, StaticType> fields = const {}})
-      : _underlying = null,
-        _fields = fields {
+      : _fields = fields {
     if (inherits != null) {
-      for (StaticType type in inherits) {
+      for (StaticTypeImpl type in inherits) {
         _supertypes.add(type);
         type._subtypes.add(this);
       }
     } else {
-      _supertypes.add(top);
+      _supertypes.add(StaticType.nonNullableObject);
     }
 
     int sealed = 0;
@@ -82,16 +178,7 @@ class StaticType {
     }
   }
 
-  StaticType._nullable(StaticType underlying)
-      : name = '${underlying.name}?',
-        _underlying = underlying,
-        isSealed = true,
-        // No fields because it may match null which doesn't have them.
-        _fields = {} {}
-
-  /// The static types of the fields this type exposes for record destructuring.
-  ///
-  /// Includes inherited fields.
+  @override
   Map<String, StaticType> get fields {
     return {
       for (StaticType supertype in _supertypes) ...supertype.fields,
@@ -99,40 +186,68 @@ class StaticType {
     };
   }
 
-  bool get isNullable => _underlying != null;
-
-  /// The immediate subtypes of this type.
+  @override
   Iterable<StaticType> get subtypes => _subtypes;
 
-  /// The underlying type of this nullable type. It's an error to call this on
-  /// a non-nullable type.
-  StaticType get underlying => _underlying!;
-
-  bool isSubtypeOf(StaticType other) {
-    if (this == other) return true;
-
-    // Null is a subtype of all nullable types.
-    if (this == nullType && other._underlying != null) return true;
-
-    // A nullable type is a subtype if the underlying type and Null both are.
-    StaticType? underlying = _underlying;
-    if (underlying != null) {
-      return underlying.isSubtypeOf(other) && nullType.isSubtypeOf(other);
-    }
-
-    // A non-nullable type is a subtype of the underlying type of a nullable
-    // type.
-    StaticType? otherUnderlying = other._underlying;
-    if (otherUnderlying != null) {
-      return isSubtypeOf(otherUnderlying);
-    }
-
+  @override
+  bool isSubtypeOfInternal(StaticType other) {
     for (StaticType supertype in _supertypes) {
       if (supertype.isSubtypeOf(other)) return true;
     }
 
     return false;
   }
+}
+
+class NullableStaticType extends _BaseStaticType {
+  final StaticType underlying;
+
+  const NullableStaticType(this.underlying);
+
+  @override
+  bool get isSealed => true;
+
+  @override
+  Iterable<StaticType> get subtypes => [underlying, StaticType.nullType];
+
+  @override
+  bool isSubtypeOf(StaticType other) {
+    // A nullable type is a subtype if the underlying type and Null both are.
+    return this == other ||
+        other is NullableStaticType && underlying.isSubtypeOf(other.underlying);
+  }
+
+  @override
+  String get name => '${underlying.name}?';
+
+  @override
+  StaticType get nullable => this;
+}
+
+abstract class NonNullableStaticType extends _BaseStaticType {
+  @override
+  late final StaticType nullable = new NullableStaticType(this);
+
+  @override
+  bool isSubtypeOf(StaticType other) {
+    if (this == other) return true;
+
+    // All types are subtypes of Object?.
+    if (other == StaticType.nullableObject) return true;
+
+    // All non-nullable types are subtypes of Object.
+    if (other == StaticType.nonNullableObject) return true;
+
+    // A non-nullable type is a subtype of the underlying type of a nullable
+    // type.
+    if (other is NullableStaticType) {
+      return isSubtypeOf(other.underlying);
+    }
+
+    return isSubtypeOfInternal(other);
+  }
+
+  bool isSubtypeOfInternal(StaticType other);
 
   @override
   String toString() => name;

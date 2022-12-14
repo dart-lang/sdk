@@ -17,12 +17,12 @@ void main() {
     //   (B) (C)
     //   / \   \
     //  D   E   F
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', isSealed: true, inherits: [a]);
-    var c = StaticType('C', isSealed: true, inherits: [a]);
-    var d = StaticType('D', inherits: [b]);
-    var e = StaticType('E', inherits: [b]);
-    var f = StaticType('F', inherits: [c]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
+    var c = StaticTypeImpl('C', isSealed: true, inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [b]);
+    var e = StaticTypeImpl('E', inherits: [b]);
+    var f = StaticTypeImpl('F', inherits: [c]);
 
     var checkExhaustive = _makeTestFunction([a, b, c, d, e, f]);
     checkExhaustive([a], 'ABCDEF');
@@ -56,12 +56,12 @@ void main() {
     //    //|\\
     //   / /|\ \
     //  B C D E F
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [a]);
-    var e = StaticType('E', inherits: [a]);
-    var f = StaticType('F', inherits: [a]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [a]);
+    var e = StaticTypeImpl('E', inherits: [a]);
+    var f = StaticTypeImpl('F', inherits: [a]);
 
     var checkExhaustive = _makeTestFunction([a, b, c, d, e, f]);
     checkExhaustive([a], 'ABCDEF');
@@ -78,11 +78,11 @@ void main() {
     //   (B)  C
     //   / \ /
     //  D   E
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', isSealed: true, inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [b]);
-    var e = StaticType('E', inherits: [b, c]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [b]);
+    var e = StaticTypeImpl('E', inherits: [b, c]);
 
     var checkExhaustive = _makeTestFunction([a, b, c, d, e]);
     checkExhaustive([a], 'ABCDE');
@@ -104,10 +104,10 @@ void main() {
     //   (B)
     //   / \
     //  C   D
-    var a = StaticType('A');
-    var b = StaticType('B', isSealed: true, inherits: [a]);
-    var c = StaticType('C', inherits: [b]);
-    var d = StaticType('D', inherits: [b]);
+    var a = StaticTypeImpl('A');
+    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [b]);
+    var d = StaticTypeImpl('D', inherits: [b]);
 
     var checkExhaustive = _makeTestFunction([a, b, c, d]);
     checkExhaustive([a], 'ABCD');
@@ -123,9 +123,9 @@ void main() {
     // (B)
     //  |
     //  C
-    var a = StaticType('A', isSealed: true);
-    var b = StaticType('B', isSealed: true, inherits: [a]);
-    var c = StaticType('C', inherits: [b]);
+    var a = StaticTypeImpl('A', isSealed: true);
+    var b = StaticTypeImpl('B', isSealed: true, inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [b]);
 
     var checkExhaustive = _makeTestFunction([a, b, c]);
     checkExhaustive([a], 'ABC');
@@ -143,12 +143,12 @@ void main() {
     //    B   C
     //   / \ / \
     //  D   E   F
-    var a = StaticType('A');
-    var b = StaticType('B', inherits: [a]);
-    var c = StaticType('C', inherits: [a]);
-    var d = StaticType('D', inherits: [b]);
-    var e = StaticType('E', inherits: [b, c]);
-    var f = StaticType('F', inherits: [c]);
+    var a = StaticTypeImpl('A');
+    var b = StaticTypeImpl('B', inherits: [a]);
+    var c = StaticTypeImpl('C', inherits: [a]);
+    var d = StaticTypeImpl('D', inherits: [b]);
+    var e = StaticTypeImpl('E', inherits: [b, c]);
+    var f = StaticTypeImpl('F', inherits: [c]);
 
     var checkExhaustive = _makeTestFunction([a, b, c, d, e, f]);
     checkExhaustive([a], 'ABCDEF');

@@ -1347,6 +1347,7 @@ speeding
 spend
 spent
 spin
+splitting
 spuriously
 sq
 sra
