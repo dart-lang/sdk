@@ -74,9 +74,10 @@ class ForwardingListener implements Listener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     listener?.beginClassDeclaration(begin, abstractToken, macroToken,
-        inlineToken, sealedToken, augmentToken, name);
+        inlineToken, sealedToken, augmentToken, mixinToken, name);
   }
 
   @override
@@ -404,9 +405,10 @@ class ForwardingListener implements Listener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     listener?.beginNamedMixinApplication(begin, abstractToken, macroToken,
-        inlineToken, sealedToken, augmentToken, name);
+        inlineToken, sealedToken, augmentToken, mixinToken, name);
   }
 
   @override

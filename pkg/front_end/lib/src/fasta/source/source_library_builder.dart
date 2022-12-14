@@ -1789,7 +1789,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int supertypeOffset,
       {required bool isMacro,
       required bool isSealed,
-      required bool isAugmentation}) {
+      required bool isAugmentation,
+      required bool isMixinClass}) {
     _addClass(
         TypeParameterScopeKind.classDeclaration,
         metadata,
@@ -1805,7 +1806,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         supertypeOffset,
         isMacro: isMacro,
         isSealed: isSealed,
-        isAugmentation: isAugmentation);
+        isAugmentation: isAugmentation,
+        isMixinClass: isMixinClass);
   }
 
   void addMixinDeclaration(
@@ -1847,7 +1849,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         supertypeOffset,
         isMacro: false,
         isSealed: isSealed,
-        isAugmentation: isAugmentation);
+        isAugmentation: isAugmentation,
+        isMixinClass: false);
   }
 
   void _addClass(
@@ -1865,7 +1868,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int supertypeOffset,
       {required bool isMacro,
       required bool isSealed,
-      required bool isAugmentation}) {
+      required bool isAugmentation,
+      required bool isMixinClass}) {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(kind, className)
@@ -1905,7 +1909,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             isMacro: false,
             isSealed: false,
             // TODO(johnniwinther): How can we support class with mixins?
-            isAugmentation: false),
+            isAugmentation: false,
+            isMixinClass: false),
         interfaces,
         // TODO(johnniwinther): Add the `on` clause types of a mixin declaration
         // here.
@@ -1921,7 +1926,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isMixinDeclaration: isMixinDeclaration,
         isMacro: isMacro,
         isSealed: isSealed,
-        isAugmentation: isAugmentation);
+        isAugmentation: isAugmentation,
+        isMixinClass: isMixinClass);
 
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
@@ -2274,7 +2280,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<TypeBuilder>? interfaces,
       required bool isMacro,
       required bool isSealed,
-      required bool isAugmentation}) {
+      required bool isAugmentation,
+      required bool isMixinClass}) {
     if (name == null) {
       // The following parameters should only be used when building a named
       // mixin application.
@@ -2510,7 +2517,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
             isMacro: isNamedMixinApplication && isMacro,
             isSealed: isNamedMixinApplication && isSealed,
-            isAugmentation: isNamedMixinApplication && isAugmentation);
+            isAugmentation: isNamedMixinApplication && isAugmentation,
+            isMixinClass: isNamedMixinApplication && isMixinClass);
         // TODO(ahe, kmillikin): Should always be true?
         // pkg/analyzer/test/src/summary/resynthesize_kernel_test.dart can't
         // handle that :(
@@ -2570,7 +2578,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charEndOffset,
       {required bool isMacro,
       required bool isSealed,
-      required bool isAugmentation}) {
+      required bool isAugmentation,
+      required bool isMixinClass}) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
     endNestedDeclaration(TypeParameterScopeKind.namedMixinApplication, name)
         .resolveNamedTypes(typeVariables, this);
@@ -2583,7 +2592,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         interfaces: interfaces,
         isMacro: isMacro,
         isSealed: isSealed,
-        isAugmentation: isAugmentation)!;
+        isAugmentation: isAugmentation,
+        isMixinClass: isMixinClass)!;
     checkTypeVariables(typeVariables, supertype.declaration);
   }
 
@@ -3084,7 +3094,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             typeVariables: typeVariables,
             isMacro: false,
             isSealed: false,
-            isAugmentation: false),
+            isAugmentation: false,
+            isMixinClass: false),
         interfaceBuilders,
         enumConstantInfos,
         this,

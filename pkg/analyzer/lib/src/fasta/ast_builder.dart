@@ -223,6 +223,7 @@ class AstBuilder extends StackListener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     assert(_classLikeBuilder == null);
     push(_Modifiers()..abstractKeyword = abstractToken);
@@ -255,11 +256,20 @@ class AstBuilder extends StackListener {
         // Pretend that 'sealed' didn't occur while this feature is incomplete.
         sealedToken = null;
       }
+      if (mixinToken != null) {
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.sealed_class,
+          startToken: mixinToken,
+        );
+        // Pretend that 'mixin' didn't occur while this feature is incomplete.
+        mixinToken = null;
+      }
     }
     push(macroToken ?? NullValue.Token);
     push(inlineToken ?? NullValue.Token);
     push(sealedToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
+    push(mixinToken ?? NullValue.Token);
   }
 
   @override
@@ -405,6 +415,7 @@ class AstBuilder extends StackListener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     push(_Modifiers()..abstractKeyword = abstractToken);
     if (!enableMacros) {
@@ -436,11 +447,20 @@ class AstBuilder extends StackListener {
         // Pretend that 'sealed' didn't occur while this feature is incomplete.
         sealedToken = null;
       }
+      if (mixinToken != null) {
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.sealed_class,
+          startToken: mixinToken,
+        );
+        // Pretend that 'mixin' didn't occur while this feature is incomplete.
+        mixinToken = null;
+      }
     }
     push(macroToken ?? NullValue.Token);
     push(inlineToken ?? NullValue.Token);
     push(sealedToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
+    push(mixinToken ?? NullValue.Token);
   }
 
   @override
@@ -650,6 +670,7 @@ class AstBuilder extends StackListener {
       inlineKeyword: null,
       sealedKeyword: null,
       augmentKeyword: null,
+      mixinKeyword: null,
       classKeyword: Token(Keyword.CLASS, 0),
       name: StringToken(TokenType.STRING, className, -1),
       typeParameters: null,
@@ -2644,6 +2665,7 @@ class AstBuilder extends StackListener {
           typeArguments: null,
           question: null);
     }
+    var mixinKeyword = pop(NullValue.Token) as Token?;
     var augmentKeyword = pop(NullValue.Token) as Token?;
     var sealedKeyword = pop(NullValue.Token) as Token?;
     var inlineKeyword = pop(NullValue.Token) as Token?;
@@ -2667,6 +2689,7 @@ class AstBuilder extends StackListener {
         inlineKeyword: inlineKeyword,
         sealedKeyword: sealedKeyword,
         augmentKeyword: augmentKeyword,
+        mixinKeyword: mixinKeyword,
         superclass: superclass,
         withClause: withClause,
         implementsClause: implementsClause,
@@ -3627,6 +3650,7 @@ class AstBuilder extends StackListener {
         pop(NullValue.IdentifierList) as ImplementsClauseImpl?;
     var withClause = pop(NullValue.WithClause) as WithClauseImpl?;
     var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClauseImpl?;
+    var mixinKeyword = pop(NullValue.Token) as Token?;
     var augmentKeyword = pop(NullValue.Token) as Token?;
     var sealedKeyword = pop(NullValue.Token) as Token?;
     var inlineKeyword = pop(NullValue.Token) as Token?;
@@ -3647,6 +3671,7 @@ class AstBuilder extends StackListener {
       inlineKeyword: inlineKeyword,
       sealedKeyword: sealedKeyword,
       augmentKeyword: augmentKeyword,
+      mixinKeyword: mixinKeyword,
       classKeyword: classKeyword,
       name: name.token,
       typeParameters: typeParameters,
@@ -5547,6 +5572,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? inlineKeyword;
   final Token? sealedKeyword;
   final Token? augmentKeyword;
+  final Token? mixinKeyword;
   final Token classKeyword;
   final Token name;
   ExtendsClauseImpl? extendsClause;
@@ -5565,6 +5591,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.inlineKeyword,
     required this.sealedKeyword,
     required this.augmentKeyword,
+    required this.mixinKeyword,
     required this.classKeyword,
     required this.name,
     required this.extendsClause,
@@ -5582,6 +5609,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       inlineKeyword: inlineKeyword,
       sealedKeyword: sealedKeyword,
       augmentKeyword: augmentKeyword,
+      mixinKeyword: mixinKeyword,
       classKeyword: classKeyword,
       name: name,
       typeParameters: typeParameters,

@@ -941,6 +941,7 @@ class DietListener extends StackListenerImpl {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     debugEvent("beginClassDeclaration");
     push(begin);

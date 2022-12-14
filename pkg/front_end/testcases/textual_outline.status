@@ -104,6 +104,7 @@ general/macro_class: FormatterCrash
 general/many_errors2: FormatterCrash
 general/many_errors: FormatterCrash
 general/missing_prefix_name: FormatterCrash
+general/mixin_class_declaration: FormatterCrash
 general/new_as_selector: FormatterCrash
 general/null_aware_super: FormatterCrash
 general/null_safety_invalid_experiment: FormatterCrash
@@ -131,6 +132,7 @@ macros/macro_class: FormatterCrash
 macros/multiple_augment_class: FormatterCrash
 macros/multiple_imports: FormatterCrash
 macros/scope_access: FormatterCrash
+mixin_class/mixin_class_declaration: FormatterCrash
 nnbd/abstract_field_errors: FormatterCrash
 nnbd/duplicates_instance_extension: FormatterCrash
 nnbd/field_vs_setter: FormatterCrash

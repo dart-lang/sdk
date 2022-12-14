@@ -495,6 +495,7 @@ class _MacroListener implements Listener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     _unexpected();
   }
@@ -819,6 +820,7 @@ class _MacroListener implements Listener {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     _unexpected();
   }

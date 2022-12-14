@@ -868,6 +868,7 @@ class OutlineBuilder extends StackListenerImpl {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     debugEvent("beginClassDeclaration");
     popDeclarationContext(
@@ -894,6 +895,12 @@ class OutlineBuilder extends StackListenerImpl {
         sealedToken = null;
       }
     }
+    if (mixinToken != null) {
+      if (reportIfNotEnabled(libraryFeatures.sealedClass, mixinToken.charOffset,
+          mixinToken.length)) {
+        mixinToken = null;
+      }
+    }
     if (inlineToken != null) {
       libraryBuilder.currentTypeParameterScopeBuilder
           .markAsInlineClassDeclaration(
@@ -909,6 +916,7 @@ class OutlineBuilder extends StackListenerImpl {
     push(inlineToken ?? NullValue.Token);
     push(sealedToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
+    push(mixinToken ?? NullValue.Token);
   }
 
   @override
@@ -996,6 +1004,7 @@ class OutlineBuilder extends StackListenerImpl {
       Token? inlineToken,
       Token? sealedToken,
       Token? augmentToken,
+      Token? mixinToken,
       Token name) {
     debugEvent("beginNamedMixinApplication");
     popDeclarationContext(
@@ -1025,10 +1034,17 @@ class OutlineBuilder extends StackListenerImpl {
         sealedToken = null;
       }
     }
+    if (mixinToken != null) {
+      if (reportIfNotEnabled(libraryFeatures.sealedClass, mixinToken.charOffset,
+          mixinToken.length)) {
+        mixinToken = null;
+      }
+    }
     push(macroToken ?? NullValue.Token);
     push(inlineToken ?? NullValue.Token);
     push(sealedToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
+    push(mixinToken ?? NullValue.Token);
   }
 
   @override
@@ -1181,6 +1197,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.TypeBuilderOrNull,
         ValueKinds.ParserRecovery,
       ]),
+      /* mixin token */ ValueKinds.TokenOrNull,
       /* augment token */ ValueKinds.TokenOrNull,
       /* sealed token */ ValueKinds.TokenOrNull,
       /* inline token */ ValueKinds.TokenOrNull,
@@ -1199,6 +1216,7 @@ class OutlineBuilder extends StackListenerImpl {
             as MixinApplicationBuilder?;
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
+    Token? mixinToken = pop(NullValue.Token) as Token?;
     Token? augmentToken = pop(NullValue.Token) as Token?;
     Token? sealedToken = pop(NullValue.Token) as Token?;
     // TODO(johnniwinther): Create builder for inline.
@@ -1299,7 +1317,8 @@ class OutlineBuilder extends StackListenerImpl {
             supertypeOffset,
             isMacro: macroToken != null,
             isSealed: sealedToken != null,
-            isAugmentation: augmentToken != null);
+            isAugmentation: augmentToken != null,
+            isMixinClass: mixinToken != null);
       }
     }
     libraryBuilder.setCurrentClassName(null);
@@ -2153,6 +2172,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.ParserRecovery,
         ValueKinds.TypeBuilder,
       ]),
+      /* mixin token */ ValueKinds.TokenOrNull,
       /* augment token */ ValueKinds.TokenOrNull,
       /* sealed token */ ValueKinds.TokenOrNull,
       /* inline token */ ValueKinds.TokenOrNull,
@@ -2169,6 +2189,7 @@ class OutlineBuilder extends StackListenerImpl {
             as List<TypeBuilder>?;
     Object? mixinApplication = pop();
     Object? supertype = pop();
+    Token? mixinToken = pop(NullValue.Token) as Token?;
     Token? augmentToken = pop(NullValue.Token) as Token?;
     Token? sealedToken = pop(NullValue.Token) as Token?;
     // TODO(johnniwinther): Report error on 'inline' here; it can't be used on
@@ -2251,7 +2272,8 @@ class OutlineBuilder extends StackListenerImpl {
           charEndOffset,
           isMacro: macroToken != null,
           isSealed: sealedToken != null,
-          isAugmentation: augmentToken != null);
+          isAugmentation: augmentToken != null,
+          isMixinClass: mixinToken != null);
     }
     popDeclarationContext(DeclarationContext.NamedMixinApplication);
   }

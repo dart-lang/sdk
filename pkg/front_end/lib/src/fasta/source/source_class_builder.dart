@@ -112,6 +112,9 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   final bool isAugmentation;
 
+  // TODO(kallentu): Finish AST implementation for mixin classes.
+  final bool isMixinClass;
+
   @override
   bool isMixinDeclaration;
 
@@ -154,7 +157,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isMixinDeclaration = false,
       this.isMacro = false,
       this.isSealed = false,
-      this.isAugmentation = false})
+      this.isAugmentation = false,
+      this.isMixinClass = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, referencesFromIndexed,
             isAugmentation: isAugmentation),
