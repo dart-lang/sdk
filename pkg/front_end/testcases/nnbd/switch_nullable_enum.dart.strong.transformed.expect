@@ -63,7 +63,7 @@ static method method3(self::Enum? e) → core::int {
   }
 }
 static method method4(self::Enum? e) → core::int {
-  switch(e) /*isExplicitlyExhaustive*/ {
+  switch(e) {
     #L6:
     case #C3:
     case #C6:

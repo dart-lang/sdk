@@ -10394,7 +10394,9 @@ class SwitchStatement extends Statement {
   Expression expression;
   final List<SwitchCase> cases;
 
-  /// For enum switches, whether all enum values are covered by a switch case.
+  /// For switches without a default clause, whether all possible values are
+  /// covered by a switch case.  For switches with a default clause, always
+  /// `false`.
   /// Initialized during type inference.
   bool isExplicitlyExhaustive;
 

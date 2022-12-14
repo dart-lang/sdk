@@ -7670,12 +7670,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Note that a switch statement with a `default` clause is always considered
     // exhaustive, but the kernel format also keeps track of whether the switch
     // statement is "explicitly exhaustive", meaning that it has a `case` clause
-    // for every possible enum value.  So if there's a `default` clause we need
-    // to call `isSwitchExhaustive` to figure out whether the switch is
-    // *explicitly* exhaustive.
-    node.isExplicitlyExhaustive = analysisResult.hasDefault
-        ? isLegacySwitchExhaustive(node, analysisResult.scrutineeType)
-        : analysisResult.isExhaustive;
+    // for every possible enum value.  It is only necessary to set this flag if
+    // the switch doesn't have a `default` clause.
+    if (!analysisResult.hasDefault) {
+      node.isExplicitlyExhaustive = analysisResult.isExhaustive;
+    }
     _enumFields = previousEnumFields;
     // Stack: (Expression)
     Node? rewrite = popRewrite();
@@ -8764,7 +8763,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   void handleSwitchScrutinee(DartType type) {
-    if (type is InterfaceType && type.classNode.isEnum) {
+    if (!options.patternsEnabled &&
+        type is InterfaceType &&
+        type.classNode.isEnum) {
       _enumFields = <Field?>{
         ...type.classNode.fields.where((Field field) => field.isEnumElement),
         if (type.isPotentiallyNullable) null
