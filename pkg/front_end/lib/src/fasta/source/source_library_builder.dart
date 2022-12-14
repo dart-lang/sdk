@@ -2196,7 +2196,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     ConstructorScope constructorScope =
         new ConstructorScope(name, constructors);
 
-    View? referenceFrom = referencesFromIndexed?.lookupView(name);
+    InlineClass? referenceFrom = referencesFromIndexed?.lookupInlineClass(name);
 
     SourceFieldBuilder? representationFieldBuilder;
     outer:
@@ -3292,10 +3292,10 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         library.addExtension(extension);
       }
     } else if (declaration is SourceViewBuilder) {
-      View view = declaration.build(coreLibrary,
+      InlineClass view = declaration.build(coreLibrary,
           addMembersToLibrary: !declaration.isDuplicate);
       if (!declaration.isPatch && !declaration.isDuplicate) {
-        library.addView(view);
+        library.addInlineClass(view);
       }
     } else if (declaration is SourceMemberBuilder) {
       declaration

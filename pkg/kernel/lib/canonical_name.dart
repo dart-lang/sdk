@@ -554,11 +554,11 @@ class Reference {
     return node as Extension;
   }
 
-  View get asView {
+  InlineClass get asInlineClass {
     if (node == null) {
-      throw '$this is not bound to an AST node. A view was expected';
+      throw '$this is not bound to an AST node. An inline class was expected';
     }
-    return node as View;
+    return node as InlineClass;
   }
 
   bool get isConsistent {

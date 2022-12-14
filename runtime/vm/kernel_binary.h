@@ -26,7 +26,7 @@ static const uint32_t kSupportedKernelFormatVersion = 90;
   V(Something, 1)                                                              \
   V(Class, 2)                                                                  \
   V(Extension, 115)                                                            \
-  V(View, 85)                                                                  \
+  V(InlineClass, 85)                                                           \
   V(FunctionNode, 3)                                                           \
   V(Field, 4)                                                                  \
   V(Constructor, 5)                                                            \
@@ -134,7 +134,7 @@ static const uint32_t kSupportedKernelFormatVersion = 90;
   V(NeverType, 98)                                                             \
   V(IntersectionType, 99)                                                      \
   V(RecordType, 100)                                                           \
-  V(ViewType, 103)                                                             \
+  V(InlineType, 103)                                                           \
   V(ConstantExpression, 106)                                                   \
   V(InstanceGet, 118)                                                          \
   V(InstanceSet, 119)                                                          \

@@ -25,7 +25,7 @@ import 'source_member_builder.dart';
 
 class SourceViewBuilder extends ViewBuilderImpl
     with SourceDeclarationBuilderMixin {
-  final View _view;
+  final InlineClass _view;
 
   SourceViewBuilder? _origin;
   SourceViewBuilder? patchForTesting;
@@ -48,9 +48,9 @@ class SourceViewBuilder extends ViewBuilderImpl
       int startOffset,
       int nameOffset,
       int endOffset,
-      View? referenceFrom,
+      InlineClass? referenceFrom,
       this.representationFieldBuilder)
-      : _view = new View(
+      : _view = new InlineClass(
             name: name,
             fileUri: parent.fileUri,
             typeParameters:
@@ -73,12 +73,12 @@ class SourceViewBuilder extends ViewBuilderImpl
       : throw new UnimplementedError("SourceViewBuilder.mergedScope");
 
   @override
-  View get view => isPatch ? origin._view : _view;
+  InlineClass get view => isPatch ? origin._view : _view;
 
   @override
   Annotatable get annotatable => view;
 
-  /// Builds the [View] for this view builder and inserts the members
+  /// Builds the [InlineClass] for this view builder and inserts the members
   /// into the [Library] of [libraryBuilder].
   ///
   /// [addMembersToLibrary] is `true` if the view members should be added
@@ -86,7 +86,8 @@ class SourceViewBuilder extends ViewBuilderImpl
   /// another library member. In this case, the view member should not be
   /// added to the library to avoid name clashes with other members in the
   /// library.
-  View build(LibraryBuilder coreLibrary, {required bool addMembersToLibrary}) {
+  InlineClass build(LibraryBuilder coreLibrary,
+      {required bool addMembersToLibrary}) {
     DartType representationType;
     if (representationFieldBuilder != null) {
       TypeBuilder typeBuilder = representationFieldBuilder!.type;
@@ -99,7 +100,7 @@ class SourceViewBuilder extends ViewBuilderImpl
     } else {
       representationType = const InvalidType();
     }
-    _view.representationType = representationType;
+    _view.declaredRepresentationType = representationType;
 
     buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
 
@@ -110,7 +111,7 @@ class SourceViewBuilder extends ViewBuilderImpl
   void addMemberDescriptorInternal(SourceMemberBuilder memberBuilder,
       Member member, BuiltMemberKind memberKind, Reference memberReference) {
     String name = memberBuilder.name;
-    ViewMemberKind kind;
+    InlineClassMemberKind kind;
     switch (memberKind) {
       case BuiltMemberKind.Constructor:
       case BuiltMemberKind.RedirectingFactory:
@@ -125,35 +126,35 @@ class SourceViewBuilder extends ViewBuilderImpl
             memberBuilder.charOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
       case BuiltMemberKind.LateIsSetField:
-        kind = ViewMemberKind.Field;
+        kind = InlineClassMemberKind.Field;
         break;
       case BuiltMemberKind.ViewConstructor:
-        kind = ViewMemberKind.Constructor;
+        kind = InlineClassMemberKind.Constructor;
         break;
       case BuiltMemberKind.ViewMethod:
-        kind = ViewMemberKind.Method;
+        kind = InlineClassMemberKind.Method;
         break;
       case BuiltMemberKind.ViewGetter:
       case BuiltMemberKind.LateGetter:
-        kind = ViewMemberKind.Getter;
+        kind = InlineClassMemberKind.Getter;
         break;
       case BuiltMemberKind.ViewSetter:
       case BuiltMemberKind.LateSetter:
-        kind = ViewMemberKind.Setter;
+        kind = InlineClassMemberKind.Setter;
         break;
       case BuiltMemberKind.ViewOperator:
-        kind = ViewMemberKind.Operator;
+        kind = InlineClassMemberKind.Operator;
         break;
       case BuiltMemberKind.ViewTearOff:
-        kind = ViewMemberKind.TearOff;
+        kind = InlineClassMemberKind.TearOff;
         break;
       case BuiltMemberKind.ViewFactory:
-        kind = ViewMemberKind.Factory;
+        kind = InlineClassMemberKind.Factory;
         break;
     }
     // ignore: unnecessary_null_comparison
     assert(kind != null);
-    view.members.add(new ViewMemberDescriptor(
+    view.members.add(new InlineClassMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
         member: memberReference,
         isStatic: memberBuilder.isStatic,

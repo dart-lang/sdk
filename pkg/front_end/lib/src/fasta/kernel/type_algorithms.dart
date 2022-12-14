@@ -1200,7 +1200,7 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitViewType(ViewType node) {
+  bool visitInlineType(InlineType node) {
     return anyTypeVariables(node.typeArguments);
   }
 

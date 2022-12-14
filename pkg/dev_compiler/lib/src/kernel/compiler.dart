@@ -3234,8 +3234,8 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       type.onType.accept(this);
 
   @override
-  js_ast.Expression visitViewType(ViewType type) =>
-      type.representationType.accept(this);
+  js_ast.Expression visitInlineType(InlineType type) =>
+      type.instantiatedRepresentationType.accept(this);
 
   @override
   js_ast.Expression visitFutureOrType(FutureOrType type) {

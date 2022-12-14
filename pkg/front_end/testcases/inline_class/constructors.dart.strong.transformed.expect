@@ -2,10 +2,10 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-view Class1 /* representationType = core::int */ {
+inline class Class1 /* declaredRepresentationType = core::int */ {
   constructor • = self::Class1|;
 }
-view Class2 /* representationType = core::int */ {
+inline class Class2 /* declaredRepresentationType = core::int */ {
   constructor • = self::Class2|;
 }
 method Class1|(core::int field) → self::Class1

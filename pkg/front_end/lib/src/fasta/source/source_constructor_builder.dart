@@ -1131,7 +1131,7 @@ class SourceViewConstructorBuilder extends AbstractSourceConstructorBuilder {
     // function is its enclosing class.
     super.buildFunction();
 
-    View view = viewBuilder.view;
+    InlineClass view = viewBuilder.view;
     List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < view.typeParameters.length; i++) {
       TypeParameter typeParameter = view.typeParameters[i];
@@ -1139,8 +1139,8 @@ class SourceViewConstructorBuilder extends AbstractSourceConstructorBuilder {
           new TypeParameterType.withDefaultNullabilityForLibrary(
               typeParameter, libraryBuilder.library));
     }
-    ViewType type =
-        new ViewType(view, libraryBuilder.nonNullable, typeParameterTypes);
+    InlineType type =
+        new InlineType(view, libraryBuilder.nonNullable, typeParameterTypes);
     returnType.registerInferredType(type);
   }
 

@@ -12,13 +12,13 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-view Missing /* representationType = invalid-type */ {
+inline class Missing /* declaredRepresentationType = invalid-type */ {
 }
-view Static /* representationType = core::bool */ {
+inline class Static /* declaredRepresentationType = core::bool */ {
   static field staticField = self::Static|staticField;
 }
-view Multiple /* representationType = core::bool */ {
+inline class Multiple /* declaredRepresentationType = core::bool */ {
 }
-view Duplicate /* representationType = core::bool */ {
+inline class Duplicate /* declaredRepresentationType = core::bool */ {
 }
 static field core::int Static|staticField;

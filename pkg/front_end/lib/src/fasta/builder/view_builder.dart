@@ -22,8 +22,8 @@ abstract class ViewBuilder implements DeclarationBuilder {
   /// The type of the underlying representation.
   DartType get representationType;
 
-  /// Return the [View] built by this builder.
-  View get view;
+  /// Return the [InlineClass] built by this builder.
+  InlineClass get view;
 
   /// Looks up extension member by [name] taking privacy into account.
   ///
@@ -65,7 +65,7 @@ abstract class ViewBuilderImpl extends DeclarationBuilderImpl
       Uri fileUri,
       int charOffset,
       {required bool hasExplicitTypeArguments}) {
-    return new ViewType(view, nullability, arguments);
+    return new InlineType(view, nullability, arguments);
   }
 
   @override

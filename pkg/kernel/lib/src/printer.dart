@@ -118,8 +118,8 @@ class AstPrinter {
         includeLibraryName: _strategy.includeLibraryNamesInMembers));
   }
 
-  void writeViewName(Reference? reference) {
-    _sb.write(qualifiedViewNameToStringByReference(reference,
+  void writeInlineClassName(Reference? reference) {
+    _sb.write(qualifiedInlineClassNameToStringByReference(reference,
         includeLibraryName: _strategy.includeLibraryNamesInMembers));
   }
 

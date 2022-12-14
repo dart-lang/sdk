@@ -315,7 +315,7 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
         assert(_procedure.kind == ProcedureKind.Method);
       }
     } else if (isViewMethod) {
-      _procedure.isViewMember = true;
+      _procedure.isInlineClassMember = true;
       _procedure.isStatic = true;
       if (isViewInstanceMember) {
         assert(_procedure.kind == ProcedureKind.Method);

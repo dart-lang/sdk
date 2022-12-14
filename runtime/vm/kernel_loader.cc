@@ -1100,8 +1100,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     }
   }
 
-  const intptr_t view_count = helper_.ReadListLength();
-  for (intptr_t i = 0; i < view_count; ++i) {
+  const intptr_t inline_class_count = helper_.ReadListLength();
+  for (intptr_t i = 0; i < inline_class_count; ++i) {
     helper_.ReadTag();                     // read tag.
     helper_.SkipCanonicalNameReference();  // skip canonical name.
     helper_.SkipStringReference();         // skip name.
@@ -1112,8 +1112,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     helper_.SkipTypeParametersList();      // skip type parameter list.
     helper_.SkipDartType();                // skip representation-type.
 
-    const intptr_t view_member_count = helper_.ReadListLength();
-    for (intptr_t j = 0; j < view_member_count; ++j) {
+    const intptr_t inline_class_member_count = helper_.ReadListLength();
+    for (intptr_t j = 0; j < inline_class_member_count; ++j) {
       helper_.SkipName();                    // skip name.
       helper_.ReadByte();                    // read kind.
       helper_.ReadByte();                    // read flags.

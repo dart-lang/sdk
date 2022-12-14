@@ -248,8 +248,8 @@ class _FreeVariableVisitor implements ir.DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitViewType(ir.ViewType node) {
-    return visit(node.representationType);
+  bool visitInlineType(ir.InlineType node) {
+    return visit(node.instantiatedRepresentationType);
   }
 
   @override

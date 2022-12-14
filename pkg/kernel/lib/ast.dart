@@ -358,7 +358,7 @@ class Library extends NamedNode
   List<Typedef> _typedefs;
   List<Class> _classes;
   List<Extension> _extensions;
-  List<View> _views;
+  List<InlineClass> _inlineClasses;
   List<Procedure> _procedures;
   List<Field> _fields;
 
@@ -370,7 +370,7 @@ class Library extends NamedNode
       List<Typedef>? typedefs,
       List<Class>? classes,
       List<Extension>? extensions,
-      List<View>? views,
+      List<InlineClass>? inlineClasses,
       List<Procedure>? procedures,
       List<Field>? fields,
       required this.fileUri,
@@ -383,7 +383,7 @@ class Library extends NamedNode
         this._typedefs = typedefs ?? <Typedef>[],
         this._classes = classes ?? <Class>[],
         this._extensions = extensions ?? <Extension>[],
-        this._views = views ?? <View>[],
+        this._inlineClasses = inlineClasses ?? <InlineClass>[],
         this._procedures = procedures ?? <Procedure>[],
         this._fields = fields ?? <Field>[],
         super(reference) {
@@ -423,13 +423,13 @@ class Library extends NamedNode
     _extensions = extensions;
   }
 
-  List<View> get views => _views;
+  List<InlineClass> get inlineClasses => _inlineClasses;
 
   /// Internal. Should *ONLY* be used from within kernel.
   ///
-  /// Used for adding views when reading the dill file.
-  void set viewsInternal(List<View> views) {
-    _views = views;
+  /// Used for adding inline classes when reading the dill file.
+  void set inlineClassesInternal(List<InlineClass> inlineClasses) {
+    _inlineClasses = inlineClasses;
   }
 
   List<Procedure> get procedures => _procedures;
@@ -490,9 +490,9 @@ class Library extends NamedNode
     extensions.add(extension);
   }
 
-  void addView(View view) {
-    view.parent = this;
-    views.add(view);
+  void addInlineClass(InlineClass inlineClass) {
+    inlineClass.parent = this;
+    inlineClasses.add(inlineClass);
   }
 
   void addField(Field field) {
@@ -533,8 +533,8 @@ class Library extends NamedNode
     for (int i = 0; i < extensions.length; ++i) {
       extensions[i].bindCanonicalNames(canonicalName);
     }
-    for (int i = 0; i < views.length; ++i) {
-      views[i].bindCanonicalNames(canonicalName);
+    for (int i = 0; i < inlineClasses.length; ++i) {
+      inlineClasses[i].bindCanonicalNames(canonicalName);
     }
   }
 
@@ -567,9 +567,9 @@ class Library extends NamedNode
       Extension extension = extensions[i];
       extension._relinkNode();
     }
-    for (int i = 0; i < views.length; ++i) {
-      View view = views[i];
-      view._relinkNode();
+    for (int i = 0; i < inlineClasses.length; ++i) {
+      InlineClass inlineClass = inlineClasses[i];
+      inlineClass._relinkNode();
     }
   }
 
@@ -595,7 +595,7 @@ class Library extends NamedNode
     visitList(typedefs, v);
     visitList(classes, v);
     visitList(extensions, v);
-    visitList(views, v);
+    visitList(inlineClasses, v);
     visitList(procedures, v);
     visitList(fields, v);
   }
@@ -608,7 +608,7 @@ class Library extends NamedNode
     v.transformList(typedefs, this);
     v.transformList(classes, this);
     v.transformList(extensions, this);
-    v.transformList(views, this);
+    v.transformList(inlineClasses, this);
     v.transformList(procedures, this);
     v.transformList(fields, this);
   }
@@ -621,7 +621,7 @@ class Library extends NamedNode
     v.transformTypedefList(typedefs, this);
     v.transformClassList(classes, this);
     v.transformExtensionList(extensions, this);
-    v.transformViewList(views, this);
+    v.transformInlineClassList(inlineClasses, this);
     v.transformProcedureList(procedures, this);
     v.transformFieldList(fields, this);
   }
@@ -1944,12 +1944,12 @@ class ExtensionTypeShowHideClause {
   }
 }
 
-/// Declaration of a view.
+/// Declaration of an inline class.
 ///
 /// The members are converted into top-level procedures and only accessible
-/// by reference in the [View] node.
-class View extends NamedNode implements Annotatable, FileUriNode {
-  /// Name of the view.
+/// by reference in the [InlineClass] node.
+class InlineClass extends NamedNode implements Annotatable, FileUriNode {
+  /// Name of the inline class.
   String name;
 
   /// The URI of the source file this class was loaded from.
@@ -1959,20 +1959,23 @@ class View extends NamedNode implements Annotatable, FileUriNode {
   /// Type parameters declared on the extension.
   final List<TypeParameter> typeParameters;
 
-  /// The type in the underlying representation of the view declaration.
+  /// The type in the underlying representation of the inline class declaration.
   ///
-  /// For instance A in the view B:
+  /// For instance A in the inline class B:
   ///
   ///   class A {}
-  ///   view class B(A it) {}
+  ///   inline class B {
+  ///     final A it;
+  ///     B(this.it)
+  ///   }
   ///
-  late DartType representationType;
+  late DartType declaredRepresentationType;
 
-  /// The members declared by the view.
+  /// The members declared by the inline class.
   ///
   /// The members are converted into top-level members and only accessible
-  /// by reference through [ViewMemberDescriptor].
-  List<ViewMemberDescriptor> members;
+  /// by reference through [InlineClassMemberDescriptor].
+  List<InlineClassMemberDescriptor> members;
 
   @override
   List<Expression> annotations = const <Expression>[];
@@ -1988,11 +1991,11 @@ class View extends NamedNode implements Annotatable, FileUriNode {
     node.parent = this;
   }
 
-  View(
+  InlineClass(
       {required this.name,
       List<TypeParameter>? typeParameters,
-      DartType? representationType,
-      List<ViewMemberDescriptor>? members,
+      DartType? declaredRepresentationType,
+      List<InlineClassMemberDescriptor>? members,
       required this.fileUri,
       Reference? reference})
       // ignore: unnecessary_null_comparison
@@ -2000,11 +2003,11 @@ class View extends NamedNode implements Annotatable, FileUriNode {
         // ignore: unnecessary_null_comparison
         assert(fileUri != null),
         this.typeParameters = typeParameters ?? <TypeParameter>[],
-        this.members = members ?? <ViewMemberDescriptor>[],
+        this.members = members ?? <InlineClassMemberDescriptor>[],
         super(reference) {
     setParents(this.typeParameters, this);
-    if (representationType != null) {
-      this.representationType = representationType;
+    if (declaredRepresentationType != null) {
+      this.declaredRepresentationType = declaredRepresentationType;
     }
   }
 
@@ -2016,18 +2019,18 @@ class View extends NamedNode implements Annotatable, FileUriNode {
   Library get enclosingLibrary => parent as Library;
 
   @override
-  R accept<R>(TreeVisitor<R> v) => v.visitView(this);
+  R accept<R>(TreeVisitor<R> v) => v.visitInlineClass(this);
 
   @override
-  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) => v.visitView(this, arg);
+  R accept1<R, A>(TreeVisitor1<R, A> v, A arg) => v.visitInlineClass(this, arg);
 
-  R acceptReference<R>(Visitor<R> v) => v.visitViewReference(this);
+  R acceptReference<R>(Visitor<R> v) => v.visitInlineClassReference(this);
 
   @override
   void visitChildren(Visitor v) {
     visitList(annotations, v);
     visitList(typeParameters, v);
-    representationType.accept(v);
+    declaredRepresentationType.accept(v);
   }
 
   @override
@@ -2035,8 +2038,8 @@ class View extends NamedNode implements Annotatable, FileUriNode {
     v.transformList(annotations, this);
     v.transformList(typeParameters, this);
     // ignore: unnecessary_null_comparison
-    if (representationType != null) {
-      representationType = v.visitDartType(representationType);
+    if (declaredRepresentationType != null) {
+      declaredRepresentationType = v.visitDartType(declaredRepresentationType);
     }
   }
 
@@ -2045,9 +2048,9 @@ class View extends NamedNode implements Annotatable, FileUriNode {
     v.transformExpressionList(annotations, this);
     v.transformTypeParameterList(typeParameters, this);
     // ignore: unnecessary_null_comparison
-    if (representationType != null) {
-      representationType =
-          v.visitDartType(representationType, cannotRemoveSentinel);
+    if (declaredRepresentationType != null) {
+      declaredRepresentationType =
+          v.visitDartType(declaredRepresentationType, cannotRemoveSentinel);
     }
   }
 
@@ -2058,16 +2061,16 @@ class View extends NamedNode implements Annotatable, FileUriNode {
 
   @override
   String toString() {
-    return "View(${toStringInternal()})";
+    return "InlineClass(${toStringInternal()})";
   }
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeViewName(reference);
+    printer.writeInlineClassName(reference);
   }
 }
 
-enum ViewMemberKind {
+enum InlineClassMemberKind {
   Constructor,
   Factory,
   Field,
@@ -2078,26 +2081,28 @@ enum ViewMemberKind {
   TearOff,
 }
 
-/// Information about an member declaration in a view.
-class ViewMemberDescriptor {
+/// Information about an member declaration in an inline class.
+class InlineClassMemberDescriptor {
   static const int FlagStatic = 1 << 0; // Must match serialized bit positions.
 
-  /// The name of the extension member.
+  /// The name of the inline class member.
   ///
   /// The name of the generated top-level member is mangled to ensure
-  /// uniqueness. This name is used to lookup an extension method in the
-  /// extension itself.
+  /// uniqueness. This name is used to lookup a member in the inline class
+  /// itself.
   Name name;
 
-  /// [ViewMemberKind] kind of the original member.
+  /// [InlineClassMemberKind] kind of the original member.
   ///
-  /// A view method is converted into a regular top-level method. For
+  /// An inline class member is converted into a regular top-level method. For
   /// instance:
   ///
   ///     class A {
   ///       var foo;
   ///     }
-  ///     extension B on A {
+  ///     inline class B {
+  ///       final A it;
+  ///       B(this.it);
   ///       get bar => this.foo;
   ///     }
   ///
@@ -2109,14 +2114,14 @@ class ViewMemberDescriptor {
   /// where `B|get#bar` is the synthesized name of the top-level method and
   /// `#this` is the synthesized parameter that holds represents `this`.
   ///
-  ViewMemberKind kind;
+  InlineClassMemberKind kind;
 
   int flags = 0;
 
-  /// Reference to the top-level member created for the extension method.
+  /// Reference to the top-level member created for the inline class member.
   final Reference member;
 
-  ViewMemberDescriptor(
+  InlineClassMemberDescriptor(
       {required this.name,
       required this.kind,
       bool isStatic = false,
@@ -2124,7 +2129,7 @@ class ViewMemberDescriptor {
     this.isStatic = isStatic;
   }
 
-  /// Return `true` if the extension method was declared as `static`.
+  /// Return `true` if the inline class member was declared as `static`.
   bool get isStatic => flags & FlagStatic != 0;
 
   void set isStatic(bool value) {
@@ -2133,7 +2138,7 @@ class ViewMemberDescriptor {
 
   @override
   String toString() {
-    return 'ViewMemberDescriptor($name,$kind,'
+    return 'InlineClassMemberDescriptor($name,$kind,'
         '${member.toStringInternal()},isStatic=${isStatic})';
   }
 }
@@ -2239,12 +2244,12 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   ///
   bool get isExtensionMember;
 
-  /// If `true` this member is compiled from a member declared in a view class
-  /// declaration.
+  /// If `true` this member is compiled from a member declared in an inline
+  /// class declaration.
   ///
   /// For instance `field`, `method1` and `method2` in:
   ///
-  ///     view class A {
+  ///     inline class A {
   ///       final B it;
   ///       A(this.it);
   ///       static var field;
@@ -2252,7 +2257,7 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   ///       static B method2() => new B();
   ///     }
   ///
-  bool get isViewMember;
+  bool get isInlineClassMember;
 
   /// If `true` this member is defined in a library for which non-nullable by
   /// default is enabled.
@@ -2489,7 +2494,7 @@ class Field extends Member {
   static const int FlagNonNullableByDefault = 1 << 7;
   static const int FlagInternalImplementation = 1 << 8;
   static const int FlagEnumElement = 1 << 9;
-  static const int FlagViewMember = 1 << 10;
+  static const int FlagInlineClassMember = 1 << 10;
 
   /// Whether the field is declared with the `covariant` keyword.
   bool get isCovariantByDeclaration => flags & FlagCovariant != 0;
@@ -2505,7 +2510,7 @@ class Field extends Member {
   bool get isExtensionMember => flags & FlagExtensionMember != 0;
 
   @override
-  bool get isViewMember => flags & FlagViewMember != 0;
+  bool get isInlineClassMember => flags & FlagInlineClassMember != 0;
 
   /// Indicates whether the implicit setter associated with this field needs to
   /// contain a runtime type check to deal with generic covariance.
@@ -2577,8 +2582,10 @@ class Field extends Member {
     flags = value ? (flags | FlagEnumElement) : (flags & ~FlagEnumElement);
   }
 
-  void set isViewMember(bool value) {
-    flags = value ? (flags | FlagViewMember) : (flags & ~FlagViewMember);
+  void set isInlineClassMember(bool value) {
+    flags = value
+        ? (flags | FlagInlineClassMember)
+        : (flags & ~FlagInlineClassMember);
   }
 
   @override
@@ -2758,7 +2765,7 @@ class Constructor extends Member {
   bool get isExtensionMember => false;
 
   @override
-  bool get isViewMember => false;
+  bool get isInlineClassMember => false;
 
   @override
   bool get isNonNullableByDefault => flags & FlagNonNullableByDefault != 0;
@@ -2924,7 +2931,7 @@ class RedirectingFactory extends Member {
   bool get isExtensionMember => false;
 
   @override
-  bool get isViewMember => false;
+  bool get isInlineClassMember => false;
 
   bool get isUnresolved => targetReference == null;
 
@@ -3341,7 +3348,7 @@ class Procedure extends Member {
   static const int FlagSynthetic = 1 << 7;
   static const int FlagInternalImplementation = 1 << 8;
   static const int FlagIsAbstractFieldAccessor = 1 << 9;
-  static const int FlagViewMember = 1 << 10;
+  static const int FlagInlineMember = 1 << 10;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3422,7 +3429,7 @@ class Procedure extends Member {
   bool get isExtensionMember => flags & FlagExtensionMember != 0;
 
   @override
-  bool get isViewMember => flags & FlagViewMember != 0;
+  bool get isInlineClassMember => flags & FlagInlineMember != 0;
 
   void set isStatic(bool value) {
     flags = value ? (flags | FlagStatic) : (flags & ~FlagStatic);
@@ -3452,8 +3459,8 @@ class Procedure extends Member {
         value ? (flags | FlagExtensionMember) : (flags & ~FlagExtensionMember);
   }
 
-  void set isViewMember(bool value) {
-    flags = value ? (flags | FlagViewMember) : (flags & ~FlagViewMember);
+  void set isInlineClassMember(bool value) {
+    flags = value ? (flags | FlagInlineMember) : (flags & ~FlagInlineMember);
   }
 
   void set isSynthetic(bool value) {
@@ -12534,86 +12541,86 @@ class ExtensionType extends DartType {
   }
 }
 
-class ViewType extends DartType {
-  final Reference viewReference;
+class InlineType extends DartType {
+  final Reference inlineClassReference;
 
   @override
   final Nullability declaredNullability;
 
   final List<DartType> typeArguments;
 
-  DartType? _representationType;
+  DartType? _instantiatedRepresentationType;
 
-  ViewType(View view, Nullability declaredNullability,
+  InlineType(InlineClass inlineClass, Nullability declaredNullability,
       [List<DartType>? typeArguments])
-      : this.byReference(view.reference, declaredNullability,
-            typeArguments ?? _defaultTypeArguments(view));
+      : this.byReference(inlineClass.reference, declaredNullability,
+            typeArguments ?? _defaultTypeArguments(inlineClass));
 
-  ViewType.byReference(
-      this.viewReference, this.declaredNullability, this.typeArguments,
-      [this._representationType])
+  InlineType.byReference(
+      this.inlineClassReference, this.declaredNullability, this.typeArguments,
+      [this._instantiatedRepresentationType])
       // ignore: unnecessary_null_comparison
       : assert(declaredNullability != null);
 
-  View get view => viewReference.asView;
+  InlineClass get inlineClass => inlineClassReference.asInlineClass;
 
-  DartType get representationType =>
-      _representationType ??= _computeRepresentationType(
-          viewReference, typeArguments, declaredNullability);
+  DartType get instantiatedRepresentationType =>
+      _instantiatedRepresentationType ??= _computeRepresentationType(
+          inlineClassReference, typeArguments, declaredNullability);
 
   @override
   Nullability get nullability => declaredNullability;
 
   @override
   DartType get resolveTypeParameterType =>
-      representationType.resolveTypeParameterType;
+      instantiatedRepresentationType.resolveTypeParameterType;
 
-  static List<DartType> _defaultTypeArguments(View view) {
-    if (view.typeParameters.length == 0) {
+  static List<DartType> _defaultTypeArguments(InlineClass inlineClass) {
+    if (inlineClass.typeParameters.length == 0) {
       // Avoid allocating a list in this very common case.
       return const <DartType>[];
     } else {
       return new List<DartType>.filled(
-          view.typeParameters.length, const DynamicType());
+          inlineClass.typeParameters.length, const DynamicType());
     }
   }
 
-  static DartType _computeRepresentationType(Reference viewReference,
+  static DartType _computeRepresentationType(Reference inlineClassReference,
       List<DartType> typeArguments, Nullability declaredNullability) {
-    View view = viewReference.asView;
-    if (view.typeParameters.isEmpty) {
-      return view.representationType;
+    InlineClass inlineClass = inlineClassReference.asInlineClass;
+    if (inlineClass.typeParameters.isEmpty) {
+      return inlineClass.declaredRepresentationType;
     } else {
-      assert(view.typeParameters.length == typeArguments.length);
-      return Substitution.fromPairs(view.typeParameters, typeArguments)
-          .substituteType(view.representationType)
-          .withDeclaredNullability(uniteNullabilities(
-              declaredNullability, view.representationType.nullability));
+      assert(inlineClass.typeParameters.length == typeArguments.length);
+      return Substitution.fromPairs(inlineClass.typeParameters, typeArguments)
+          .substituteType(inlineClass.declaredRepresentationType)
+          .withDeclaredNullability(uniteNullabilities(declaredNullability,
+              inlineClass.declaredRepresentationType.nullability));
     }
   }
 
   @override
   R accept<R>(DartTypeVisitor<R> v) {
-    return v.visitViewType(this);
+    return v.visitInlineType(this);
   }
 
   @override
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
-    return v.visitViewType(this, arg);
+    return v.visitInlineType(this, arg);
   }
 
   @override
   void visitChildren(Visitor v) {
-    view.acceptReference(v);
+    inlineClass.acceptReference(v);
     visitList(typeArguments, v);
   }
 
   @override
   bool equals(Object other, Assumptions? assumptions) {
     if (identical(this, other)) return true;
-    if (other is ViewType) {
+    if (other is InlineType) {
       if (nullability != other.nullability) return false;
-      if (viewReference != other.viewReference) return false;
+      if (inlineClassReference != other.inlineClassReference) return false;
       if (typeArguments.length != other.typeArguments.length) return false;
       for (int i = 0; i < typeArguments.length; ++i) {
         if (!typeArguments[i].equals(other.typeArguments[i], assumptions)) {
@@ -12628,7 +12635,7 @@ class ViewType extends DartType {
 
   @override
   int get hashCode {
-    int hash = 0x3fffffff & viewReference.hashCode;
+    int hash = 0x3fffffff & inlineClassReference.hashCode;
     for (int i = 0; i < typeArguments.length; ++i) {
       hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
     }
@@ -12638,21 +12645,21 @@ class ViewType extends DartType {
   }
 
   @override
-  ViewType withDeclaredNullability(Nullability declaredNullability) {
+  InlineType withDeclaredNullability(Nullability declaredNullability) {
     return declaredNullability == this.declaredNullability
         ? this
-        : new ViewType.byReference(
-            viewReference, declaredNullability, typeArguments);
+        : new InlineType.byReference(
+            inlineClassReference, declaredNullability, typeArguments);
   }
 
   @override
   String toString() {
-    return "ViewType(${toStringInternal()})";
+    return "InlineType(${toStringInternal()})";
   }
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.writeViewName(viewReference);
+    printer.writeInlineClassName(inlineClassReference);
     printer.writeTypeArguments(typeArguments);
     printer.write(nullabilityToString(declaredNullability));
   }
@@ -15562,9 +15569,10 @@ final List<Typedef> emptyListOfTypedef =
 final List<Extension> emptyListOfExtension =
     List.filled(0, dummyExtension, growable: false);
 
-/// Almost const <View>[], but not const in an attempt to avoid
+/// Almost const <InlineClass>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<View> emptyListOfView = List.filled(0, dummyView, growable: false);
+final List<InlineClass> emptyListOfInlineClass =
+    List.filled(0, dummyInlineClass, growable: false);
 
 /// Almost const <Field>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
@@ -15601,10 +15609,10 @@ final List<Class> emptyListOfClass =
 final List<ExtensionMemberDescriptor> emptyListOfExtensionMemberDescriptor =
     List.filled(0, dummyExtensionMemberDescriptor, growable: false);
 
-/// Almost const <ViewMemberDescriptor>[], but not const in an attempt to
+/// Almost const <InlineClassMemberDescriptor>[], but not const in an attempt to
 /// avoid polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<ViewMemberDescriptor> emptyListOfViewMemberDescriptor =
-    List.filled(0, dummyViewMemberDescriptor, growable: false);
+final List<InlineClassMemberDescriptor> emptyListOfInlineClassMemberDescriptor =
+    List.filled(0, dummyInlineClassMemberDescriptor, growable: false);
 
 /// Almost const <Constructor>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
@@ -15721,20 +15729,24 @@ final ExtensionMemberDescriptor dummyExtensionMemberDescriptor =
         kind: ExtensionMemberKind.Getter,
         member: dummyReference);
 
-/// Non-nullable [View] dummy value.
+/// Non-nullable [InlineClass] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final View dummyView = new View(name: '', fileUri: dummyUri);
+final InlineClass dummyInlineClass =
+    new InlineClass(name: '', fileUri: dummyUri);
 
-/// Non-nullable [ViewMemberDescriptor] dummy value.
+/// Non-nullable [InlineClassMemberDescriptor] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
 /// used for instance as a dummy initial value for the `List.filled`
 /// constructor.
-final ViewMemberDescriptor dummyViewMemberDescriptor = new ViewMemberDescriptor(
-    name: dummyName, kind: ViewMemberKind.Getter, member: dummyReference);
+final InlineClassMemberDescriptor dummyInlineClassMemberDescriptor =
+    new InlineClassMemberDescriptor(
+        name: dummyName,
+        kind: InlineClassMemberKind.Getter,
+        member: dummyReference);
 
 /// Non-nullable [Member] dummy value.
 ///

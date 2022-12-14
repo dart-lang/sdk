@@ -1587,7 +1587,7 @@ class StaticAccessGenerator extends Generator {
 ///
 /// These can only occur within a view instance member.
 class ViewInstanceAccessGenerator extends Generator {
-  final View view;
+  final InlineClass view;
 
   /// The original name of the target.
   final String targetName;
@@ -1640,7 +1640,7 @@ class ViewInstanceAccessGenerator extends Generator {
   factory ViewInstanceAccessGenerator.fromBuilder(
       ExpressionGeneratorHelper helper,
       Token token,
-      View view,
+      InlineClass view,
       String? targetName,
       VariableDeclaration viewThis,
       List<TypeParameter>? viewTypeParameters,

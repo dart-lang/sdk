@@ -1128,7 +1128,7 @@ abstract class SubtypeTest<T, E> {
     isObliviousSubtype("Null", "(int, String)");
     isObliviousSubtype("(int, String)?", "Record");
 
-    // TODO(johnniwinther): Add support for view types in the type parser and
+    // TODO(johnniwinther): Add support for inline types in the type parser and
     // add subtype tests here.
   }
 }
