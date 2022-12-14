@@ -2262,7 +2262,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Reload) {
   // default stub for that type.
   EXPECT(type_a_int.type_test_stub() ==
          TypeTestingStubGenerator::DefaultCodeForType(type_a_int));
-  // Reloading either removes or resets the type teseting cache.
+  // Reloading either removes or resets the type testing cache.
   EXPECT(state.current_stc() == SubtypeTestCache::null() ||
          (state.current_stc() == state.last_stc().ptr() &&
           state.last_stc().NumberOfChecks() == 0));
