@@ -17,16 +17,17 @@ const _desc = r"Don't check for null in custom == operators.";
 const _details = r'''
 **DON'T** check for null in custom == operators.
 
-As null is a special type, no class can be equivalent to it.  Thus, it is
-redundant to check whether the other instance is null. 
+As null is a special value, no instance of any class (other than `Null`) can be
+equivalent to it.  Thus, it is redundant to check whether the other instance is
+null.
 
 **BAD:**
 ```dart
 class Person {
-  final String name;
+  final String? name;
 
   @override
-  operator ==(other) =>
+  operator ==(Object? other) =>
       other != null && other is Person && name == other.name;
 }
 ```
@@ -34,10 +35,10 @@ class Person {
 **GOOD:**
 ```dart
 class Person {
-  final String name;
+  final String? name;
 
   @override
-  operator ==(other) => other is Person && name == other.name;
+  operator ==(Object? other) => other is Person && name == other.name;
 }
 ```
 
