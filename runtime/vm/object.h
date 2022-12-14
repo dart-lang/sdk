@@ -1934,7 +1934,7 @@ class Class : public Object {
   UnboxedFieldBitmap CalculateFieldOffsets() const;
 
   // functions_hash_table is in use iff there are at least this many functions.
-  static const intptr_t kFunctionLookupHashTreshold = 16;
+  static const intptr_t kFunctionLookupHashThreshold = 16;
 
   // Initial value for the cached number of type arguments.
   static const intptr_t kUnknownNumTypeArguments = -1;

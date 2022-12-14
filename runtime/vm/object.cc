@@ -3267,7 +3267,7 @@ void Class::SetFunctions(const Array& value) const {
   }
 #endif
   set_functions(value);
-  if (len >= kFunctionLookupHashTreshold) {
+  if (len >= kFunctionLookupHashThreshold) {
     ClassFunctionsSet set(HashTables::New<ClassFunctionsSet>(len, Heap::kOld));
     Function& func = Function::Handle();
     for (intptr_t i = 0; i < len; ++i) {
@@ -3297,10 +3297,10 @@ void Class::AddFunction(const Function& function) const {
   set_functions(new_array);
   // Add to hash table, if any.
   const intptr_t new_len = new_array.Length();
-  if (new_len == kFunctionLookupHashTreshold) {
+  if (new_len == kFunctionLookupHashThreshold) {
     // Transition to using hash table.
     SetFunctions(new_array);
-  } else if (new_len > kFunctionLookupHashTreshold) {
+  } else if (new_len > kFunctionLookupHashThreshold) {
     ClassFunctionsSet set(untag()->functions_hash_table());
     set.Insert(function);
     untag()->set_functions_hash_table(set.Release().ptr());
@@ -5949,7 +5949,7 @@ FunctionPtr Class::LookupFunctionReadLocked(const String& name,
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
   Function& function = thread->FunctionHandle();
-  if (len >= kFunctionLookupHashTreshold) {
+  if (len >= kFunctionLookupHashThreshold) {
     // TODO(dartbug.com/36097): We require currently a read lock in the resolver
     // to avoid read-write race access to this hash table.
     // If we want to increase resolver speed by avoiding the need for read lock,
