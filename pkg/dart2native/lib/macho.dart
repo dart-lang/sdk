@@ -1527,8 +1527,9 @@ class MachOFile {
     }
 
     final reserved = reservedSegment;
-    // TODO(49783): Once linker flags are in place in g3, we should throw a
-    // FormatException if the segment used to reserve header space is not found.
+    if (reserved == null) {
+      throw FormatException("$reservedSegmentName segment not found");
+    }
 
     final linkedit = linkEditSegment;
     if (linkedit == null) {
@@ -1549,13 +1550,9 @@ class MachOFile {
         header.cpu,
         header.machine,
         header.type,
-        // If the reserved section exists, we remove it and replace it with
-        // the note.
-        //
-        // TODO(49783): Once linker flags are in place in g3, reserved should
-        // never be null.
-        header.loadCommandsCount + (reserved == null ? 1 : 0),
-        header.loadCommandsSize - (reserved?.size ?? 0) + note.size,
+        // We remove the reserved section and replace it with the note.
+        header.loadCommandsCount,
+        header.loadCommandsSize - reserved.size + note.size,
         header.flags,
         header.reserved);
 
@@ -1582,8 +1579,10 @@ class MachOFile {
 
     final newFile = MachOFile._(newHeader, newCommands, hasCodeSignature);
 
-    // TODO(49783): Once linker flags are in place in g3, we should throw a
-    // FormatException if [newFile.size] is greater than [size].
+    if (newFile.size > size) {
+      throw FormatException("Cannot add new note load command to header: "
+          "new size ${newFile.size} > the old size $size)");
+    }
 
     return newFile;
   }
