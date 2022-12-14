@@ -115,7 +115,7 @@ class PagedColumnView extends View {
 
     // TODO(jacobr): use named arguments when available.
     scroller = Scroller(_container, false /* verticalScrollEnabled */,
-        true /* horizontalScrollEnabled */, true /* momementumEnabled */, () {
+        true /* horizontalScrollEnabled */, true /* momentumEnabled */, () {
       return Size(_getViewLength(_container), 1);
     }, Scroller.FAST_SNAP_DECELERATION_FACTOR);
 

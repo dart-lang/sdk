@@ -52,7 +52,7 @@ class CompositeView extends View {
           container,
           _vertical /* verticalScrollEnabled */,
           !_vertical /* horizontalScrollEnabled */,
-          true /* momementumEnabled */);
+          true /* momentumEnabled */);
       if (_showScrollbar) {
         _scrollbar = Scrollbar(scroller);
       }
