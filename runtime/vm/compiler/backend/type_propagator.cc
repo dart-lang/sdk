@@ -913,7 +913,7 @@ static bool CanPotentiallyBeSmi(const AbstractType& type, bool recurse) {
     return !recurse || CanPotentiallyBeSmi(AbstractType::Handle(param.bound()),
                                            /*recurse=*/false);
   } else if (type.HasTypeClass()) {
-    // If this is an unstantiated type then it can only potentially be a super
+    // If this is an uninstantiated type then it can only potentially be a super
     // type of a Smi if it is either FutureOr<...> or Comparable<...>.
     // In which case we need to look at the type argument to determine whether
     // this location can contain a smi.
