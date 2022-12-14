@@ -109,7 +109,7 @@ class MathTest {
     }
     if (b == 0.0) {
       // No need to look if they are close. Otherwise the check for 'a' above
-      // whould have triggered.
+      // would have triggered.
       Expect.equals(a, b);
     }
     final double shiftRightBy52 = 2.220446049250313080847263336181640625e-16;

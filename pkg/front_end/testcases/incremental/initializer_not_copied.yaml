@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE.md file.
 
 # Recompiling with no change shouldn't change the initializer.
-# In fact, this woukd (currently) print `[null]` when compiled once,
+# In fact, this would (currently) print `[null]` when compiled once,
 # but `[a1]` if recompiling main.dart first.
 # http://dartbug.com/48895
 
