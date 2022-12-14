@@ -17795,7 +17795,7 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
       assembler->CodeSize(), assembler->has_monomorphic_entry()));
 
   {
-    // Important: if GC is triggerred at any point between Instructions::New
+    // Important: if GC is triggered at any point between Instructions::New
     // and here it would write protect instructions object that we are trying
     // to fill in.
     NoSafepointScope no_safepoint;
