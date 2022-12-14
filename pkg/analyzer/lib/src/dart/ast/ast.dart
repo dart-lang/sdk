@@ -700,12 +700,10 @@ class AssignedVariablePatternImpl extends DartPatternImpl
   @override
   void resolvePattern(
     ResolverVisitor resolverVisitor,
-    DartType matchedType,
     SharedMatchContext context,
   ) {
     resolverVisitor.resolveAssignedVariablePattern(
       node: this,
-      matchedType: matchedType,
       context: context,
     );
   }
@@ -1190,17 +1188,16 @@ class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
   @override
   void resolvePattern(
     ResolverVisitor resolverVisitor,
-    DartType matchedType,
     SharedMatchContext context,
   ) {
     assert(operator.type == TokenType.AMPERSAND_AMPERSAND ||
         operator.type == TokenType.BAR_BAR);
     if (operator.type == TokenType.AMPERSAND_AMPERSAND) {
       resolverVisitor.analyzeLogicalAndPattern(
-          matchedType, context, this, leftOperand, rightOperand);
+          context, this, leftOperand, rightOperand);
     } else {
       resolverVisitor.analyzeLogicalOrPattern(
-          matchedType, context, this, leftOperand, rightOperand);
+          context, this, leftOperand, rightOperand);
     }
   }
 
@@ -1620,12 +1617,10 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
   @override
   void resolvePattern(
     ResolverVisitor resolverVisitor,
-    DartType matchedType,
     SharedMatchContext context,
   ) {
     type.accept(resolverVisitor);
-    resolverVisitor.analyzeCastPattern(
-        matchedType, context, pattern, type.typeOrThrow);
+    resolverVisitor.analyzeCastPattern(context, pattern, type.typeOrThrow);
   }
 
   @override
@@ -2883,11 +2878,9 @@ class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
   @override
   void resolvePattern(
     ResolverVisitor resolverVisitor,
-    DartType matchedType,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeConstantPattern(
-        matchedType, context, this, expression);
+    resolverVisitor.analyzeConstantPattern(context, this, expression);
     expression = resolverVisitor.popRewrite()!;
   }
 
@@ -3448,7 +3441,6 @@ abstract class DartPatternImpl extends AstNodeImpl
 
   void resolvePattern(
     ResolverVisitor resolverVisitor,
-    DartType matchedType,
     SharedMatchContext context,
   );
 }
@@ -3643,10 +3635,9 @@ class DeclaredVariablePatternImpl extends DartPatternImpl
   @override
   void resolvePattern(
     ResolverVisitor resolverVisitor,
-    DartType matchedType,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeDeclaredVariablePattern(matchedType, context, this,
+    resolverVisitor.analyzeDeclaredVariablePattern(context, this,
         declaredElement, declaredElement?.name, type?.typeOrThrow);
   }
 
@@ -8323,14 +8314,9 @@ class ListPatternImpl extends DartPatternImpl implements ListPattern {
   @override
   void resolvePattern(
     ResolverVisitor resolverVisitor,
-    DartType matchedType,
     SharedMatchContext context,
   ) {
-    resolverVisitor.listPatternResolver.resolve(
-      node: this,
-      matchedType: matchedType,
-      context: context,
-    );
+    resolverVisitor.listPatternResolver.resolve(node: this, context: context);
   }
 
   @override
@@ -8564,14 +8550,9 @@ class MapPatternImpl extends DartPatternImpl implements MapPattern {
   @override
   void resolvePattern(
     ResolverVisitor resolverVisitor,
-    DartType matchedType,
     SharedMatchContext context,
   ) {
-    resolverVisitor.resolveMapPattern(
-      node: this,
-      matchedType: matchedType,
-      context: context,
-    );
+    resolverVisitor.resolveMapPattern(node: this, context: context);
   }
 
   @override
@@ -9713,11 +9694,9 @@ class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   @override
   void resolvePattern(
     ResolverVisitor resolverVisitor,
-    DartType matchedType,
     SharedMatchContext context,
   ) {
     resolverVisitor.analyzeObjectPattern(
-      matchedType,
       context,
       this,
       fields: resolverVisitor.buildSharedRecordPatternFields(fields),
@@ -9909,10 +9888,9 @@ class ParenthesizedPatternImpl extends DartPatternImpl
   @override
   void resolvePattern(
     ResolverVisitor resolverVisitor,
-    DartType matchedType,
     SharedMatchContext context,
   ) {
-    resolverVisitor.dispatchPattern(matchedType, context, pattern);
+    resolverVisitor.dispatchPattern(context, pattern);
   }
 
   @override
@@ -10354,11 +10332,9 @@ class PostfixPatternImpl extends DartPatternImpl implements PostfixPattern {
   @override
   void resolvePattern(
     ResolverVisitor resolverVisitor,
-    DartType matchedType,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeNullCheckOrAssertPattern(
-        matchedType, context, this, operand,
+    resolverVisitor.analyzeNullCheckOrAssertPattern(context, this, operand,
         isAssert: operator.type == TokenType.BANG);
   }
 
@@ -10855,11 +10831,9 @@ class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   @override
   void resolvePattern(
     ResolverVisitor resolverVisitor,
-    DartType matchedType,
     SharedMatchContext context,
   ) {
     resolverVisitor.analyzeRecordPattern(
-      matchedType,
       context,
       this,
       fields: resolverVisitor.buildSharedRecordPatternFields(fields),
@@ -11176,14 +11150,13 @@ class RelationalPatternImpl extends DartPatternImpl
   @override
   void resolvePattern(
     ResolverVisitor resolverVisitor,
-    DartType matchedType,
     SharedMatchContext context,
   ) {
     resolverVisitor.analyzeRelationalPattern(
-      matchedType,
       context,
       this,
-      resolverVisitor.resolveRelationalPatternOperator(this, matchedType),
+      resolverVisitor.resolveRelationalPatternOperator(
+          this, resolverVisitor.flowAnalysis.flow!.getMatchedValueType()),
       operand,
     );
     resolverVisitor.popRewrite();

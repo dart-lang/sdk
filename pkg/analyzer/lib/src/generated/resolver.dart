@@ -789,16 +789,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void dispatchPattern(
-      DartType matchedType, SharedMatchContext context, AstNode node) {
+  void dispatchPattern(SharedMatchContext context, AstNode node) {
     if (node is DartPatternImpl) {
-      node.resolvePattern(this, matchedType, context);
+      node.resolvePattern(this, context);
     } else {
       // This can occur inside conventional switch statements, since
       // [SwitchCase] points directly to an [Expression] rather than to a
       // [ConstantPattern].  So we mimic what
       // [ConstantPatternImpl.resolvePattern] would do.
-      analyzeConstantPattern(matchedType, context, node, node as Expression);
+      analyzeConstantPattern(context, node, node as Expression);
       // Stack: (Expression)
       popRewrite();
       // Stack: ()
@@ -1359,7 +1358,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   void resolveAssignedVariablePattern({
     required AssignedVariablePatternImpl node,
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
     final element = node.element;
@@ -1387,7 +1385,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     }
 
-    analyzeAssignedVariablePattern(matchedType, context, node, element);
+    analyzeAssignedVariablePattern(context, node, element);
   }
 
   /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
@@ -1473,7 +1471,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   void resolveMapPattern({
     required MapPatternImpl node,
-    required DartType matchedType,
     required SharedMatchContext context,
   }) {
     shared.MapPatternTypeArguments<DartType>? typeArguments;
@@ -1497,7 +1494,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     node.requiredType = analyzeMapPattern(
-      matchedType,
       context,
       node,
       typeArguments: typeArguments,

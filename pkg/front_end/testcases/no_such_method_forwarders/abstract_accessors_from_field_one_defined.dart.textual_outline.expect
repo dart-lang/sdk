@@ -1,19 +1,18 @@
-// @dart = 2.9
 void expectTypeError(callback()) {}
 
 abstract class A {
-  int foo;
+  int? foo;
 }
 
 abstract class B implements A {
-  int get foo => 42;
+  int? get foo => 42;
   noSuchMethod(i) => "bar";
 }
 
 class C extends B {}
 
 abstract class D implements A {
-  void set foo(int value) {}
+  void set foo(int? value) {}
   noSuchMethod(i) => "bar";
 }
 

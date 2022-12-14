@@ -1,4 +1,3 @@
-// @dart = 2.9
 library private;
 
 import './private_module.dart' show Fisk;
