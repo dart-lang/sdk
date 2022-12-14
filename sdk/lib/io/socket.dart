@@ -853,7 +853,7 @@ class Datagram {
   Datagram(this.data, this.address, this.port);
 }
 
-/// A wrappper around OS resource handle so it can be passed via Socket
+/// A wrapper around OS resource handle so it can be passed via Socket
 /// as part of [SocketMessage].
 abstract class ResourceHandle {
   /// Creates wrapper around opened file.
