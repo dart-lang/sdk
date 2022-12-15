@@ -142,10 +142,6 @@ class AssertionError extends Error {
 /// Error thrown by the runtime system when a dynamic type error happens.
 class TypeError extends Error {}
 
-/// Error thrown by the runtime system when a cast operation fails.
-@Deprecated("Use TypeError instead")
-class CastError extends Error {}
-
 /// Error thrown when attempting to throw `null`.
 ///
 /// In null safe code, you are statically disallowed from throwing `null`,
@@ -515,31 +511,14 @@ class IndexError extends ArgumentError implements RangeError {
   }
 }
 
-/// Error previously thrown when control reaches the end of a switch case.
+/// Error thrown on an invalid function or method invocation.
 ///
-/// The pre-2.0 Dart specification required this error to be thrown when
-/// control reached the end of a switch case (except the last case
-/// of a switch) without meeting a `break` or other control flow operators.
-/// That kind of fall-through was made a compile-time error Dart 2.0,
-/// so this error is no longer thrown.
-@Deprecated("No longer relevant in Dart 2.0")
-class FallThroughError extends Error {
-  FallThroughError();
-  @pragma("vm:entry-point")
-  external FallThroughError._create(String url, int line);
-
-  external String toString();
-}
-
-/// Error thrown when a particular method invocation is not possible.
+/// Thrown when a dynamic function or method call provides an invalid
+/// type argument or argument list to the function being called.
+/// For non-dynamic invocations, static type checking prevents
+/// such invalid arguments.
 ///
-/// This error is thrown by the default implementation of `noSuchMethod`
-/// on [Object], which is the default behavior of a failed dynamic
-/// invocation.
-///
-/// The error is also thrown in other cases where an object
-/// does not support a requested operation, but where the failed operation
-/// does not trigger a call to [Object.noSuchMethod].
+/// Also thrown by the default implementation of [Object.noSuchMethod].
 class NoSuchMethodError extends Error {
   /// Creates a [NoSuchMethodError] corresponding to a failed method call.
   ///

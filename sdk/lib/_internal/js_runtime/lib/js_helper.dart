@@ -2570,11 +2570,6 @@ void checkDeferredIsLoaded(String loadId) {
 /// visible to anyone, and is only injected into special libraries.
 abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
-class FallThroughErrorImplementation extends FallThroughError {
-  FallThroughErrorImplementation();
-  String toString() => 'Switch case fall-through.';
-}
-
 /// Helper function for implementing asserts. The compiler treats this
 /// specially.
 ///

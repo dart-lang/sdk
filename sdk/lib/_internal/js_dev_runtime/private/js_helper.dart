@@ -588,12 +588,6 @@ jsPropertyAccess(jsObject, String property) {
 }
 
 /**
- * Called at the end of unaborted switch cases to get the singleton
- * FallThroughError exception that will be thrown.
- */
-getFallThroughError() => FallThroughErrorImplementation();
-
-/**
  * A metadata annotation describing the types instantiated by a native element.
  *
  * The annotation is valid on a native method and a field of a native class.
@@ -685,16 +679,12 @@ class JSName {
 abstract class JavaScriptIndexingBehavior<E> extends JSMutableIndexable<E> {}
 
 /// Thrown by type assertions that fail.
-class TypeErrorImpl extends Error implements TypeError, CastError {
+class TypeErrorImpl extends Error implements TypeError {
   final String _message;
 
   TypeErrorImpl(this._message);
 
   String toString() => _message;
-}
-
-class FallThroughErrorImplementation extends FallThroughError {
-  String toString() => "Switch case fall-through.";
 }
 
 /**

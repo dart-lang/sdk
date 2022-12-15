@@ -95,7 +95,7 @@ class _AssertionError extends Error implements AssertionError {
   final Object? message;
 }
 
-class _TypeError extends Error implements TypeError, CastError {
+class _TypeError extends Error implements TypeError {
   @pragma("vm:entry-point")
   _TypeError._create(this._url, this._line, this._column, this._message);
 
@@ -110,39 +110,6 @@ class _TypeError extends Error implements TypeError, CastError {
   final int? _line;
   final int? _column;
   final String _message;
-}
-
-class _CastError extends Error implements CastError, TypeError {
-  @pragma("vm:entry-point")
-  _CastError._create(this._url, this._line, this._column, this._errorMsg);
-
-  // A CastError is allocated by TypeError._throwNew() when dstName equals
-  // Symbols::InTypeCast().
-
-  String toString() => _errorMsg;
-
-  // Fields _url, _line, and _column are only used for debugging purposes.
-  final String? _url;
-  final int? _line;
-  final int? _column;
-  final String _errorMsg;
-}
-
-@patch
-class FallThroughError {
-  @patch
-  @pragma("vm:entry-point")
-  FallThroughError._create(this._url, this._line);
-
-  @patch
-  String toString() {
-    return "'$_url': Switch case fall-through at line $_line.";
-  }
-
-  // These new fields cannot be declared final, because a constructor exists
-  // in the original version of this patched class.
-  String? _url;
-  int _line = 0;
 }
 
 class _InternalError {
