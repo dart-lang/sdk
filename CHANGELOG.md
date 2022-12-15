@@ -62,6 +62,8 @@
 - **Breaking change** [#49529][]:
   - Removed the deprecated [`MAX_USER_TAGS`][] constant. 
     Use [`maxUserTags`][] instead.
+- Callbacks passed to `registerExtension` will be run in the zone from which
+  they are registered.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [`MAX_USER_TAGS`]: https://api.dart.dev/stable/dart-developer/UserTag/MAX_USER_TAGS-constant.html
