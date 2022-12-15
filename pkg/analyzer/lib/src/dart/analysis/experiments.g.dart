@@ -507,7 +507,7 @@ class IsExpired {
   static const bool generic_metadata = true;
 
   /// Expiration status of the experiment "inference-update-1"
-  static const bool inference_update_1 = false;
+  static const bool inference_update_1 = true;
 
   /// Expiration status of the experiment "inference-update-2"
   static const bool inference_update_2 = false;

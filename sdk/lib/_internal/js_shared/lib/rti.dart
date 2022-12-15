@@ -1125,7 +1125,7 @@ class _Error extends Error {
   String toString() => _message;
 }
 
-class _TypeError extends _Error implements TypeError, CastError {
+class _TypeError extends _Error implements TypeError {
   _TypeError.fromMessage(String message) : super('TypeError: $message');
 
   factory _TypeError.forType(object, String type) {

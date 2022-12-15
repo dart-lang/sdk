@@ -8,8 +8,6 @@
 // process.  We need to make sure that the dependency tracking logic properly
 // accounts for this extra argument.
 
-// SharedOptions=--enable-experiment=inference-update-1
-
 import '../static_type_helper.dart';
 
 testLaterUnnamedParameter(int i) {

@@ -40,42 +40,6 @@ Future<void> main(List<String> args) async {
       startedProcesses.add(leakTest);
     }
   }
-  {
-    // Slow: Leak-test with alternative invalidation.
-    Uri leakTester =
-        Platform.script.resolve("flutter_gallery_leak_tester.dart");
-    if (!new File.fromUri(leakTester).existsSync()) {
-      exitCode = 1;
-      print("Couldn't find $leakTester");
-    } else {
-      // Note that the leak test run above will start checking out flutter
-      // gallery (etc) and that it has to finish before starting this.
-      // We therefore wait for the observatory line being printed before
-      // starting. Wait at most 10 minutes though.
-
-      // ignore: unawaited_futures
-      () async {
-        for (int i = 0; i < 10 * 60; i++) {
-          if (leakTest == null || leakTest.observatoryLines.isNotEmpty) {
-            break;
-          }
-          await Future.delayed(new Duration(seconds: 1));
-        }
-
-        // The tools/bots/flutter/compile_flutter.sh script passes `--path`
-        // --- we'll just pass everything along.
-        startedProcesses.add(await run(
-          [
-            leakTester.toString(),
-            ...args,
-            "--alternativeInvalidation",
-          ],
-          "leak test alternative invalidation",
-        ));
-        startedDelayedProcess.complete();
-      }();
-    }
-  }
 
   {
     // Weak suite with fuzzing.

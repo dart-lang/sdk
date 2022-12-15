@@ -15,6 +15,13 @@
     were only used internally during the Dart 2.0 development process.
   - Removed the deprecated [`Deprecated.expires`][] getter.
     Use [`Deprecated.message`][] instead.
+  - Removed the deprecated [`CastError`][] error.
+    Use [`TypeError`][] instead.
+  - Removed the deprecated [`FallThroughError`][] error. The kind of
+    fall-through previously throwing this error was made a compile-time
+    error in Dart 2.0.
+  - Removed the deprecated [`AbstractClassInstantiationError`][] error. It was made
+    a compile-time error to call the constructor of an abstract class in Dart 2.0.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [`int.parse`]: https://api.dart.dev/stable/2.18.4/dart-core/int/parse.html
@@ -28,6 +35,10 @@
 [`Provisional`]: https://api.dart.dev/stable/2.18.4/dart-core/Provisional-class.html
 [`provisional`]: https://api.dart.dev/stable/2.18.4/dart-core/provisional-constant.html
 [`proxy`]: https://api.dart.dev/stable/2.18.4/dart-core/proxy-constant.html
+[`CastError`]: https://api.dart.dev/stable/2.18.3/dart-core/CastError-class.html
+[`TypeError`]: https://api.dart.dev/stable/2.18.3/dart-core/TypeError-class.html
+[`FallThroughError`]: https://api.dart.dev/dev/2.19.0-374.0.dev/dart-core/FallThroughError-class.html
+[`AbstractClassInstantiationError`]: https://api.dart.dev/stable/2.18.3/dart-core/AbstractClassInstantiationError-class.html
 
 #### `dart:html`
 
