@@ -1122,7 +1122,7 @@ String checkString(value) {
 /// object out of the wrapper again.
 @pragma('dart2js:noInline')
 wrapException(ex) {
-  if (ex == null) ex = new NullThrownError();
+  if (ex == null) ex = new TypeError();
   var wrapper = JS('', 'new Error()');
   // [unwrapException] looks for the property 'dartException'.
   JS('void', '#.dartException = #', wrapper, ex);
@@ -1586,8 +1586,8 @@ class ExceptionAndStackTrace {
 /// Some native exceptions are mapped to new Dart instances, others are
 /// returned unmodified.
 Object unwrapException(Object? ex) {
-  // Dart converts `null` to `NullThrownError()`. JavaScript can still throw a
-  // nullish value.
+  // Null safe Dart can't throw null, and it is now a `TypeError` in unsound
+  // code. JavaScript can still throw a nullish value.
   if (ex == null) {
     return NullThrownFromJavaScriptException(ex);
   }

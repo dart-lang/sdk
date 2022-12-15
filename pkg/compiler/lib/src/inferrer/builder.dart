@@ -2141,7 +2141,7 @@ class KernelTypeGraphBuilder extends ir.Visitor<TypeInformation?>
       Local local = _localsMap.getLocalVariable(exception);
       _state.updateLocal(
           _inferrer, _capturedAndBoxed, local, mask, _dartTypes.dynamicType(),
-          excludeNull: true /* `throw null` produces a NullThrownError */);
+          excludeNull: true /* `throw null` produces a TypeError */);
     }
     final stackTrace = node.stackTrace;
     if (stackTrace != null) {
