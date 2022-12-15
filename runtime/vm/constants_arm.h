@@ -35,16 +35,12 @@ namespace dart {
 
 // We support both VFPv3-D16 and VFPv3-D32 profiles, but currently only one at
 // a time.
-#if defined(__ARM_ARCH_7A__)
-#define VFPv3_D32
-#elif defined(TARGET_ARCH_ARM) && !defined(HOST_ARCH_ARM)
-// If we're running in the simulator, use all 32.
+#if defined(DART_TARGET_OS_ANDROID) || defined(DART_TARGET_OS_LINUX)
+#define VFPv3_D16
+#elif defined(DART_TARGET_OS_MACOS_IOS) || defined(DART_TARGET_OS_WINDOWS)
 #define VFPv3_D32
 #else
-#define VFPv3_D16
-#endif
-#if defined(VFPv3_D16) == defined(VFPv3_D32)
-#error "Exactly one of VFPv3_D16 or VFPv3_D32 can be defined at a time."
+#error Which VFP?
 #endif
 
 // The Linux/Android ABI and the iOS ABI differ in their choice of frame
