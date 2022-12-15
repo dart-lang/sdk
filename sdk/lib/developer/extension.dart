@@ -122,7 +122,8 @@ void registerExtension(String method, ServiceExtensionHandler handler) {
   }
   // TODO: When NNBD is complete, delete the following line.
   checkNotNullable(handler, 'handler');
-  _registerExtension(method, handler);
+  final zoneHandler = Zone.current.bindBinaryCallback(handler);
+  _registerExtension(method, zoneHandler);
 }
 
 /// Whether the "Extension" stream currently has at least one listener.

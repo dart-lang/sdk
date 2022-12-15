@@ -4104,4 +4104,29 @@ DART_EXPORT void Dart_DumpNativeStackTrace(void* context);
  */
 DART_EXPORT void Dart_PrepareToAbort(void);
 
+/**
+ * Callback provided by the embedder that is used by the VM to
+ * produce footnotes appended to DWARF stack traces.
+ *
+ * Whenever VM formats a stack trace as a string it would call this callback
+ * passing raw program counters for each frame in the stack trace.
+ *
+ * Embedder can then return a string which if not-null will be appended to the
+ * formatted stack trace.
+ *
+ * Returned string is expected to be `malloc()` allocated. VM takes ownership
+ * of the returned string and will `free()` it.
+ *
+ * \param addresses raw program counter addresses for each frame
+ * \param count number of elements in the addresses array
+ */
+typedef char* (*Dart_DwarfStackTraceFootnoteCallback)(void* addresses[],
+                                                      intptr_t count);
+
+/**
+ *  Configure DWARF stack trace footnote callback.
+ */
+DART_EXPORT void Dart_SetDwarfStackTraceFootnoteCallback(
+    Dart_DwarfStackTraceFootnoteCallback callback);
+
 #endif /* INCLUDE_DART_API_H_ */ /* NOLINT */

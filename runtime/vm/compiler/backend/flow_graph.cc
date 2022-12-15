@@ -2053,7 +2053,16 @@ class PhiUnboxingHeuristic : public ValueObject {
     switch (phi->Type()->ToCid()) {
       case kDoubleCid:
         if (CanUnboxDouble()) {
-          unboxed = kUnboxedDouble;
+          // Could be UnboxedDouble or UnboxedFloat
+          unboxed = DetermineIfAnyIncomingUnboxedFloats(phi) ? kUnboxedFloat
+                                                             : kUnboxedDouble;
+#if defined(DEBUG)
+          if (unboxed == kUnboxedFloat) {
+            for (auto input : phi->inputs()) {
+              ASSERT(input->representation() != kUnboxedDouble);
+            }
+          }
+#endif
         }
         break;
       case kFloat32x4Cid:
@@ -2117,10 +2126,10 @@ class PhiUnboxingHeuristic : public ValueObject {
       // unboxed operation prefer to keep it unboxed.
       // We use this heuristic instead of eagerly unboxing all the phis
       // because we are concerned about the code size and register pressure.
-      const bool has_unboxed_incomming_value = HasUnboxedIncommingValue(phi);
+      const bool has_unboxed_incoming_value = HasUnboxedIncomingValue(phi);
       const bool flows_into_unboxed_use = FlowsIntoUnboxedUse(phi);
 
-      if (has_unboxed_incomming_value && flows_into_unboxed_use) {
+      if (has_unboxed_incoming_value && flows_into_unboxed_use) {
         unboxed =
             RangeUtils::Fits(phi->range(), RangeBoundary::kRangeBoundaryInt32)
                 ? kUnboxedInt32
@@ -2133,10 +2142,30 @@ class PhiUnboxingHeuristic : public ValueObject {
   }
 
  private:
+  // Returns [true] if there are UnboxedFloats representation flowing into
+  // the |phi|.
+  // This function looks through phis.
+  bool DetermineIfAnyIncomingUnboxedFloats(PhiInstr* phi) {
+    worklist_.Clear();
+    worklist_.Add(phi);
+    for (intptr_t i = 0; i < worklist_.definitions().length(); i++) {
+      const auto defn = worklist_.definitions()[i];
+      for (auto input : defn->inputs()) {
+        if (input->representation() == kUnboxedFloat) {
+          return true;
+        }
+        if (input->IsPhi()) {
+          worklist_.Add(input);
+        }
+      }
+    }
+    return false;
+  }
+
   // Returns |true| iff there is an unboxed definition among all potential
   // definitions that can flow into the |phi|.
   // This function looks through phis.
-  bool HasUnboxedIncommingValue(PhiInstr* phi) {
+  bool HasUnboxedIncomingValue(PhiInstr* phi) {
     worklist_.Clear();
     worklist_.Add(phi);
     for (intptr_t i = 0; i < worklist_.definitions().length(); i++) {
