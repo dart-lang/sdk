@@ -8,8 +8,6 @@
 // The way this happens is that the type parameter is "fixed" after the downward
 // inference phase and is not changed in further inference phases.
 
-// SharedOptions=--enable-experiment=inference-update-1
-
 import '../static_type_helper.dart';
 
 testProductOfNums(List<num> values) {

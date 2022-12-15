@@ -54,7 +54,7 @@ class ExperimentalFlag {
       const ExperimentalFlag(
           name: 'alternative-invalidation-strategy',
           isEnabledByDefault: true,
-          isExpired: false,
+          isExpired: true,
           enabledVersion: const Version(2, 18),
           experimentEnabledVersion: const Version(2, 18),
           experimentReleasedVersion: const Version(2, 18));
@@ -126,7 +126,7 @@ class ExperimentalFlag {
   static const ExperimentalFlag inferenceUpdate1 = const ExperimentalFlag(
       name: 'inference-update-1',
       isEnabledByDefault: true,
-      isExpired: false,
+      isExpired: true,
       enabledVersion: const Version(2, 18),
       experimentEnabledVersion: const Version(2, 18),
       experimentReleasedVersion: const Version(2, 18));
