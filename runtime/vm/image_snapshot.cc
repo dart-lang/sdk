@@ -640,6 +640,7 @@ const char* ImageWriter::SectionSymbol(ProgramSection section, bool vm) {
     case ProgramSection::BuildId:
       return kSnapshotBuildIdAsmSymbol;
   }
+  UNREACHABLE();
   return nullptr;
 }
 
