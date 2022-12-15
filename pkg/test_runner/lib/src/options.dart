@@ -107,7 +107,7 @@ none:             No runtime, compile only.''')
     ..addMultiOption('arch',
         abbr: 'a',
         allowed: ['all', ...Architecture.names],
-        defaultsTo: [Architecture.x64.name],
+        defaultsTo: [Architecture.host.name],
         hide: true,
         help: '''The architecture to run tests for.
 
@@ -935,7 +935,7 @@ void findConfigurations(Map<String, dynamic> options) {
   var architectureOption = options['arch'] as List<String>;
   var architectures = [
     if (architectureOption.isEmpty)
-      Architecture.x64
+      Architecture.host
     else if (!architectureOption.contains('all'))
       ...architectureOption.map(Architecture.find)
   ];

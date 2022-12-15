@@ -622,6 +622,45 @@ class Architecture extends NamedEnum {
   }
 
   const Architecture._(String name) : super(name);
+
+  static final Architecture host = _computeHost();
+  static Architecture _computeHost() {
+    String? arch;
+    if (Platform.isWindows) {
+      arch = Platform.environment["PROCESSOR_ARCHITECTURE"];
+    } else {
+      arch = (Process.runSync("uname", ["-m"]).stdout as String).trim();
+    }
+
+    switch (arch) {
+      case "i386":
+      case "i686":
+      case "ia32":
+      case "x86":
+      case "X86":
+        return ia32;
+      case "x64":
+      case "x86-64":
+      case "x86_64":
+      case "amd64":
+      case "AMD64":
+        return x64;
+      case "armv7l":
+      case "ARM":
+        return arm;
+      case "aarch64":
+      case "arm64":
+      case "arm64e":
+      case "ARM64":
+        return arm64;
+      case "riscv32":
+        return riscv32;
+      case "riscv64":
+        return riscv64;
+    }
+
+    throw "Unknown host architecture: $arch";
+  }
 }
 
 class Compiler extends NamedEnum {
