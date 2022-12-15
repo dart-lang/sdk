@@ -62,8 +62,8 @@ class D {
 }
 
 test_guarded_length() {
-  var a = new D(new List(5), new Uint8List(5));
-  var b = new D.named(new List(5), new Uint8List(5));
+  var a = new D(new List.filled(5, null), new Uint8List(5));
+  var b = new D.named(new List.filled(5, null), new Uint8List(5));
   Expect.equals(5, a.f.length);
   Expect.equals(5, b.f.length);
   Expect.equals(5, a.g.length);

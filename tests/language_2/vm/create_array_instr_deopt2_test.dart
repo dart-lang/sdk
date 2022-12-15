@@ -6,7 +6,7 @@
 // @dart = 2.9
 
 foo(n) {
-  return new List(n);
+  return new List.filled(n, null);
 }
 
 @pragma('vm:never-inline')

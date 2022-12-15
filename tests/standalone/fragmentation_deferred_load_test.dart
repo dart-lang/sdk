@@ -26,8 +26,8 @@ main() async {
   final List<List?> arrays = [];
   // Fill up heap with alternate large-small items.
   for (int i = 0; i < 500000; i++) {
-    arrays.add(new List<dynamic>.filled(260, null));
-    arrays.add(new List<dynamic>.filled(1, null));
+    arrays.add(new List.filled(260, null));
+    arrays.add(new List.filled(1, null));
   }
   // Clear the large items so that the heap is full of 260-word gaps.
   for (int i = 0; i < arrays.length; i += 2) {
@@ -35,6 +35,6 @@ main() async {
   }
   // Allocate a lot of 300-word objects that don't fit in the gaps.
   for (int i = 0; i < 600000; i++) {
-    arrays.add(new List<dynamic>.filled(300, null));
+    arrays.add(new List.filled(300, null));
   }
 }

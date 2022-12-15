@@ -62,7 +62,7 @@ class Task {
   dynamic action;
 }
 
-var queue = new List<Task>();
+var queue = <Task>[];
 
 checkMethod(MethodMirror m, ObjectMirror target, [origin]) {
   if (isDenylisted(m.qualifiedName)) return;
@@ -159,7 +159,7 @@ main() {
   fuzzArgument = 1; // //# smi: ok
   fuzzArgument = false; // //# false: ok
   fuzzArgument = 'string'; // //# string: ok
-  fuzzArgument = new List(0); // //# emptyarray: ok
+  fuzzArgument = new List.filled(0, null); // //# emptyarray: ok
 
   print('Fuzzing with $fuzzArgument');
 

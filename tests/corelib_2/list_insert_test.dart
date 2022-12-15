@@ -48,7 +48,7 @@ void main() {
   testModifiableList(new MyList([0, 1, 2, 3, 4]));
 
   // Fixed size list.
-  var l2 = new List(5);
+  var l2 = new List<dynamic>.filled(5, null);
   for (var i = 0; i < 5; i++) l2[i] = i;
   Expect.throwsUnsupportedError(() => l2.insert(2, 5), "fixed-length");
 

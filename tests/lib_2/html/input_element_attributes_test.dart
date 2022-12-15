@@ -4,7 +4,7 @@ import 'dart:html';
 
 import 'package:expect/minitest.dart';
 
-dynamic _undefined = (() => new List(5)[0])();
+dynamic _undefined = (() => new List.filled(5, null)[0])();
 
 main() {
   test('valueSetNull', () {

@@ -169,7 +169,7 @@ class Z extends Base {
 }
 
 allocateObjects() {
-  var list = new List();
+  var list = [];
   list.add(new A());
   list.add(new B());
   list.add(new C());

@@ -18,7 +18,7 @@ bar(List<int> x) => 1 + x[0];
 baz(List<int> x) => x[0] + 2;
 
 main() {
-  var x = new List<int>(2);
+  var x = new List<int>.filled(2, null);
 
   // Only first is null.
   x[0] = null;

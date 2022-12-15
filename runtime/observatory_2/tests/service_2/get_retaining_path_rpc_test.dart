@@ -27,7 +27,7 @@ Expando<_TestClass> expando = Expando<_TestClass>();
 @pragma("vm:entry-point") // Prevent obfuscation
 var globalObject = new _TestClass();
 @pragma("vm:entry-point") // Prevent obfuscation
-var globalList = new List(100);
+var globalList = new List<dynamic>.filled(100, null);
 @pragma("vm:entry-point") // Prevent obfuscation
 var globalMap1 = new Map();
 @pragma("vm:entry-point") // Prevent obfuscation

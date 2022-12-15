@@ -25,7 +25,7 @@ main() {
   test("", iter(0));
   test("", <int>[]);
   test("", const <int>[]);
-  test("", new List<int>(0));
+  test("", new List<int>.filled(0, null));
   test("", new Uint8List(0));
   test("", new Uint16List(0));
   test("", new Uint32List(0));
@@ -34,7 +34,7 @@ main() {
   test("\x00", iter(1, 0));
   test("\x00", [0]);
   test("\x00", const [0]);
-  test("\x00", new List<int>(1)..[0] = 0);
+  test("\x00", new List<int>.filled(1, null)..[0] = 0);
   test("\x00", new Uint8List(1));
   test("\x00", new Uint16List(1));
   test("\x00", new Uint32List(1));
@@ -43,7 +43,7 @@ main() {
   test("\xff", iter(1, 255));
   test("\xFF", [255]);
   test("\xFF", const [255]);
-  test("\xFF", new List<int>(1)..[0] = 255);
+  test("\xFF", new List<int>.filled(1, null)..[0] = 255);
   test("\xFF", new Uint8List(1)..[0] = 255);
   test("\xFF", new Uint16List(1)..[0] = 255);
   test("\xFF", new Uint32List(1)..[0] = 255);
@@ -52,7 +52,7 @@ main() {
   test("\u0100", iter(1, 256));
   test("\u0100", [256]);
   test("\u0100", const [256]);
-  test("\u0100", new List<int>(1)..[0] = 256);
+  test("\u0100", new List<int>.filled(1, null)..[0] = 256);
   test("\u0100", new Uint16List(1)..[0] = 256);
   test("\u0100", new Uint32List(1)..[0] = 256);
   test("\u0100", "\u0100".codeUnits);
@@ -60,7 +60,7 @@ main() {
   test("\uffff", iter(1, 65535));
   test("\uffff", [65535]);
   test("\uffff", const [65535]);
-  test("\uffff", new List<int>(1)..[0] = 65535);
+  test("\uffff", new List<int>.filled(1, null)..[0] = 65535);
   test("\uffff", new Uint16List(1)..[0] = 65535);
   test("\uffff", new Uint32List(1)..[0] = 65535);
   test("\uffff", "\uffff".codeUnits);
@@ -68,14 +68,14 @@ main() {
   test("\u{10000}", iter(1, 65536));
   test("\u{10000}", [65536]);
   test("\u{10000}", const [65536]);
-  test("\u{10000}", new List<int>(1)..[0] = 65536);
+  test("\u{10000}", new List<int>.filled(1, null)..[0] = 65536);
   test("\u{10000}", new Uint32List(1)..[0] = 65536);
   test("\u{10000}", "\u{10000}".codeUnits);
 
   test("\u{10FFFF}", iter(1, 0x10FFFF));
   test("\u{10FFFF}", [0x10FFFF]);
   test("\u{10FFFF}", const [0x10FFFF]);
-  test("\u{10FFFF}", new List<int>(1)..[0] = 0x10FFFF);
+  test("\u{10FFFF}", new List<int>.filled(1, null)..[0] = 0x10FFFF);
   test("\u{10FFFF}", new Uint32List(1)..[0] = 0x10FFFF);
 
   test("\u{10ffff}", iter(2, [0xDBFF, 0xDFFF]));
@@ -83,7 +83,7 @@ main() {
   test("\u{10ffff}", const [0xDBFF, 0xDFFF]);
   test(
       "\u{10ffff}",
-      new List<int>(2)
+      new List<int>.filled(2, null)
         ..[0] = 0xDBFF
         ..[1] = 0xDFFF);
   test(
@@ -102,7 +102,7 @@ main() {
   test(leadSurrogate, iter(1, 0xDBFF));
   test(leadSurrogate, [0xDBFF]);
   test(leadSurrogate, const [0xDBFF]);
-  test(leadSurrogate, new List<int>(1)..[0] = 0xDBFF);
+  test(leadSurrogate, new List<int>.filled(1, null)..[0] = 0xDBFF);
   test(leadSurrogate, new Uint16List(1)..[0] = 0xDBFF);
   test(leadSurrogate, new Uint32List(1)..[0] = 0xDBFF);
   test(leadSurrogate, leadSurrogate.codeUnits);
@@ -111,7 +111,7 @@ main() {
   test(tailSurrogate, iter(1, 0xDFFF));
   test(tailSurrogate, [0xDFFF]);
   test(tailSurrogate, const [0xDFFF]);
-  test(tailSurrogate, new List<int>(1)..[0] = 0xDFFF);
+  test(tailSurrogate, new List<int>.filled(1, null)..[0] = 0xDFFF);
   test(tailSurrogate, new Uint16List(1)..[0] = 0xDFFF);
   test(tailSurrogate, new Uint32List(1)..[0] = 0xDFFF);
   test(tailSurrogate, tailSurrogate.codeUnits);
@@ -120,13 +120,13 @@ main() {
   testThrows("not an iterable");
   testThrows(42);
   testThrows([-1]);
-  testThrows(new List<int>(1)..[0] = -1);
+  testThrows(new List<int>.filled(1, null)..[0] = -1);
   testThrows(const [-1]);
   testThrows(new Int8List(1)..[0] = -1);
   testThrows(new Int16List(1)..[0] = -1);
   testThrows(new Int32List(1)..[0] = -1);
   testThrows([0x110000]);
-  testThrows(new List<int>(1)..[0] = 0x110000);
+  testThrows(new List<int>.filled(1, null)..[0] = 0x110000);
   testThrows(const [0x110000]);
   testThrows(new Int32List(1)..[0] = 0x110000);
 

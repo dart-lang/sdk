@@ -14,7 +14,7 @@ main() {
       predicate((x) => x is svg.SvgSvgElement, 'is a SvgSvgElement');
 
   List<String> _nodeStrings(Iterable<Node> input) {
-    final out = new List<String>();
+    final out = <String>[];
     for (Node n in input) {
       if (n is Element) {
         Element e = n;

@@ -172,7 +172,7 @@ class RestrictViewPriorityQueue<N extends TypedElement, P extends Priority> {
   // FIFO for items with the same order. This is currently not optimized for
   // different N, if many different N is expected here we should have a
   // priority queue instead of a list.
-  List<PriorityQueue<N, P>> restrictedQueues = new List<PriorityQueue<N, P>>();
+  List<PriorityQueue<N, P>> restrictedQueues = <PriorityQueue<N, P>>[];
   PriorityQueue<N, P> mainQueue = new PriorityQueue<N, P>();
 
   void add(N value, P priority) {

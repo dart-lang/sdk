@@ -25,7 +25,7 @@ void checkFileEmpty(String fileName) {
 void checkFileContent(String fileName, String content) {
   RandomAccessFile pipeOut = new File(fileName).openSync();
   int length = pipeOut.lengthSync();
-  var data = new List<int>(length);
+  var data = new List<int>.filled(length, null);
   pipeOut.readIntoSync(data, 0, length);
   Expect.equals(content, new String.fromCharCodes(data));
   pipeOut.closeSync();

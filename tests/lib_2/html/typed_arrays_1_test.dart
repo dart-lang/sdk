@@ -57,7 +57,7 @@ main() {
 
     // Generic type checking is not available in dart2js, so use this check to
     // see if we should check for it.
-    var supportsTypeTest = !(new List<String>() is List<int>);
+    var supportsTypeTest = !(<String>[] is List<int>);
 
     if (supportsTypeTest) {
       test('typeTests', () {

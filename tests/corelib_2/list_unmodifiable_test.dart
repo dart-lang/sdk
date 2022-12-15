@@ -230,13 +230,13 @@ List<int> createConstList(int n) {
 }
 
 List<int> createFixedList(int n) {
-  var result = new List<int>(n);
+  var result = new List<int>.filled(n, null);
   for (int i = 0; i < n; i++) result[i] = n;
   return result;
 }
 
 List<int> createGrowableList(int n) {
-  var result = new List<int>()..length = n;
+  var result = <int>[]..length = n;
   for (int i = 0; i < n; i++) result[i] = n;
   return result;
 }

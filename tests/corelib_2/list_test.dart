@@ -24,17 +24,17 @@ void main() {
   testTypedList(new Int32List(4).toList(growable: false));
 
   // Fixed length lists, length 4.
-  testFixedLengthList(<T>() => new List(4));
-  testFixedLengthList(<T>() => new List<T>(4).toList(growable: false));
-  testFixedLengthList(<T>() => (new List<T>()..length = 4).toList(growable: false));
+  testFixedLengthList(<T>() => new List.filled(4, null));
+  testFixedLengthList(<T>() => new List<T>.filled(4, null).toList(growable: false));
+  testFixedLengthList(<T>() => (<T>[]..length = 4).toList(growable: false));
   // ListBase implementation of List.
-  testFixedLengthList(<T>() => new MyFixedList(new List(4)));
-  testFixedLengthList(<T>() => new MyFixedList<T>(new List(4)).toList(growable: false));
+  testFixedLengthList(<T>() => new MyFixedList(new List.filled(4, null)));
+  testFixedLengthList(<T>() => new MyFixedList<T>(new List.filled(4, null)).toList(growable: false));
 
   // Growable lists. Initial length 0.
-  testGrowableList(<T>() => new List());
-  testGrowableList(<T>() => new List<T>().toList());
-  testGrowableList(<T>() => new List<T>(0).toList());
+  testGrowableList(<T>() => []);
+  testGrowableList(<T>() => <T>[].toList());
+  testGrowableList(<T>() => new List<T>.filled(0, null).toList());
   testGrowableList(<T>() => new List.filled(0, null, growable: true));
   testGrowableList(<T>() => []);
   testGrowableList(<T>() => new List.from(const []));
@@ -120,7 +120,7 @@ void testErrors() {
 
   // Empty lists.
   testRangeErrors([], "list");
-  testRangeErrors(new List(0), "fixed-list");
+  testRangeErrors(new List.filled(0, null), "fixed-list");
   testRangeErrors(const [], "const-list");
   testRangeErrors(new List.unmodifiable([]), "unmodifiable");
   testRangeErrors(new Uint8List(0), "typed-list");
@@ -128,7 +128,7 @@ void testErrors() {
   testRangeErrors([1, 2, 3].sublist(1, 1), "sub-list");
   // Non-empty lists.
   testRangeErrors([1, 2, 3], "list");
-  testRangeErrors(new List(3), "fixed-list");
+  testRangeErrors(new List.filled(3, null), "fixed-list");
   testRangeErrors(const [1, 2, 3], "const-list");
   testRangeErrors(new List.unmodifiable([1, 2, 3]), "unmodifiable");
   testRangeErrors(new Uint8List(3), "typed-list");
@@ -570,15 +570,15 @@ class MyFixedList<E> extends ListBase<E> {
 
 void testListConstructor() {
   // Is fixed-length.
-  Expect.throws(() => new List(0).add(4));
-  Expect.throws(() => new List(-2));  // Not negative. //# 01: ok
+  Expect.throws(() => new List<dynamic>.filled(0, null).add(4));
+  Expect.throws(() => new List<dynamic>.filled(-2, null));  // Not negative. //# 01: ok
   // Not null.
-  Expect.throws(() => new List(null));
-  Expect.listEquals([4], new List()..add(4));
+  Expect.throws(() => new List<dynamic>.filled(null, null));
+  Expect.listEquals([4], []..add(4));
   // Is fixed-length.
-  Expect.throws(() => new List.filled(0, 42).add(4));
+  Expect.throws(() => new List<dynamic>.filled(0, 42).add(4));
   // Not negative.
-  Expect.throws(() => new List.filled(-2, 42));
+  Expect.throws(() => new List<dynamic>.filled(-2, 42));
   // Not null.
-  Expect.throws(() => new List.filled(null, 42));
+  Expect.throws(() => new List<dynamic>.filled(null, 42));
 }

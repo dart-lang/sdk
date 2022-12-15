@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 
 class StringJoinTest {
   static testMain() {
-    List<String> ga = new List<String>();
+    List<String> ga = <String>[];
     ga.add("a");
     ga.add("b");
     Expect.equals("ab", ga.join());

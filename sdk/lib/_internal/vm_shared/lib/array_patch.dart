@@ -13,11 +13,6 @@ class List<E> {
   }
 
   @patch
-  @pragma("vm:recognized", "other")
-  @pragma("vm:external-name", "List_new")
-  external factory List([int? length]);
-
-  @patch
   factory List.filled(int length, E fill, {bool growable = false}) {
     // All error handling on the length parameter is done at the implementation
     // of new _List.

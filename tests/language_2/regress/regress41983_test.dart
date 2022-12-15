@@ -7,7 +7,7 @@
 import "package:expect/expect.dart";
 
 main() {
-  List<int> ints = new List<int>()
+  List<int> ints = <int>[]
     ..add(0)
     ..add(1)
     ..add(2)

@@ -74,7 +74,7 @@ test6(a, M, N) {
 
 main() {
   var a = const [0, 1, 2, 3, 4, 5, 6, 7];
-  var b = new List(a.length);
+  var b = new List<dynamic>.filled(a.length, null);
   for (var i = 0; i < 10000; i++) {
     Expect.equals(a.last, test1(a, 0, 1, a.length));
     Expect.equals(a.last, test2(a, b));
@@ -86,6 +86,6 @@ main() {
 
   test1(a, 0, 2, a.length ~/ 2);
   Expect.throws(() => test1(a, 1, 1, a.length));
-  Expect.throws(() => test2(a, new List(a.length - 1)));
+  Expect.throws(() => test2(a, new List<dynamic>.filled(a.length - 1, null)));
   Expect.throws(() => test6(a, 4, 3));
 }

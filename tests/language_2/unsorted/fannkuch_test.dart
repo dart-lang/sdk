@@ -12,7 +12,9 @@ import "package:expect/expect.dart";
 
 class FannkuchTest {
   static fannkuch(n) {
-    var p = new List(n), q = new List(n), s = new List(n);
+    var p = new List<dynamic>.filled(n, null),
+        q = new List<dynamic>.filled(n, null),
+        s = new List<dynamic>.filled(n, null);
     var sign = 1, maxflips = 0, sum = 0, m = n - 1;
     for (var i = 0; i < n; i++) {
       p[i] = i;

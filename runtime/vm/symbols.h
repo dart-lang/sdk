@@ -47,7 +47,6 @@ class ObjectPointerVisitor;
   V(ContextScope, "ContextScope")                                              \
   V(Current, "current")                                                        \
   V(CurrentContextVar, ":current_context_var")                                 \
-  V(CyclicInitializationError, "CyclicInitializationError")                    \
   V(DartAsync, "dart:async")                                                   \
   V(DartCollection, "dart:collection")                                         \
   V(DartCore, "dart:core")                                                     \
@@ -284,6 +283,7 @@ class ObjectPointerVisitor;
   V(_ConstMap, "_ConstMap")                                                    \
   V(_ConstSet, "_ConstSet")                                                    \
   V(_ControllerSubscription, "_ControllerSubscription")                        \
+  V(_CyclicInitializationError, "_CyclicInitializationError")                  \
   V(_DeletedEnumPrefix, "Deleted enum value from ")                            \
   V(_DeletedEnumSentinel, "_deleted_enum_sentinel")                            \
   V(_Double, "_Double")                                                        \

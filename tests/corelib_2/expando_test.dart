@@ -16,7 +16,7 @@ class ExpandoTest {
     visits = new Expando<int>('visits');
     var legal = [
       new Object(),
-      new List(),
+      [],
       [1, 2, 3],
       const [1, 2, 3],
       new Map(),

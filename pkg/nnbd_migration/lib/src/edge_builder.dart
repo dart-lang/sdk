@@ -2773,7 +2773,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       ClassElement classElement,
       Element overriddenElement) {
     overriddenElement = overriddenElement.declaration!;
-    var overriddenClass = overriddenElement.enclosingElement as ClassElement;
+    var overriddenClass =
+        overriddenElement.enclosingElement as InterfaceElement;
     var decoratedSupertype = _decoratedClassHierarchy!
         .getDecoratedSupertype(classElement, overriddenClass);
     var substitution = decoratedSupertype.asSubstitution;

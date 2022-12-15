@@ -6,12 +6,12 @@
 main() {
   var div;
   for (int i = 0; i < 200; ++i) {
-    List l = new List(1000000);
+    List l = new List.filled(1000000, null);
     var m = 2;
     div = (_) {
       var b = l; // Was causing OutOfMemory.
     };
-    var lSmall = new List(3);
+    var lSmall = new List.filled(3, null);
     // Circular reference between new and old gen objects.
     lSmall[0] = l;
     l[0] = lSmall;
