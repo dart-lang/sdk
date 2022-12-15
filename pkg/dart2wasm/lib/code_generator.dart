@@ -2344,6 +2344,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitStringConcatenation(
       StringConcatenation node, w.ValueType expectedType) {
+    if (node.expressions.every((expr) => expr is StringLiteral)) {
+      StringBuffer result = StringBuffer();
+      for (final expr in node.expressions) {
+        result.write((expr as StringLiteral).value);
+      }
+      final expr = StringLiteral(result.toString());
+      return visitStringLiteral(expr, expectedType);
+    }
+
     makeListFromExpressions(node.expressions,
         InterfaceType(translator.stringBaseClass, Nullability.nonNullable));
     return call(translator.stringInterpolate.reference);
