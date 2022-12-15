@@ -2012,14 +2012,10 @@ class DartLib {
         true),
     DartLib('toLowerCase', [DartType.STRING, DartType.VOID], true),
     DartLib('toRadixString', [DartType.INT, DartType.INT], true),
-    DartLib('toString',
-        [DartType.ABSTRACTCLASSINSTANTIATIONERROR, DartType.VOID], true),
     DartLib('toString', [DartType.ARGUMENTERROR, DartType.VOID], true),
     DartLib('toString', [DartType.BOOL, DartType.VOID], true),
     DartLib('toString', [DartType.CONCURRENTMODIFICATIONERROR, DartType.VOID],
         true),
-    DartLib(
-        'toString', [DartType.CYCLICINITIALIZATIONERROR, DartType.VOID], true),
     DartLib('toString', [DartType.DEPRECATED, DartType.VOID], true),
     DartLib('toString', [DartType.DOUBLE, DartType.VOID], true),
     DartLib('toString', [DartType.DOUBLE, DartType.VOID], true),
@@ -2085,14 +2081,10 @@ class DartLib {
         true),
     DartLib('toLowerCase', [DartType.STRING, DartType.VOID], true),
     DartLib('toRadixString', [DartType.INT, DartType.INT], true),
-    DartLib('toString',
-        [DartType.ABSTRACTCLASSINSTANTIATIONERROR, DartType.VOID], true),
     DartLib('toString', [DartType.ARGUMENTERROR, DartType.VOID], true),
     DartLib('toString', [DartType.BOOL, DartType.VOID], true),
     DartLib('toString', [DartType.CONCURRENTMODIFICATIONERROR, DartType.VOID],
         true),
-    DartLib(
-        'toString', [DartType.CYCLICINITIALIZATIONERROR, DartType.VOID], true),
     DartLib('toString', [DartType.DEPRECATED, DartType.VOID], true),
     DartLib('toString', [DartType.DOUBLE, DartType.VOID], true),
     DartLib('toString', [DartType.DOUBLE, DartType.VOID], true),
@@ -2118,8 +2110,6 @@ class DartLib {
     DartLib('trim', [DartType.STRING, DartType.VOID], true),
     DartLib('trimLeft', [DartType.STRING, DartType.VOID], true),
     DartLib('trimRight', [DartType.STRING, DartType.VOID], true),
-    DartLib('variableName', [DartType.CYCLICINITIALIZATIONERROR, DartType.VOID],
-        false),
   ];
   static const symbolLibs = [
     DartLib('Symbol.empty', [DartType.VOID, DartType.VOID], false),

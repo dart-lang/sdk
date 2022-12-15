@@ -51,7 +51,6 @@ const byteDataEncoding = 'DartType.BYTEDATA';
 const castErrorEncoding = 'DartType.CASTERROR';
 const concurrentModificationErrorEncoding =
     'DartType.CONCURRENTMODIFICATIONERROR';
-const cyclicInitializationErrorEncoding = 'DartType.CYCLICINITIALIZATIONERROR';
 const deprecatedEncoding = 'DartType.DEPRECATED';
 const doubleEncoding = 'DartType.DOUBLE';
 const endianEncoding = 'DartType.ENDIAN';
@@ -113,7 +112,6 @@ final boolLibs = 'boolLibs';
 final byteDataLibs = 'byteDataLibs';
 final castErrorLibs = 'castErrorLibs';
 final concurrentModificationErrorLibs = 'concurrentModificationErrorLibs';
-final cyclicInitializationErrorLibs = 'cyclicInitializationErrorLibs';
 final deprecatedLibs = 'deprecatedLibs';
 final doubleLibs = 'doubleLibs';
 final endianLibs = 'endianLibs';
@@ -176,7 +174,6 @@ final Map<String, String> typeToLibraryMethodsListName = () {
     byteDataEncoding: byteDataLibs,
     castErrorEncoding: castErrorLibs,
     concurrentModificationErrorEncoding: concurrentModificationErrorLibs,
-    cyclicInitializationErrorEncoding: cyclicInitializationErrorLibs,
     deprecatedEncoding: deprecatedLibs,
     doubleEncoding: doubleLibs,
     endianEncoding: endianLibs,
@@ -247,7 +244,6 @@ final Map<String, List<DartLib>> typeToLibraryMethodsList = () {
     byteDataEncoding,
     castErrorEncoding,
     concurrentModificationErrorEncoding,
-    cyclicInitializationErrorEncoding,
     deprecatedEncoding,
     doubleEncoding,
     endianEncoding,
@@ -493,8 +489,6 @@ String typeStringHelper(DartType type) {
       return castErrorEncoding;
     case 'ConcurrentModificationError':
       return concurrentModificationErrorEncoding;
-    case 'CyclicInitializationError':
-      return cyclicInitializationErrorEncoding;
     case 'Deprecated':
       return deprecatedEncoding;
     case 'E':

@@ -643,23 +643,3 @@ class StackOverflowError implements Error {
 
   StackTrace? get stackTrace => null;
 }
-
-/// Error thrown when a lazily initialized variable cannot be initialized.
-///
-/// Cyclic dependencies are no longer detected at runtime in null safe code.
-/// Such code will fail in other ways instead,
-/// possibly with a [StackOverflowError].
-///
-/// Will be removed when support for non-null-safe code is discontinued.
-@Deprecated("Use Error instead")
-class CyclicInitializationError extends Error {
-  final String? variableName;
-  @pragma("vm:entry-point")
-  CyclicInitializationError([this.variableName]);
-  String toString() {
-    var variableName = this.variableName;
-    return variableName == null
-        ? "Reading static variable during its initialization"
-        : "Reading static variable '$variableName' during its initialization";
-  }
-}
