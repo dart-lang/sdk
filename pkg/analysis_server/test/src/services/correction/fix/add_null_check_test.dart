@@ -13,7 +13,122 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AddNullCheckTest);
+    defineReflectiveTests(AddNullCheckReplaceWithNullAwareTest);
   });
+}
+
+@reflectiveTest
+class AddNullCheckReplaceWithNullAwareTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
+
+  Future<void> test_cascade() async {
+    await resolveTestCode('''
+void g(int i) {}
+void f(int? i) {
+  g(i?..sign);
+}
+''');
+    await assertHasFix('''
+void g(int i) {}
+void f(int? i) {
+  g(i!..sign);
+}
+''');
+  }
+
+  Future<void> test_indexExpression() async {
+    await resolveTestCode('''
+void f(List<int>? l) {
+  l?[0] + 1;
+}
+''');
+    await assertHasFix('''
+void f(List<int>? l) {
+  l![0] + 1;
+}
+''', matchFixMessage: "Replace the '?' with a '!' in the invocation");
+  }
+
+  Future<void> test_indexExpression_notLast() async {
+    await resolveTestCode('''
+void f(List<int>? l) {
+  l?[0].sign + 1;
+}
+''');
+    await assertHasFix('''
+void f(List<int>? l) {
+  l![0].sign + 1;
+}
+''');
+  }
+
+  Future<void> test_methodInvocation() async {
+    await resolveTestCode('''
+void f(String? s) {
+  s?.toString() + '';
+}
+''');
+    await assertHasFix('''
+void f(String? s) {
+  s!.toString() + '';
+}
+''');
+  }
+
+  Future<void> test_methodInvocation_notLast() async {
+    await resolveTestCode('''
+void f(String? s) {
+  s?.toString().toString() + '';
+}
+''');
+    await assertHasFix('''
+void f(String? s) {
+  s!.toString().toString() + '';
+}
+''');
+  }
+
+  Future<void> test_propertyAccess() async {
+    await resolveTestCode('''
+void f(String? s) {
+  s?.length > 1;
+}
+''');
+    await assertHasFix('''
+void f(String? s) {
+  s!.length > 1;
+}
+''');
+  }
+
+  Future<void> test_propertyAccess_coveredNode() async {
+    await resolveTestCode('''
+void g(int i) {}
+void f(int? i) {
+  g(i?.sign);
+}
+''');
+    await assertHasFix('''
+void g(int i) {}
+void f(int? i) {
+  g(i!.sign);
+}
+''');
+  }
+
+  Future<void> test_propertyAccess_notLast() async {
+    await resolveTestCode('''
+void f(String? s) {
+  s?.length.sign > 1;
+}
+''');
+    await assertHasFix('''
+void f(String? s) {
+  s!.length.sign > 1;
+}
+''');
+  }
 }
 
 @reflectiveTest
