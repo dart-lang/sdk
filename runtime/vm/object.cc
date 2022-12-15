@@ -26508,6 +26508,14 @@ const char* StackTrace::ToCString() const {
   NoSafepointScope no_allocation;
   GrowableArray<const Function*> inlined_functions;
   GrowableArray<TokenPosition> inlined_token_positions;
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  GrowableArray<void*> addresses(10);
+  const bool have_footnote_callback =
+      FLAG_dwarf_stack_traces_mode &&
+      Dart::dwarf_stacktrace_footnote_callback() != nullptr;
+#endif
+
   ZoneTextBuffer buffer(zone, 1024);
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -26635,6 +26643,10 @@ const char* StackTrace::ToCString() const {
       const uword call_addr = is_future_listener ? pc : pc - 1;
 
       if (FLAG_dwarf_stack_traces_mode) {
+        if (have_footnote_callback) {
+          addresses.Add(reinterpret_cast<void*>(call_addr));
+        }
+
         // This output is formatted like Android's debuggerd. Note debuggerd
         // prints call addresses instead of return addresses.
         buffer.Printf("    #%02" Pd " abs %" Pp "", frame_index, call_addr);
@@ -26689,6 +26701,17 @@ const char* StackTrace::ToCString() const {
                      : 0;
     stack_trace = stack_trace.async_link();
   } while (!stack_trace.IsNull());
+
+#if defined(DART_PRECOMPILED_RUNTIME)
+  if (have_footnote_callback) {
+    char* footnote = Dart::dwarf_stacktrace_footnote_callback()(
+        &addresses[0], addresses.length());
+    if (footnote != nullptr) {
+      buffer.AddString(footnote);
+      free(footnote);
+    }
+  }
+#endif
 
   return buffer.buffer();
 }

@@ -69,6 +69,8 @@ Dart_FileWriteCallback Dart::file_write_callback_ = NULL;
 Dart_FileCloseCallback Dart::file_close_callback_ = NULL;
 Dart_EntropySource Dart::entropy_source_callback_ = NULL;
 Dart_GCEventCallback Dart::gc_event_callback_ = nullptr;
+Dart_DwarfStackTraceFootnoteCallback Dart::dwarf_stacktrace_footnote_callback_ =
+    nullptr;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
