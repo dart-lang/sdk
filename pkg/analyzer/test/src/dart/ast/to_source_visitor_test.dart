@@ -437,6 +437,16 @@ macro class A {}
     );
   }
 
+  void test_visitClassDeclaration_mixin() {
+    var findNode = _parseStringToFindNode(r'''
+mixin class A {}
+''');
+    _assertSource(
+      'mixin class A {}',
+      findNode.classDeclaration('class A'),
+    );
+  }
+
   void test_visitClassDeclaration_multipleMember() {
     final code = 'class C {var a; var b;}';
     final findNode = _parseStringToFindNode('''
@@ -588,6 +598,16 @@ macro class A = S with M;
 $code
 ''');
     _assertSource(code, findNode.classTypeAlias(code));
+  }
+
+  void test_visitClassTypeAlias_mixin() {
+    var findNode = _parseStringToFindNode(r'''
+mixin class A = S with M;
+''');
+    _assertSource(
+      'mixin class A = S with M;',
+      findNode.classTypeAlias('class A'),
+    );
   }
 
   void test_visitClassTypeAlias_parameters_abstract() {

@@ -10,14 +10,16 @@ class ClassElementFlags {
   static const int _isAbstract = 1 << 0;
   static const int _isMacro = 1 << 1;
   static const int _isMixinApplication = 1 << 2;
-  static const int _isSealed = 1 << 3;
-  static const int _isSimplyBounded = 1 << 4;
+  static const int _isMixinClass = 1 << 3;
+  static const int _isSealed = 1 << 4;
+  static const int _isSimplyBounded = 1 << 5;
 
   static void read(SummaryDataReader reader, ClassElementImpl element) {
     var byte = reader.readByte();
     element.isAbstract = (byte & _isAbstract) != 0;
     element.isMacro = (byte & _isMacro) != 0;
     element.isMixinApplication = (byte & _isMixinApplication) != 0;
+    element.isMixinClass = (byte & _isMixinClass) != 0;
     element.isSealed = (byte & _isSealed) != 0;
     element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
   }
@@ -27,6 +29,7 @@ class ClassElementFlags {
     result |= element.isAbstract ? _isAbstract : 0;
     result |= element.isMacro ? _isMacro : 0;
     result |= element.isMixinApplication ? _isMixinApplication : 0;
+    result |= element.isMixinClass ? _isMixinClass : 0;
     result |= element.isSealed ? _isSealed : 0;
     result |= element.isSimplyBounded ? _isSimplyBounded : 0;
     sink.writeByte(result);

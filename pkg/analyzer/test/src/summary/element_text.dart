@@ -291,6 +291,7 @@ class _ElementWriter {
         _writeIf(e.isAbstract, 'abstract ');
         _writeIf(e.isMacro, 'macro ');
         _writeIf(e.isSealed, 'sealed ');
+        _writeIf(e.isMixinClass, 'mixin ');
       }
       _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
 
@@ -1086,6 +1087,11 @@ extension on ClassElement {
   bool get isMacro {
     final self = this;
     return self is ClassElementImpl && self.isMacro;
+  }
+
+  bool get isMixinClass {
+    final self = this;
+    return self is ClassElementImpl && self.isMixinClass;
   }
 
   bool get isSealed {

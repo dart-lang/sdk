@@ -194,6 +194,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.abstractKeyword, suffix: ' ');
     _visitToken(node.macroKeyword, suffix: ' ');
     _visitToken(node.sealedKeyword, suffix: ' ');
+    _visitToken(node.mixinKeyword, suffix: ' ');
     sink.write('class ');
     _visitToken(node.name);
     _visitNode(node.typeParameters);
@@ -212,6 +213,7 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.abstractKeyword, suffix: ' ');
     _visitToken(node.macroKeyword, suffix: ' ');
     _visitToken(node.sealedKeyword, suffix: ' ');
+    _visitToken(node.mixinKeyword, suffix: ' ');
     sink.write('class ');
     _visitToken(node.name);
     _visitNode(node.typeParameters);
