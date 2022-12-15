@@ -10,7 +10,7 @@
 
 import "package:expect/expect.dart";
 
-List<int> mX = new List(1);
+List<int> mX = new List.filled(1, null);
 
 @pragma('vm:never-inline')
 int foo() {
@@ -24,13 +24,13 @@ foo_store() {
 
 @pragma('vm:never-inline')
 int bar() {
-  List<int> x = new List(1);
+  List<int> x = new List.filled(1, null);
   return x[8589934591];
 }
 
 @pragma('vm:never-inline')
 bar_store() {
-  List<int> x = new List(1);
+  List<int> x = new List.filled(1, null);
   x[8589934591] = 0;
 }
 

@@ -6589,24 +6589,6 @@ TEST_CASE(DartAPI_InvokeClosure_Issue44205) {
   EXPECT_ERROR(result, "String' is not a subtype of type 'int' of 'j'");
 }
 
-TEST_CASE(DartAPI_New_Issue2971) {
-  // Issue 2971: We were unable to use Dart_New to construct an
-  // instance of List, due to problems implementing interface
-  // factories.
-  Dart_Handle core_lib = Dart_LookupLibrary(NewString("dart:core"));
-  EXPECT_VALID(core_lib);
-  Dart_Handle list_type =
-      Dart_GetNonNullableType(core_lib, NewString("List"), 0, NULL);
-  EXPECT_VALID(list_type);
-
-  const int kNumArgs = 1;
-  Dart_Handle args[kNumArgs];
-  args[0] = Dart_NewInteger(1);
-  Dart_Handle list_obj = Dart_New(list_type, Dart_Null(), kNumArgs, args);
-  EXPECT_VALID(list_obj);
-  EXPECT(Dart_IsList(list_obj));
-}
-
 TEST_CASE(DartAPI_NewListOf) {
   const char* kScriptChars =
       "String expectListOfString(List<String> o) => '${o.first}';\n"

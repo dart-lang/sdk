@@ -26,7 +26,7 @@ class EchoServerGame {
   static const FIRSTCHAR = 65;
 
   EchoServerGame.start()
-      : _buffer = new List<int>(MSGSIZE),
+      : _buffer = new List<int>.filled(MSGSIZE, null),
         _messages = 0 {
     for (int i = 0; i < MSGSIZE; i++) {
       _buffer[i] = FIRSTCHAR + i;
@@ -66,7 +66,7 @@ class EchoServerGame {
       _socket.listen(onData, onError: errorHandler, onDone: onClosed);
       _socket.add(_buffer);
       _socket.close();
-      data = new List<int>(MSGSIZE);
+      data = new List<int>.filled(MSGSIZE, null);
     }
 
     Socket.connect(TestingServer.HOST, _port).then((s) {
@@ -109,7 +109,7 @@ class EchoServer extends TestingServer {
   static const int MSGSIZE = EchoServerGame.MSGSIZE;
 
   void onConnection(Socket connection) {
-    List<int> buffer = new List<int>(MSGSIZE);
+    List<int> buffer = new List<int>.filled(MSGSIZE, null);
     int offset = 0;
 
     void dataReceived(List<int> data) {

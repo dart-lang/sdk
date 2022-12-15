@@ -4418,7 +4418,7 @@ class Code extends HeapObject implements M.Code {
   void _processDisassembly(List disassembly) {
     assert(disassembly != null);
     instructions.clear();
-    instructionsByAddressOffset = new List(endAddress - startAddress);
+    instructionsByAddressOffset = List.filled(endAddress - startAddress, null);
 
     assert((disassembly.length % 4) == 0);
     for (var i = 0; i < disassembly.length; i += 4) {

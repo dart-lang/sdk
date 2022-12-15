@@ -84,7 +84,7 @@ main() {
   // Deoptimize.
   Expect.equals(-5, doNeg2(5));
 
-  var fixed = new List(10);
+  var fixed = new List<dynamic>.filled(10, null);
   var growable = [1, 2, 3, 4, 5];
 
   for (int i = 0; i < 20; i++) {

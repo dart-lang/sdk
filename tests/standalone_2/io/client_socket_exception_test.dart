@@ -42,7 +42,7 @@ void clientSocketExceptionTest() {
       Expect.isFalse(exceptionCaught);
       Expect.isFalse(wrongExceptionCaught);
       try {
-        List<int> buffer = new List<int>(10);
+        List<int> buffer = new List<int>.filled(10, null);
         client.add(buffer);
       } on StateError catch (ex) {
         exceptionCaught = true;

@@ -55,7 +55,7 @@ class StreamProtocolTest {
   Stream _controllerStream;
   // Most recent subscription created. Used as default for pause/resume.
   SubscriptionProtocolTest _latestSubscription;
-  List<Event> _expectations = new List<Event>();
+  List<Event> _expectations = <Event>[];
   int _nextExpectationIndex = 0;
   int _subscriptionIdCounter = 0;
   Function _onComplete;

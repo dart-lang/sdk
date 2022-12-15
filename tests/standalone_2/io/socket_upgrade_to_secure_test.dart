@@ -59,7 +59,7 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
   const handshakeMessageSize = 100;
 
   List<int> createTestData() {
-    List<int> data = new List<int>(messageSize);
+    List<int> data = new List<int>.filled(messageSize, null);
     for (int i = 0; i < messageSize; i++) {
       data[i] = i & 0xff;
     }
@@ -67,7 +67,7 @@ void test(bool hostnameInConnect, bool handshakeBeforeSecure,
   }
 
   List<int> createHandshakeTestData() {
-    List<int> data = new List<int>(handshakeMessageSize);
+    List<int> data = new List<int>.filled(handshakeMessageSize, null);
     for (int i = 0; i < handshakeMessageSize; i++) {
       data[i] = i & 0xff;
     }

@@ -8,7 +8,7 @@
 @pragma('vm:never-inline')
 foo(n) {
   try {
-    return new List(n);
+    return new List.filled(n, null);
   } catch (e) {}
 }
 

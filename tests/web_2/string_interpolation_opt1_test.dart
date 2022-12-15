@@ -29,7 +29,8 @@ spoil(a) {
 }
 
 void testString() {
-  var a = new List(100); // 'null' values in here are JavaScript undefined.
+  var a = new List<dynamic>.filled(
+      100, null); // 'null' values in here are JavaScript undefined.
   spoil(a);
   var s = returnsNullOrString('hi');
   var x = a[2];
@@ -41,7 +42,8 @@ void testString() {
 }
 
 void testInt() {
-  var a = new List(100); // 'null' values in here are JavaScript undefined.
+  var a = new List<dynamic>.filled(
+      100, null); // 'null' values in here are JavaScript undefined.
   spoil(a);
   var s = returnsNullOrInt(123);
   var x = a[2];

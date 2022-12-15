@@ -64,7 +64,7 @@ class IncrOpTest {
     Expect.equals(57, IncrOpTest.y);
     Expect.equals(56, --IncrOpTest.y);
 
-    var list = new List(4);
+    var list = new List<dynamic>.filled(4, null);
     for (int i = 0; i < list.length; i++) {
       list[i] = i;
     }

@@ -73,7 +73,7 @@ main() {
     Expect.throws(() => fun2(fo));
     Expect.throws(() => fun2(foi));
 
-    List<Object> list = new List<FutureOr<num>>();
+    List<Object> list = <FutureOr<num>>[];
     list.add(n);
     list.add(i);
     list.add(d);

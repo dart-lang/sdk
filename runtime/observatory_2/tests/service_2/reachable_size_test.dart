@@ -26,11 +26,11 @@ buildGraph() {
   p2 = new Pair();
 
   // Adds to both reachable and retained size.
-  p1.x = new List();
-  p2.x = new List();
+  p1.x = [];
+  p2.x = [];
 
   // Adds to reachable size only.
-  p1.y = p2.y = new List();
+  p1.y = p2.y = [];
 }
 
 Future<int> getReachableSize(ServiceObject obj) async {

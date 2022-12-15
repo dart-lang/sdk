@@ -10,7 +10,7 @@
 import "package:expect/expect.dart";
 
 class A<T> {
-  var c = new List<T>();
+  var c = <T>[];
 }
 
 class B<T> extends A<T> {}

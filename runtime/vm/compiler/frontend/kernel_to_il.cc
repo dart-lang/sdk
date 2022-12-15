@@ -1013,7 +1013,6 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kClassIDgetID:
     case MethodRecognizer::kGrowableArrayAllocateWithData:
     case MethodRecognizer::kGrowableArrayCapacity:
-    case MethodRecognizer::kListFactory:
     case MethodRecognizer::kObjectArrayAllocate:
     case MethodRecognizer::kCopyRangeFromUint8ListToOneByteString:
     case MethodRecognizer::kImmutableLinkedHashBase_setIndexStoreRelease:
@@ -1172,69 +1171,6 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += LoadNativeField(Slot::GrowableObjectArray_data());
       body += LoadNativeField(Slot::Array_length());
       break;
-    case MethodRecognizer::kListFactory: {
-      ASSERT(function.IsFactory() && (function.NumParameters() == 2) &&
-             function.HasOptionalParameters());
-      // factory List<E>([int length]) {
-      //   return (:arg_desc.positional_count == 2) ? new _List<E>(length)
-      //                                            : new _GrowableList<E>(0);
-      // }
-      const Library& core_lib = Library::Handle(Z, Library::CoreLibrary());
-
-      TargetEntryInstr* allocate_non_growable;
-      TargetEntryInstr* allocate_growable;
-
-      body += LoadArgDescriptor();
-      body += LoadNativeField(Slot::ArgumentsDescriptor_positional_count());
-      body += IntConstant(2);
-      body += BranchIfStrictEqual(&allocate_non_growable, &allocate_growable);
-
-      JoinEntryInstr* join = BuildJoinEntry();
-
-      {
-        const Class& cls = Class::Handle(
-            Z, core_lib.LookupClass(
-                   Library::PrivateCoreLibName(Symbols::_List())));
-        ASSERT(!cls.IsNull());
-        const Function& func = Function::ZoneHandle(
-            Z, cls.LookupFactoryAllowPrivate(Symbols::_ListFactory()));
-        ASSERT(!func.IsNull());
-
-        Fragment allocate(allocate_non_growable);
-        allocate += LoadLocal(parsed_function_->RawParameterVariable(0));
-        allocate += LoadLocal(parsed_function_->RawParameterVariable(1));
-        allocate +=
-            StaticCall(TokenPosition::kNoSource, func, 2, ICData::kStatic);
-        allocate += StoreLocal(TokenPosition::kNoSource,
-                               parsed_function_->expression_temp_var());
-        allocate += Drop();
-        allocate += Goto(join);
-      }
-
-      {
-        const Class& cls = Class::Handle(
-            Z, core_lib.LookupClass(
-                   Library::PrivateCoreLibName(Symbols::_GrowableList())));
-        ASSERT(!cls.IsNull());
-        const Function& func = Function::ZoneHandle(
-            Z, cls.LookupFactoryAllowPrivate(Symbols::_GrowableListFactory()));
-        ASSERT(!func.IsNull());
-
-        Fragment allocate(allocate_growable);
-        allocate += LoadLocal(parsed_function_->RawParameterVariable(0));
-        allocate += IntConstant(0);
-        allocate +=
-            StaticCall(TokenPosition::kNoSource, func, 2, ICData::kStatic);
-        allocate += StoreLocal(TokenPosition::kNoSource,
-                               parsed_function_->expression_temp_var());
-        allocate += Drop();
-        allocate += Goto(join);
-      }
-
-      body = Fragment(body.entry, join);
-      body += LoadLocal(parsed_function_->expression_temp_var());
-      break;
-    }
     case MethodRecognizer::kObjectArrayAllocate:
       ASSERT(function.IsFactory() && (function.NumParameters() == 2));
       body += LoadLocal(parsed_function_->RawParameterVariable(0));

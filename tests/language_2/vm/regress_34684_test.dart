@@ -11,7 +11,7 @@
 import "package:expect/expect.dart";
 
 List<int> foo(int n, int k) {
-  var l = new List<int>(1);
+  var l = new List<int>.filled(1, null);
   var j = n - 1;
   for (var i = 0; i < k; i++) {
     l[j] = 10; // do not hoist
@@ -23,7 +23,7 @@ int x = -1;
 
 List<int> bar(int n, int k) {
   x = -1;
-  var l = new List<int>(n);
+  var l = new List<int>.filled(n, null);
   for (var i = 0; i < k; i++) {
     x = i;
     l[4] = 10; // do not hoist

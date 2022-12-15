@@ -165,7 +165,7 @@ class C {
 }
 
 void testIndexOutOfRangeHelper(typed_data, value) {
-  List<int> list = new List<int>(typed_data.length + 1);
+  List<int> list = new List<int>.filled(typed_data.length + 1, null);
   for (int i = 0; i < list.length; i++) list[i] = i;
 
   Expect.throws(() {

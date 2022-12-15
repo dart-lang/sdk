@@ -29,8 +29,8 @@ void main([args, port]) {
 
 class MandelbrotState {
   MandelbrotState() {
-    _result = new List<List<int>>(N);
-    _lineProcessedBy = new List<LineProcessorClient>(N);
+    _result = new List<List<int>>.filled(N, null);
+    _lineProcessedBy = new List<LineProcessorClient>.filled(N, null);
     _sent = 0;
     _missing = N;
     _validated = new Completer<bool>();
@@ -119,7 +119,7 @@ class LineProcessorClient {
 List<int> processLine(int y) {
   double inverseN = 2.0 / N;
   double Civ = y * inverseN - 1.0;
-  List<int> result = new List<int>(N);
+  List<int> result = new List<int>.filled(N, null);
   for (int x = 0; x < N; x++) {
     double Crv = x * inverseN - 1.5;
 

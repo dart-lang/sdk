@@ -33,7 +33,7 @@ class Helper1 {
 
   static List func5() {
     // Cause an OOM(out of memory) exception.
-    var l1 = new List<dynamic>.filled(268435455, null);
+    var l1 = new List.filled(268435455, null);
     return l1;
   }
 }

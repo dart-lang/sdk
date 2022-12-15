@@ -128,7 +128,7 @@ void testSimpleReadWrite() {
       int bytesWritten = 0;
       int index = 0;
       List<List<int>> data = createTestData();
-      List<int> received = new List<int>(messageSize);
+      List<int> received = new List<int>.filled(messageSize, null);
 
       client.writeEventsEnabled = false;
       client.listen((event) {
@@ -177,7 +177,7 @@ void testSimpleReadWrite() {
       int bytesWritten = 0;
       int index = 0;
       List<List<int>> data = createTestData();
-      List<int> received = new List<int>(messageSize);
+      List<int> received = new List<int>.filled(messageSize, null);
 
       socket.listen((event) {
         switch (event) {

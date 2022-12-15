@@ -157,7 +157,7 @@ main() {
   fuzzArgument = 1; // //# smi: ok
   fuzzArgument = false; // //# false: ok
   fuzzArgument = 'string'; // //# string: ok
-  fuzzArgument = new List<dynamic>.filled(0, null); // //# emptyarray: ok
+  fuzzArgument = new List.filled(0, null); // //# emptyarray: ok
 
   print('Fuzzing with $fuzzArgument');
 

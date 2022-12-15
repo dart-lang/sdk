@@ -16,5 +16,5 @@ class B
 
 main() {
   new C(); // //# 01: continued
-  new List<C>(); // //# 02: continued
+  <C>[]; // //# 02: continued
 }

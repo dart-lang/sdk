@@ -26,7 +26,7 @@ var tests = <IsolateTest>[
       expect(errorResult.toString(), contains('can be evaluated only'));
     }
 
-    Instance someArray = await root.evaluate("new List(2)");
+    Instance someArray = await root.evaluate("List.filled(2, null)");
     print(someArray);
     expect(someArray is Instance, isTrue);
     Class classArray = await someArray.clazz.load();

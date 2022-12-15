@@ -21,7 +21,7 @@ class MyList<E> extends ListBase<E> {
   List<E> _list;
 
   MyList([int length])
-      : _list = (length == null ? new List() : new List(length));
+      : _list = (length == null ? [] : new List<dynamic>.filled(length, null));
 
   E operator [](int index) => _list[index];
 
@@ -72,7 +72,7 @@ sort_A01_t02_test(List create([int length])) {
     void check() {
       return;
       // Deleting the code below will throw a RangeError instead of throw above.
-      var a_copy = new List(length);
+      var a_copy = new List<dynamic>.filled(length, null);
       a_copy.setRange(0, length, a);
       a_copy.sort(c);
     }

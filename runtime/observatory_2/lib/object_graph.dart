@@ -946,7 +946,7 @@ class _SnapshotGraph implements SnapshotGraph {
 
     var internalSizes = _newUint32Array(N + 1);
     var cids = _newUint16Array(N + 1);
-    var nonReferenceData = new List(N + 1);
+    var nonReferenceData = List<dynamic>.filled(N + 1, null);
     var firstSuccs = _newUint32Array(N + 2);
     var succs = _newUint32Array(E);
     var eid = 0;
@@ -1378,7 +1378,7 @@ class _SnapshotGraph implements SnapshotGraph {
     for (var i = 1; i <= N; i++) {
       label[i] = i;
     }
-    final buckets = new List(N + 1);
+    final buckets = List<dynamic>.filled(N + 1, null);
     final child = _newUint32Array(N + 1);
     final size = _newUint32Array(N + 1);
     for (var i = 1; i <= N; i++) {
@@ -1405,7 +1405,7 @@ class _SnapshotGraph implements SnapshotGraph {
       // w.semi.bucket.add(w);
       var tmp = vertex[semi[w]];
       if (buckets[tmp] == null) {
-        buckets[tmp] = new List();
+        buckets[tmp] = [];
       }
       buckets[tmp].add(w);
 

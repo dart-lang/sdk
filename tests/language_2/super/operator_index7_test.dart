@@ -9,7 +9,7 @@
 import "package:expect/expect.dart";
 
 class A {
-  var indexField = new List(2);
+  var indexField = new List<dynamic>.filled(2, null);
 
   operator []=(index, value);
   operator [](index);

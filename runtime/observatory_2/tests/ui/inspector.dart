@@ -138,7 +138,7 @@ class Node {
     mixedType = "2";
     mixedType = false;
 
-    array = new List(3);
+    array = List.filled(3, null);
     array[0] = 1;
     array[1] = 2;
     array[2] = 3;
@@ -156,7 +156,7 @@ class Node {
     float64 = 3.14;
     float64x2 = new Float64x2(0.0, 3.14);
     gauge = new Gauge("GaugeName", "Gauge description", 0.0, 100.0);
-    growableList = new List();
+    growableList = [];
     int32x4 = new Int32x4(0, 1, 10, 11);
     map = {
       "x-key": "x-value",

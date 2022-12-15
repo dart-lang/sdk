@@ -172,7 +172,7 @@ void testSimpleReadWrite({bool dropReads}) {
       int bytesRead = 0;
       int bytesWritten = 0;
       bool closedEventReceived = false;
-      List<int> data = new List<int>(messageSize);
+      List<int> data = new List<int>.filled(messageSize, null);
 
       client.writeEventsEnabled = false;
       client.listen((event) {
@@ -250,7 +250,7 @@ void testSimpleReadWrite({bool dropReads}) {
             if (bytesWritten < data.length) {
               socket.writeEventsEnabled = true;
             } else {
-              data = new List<int>(messageSize);
+              data = new List<int>.filled(messageSize, null);
             }
             break;
           case RawSocketEvent.readClosed:

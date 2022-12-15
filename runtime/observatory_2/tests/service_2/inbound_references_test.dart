@@ -24,7 +24,7 @@ void script() {
   n = new Node();
   e = new Edge();
   n.edge = e;
-  array = new List(2);
+  array = new List<dynamic>.filled(2, null);
   array[0] = n;
   array[1] = e;
 }

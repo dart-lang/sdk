@@ -7,13 +7,13 @@
 import "package:expect/expect.dart";
 
 class A<T> {
-  bar() => new List<T>();
+  bar() => <T>[];
 }
 
 main() {
-  check(new List(), true, false, false);
-  check(new List<int>(), true, true, false);
-  check(new List<double>(), true, false, true);
+  check([], true, false, false);
+  check(<int>[], true, true, false);
+  check(<double>[], true, false, true);
   check(new A().bar(), true, false, false);
   check(new A<int>().bar(), true, true, false);
   check(new A<double>().bar(), true, false, true);
