@@ -187,7 +187,7 @@ class Variables {
   /// [recordNullCheckHint].
   HintComment? getNullCheckHint(Source? source, Expression expression) {
     return (_nullCheckHints[source] ??
-        {})[(uniqueIdentifierForSpan(expression.offset, expression.end))];
+        {})[uniqueIdentifierForSpan(expression.offset, expression.end)];
   }
 
   /// If the given [node] is preceded by a `/*required*/` hint, returns the

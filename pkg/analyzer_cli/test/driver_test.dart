@@ -259,7 +259,7 @@ linter:
   Future<void> test_pubspec_lintsInOptions_generatedLints() async {
     await drive('data/linter_project/pubspec.yaml',
         options: 'data/linter_project/$analysisOptionsYaml');
-    expect(bulletToDash(outSink), contains('lint - Sort pub dependencies'));
+    expect(bulletToDash(outSink), contains('lint - Unsorted dependencies.'));
   }
 
   YamlMap _parseOptions(String src) =>

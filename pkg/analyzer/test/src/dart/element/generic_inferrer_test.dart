@@ -41,7 +41,7 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     );
     _assertTypes(
       _inferCall(cast, [stringNone]),
-      [stringNone, (iterableNone(stringNone))],
+      [stringNone, iterableNone(stringNone)],
     );
   }
 

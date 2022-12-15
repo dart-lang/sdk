@@ -78,6 +78,18 @@
   documented at
   [dart.dev](https://dart.dev/guides/language/analysis-options#enabling-additional-type-checks).
 
+#### Linter
+
+Updates the Linter to `1.32.0`, which includes changes that
+
+- update `avoid_types_as_parameter_names` to handle type variables.
+- update `avoid_positional_boolean_parameters` to handle typedefs.
+- improve `unnecessary_parenthesis` support for property accesses and method invocations.
+- update `avoid_redundant_argument_values` to check parameters of redirecting constructors.
+- improve performance for `prefer_const_literals_to_create_immutables`.
+- update `use_build_context_synchronously` to check context properties.
+- fix a false positive for `avoid_private_typedef_functions` with generalized type aliases.
+
 ## 2.19.0
 
 ### Language

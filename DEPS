@@ -139,7 +139,7 @@ vars = {
   "intl_rev": "6fb07f261dad98ed5adc6d60a37a76557b0ed6b3",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "16fed53fbebd38edf170f58c1da1de2a325b2b98",
-  "linter_rev": "7fe671cdadb52139295bae0abf62c014369af93a", # 1.31.0
+  "linter_rev": "79b843349deaea4a2455cfa37cc47cbc0e472190", # 1.32.0
   "lints_rev": "16bdefe1df529262a6596f79e91003ddbdbd3890",
   "logging_rev": "0373ef85aa1dfe9e179b9fa006c45b65903787f2",
   "markdown_rev": "ee3f4e976efcfed87c6ec78364bc2dd3c6e717b9", # https://github.com/dart-lang/markdown/pull/494

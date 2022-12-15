@@ -1707,7 +1707,9 @@ LintCode.avoid_bool_literals_in_conditional_expressions:
     fixed to not contain a bool literal.
 LintCode.avoid_catches_without_on_clauses:
   status: needsEvaluation
-LintCode.avoid_catching_errors:
+LintCode.avoid_catching_errors_class:
+  status: needsEvaluation
+LintCode.avoid_catching_errors_subclass:
   status: needsEvaluation
 LintCode.avoid_classes_with_only_static_members:
   status: needsEvaluation
