@@ -5449,6 +5449,22 @@ class C {
     expect(hasNullCheckHint(findNode.simple('int')), isFalse);
   }
 
+  Future<void> test_override_mixin_method() async {
+    await analyze('''
+  mixin M {
+    int m(int/*1*/ x);
+  }
+
+  class C with M {
+    @override
+    int m(int/*2*/ x) => x;
+  }
+    ''');
+    final int1 = decoratedTypeAnnotation('int/*1*/');
+    final int2 = decoratedTypeAnnotation('int/*2*/');
+    assertEdge(int1.node, int2.node, hard: false, checkable: false);
+  }
+
   Future<void> test_override_parameter_function_typed() async {
     await analyze('''
 abstract class Base {
