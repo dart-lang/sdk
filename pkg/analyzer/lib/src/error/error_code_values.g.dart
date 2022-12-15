@@ -22,6 +22,7 @@ import 'package:analyzer/src/pubspec/pubspec_warning_code.dart';
 const List<ErrorCode> errorCodeValues = [
   AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
   AnalysisOptionsErrorCode.PARSE_ERROR,
+  AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED,
   AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
   AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
   AnalysisOptionsWarningCode.INVALID_OPTION,

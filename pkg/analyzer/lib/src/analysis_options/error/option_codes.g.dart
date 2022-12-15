@@ -58,6 +58,37 @@ class AnalysisOptionsErrorCode extends ErrorCode {
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
 
+class AnalysisOptionsHintCode extends ErrorCode {
+  ///  An error code indicating that the enablePreviewDart2 setting is
+  ///  deprecated.
+  static const AnalysisOptionsHintCode PREVIEW_DART_2_SETTING_DEPRECATED =
+      AnalysisOptionsHintCode(
+    'PREVIEW_DART_2_SETTING_DEPRECATED',
+    "The 'enablePreviewDart2' setting is deprecated.",
+    correctionMessage: "It is no longer necessary to explicitly enable Dart 2.",
+  );
+
+  /// Initialize a newly created error code to have the given [name].
+  const AnalysisOptionsHintCode(
+    String name,
+    String problemMessage, {
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    String? uniqueName,
+  }) : super(
+          name: name,
+          problemMessage: problemMessage,
+          uniqueName: 'AnalysisOptionsHintCode.${uniqueName ?? name}',
+        );
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
+
+  @override
+  ErrorType get type => ErrorType.HINT;
+}
+
 class AnalysisOptionsWarningCode extends ErrorCode {
   ///  An error code indicating a specified include file has a warning.
   ///
