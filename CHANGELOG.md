@@ -1,8 +1,18 @@
+# 1.32.0
+
+- update `avoid_types_as_parameter_names` to handle type variables
+- update `avoid_positional_boolean_parameters` to handle typedefs
+- improve `unnecessary_parenthesis` support for property accesses and method invocations
+- update `avoid_redundant_argument_values` to check parameters of redirecting constructors
+- performance improvements for `prefer_const_literals_to_create_immutables`
+- update `use_build_context_synchronously` to check context properties
+- fix false positive for `avoid_private_typedef_functions` with generalized type aliases
+
 # 1.31.0
 
-- updated `prefer_equal_for_default_values` to not report for SDKs `>=2.19`,
+- update `prefer_equal_for_default_values` to not report for SDKs `>=2.19`,
   where this lint is now an analyzer diagnostic.
-- updated `unrelated_type_equality_checks` to support updated `package:fixnum`
+- update `unrelated_type_equality_checks` to support updated `package:fixnum`
   structure.
 
 # 1.30.0
