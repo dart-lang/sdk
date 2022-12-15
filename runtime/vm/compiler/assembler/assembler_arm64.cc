@@ -877,10 +877,9 @@ Address Assembler::PrepareLargeOffset(Register base,
 }
 
 void Assembler::LoadFromOffset(Register dest,
-                               Register base,
-                               int32_t offset,
+                               const Address& addr,
                                OperandSize sz) {
-  LoadFromOffset(dest, PrepareLargeOffset(base, offset, sz), sz);
+  ldr(dest, PrepareLargeOffset(addr.base(), addr.offset(), sz), sz);
 }
 
 void Assembler::LoadSFromOffset(VRegister dest, Register base, int32_t offset) {
@@ -896,10 +895,9 @@ void Assembler::LoadQFromOffset(VRegister dest, Register base, int32_t offset) {
 }
 
 void Assembler::StoreToOffset(Register src,
-                              Register base,
-                              int32_t offset,
+                              const Address& addr,
                               OperandSize sz) {
-  StoreToOffset(src, PrepareLargeOffset(base, offset, sz), sz);
+  str(src, PrepareLargeOffset(addr.base(), addr.offset(), sz), sz);
 }
 
 void Assembler::StoreSToOffset(VRegister src, Register base, int32_t offset) {

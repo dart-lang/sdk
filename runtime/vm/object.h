@@ -10049,7 +10049,6 @@ class OneByteString : public AllStatic {
 
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsOneByteString());
-    NoSafepointScope no_safepoint;
     return OneByteString::CharAt(static_cast<OneByteStringPtr>(str.ptr()),
                                  index);
   }
@@ -10187,7 +10186,6 @@ class TwoByteString : public AllStatic {
 
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsTwoByteString());
-    NoSafepointScope no_safepoint;
     return TwoByteString::CharAt(static_cast<TwoByteStringPtr>(str.ptr()),
                                  index);
   }
@@ -10306,7 +10304,6 @@ class ExternalOneByteString : public AllStatic {
 
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsExternalOneByteString());
-    NoSafepointScope no_safepoint;
     return ExternalOneByteString::CharAt(
         static_cast<ExternalOneByteStringPtr>(str.ptr()), index);
   }
@@ -10399,7 +10396,6 @@ class ExternalTwoByteString : public AllStatic {
 
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsExternalTwoByteString());
-    NoSafepointScope no_safepoint;
     return ExternalTwoByteString::CharAt(
         static_cast<ExternalTwoByteStringPtr>(str.ptr()), index);
   }
@@ -11117,12 +11113,16 @@ class TypedDataBase : public PointerBase {
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
-    NoSafepointScope no_safepoint;                                             \
-    return LoadUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)));      \
+    ASSERT(static_cast<uintptr_t>(byte_offset) <=                              \
+           static_cast<uintptr_t>(LengthInBytes()) - sizeof(type));            \
+    return LoadUnaligned(                                                      \
+        reinterpret_cast<type*>(untag()->data_ + byte_offset));                \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
-    NoSafepointScope no_safepoint;                                             \
-    StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
+    ASSERT(static_cast<uintptr_t>(byte_offset) <=                              \
+           static_cast<uintptr_t>(LengthInBytes()) - sizeof(type));            \
+    StoreUnaligned(reinterpret_cast<type*>(untag()->data_ + byte_offset),      \
+                   value);                                                     \
   }
 
   TYPED_GETTER_SETTER(Int8, int8_t)
@@ -11174,14 +11174,16 @@ class TypedData : public TypedDataBase {
 
 #define TYPED_GETTER_SETTER(name, type)                                        \
   type Get##name(intptr_t byte_offset) const {                                 \
-    ASSERT((byte_offset >= 0) &&                                               \
-           (byte_offset + static_cast<intptr_t>(sizeof(type)) - 1) <           \
-               LengthInBytes());                                               \
-    return LoadUnaligned(ReadOnlyDataAddr<type>(byte_offset));                 \
+    ASSERT(static_cast<uintptr_t>(byte_offset) <=                              \
+           static_cast<uintptr_t>(LengthInBytes()) - sizeof(type));            \
+    return LoadUnaligned(                                                      \
+        reinterpret_cast<const type*>(untag()->data() + byte_offset));         \
   }                                                                            \
   void Set##name(intptr_t byte_offset, type value) const {                     \
-    NoSafepointScope no_safepoint;                                             \
-    StoreUnaligned(reinterpret_cast<type*>(DataAddr(byte_offset)), value);     \
+    ASSERT(static_cast<uintptr_t>(byte_offset) <=                              \
+           static_cast<uintptr_t>(LengthInBytes()) - sizeof(type));            \
+    return StoreUnaligned(                                                     \
+        reinterpret_cast<type*>(untag()->data() + byte_offset), value);        \
   }
 
   TYPED_GETTER_SETTER(Int8, int8_t)

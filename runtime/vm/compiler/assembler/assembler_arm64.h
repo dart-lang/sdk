@@ -357,6 +357,7 @@ class Address : public ValueObject {
 
   AddressType type() const { return type_; }
   Register base() const { return base_; }
+  int32_t offset() const { return offset_; }
 
   Address() : type_(Unknown), base_(kNoRegister), offset_(0) {}
 
@@ -557,7 +558,7 @@ class Assembler : public AssemblerBase {
   }
 
   void LoadField(Register dst, const FieldAddress& address) override {
-    ldr(dst, address);
+    LoadFromOffset(dst, address);
   }
   void LoadCompressedField(Register dst, const FieldAddress& address) override {
     LoadCompressed(dst, address);
@@ -646,7 +647,7 @@ class Assembler : public AssemblerBase {
   void CompareWithMemoryValue(Register value,
                               Address address,
                               OperandSize sz = kEightBytes) {
-    ldr(TMP, address, sz);
+    LoadFromOffset(TMP, address, sz);
     cmp(value, Operand(TMP), sz);
   }
 
@@ -1887,18 +1888,18 @@ class Assembler : public AssemblerBase {
   Address PrepareLargeOffset(Register base, int32_t offset, OperandSize sz);
   void LoadFromOffset(Register dest,
                       const Address& address,
-                      OperandSize sz = kEightBytes) override {
-    ldr(dest, address, sz);
-  }
+                      OperandSize sz = kEightBytes) override;
   void LoadFromOffset(Register dest,
                       Register base,
                       int32_t offset,
-                      OperandSize sz = kEightBytes);
+                      OperandSize sz = kEightBytes) {
+    LoadFromOffset(dest, Address(base, offset), sz);
+  }
   void LoadFieldFromOffset(Register dest,
                            Register base,
                            int32_t offset,
                            OperandSize sz = kEightBytes) override {
-    LoadFromOffset(dest, base, offset - kHeapObjectTag, sz);
+    LoadFromOffset(dest, FieldAddress(base, offset), sz);
   }
   void LoadCompressedFieldFromOffset(Register dest,
                                      Register base,
@@ -1945,21 +1946,21 @@ class Assembler : public AssemblerBase {
 
   void StoreToOffset(Register src,
                      const Address& address,
-                     OperandSize sz = kEightBytes) override {
-    str(src, address, sz);
-  }
+                     OperandSize sz = kEightBytes) override;
   void StoreToOffset(Register src,
                      Register base,
                      int32_t offset,
-                     OperandSize sz = kEightBytes);
+                     OperandSize sz = kEightBytes) {
+    StoreToOffset(src, Address(base, offset), sz);
+  }
   void StoreFieldToOffset(Register src,
                           Register base,
                           int32_t offset,
                           OperandSize sz = kEightBytes) {
-    StoreToOffset(src, base, offset - kHeapObjectTag, sz);
+    StoreToOffset(src, FieldAddress(base, offset), sz);
   }
   void StoreZero(const Address& address, Register temp = kNoRegister) {
-    str(ZR, address);
+    StoreToOffset(ZR, address);
   }
 
   void StoreSToOffset(VRegister src, Register base, int32_t offset);

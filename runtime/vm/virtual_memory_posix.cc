@@ -54,7 +54,39 @@ DECLARE_FLAG(bool, generate_perf_jitdump);
 uword VirtualMemory::page_size_ = 0;
 VirtualMemory* VirtualMemory::compressed_heap_ = nullptr;
 
-static void unmap(uword start, uword end);
+static void* Map(void* addr,
+                 size_t length,
+                 int prot,
+                 int flags,
+                 int fd,
+                 off_t offset) {
+  void* result = mmap(addr, length, prot, flags, fd, offset);
+  int error = errno;
+  LOG_INFO("mmap(%p, 0x%" Px ", %u, ...): %p\n", addr, length, prot, result);
+  if ((result == MAP_FAILED) && (error != ENOMEM)) {
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    FATAL("mmap failed: %d (%s)", error,
+          Utils::StrError(error, error_buf, kBufferSize));
+  }
+  return result;
+}
+
+static void Unmap(uword start, uword end) {
+  ASSERT(start <= end);
+  uword size = end - start;
+  if (size == 0) {
+    return;
+  }
+
+  if (munmap(reinterpret_cast<void*>(start), size) != 0) {
+    int error = errno;
+    const int kBufferSize = 1024;
+    char error_buf[kBufferSize];
+    FATAL("munmap failed: %d (%s)", error,
+          Utils::StrError(error, error_buf, kBufferSize));
+  }
+}
 
 static void* GenericMapAligned(void* hint,
                                int prot,
@@ -62,9 +94,7 @@ static void* GenericMapAligned(void* hint,
                                intptr_t alignment,
                                intptr_t allocated_size,
                                int map_flags) {
-  void* address = mmap(hint, allocated_size, prot, map_flags, -1, 0);
-  LOG_INFO("mmap(%p, 0x%" Px ", %u, ...): %p\n", hint, allocated_size, prot,
-           address);
+  void* address = Map(hint, allocated_size, prot, map_flags, -1, 0);
   if (address == MAP_FAILED) {
     return nullptr;
   }
@@ -72,8 +102,8 @@ static void* GenericMapAligned(void* hint,
   const uword base = reinterpret_cast<uword>(address);
   const uword aligned_base = Utils::RoundUp(base, alignment);
 
-  unmap(base, aligned_base);
-  unmap(aligned_base + size, base + allocated_size);
+  Unmap(base, aligned_base);
+  Unmap(aligned_base + size, base + allocated_size);
   return reinterpret_cast<void*>(aligned_base);
 }
 
@@ -96,12 +126,12 @@ static MemoryRegion ClipToAlignedRegion(MemoryRegion region, size_t alignment) {
       region.end() >= aligned_base ? region.end() - aligned_base : 0;
   ASSERT(size_below + size_above == region.size());
   if (size_below >= size_above) {
-    unmap(aligned_base, aligned_base + size_above);
+    Unmap(aligned_base, aligned_base + size_above);
     return MemoryRegion(reinterpret_cast<void*>(base), size_below);
   }
-  unmap(base, base + size_below);
+  Unmap(base, base + size_below);
   if (size_above > alignment) {
-    unmap(aligned_base + alignment, aligned_base + size_above);
+    Unmap(aligned_base + alignment, aligned_base + size_above);
     size_above = alignment;
   }
   return MemoryRegion(reinterpret_cast<void*>(aligned_base), size_above);
@@ -231,22 +261,6 @@ bool VirtualMemory::DualMappingEnabled() {
   return FLAG_dual_map_code;
 }
 
-static void unmap(uword start, uword end) {
-  ASSERT(start <= end);
-  uword size = end - start;
-  if (size == 0) {
-    return;
-  }
-
-  if (munmap(reinterpret_cast<void*>(start), size) != 0) {
-    int error = errno;
-    const int kBufferSize = 1024;
-    char error_buf[kBufferSize];
-    FATAL2("munmap error: %d (%s)", error,
-           Utils::StrError(error, error_buf, kBufferSize));
-  }
-}
-
 #if defined(DUAL_MAPPING_SUPPORTED)
 // Do not leak file descriptors to child processes.
 #if !defined(MFD_CLOEXEC)
@@ -269,10 +283,9 @@ static void* MapAligned(void* hint,
                         intptr_t size,
                         intptr_t alignment,
                         intptr_t allocated_size) {
+  ASSERT(size <= allocated_size);
   void* address =
-      mmap(hint, allocated_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-  LOG_INFO("mmap(%p, 0x%" Px ", PROT_NONE, ...): %p\n", hint, allocated_size,
-           address);
+      Map(hint, allocated_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
   if (address == MAP_FAILED) {
     return nullptr;
   }
@@ -283,17 +296,15 @@ static void* MapAligned(void* hint,
   // Guarantee the alignment by mapping at a fixed address inside the above
   // mapping. Overlapping region will be automatically discarded in the above
   // mapping. Manually discard non-overlapping regions.
-  address = mmap(reinterpret_cast<void*>(aligned_base), size, prot,
-                 MAP_SHARED | MAP_FIXED, fd, 0);
-  LOG_INFO("mmap(0x%" Px ", 0x%" Px ", %u, ...): %p\n", aligned_base, size,
-           prot, address);
+  address = Map(reinterpret_cast<void*>(aligned_base), size, prot,
+                MAP_SHARED | MAP_FIXED, fd, 0);
   if (address == MAP_FAILED) {
-    unmap(base, base + allocated_size);
+    Unmap(base, base + allocated_size);
     return nullptr;
   }
   ASSERT(address == reinterpret_cast<void*>(aligned_base));
-  unmap(base, aligned_base);
-  unmap(aligned_base + size, base + allocated_size);
+  Unmap(base, aligned_base);
+  Unmap(aligned_base + size, base + allocated_size);
   return address;
 }
 #endif  // defined(DUAL_MAPPING_SUPPORTED)
@@ -378,7 +389,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
     close(fd);
     if (alias_ptr == nullptr) {
       const uword region_base = reinterpret_cast<uword>(region_ptr);
-      unmap(region_base, region_base + size);
+      Unmap(region_base, region_base + size);
       return nullptr;
     }
     ASSERT(region_ptr != alias_ptr);
@@ -498,10 +509,10 @@ VirtualMemory::~VirtualMemory() {
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
   if (vm_owns_region()) {
-    unmap(reserved_.start(), reserved_.end());
+    Unmap(reserved_.start(), reserved_.end());
     const intptr_t alias_offset = AliasOffset();
     if (alias_offset != 0) {
-      unmap(reserved_.start() + alias_offset, reserved_.end() + alias_offset);
+      Unmap(reserved_.start() + alias_offset, reserved_.end() + alias_offset);
     }
   }
 }
@@ -514,7 +525,7 @@ bool VirtualMemory::FreeSubSegment(void* address, intptr_t size) {
   }
 #endif  // defined(DART_COMPRESSED_POINTERS)
   const uword start = reinterpret_cast<uword>(address);
-  unmap(start, start + size);
+  Unmap(start, start + size);
   return true;
 }
 
@@ -553,8 +564,8 @@ void VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
     char error_buf[kBufferSize];
     LOG_INFO("mprotect(0x%" Px ", 0x%" Px ", %u) failed\n", page_address,
              end_address - page_address, prot);
-    FATAL2("mprotect error: %d (%s)", error,
-           Utils::StrError(error, error_buf, kBufferSize));
+    FATAL("mprotect failed: %d (%s)", error,
+          Utils::StrError(error, error_buf, kBufferSize));
   }
   LOG_INFO("mprotect(0x%" Px ", 0x%" Px ", %u) ok\n", page_address,
            end_address - page_address, prot);
@@ -569,7 +580,7 @@ void VirtualMemory::DontNeed(void* address, intptr_t size) {
     int error = errno;
     const int kBufferSize = 1024;
     char error_buf[kBufferSize];
-    FATAL("madvise error: %d (%s)", error,
+    FATAL("madvise failed: %d (%s)", error,
           Utils::StrError(error, error_buf, kBufferSize));
   }
 }

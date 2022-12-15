@@ -60,20 +60,18 @@ class TypeTestingStubGenerator {
  private:
 #if !defined(TARGET_ARCH_IA32)
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  CodePtr BuildCodeForType(const Type& type);
+  CodePtr BuildCodeForType(const AbstractType& type);
   static void BuildOptimizedTypeTestStub(
       compiler::Assembler* assembler,
       compiler::UnresolvedPcRelativeCalls* unresolved_calls,
       const Code& slow_type_test_stub,
       HierarchyInfo* hi,
-      const Type& type,
-      const Class& type_class);
+      const AbstractType& type);
 
   static void BuildOptimizedTypeTestStubFastCases(
       compiler::Assembler* assembler,
       HierarchyInfo* hi,
-      const Type& type,
-      const Class& type_class);
+      const AbstractType& type);
 
   static bool BuildOptimizedSubtypeRangeCheck(compiler::Assembler* assembler,
                                               const CidRangeVector& ranges,
@@ -86,6 +84,11 @@ class TypeTestingStubGenerator {
       HierarchyInfo* hi,
       const Type& type,
       const Class& type_class);
+
+  static void BuildOptimizedRecordSubtypeRangeCheck(
+      compiler::Assembler* assembler,
+      HierarchyInfo* hi,
+      const RecordType& type);
 
   // Returns whether any cid ranges require type argument checking.
   //

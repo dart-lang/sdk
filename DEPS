@@ -100,7 +100,7 @@ vars = {
   "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
   "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
-  "browser_launcher_rev": "5fa0bd6cddc33785f43c920576fc03dcee1c3caa",
+  "browser_launcher_rev": "2712dda4bb7eb5304fcf535b57e19b855491533e",
   "characters_rev": "4ffccb88a98c026f3351671479c85a886451dc33",
   "chrome_rev": "19997",
   "cli_util_rev": "edcf1c357dfc92f760ea0f1bbdb94f9b72d26b71",
@@ -125,7 +125,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "bc86574772350fa7d4cd4fa334b6652f08f750ba", # manually rev'd
 
-  "dartdoc_rev": "eb90a44c54fa01f0d501bf6e861a34857d843cea",
+  "dartdoc_rev": "1f4221632777d21a7c0d0a0266fe6a495f5170ce",
   "devtools_rev": "dd3fade2bd2ef74fc6102e56333a48f0efc594d3",
   "ffi_rev": "17a8142da8114a065e03200467c7657b5368a86d",
   "file_rev": "b768f79dcd104a5feabafab47101c4355b71cd8f",
@@ -136,7 +136,7 @@ vars = {
   "http_parser_rev": "c73967535ce31120e218120f70ef98cc22688c82",
   "http_rev": "46a7708b2075a807d44afbe39496e1c0c7802f4e",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
-  "intl_rev": "234b291aee7c23c9ffc9748fd6532d37553f609b",
+  "intl_rev": "6fb07f261dad98ed5adc6d60a37a76557b0ed6b3",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "16fed53fbebd38edf170f58c1da1de2a325b2b98",
   "linter_rev": "7fe671cdadb52139295bae0abf62c014369af93a", # 1.31.0
@@ -145,8 +145,8 @@ vars = {
   "markdown_rev": "ee3f4e976efcfed87c6ec78364bc2dd3c6e717b9", # https://github.com/dart-lang/markdown/pull/494
   "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "matcher_rev": "7e6a665da079baa3e2a2046ab02e4353ee32556c",
-  "mime_rev": "c0c4c47a3d7bf696f1aa1959fb83d598baadb33c",
-  "mockito_rev": "347d3e4cc64752b2ff7b5d35fe5cd1b281b17413",
+  "mime_rev": "273d454711487fe00849c2bf3dff189278fd0e6f",
+  "mockito_rev": "942dd037a2f0f0203e1f367d4a5693e7617b0c9b",
   "package_config_rev": "abb4aec904ab8c739b6dcec516d44f56d96c8115",
   "path_rev": "12ce876fdd8873128671acfec54c8ad88da361fa",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
@@ -159,7 +159,7 @@ vars = {
   "source_map_stack_trace_rev": "8d8078fcc81c8f7936805cd277198493e0b7fc62",
   "source_maps_rev": "b031e2cdbef5675ab9a92025202d323a5e7cc526",
   "source_span_rev": "d1d47e550b6f77ed9b4907339a8a5e430b9ca314",
-  "sse_rev": "d3961459442816273dacaae4136dfe5900f34955",
+  "sse_rev": "cfa93b1513e72646e96aab2562a51909cce500a1",
   "stack_trace_rev": "cf3562e0bf1796d4a801ed345408fcbc929dea70",
   "stream_channel_rev": "914304769d036867b993bd7f9c111145f1ca4ab0",
   "string_scanner_rev": "4a5cbc5c1127151ea507cc9da797b829857607e8",
@@ -176,7 +176,7 @@ vars = {
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "1b0561cfec8ff7e9465896eb340ea3c382b59393",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
-  "webdev_rev": "3e2364ee3539ae08f350d03a3a5f3c22aa74d994",
+  "webdev_rev": "317288a015970a594c11a50ddcd4ff071419beba",
   "webdriver_rev": "fcce0f0d0ebbda36398e1a6e3f29dfeb4eda43db",
   "webkit_inspection_protocol_rev": "ddb624cd85954dd384056cc253a8fc2b9da5364d",
   "yaml_edit_rev": "299f74594ff9fda412c1da5c0b5d5231d0c6fc42",

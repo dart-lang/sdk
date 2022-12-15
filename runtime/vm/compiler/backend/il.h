@@ -305,6 +305,10 @@ class HierarchyInfo : public ThreadStackResource {
   // false.
   bool CanUseGenericSubtypeRangeCheckFor(const AbstractType& type);
 
+  // Returns `true` if [type] is a record type which fields can be tested using
+  // simple [CidRange]-based subtype-check.
+  bool CanUseRecordSubtypeRangeCheckFor(const AbstractType& type);
+
  private:
   // Does not use any hierarchy information available in the system but computes
   // it via O(n) class table traversal.

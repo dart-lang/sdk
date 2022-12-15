@@ -232,7 +232,7 @@ final Object DartError = JS(
         return #(this[#]);
       }
     }''',
-    NullThrownError(),
+    TypeErrorImpl('Throw of null.'),
     _thrownValue,
     _jsError,
     _jsError,

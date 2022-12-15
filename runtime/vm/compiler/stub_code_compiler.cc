@@ -571,7 +571,7 @@ static void BuildInstantiateTypeParameterStub(Assembler* assembler,
     __ BranchIf(EQUAL, &return_dynamic);
     __ LoadFieldFromOffset(
         InstantiateTypeABI::kResultTypeReg, InstantiateTypeABI::kTypeReg,
-        target::TypeParameter::index_offset(), kUnsignedByte);
+        target::TypeParameter::index_offset(), kUnsignedTwoBytes);
     __ LoadIndexedCompressed(InstantiateTypeABI::kResultTypeReg,
                              InstantiateTypeABI::kFunctionTypeArgumentsReg,
                              target::TypeArguments::types_offset(),
@@ -582,7 +582,7 @@ static void BuildInstantiateTypeParameterStub(Assembler* assembler,
     __ BranchIf(EQUAL, &return_dynamic);
     __ LoadFieldFromOffset(
         InstantiateTypeABI::kResultTypeReg, InstantiateTypeABI::kTypeReg,
-        target::TypeParameter::index_offset(), kUnsignedByte);
+        target::TypeParameter::index_offset(), kUnsignedTwoBytes);
     __ LoadIndexedCompressed(InstantiateTypeABI::kResultTypeReg,
                              InstantiateTypeABI::kInstantiatorTypeArgumentsReg,
                              target::TypeArguments::types_offset(),
@@ -919,7 +919,7 @@ static void GenerateNullIsAssignableToType(Assembler* assembler,
       // Resolve the type parameter to its instantiated type and loop.
       __ LoadFieldFromOffset(kIndexReg, kCurrentTypeReg,
                              target::TypeParameter::index_offset(),
-                             kUnsignedByte);
+                             kUnsignedTwoBytes);
       __ LoadIndexedCompressed(kCurrentTypeReg, tav,
                                target::TypeArguments::types_offset(),
                                kIndexReg);
@@ -1035,7 +1035,7 @@ static void BuildTypeParameterTypeTestStub(Assembler* assembler,
     // instantiated type's TTS.
     __ LoadFieldFromOffset(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
                            target::TypeParameter::index_offset(),
-                           kUnsignedByte);
+                           kUnsignedTwoBytes);
     __ LoadIndexedCompressed(TypeTestABI::kScratchReg, tav,
                              target::TypeArguments::types_offset(),
                              TypeTestABI::kScratchReg);

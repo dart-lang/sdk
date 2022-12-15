@@ -389,6 +389,33 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
   return true;
 }
 
+bool HierarchyInfo::CanUseRecordSubtypeRangeCheckFor(const AbstractType& type) {
+  ASSERT(type.IsFinalized());
+  if (!type.IsRecordType()) {
+    return false;
+  }
+  const RecordType& rec = RecordType::Cast(type);
+  // Type testing stubs have no access to their object pools
+  // so they will not be able to load field names from object pool
+  // in order to check the shape of a record instance.
+  // See TypeTestingStubGenerator::BuildOptimizedRecordSubtypeRangeCheck.
+  if (rec.NumNamedFields() != 0) {
+    return false;
+  } else {
+    ASSERT(rec.field_names() == Object::empty_array().ptr());
+    ASSERT(compiler::target::CanLoadFromThread(Object::empty_array()));
+  }
+  Zone* zone = thread()->zone();
+  auto& field_type = AbstractType::Handle(zone);
+  for (intptr_t i = 0, n = rec.NumFields(); i < n; ++i) {
+    field_type = rec.FieldTypeAt(i);
+    if (!CanUseSubtypeRangeCheckFor(field_type)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 bool HierarchyInfo::InstanceOfHasClassRange(const AbstractType& type,
                                             intptr_t* lower_limit,
                                             intptr_t* upper_limit) {

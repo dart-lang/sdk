@@ -2754,8 +2754,8 @@ class UntaggedTypeParameter : public UntaggedAbstractType {
   COMPRESSED_POINTER_FIELD(AbstractTypePtr, bound)
   VISIT_TO(bound)
   ClassIdTagType parameterized_class_id_;  // Or kFunctionCid for function tp.
-  uint8_t base_;   // Number of enclosing function type parameters.
-  uint8_t index_;  // Keep size in sync with BuildTypeParameterTypeTestStub.
+  uint16_t base_;   // Number of enclosing function type parameters.
+  uint16_t index_;  // Keep size in sync with BuildTypeParameterTypeTestStub.
 
  private:
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }

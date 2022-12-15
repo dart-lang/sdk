@@ -1086,7 +1086,9 @@ class Assembler : public MicroAssembler {
   void LoadFromOffset(Register dest,
                       Register base,
                       int32_t offset,
-                      OperandSize sz = kWordBytes);
+                      OperandSize sz = kWordBytes) {
+    LoadFromOffset(dest, Address(base, offset), sz);
+  }
   void LoadFieldFromOffset(Register dest,
                            Register base,
                            int32_t offset,
@@ -1132,15 +1134,17 @@ class Assembler : public MicroAssembler {
   void StoreToOffset(Register src,
                      Register base,
                      int32_t offset,
-                     OperandSize sz = kWordBytes);
+                     OperandSize sz = kWordBytes) {
+    StoreToOffset(src, Address(base, offset), sz);
+  }
   void StoreFieldToOffset(Register src,
                           Register base,
                           int32_t offset,
                           OperandSize sz = kWordBytes) {
-    StoreToOffset(src, base, offset - kHeapObjectTag, sz);
+    StoreToOffset(src, FieldAddress(base, offset), sz);
   }
   void StoreZero(const Address& address, Register temp = kNoRegister) {
-    sx(ZR, address);
+    StoreToOffset(ZR, address);
   }
   void StoreSToOffset(FRegister src, Register base, int32_t offset);
   void StoreDToOffset(FRegister src, Register base, int32_t offset);
@@ -1172,13 +1176,13 @@ class Assembler : public MicroAssembler {
   }
 
   void LoadCompressed(Register dest, const Address& slot) {
-    lx(dest, slot);
+    LoadFromOffset(dest, slot);
   }
   void LoadCompressedFromOffset(Register dest, Register base, int32_t offset) {
     LoadFromOffset(dest, base, offset);
   }
   void LoadCompressedSmi(Register dest, const Address& slot) override {
-    lx(dest, slot);
+    LoadFromOffset(dest, slot);
 #if defined(DEBUG)
     Label done;
     BranchIfSmi(dest, &done, kNearJump);

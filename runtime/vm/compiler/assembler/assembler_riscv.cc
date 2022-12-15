@@ -3177,13 +3177,7 @@ Address Assembler::PrepareLargeOffset(Register base, int32_t offset) {
 void Assembler::LoadFromOffset(Register dest,
                                const Address& address,
                                OperandSize sz) {
-  LoadFromOffset(dest, address.base(), address.offset(), sz);
-}
-void Assembler::LoadFromOffset(Register dest,
-                               Register base,
-                               int32_t offset,
-                               OperandSize sz) {
-  Address addr = PrepareLargeOffset(base, offset);
+  Address addr = PrepareLargeOffset(address.base(), address.offset());
   switch (sz) {
 #if XLEN == 64
     case kEightBytes:
@@ -3248,13 +3242,7 @@ void Assembler::CompareToStack(Register src, intptr_t depth) {
 void Assembler::StoreToOffset(Register src,
                               const Address& address,
                               OperandSize sz) {
-  StoreToOffset(src, address.base(), address.offset(), sz);
-}
-void Assembler::StoreToOffset(Register src,
-                              Register base,
-                              int32_t offset,
-                              OperandSize sz) {
-  Address addr = PrepareLargeOffset(base, offset);
+  Address addr = PrepareLargeOffset(address.base(), address.offset());
   switch (sz) {
 #if XLEN == 64
     case kEightBytes:
@@ -3294,7 +3282,7 @@ void Assembler::StoreIntoObject(Register object,
                                 MemoryOrder memory_order) {
   // stlr does not feature an address operand.
   ASSERT(memory_order == kRelaxedNonAtomic);
-  sx(value, dest);
+  StoreToOffset(value, dest);
   StoreBarrier(object, value, can_value_be_smi);
 }
 void Assembler::StoreCompressedIntoObject(Register object,
@@ -3446,7 +3434,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          Register value,
                                          MemoryOrder memory_order) {
   ASSERT(memory_order == kRelaxedNonAtomic);
-  sx(value, dest);
+  StoreToOffset(value, dest);
 #if defined(DEBUG)
   // We can't assert the incremental barrier is not needed here, only the
   // generational barrier. We sometimes omit the write barrier when 'value' is
