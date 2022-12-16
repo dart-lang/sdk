@@ -58,6 +58,46 @@ class AnalysisOptionsErrorCode extends ErrorCode {
   ErrorType get type => ErrorType.COMPILE_TIME_ERROR;
 }
 
+class AnalysisOptionsHintCode extends ErrorCode {
+  ///  An error code indicating that the enablePreviewDart2 setting is
+  ///  deprecated.
+  static const AnalysisOptionsHintCode PREVIEW_DART_2_SETTING_DEPRECATED =
+      AnalysisOptionsHintCode(
+    'PREVIEW_DART_2_SETTING_DEPRECATED',
+    "The 'enablePreviewDart2' setting is deprecated.",
+    correctionMessage: "It is no longer necessary to explicitly enable Dart 2.",
+  );
+
+  ///  An error code indicating that strong-mode: true is deprecated.
+  static const AnalysisOptionsHintCode STRONG_MODE_SETTING_DEPRECATED =
+      AnalysisOptionsHintCode(
+    'STRONG_MODE_SETTING_DEPRECATED',
+    "The 'strong-mode: true' setting is deprecated.",
+    correctionMessage:
+        "It is no longer necessary to explicitly enable strong mode.",
+  );
+
+  /// Initialize a newly created error code to have the given [name].
+  const AnalysisOptionsHintCode(
+    String name,
+    String problemMessage, {
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    String? uniqueName,
+  }) : super(
+          name: name,
+          problemMessage: problemMessage,
+          uniqueName: 'AnalysisOptionsHintCode.${uniqueName ?? name}',
+        );
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.INFO;
+
+  @override
+  ErrorType get type => ErrorType.HINT;
+}
+
 class AnalysisOptionsWarningCode extends ErrorCode {
   ///  An error code indicating a specified include file has a warning.
   ///
@@ -104,6 +144,16 @@ class AnalysisOptionsWarningCode extends ErrorCode {
       AnalysisOptionsWarningCode(
     'INVALID_SECTION_FORMAT',
     "Invalid format for the '{0}' section.",
+  );
+
+  ///  An error code indicating that strong-mode: false is has been removed.
+  static const AnalysisOptionsWarningCode SPEC_MODE_REMOVED =
+      AnalysisOptionsWarningCode(
+    'SPEC_MODE_REMOVED',
+    "The option 'strong-mode: false' is no longer supported.",
+    correctionMessage:
+        "It's recommended to remove the 'strong-mode:' setting (and make your "
+        "code Dart 2 compliant).",
   );
 
   ///  An error code indicating that an unrecognized error code is being used to

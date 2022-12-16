@@ -70,6 +70,10 @@ const bool has63BitSmis = false;
 
 class Lists {
   static void copy(List src, int srcStart, List dst, int dstStart, int count) {
+    if (srcStart + count > src.length) {
+      throw IterableElementError.tooFew();
+    }
+
     // TODO(askesc): Intrinsify for efficient copying
     if (srcStart < dstStart) {
       for (int i = srcStart + count - 1, j = dstStart + count - 1;

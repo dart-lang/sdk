@@ -69,7 +69,7 @@ class FlutterNotificationOutlineTest extends PubPackageAnalysisServerTest {
     );
     newAnalysisOptionsYamlFile(testPackageRootPath, '''
 analyzer:
-  language: true
+  strong-mode: true
 ''');
     await pumpEventQueue();
     await server.onAnalysisComplete;

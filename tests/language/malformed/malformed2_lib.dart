@@ -34,7 +34,7 @@ void testValue(var o) {
   try {
     throw o;
   } on List<String> catch (e) {
-  } on NullThrownError catch (e) {
+  } on TypeError catch (e) {
   } on Unresolved9 catch (e) {
   } catch (e) {
   }
@@ -42,7 +42,7 @@ void testValue(var o) {
   try {
     throw o;
   } on List<Unresolved10> catch (e) {
-  } on NullThrownError catch (e) {
+  } on TypeError catch (e) {
   } on Unresolved11 catch (e) {
   } catch (e) {
   }

@@ -323,6 +323,7 @@ class FixBuilder {
     // TODO(paulberry): do we need to test both possible values of
     // strictInference?
     return TypeSystemImpl(
+        implicitCasts: typeSystem.implicitCasts,
         isNonNullableByDefault: true,
         strictCasts: typeSystem.strictCasts,
         strictInference: typeSystem.strictInference,

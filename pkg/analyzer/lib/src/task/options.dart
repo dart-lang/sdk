@@ -118,6 +118,7 @@ void applyToAnalysisOptions(AnalysisOptionsImpl options, YamlMap optionMap) {
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
   static const String analyzer = 'analyzer';
+  static const String enablePreviewDart2 = 'enablePreviewDart2';
 
   static const String cannotIgnore = 'cannot-ignore';
   static const String codeStyle = 'code-style';
@@ -128,9 +129,15 @@ class AnalyzerOptions {
   static const String language = 'language';
   static const String optionalChecks = 'optional-checks';
   static const String plugins = 'plugins';
+  static const String strongMode = 'strong-mode';
 
   // Optional checks options.
   static const String chromeOsManifestChecks = 'chrome-os-manifest-checks';
+
+  // Strong mode options (see AnalysisOptionsImpl for documentation).
+  static const String declarationCasts = 'declaration-casts';
+  static const String implicitCasts = 'implicit-casts';
+  static const String implicitDynamic = 'implicit-dynamic';
 
   // Language options (see AnalysisOptionsImpl for documentation).
   static const String strictCasts = 'strict-casts';
@@ -164,6 +171,14 @@ class AnalyzerOptions {
     optionalChecks,
     plugins,
     propagateLinterExceptions,
+    strongMode,
+  ];
+
+  /// Supported `analyzer` strong-mode options.
+  static const List<String> strongModeOptions = [
+    declarationCasts, // deprecated
+    implicitCasts,
+    implicitDynamic,
   ];
 
   /// Supported `analyzer` language options.
@@ -193,6 +208,7 @@ class AnalyzerOptionsValidator extends CompositeValidator {
   AnalyzerOptionsValidator()
       : super([
           TopLevelAnalyzerOptionsValidator(),
+          StrongModeOptionValueValidator(),
           ErrorFilterOptionValidator(),
           EnabledExperimentsValidator(),
           LanguageOptionValidator(),
@@ -489,7 +505,11 @@ class LanguageOptionValidator extends OptionsValidator {
           bool validKey = false;
           if (k is YamlScalar) {
             key = k.value?.toString();
-            if (!AnalyzerOptions.languageOptions.contains(key)) {
+            if (AnalyzerOptions.enablePreviewDart2 == key) {
+              reporter.reportErrorForSpan(
+                  AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED,
+                  k.span);
+            } else if (!AnalyzerOptions.languageOptions.contains(key)) {
               _builder.reportError(reporter, AnalyzerOptions.language, k);
             } else {
               // If we have a valid key, go on and check the value.
@@ -602,6 +622,64 @@ class OptionsFileValidator {
   }
 }
 
+/// Validates `analyzer` strong-mode value configuration options.
+class StrongModeOptionValueValidator extends OptionsValidator {
+  final ErrorBuilder _builder = ErrorBuilder(AnalyzerOptions.strongModeOptions);
+
+  @override
+  void validate(ErrorReporter reporter, YamlMap options) {
+    var analyzer = options.valueAt(AnalyzerOptions.analyzer);
+    if (analyzer is YamlMap) {
+      var v = analyzer.valueAt(AnalyzerOptions.strongMode);
+      if (v is YamlScalar) {
+        var value = toLowerCase(v.value);
+        if (!AnalyzerOptions.trueOrFalse.contains(value)) {
+          reporter.reportErrorForSpan(
+              AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, v.span, [
+            AnalyzerOptions.strongMode,
+            v.value,
+            AnalyzerOptions.trueOrFalseProposal
+          ]);
+        } else if (value == 'false') {
+          reporter.reportErrorForSpan(
+              AnalysisOptionsWarningCode.SPEC_MODE_REMOVED, v.span);
+        } else if (value == 'true') {
+          reporter.reportErrorForSpan(
+              AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED, v.span);
+        }
+      } else if (v is YamlMap) {
+        v.nodes.forEach((k, v) {
+          String? key, value;
+          bool validKey = false;
+          if (k is YamlScalar) {
+            key = k.value?.toString();
+            if (!AnalyzerOptions.strongModeOptions.contains(key)) {
+              _builder.reportError(reporter, AnalyzerOptions.strongMode, k);
+            } else if (key != AnalyzerOptions.declarationCasts) {
+              // If we have a valid key, go on and check the value.
+              validKey = true;
+            }
+          }
+          if (validKey && v is YamlScalar) {
+            value = toLowerCase(v.value);
+            if (!AnalyzerOptions.trueOrFalse.contains(value)) {
+              reporter.reportErrorForSpan(
+                  AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+                  v.span,
+                  [key!, v.value, AnalyzerOptions.trueOrFalseProposal]);
+            }
+          }
+        });
+      } else if (v != null) {
+        reporter.reportErrorForSpan(
+            AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT,
+            v.span,
+            [AnalyzerOptions.enableExperiment]);
+      }
+    }
+  }
+}
+
 /// Validates `analyzer` top-level options.
 class TopLevelAnalyzerOptionsValidator extends TopLevelOptionValidator {
   TopLevelAnalyzerOptionsValidator()
@@ -652,6 +730,10 @@ class _OptionsProcessor {
     }
     var analyzer = optionMap.valueAt(AnalyzerOptions.analyzer);
     if (analyzer is YamlMap) {
+      // Process strong mode option.
+      var strongMode = analyzer.valueAt(AnalyzerOptions.strongMode);
+      _applyStrongOptions(options, strongMode);
+
       // Process filters.
       var filters = analyzer.valueAt(AnalyzerOptions.errors);
       _applyProcessors(options, filters);
@@ -789,6 +871,32 @@ class _OptionsProcessor {
   void _applyProcessors(AnalysisOptionsImpl options, YamlNode? codes) {
     ErrorConfig config = ErrorConfig(codes);
     options.errorProcessors = config.processors;
+  }
+
+  void _applyStrongModeOption(
+      AnalysisOptionsImpl options, String? feature, Object value) {
+    var boolValue = toBool(value);
+    if (boolValue != null) {
+      if (feature == AnalyzerOptions.implicitCasts) {
+        options.implicitCasts = boolValue;
+      }
+      if (feature == AnalyzerOptions.implicitDynamic) {
+        options.implicitDynamic = boolValue;
+      }
+      if (feature == AnalyzerOptions.propagateLinterExceptions) {
+        options.propagateLinterExceptions = boolValue;
+      }
+    }
+  }
+
+  void _applyStrongOptions(AnalysisOptionsImpl options, YamlNode? config) {
+    if (config is YamlMap) {
+      config.nodes.forEach((k, v) {
+        if (k is YamlScalar && v is YamlScalar) {
+          _applyStrongModeOption(options, k.value?.toString(), v.value);
+        }
+      });
+    }
   }
 
   void _applyUnignorables(AnalysisOptionsImpl options, YamlNode? cannotIgnore) {

@@ -52,6 +52,18 @@ class ConvertToMapLiteral extends CorrectionProducer {
     // Extract the information needed to build the edit.
     //
     var constructorTypeArguments = creation.constructorName.type.typeArguments;
+    List<DartType>? staticTypeArguments;
+    if (constructorTypeArguments == null) {
+      var variableDeclarationList =
+          creation.thisOrAncestorOfType<VariableDeclarationList>();
+      if (variableDeclarationList?.type == null) {
+        staticTypeArguments = type.typeArguments;
+        if (staticTypeArguments.first.isDynamic &&
+            staticTypeArguments.last.isDynamic) {
+          staticTypeArguments = null;
+        }
+      }
+    }
     //
     // Build the edit.
     //
@@ -59,6 +71,10 @@ class ConvertToMapLiteral extends CorrectionProducer {
       builder.addReplacement(range.node(creation), (builder) {
         if (constructorTypeArguments != null) {
           builder.write(utils.getNodeText(constructorTypeArguments));
+        } else if (staticTypeArguments?.isNotEmpty ?? false) {
+          builder.write('<');
+          builder.writeTypes(staticTypeArguments);
+          builder.write('>');
         }
         builder.write('{}');
       });

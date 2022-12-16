@@ -808,8 +808,8 @@ class FileResolverTest extends FileResolutionTest {
   test_analysisOptions_default_fromPackageUri() async {
     newFile('/workspace/dart/analysis_options/lib/default.yaml', r'''
 analyzer:
-  language:
-    strict-casts: true
+  strong-mode:
+    implicit-casts: false
 ''');
 
     await assertErrorsInCode(r'''
@@ -823,8 +823,8 @@ int b = a;
   test_analysisOptions_file_inPackage() async {
     newAnalysisOptionsYamlFile('/workspace/dart/test', r'''
 analyzer:
-  language:
-    strict-casts: true
+  strong-mode:
+    implicit-casts: false
 ''');
 
     await assertErrorsInCode(r'''
@@ -838,14 +838,14 @@ int b = a;
   test_analysisOptions_file_inThirdParty() async {
     newFile('/workspace/dart/analysis_options/lib/third_party.yaml', r'''
 analyzer:
-  language:
-    strict-casts: true
+  strong-mode:
+    implicit-casts: false
 ''');
 
     newAnalysisOptionsYamlFile('/workspace/third_party/dart/aaa', r'''
 analyzer:
-  language:
-    strict-casts: false
+  strong-mode:
+    implicit-casts: true
 ''');
 
     var aPath = convertPath('/workspace/third_party/dart/aaa/lib/a.dart');
@@ -860,14 +860,14 @@ int b = a;
   test_analysisOptions_file_inThirdPartyDartLang() async {
     newFile('/workspace/dart/analysis_options/lib/third_party.yaml', r'''
 analyzer:
-  language:
-    strict-casts: true
+  strong-mode:
+    implicit-casts: false
 ''');
 
     newAnalysisOptionsYamlFile('/workspace/third_party/dart_lang/aaa', r'''
 analyzer:
-  language:
-    strict-casts: false
+  strong-mode:
+    implicit-casts: true
 ''');
 
     var aPath = convertPath('/workspace/third_party/dart_lang/aaa/lib/a.dart');
@@ -2482,15 +2482,15 @@ int b = a;
     newFile('/workspace/dart/aaa/BUILD', '');
     newAnalysisOptionsYamlFile('/workspace/dart/aaa', r'''
 analyzer:
-  language:
-    strict-casts: true
+  strong-mode:
+    implicit-casts: false
 ''');
 
     newFile('/workspace/dart/bbb/BUILD', '');
     newAnalysisOptionsYamlFile('/workspace/dart/bbb', r'''
 analyzer:
-  language:
-    strict-casts: false
+  strong-mode:
+    implicit-casts: true
 ''');
 
     // Implicit casts are disabled in 'aaa'.

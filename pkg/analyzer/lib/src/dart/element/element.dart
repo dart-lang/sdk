@@ -748,6 +748,14 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
   }
 
+  bool get isMixinClass {
+    return hasModifier(Modifier.MIXIN_CLASS);
+  }
+
+  set isMixinClass(bool isMixinClass) {
+    setModifier(Modifier.MIXIN_CLASS, isMixinClass);
+  }
+
   @override
   bool get isValidMixin {
     final supertype = this.supertype;
@@ -4841,29 +4849,32 @@ class Modifier implements Comparable<Modifier> {
   /// Indicates that a class is a mixin application.
   static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 19);
 
-  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 20);
+  /// Indicates that a class is a mixin class.
+  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 20);
+
+  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 21);
 
   /// Indicates that the modifier 'sealed' was applied to the element.
-  static const Modifier SEALED = Modifier('SEALED', 21);
+  static const Modifier SEALED = Modifier('SEALED', 22);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 22);
+  static const Modifier SETTER = Modifier('SETTER', 23);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 23);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 24);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 24);
+  static const Modifier STATIC = Modifier('STATIC', 25);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 25);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 26);
 
   /// Indicates that the element was appended to this enclosing element to
   /// simulate temporary the effect of applying augmentation.
-  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 26);
+  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 27);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -4885,6 +4896,7 @@ class Modifier implements Comparable<Modifier> {
     LATE,
     MACRO,
     MIXIN_APPLICATION,
+    MIXIN_CLASS,
     PROMOTABLE,
     SEALED,
     SETTER,

@@ -20,6 +20,11 @@ const List<ErrorClassInfo> errorClasses = [
       severity: 'ERROR'),
   ErrorClassInfo(
       filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
+      name: 'AnalysisOptionsHintCode',
+      type: 'HINT',
+      severity: 'INFO'),
+  ErrorClassInfo(
+      filePath: 'lib/src/analysis_options/error/option_codes.g.dart',
       name: 'AnalysisOptionsWarningCode',
       type: 'STATIC_WARNING',
       severity: 'WARNING'),
@@ -29,6 +34,10 @@ const List<ErrorClassInfo> errorClasses = [
       superclass: 'AnalyzerErrorCode',
       type: 'COMPILE_TIME_ERROR',
       extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
+  ErrorClassInfo(
+      filePath: 'lib/src/error/codes.g.dart',
+      name: 'LanguageCode',
+      type: 'COMPILE_TIME_ERROR'),
   ErrorClassInfo(
       filePath: 'lib/src/error/codes.g.dart',
       name: 'StaticWarningCode',

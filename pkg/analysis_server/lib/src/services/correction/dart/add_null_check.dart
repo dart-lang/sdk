@@ -13,10 +13,14 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddNullCheck extends CorrectionProducer {
   @override
-  FixKind get fixKind => DartFixKind.ADD_NULL_CHECK;
+  FixKind fixKind = DartFixKind.ADD_NULL_CHECK;
+
+  @override
+  List<Object>? fixArguments;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
@@ -24,9 +28,15 @@ class AddNullCheck extends CorrectionProducer {
       // Don't suggest a feature that isn't supported.
       return;
     }
+
     Expression? target;
     final coveredNode = this.coveredNode;
     var coveredNodeParent = coveredNode?.parent;
+
+    if (await _isNullAware(builder, coveredNode)) {
+      return;
+    }
+
     if (coveredNode is SimpleIdentifier) {
       if (coveredNodeParent is MethodInvocation) {
         target = coveredNodeParent.realTarget;
@@ -34,6 +44,10 @@ class AddNullCheck extends CorrectionProducer {
         target = coveredNodeParent.prefix;
       } else if (coveredNodeParent is PropertyAccess) {
         target = coveredNodeParent.realTarget;
+      } else if (coveredNodeParent is CascadeExpression &&
+          await _isNullAware(
+              builder, coveredNodeParent.cascadeSections.first)) {
+        return;
       } else {
         target = coveredNode;
       }
@@ -79,6 +93,10 @@ class AddNullCheck extends CorrectionProducer {
 
     if (fromType == typeProvider.nullType) {
       // Adding a null check after an explicit `null` is pointless.
+      return;
+    }
+
+    if (await _isNullAware(builder, target)) {
       return;
     }
     DartType? toType;
@@ -158,6 +176,44 @@ class AddNullCheck extends CorrectionProducer {
         }
         builder.write('!');
       });
+    });
+  }
+
+  /// Return `true` if the specified [node] or one of its parents `isNullAware`,
+  /// in which case [_replaceWithNullCheck] would also be called.
+  Future<bool> _isNullAware(ChangeBuilder builder, AstNode? node) async {
+    if (node is PropertyAccess) {
+      if (node.isNullAware) {
+        await _replaceWithNullCheck(builder, node.operator);
+        return true;
+      }
+      return await _isNullAware(builder, node.target);
+    } else if (node is MethodInvocation) {
+      var operator = node.operator;
+      if (operator != null && node.isNullAware) {
+        await _replaceWithNullCheck(builder, operator);
+        return true;
+      }
+      return await _isNullAware(builder, node.target);
+    } else if (node is IndexExpression) {
+      var question = node.question;
+      if (question != null) {
+        await _replaceWithNullCheck(builder, question);
+        return true;
+      }
+      return await _isNullAware(builder, node.target);
+    }
+    return false;
+  }
+
+  /// Replace the null aware [token] with the null check operator.
+  Future<void> _replaceWithNullCheck(ChangeBuilder builder, Token token) async {
+    fixKind = DartFixKind.REPLACE_WITH_NULL_AWARE;
+    var lexeme = token.lexeme;
+    var replacement = '!${lexeme.substring(1)}';
+    fixArguments = [lexeme, replacement];
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleReplacement(range.token(token), replacement);
     });
   }
 }

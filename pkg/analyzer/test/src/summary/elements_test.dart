@@ -6828,6 +6828,18 @@ library
 ''');
   }
 
+  test_class_mixin_class() async {
+    var library = await buildLibrary('mixin class C {}');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      mixin class C @12
+        constructors
+          synthetic @-1
+''');
+  }
+
   test_class_mixins() async {
     var library = await buildLibrary('''
 class C extends D with E, F, G {}
@@ -8928,6 +8940,35 @@ library
             defaultType: dynamic
         constructors
           synthetic @-1
+''');
+  }
+
+  test_classAlias_mixin_class() async {
+    var library = await buildLibrary('''
+mixin class C = Object with M;
+mixin M {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      mixin class alias C @12
+        supertype: Object
+        mixins
+          M
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::new
+    mixins
+      mixin M @37
+        superclassConstraints
+          Object
 ''');
   }
 

@@ -62,6 +62,14 @@ analyzer:
       expect(context.getProcessor(unused_local_variable), isNull);
       expect(context.getProcessor(use_of_void_result), isNull);
     });
+
+    test('does not upgrade other warnings to errors in strong mode', () {
+      context.configureOptions('''
+analyzer:
+  strong-mode: true
+''');
+      expect(context.getProcessor(unused_local_variable), isNull);
+    });
   });
 
   group('ErrorConfig', () {

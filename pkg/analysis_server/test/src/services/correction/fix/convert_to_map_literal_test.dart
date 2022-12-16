@@ -87,4 +87,26 @@ var m = Map<String, int>();
 var m = <String, int>{};
 ''');
   }
+
+  Future<void> test_typedef() async {
+    await resolveTestCode('''
+typedef M = Map<String, int>;
+var m = M();
+''');
+    await assertHasFix('''
+typedef M = Map<String, int>;
+var m = <String, int>{};
+''');
+  }
+
+  Future<void> test_typedef_declaredType() async {
+    await resolveTestCode('''
+typedef M = Map<String, int>;
+Map<String, int> m = M();
+''');
+    await assertHasFix('''
+typedef M = Map<String, int>;
+Map<String, int> m = {};
+''');
+  }
 }

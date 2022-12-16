@@ -34,6 +34,11 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
       }),
       AnalyzerOptions.plugins: EmptyProducer(),
       AnalyzerOptions.propagateLinterExceptions: EmptyProducer(),
+      AnalyzerOptions.strongMode: MapProducer({
+        AnalyzerOptions.declarationCasts: EmptyProducer(),
+        AnalyzerOptions.implicitCasts: EmptyProducer(),
+        AnalyzerOptions.implicitDynamic: EmptyProducer(),
+      }),
     }),
     AnalyzerOptions.codeStyle: MapProducer({
       AnalyzerOptions.format: BooleanProducer(),
