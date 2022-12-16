@@ -113,7 +113,7 @@ const Map<NativeType, int> nativeTypeSizes = <NativeType, int>{
   NativeType.kBool: 1,
 };
 
-/// Load, store, and elementAt are rewired to their static type for these types.
+/// Load and store are rewired to their static type for these types.
 const List<NativeType> optimizedTypes = [
   NativeType.kBool,
   NativeType.kInt8,
@@ -201,16 +201,19 @@ class FfiTransformer extends Transformer {
   final Procedure allocatorAllocateMethod;
   final Procedure castMethod;
   final Procedure offsetByMethod;
-  final Procedure elementAtMethod;
   final Procedure addressGetter;
   final Procedure structPointerGetRef;
   final Procedure structPointerSetRef;
   final Procedure structPointerGetElemAt;
   final Procedure structPointerSetElemAt;
+  final Procedure structPointerElementAt;
+  final Procedure structPointerElementAtTearoff;
   final Procedure unionPointerGetRef;
   final Procedure unionPointerSetRef;
   final Procedure unionPointerGetElemAt;
   final Procedure unionPointerSetElemAt;
+  final Procedure unionPointerElementAt;
+  final Procedure unionPointerElementAtTearoff;
   final Procedure structArrayElemAt;
   final Procedure unionArrayElemAt;
   final Procedure arrayArrayElemAt;
@@ -219,6 +222,8 @@ class FfiTransformer extends Transformer {
   final Procedure abiSpecificIntegerPointerSetValue;
   final Procedure abiSpecificIntegerPointerElemAt;
   final Procedure abiSpecificIntegerPointerSetElemAt;
+  final Procedure abiSpecificIntegerPointerElementAt;
+  final Procedure abiSpecificIntegerPointerElementAtTearoff;
   final Procedure abiSpecificIntegerArrayElemAt;
   final Procedure abiSpecificIntegerArraySetElemAt;
   final Procedure asFunctionMethod;
@@ -246,7 +251,6 @@ class FfiTransformer extends Transformer {
   final Map<NativeType, Procedure> loadUnalignedMethods;
   final Map<NativeType, Procedure> storeMethods;
   final Map<NativeType, Procedure> storeUnalignedMethods;
-  final Map<NativeType, Procedure> elementAtMethods;
   final Procedure loadAbiSpecificIntMethod;
   final Procedure loadAbiSpecificIntAtIndexMethod;
   final Procedure storeAbiSpecificIntMethod;
@@ -363,8 +367,6 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'Allocator', 'allocate'),
         castMethod = index.getProcedure('dart:ffi', 'Pointer', 'cast'),
         offsetByMethod = index.getProcedure('dart:ffi', 'Pointer', '_offsetBy'),
-        elementAtMethod =
-            index.getProcedure('dart:ffi', 'Pointer', 'elementAt'),
         addressGetter =
             index.getProcedure('dart:ffi', 'Pointer', 'get:address'),
         compoundTypedDataBaseField =
@@ -397,6 +399,10 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'StructPointer', '[]'),
         structPointerSetElemAt =
             index.getProcedure('dart:ffi', 'StructPointer', '[]='),
+        structPointerElementAt =
+            index.getProcedure('dart:ffi', 'StructPointer', 'elementAt'),
+        structPointerElementAtTearoff = index.getProcedure('dart:ffi',
+            'StructPointer', LibraryIndex.tearoffPrefix + 'elementAt'),
         unionPointerGetRef =
             index.getProcedure('dart:ffi', 'UnionPointer', 'get:ref'),
         unionPointerSetRef =
@@ -405,6 +411,10 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'UnionPointer', '[]'),
         unionPointerSetElemAt =
             index.getProcedure('dart:ffi', 'UnionPointer', '[]='),
+        unionPointerElementAt =
+            index.getProcedure('dart:ffi', 'UnionPointer', 'elementAt'),
+        unionPointerElementAtTearoff = index.getProcedure('dart:ffi',
+            'UnionPointer', LibraryIndex.tearoffPrefix + 'elementAt'),
         structArrayElemAt = index.getProcedure('dart:ffi', 'StructArray', '[]'),
         unionArrayElemAt = index.getProcedure('dart:ffi', 'UnionArray', '[]'),
         arrayArrayElemAt = index.getProcedure('dart:ffi', 'ArrayArray', '[]'),
@@ -418,6 +428,12 @@ class FfiTransformer extends Transformer {
             index.getProcedure('dart:ffi', 'AbiSpecificIntegerPointer', '[]'),
         abiSpecificIntegerPointerSetElemAt =
             index.getProcedure('dart:ffi', 'AbiSpecificIntegerPointer', '[]='),
+        abiSpecificIntegerPointerElementAt = index.getProcedure(
+            'dart:ffi', 'AbiSpecificIntegerPointer', 'elementAt'),
+        abiSpecificIntegerPointerElementAtTearoff = index.getProcedure(
+            'dart:ffi',
+            'AbiSpecificIntegerPointer',
+            LibraryIndex.tearoffPrefix + 'elementAt'),
         abiSpecificIntegerArrayElemAt =
             index.getProcedure('dart:ffi', 'AbiSpecificIntegerArray', '[]'),
         abiSpecificIntegerArraySetElemAt =
@@ -461,10 +477,6 @@ class FfiTransformer extends Transformer {
           final name = nativeTypeClassNames[t];
           return index.getTopLevelProcedure(
               'dart:ffi', "_store${name}Unaligned");
-        }),
-        elementAtMethods = Map.fromIterable(optimizedTypes, value: (t) {
-          final name = nativeTypeClassNames[t];
-          return index.getTopLevelProcedure('dart:ffi', "_elementAt$name");
         }),
         loadAbiSpecificIntMethod =
             index.getTopLevelProcedure('dart:ffi', "_loadAbiSpecificInt"),

@@ -67,14 +67,6 @@ class Pointer<T extends NativeType> extends NativeType {
   /// On 32-bit systems, the upper 32-bits of the result are 0.
   external int get address;
 
-  /// Pointer arithmetic (takes element size into account).
-  ///
-  /// This method must be invoked with a compile-time constant [T].
-  ///
-  /// Does not accept dynamic invocations -- where the type of the receiver is
-  /// [dynamic].
-  external Pointer<T> elementAt(int index);
-
   /// Cast Pointer<T> to a Pointer<V>.
   external Pointer<U> cast<U extends NativeType>();
 
@@ -191,6 +183,9 @@ extension Int8Pointer on Pointer<Int8> {
   /// being stored, and the 8-bit value is sign-extended when it is loaded.
   external void operator []=(int index, int value);
 
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<Int8> elementAt(int index);
+
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
@@ -228,6 +223,9 @@ extension Int16Pointer on Pointer<Int16> {
   ///
   /// The [address] must be 2-byte aligned.
   external void operator []=(int index, int value);
+
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<Int16> elementAt(int index);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
@@ -269,6 +267,9 @@ extension Int32Pointer on Pointer<Int32> {
   /// The [address] must be 4-byte aligned.
   external void operator []=(int index, int value);
 
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<Int32> elementAt(int index);
+
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
@@ -299,6 +300,9 @@ extension Int64Pointer on Pointer<Int64> {
   ///
   /// The [address] must be 8-byte aligned.
   external void operator []=(int index, int value);
+
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<Int64> elementAt(int index);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
@@ -333,6 +337,9 @@ extension Uint8Pointer on Pointer<Uint8> {
   /// A Dart integer is truncated to 8 bits (as if by `.toUnsigned(8)`) before
   /// being stored, and the 8-bit value is zero-extended when it is loaded.
   external void operator []=(int index, int value);
+
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<Uint8> elementAt(int index);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
@@ -371,6 +378,9 @@ extension Uint16Pointer on Pointer<Uint16> {
   ///
   /// The [address] must be 2-byte aligned.
   external void operator []=(int index, int value);
+
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<Uint16> elementAt(int index);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
@@ -412,6 +422,9 @@ extension Uint32Pointer on Pointer<Uint32> {
   /// The [address] must be 4-byte aligned.
   external void operator []=(int index, int value);
 
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<Uint32> elementAt(int index);
+
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
@@ -442,6 +455,9 @@ extension Uint64Pointer on Pointer<Uint64> {
   ///
   /// The [address] must be 8-byte aligned.
   external void operator []=(int index, int value);
+
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<Uint64> elementAt(int index);
 
   /// Creates a typed list view backed by memory in the address space.
   ///
@@ -483,6 +499,9 @@ extension FloatPointer on Pointer<Float> {
   /// The [address] must be 4-byte aligned.
   external void operator []=(int index, double value);
 
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<Float> elementAt(int index);
+
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
@@ -514,6 +533,9 @@ extension DoublePointer on Pointer<Double> {
   /// The [address] must be 8-byte aligned.
   external void operator []=(int index, double value);
 
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<Double> elementAt(int index);
+
   /// Creates a typed list view backed by memory in the address space.
   ///
   /// The returned view will allow access to the memory range from [address]
@@ -539,6 +561,9 @@ extension BoolPointer on Pointer<Bool> {
 
   /// The bool at `address + index`.
   external void operator []=(int index, bool value);
+
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<Bool> elementAt(int index);
 }
 
 /// Bounds checking indexing methods on [Array]s of [Int8].
@@ -663,6 +688,9 @@ extension PointerPointer<T extends NativeType> on Pointer<Pointer<T>> {
   /// On 32-bit platforms the [address] must be 4-byte aligned, and on 64-bit
   /// platforms the [address] must be 8-byte aligned.
   external void operator []=(int index, Pointer<T> value);
+
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<Pointer<T>> elementAt(int index);
 }
 
 /// Extension on [Pointer] specialized for the type argument [Struct].
@@ -699,6 +727,9 @@ extension StructPointer<T extends Struct> on Pointer<T> {
   /// This extension method must be invoked on a receiver of type `Pointer<T>`
   /// where `T` is a compile-time constant type.
   external void operator []=(int index, T value);
+
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<T> elementAt(int index);
 }
 
 /// Extension on [Pointer] specialized for the type argument [Union].
@@ -735,6 +766,9 @@ extension UnionPointer<T extends Union> on Pointer<T> {
   /// This extension method must be invoked on a receiver of type `Pointer<T>`
   /// where `T` is a compile-time constant type.
   external void operator []=(int index, T value);
+
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<T> elementAt(int index);
 }
 
 /// Extension on [Pointer] specialized for the type argument
@@ -752,6 +786,9 @@ extension AbiSpecificIntegerPointer<T extends AbiSpecificInteger>
 
   /// The integer at `address + sizeOf<T>() * index`.
   external void operator []=(int index, int value);
+
+  /// Pointer arithmetic (takes element size into account).
+  external Pointer<T> elementAt(int index);
 }
 
 /// Bounds checking indexing methods on [Array]s of [Pointer].
