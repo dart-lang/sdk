@@ -732,8 +732,13 @@ static void ThrowExceptionHelper(Thread* thread,
   bool use_preallocated_stacktrace = false;
   Instance& exception = Instance::Handle(zone, incoming_exception.ptr());
   if (exception.IsNull()) {
-    exception ^=
-        Exceptions::Create(Exceptions::kNullThrown, Object::empty_array());
+    const Array& args = Array::Handle(zone, Array::New(4));
+    const Smi& line_col = Smi::Handle(zone, Smi::New(-1));
+    args.SetAt(0, Symbols::OptimizedOut());
+    args.SetAt(1, line_col);
+    args.SetAt(2, line_col);
+    args.SetAt(3, String::Handle(String::New("Throw of null.")));
+    exception ^= Exceptions::Create(Exceptions::kType, args);
   } else if (existing_stacktrace.IsNull() &&
              (exception.ptr() == object_store->out_of_memory() ||
               exception.ptr() == object_store->stack_overflow())) {
@@ -1133,10 +1138,6 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
     case kUnsupported:
       library = Library::CoreLibrary();
       class_name = &Symbols::UnsupportedError();
-      break;
-    case kNullThrown:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::NullThrownError();
       break;
     case kIsolateSpawn:
       library = Library::IsolateLibrary();

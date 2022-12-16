@@ -200,7 +200,6 @@ class ObjectPointerVisitor;
   V(NoSuchMethod, "noSuchMethod")                                              \
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
   V(Null, "Null")                                                              \
-  V(NullThrownError, "NullThrownError")                                        \
   V(Number, "num")                                                             \
   V(Object, "Object")                                                          \
   V(ObjectPool, "ObjectPool")                                                  \

@@ -7,25 +7,12 @@ static method main() → dynamic {
   try {
     throw (null as{ForNonNullableByDefault} dynamic) as{TypeError,ForNonNullableByDefault} core::Object;
   }
-  on core::NullThrownError catch(final core::NullThrownError e) {
-    if(self::inSoundMode) {
-      throw "Expected TypeError";
-    }
-    else {
-      core::print("${e.{core::Object::runtimeType}{core::Type}}:${e}");
-    }
-  }
   on core::TypeError catch(final core::TypeError e) {
-    if(self::inSoundMode) {
-      core::print("${e.{core::Object::runtimeType}{core::Type}}:${e}");
-    }
-    else {
-      throw "Expected NullThrowError";
-    }
+    core::print("${e.{core::Object::runtimeType}{core::Type}}:${e}");
   }
 }
 
 
 Extra constant evaluation status:
 Evaluated: AsExpression @ org-dartlang-testcase:///issue49198.dart:9:16 -> NullConstant(null)
-Extra constant evaluation: evaluated: 20, effectively constant: 1
+Extra constant evaluation: evaluated: 11, effectively constant: 1

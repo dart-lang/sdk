@@ -7,17 +7,7 @@ final bool inSoundMode = <int?>[] is! List<int>;
 main() {
   try {
     throw null as dynamic;
-  } on NullThrownError catch (e) {
-    if (inSoundMode) {
-      throw 'Expected TypeError';
-    } else {
-      print('${e.runtimeType}:$e');
-    }
   } on TypeError catch (e) {
-    if (inSoundMode) {
-      print('${e.runtimeType}:$e');
-    } else {
-      throw 'Expected NullThrowError';
-    }
+    print('${e.runtimeType}:$e');
   }
 }

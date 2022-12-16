@@ -80,7 +80,6 @@ const listIntEncoding = 'DartType.LIST_INT';
 const mapEntryIntStringEncoding = 'DartType.MAPENTRY_INT_STRING';
 const mapIntStringEncoding = 'DartType.MAP_INT_STRING';
 const nullEncoding = 'DartType.NULL';
-const nullThrownErrorEncoding = 'DartType.NULLTHROWNERROR';
 const numEncoding = 'DartType.NUM';
 const provisionalEncoding = 'DartType.PROVISIONAL';
 const rangeErrorEncoding = 'DartType.RANGEERROR';
@@ -140,7 +139,6 @@ final listLibs = 'listLibs';
 final mapEntryIntStringLibs = 'mapEntryIntStringLibs';
 final mapLibs = 'mapLibs';
 final nullLibs = 'nullLibs';
-final nullThrownErrorLibs = 'nullThrownErrorLibs';
 final numLibs = 'numLibs';
 final provisionalLibs = 'provisionalLibs';
 final rangeErrorLibs = 'rangeErrorLibs';
@@ -202,7 +200,6 @@ final Map<String, String> typeToLibraryMethodsListName = () {
     mapEntryIntStringEncoding: mapEntryIntStringLibs,
     mapIntStringEncoding: mapLibs,
     nullEncoding: nullLibs,
-    nullThrownErrorEncoding: nullThrownErrorLibs,
     numEncoding: numLibs,
     provisionalEncoding: provisionalLibs,
     rangeErrorEncoding: rangeErrorLibs,
@@ -272,7 +269,6 @@ final Map<String, List<DartLib>> typeToLibraryMethodsList = () {
     mapEntryIntStringEncoding,
     mapIntStringEncoding,
     nullEncoding,
-    nullThrownErrorEncoding,
     numEncoding,
     provisionalEncoding,
     rangeErrorEncoding,
@@ -553,8 +549,6 @@ String typeStringHelper(DartType type) {
       return mapEntryIntStringEncoding;
     case 'Null':
       return nullEncoding;
-    case 'NullThrownError':
-      return nullThrownErrorEncoding;
     case 'Provisional':
       return provisionalEncoding;
     case 'RangeError':
