@@ -11,7 +11,7 @@ opening a file based on a URI or file path.
 ## Enhancing navigation
 
 If we have decided to provide navigation from a given kind of text that was
-previously not supported, you can add that support by extending the class
+previously not supported, you can add that support by modifying the class
 `_DartNavigationComputerVisitor`. That class is a `RecursiveAstVisitor`, so the
 first task is to figure out which kind of node contains the text at the origin.
 You can then either add a new `visit` method for the node or edit an existing
