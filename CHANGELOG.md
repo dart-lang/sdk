@@ -71,13 +71,6 @@
 
 ### Tools
 
-#### Analyzer
-
-- Remove deprecated 'strong-mode' analysis options from `analysis_options.yaml`
-  files. These options are replaced by the supported "strict" options
-  documented at
-  [dart.dev](https://dart.dev/guides/language/analysis-options#enabling-additional-type-checks).
-
 #### Linter
 
 Updates the Linter to `1.32.0`, which includes changes that

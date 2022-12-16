@@ -230,6 +230,8 @@ environment:
       actual.lintRules.map((l) => l.name),
       unorderedEquals(expected.lintRules.map((l) => l.name)),
     );
+    expect(actual.implicitCasts, expected.implicitCasts);
+    expect(actual.implicitDynamic, expected.implicitDynamic);
     expect(
         actual.propagateLinterExceptions, expected.propagateLinterExceptions);
     expect(actual.strictInference, expected.strictInference);

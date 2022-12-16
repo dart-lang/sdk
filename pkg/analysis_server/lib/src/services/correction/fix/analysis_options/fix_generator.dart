@@ -65,6 +65,9 @@ class AnalysisOptionsFixGenerator {
     if (errorCode ==
         AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED) {
       await _addFix_removeSetting(coveringNodePath);
+    } else if (errorCode ==
+        AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED) {
+      await _addFix_removeSetting(coveringNodePath);
     } else if (errorCode == DEPRECATED_LINT_HINT) {
       await _addFix_removeLint(coveringNodePath);
 //    } else if (errorCode == AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING) {
