@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart';
 
 import '../../api_prototype/experimental_flags.dart';
+import '../source/source_library_builder.dart';
 
 abstract class DelayedActionPerformer {
   bool get hasDelayedActions;
@@ -12,9 +13,11 @@ abstract class DelayedActionPerformer {
 }
 
 /// Returns `true` if access to `Record` from `dart:core` is allowed.
-bool isRecordAccessAllowed(LibraryFeatures libraryFeatures) {
-  return ExperimentalFlag.records.isEnabledByDefault ||
-      libraryFeatures.records.isEnabled;
+bool isRecordAccessAllowed(SourceLibraryBuilder library) {
+  return library
+          .loader.target.context.options.globalFeatures.records.isEnabled ||
+      ExperimentalFlag.records.isEnabledByDefault ||
+      library.libraryFeatures.records.isEnabled;
 }
 
 /// Returns `true` if [type] is `Record` from  `dart:core`.

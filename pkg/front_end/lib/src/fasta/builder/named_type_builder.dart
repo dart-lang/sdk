@@ -402,7 +402,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
     DartType aliasedType = _buildAliasedInternal(library, typeUse, hierarchy);
 
     if (library is SourceLibraryBuilder &&
-        !isRecordAccessAllowed(library.libraryFeatures) &&
+        !isRecordAccessAllowed(library) &&
         isDartCoreRecord(aliasedType)) {
       library.reportFeatureNotEnabled(library.libraryFeatures.records,
           fileUri ?? library.fileUri, charOffset!, nameText.length);
@@ -418,7 +418,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
     assert(hierarchy != null || isExplicit, "Cannot build $this.");
     DartType builtType = _buildAliasedInternal(library, typeUse, hierarchy);
     if (library is SourceLibraryBuilder &&
-        !isRecordAccessAllowed(library.libraryFeatures) &&
+        !isRecordAccessAllowed(library) &&
         isDartCoreRecord(builtType)) {
       library.reportFeatureNotEnabled(library.libraryFeatures.records,
           fileUri ?? library.fileUri, charOffset!, nameText.length);

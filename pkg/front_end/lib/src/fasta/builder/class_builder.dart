@@ -29,6 +29,7 @@ import '../problems.dart' show internalProblem, unhandled;
 import '../scope.dart';
 import '../source/source_library_builder.dart';
 import '../type_inference/type_schema.dart' show UnknownType;
+import '../util/helpers.dart';
 import 'builder.dart';
 import 'declaration_builder.dart';
 import 'library_builder.dart';
@@ -374,7 +375,7 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
         libraryBuilder.importUri.scheme == "dart" &&
         libraryBuilder.importUri.path == "core" &&
         library is SourceLibraryBuilder &&
-        !library.libraryFeatures.records.isEnabled) {
+        !isRecordAccessAllowed(library)) {
       library.reportFeatureNotEnabled(
           library.libraryFeatures.records, fileUri, charOffset, name.length);
       return const InvalidType();
