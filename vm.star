@@ -423,6 +423,7 @@ dart_vm_sanitizer_builder(
 dart_vm_sanitizer_builder(
     "vm-kernel-msan-linux-release-x64",
     category = "vm|misc|m",
+    execution_timeout = 3 * time.hour,
 )
 dart_vm_sanitizer_builder(
     "vm-kernel-tsan-linux-release-x64",
