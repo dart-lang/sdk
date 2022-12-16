@@ -1273,7 +1273,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOffset(node.fileOffset);
     writeOffset(node.fileEndOffset);
 
-    writeByte(node.flags);
+    writeUInt30(node.flags);
     writeStringReference(node.name);
 
     enterScope(memberScope: true);

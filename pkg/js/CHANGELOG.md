@@ -1,4 +1,4 @@
-## 0.6.6-dev
+## 0.6.6
 
 * Add `@JSExport` annotation for exporting Dart classes and `@staticInterop`
   mocking.

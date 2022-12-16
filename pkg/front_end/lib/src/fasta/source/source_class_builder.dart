@@ -112,7 +112,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   final bool isAugmentation;
 
-  // TODO(kallentu): Finish AST implementation for mixin classes.
+  @override
   final bool isMixinClass;
 
   @override
@@ -275,6 +275,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     // compile-time error.
     cls.isAbstract = isAbstract;
     cls.isMacro = isMacro;
+    cls.isMixinClass = isMixinClass;
     cls.isSealed = isSealed;
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
