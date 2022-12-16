@@ -77,7 +77,7 @@ void main() {
   {
     TokenScope scope = new TokenScope(initialChar: $A + 1);
 
-    // We start with 'A'.
+    // We start with 'B'.
     Expect.equals("B", scope.getNextName());
   }
 }
