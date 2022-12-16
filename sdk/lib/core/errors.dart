@@ -142,17 +142,6 @@ class AssertionError extends Error {
 /// Error thrown by the runtime system when a dynamic type error happens.
 class TypeError extends Error {}
 
-/// Error thrown when attempting to throw `null`.
-///
-/// In null safe code, you are statically disallowed from throwing `null`,
-/// so this error will go away when non-null safe code stops being supported.
-@Deprecated("Use TypeError instead")
-class NullThrownError extends Error implements TypeError {
-  @pragma("vm:entry-point")
-  NullThrownError();
-  String toString() => "Throw of null.";
-}
-
 /// Error thrown when a function is passed an unacceptable argument.
 ///
 /// The method should document restrictions on the arguments it accepts,

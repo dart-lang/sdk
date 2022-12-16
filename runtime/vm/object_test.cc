@@ -7420,7 +7420,7 @@ static void CheckConcatAll(const String* data[], intptr_t n) {
 
 ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
   {
-    const String* data[3] = {&Symbols::NullThrownError(), &Symbols::Dot(),
+    const String* data[3] = {&Symbols::TypeError(), &Symbols::Dot(),
                              &Symbols::isPaused()};
     CheckConcatAll(data, 3);
   }
@@ -7475,7 +7475,7 @@ ISOLATE_UNIT_TEST_CASE(Symbols_FromConcatAll) {
 
   {
     const String& empty = String::Handle(String::New(""));
-    const String* data[3] = {&Symbols::NullThrownError(), &empty,
+    const String* data[3] = {&Symbols::TypeError(), &empty,
                              &Symbols::isPaused()};
     CheckConcatAll(data, 3);
   }
