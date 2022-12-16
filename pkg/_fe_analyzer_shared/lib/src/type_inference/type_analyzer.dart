@@ -294,7 +294,7 @@ mixin TypeAnalyzer<
       MatchContext<Node, Expression, Pattern, Type, Variable> context,
       Pattern innerPattern,
       Type type) {
-    flow.pushSubpattern(type);
+    flow.pushSubpattern(type, isDistinctValue: false);
     dispatchPattern(context, innerPattern);
     // Stack: (Pattern)
     flow.popSubpattern();
@@ -631,13 +631,13 @@ mixin TypeAnalyzer<
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
           Type subPatternMatchedType = listType(valueType);
-          flow.pushSubpattern(subPatternMatchedType);
+          flow.pushSubpattern(subPatternMatchedType, isDistinctValue: true);
           dispatchPattern(context, subPattern);
           flow.popSubpattern();
         }
         handleListPatternRestElement(node, element);
       } else {
-        flow.pushSubpattern(valueType);
+        flow.pushSubpattern(valueType, isDistinctValue: true);
         dispatchPattern(context, element);
         flow.popSubpattern();
       }
@@ -742,10 +742,13 @@ mixin TypeAnalyzer<
       context = context.makeRefutable();
     }
     // Stack: ()
+    flow.logicalOrPattern_begin();
     dispatchPattern(context, lhs);
     // Stack: (Pattern left)
+    flow.logicalOrPattern_afterLhs();
     dispatchPattern(context, rhs);
     // Stack: (Pattern left, Pattern right)
+    flow.logicalOrPattern_end();
   }
 
   /// Computes the type schema for a logical-or pattern.  [lhs] and [rhs] are
@@ -802,7 +805,7 @@ mixin TypeAnalyzer<
       MapPatternEntry<Expression, Pattern>? entry = getMapPatternEntry(element);
       if (entry != null) {
         analyzeExpression(entry.key, keyContext);
-        flow.pushSubpattern(valueType);
+        flow.pushSubpattern(valueType, isDistinctValue: true);
         dispatchPattern(context, entry.value);
         handleMapPatternEntry(node, element);
         flow.popSubpattern();
@@ -811,7 +814,7 @@ mixin TypeAnalyzer<
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
           errors?.restPatternWithSubPatternInMap(node, element);
-          flow.pushSubpattern(dynamicType);
+          flow.pushSubpattern(dynamicType, isDistinctValue: true);
           dispatchPattern(context, subPattern);
           flow.popSubpattern();
         }
@@ -891,7 +894,7 @@ mixin TypeAnalyzer<
       // Avoid cascading errors
       context = context.makeRefutable();
     }
-    flow.pushSubpattern(innerMatchedType);
+    flow.pushSubpattern(innerMatchedType, isDistinctValue: false);
     dispatchPattern(context, innerPattern);
     // Stack: (Pattern)
     flow.popSubpattern();
@@ -962,7 +965,7 @@ mixin TypeAnalyzer<
             receiverType: requiredType,
             field: field,
           );
-      flow.pushSubpattern(propertyType);
+      flow.pushSubpattern(propertyType, isDistinctValue: true);
       dispatchPattern(context, field.pattern);
       flow.popSubpattern();
     }
@@ -1065,7 +1068,7 @@ mixin TypeAnalyzer<
       RecordPatternField<Node, Pattern> field,
       Type matchedType,
     ) {
-      flow.pushSubpattern(matchedType);
+      flow.pushSubpattern(matchedType, isDistinctValue: true);
       dispatchPattern(context, field.pattern);
       flow.popSubpattern();
     }
