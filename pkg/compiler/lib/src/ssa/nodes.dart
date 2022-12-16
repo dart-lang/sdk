@@ -3350,7 +3350,7 @@ class HInterceptor extends HInstruction {
   }
 }
 
-/// A "one-shot" interceptor is a call to a synthetized method that will fetch
+/// A "one-shot" interceptor is a call to a synthesized method that will fetch
 /// the interceptor of its first parameter, and make a call on a given selector
 /// with the remaining parameters.
 ///
