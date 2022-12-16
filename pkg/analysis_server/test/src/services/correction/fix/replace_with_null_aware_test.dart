@@ -22,6 +22,19 @@ class ReplaceWithNullAwareTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REPLACE_WITH_NULL_AWARE;
 
+  Future<void> test_indexExpression() async {
+    await resolveTestCode('''
+void f(List<int>? l) {
+  l[0];
+}
+''');
+    await assertHasFix('''
+void f(List<int>? l) {
+  l?[0];
+}
+''');
+  }
+
   Future<void> test_indexExpression_cascade() async {
     await resolveTestCode('''
 void f(List<int>? l) {
