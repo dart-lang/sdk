@@ -759,6 +759,7 @@ class ClassHelper {
     kHasConstConstructor = 1 << 5,
     kIsMacro = 1 << 6,
     kisSealed = 1 << 7,
+    kIsMixinClass = 1 << 8,
   };
 
   explicit ClassHelper(KernelReaderHelper* helper)
@@ -793,7 +794,7 @@ class ClassHelper {
   intptr_t source_uri_index_ = 0;
   intptr_t annotation_count_ = 0;
   intptr_t procedure_count_ = 0;
-  uint8_t flags_ = 0;
+  uint32_t flags_ = 0;
 
  private:
   KernelReaderHelper* helper_;

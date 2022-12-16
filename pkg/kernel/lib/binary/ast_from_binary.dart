@@ -1478,7 +1478,7 @@ class BinaryBuilder {
     int startFileOffset = readOffset();
     int fileOffset = readOffset();
     int fileEndOffset = readOffset();
-    int flags = readByte();
+    int flags = readUInt30();
     String name = readStringReference();
     if (node == null) {
       node = new Class(name: name, reference: reference, fileUri: fileUri)

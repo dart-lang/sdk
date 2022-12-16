@@ -1287,7 +1287,7 @@ void ClassHelper::ReadUntilExcluding(Field field) {
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kFlags:
-      flags_ = helper_->ReadFlags();  // read flags.
+      flags_ = helper_->ReadUInt();  // read flags.
       if (++next_read_ == field) return;
       FALL_THROUGH;
     case kNameIndex:

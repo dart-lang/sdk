@@ -1026,6 +1026,7 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   static const int FlagHasConstConstructor = 1 << 5;
   static const int FlagMacro = 1 << 6;
   static const int FlagSealed = 1 << 7;
+  static const int FlagMixinClass = 1 << 8;
 
   int flags = 0;
 
@@ -1084,6 +1085,18 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   void set isEliminatedMixin(bool value) {
     flags =
         value ? (flags | FlagEliminatedMixin) : (flags & ~FlagEliminatedMixin);
+  }
+
+  /// Whether this class is a mixin class.
+  ///
+  /// The `mixin` modifier was added to the class declaration which allows the
+  /// class to be used as a mixin. The class can be mixed in by other classes
+  /// outside of its library. Otherwise, classes are not able to be used as a
+  /// mixin outside of its library from version 3.0 and later.
+  bool get isMixinClass => flags & FlagMixinClass != 0;
+
+  void set isMixinClass(bool value) {
+    flags = value ? (flags | FlagMixinClass) : (flags & ~FlagMixinClass);
   }
 
   /// True if this class was a mixin declaration in Dart.

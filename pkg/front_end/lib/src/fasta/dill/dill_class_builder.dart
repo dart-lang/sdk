@@ -58,6 +58,9 @@ class DillClassBuilder extends ClassBuilderImpl {
   bool get isMacro => cls.isMacro;
 
   @override
+  bool get isMixinClass => cls.isMixinClass;
+
+  @override
   bool get isMixinDeclaration => cls.isMixinDeclaration;
 
   @override
