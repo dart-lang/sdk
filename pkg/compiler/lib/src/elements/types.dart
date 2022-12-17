@@ -403,7 +403,7 @@ class RecordType extends DartType {
   final List<DartType> fields;
 
   static late final _emptyRecordType =
-      RecordType._(RecordShape(0, const []), const []);
+      RecordType._allocate(RecordShape(0, const []), const []);
 
   RecordType._allocate(this.shape, this.fields);
 
