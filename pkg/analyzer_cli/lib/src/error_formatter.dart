@@ -389,6 +389,10 @@ class JsonErrorFormatter extends ErrorFormatter {
       var errors = result.errors;
       var lineInfo = result.lineInfo;
       for (var error in errors) {
+        var severity = _computeSeverity(error);
+        if (severity == null) {
+          continue;
+        }
         var contextMessages = <Map<String, dynamic>>[];
         for (var contextMessage in error.contextMessages) {
           contextMessages.add({
@@ -402,7 +406,7 @@ class JsonErrorFormatter extends ErrorFormatter {
         var url = error.errorCode.url;
         diagnostics.add({
           'code': errorCode.name.toLowerCase(),
-          'severity': errorCode.errorSeverity.name,
+          'severity': severity.name,
           'type': errorCode.type.name,
           'location': location(problemMessage.filePath, problemMessage.offset,
               problemMessage.length, lineInfo),
