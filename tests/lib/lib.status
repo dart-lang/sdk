@@ -52,6 +52,7 @@ js/js_util/async_test: SkipByDesign # Issue 42085. CSP policy disallows injected
 js/js_util/implicit_downcast_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/javascriptobject_extensions_test.dart: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/jsify_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
+js/js_util/operator_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/promise_reject_null_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/properties_implicit_checks_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/js_util/properties_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
