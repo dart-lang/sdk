@@ -1012,6 +1012,7 @@ pertinent
 physically
 pi
 picking
+pieces
 pipe
 pkg
 play
@@ -1128,6 +1129,7 @@ realign
 realise
 reapplies
 reassigned
+reassigns
 rebased
 rebasing
 rebind
@@ -1403,6 +1405,7 @@ subname
 subnode
 subnodes
 subpatterns
+subpattterns
 subscription
 subsection
 subsections
@@ -1507,12 +1510,14 @@ tput
 traced
 tracker
 traditional
+transfer
 transferable
 transformers
 transforming
 translation
 traversal
 traverse
+traversing
 trees
 tricky
 triggering

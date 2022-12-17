@@ -428,17 +428,11 @@ CompileTimeErrorCode.EXPRESSION_IN_MAP:
 CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS:
   status: needsEvaluation
 CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS:
-  status: needsFix
-  notes: |-
-    Use RemoveNameFromDeclarationClause.
+  status: hasFix
 CompileTimeErrorCode.EXTENDS_NON_CLASS:
   status: hasFix
-  notes: |-
-    Additionally: use RemoveNameFromDeclarationClause.
 CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
-  status: needsFix
-  notes: |-
-    Use RemoveNameFromDeclarationClause.
+  status: hasFix
 CompileTimeErrorCode.EXTENSION_AS_EXPRESSION:
   status: needsEvaluation
 CompileTimeErrorCode.EXTENSION_CONFLICTING_STATIC_AND_INSTANCE:
@@ -743,9 +737,7 @@ CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS:
   status: hasFix
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE:
-  status: needsFix
-  notes: |-
-    Use RemoveNameFromDeclarationClause.
+  status: hasFix
 CompileTimeErrorCode.MIXIN_WITH_NON_CLASS_SUPERCLASS:
   status: needsEvaluation
 CompileTimeErrorCode.MIXINS_SUPER_CLASS:
@@ -1297,17 +1289,13 @@ FfiCode.PACKED_ANNOTATION_ALIGNMENT:
 FfiCode.SIZE_ANNOTATION_DIMENSIONS:
   status: needsEvaluation
 FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS:
-  status: needsFix
-  notes: |-
-    Use RemoveNameFromDeclarationClause.
+  status: hasFix
 FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS:
   status: hasFix
 FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH:
   status: hasFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS:
-  status: needsFix
-  notes: |-
-    Use RemoveNameFromDeclarationClause.
+  status: hasFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
   status: hasFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH:

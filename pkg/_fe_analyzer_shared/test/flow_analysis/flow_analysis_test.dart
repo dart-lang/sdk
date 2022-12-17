@@ -1305,7 +1305,9 @@ main() {
       test('when not final', () {
         h.addSubtype('T&int', 'T', true);
         h.addSubtype('T&int', 'Object', true);
+        h.addSubtype('T', 'T&int', false);
         h.addFactor('T', 'T&int', 'T');
+        h.addFactor('T&int', 'T', 'Never');
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('T&int')),
@@ -1316,7 +1318,9 @@ main() {
       test('when final', () {
         h.addSubtype('T&int', 'T', true);
         h.addSubtype('T&int', 'Object', true);
+        h.addSubtype('T', 'T&int', false);
         h.addFactor('T', 'T&int', 'T');
+        h.addFactor('T&int', 'T', 'Never');
         var x = Var('x');
         h.run([
           declare(x,
@@ -1334,6 +1338,8 @@ main() {
       test('when not final', () {
         var x = Var('x');
         h.addSubtype('T&int', 'T', true);
+        h.addSubtype('T', 'T&int', false);
+        h.addFactor('T&int', 'T', 'Never');
         h.run([
           declare(x, type: 'T', initializer: expr('T&int')),
           checkNotPromoted(x),
@@ -1343,6 +1349,8 @@ main() {
       test('when final', () {
         var x = Var('x');
         h.addSubtype('T&int', 'T', true);
+        h.addSubtype('T', 'T&int', false);
+        h.addFactor('T&int', 'T', 'Never');
         h.run([
           declare(x, isFinal: true, type: 'T', initializer: expr('T&int')),
           checkNotPromoted(x),
@@ -6572,6 +6580,46 @@ main() {
       });
     });
 
+    group('Logical-and pattern:', () {
+      group('promotion of matched value type:', () {
+        test('when scrutinee is promotable', () {
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'num'),
+            ifCase(
+                x.expr,
+                wildcard(type: 'int').and(wildcard(expectInferredType: 'int')),
+                [
+                  checkPromoted(x, 'int'),
+                ]),
+          ]);
+        });
+
+        test('when scrutinee is not promotable', () {
+          h.run([
+            ifCase(
+                expr('num'),
+                wildcard(type: 'int').and(wildcard(expectInferredType: 'int')),
+                []),
+          ]);
+        });
+      });
+
+      test('double promotion of matched value type', () {
+        var x = Var('x');
+        h.run([
+          declare(x, type: 'Object'),
+          ifCase(
+              x.expr,
+              wildcard(type: 'num').and(wildcard(type: 'int')
+                  .and(wildcard(expectInferredType: 'int'))),
+              [
+                checkPromoted(x, 'int'),
+              ]),
+        ]);
+      });
+    });
+
     group('Switch expression:', () {
       test('guarded', () {
         var x = Var('x');
@@ -6751,6 +6799,55 @@ main() {
           switch_(expr('C'), [], expectRequiresExhaustivenessValidation: true),
           checkReachable(false),
         ]);
+      });
+
+      group('Nested:', () {
+        test('scrutinee type', () {
+          // Verify that the inner switch's matched value type doesn't bleed out
+          // to the next case in the outer switch.
+          h.run([
+            switch_(expr('int'), [
+              wildcard(expectInferredType: 'int').when(expr('bool')).then([
+                switch_(expr('String'), [
+                  wildcard(expectInferredType: 'String').then([]),
+                ]),
+              ]),
+              wildcard(expectInferredType: 'int').then([]),
+            ]),
+          ]);
+        });
+
+        test('scrutinee reference', () {
+          // Verify that the inner switch's scrutinee reference is properly
+          // distinguished from the outer switch's scrutinee reference.
+          var x = Var('x');
+          var y = Var('x');
+          h.run([
+            declare(x, initializer: expr('Object')),
+            declare(y, initializer: expr('Object')),
+            switch_(x.expr, [
+              wildcard(type: 'num').then([
+                checkPromoted(x, 'num'),
+                checkNotPromoted(y),
+                switch_(y.expr, [
+                  wildcard(type: 'int').then([
+                    checkPromoted(x, 'num'),
+                    checkPromoted(y, 'int'),
+                  ]),
+                  default_.then([
+                    return_(),
+                  ]),
+                ]),
+                checkPromoted(x, 'num'),
+                checkPromoted(y, 'int'),
+              ]),
+              wildcard(type: 'String').then([
+                checkPromoted(x, 'String'),
+                checkNotPromoted(y),
+              ]),
+            ]),
+          ]);
+        });
       });
     });
 

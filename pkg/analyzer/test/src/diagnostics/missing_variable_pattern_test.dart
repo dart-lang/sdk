@@ -128,19 +128,25 @@ BinaryPattern
 
   test_ifCase_logicalOr2_left() async {
     await assertErrorsInCode(r'''
-void f(int x) {
-  if (x case final a || 2) {}
+void f(num x) {
+  if (x case final int a || 2) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: DeclaredVariablePattern
     keyword: final
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
     name: a
-    declaredElement: hasImplicitType isFinal a@35
+    declaredElement: isFinal a@39
       type: int
   operator: ||
   rightOperand: ConstantPattern
@@ -176,12 +182,12 @@ BinaryPattern
 
   test_ifCase_logicalOr3_1() async {
     await assertErrorsInCode(r'''
-void f(int x) {
-  if (x case final a || 2 || 3) {}
+void f(num x) {
+  if (x case final int a || 2 || 3) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 45, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -189,8 +195,14 @@ BinaryPattern
   leftOperand: BinaryPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
       name: a
-      declaredElement: hasImplicitType isFinal a@35
+      declaredElement: isFinal a@39
         type: int
     operator: ||
     rightOperand: ConstantPattern
@@ -207,11 +219,11 @@ BinaryPattern
 
   test_ifCase_logicalOr3_12() async {
     await assertErrorsInCode(r'''
-void f(int x) {
-  if (x case final a || final a || 3) {}
+void f(num x) {
+  if (x case final int a || final int a || 3) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 51, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 59, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -219,14 +231,26 @@ BinaryPattern
   leftOperand: BinaryPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
       name: a
-      declaredElement: hasImplicitType isFinal a@35
+      declaredElement: isFinal a@39
         type: int
     operator: ||
     rightOperand: DeclaredVariablePattern
       keyword: final
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
       name: a
-      declaredElement: hasImplicitType isFinal a@46
+      declaredElement: isFinal a@54
         type: int
   operator: ||
   rightOperand: ConstantPattern
@@ -268,11 +292,11 @@ BinaryPattern
 
   test_ifCase_logicalOr3_13() async {
     await assertErrorsInCode(r'''
-void f(int x) {
-  if (x case final a || 2 || final a) {}
+void f(num x) {
+  if (x case final int a || 2 || final int a) {}
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -280,8 +304,14 @@ BinaryPattern
   leftOperand: BinaryPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
       name: a
-      declaredElement: hasImplicitType isFinal a@35
+      declaredElement: isFinal a@39
         type: int
     operator: ||
     rightOperand: ConstantPattern
@@ -291,20 +321,26 @@ BinaryPattern
   operator: ||
   rightOperand: DeclaredVariablePattern
     keyword: final
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
     name: a
-    declaredElement: hasImplicitType isFinal a@51
+    declaredElement: isFinal a@59
       type: int
 ''');
   }
 
   test_ifCase_logicalOr3_2() async {
     await assertErrorsInCode(r'''
-void f(int x) {
-  if (x case 1 || final a || 3) {}
+void f(num x) {
+  if (x case 1 || final int a || 3) {}
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 45, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -317,8 +353,14 @@ BinaryPattern
     operator: ||
     rightOperand: DeclaredVariablePattern
       keyword: final
+      type: NamedType
+        name: SimpleIdentifier
+          token: int
+          staticElement: dart:core::@class::int
+          staticType: null
+        type: int
       name: a
-      declaredElement: hasImplicitType isFinal a@40
+      declaredElement: isFinal a@44
         type: int
   operator: ||
   rightOperand: ConstantPattern
@@ -417,22 +459,28 @@ BinaryPattern
 
   test_switchStatement_case1_logicalOr2_left() async {
     await assertErrorsInCode(r'''
-void f(int x) {
+void f(num x) {
   switch (x) {
-    case final a || 2:
+    case final int a || 2:
       return;
   }
 }
 ''', [
-      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 51, 1),
+      error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 55, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 BinaryPattern
   leftOperand: DeclaredVariablePattern
     keyword: final
+    type: NamedType
+      name: SimpleIdentifier
+        token: int
+        staticElement: dart:core::@class::int
+        staticType: null
+      type: int
     name: a
-    declaredElement: hasImplicitType isFinal a@46
+    declaredElement: isFinal a@50
       type: int
   operator: ||
   rightOperand: ConstantPattern

@@ -97,6 +97,27 @@ external bool lessThan<T>(Object? first, Object? second);
 /// Perform JavaScript less than or equal comparison (`<=`) of two values.
 external bool lessThanOrEqual<T>(Object? first, Object? second);
 
+/// Perform JavaScript `typeof` operator on the given object and determine if
+/// the result is equal to the given type. Exposes the whole `typeof` equal
+/// expression to maximize browser optimization.
+external bool typeofEquals<T>(Object? o, String type);
+
+/// Perform JavaScript logical not (`!`) on the given object.
+external T not<T>(Object? o);
+
+/// Determines if the given object is truthy or falsy.
+external bool isTruthy<T>(Object? o);
+
+/// Perform JavaScript logical or comparison (`||`) of two expressions.
+external T or<T>(Object? first, Object? second);
+
+/// Perform JavaScript logical and comparison (`&&`) of two expressions.
+external T and<T>(Object? first, Object? second);
+
+/// Perform JavaScript delete operator (`delete`) on the given property of the
+/// given object.
+external bool delete<T>(Object o, Object property);
+
 /// Exception for when the promise is rejected with a `null` or `undefined`
 /// value.
 ///

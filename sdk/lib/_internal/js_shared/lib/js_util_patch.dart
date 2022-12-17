@@ -346,6 +346,42 @@ bool lessThanOrEqual<T>(Object? first, Object? second) {
 }
 
 @patch
+@pragma('dart2js:tryInline')
+bool typeofEquals<T>(Object? o, String type) {
+  return JS<bool>('bool', 'typeof # == #', o, type);
+}
+
+@patch
+@pragma('dart2js:tryInline')
+T not<T>(Object? o) {
+  return JS<dynamic>('Object', '!#', o);
+}
+
+@patch
+@pragma('dart2js:tryInline')
+bool isTruthy<T>(Object? o) {
+  return JS<bool>('bool', '!!#', o);
+}
+
+@patch
+@pragma('dart2js:tryInline')
+T or<T>(Object? first, Object? second) {
+  return JS<dynamic>('Object|bool', '# || #', first, second);
+}
+
+@patch
+@pragma('dart2js:tryInline')
+T and<T>(Object? first, Object? second) {
+  return JS<dynamic>('Object|bool', '# && #', first, second);
+}
+
+@patch
+@pragma('dart2js:tryInline')
+bool delete<T>(Object o, Object property) {
+  return JS<bool>('bool', 'delete #[#]', o, property);
+}
+
+@patch
 Future<T> promiseToFuture<T>(Object jsPromise) {
   final completer = Completer<T>();
 

@@ -964,9 +964,16 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.ENUM_WITH_ABSTRACT_MEMBER: [
       ConvertIntoBlockBody.new,
     ],
+    CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS: [
+      RemoveNameFromDeclarationClause.new,
+    ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
       ChangeTo.classOrMixin,
       CreateClass.new,
+      RemoveNameFromDeclarationClause.new,
+    ],
+    CompileTimeErrorCode.EXTENDS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER: [
+      RemoveNameFromDeclarationClause.new,
     ],
     CompileTimeErrorCode.EXTENSION_OVERRIDE_ACCESS_TO_STATIC_MEMBER: [
       ReplaceWithExtensionName.new,
@@ -1014,9 +1021,6 @@ class FixProcessor extends BaseProcessor {
       RemoveNameFromDeclarationClause.new,
     ],
     CompileTimeErrorCode.IMPLEMENTS_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER: [
-      RemoveNameFromDeclarationClause.new,
-    ],
-    CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS: [
       RemoveNameFromDeclarationClause.new,
     ],
     CompileTimeErrorCode.IMPLICIT_SUPER_INITIALIZER_MISSING_ARGUMENTS: [
@@ -1067,6 +1071,12 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
       ChangeTo.classOrMixin,
       CreateClass.new,
+    ],
+    CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DISALLOWED_CLASS: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE: [
+      RemoveNameFromDeclarationClause.new,
     ],
     CompileTimeErrorCode.NEW_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
@@ -1286,11 +1296,16 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.YIELD_OF_INVALID_TYPE: [
       MakeReturnTypeNullable.new,
     ],
-
+    FfiCode.SUBTYPE_OF_FFI_CLASS_IN_EXTENDS: [
+      RemoveNameFromDeclarationClause.new,
+    ],
     FfiCode.SUBTYPE_OF_FFI_CLASS_IN_IMPLEMENTS: [
       RemoveNameFromDeclarationClause.new,
     ],
     FfiCode.SUBTYPE_OF_FFI_CLASS_IN_WITH: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_EXTENDS: [
       RemoveNameFromDeclarationClause.new,
     ],
     FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS: [
@@ -1299,7 +1314,6 @@ class FixProcessor extends BaseProcessor {
     FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH: [
       RemoveNameFromDeclarationClause.new,
     ],
-
     HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
       AddReturnNull.new,
     ],

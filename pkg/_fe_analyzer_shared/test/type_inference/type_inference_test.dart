@@ -1415,7 +1415,9 @@ main() {
       test('promoted initializer', () {
         h.addSubtype('T&int', 'T', true);
         h.addSubtype('T&int', 'Object', true);
+        h.addSubtype('T', 'T&int', false);
         h.addFactor('T', 'T&int', 'T');
+        h.addFactor('T&int', 'T', 'Never');
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('T&int')).checkIr('match(expr(T&int), '
@@ -1992,7 +1994,7 @@ main() {
           'patternTypeMismatchInIrrefutableContext(pattern: LHS, '
               'context: CONTEXT, matchedType: num, requiredType: int)',
           'patternTypeMismatchInIrrefutableContext(pattern: RHS, '
-              'context: CONTEXT, matchedType: num, requiredType: double)'
+              'context: CONTEXT, matchedType: int, requiredType: double)'
         });
       });
 

@@ -47,6 +47,11 @@
   removed.  See [#49536](https://github.com/dart-lang/sdk/issues/49536) for
   details.
 
+#### `dart:js_util`
+
+- Added several helper functions to access more JavaScript operator, like
+  `delete` and the `typeof` functionality.
+
 #### `dart:async`
 
 - **Breaking change** [#49529][]:

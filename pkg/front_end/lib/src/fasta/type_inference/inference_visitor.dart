@@ -8883,7 +8883,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     CastPattern pattern, {
     required SharedMatchContext context,
   }) {
-    flow.pushSubpattern(pattern.type);
+    flow.pushSubpattern(pattern.type, isDistinctValue: false);
     pattern.pattern.acceptInference(this, context: context);
     flow.popSubpattern();
     return const PatternInferenceResult();
@@ -8897,7 +8897,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType nestedMatchedType = computeTypeWithoutNullabilityMarker(
         matchedType,
         isNonNullableByDefault: isNonNullableByDefault);
-    flow.pushSubpattern(nestedMatchedType);
+    flow.pushSubpattern(nestedMatchedType, isDistinctValue: false);
     PatternInferenceResult result =
         pattern.pattern.acceptInference(this, context: context);
     flow.popSubpattern();
@@ -8912,7 +8912,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType nestedMatchedType = computeTypeWithoutNullabilityMarker(
         matchedType,
         isNonNullableByDefault: isNonNullableByDefault);
-    flow.pushSubpattern(nestedMatchedType);
+    flow.pushSubpattern(nestedMatchedType, isDistinctValue: false);
     PatternInferenceResult result =
         pattern.pattern.acceptInference(this, context: context);
     flow.popSubpattern();
@@ -8931,7 +8931,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       elementType = pattern.typeArgument;
     }
     for (Pattern pattern in pattern.patterns) {
-      flow.pushSubpattern(elementType);
+      flow.pushSubpattern(elementType, isDistinctValue: true);
       pattern.acceptInference(this, context: context);
       flow.popSubpattern();
     }

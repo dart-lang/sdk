@@ -818,6 +818,8 @@ class MiniAstOperations
     'List<int>': false,
     'Never': false,
     'num': false,
+    'Object': false,
+    'String': false,
   };
 
   static const Map<String, bool> _coreSubtypes = const {
@@ -833,11 +835,13 @@ class MiniAstOperations
     'double <: int': false,
     'double <: int?': false,
     'double <: String': false,
+    'double? <: Null': false,
     'dynamic <: int': false,
     'dynamic <: int?': false,
     'dynamic <: Null': false,
     'dynamic <: num': false,
     'dynamic <: Object': false,
+    'FutureOr<Object> <: Object': true,
     'int <: bool': false,
     'int <: double': false,
     'int <: double?': false,
@@ -855,6 +859,7 @@ class MiniAstOperations
     'int <: Object?': true,
     'int <: String': false,
     'int <: ?': true,
+    'int? <: dynamic': true,
     'int? <: int': false,
     'int? <: Never': false,
     'int? <: Null': false,
@@ -871,6 +876,7 @@ class MiniAstOperations
     'Null <: Object?': true,
     'Null <: dynamic': true,
     'num <: double': false,
+    'num <: dynamic': true,
     'num <: int': false,
     'num <: Iterable': false,
     'num <: List': false,
@@ -878,6 +884,7 @@ class MiniAstOperations
     'num <: num*': true,
     'num <: Object': true,
     'num <: Object?': true,
+    'num <: String': false,
     'num? <: int?': false,
     'num? <: num': false,
     'num? <: num*': true,
@@ -891,6 +898,7 @@ class MiniAstOperations
     'Iterable <: num': false,
     'Iterable <: Object': true,
     'Iterable <: Object?': true,
+    'Iterable<int> <: List<int>': false,
     'List <: int': false,
     'List <: Iterable': true,
     'List <: Object': true,
@@ -910,6 +918,7 @@ class MiniAstOperations
     'Never? <: num?': true,
     'Never? <: Object?': true,
     'Null <: int?': true,
+    'Object <: bool': false,
     'Object <: FutureOr<Object>': true,
     'Object <: int': false,
     'Object <: int?': false,
@@ -933,36 +942,44 @@ class MiniAstOperations
     'String <: Object': true,
     'String <: Object?': true,
     'String <: String?': true,
+    'String <: List<int>': false,
     'String? <: Null': false,
     'String? <: Object': false,
     'String? <: Object?': true,
   };
 
   static final Map<String, Type> _coreFactors = {
+    'bool - Object': Type('Never'),
+    'dynamic - int': Type('dynamic'),
+    'dynamic - int?': Type('dynamic'),
+    'dynamic - num': Type('dynamic'),
     'Object? - double': Type('Object?'),
     'Object? - int': Type('Object?'),
     'Object? - int?': Type('Object'),
     'Object? - Never': Type('Object?'),
     'Object? - Null': Type('Object'),
     'Object? - num?': Type('Object'),
-    'Object? - Object?': Type('Never?'),
     'Object? - String': Type('Object?'),
     'Object? - String?': Type('Object?'),
     'Object - bool': Type('Object'),
+    'Object - FutureOr<Object>': Type('Object'),
     'Object - int': Type('Object'),
     'Object - String': Type('Object'),
     'int - num': Type('int'),
     'int - Object': Type('Never'),
     'int - String': Type('int'),
-    'int - int': Type('Never'),
     'int - int?': Type('Never'),
     'int? - int': Type('Never?'),
-    'int? - int?': Type('Never'),
     'int? - Null': Type('int'),
     'int? - String': Type('int?'),
+    'List<int> - Iterable<int>': Type('Never'),
+    'List<int> - String': Type('List<int>'),
+    'Null - dynamic': Type('Never'),
     'Null - int': Type('Null'),
+    'Null - int?': Type('Never'),
+    'Null - double?': Type('Never'),
+    'num - double': Type('num'),
     'num - int': Type('num'),
-    'num - num': Type('Never'),
     'num? - num': Type('Never?'),
     'num? - int': Type('num?'),
     'num? - int?': Type('num'),
@@ -978,6 +995,7 @@ class MiniAstOperations
     'Object? - num': Type('Object?'),
     'Iterable - List': Type('Iterable'),
     'num* - Object': Type('Never'),
+    'String - num': Type('String'),
   };
 
   static final Map<String, Type> _coreGlbs = {
@@ -1117,7 +1135,10 @@ class MiniAstOperations
 
   @override
   Type factor(Type from, Type what) {
-    var query = '$from - $what';
+    var fromStr = from.toString();
+    var whatStr = what.toString();
+    if (fromStr == whatStr) return Type('Never');
+    var query = '$fromStr - $whatStr';
     return _factorResults[query] ?? fail('Unknown factor query: $query');
   }
 
