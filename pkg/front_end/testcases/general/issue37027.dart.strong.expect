@@ -1,0 +1,17 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:collection" as col;
+
+class C extends core::Object {
+  final field core::Set<core::int> s;
+  constructor •(core::List<core::int> ell) → self::C
+    : self::C::s = block {
+      final core::Set<core::int> #t1 = col::LinkedHashSet::•<core::int>();
+      for (core::int e in ell)
+        if(e.{core::int::isOdd}{core::bool})
+          #t1.{core::Set::add}{Invariant}(2.{core::num::*}(e){(core::num) → core::int}){(core::int) → core::bool};
+    } =>#t1, super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/type_variable_type_arguments.dart:5:16: Error: Can't use type arguments with type variable 'S'.
+// Try removing the type arguments.
+// void method<S>(S<int> a) {}
+//                ^
+//
+// pkg/front_end/testcases/general/type_variable_type_arguments.dart:8:28: Error: Can't use type arguments with type variable 'S'.
+// Try removing the type arguments.
+//   void method<S>(T<int> a, S<int> b) {
+//                            ^
+//
+// pkg/front_end/testcases/general/type_variable_type_arguments.dart:8:18: Error: Can't use type arguments with type variable 'T'.
+// Try removing the type arguments.
+//   void method<S>(T<int> a, S<int> b) {
+//                  ^
+//
+// pkg/front_end/testcases/general/type_variable_type_arguments.dart:9:14: Error: Can't use type arguments with type variable 'U'.
+// Try removing the type arguments.
+//     local<U>(U<int> a) {}
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Class<self::Class::T%>
+    : super core::Object::•()
+    ;
+  method method<S extends core::Object? = dynamic>(invalid-type a, invalid-type b) → void {
+    function local<U extends core::Object? = dynamic>(invalid-type a) → Null {}
+  }
+}
+static method method<S extends core::Object? = dynamic>(invalid-type a) → void {}
+static method main() → dynamic {}

@@ -1,0 +1,96 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:12:27: Error: Too many positional arguments: 0 allowed, but 1 found.
+// Try removing the extra positional arguments.
+//   for (var v in takesNoArg(0)) {}
+//                           ^
+// pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:5:10: Context: Found this candidate, but the arguments don't match.
+// Iterable takesNoArg() => throw '';
+//          ^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:13:17: Error: This expression has type 'void' and can't be used.
+//   for (var v in returnVoid()) {}
+//                 ^
+//
+// pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:14:17: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
+//  - 'Iterable' is from 'dart:core'.
+//   for (var v in returnInt()) {}
+//                 ^
+//
+// pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:16:17: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
+//  - 'Object' is from 'dart:core'.
+//  - 'Iterable' is from 'dart:core'.
+//   for (var v in returnObject()) {}
+//                 ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method takesNoArg() → core::Iterable<dynamic>
+  return throw "";
+static method returnVoid() → void {}
+static method returnInt() → core::int
+  return 42;
+static method returnDynamic() → dynamic
+  return core::_GrowableList::•<dynamic>(0);
+static method returnObject() → core::Object
+  return 0;
+static method test() → dynamic {
+  {
+    core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:12:27: Error: Too many positional arguments: 0 allowed, but 1 found.
+Try removing the extra positional arguments.
+  for (var v in takesNoArg(0)) {}
+                          ^".{core::Iterable::iterator}{core::Iterator<Never>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      dynamic v = :sync-for-iterator.{core::Iterator::current}{Never};
+      {}
+    }
+  }
+  {
+    core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:13:17: Error: This expression has type 'void' and can't be used.
+  for (var v in returnVoid()) {}
+                ^" in self::returnVoid().{core::Iterable::iterator}{core::Iterator<Never>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      dynamic v = :sync-for-iterator.{core::Iterator::current}{Never};
+      {}
+    }
+  }
+  {
+    core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:14:17: Error: The type 'int' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Iterable' is from 'dart:core'.
+  for (var v in returnInt()) {}
+                ^" in self::returnInt() as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      dynamic v = :sync-for-iterator.{core::Iterator::current}{Never};
+      {}
+    }
+  }
+  {
+    core::Iterator<dynamic> :sync-for-iterator = (self::returnDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      dynamic v = :sync-for-iterator.{core::Iterator::current}{dynamic};
+      {}
+    }
+  }
+  {
+    core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/general/invalid_for_in_iterable2.dart:16:17: Error: The type 'Object' used in the 'for' loop must implement 'Iterable<dynamic>'.
+ - 'Object' is from 'dart:core'.
+ - 'Iterable' is from 'dart:core'.
+  for (var v in returnObject()) {}
+                ^" in self::returnObject() as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      dynamic v = :sync-for-iterator.{core::Iterator::current}{Never};
+      {}
+    }
+  }
+  {
+    core::Iterator<Never> :sync-for-iterator = (throw "").{core::Iterable::iterator}{core::Iterator<Never>};
+    for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
+      dynamic v = :sync-for-iterator.{core::Iterator::current}{Never};
+      {}
+    }
+  }
+}
+static method main() → dynamic {}

@@ -75,7 +75,7 @@ final primitiveCType = {
   PrimitiveType.float: "float",
   PrimitiveType.double_: "double",
   // People should use explicit sizes. But we also want to test `long`.
-  // Surpressing lint.
+  // Suppressing lint.
   PrimitiveType.long: "/* NOLINT(runtime/int) */long",
   PrimitiveType.ulong: "/* NOLINT(runtime/int) */unsigned long",
   PrimitiveType.uintptr: "uintptr_t",

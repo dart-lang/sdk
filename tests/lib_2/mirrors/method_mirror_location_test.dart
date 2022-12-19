@@ -36,8 +36,8 @@ class ClassInMainFile {
 }
 
 void topLevelInMainFile() {}
-  spaceIdentedInMainFile() {}
-	tabIdentedInMainFile() {}
+  spaceIndentedInMainFile() {}
+	tabIndentedInMainFile() {}
 
 class HasImplicitConstructor {}
 
@@ -57,8 +57,8 @@ main() {
   expectLocation(
       reflectClass(ClassInMainFile).declarations[#method], mainSuffix, 33, 3);
   expectLocation(reflect(topLevelInMainFile), mainSuffix, 36, 1);
-  expectLocation(reflect(spaceIdentedInMainFile), mainSuffix, 37, 3);
-  expectLocation(reflect(tabIdentedInMainFile), mainSuffix, 38, 2);
+  expectLocation(reflect(spaceIndentedInMainFile), mainSuffix, 37, 3);
+  expectLocation(reflect(tabIndentedInMainFile), mainSuffix, 38, 2);
   expectLocation(reflect(localFunction), mainSuffix, 45, 3);
 
   // Another part.
@@ -67,8 +67,8 @@ main() {
   expectLocation(
       reflectClass(ClassInOtherFile).declarations[#method], otherSuffix, 10, 3);
   expectLocation(reflect(topLevelInOtherFile), otherSuffix, 13, 1);
-  expectLocation(reflect(spaceIdentedInOtherFile), otherSuffix, 15, 3);
-  expectLocation(reflect(tabIdentedInOtherFile), otherSuffix, 17, 2);
+  expectLocation(reflect(spaceIndentedInOtherFile), otherSuffix, 15, 3);
+  expectLocation(reflect(tabIndentedInOtherFile), otherSuffix, 17, 2);
 
   // Synthetic methods.
   Expect.isNull(reflectClass(HasImplicitConstructor)

@@ -1,0 +1,24 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/block_bodied_lambdas_async_star.dart:5:1: Error: Library doesn't support null safety.
+// // @dart=2.9
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:async" as asy;
+import "dart:core" as core;
+
+import "dart:async";
+
+static method test() → dynamic {
+  () →* asy::Stream<core::num*>* f = () → asy::Stream<core::num*>* async* {
+    yield 1;
+    asy::Stream<core::double*>* s;
+    yield* s;
+  };
+  asy::Stream<core::num*>* g = f(){() →* asy::Stream<core::num*>*};
+  asy::Stream<core::int*>* h = f(){() →* asy::Stream<core::num*>*} as{TypeError} asy::Stream<core::int*>*;
+}
+static method main() → dynamic {}

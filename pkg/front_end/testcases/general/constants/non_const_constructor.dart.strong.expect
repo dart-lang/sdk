@@ -1,0 +1,40 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/non_const_constructor.dart:8:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const Class.named() {
+//   ^^^^^
+//
+// pkg/front_end/testcases/general/constants/non_const_constructor.dart:13:17: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+// const a = const Class();
+//                 ^^^^^
+//
+// pkg/front_end/testcases/general/constants/non_const_constructor.dart:14:17: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+// const b = const Class.named();
+//                 ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  constructor named() → self::Class
+    : super core::Object::•() {
+    1;
+  }
+}
+static const field invalid-type a = invalid-expression "pkg/front_end/testcases/general/constants/non_const_constructor.dart:13:17: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+const a = const Class();
+                ^^^^^";
+static const field invalid-type b = invalid-expression "pkg/front_end/testcases/general/constants/non_const_constructor.dart:14:17: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+const b = const Class.named();
+                ^^^^^";
+static method main() → dynamic {}

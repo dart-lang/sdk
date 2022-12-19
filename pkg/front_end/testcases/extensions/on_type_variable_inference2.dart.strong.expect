@@ -1,0 +1,202 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:49:29: Error: A value of type 'Struct?' can't be assigned to a variable of type 'StructA?'.
+//  - 'Struct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+//  - 'StructA' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+//   structA.property = struct.property; // error
+//                             ^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:50:29: Error: A value of type 'Struct?' can't be assigned to a variable of type 'StructB?'.
+//  - 'Struct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+//  - 'StructB' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+//   structB.property = struct.property; // error
+//                             ^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:52:27: Error: The value 'null' can't be assigned to a variable of type 'Struct' because 'Struct' is not nullable.
+//  - 'Struct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+//   new Struct().property = null; // error
+//                           ^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:53:28: Error: The value 'null' can't be assigned to a variable of type 'StructA' because 'StructA' is not nullable.
+//  - 'StructA' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+//   new StructA().property = null; // error
+//                            ^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:54:28: Error: The value 'null' can't be assigned to a variable of type 'StructB' because 'StructB' is not nullable.
+//  - 'StructB' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+//   new StructB().property = null; // error
+//                            ^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:59:3: Error: Non-nullable variable 'nonStruct' must be assigned before it can be used.
+//   nonStruct.method(); // error
+//   ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:59:13: Error: The method 'method' isn't defined for the class 'NonStruct'.
+//  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'method'.
+//   nonStruct.method(); // error
+//             ^^^^^^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:60:3: Error: Non-nullable variable 'nonStruct' must be assigned before it can be used.
+//   nonStruct.property = nonStruct.property; // error
+//   ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:60:24: Error: Non-nullable variable 'nonStruct' must be assigned before it can be used.
+//   nonStruct.property = nonStruct.property; // error
+//                        ^^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:60:34: Error: The getter 'property' isn't defined for the class 'NonStruct'.
+//  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+//   nonStruct.property = nonStruct.property; // error
+//                                  ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:60:13: Error: The setter 'property' isn't defined for the class 'NonStruct'.
+//  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
+//   nonStruct.property = nonStruct.property; // error
+//             ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:61:19: Error: The method 'method' isn't defined for the class 'NonStruct'.
+//  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+// Try correcting the name to the name of an existing method, or defining a method named 'method'.
+//   new NonStruct().method(); // error
+//                   ^^^^^^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:62:19: Error: The getter 'property' isn't defined for the class 'NonStruct'.
+//  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+//   new NonStruct().property; // error
+//                   ^^^^^^^^
+//
+// pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:63:19: Error: The setter 'property' isn't defined for the class 'NonStruct'.
+//  - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+// Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
+//   new NonStruct().property = null; // error
+//                   ^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Struct extends core::Object {
+  synthetic constructor •() → self::Struct
+    : super core::Object::•()
+    ;
+}
+class StructA extends self::Struct {
+  synthetic constructor •() → self::StructA
+    : super self::Struct::•()
+    ;
+}
+class StructB extends self::Struct {
+  synthetic constructor •() → self::StructB
+    : super self::Struct::•()
+    ;
+}
+class NonStruct extends core::Object {
+  synthetic constructor •() → self::NonStruct
+    : super core::Object::•()
+    ;
+}
+extension Extension<T extends self::Struct?> on T% {
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+  get property = self::Extension|get#property;
+  set property = self::Extension|set#property;
+}
+static method Extension|method<T extends self::Struct?>(lowered final self::Extension|method::T% #this) → self::Extension|method::T%
+  return #this;
+static method Extension|get#method<T extends self::Struct?>(lowered final self::Extension|get#method::T% #this) → () → self::Extension|get#method::T%
+  return () → self::Extension|get#method::T% => self::Extension|method<self::Extension|get#method::T%>(#this);
+static method Extension|get#property<T extends self::Struct?>(lowered final self::Extension|get#property::T% #this) → self::Extension|get#property::T%
+  return #this;
+static method Extension|set#property<T extends self::Struct?>(lowered final self::Extension|set#property::T% #this, self::Extension|set#property::T% value) → void {}
+static method main() → dynamic {
+  self::Struct? struct;
+  self::StructA? structA;
+  self::StructB? structB;
+  self::Extension|method<self::Struct?>(struct);
+  self::Extension|set#property<self::Struct?>(struct, self::Extension|get#property<self::Struct?>(struct));
+  self::Extension|set#property<self::Struct?>(struct, self::Extension|get#property<self::StructA?>(structA));
+  self::Extension|set#property<self::Struct?>(struct, self::Extension|get#property<self::StructB?>(structB));
+  self::Extension|method<self::StructA?>(structA);
+  self::Extension|set#property<self::StructA?>(structA, self::Extension|get#property<self::StructA?>(structA));
+  self::Extension|method<self::StructB?>(structB);
+  self::Extension|set#property<self::StructB?>(structB, self::Extension|get#property<self::StructB?>(structB));
+  self::Extension|method<self::Struct>(new self::Struct::•());
+  self::Extension|get#property<self::Struct>(new self::Struct::•());
+  self::Extension|set#property<self::Struct?>(struct, null);
+  self::Extension|method<self::StructA>(new self::StructA::•());
+  self::Extension|get#property<self::StructA>(new self::StructA::•());
+  self::Extension|set#property<self::StructA?>(structA, null);
+  self::Extension|method<self::StructB>(new self::StructB::•());
+  self::Extension|get#property<self::StructB>(new self::StructB::•());
+  self::Extension|set#property<self::StructB?>(structB, null);
+}
+static method errors() → dynamic {
+  self::Struct? struct;
+  self::StructA? structA;
+  self::StructB? structB;
+  self::Extension|set#property<self::StructA?>(structA, invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:49:29: Error: A value of type 'Struct?' can't be assigned to a variable of type 'StructA?'.
+ - 'Struct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+ - 'StructA' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+  structA.property = struct.property; // error
+                            ^" in self::Extension|get#property<self::Struct?>(struct) as{TypeError,ForNonNullableByDefault} self::StructA?);
+  self::Extension|set#property<self::StructB?>(structB, invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:50:29: Error: A value of type 'Struct?' can't be assigned to a variable of type 'StructB?'.
+ - 'Struct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+ - 'StructB' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+  structB.property = struct.property; // error
+                            ^" in self::Extension|get#property<self::Struct?>(struct) as{TypeError,ForNonNullableByDefault} self::StructB?);
+  self::Extension|set#property<self::Struct>(new self::Struct::•(), invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:52:27: Error: The value 'null' can't be assigned to a variable of type 'Struct' because 'Struct' is not nullable.
+ - 'Struct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+  new Struct().property = null; // error
+                          ^" in null as{TypeError,ForNonNullableByDefault} self::Struct);
+  self::Extension|set#property<self::StructA>(new self::StructA::•(), invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:53:28: Error: The value 'null' can't be assigned to a variable of type 'StructA' because 'StructA' is not nullable.
+ - 'StructA' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+  new StructA().property = null; // error
+                           ^" in null as{TypeError,ForNonNullableByDefault} self::StructA);
+  self::Extension|set#property<self::StructB>(new self::StructB::•(), invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:54:28: Error: The value 'null' can't be assigned to a variable of type 'StructB' because 'StructB' is not nullable.
+ - 'StructB' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+  new StructB().property = null; // error
+                           ^" in null as{TypeError,ForNonNullableByDefault} self::StructB);
+}
+static method testNonStruct() → dynamic {
+  self::NonStruct nonStruct;
+  invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:59:13: Error: The method 'method' isn't defined for the class 'NonStruct'.
+ - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'method'.
+  nonStruct.method(); // error
+            ^^^^^^" in invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:59:3: Error: Non-nullable variable 'nonStruct' must be assigned before it can be used.
+  nonStruct.method(); // error
+  ^^^^^^^^^" in nonStruct{<unresolved>}.method();
+  invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:60:13: Error: The setter 'property' isn't defined for the class 'NonStruct'.
+ - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
+  nonStruct.property = nonStruct.property; // error
+            ^^^^^^^^" in invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:60:3: Error: Non-nullable variable 'nonStruct' must be assigned before it can be used.
+  nonStruct.property = nonStruct.property; // error
+  ^^^^^^^^^" in nonStruct{<unresolved>}.property = invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:60:34: Error: The getter 'property' isn't defined for the class 'NonStruct'.
+ - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+  nonStruct.property = nonStruct.property; // error
+                                 ^^^^^^^^" in invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:60:24: Error: Non-nullable variable 'nonStruct' must be assigned before it can be used.
+  nonStruct.property = nonStruct.property; // error
+                       ^^^^^^^^^" in nonStruct{<unresolved>}.property;
+  invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:61:19: Error: The method 'method' isn't defined for the class 'NonStruct'.
+ - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+Try correcting the name to the name of an existing method, or defining a method named 'method'.
+  new NonStruct().method(); // error
+                  ^^^^^^" in new self::NonStruct::•(){<unresolved>}.method();
+  invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:62:19: Error: The getter 'property' isn't defined for the class 'NonStruct'.
+ - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'property'.
+  new NonStruct().property; // error
+                  ^^^^^^^^" in new self::NonStruct::•(){<unresolved>}.property;
+  invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:63:19: Error: The setter 'property' isn't defined for the class 'NonStruct'.
+ - 'NonStruct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
+Try correcting the name to the name of an existing setter, or defining a setter or field named 'property'.
+  new NonStruct().property = null; // error
+                  ^^^^^^^^" in new self::NonStruct::•(){<unresolved>}.property = null;
+}

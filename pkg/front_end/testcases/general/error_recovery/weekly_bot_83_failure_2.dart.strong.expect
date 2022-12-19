@@ -1,0 +1,22 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/weekly_bot_83_failure_2.dart:3:10: Error: Too few positional arguments: 2 required, 0 given.
+//   x.clamp();
+//          ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method main2() → dynamic {
+  core::double x = 42.0;
+  invalid-expression "pkg/front_end/testcases/general/error_recovery/weekly_bot_83_failure_2.dart:3:10: Error: Too few positional arguments: 2 required, 0 given.
+  x.clamp();
+         ^" in x.{core::num::clamp}{<inapplicable>}.(){() → invalid-type};
+}
+static method main(core::List<core::String> args) → dynamic {
+  if(args.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 42) {
+    self::main2();
+  }
+}

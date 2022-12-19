@@ -1,0 +1,67 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+}
+class C extends self::B {
+  synthetic constructor •() → self::C
+    : super self::B::•()
+    ;
+}
+class GenericClass<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::GenericClass<self::GenericClass::T%>
+    : super core::Object::•()
+    ;
+}
+extension GenericExtension<T extends core::Object? = dynamic> on self::GenericClass<T%> {
+  get property = self::GenericExtension|get#property;
+  method method = self::GenericExtension|method;
+  tearoff method = self::GenericExtension|get#method;
+  method genericMethod1 = self::GenericExtension|genericMethod1;
+  tearoff genericMethod1 = self::GenericExtension|get#genericMethod1;
+}
+static method GenericExtension|get#property<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#property::T%> #this) → self::GenericExtension|get#property::T?
+  return null;
+static method GenericExtension|method<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|method::T%> #this, self::GenericExtension|method::T? t) → self::GenericExtension|method::T?
+  return null;
+static method GenericExtension|get#method<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#method::T%> #this) → (self::GenericExtension|get#method::T?) → self::GenericExtension|get#method::T?
+  return (self::GenericExtension|get#method::T? t) → self::GenericExtension|get#method::T? => self::GenericExtension|method<self::GenericExtension|get#method::T%>(#this, t);
+static method GenericExtension|genericMethod1<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|genericMethod1::T%> #this, self::GenericExtension|genericMethod1::S? s) → self::GenericExtension|genericMethod1::S?
+  return null;
+static method GenericExtension|get#genericMethod1<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericExtension|get#genericMethod1::T%> #this) → <S extends core::Object? = dynamic>(S?) → S?
+  return <S extends core::Object? = dynamic>(S? s) → S? => self::GenericExtension|genericMethod1<self::GenericExtension|get#genericMethod1::T%, S%>(#this, s);
+static method main() → dynamic {
+  self::A? aVariable;
+  self::B? bVariable;
+  self::C? cVariable;
+  self::GenericClass<self::A> aClass = new self::GenericClass::•<self::A>();
+  self::GenericClass<self::B> bClass = new self::GenericClass::•<self::B>();
+  self::GenericClass<self::C> cClass = new self::GenericClass::•<self::C>();
+  aVariable = self::GenericExtension|get#property<self::A>(aClass);
+  bVariable = self::GenericExtension|get#property<self::B>(bClass);
+  cVariable = self::GenericExtension|get#property<self::C>(cClass);
+  aVariable = self::GenericExtension|method<self::A>(aClass, aVariable);
+  bVariable = self::GenericExtension|method<self::B>(bClass, bVariable);
+  cVariable = self::GenericExtension|method<self::C>(cClass, cVariable);
+  cVariable = self::GenericExtension|genericMethod1<self::A, self::C>(aClass, cVariable);
+  aVariable = self::GenericExtension|genericMethod1<self::A, self::A>(aClass, aVariable);
+  bVariable = self::GenericExtension|genericMethod1<self::A, self::B>(aClass, bVariable);
+  cVariable = self::GenericExtension|genericMethod1<self::A, self::C>(aClass, cVariable);
+  cVariable = self::GenericExtension|genericMethod1<self::B, self::C>(bClass, cVariable);
+  aVariable = self::GenericExtension|genericMethod1<self::B, self::A>(bClass, cVariable);
+  bVariable = self::GenericExtension|genericMethod1<self::B, self::B>(bClass, cVariable);
+  cVariable = self::GenericExtension|genericMethod1<self::B, self::C>(bClass, cVariable);
+  cVariable = self::GenericExtension|genericMethod1<self::C, self::C>(cClass, cVariable);
+  aVariable = self::GenericExtension|genericMethod1<self::C, self::A>(cClass, cVariable);
+  bVariable = self::GenericExtension|genericMethod1<self::C, self::B>(cClass, cVariable);
+  cVariable = self::GenericExtension|genericMethod1<self::C, self::C>(cClass, cVariable);
+}

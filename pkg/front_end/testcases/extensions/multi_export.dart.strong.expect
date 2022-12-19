@@ -1,0 +1,98 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "multi_export_lib1.dart" as mul;
+import "multi_export_lib.dart" as mul2;
+import "multi_export_lib2.dart" as mul3;
+import "multi_export_lib3.dart" as mul4;
+import "multi_export_lib4.dart" as mul5;
+
+import "org-dartlang-testcase:///multi_export_lib1.dart" as lib;
+import "org-dartlang-testcase:///multi_export_lib2.dart" as lib;
+import "org-dartlang-testcase:///multi_export_lib3.dart" as lib;
+import "org-dartlang-testcase:///multi_export_lib4.dart" as lib;
+
+static method main() → dynamic {
+  let final mul::SubClass1 #t1 = new mul::SubClass1::•() in block {
+    mul2::Extension|method<mul::SubClass1>(#t1);
+  } =>#t1;
+  let final mul3::SubClass2 #t2 = new mul3::SubClass2::•() in block {
+    mul2::Extension|method<mul3::SubClass2>(#t2);
+  } =>#t2;
+  let final mul4::SubClass3 #t3 = new mul4::SubClass3::•() in block {
+    mul2::Extension|method<mul4::SubClass3>(#t3);
+  } =>#t3;
+  let final mul5::SubClass4 #t4 = new mul5::SubClass4::•() in block {
+    mul2::Extension|method<mul5::SubClass4>(#t4);
+  } =>#t4;
+}
+
+library /*isNonNullableByDefault*/;
+import self as mul;
+import "multi_export_lib.dart" as mul2;
+
+import "org-dartlang-testcase:///multi_export_lib.dart";
+
+class SubClass1 extends mul2::Class {
+  synthetic constructor •() → mul::SubClass1
+    : super mul2::Class::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as mul3;
+import "multi_export_lib.dart" as mul2;
+additionalExports = (mul2::Extension)
+
+import "org-dartlang-testcase:///multi_export_lib.dart";
+export "org-dartlang-testcase:///multi_export_lib.dart" show Extension;
+
+class SubClass2 extends mul2::Class {
+  synthetic constructor •() → mul3::SubClass2
+    : super mul2::Class::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as mul4;
+import "multi_export_lib.dart" as mul2;
+additionalExports = (mul2::Extension)
+
+import "org-dartlang-testcase:///multi_export_lib.dart";
+export "org-dartlang-testcase:///multi_export_lib.dart" show Extension;
+
+class SubClass3 extends mul2::Class {
+  synthetic constructor •() → mul4::SubClass3
+    : super mul2::Class::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as mul5;
+import "multi_export_lib.dart" as mul2;
+additionalExports = (mul2::Extension)
+
+import "org-dartlang-testcase:///multi_export_lib.dart";
+export "org-dartlang-testcase:///multi_export_lib.dart" show Extension;
+
+class SubClass4 extends mul2::Class {
+  synthetic constructor •() → mul5::SubClass4
+    : super mul2::Class::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as mul2;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → mul2::Class
+    : super core::Object::•()
+    ;
+}
+extension Extension<T extends mul2::Class> on T {
+  method method = mul2::Extension|method;
+  tearoff method = mul2::Extension|get#method;
+}
+static method Extension|method<T extends mul2::Class>(lowered final mul2::Extension|method::T #this) → dynamic {}
+static method Extension|get#method<T extends mul2::Class>(lowered final mul2::Extension|get#method::T #this) → () → dynamic
+  return () → dynamic => mul2::Extension|method<mul2::Extension|get#method::T>(#this);

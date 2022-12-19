@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue47728_3.dart:7:13: Error: Expected a type, but got ';'.
+// typedef A = ;
+//             ^
+//
+// pkg/front_end/testcases/general/issue47728_3.dart:7:11: Error: Can't create typedef from non-type.
+// typedef A = ;
+//           ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef A = invalid-type;
+class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+class C extends core::Object implements self::B /*isEliminatedMixin*/  {
+  synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+static method main() → dynamic {}

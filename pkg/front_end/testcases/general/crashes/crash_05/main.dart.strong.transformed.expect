@@ -1,0 +1,98 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/crashes/crash_05/main.dart:6:20: Error: Type 'PointerEvent' not found.
+//   void handleEvent(PointerEvent event, SliverHitTestEntry entry) {}
+//                    ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/crashes/crash_05/main.dart:10:37: Error: Type 'RenderBox' not found.
+//     with RenderObjectWithChildMixin<RenderBox>, RenderSliverHelpers {}
+//                                     ^^^^^^^^^
+//
+// pkg/front_end/testcases/general/crashes/crash_05/main.dart:10:49: Error: Type 'RenderSliverHelpers' not found.
+//     with RenderObjectWithChildMixin<RenderBox>, RenderSliverHelpers {}
+//                                                 ^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/crashes/crash_05/main.dart:9:16: Error: The type 'RenderSliverHelpers' can't be mixed in.
+// abstract class RenderSliverSingleBoxAdapter extends RenderSliver
+//                ^
+//
+// pkg/front_end/testcases/general/crashes/crash_05/main.dart:9:16: Error: 'RenderSliver' doesn't implement 'RenderObject' so it can't be used with 'RenderObjectWithChildMixin<invalid-type>'.
+//  - 'RenderSliver' is from 'pkg/front_end/testcases/general/crashes/crash_05/main.dart'.
+//  - 'RenderObject' is from 'pkg/front_end/testcases/general/crashes/crash_05/main_lib.dart'.
+//  - 'RenderObjectWithChildMixin' is from 'pkg/front_end/testcases/general/crashes/crash_05/main_lib.dart'.
+// abstract class RenderSliverSingleBoxAdapter extends RenderSliver
+//                ^
+//
+// pkg/front_end/testcases/general/crashes/crash_05/main.dart:6:20: Error: 'PointerEvent' isn't a type.
+//   void handleEvent(PointerEvent event, SliverHitTestEntry entry) {}
+//                    ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class SliverHitTestEntry extends core::Object {
+  synthetic constructor •() → self::SliverHitTestEntry
+    : super core::Object::•()
+    ;
+}
+abstract class RenderSliver extends core::Object {
+  synthetic constructor •() → self::RenderSliver
+    : super core::Object::•()
+    ;
+  method handleEvent(invalid-type event, self::SliverHitTestEntry entry) → void {}
+}
+abstract class _RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin extends self::RenderSliver implements mai::RenderObjectWithChildMixin<invalid-type> /*isAnonymousMixin,isEliminatedMixin*/  {
+  synthetic constructor •() → self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin
+    : super self::RenderSliver::•()
+    ;
+  forwarding-stub method handleEvent(invalid-type event, covariant-by-declaration invalid-type entry) → void
+    return super.{self::RenderSliver::handleEvent}(event, entry);
+}
+abstract class _RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin&RenderSliverHelpers extends self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin&RenderSliverHelpers
+    : super self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin::•()
+    ;
+}
+abstract class RenderSliverSingleBoxAdapter extends self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin&RenderSliverHelpers {
+  synthetic constructor •() → self::RenderSliverSingleBoxAdapter
+    : super self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin&RenderSliverHelpers::•()
+    ;
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/crashes/crash_05/main_lib.dart:2:20: Error: Type 'PointerEvent' not found.
+//   void handleEvent(PointerEvent event, covariant HitTestEntry entry) {}
+//                    ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/crashes/crash_05/main_lib.dart:2:50: Error: Type 'HitTestEntry' not found.
+//   void handleEvent(PointerEvent event, covariant HitTestEntry entry) {}
+//                                                  ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/crashes/crash_05/main_lib.dart:2:20: Error: 'PointerEvent' isn't a type.
+//   void handleEvent(PointerEvent event, covariant HitTestEntry entry) {}
+//                    ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/crashes/crash_05/main_lib.dart:2:50: Error: 'HitTestEntry' isn't a type.
+//   void handleEvent(PointerEvent event, covariant HitTestEntry entry) {}
+//                                                  ^^^^^^^^^^^^
+//
+import self as mai;
+import "dart:core" as core;
+
+abstract class RenderObject extends core::Object {
+  synthetic constructor •() → mai::RenderObject
+    : super core::Object::•()
+    ;
+  method handleEvent(invalid-type event, covariant-by-declaration invalid-type entry) → void {}
+}
+abstract class RenderObjectWithChildMixin<ChildType extends mai::RenderObject> extends mai::RenderObject /*isMixinDeclaration*/  {
+}

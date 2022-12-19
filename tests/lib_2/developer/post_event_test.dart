@@ -34,6 +34,6 @@ main() {
   // The Extension stream in not protected so calling this should not fail
   postEvent('theEvent', {'the': 'data'}, stream: 'Extension');
 
-  // Should be allowed to post to a non-protecvted custom stream
+  // Should be allowed to post to a non-protected custom stream
   postEvent('theEvent', {'the': 'data'}, stream: 'someCustomStream');
 }

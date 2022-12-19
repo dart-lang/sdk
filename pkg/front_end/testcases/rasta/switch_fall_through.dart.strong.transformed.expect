@@ -1,0 +1,103 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:5:1: Error: Library doesn't support null safety.
+// // @dart=2.9
+// ^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:9:5: Error: Switch case may fall through to the next case.
+//     case 1:
+//     ^
+//
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:15:5: Error: Switch case may fall through to the next case.
+//     case 2:
+//     ^
+//
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:22:5: Error: Switch case may fall through to the next case.
+//     case 3:
+//     ^
+//
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:28:5: Error: Switch case may fall through to the next case.
+//     case 4:
+//     ^
+//
+// pkg/front_end/testcases/rasta/switch_fall_through.dart:33:5: Error: Switch case may fall through to the next case.
+//     case 5:
+//     ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  #L1:
+  switch(1) {
+    #L2:
+    case #C1:
+      {
+        {
+          "No fall-through error needed.";
+          break #L1;
+          ;
+        }
+        invalid-expression "Switch case may fall through to the next case.";
+      }
+    #L3:
+    case #C2:
+      {
+        {
+          "Fall-through error needed.";
+          if(true) {
+            break #L1;
+          }
+        }
+        invalid-expression "Switch case may fall through to the next case.";
+      }
+    #L4:
+    case #C3:
+      {
+        try {
+          "No fall-through error needed.";
+        }
+        finally {
+          break #L1;
+        }
+        invalid-expression "Switch case may fall through to the next case.";
+      }
+    #L5:
+    case #C4:
+      {
+        try {
+          "No fall-through error needed.";
+          break #L1;
+        }
+        finally {
+        }
+        invalid-expression "Switch case may fall through to the next case.";
+      }
+    #L6:
+    case #C5:
+      {
+        try {
+          "Fall-through error needed.";
+        }
+        finally {
+        }
+        invalid-expression "Switch case may fall through to the next case.";
+      }
+    #L7:
+    case #C6:
+      {
+        "Should be last. No fall-through error, falling through allowed here.";
+      }
+  }
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+  #C4 = 4
+  #C5 = 5
+  #C6 = 10000
+}

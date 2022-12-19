@@ -1,0 +1,18 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/constants/non_const_variable.dart:7:13: Error: Not a constant expression.
+//   const b = a;
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method method() → dynamic {
+  core::int a = 0;
+  const invalid-type b = invalid-expression "pkg/front_end/testcases/general/constants/non_const_variable.dart:7:13: Error: Not a constant expression.
+  const b = a;
+            ^";
+}
+static method main() → dynamic {}

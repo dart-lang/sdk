@@ -1,0 +1,19 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method foo() → void {}
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  method bar(core::bool t) → void {
+    t ?{void} this.{self::A::foo}(){() → void} : this.{self::A::foo}(){() → void};
+  }
+}
+static method main() → dynamic {}

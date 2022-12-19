@@ -24,6 +24,8 @@ import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/verifier.dart';
 
+import 'package:vm/kernel_front_end.dart' show writeDepfile;
+
 import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 
@@ -94,5 +96,13 @@ Future<Uint8List?> compileToModule(compiler.CompilerOptions options,
       coreTypes,
       TypeEnvironment(coreTypes, compilerResult.classHierarchy!),
       options.translatorOptions);
-  return translator.translate();
+  final module = translator.translate();
+
+  String? depFile = options.depFile;
+  if (depFile != null) {
+    writeDepfile(compilerOptions.fileSystem, component.uriToSource.keys,
+        options.outputFile, depFile);
+  }
+
+  return module;
 }

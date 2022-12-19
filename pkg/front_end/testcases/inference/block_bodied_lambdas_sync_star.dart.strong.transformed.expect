@@ -1,0 +1,20 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/block_bodied_lambdas_sync_star.dart:5:1: Error: Library doesn't support null safety.
+// // @dart=2.9
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test() → dynamic {
+  () →* core::Iterable<core::num*>* f = () → core::Iterable<core::num*>* sync* {
+    yield 1;
+    yield* core::_GrowableList::_literal2<core::num*>(3, 4.0);
+  };
+  core::Iterable<core::num*>* g = f(){() →* core::Iterable<core::num*>*};
+  core::Iterable<core::int*>* h = f(){() →* core::Iterable<core::num*>*} as{TypeError} core::Iterable<core::int*>*;
+}
+static method main() → dynamic {}

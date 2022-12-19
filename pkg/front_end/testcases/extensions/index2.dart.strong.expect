@@ -1,0 +1,132 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class MapLike<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
+  final field core::Map<self::MapLike::K%, self::MapLike::V%> _map = <self::MapLike::K%, self::MapLike::V%>{};
+  synthetic constructor •() → self::MapLike<self::MapLike::K%, self::MapLike::V%>
+    : super core::Object::•()
+    ;
+  method get(core::Object key) → self::MapLike::V?
+    return this.{self::MapLike::_map}{core::Map<self::MapLike::K%, self::MapLike::V%>}.{core::Map::[]}(key){(core::Object?) → self::MapLike::V?};
+  method put(covariant-by-class self::MapLike::K% key, covariant-by-class self::MapLike::V% value) → self::MapLike::V%
+    return let final core::Map<self::MapLike::K%, self::MapLike::V%> #t1 = this.{self::MapLike::_map}{core::Map<self::MapLike::K%, self::MapLike::V%>} in let final self::MapLike::K% #t2 = key in let final self::MapLike::V% #t3 = value in let final void #t4 = #t1.{core::Map::[]=}(#t2, #t3){(self::MapLike::K%, self::MapLike::V%) → void} in #t3;
+}
+class MapLike2<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends core::Object {
+  final field core::Map<self::MapLike2::K%, self::MapLike2::V%> _map = <self::MapLike2::K%, self::MapLike2::V%>{};
+  final field self::MapLike2::V% defaultValue;
+  constructor •(self::MapLike2::V% defaultValue) → self::MapLike2<self::MapLike2::K%, self::MapLike2::V%>
+    : self::MapLike2::defaultValue = defaultValue, super core::Object::•()
+    ;
+  method get(core::Object key) → self::MapLike2::V%
+    return let final self::MapLike2::V? #t5 = this.{self::MapLike2::_map}{core::Map<self::MapLike2::K%, self::MapLike2::V%>}.{core::Map::[]}(key){(core::Object?) → self::MapLike2::V?} in #t5 == null ?{self::MapLike2::V%} this.{self::MapLike2::defaultValue}{self::MapLike2::V%} : #t5{self::MapLike2::V% & core::Object /* '%' & '!' = '!' */};
+  method put(covariant-by-class self::MapLike2::K% key, covariant-by-class self::MapLike2::V% value) → self::MapLike2::V%
+    return let final core::Map<self::MapLike2::K%, self::MapLike2::V%> #t6 = this.{self::MapLike2::_map}{core::Map<self::MapLike2::K%, self::MapLike2::V%>} in let final self::MapLike2::K% #t7 = key in let final self::MapLike2::V% #t8 = value in let final void #t9 = #t6.{core::Map::[]=}(#t7, #t8){(self::MapLike2::K%, self::MapLike2::V%) → void} in #t8;
+}
+extension Extension<K extends core::Object? = dynamic, V extends core::Object? = dynamic> on self::MapLike<K%, V%> {
+  operator [] = self::Extension|[];
+  operator []= = self::Extension|[]=;
+}
+extension Extension2<K extends core::Object? = dynamic, V extends core::Object? = dynamic> on self::MapLike2<K%, V%> {
+  operator [] = self::Extension2|[];
+  operator []= = self::Extension2|[]=;
+}
+static method Extension|[]<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike<self::Extension|[]::K%, self::Extension|[]::V%> #this, core::Object key) → self::Extension|[]::V?
+  return #this.{self::MapLike::get}(key){(core::Object) → self::Extension|[]::V?};
+static method Extension|[]=<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike<self::Extension|[]=::K%, self::Extension|[]=::V%> #this, self::Extension|[]=::K% key, self::Extension|[]=::V% value) → void
+  return #this.{self::MapLike::put}(key, value){(self::Extension|[]=::K%, self::Extension|[]=::V%) → self::Extension|[]=::V%};
+static method Extension2|[]<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike2<self::Extension2|[]::K%, self::Extension2|[]::V%> #this, core::Object key) → self::Extension2|[]::V%
+  return #this.{self::MapLike2::get}(key){(core::Object) → self::Extension2|[]::V%};
+static method Extension2|[]=<K extends core::Object? = dynamic, V extends core::Object? = dynamic>(lowered final self::MapLike2<self::Extension2|[]=::K%, self::Extension2|[]=::V%> #this, self::Extension2|[]=::K% key, self::Extension2|[]=::V% value) → void
+  return #this.{self::MapLike2::put}(key, value){(self::Extension2|[]=::K%, self::Extension2|[]=::V%) → self::Extension2|[]=::V%};
+static method main() → dynamic {
+  self::implicit();
+  self::explicitWithTypeArguments();
+  self::explicitInferredTypeArguments();
+}
+static method implicit() → dynamic {
+  self::MapLike<core::int, core::String> map1 = new self::MapLike::•<core::int, core::String>();
+  self::expect(null, self::Extension|[]<core::int, core::String>(map1, 0));
+  map1.{self::MapLike::put}(0, "0"){(core::int, core::String) → core::String};
+  self::expect("0", self::Extension|[]<core::int, core::String>(map1, 0));
+  self::expect(null, self::Extension|[]<core::int, core::String>(map1, 1));
+  self::Extension|[]=<core::int, core::String>(map1, 1, "1");
+  self::expect("1", self::Extension|[]<core::int, core::String>(map1, 1));
+  self::expect("2", let final self::MapLike<core::int, core::String> #t10 = map1 in let final core::int #t11 = 1 in let final core::String #t12 = "2" in let final void #t13 = self::Extension|[]=<core::int, core::String>(#t10, #t11, #t12) in #t12);
+  self::expect("2", self::Extension|[]<core::int, core::String>(map1, 1));
+  let final self::MapLike<core::int, core::String> #t14 = map1 in let final core::int #t15 = 1 in self::Extension|[]<core::int, core::String>(#t14, #t15) == null ?{core::String} self::Extension|[]=<core::int, core::String>(#t14, #t15, "3") : null;
+  self::expect("2", self::Extension|[]<core::int, core::String>(map1, 1));
+  self::expect("2", let final self::MapLike<core::int, core::String> #t16 = map1 in let final core::int #t17 = 1 in let final core::String? #t18 = self::Extension|[]<core::int, core::String>(#t16, #t17) in #t18 == null ?{core::String} let final core::String #t19 = "4" in let final void #t20 = self::Extension|[]=<core::int, core::String>(#t16, #t17, #t19) in #t19 : #t18{core::String});
+  self::expect("2", self::Extension|[]<core::int, core::String>(map1, 1));
+  let final self::MapLike<core::int, core::String> #t21 = map1 in let final core::int #t22 = 2 in self::Extension|[]<core::int, core::String>(#t21, #t22) == null ?{core::String} self::Extension|[]=<core::int, core::String>(#t21, #t22, "2") : null;
+  self::expect("2", self::Extension|[]<core::int, core::String>(map1, 2));
+  self::expect("3", let final self::MapLike<core::int, core::String> #t23 = map1 in let final core::int #t24 = 3 in let final core::String? #t25 = self::Extension|[]<core::int, core::String>(#t23, #t24) in #t25 == null ?{core::String} let final core::String #t26 = "3" in let final void #t27 = self::Extension|[]=<core::int, core::String>(#t23, #t24, #t26) in #t26 : #t25{core::String});
+  self::expect("3", self::Extension|[]<core::int, core::String>(map1, 3));
+  self::MapLike2<core::int, core::int> map2 = new self::MapLike2::•<core::int, core::int>(0);
+  self::expect(1, let final self::MapLike2<core::int, core::int> #t28 = map2 in let final core::int #t29 = 0 in let final core::int #t30 = 1 in let final void #t31 = self::Extension2|[]=<core::int, core::int>(#t28, #t29, #t30) in #t30);
+  self::expect(3, let final self::MapLike2<core::int, core::int> #t32 = map2 in let final core::int #t33 = 0 in let final core::int #t34 = self::Extension2|[]<core::int, core::int>(#t32, #t33).{core::num::+}(2){(core::num) → core::int} in let final void #t35 = self::Extension2|[]=<core::int, core::int>(#t32, #t33, #t34) in #t34);
+  self::expect(5, let final self::MapLike2<core::int, core::int> #t36 = map2 in let final core::int #t37 = 0 in let final core::int #t38 = self::Extension2|[]<core::int, core::int>(#t36, #t37).{core::num::+}(2){(core::num) → core::int} in let final void #t39 = self::Extension2|[]=<core::int, core::int>(#t36, #t37, #t38) in #t38);
+  self::expect(5, let final self::MapLike2<core::int, core::int> #t40 = map2 in let final core::int #t41 = 0 in let final core::int #t42 = self::Extension2|[]<core::int, core::int>(#t40, #t41) in let final void #t43 = self::Extension2|[]=<core::int, core::int>(#t40, #t41, #t42.{core::num::+}(1){(core::num) → core::int}) in #t42);
+  self::expect(6, self::Extension2|[]<core::int, core::int>(map2, 0));
+  self::expect(5, let final self::MapLike2<core::int, core::int> #t44 = map2 in let final core::int #t45 = 0 in let final core::int #t46 = self::Extension2|[]<core::int, core::int>(#t44, #t45).{core::num::-}(1){(core::num) → core::int} in let final void #t47 = self::Extension2|[]=<core::int, core::int>(#t44, #t45, #t46) in #t46);
+  self::expect(5, self::Extension2|[]<core::int, core::int>(map2, 0));
+}
+static method explicitWithTypeArguments() → dynamic {
+  self::MapLike<core::int, core::String> map1 = new self::MapLike::•<core::int, core::String>();
+  self::expect(null, self::Extension|[]<core::int, core::String>(map1, 0));
+  map1.{self::MapLike::put}(0, "0"){(core::int, core::String) → core::String};
+  self::expect("0", self::Extension|[]<core::int, core::String>(map1, 0));
+  self::expect(null, self::Extension|[]<core::int, core::String>(map1, 1));
+  self::Extension|[]=<core::int, core::String>(map1, 1, "1");
+  self::expect("1", self::Extension|[]<core::int, core::String>(map1, 1));
+  self::expect("2", let final self::MapLike<core::int, core::String> #t48 = map1 in let final core::String #t49 = "2" in let final void #t50 = self::Extension|[]=<core::int, core::String>(#t48, 1, #t49) in #t49);
+  self::expect("2", self::Extension|[]<core::int, core::String>(map1, 1));
+  let final self::MapLike<core::int, core::String> #t51 = map1 in let final core::int #t52 = 1 in self::Extension|[]<core::int, core::String>(#t51, #t52) == null ?{core::String} self::Extension|[]=<core::int, core::String>(#t51, #t52, "3") : null;
+  self::expect("2", self::Extension|[]<core::int, core::String>(map1, 1));
+  self::expect("2", let final self::MapLike<core::int, core::String> #t53 = map1 in let final core::int #t54 = 1 in let final core::String? #t55 = self::Extension|[]<core::int, core::String>(#t53, #t54) in #t55 == null ?{core::String} let final core::String #t56 = "4" in let final void #t57 = self::Extension|[]=<core::int, core::String>(#t53, #t54, #t56) in #t56 : #t55{core::String});
+  self::expect("2", self::Extension|[]<core::int, core::String>(map1, 1));
+  let final self::MapLike<core::int, core::String> #t58 = map1 in let final core::int #t59 = 2 in self::Extension|[]<core::int, core::String>(#t58, #t59) == null ?{core::String} self::Extension|[]=<core::int, core::String>(#t58, #t59, "2") : null;
+  self::expect("2", self::Extension|[]<core::int, core::String>(map1, 2));
+  self::expect("3", let final self::MapLike<core::int, core::String> #t60 = map1 in let final core::int #t61 = 3 in let final core::String? #t62 = self::Extension|[]<core::int, core::String>(#t60, #t61) in #t62 == null ?{core::String} let final core::String #t63 = "3" in let final void #t64 = self::Extension|[]=<core::int, core::String>(#t60, #t61, #t63) in #t63 : #t62{core::String});
+  self::expect("3", self::Extension|[]<core::int, core::String>(map1, 3));
+  self::MapLike2<core::int, core::int> map2 = new self::MapLike2::•<core::int, core::int>(0);
+  self::expect(1, let final self::MapLike2<core::int, core::int> #t65 = map2 in let final core::int #t66 = 1 in let final void #t67 = self::Extension2|[]=<core::int, core::int>(#t65, 0, #t66) in #t66);
+  self::expect(3, let final self::MapLike2<core::int, core::int> #t68 = map2 in let final core::int #t69 = 0 in let final core::int #t70 = self::Extension2|[]<core::int, core::int>(#t68, #t69).{core::num::+}(2){(core::num) → core::int} in let final void #t71 = self::Extension2|[]=<core::int, core::int>(#t68, #t69, #t70) in #t70);
+  self::expect(5, let final self::MapLike2<core::int, core::int> #t72 = map2 in let final core::int #t73 = 0 in let final core::int #t74 = self::Extension2|[]<core::int, core::int>(#t72, #t73).{core::num::+}(2){(core::num) → core::int} in let final void #t75 = self::Extension2|[]=<core::int, core::int>(#t72, #t73, #t74) in #t74);
+  self::expect(5, let final self::MapLike2<core::int, core::int> #t76 = map2 in let final core::int #t77 = 0 in let final core::int #t78 = self::Extension2|[]<core::int, core::int>(#t76, #t77) in let final void #t79 = self::Extension2|[]=<core::int, core::int>(#t76, #t77, #t78.{core::num::+}(1){(core::num) → core::int}) in #t78);
+  self::expect(6, self::Extension2|[]<core::int, core::int>(map2, 0));
+  self::expect(5, let final self::MapLike2<core::int, core::int> #t80 = map2 in let final core::int #t81 = 0 in let final core::int #t82 = self::Extension2|[]<core::int, core::int>(#t80, #t81).{core::num::-}(1){(core::num) → core::int} in let final void #t83 = self::Extension2|[]=<core::int, core::int>(#t80, #t81, #t82) in #t82);
+  self::expect(5, self::Extension2|[]<core::int, core::int>(map2, 0));
+}
+static method explicitInferredTypeArguments() → dynamic {
+  self::MapLike<core::int, core::String> map1 = new self::MapLike::•<core::int, core::String>();
+  self::expect(null, self::Extension|[]<core::int, core::String>(map1, 0));
+  map1.{self::MapLike::put}(0, "0"){(core::int, core::String) → core::String};
+  self::expect("0", self::Extension|[]<core::int, core::String>(map1, 0));
+  self::expect(null, self::Extension|[]<core::int, core::String>(map1, 1));
+  self::Extension|[]=<core::int, core::String>(map1, 1, "1");
+  self::expect("1", self::Extension|[]<core::int, core::String>(map1, 1));
+  self::expect("2", let final self::MapLike<core::int, core::String> #t84 = map1 in let final core::String #t85 = "2" in let final void #t86 = self::Extension|[]=<core::int, core::String>(#t84, 1, #t85) in #t85);
+  self::expect("2", self::Extension|[]<core::int, core::String>(map1, 1));
+  let final self::MapLike<core::int, core::String> #t87 = map1 in let final core::int #t88 = 1 in self::Extension|[]<core::int, core::String>(#t87, #t88) == null ?{core::String} self::Extension|[]=<core::int, core::String>(#t87, #t88, "3") : null;
+  self::expect("2", self::Extension|[]<core::int, core::String>(map1, 1));
+  self::expect("2", let final self::MapLike<core::int, core::String> #t89 = map1 in let final core::int #t90 = 1 in let final core::String? #t91 = self::Extension|[]<core::int, core::String>(#t89, #t90) in #t91 == null ?{core::String} let final core::String #t92 = "4" in let final void #t93 = self::Extension|[]=<core::int, core::String>(#t89, #t90, #t92) in #t92 : #t91{core::String});
+  self::expect("2", self::Extension|[]<core::int, core::String>(map1, 1));
+  let final self::MapLike<core::int, core::String> #t94 = map1 in let final core::int #t95 = 2 in self::Extension|[]<core::int, core::String>(#t94, #t95) == null ?{core::String} self::Extension|[]=<core::int, core::String>(#t94, #t95, "2") : null;
+  self::expect("2", self::Extension|[]<core::int, core::String>(map1, 2));
+  self::expect("3", let final self::MapLike<core::int, core::String> #t96 = map1 in let final core::int #t97 = 3 in let final core::String? #t98 = self::Extension|[]<core::int, core::String>(#t96, #t97) in #t98 == null ?{core::String} let final core::String #t99 = "3" in let final void #t100 = self::Extension|[]=<core::int, core::String>(#t96, #t97, #t99) in #t99 : #t98{core::String});
+  self::expect("3", self::Extension|[]<core::int, core::String>(map1, 3));
+  self::MapLike2<core::int, core::int> map2 = new self::MapLike2::•<core::int, core::int>(0);
+  self::expect(1, let final self::MapLike2<core::int, core::int> #t101 = map2 in let final core::int #t102 = 1 in let final void #t103 = self::Extension2|[]=<core::int, core::int>(#t101, 0, #t102) in #t102);
+  self::expect(3, let final self::MapLike2<core::int, core::int> #t104 = map2 in let final core::int #t105 = 0 in let final core::int #t106 = self::Extension2|[]<core::int, core::int>(#t104, #t105).{core::num::+}(2){(core::num) → core::int} in let final void #t107 = self::Extension2|[]=<core::int, core::int>(#t104, #t105, #t106) in #t106);
+  self::expect(5, let final self::MapLike2<core::int, core::int> #t108 = map2 in let final core::int #t109 = 0 in let final core::int #t110 = self::Extension2|[]<core::int, core::int>(#t108, #t109).{core::num::+}(2){(core::num) → core::int} in let final void #t111 = self::Extension2|[]=<core::int, core::int>(#t108, #t109, #t110) in #t110);
+  self::expect(5, let final self::MapLike2<core::int, core::int> #t112 = map2 in let final core::int #t113 = 0 in let final core::int #t114 = self::Extension2|[]<core::int, core::int>(#t112, #t113) in let final void #t115 = self::Extension2|[]=<core::int, core::int>(#t112, #t113, #t114.{core::num::+}(1){(core::num) → core::int}) in #t114);
+  self::expect(6, self::Extension2|[]<core::int, core::int>(map2, 0));
+  self::expect(5, let final self::MapLike2<core::int, core::int> #t116 = map2 in let final core::int #t117 = 0 in let final core::int #t118 = self::Extension2|[]<core::int, core::int>(#t116, #t117).{core::num::-}(1){(core::num) → core::int} in let final void #t119 = self::Extension2|[]=<core::int, core::int>(#t116, #t117, #t118) in #t118);
+  self::expect(5, self::Extension2|[]<core::int, core::int>(map2, 0));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual)) {
+    throw "Mismatch: expected=${expected}, actual=${actual}";
+  }
+}

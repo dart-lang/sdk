@@ -1,0 +1,44 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+}
+extension Extension on self::Class {
+  method id = self::Extension|id;
+  tearoff id = self::Extension|get#id;
+  get getter = self::Extension|get#getter;
+  method method = self::Extension|method;
+  tearoff method = self::Extension|get#method;
+  method errors = self::Extension|errors;
+  tearoff errors = self::Extension|get#errors;
+}
+static method Extension|id<T extends core::Object? = dynamic>(lowered final self::Class #this, self::Extension|id::T% t) → self::Extension|id::T%
+  return t;
+static method Extension|get#id(lowered final self::Class #this) → <T extends core::Object? = dynamic>(T%) → T%
+  return <T extends core::Object? = dynamic>(T% t) → T% => self::Extension|id<T%>(#this, t);
+static method Extension|get#getter(lowered final self::Class #this) → <T extends core::Object? = dynamic>(T%) → T%
+  return self::Extension|get#id(#this);
+static method Extension|method(lowered final self::Class #this) → dynamic {
+  (core::String) → core::String stringId = self::Extension|get#id(#this)<core::String>;
+}
+static method Extension|get#method(lowered final self::Class #this) → () → dynamic
+  return () → dynamic => self::Extension|method(#this);
+static method Extension|errors(lowered final self::Class #this) → dynamic {
+  (core::int) → core::int intId = self::Extension|get#getter(#this)<core::int>;
+}
+static method Extension|get#errors(lowered final self::Class #this) → () → dynamic
+  return () → dynamic => self::Extension|errors(#this);
+static method main() → dynamic {
+  self::Class c = new self::Class::•();
+  (core::int) → core::int intId = self::Extension|get#id(c)<core::int>;
+  (core::double) → core::double doubleId = self::Extension|get#id(c)<core::double>;
+}
+static method errors() → dynamic {
+  self::Class c = new self::Class::•();
+  (core::num) → core::num numId = self::Extension|get#getter(c)<core::num>;
+  (core::bool) → core::bool boolId = self::Extension|get#getter(c)<core::bool>;
+}

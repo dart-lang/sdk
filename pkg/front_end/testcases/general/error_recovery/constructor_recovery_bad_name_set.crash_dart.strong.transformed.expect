@@ -1,0 +1,57 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:2:7: Error: The name of a constructor must match the name of the enclosing class.
+//   set foo.x() {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:2:3: Error: Constructors can't be a setter.
+// Try removing 'set'.
+//   set foo.x() {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:5:7: Error: The name of a constructor must match the name of the enclosing class.
+//   set foo.x() : initializer = true {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:5:3: Error: Constructors can't be a setter.
+// Try removing 'set'.
+//   set foo.x() : initializer = true {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:5:7: Error: 'Foo.x' is already declared in this scope.
+//   set foo.x() : initializer = true {
+//       ^^^^^
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:2:7: Context: Previous declaration of 'Foo.x'.
+//   set foo.x() {
+//       ^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:8:7: Error: The name of a constructor must match the name of the enclosing class.
+//   set foo() : initializer = true {
+//       ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:8:3: Error: Constructors can't be a setter.
+// Try removing 'set'.
+//   set foo() : initializer = true {
+//   ^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:5:17: Error: 'initializer' isn't an instance field of this class.
+//   set foo.x() : initializer = true {
+//                 ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:8:15: Error: 'initializer' isn't an instance field of this class.
+//   set foo() : initializer = true {
+//               ^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  constructor x() → self::Foo
+    : super core::Object::•() {}
+  constructor foo() → self::Foo
+    : final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/error_recovery/constructor_recovery_bad_name_set.crash_dart:8:15: Error: 'initializer' isn't an instance field of this class.
+  set foo() : initializer = true {
+              ^^^^^^^^^^^" {}
+}
