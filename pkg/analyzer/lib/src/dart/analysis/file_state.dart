@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/referenced_names.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_api_signature.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_data.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
@@ -509,6 +510,7 @@ class FileState {
     _fileContent = rawFileState;
 
     // Prepare the unlinked bundle key.
+    var previousUnlinkedKey = _unlinkedKey;
     {
       var signature = ApiSignature();
       signature.addUint32List(_fsState._saltForUnlinked);
@@ -523,7 +525,7 @@ class FileState {
     }
 
     // Prepare the unlinked unit.
-    _driverUnlinkedUnit = _getUnlinkedUnit();
+    _driverUnlinkedUnit = _getUnlinkedUnit(previousUnlinkedKey);
     _unlinked2 = _driverUnlinkedUnit!.unit;
     _lineInfo = LineInfo(_unlinked2!.lineStarts);
 
@@ -642,14 +644,30 @@ class FileState {
     return _fsState.getFileForUri(absoluteUri);
   }
 
-  /// Return the unlinked unit, from bytes or new.
-  AnalysisDriverUnlinkedUnit _getUnlinkedUnit() {
+  /// Return the unlinked unit, freshly deserialized from bytes,
+  /// previously deserialized from bytes, or new.
+  AnalysisDriverUnlinkedUnit _getUnlinkedUnit(String? previousUnlinkedKey) {
+    if (previousUnlinkedKey != null) {
+      if (previousUnlinkedKey != _unlinkedKey) {
+        _fsState.unlinkedUnitStore.release(previousUnlinkedKey);
+      } else {
+        return _driverUnlinkedUnit!;
+      }
+    }
+
     final testData = _fsState.testData?.forFile(resource, uri);
+    var fromStore = _fsState.unlinkedUnitStore.get(_unlinkedKey!);
+    if (fromStore != null) {
+      testData?.unlinkedKeyGet.add(unlinkedKey);
+      return fromStore;
+    }
 
     var bytes = _fsState._byteStore.get(_unlinkedKey!);
     if (bytes != null && bytes.isNotEmpty) {
       testData?.unlinkedKeyGet.add(unlinkedKey);
-      return AnalysisDriverUnlinkedUnit.fromBytes(bytes);
+      var result = AnalysisDriverUnlinkedUnit.fromBytes(bytes);
+      _fsState.unlinkedUnitStore.put(_unlinkedKey!, result);
+      return result;
     }
 
     var unit = parse();
@@ -1121,6 +1139,7 @@ class FileSystemState {
   int fileStamp = 0;
 
   final FileContentStrategy fileContentStrategy;
+  final UnlinkedUnitStore unlinkedUnitStore;
 
   /// A function that fetches the given list of files. This function can be used
   /// to batch file reads in systems where file fetches are expensive.
@@ -1146,6 +1165,7 @@ class FileSystemState {
     this._saltForElements,
     this.featureSetProvider, {
     required this.fileContentStrategy,
+    required this.unlinkedUnitStore,
     required this.prefetchFiles,
     required this.isGenerated,
     required this.testData,
@@ -1421,6 +1441,8 @@ class FileSystemState {
     _pathToFile.clear();
     _subtypedNameToFiles.clear();
     _libraryNameToFiles.clear();
+    // TODO(jensj): If we use finalizers we shouldn't clear.
+    unlinkedUnitStore.clear();
   }
 
   FileState _newFile(File resource, String path, Uri uri) {

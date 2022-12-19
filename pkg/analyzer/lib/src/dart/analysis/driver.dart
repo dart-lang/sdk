@@ -30,6 +30,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -114,6 +115,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// This [ContentCache] is consulted for a file content before reading
   /// the content from the file.
   final FileContentCache _fileContentCache;
+
+  /// The already loaded unlinked units,  consulted before deserializing
+  /// from file again.
+  final UnlinkedUnitStore _unlinkedUnitStore;
 
   late final StoredFileContentStrategy _fileContentStrategy;
 
@@ -265,6 +270,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     this.macroExecutor,
     this.analysisContext,
     FileContentCache? fileContentCache,
+    UnlinkedUnitStore? unlinkedUnitStore,
     this.enableIndex = false,
     SummaryDataStore? externalSummaries,
     DeclaredVariables? declaredVariables,
@@ -275,6 +281,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         _byteStore = byteStore,
         _fileContentCache =
             fileContentCache ?? FileContentCache.ephemeral(resourceProvider),
+        _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
         _analysisOptions = analysisOptions,
         _logger = logger,
         _packages = packages,
@@ -1488,6 +1495,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
       _saltForElements,
       featureSetProvider,
       fileContentStrategy: _fileContentStrategy,
+      unlinkedUnitStore: _unlinkedUnitStore,
       prefetchFiles: null,
       isGenerated: (_) => false,
       testData: testView?.fileSystem,
