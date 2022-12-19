@@ -869,9 +869,7 @@ CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE:
 CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS:
   status: noFix
 CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE:
-  status: needsFix
-  notes: |-
-    ReplaceColonWithEquals should fix the issue, but it needs tests.
+  status: hasFix
 CompileTimeErrorCode.ON_REPEATED:
   status: needsEvaluation
 CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR:
