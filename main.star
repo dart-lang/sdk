@@ -111,13 +111,6 @@ luci.console_view(
     refs = ["refs/heads/master"],
 )
 
-luci.console_view(
-    name = "flutter-hhh-web",
-    repo = "https://dart.googlesource.com/linear_sdk_flutter_engine",
-    title = "Dart/Flutter Web Linear History Console",
-    refs = ["refs/heads/master"],
-)
-
 luci.list_view(
     name = "iso-stress",
     title = "VM Isolate Stress Test Console",
@@ -302,15 +295,12 @@ dart.ci_sandbox_builder(
     }],
 )
 
-dart.ci_sandbox_builder(
+dart.try_builder(
     "flutter-engine-linux-web_tests",
     recipe = "dart/flutter_engine",
-    category = "flutter|web",
-    channels = ["try"],
+    cq_branches = ["main"],
     execution_timeout = 8 * time.hour,
-    triggered_by = ["dart-gitiles-trigger-flutter"],
     properties = {
-        "bisection_enabled": True,
         "flutter_test_suites": [
             "web_tests",
             "web_tool_tests",
@@ -686,12 +676,6 @@ luci.console_view_entry(
     builder = "flutter-engine-ios",
     short_name = "ios",
     console_view = "flutter-hhh",
-)
-
-luci.console_view_entry(
-    builder = "flutter-engine-linux-web_tests",
-    short_name = "web",
-    console_view = "flutter-hhh-web",
 )
 
 # VM isolate stress test console

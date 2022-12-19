@@ -148,7 +148,6 @@ def _builder(
         enabled = True,
         category = None,
         channels = [],
-        cq_branches = _BRANCHES,
         dimensions = None,
         executable = None,
         execution_timeout = None,
@@ -177,7 +176,6 @@ def _builder(
         enabled: Whether this builder is currently running or not.
         category: Where to show the builder on the console.
         channels: Which other channels the builder should be added to.
-        cq_branches: Make try builder on these branches (defaults to _BRANCHES).
         dimensions: Extra swarming dimensions required by this builder.
         executable: The Luci executable to use.
         execution_timeout: Time to allow for the build to run.
