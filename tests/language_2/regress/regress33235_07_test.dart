@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// Test for complience with tables at
+// Test for compliance with tables at
 // https://github.com/dart-lang/sdk/issues/33235#issue-326617285
 // Files 01 to 16 should be compile time errors, files 17 to 21 should not.
 
