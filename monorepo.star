@@ -21,6 +21,7 @@ luci.console_view(
     repo = "https://dart.googlesource.com/monorepo",
     title = "Dart/Flutter Web Console",
     refs = ["refs/heads/main"],
+    header = "console-header.textpb",
 )
 
 dart.ci_sandbox_builder(
