@@ -31,6 +31,7 @@ import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -722,7 +723,9 @@ class LspAnalysisServer extends AnalysisServer {
   /// given absolute path.
   bool shouldSendFlutterOutlineFor(String file) {
     // Outlines should only be sent for open (priority) files in the workspace.
-    return initializationOptions.flutterOutline && priorityFiles.contains(file);
+    return initializationOptions.flutterOutline &&
+        priorityFiles.contains(file) &&
+        _isInFlutterProject(file);
   }
 
   /// Returns `true` if outlines should be sent for [file] with the given
@@ -861,6 +864,16 @@ class LspAnalysisServer extends AnalysisServer {
       ));
     }
   }
+
+  /// Checks whether [file] is in a project that can resolve 'package:flutter'
+  /// libraries.
+  bool _isInFlutterProject(String file) =>
+      contextManager
+          .getDriverFor(file)
+          ?.currentSession
+          .uriConverter
+          .uriToPath(Uri.parse(Flutter.instance.widgetsUri)) !=
+      null;
 
   void _notifyPluginsOverlayChanged(
       String path, plugin.HasToJson changeForPlugins) {

@@ -11,7 +11,37 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FlutterOutlineTest);
+    defineReflectiveTests(FlutterOutlineNonFlutterProjectTest);
   });
+}
+
+@reflectiveTest
+class FlutterOutlineNonFlutterProjectTest
+    extends AbstractLspAnalysisServerTest {
+  /// In a project that doesn't reference Flutter, no Flutter outlines should
+  /// be sent.
+  Future<void> test_noOutline() async {
+    final content = 'void f() {}';
+    await initialize(initializationOptions: {'flutterOutline': true});
+
+    // Wait up to 1sec to ensure no error/log notifications were sent back.
+    var didTimeout = false;
+    final outlineNotification = waitForFlutterOutline(mainFileUri)
+        // ignore: unnecessary_cast
+        .then((outline) => outline as FlutterOutline?)
+        .timeout(
+      const Duration(seconds: 1),
+      onTimeout: () {
+        didTimeout = true;
+        return null;
+      },
+    );
+    // Only open files trigger outline notifications.
+    await openFile(mainFileUri, content);
+
+    expect(await outlineNotification, isNull);
+    expect(didTimeout, isTrue);
+  }
 }
 
 @reflectiveTest
