@@ -5,10 +5,11 @@
 #### `dart:core`
 
 - **Breaking change** [#49529][]:
+  - Removed the deprecated `List` constructor, as it wasn't null safe.
+    Use list literals (e.g. `[]` for an empty list or `<int>[]` for an empty
+    typed list) or [`List.filled`][].
   - Removed the deprecated `onError` argument on [`int.parse`][], [`double.parse`][],
     and [`num.parse`][]. Use the [`tryParse`][] method instead.
-  - Removed the deprecated [`NoSuchMethodError`][] default constructor.
-    Use the [`NoSuchMethodError.withInvocation`][] named constructor instead.
   - Removed the deprecated [`proxy`][] and [`Provisional`][] annotations.
     The original `proxy` annotation has no effect in Dart 2,
     and the `Provisional` type and [`provisional`][] constant
@@ -20,37 +21,39 @@
   - Removed the deprecated [`FallThroughError`][] error. The kind of
     fall-through previously throwing this error was made a compile-time
     error in Dart 2.0.
+  - Removed the deprecated [`NullThrownError`][] error. This error is never
+    thrown from null safe code.
   - Removed the deprecated [`AbstractClassInstantiationError`][] error. It was made
     a compile-time error to call the constructor of an abstract class in Dart 2.0.
+  - Removed the deprecated [`CyclicInitializationError`]. Cyclic dependencies are
+    no longer detected at runtime in null safe code. Such code will fail in other
+    ways instead, possibly with a StackOverflowError.
+  - Removed the deprecated [`NoSuchMethodError`][] default constructor.
+    Use the [`NoSuchMethodError.withInvocation`][] named constructor instead.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
+[`List.filled`]: https://api.dart.dev/stable/2.18.6/dart-core/List/List.filled.html
 [`int.parse`]: https://api.dart.dev/stable/2.18.4/dart-core/int/parse.html
 [`double.parse`]: https://api.dart.dev/stable/2.18.4/dart-core/double/parse.html
 [`num.parse`]: https://api.dart.dev/stable/2.18.4/dart-core/num/parse.html
 [`tryParse`]: https://api.dart.dev/stable/2.18.4/dart-core/num/tryParse.html
 [`Deprecated.expires`]: https://api.dart.dev/stable/2.18.4/dart-core/Deprecated/expires.html
 [`Deprecated.message`]: https://api.dart.dev/stable/2.18.4/dart-core/Deprecated/message.html
+[`AbstractClassInstantiationError`]: https://api.dart.dev/stable/2.17.4/dart-core/AbstractClassInstantiationError-class.html
+[`CastError`]: https://api.dart.dev/stable/2.17.4/dart-core/CastError-class.html
+[`FallThroughError`]: https://api.dart.dev/stable/2.17.4/dart-core/FallThroughError-class.html
 [`NoSuchMethodError`]: https://api.dart.dev/stable/2.18.4/dart-core/NoSuchMethodError/NoSuchMethodError.html
 [`NoSuchMethodError.withInvocation`]: https://api.dart.dev/stable/2.18.4/dart-core/NoSuchMethodError/NoSuchMethodError.withInvocation.html
+[`CyclicInitializationError`]: https://api.dart.dev/dev/2.19.0-430.0.dev/dart-core/CyclicInitializationError-class.html
 [`Provisional`]: https://api.dart.dev/stable/2.18.4/dart-core/Provisional-class.html
 [`provisional`]: https://api.dart.dev/stable/2.18.4/dart-core/provisional-constant.html
 [`proxy`]: https://api.dart.dev/stable/2.18.4/dart-core/proxy-constant.html
 [`CastError`]: https://api.dart.dev/stable/2.18.3/dart-core/CastError-class.html
 [`TypeError`]: https://api.dart.dev/stable/2.18.3/dart-core/TypeError-class.html
 [`FallThroughError`]: https://api.dart.dev/dev/2.19.0-374.0.dev/dart-core/FallThroughError-class.html
+[`NullThrownError`]: https://api.dart.dev/dev/2.19.0-430.0.dev/dart-core/NullThrownError-class.html
 [`AbstractClassInstantiationError`]: https://api.dart.dev/stable/2.18.3/dart-core/AbstractClassInstantiationError-class.html
-
-#### `dart:html`
-
-- **Breaking change**: As previously announced, the deprecated `registerElement`
-  and `registerElement2` methods in `Document` and `HtmlDocument` have been
-  removed.  See [#49536](https://github.com/dart-lang/sdk/issues/49536) for
-  details.
-
-#### `dart:js_util`
-
-- Added several helper functions to access more JavaScript operator, like
-  `delete` and the `typeof` functionality.
+[`CyclicInitializationError`]: https://api.dart.dev/dev/2.19.0-430.0.dev/dart-core/CyclicInitializationError-class.html
 
 #### `dart:async`
 
@@ -73,6 +76,18 @@
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [`MAX_USER_TAGS`]: https://api.dart.dev/stable/dart-developer/UserTag/MAX_USER_TAGS-constant.html
 [`maxUserTags`]: https://api.dart.dev/beta/2.19.0-255.2.beta/dart-developer/UserTag/maxUserTags-constant.html
+
+#### `dart:html`
+
+- **Breaking change**: As previously announced, the deprecated `registerElement`
+  and `registerElement2` methods in `Document` and `HtmlDocument` have been
+  removed.  See [#49536](https://github.com/dart-lang/sdk/issues/49536) for
+  details.
+
+#### `dart:js_util`
+
+- Added several helper functions to access more JavaScript operator, like
+  `delete` and the `typeof` functionality.
 
 ### Tools
 

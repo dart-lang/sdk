@@ -1585,7 +1585,10 @@ class NewWorldTest {
             compiler.getFilteredInvalidatedImportUrisForTesting(invalidated);
         if (world.invalidate != null) {
           Expect.equals(
-              world.invalidate!.length, filteredInvalidated?.length ?? 0);
+              world.invalidate!.length,
+              filteredInvalidated?.length ?? 0,
+              "Unexpected invalidated files: ${filteredInvalidated}, "
+              "actual: ${world.invalidate}.");
           if (world.expectedInvalidatedUri != null) {
             Expect.setEquals(
                 world.expectedInvalidatedUri!.map((s) => base.resolve(s)),
