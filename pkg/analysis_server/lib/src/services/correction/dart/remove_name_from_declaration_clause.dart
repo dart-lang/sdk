@@ -26,8 +26,6 @@ class RemoveNameFromDeclarationClause extends CorrectionProducer {
     }
     var clause = type.parent;
 
-    // TODO(srawlins): Handle ExtendsClause from various diagnostics.
-
     if (clause == null) {
       return;
     }
