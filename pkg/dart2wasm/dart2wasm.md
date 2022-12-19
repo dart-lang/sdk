@@ -12,6 +12,7 @@ where *options* include:
 | --------------------------------------- | ------- | ----------- |
 | `--dart-sdk=`*path*                     | relative to script | The location of the `sdk` directory inside the Dart SDK, containing the core library sources.
 | `--platform=`*path*                     | none    | The location of the platform `dill` file containing the compiled core libraries.
+| `--depfile=`*path*                      | none    | Write a Ninja depfile listing the input sources for the compilation.
 | `--`[`no-`]`export-all`                 | no      | Export all functions; otherwise, just export `main`.
 | `--`[`no-`]`import-shared-memory`       | no      | Import a shared memory buffer. If this is on, `--shared-memory-max-pages` must also be specified.
 | `--`[`no-`]`inlining`                   | no      | Inline small functions.

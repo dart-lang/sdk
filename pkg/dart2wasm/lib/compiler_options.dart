@@ -16,6 +16,7 @@ class CompilerOptions {
   Uri? packagesPath;
   Uri mainUri;
   String outputFile;
+  String? depFile;
   Map<String, String> environment = const {};
   Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};
   String? multiRootScheme;
