@@ -34,7 +34,7 @@ void main() {
       // Two different time zones found. Now find the precise (to the minute)
       // time where a change happened, and test that.
       test(findChange(time2, time));
-      // Remeber if the change moved the clock forward or backward.
+      // Remember if the change moved the clock forward or backward.
       changeForward = offset2 < offset;
       break;
     }

@@ -201,7 +201,7 @@ Future<HttpServer> setupServer({Uri? targetServer}) {
   return completer.future;
 }
 
-// A second HTTP server used to validate that redirect requests accross domains
+// A second HTTP server used to validate that redirect requests across domains
 // do *not* include security-related headers.
 Future<HttpServer> setupTargetServer() {
   final completer = new Completer<HttpServer>();

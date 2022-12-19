@@ -18,7 +18,7 @@ cyclicInitialization() {
 // Helper method to detect whether [errorType] is an overflow error.
 //
 // TODO(41308): Use `is StackOverflowError` once DDC converts overflow errors
-// from JavaSript.
+// from JavaScript.
 bool isOverflowError(Type errorType) {
   void detectOverflowError() => detectOverflowError();
   try {

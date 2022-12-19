@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-library test.delgate_function_invocation;
+library test.delegate_function_invocation;
 
 import 'dart:mirrors';
 

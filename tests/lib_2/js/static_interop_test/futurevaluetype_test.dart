@@ -18,7 +18,7 @@ class JSWindow {}
 
 // `futureValueType` corresponds to the `JSWindow` type parameter in the return
 // value here. If this isn't correctly erased, we should see a runtime type
-// error when using this method, as we'll be attemting to return a `@Native`
+// error when using this method, as we'll be attempting to return a `@Native`
 // type (`Window`) where a `package:js` type is expected instead of a
 // `JavaScriptObject`.
 Future<JSWindow> returnInteropType() async {
