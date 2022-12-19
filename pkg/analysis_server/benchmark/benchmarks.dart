@@ -17,6 +17,7 @@ import 'package:args/command_runner.dart';
 import 'package:path/path.dart' as path;
 
 import 'perf/benchmarks_impl.dart';
+import 'perf/dart_analyze.dart';
 import 'perf/flutter_analyze_benchmark.dart';
 import 'perf/flutter_completion_benchmark.dart';
 
@@ -26,6 +27,9 @@ Future main(List<String> args) async {
     ColdAnalysisBenchmark(ServerBenchmark.lsp),
     AnalysisBenchmark(ServerBenchmark.das),
     AnalysisBenchmark(ServerBenchmark.lsp),
+    CmdLineSmallFileBenchmark(),
+    CmdLineOneProjectBenchmark(),
+    CmdLineSeveralProjectsBenchmark(),
     FlutterAnalyzeBenchmark(),
     FlutterCompletionBenchmark.das,
     FlutterCompletionBenchmark.lsp,
@@ -92,7 +96,7 @@ abstract class Benchmark {
 }
 
 class BenchMarkResult {
-  /// One of 'bytes', 'micros', or 'compound'.
+  /// One of 'bytes', 'kb', 'micros', or 'compound'.
   final String kindName;
 
   final int value;

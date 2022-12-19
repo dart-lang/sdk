@@ -2,39 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert';
-import 'dart:io';
-
 import '../benchmarks.dart';
-
-Future<int> _runProcess(
-  String command,
-  List<String> args, {
-  String? cwd,
-  bool failOnError = true,
-}) async {
-  print('\n$command ${args.join(' ')}');
-
-  var process = await Process.start(command, args, workingDirectory: cwd);
-
-  process.stdout
-      .transform(utf8.decoder)
-      .transform(LineSplitter())
-      .listen((line) {
-    print('  $line');
-  });
-  process.stderr
-      .transform(utf8.decoder)
-      .transform(LineSplitter())
-      .listen((line) => print('  $line'));
-
-  var exitCode = await process.exitCode;
-  if (exitCode != 0 && failOnError) {
-    throw '$command exited with $exitCode';
-  }
-
-  return exitCode;
-}
+import 'utils.dart';
 
 /// benchmarks:
 ///   - analysis-flutter-analyze
@@ -65,7 +34,7 @@ class FlutterAnalyzeBenchmark extends Benchmark implements FlutterBenchmark {
 
     var stopwatch = Stopwatch()..start();
 
-    await _runProcess(
+    await runProcess(
       '$dartSdkPath/bin/dart',
       [
         'packages/flutter_tools/bin/flutter_tools.dart',
