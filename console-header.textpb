@@ -1,24 +1,19 @@
 links: {
     name: "Consoles"
     links: {
-        text: "Bleeding Edge console"
+        text: "Main Console"
         url: "/p/dart/g/be/console"
-        alt: "SDK BE Console"
+        alt: "Main SDK Console"
     }
     links: {
-        text: "Alternative Bleeding Edge console"
+        text: "Main Console (VM last)"
         url: "/p/dart/g/alt/console"
-        alt: "SDK BE Console (alternative)"
+        alt: "Main SDK Console (VM last)"
     }
     links: {
-        text: "FYI console"
-        url: "/p/dart/g/fyi/console"
-        alt: "SDK FYI Console"
-    }
-    links: {
-        text: "LKGR console"
+        text: "LKGR Console"
         url: "/p/dart-internal/g/lkgr/console"
-        alt: "SDK LKGR console"
+        alt: "SDK LKGR Console"
     }
     links: {
         text: "SDK CQ Status"
@@ -36,15 +31,16 @@ links: {
         alt: "Current Test Results"
     }
     links: {
-        text: "Dart Infrastructure chat"
+        text: "Dart Infrastructure Chat"
         url: "https://chat.google.com/preview/room/AAAAtyvwZMA"
-        alt: "Dart Infrastructure chat"
+        alt: "Dart Infrastructure Chat"
     }
 }
 console_groups: {
     console_ids: "dart/dart-fuzz"
     console_ids: "dart/flutter"
     console_ids: "dart/flutter-hhh"
+    console_ids: "dart/flutter-engine"
     console_ids: "dart/flutter-web"
     console_ids: "dart/iso-stress"
 }

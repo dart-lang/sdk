@@ -55,7 +55,7 @@ exec("//cq.star")
 luci.console_view(
     name = "be",
     repo = "https://dart.googlesource.com/sdk",
-    title = "SDK Bleeding Edge Console",
+    title = "Main Console",
     refs = ["refs/heads/main"],
     header = "console-header.textpb",
 )
@@ -63,7 +63,7 @@ luci.console_view(
 luci.console_view(
     name = "alt",
     repo = "https://dart.googlesource.com/sdk",
-    title = "SDK Bleeding Edge Console (alternative)",
+    title = "Main Console (VM last)",
     refs = ["refs/heads/main"],
     header = "console-header.textpb",
 )
@@ -114,13 +114,6 @@ luci.console_view(
 luci.list_view(
     name = "iso-stress",
     title = "VM Isolate Stress Test Console",
-)
-
-luci.console_view(
-    name = "fyi",
-    repo = dart.git,
-    title = "SDK FYI Console",
-    refs = ["refs/heads/main"],
 )
 
 def sdk_builder_category():

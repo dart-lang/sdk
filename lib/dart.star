@@ -155,7 +155,6 @@ def _builder(
         experiments = None,
         expiration_timeout = None,
         goma = None,
-        fyi = False,
         notifies = "dart",
         priority = priority.normal,
         properties = None,
@@ -183,7 +182,6 @@ def _builder(
         experiments: Experiments to run on this builder, with percentages.
         expiration_timeout: How long builds should wait for a bot to run on.
         goma: Whether to use goma or not.
-        fyi: Whether this is an FYI builder or not.
         notifies: Which luci notifier group to notify (default: "dart").
         priority: What swarming priority this builder gets (default: NORMAL).
         properties: Extra properties to set for builds.
@@ -269,7 +267,7 @@ def _builder(
             if category:
                 console_category, _, short_name = category.rpartition("|")
                 toplevel_category, _, _ = console_category.partition("|")
-                console = channel or "be" if not fyi else "fyi"
+                console = channel or "be"
                 luci.console_view_entry(
                     builder = builder,
                     short_name = short_name,

@@ -17,6 +17,14 @@ luci.console_view(
 )
 
 luci.console_view(
+    name = "flutter-engine",
+    repo = "https://dart.googlesource.com/monorepo",
+    title = "Dart/Flutter Engine Console",
+    refs = ["refs/heads/main"],
+    header = "console-header.textpb",
+)
+
+luci.console_view(
     name = "flutter-web",
     repo = "https://dart.googlesource.com/monorepo",
     title = "Dart/Flutter Web Console",
@@ -78,6 +86,11 @@ def monorepo_builder(name, short_name, category):
         short_name = short_name,
         category = category,
         console_view = "monorepo",
+    )
+    luci.console_view_entry(
+        builder = name,
+        short_name = short_name,
+        console_view = "flutter-engine",
     )
     dart.try_builder(
         name,
