@@ -142,6 +142,13 @@ class LspGlobalClientConfiguration extends LspResourceClientConfiguration {
   bool get experimentalNewRefactors =>
       _settings['experimentalNewRefactors'] as bool? ?? false;
 
+  /// Whether or not to include dependencies in `textDocument/workspaceSymbols`.
+  ///
+  /// If set to `false`, only analyzed files will be searched.
+  /// Defaults to `true`.
+  bool get includeDependenciesInWorkspaceSymbols =>
+      _settings['includeDependenciesInWorkspaceSymbols'] as bool? ?? true;
+
   /// The users preferred kind of documentation for Hovers, Code Completion and
   /// other related panels in the UI.
   ///

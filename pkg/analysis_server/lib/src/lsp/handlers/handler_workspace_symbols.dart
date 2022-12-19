@@ -38,6 +38,8 @@ class WorkspaceSymbolHandler
     }
 
     final supportedSymbolKinds = clientCapabilities.workspaceSymbolKinds;
+    final searchOnlyAnalyzed = !server
+        .clientConfiguration.global.includeDependenciesInWorkspaceSymbols;
 
     // Convert the string input into a case-insensitive regex that has wildcards
     // between every character and at start/end to allow for fuzzy matching.
@@ -56,6 +58,7 @@ class WorkspaceSymbolHandler
       workspaceSymbols,
       regex,
       remainingResults,
+      onlyAnalyzed: searchOnlyAnalyzed,
     ).compute(token);
 
     if (workspaceSymbols.cancelled) {
