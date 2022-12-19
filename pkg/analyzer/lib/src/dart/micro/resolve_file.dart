@@ -24,6 +24,7 @@ import 'package:analyzer/src/dart/analysis/library_context.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/search.dart';
+import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisOptionsImpl;
@@ -737,6 +738,7 @@ class FileResolver {
         prefetchFiles: prefetchFiles,
         isGenerated: isGenerated,
         testData: testData?.fileSystem,
+        unlinkedUnitStore: UnlinkedUnitStoreImpl(),
       );
     }
 

@@ -30,7 +30,7 @@ enum JSFunctionPrototype {
   __proto__,
   arguments,
   caller,
-  calee,
+  callee,
   name,
   constructor,
   apply,

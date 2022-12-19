@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// If canonicialization hashes with only a field's cid, this will exhibit
+// If canonicalization hashes with only a field's cid, this will exhibit
 // quadratic time.
 
 class Box {

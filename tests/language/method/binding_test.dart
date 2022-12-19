@@ -107,7 +107,7 @@ class MethodBindingTest {
     c.f = () => "success";
     Expect.equals("success", c.f());
 
-    // referencing instance method with explicit 'this' qualiier
+    // referencing instance method with explicit 'this' qualifier
     var o6 = new A(6);
     var f6 = o6.getThis();
     Expect.equals(6, f6());

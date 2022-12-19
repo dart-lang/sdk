@@ -10,7 +10,7 @@ abstract class UnaryNum {
   num foo(num x);
 }
 
-// Overides must still be valid, wrt. signatures and types.
+// Overrides must still be valid, wrt. signatures and types.
 
 mixin M3 on UnaryNum {
   // M3.foo is a valid override of UnaryNum.foo

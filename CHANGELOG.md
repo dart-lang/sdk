@@ -256,6 +256,16 @@ Updates the Linter to `1.32.0`, which includes changes that
 #### `dart:isolate`
 
 - Add `Isolate.run` to run a function in a new isolate.
+- **Breaking change**: `SendPort.send` is again applying strict checks to the
+  contents of the message when sending messages between isolates that are not
+  known to share the same code (e.g. an isolate spawned via `Isolate.spawnUri`).
+  These checks were accidentally relaxed in an earlier Dart version allowing
+  all classes from `dart:core` and `dart:collection` through. This for
+  example means that you can't send an instance of a `HashMap` to an isolate
+  spawned via `Isolate.spawnUri`. See [`SendPort.send`] documentation for
+  the full list of restrictions.
+
+[`SendPort.send`]: https://api.dart.dev/stable/dart-isolate/SendPort/send.html
 
 #### `dart:mirrors`
 

@@ -6,7 +6,7 @@ import 'package:expect/expect.dart';
 import 'package:expect/config.dart';
 
 main() {
-  // Comman libraries should appear on all backends.
+  // Common libraries should appear on all backends.
   Expect.isTrue(const bool.fromEnvironment("dart.library.async"));
   Expect.isTrue(const bool.fromEnvironment("dart.library.collection"));
   Expect.isTrue(const bool.fromEnvironment("dart.library.convert"));

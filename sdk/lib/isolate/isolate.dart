@@ -707,18 +707,24 @@ abstract class SendPort implements Capability {
   /// Sends an asynchronous [message] through this send port, to its
   /// corresponding [ReceivePort].
   ///
-  /// The transitive object graph of [message] can contain the following
-  /// objects:
-  ///   - [Null]
-  ///   - [bool]
-  ///   - [int]
-  ///   - [double]
-  ///   - [String]
-  ///   - [List], [Map] or [Set] (whose elements are any of these)
-  ///   - [TransferableTypedData]
-  ///   - [SendPort]
-  ///   - [Capability]
-  ///   - [Type] representing one of these types, Object, dynamic, void or Never
+  /// If the sending and receiving isolates do not share the same code
+  /// (an isolate created using [Isolate.spawnUri] does not share the code
+  /// of the isolate that spawned it), the transitive object graph of [message]
+  /// can **only** contain the following kinds of objects:
+  ///
+  ///   - `null`
+  ///   - `true` and `false`
+  ///   - Instances of [int], [double], [String]
+  ///   - Instances created through list, map and set literals
+  ///   - Instances created by constructors of:
+  ///     - [List], [Map], [LinkedHashMap], [Set] and [LinkedHashSet]
+  ///     - [TransferableTypedData]
+  ///     - [Capability]
+  ///   - [SendPort] instances returned by [ReceivePort]'s `sendPort` getter
+  ///   - Instances of [Type] representing one of the types mentioned above,
+  ///     `Object`, `dynamic`, `void` and `Never` as well as nullable variants
+  ///     of all these types. For generic types type arguments must be sendable
+  ///     types for the whole type to be sendable.
   ///
   /// If the sender and receiver isolate share the same code (e.g. isolates
   /// created via [Isolate.spawn]), the transitive object graph of [message] can

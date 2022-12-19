@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// Test that the ParalleMoveResolver in the VM uses valid registers
+// Test that the ParallelMoveResolver in the VM uses valid registers
 // when requiring scratch registers.
 
 main() {
