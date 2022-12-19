@@ -20,8 +20,13 @@
   - Removed the deprecated [`FallThroughError`][] error. The kind of
     fall-through previously throwing this error was made a compile-time
     error in Dart 2.0.
+  - Removed the deprecated [`NullThrownError`][] error. This error is never
+    thrown from null safe code.
   - Removed the deprecated [`AbstractClassInstantiationError`][] error. It was made
     a compile-time error to call the constructor of an abstract class in Dart 2.0.
+  - Removed the deprecated [`CyclicInitializationError`]. Cyclic dependencies are
+    no longer detected at runtime in null safe code. Such code will fail in other
+    ways instead, possibly with a StackOverflowError.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [`int.parse`]: https://api.dart.dev/stable/2.18.4/dart-core/int/parse.html
@@ -38,7 +43,9 @@
 [`CastError`]: https://api.dart.dev/stable/2.18.3/dart-core/CastError-class.html
 [`TypeError`]: https://api.dart.dev/stable/2.18.3/dart-core/TypeError-class.html
 [`FallThroughError`]: https://api.dart.dev/dev/2.19.0-374.0.dev/dart-core/FallThroughError-class.html
+[`NullThrownError`]: https://api.dart.dev/dev/2.19.0-430.0.dev/dart-core/NullThrownError-class.html
 [`AbstractClassInstantiationError`]: https://api.dart.dev/stable/2.18.3/dart-core/AbstractClassInstantiationError-class.html
+[`CyclicInitializationError`]: https://api.dart.dev/dev/2.19.0-430.0.dev/dart-core/CyclicInitializationError-class.html
 
 #### `dart:html`
 
