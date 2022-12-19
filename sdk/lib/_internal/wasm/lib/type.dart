@@ -685,7 +685,7 @@ class _TypeUniverse {
     if (sSuperIndexOfT == -1) return false;
     assert(sSuperIndexOfT < typeRulesSubstitutions[sId].length);
 
-    // Return early if we don't have have to check type arguments.
+    // Return early if we don't have to check type arguments.
     List<_Type> sTypeArguments = s.typeArguments;
     List<_Type> substitutions = typeRulesSubstitutions[sId][sSuperIndexOfT];
     if (substitutions.isEmpty && sTypeArguments.isEmpty) {

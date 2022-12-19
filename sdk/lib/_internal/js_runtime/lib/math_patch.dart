@@ -281,7 +281,7 @@ class _JSSecureRandom implements Random {
 
     // Buffer now contains double in the range [1.0-2.0)
     // with 52 bits of entropy (not 53).
-    // To get 53 bits, we extract the 53rd bit from higthByte before
+    // To get 53 bits, we extract the 53rd bit from highByte before
     // overwriting it, and add that as a least significant bit.
     // The getFloat64 method is big-endian as default.
     double result = _buffer.getFloat64(0) - 1.0;

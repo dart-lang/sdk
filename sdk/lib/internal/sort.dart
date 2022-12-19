@@ -13,7 +13,7 @@ part of dart._internal;
  * Some improvements have been copied from Android's implementation.
  */
 class Sort {
-  // When a list has less then [:_INSERTION_SORT_THRESHOLD:] elements it will
+  // When a list has less than [:_INSERTION_SORT_THRESHOLD:] elements it will
   // be sorted by an insertion sort.
   static const int _INSERTION_SORT_THRESHOLD = 32;
 

@@ -95,7 +95,7 @@ _registerExtension(String method, ServiceExtensionHandler handler) {
 /// Returns a JS `Promise` that resolves with the result of invoking
 /// [methodName] with an [encodedJson] map as its parameters.
 ///
-/// This is used by the VM Service Prototcol to invoke extensions registered
+/// This is used by the VM Service Protocol to invoke extensions registered
 /// with [registerExtension]. For example, in JS:
 ///
 ///     await sdk.developer.invokeExtension(

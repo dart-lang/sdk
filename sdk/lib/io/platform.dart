@@ -82,7 +82,7 @@ class Platform {
   ///
   /// On macOS and iOS, the locale is taken from CFLocaleGetIdentifier.
   ///
-  /// On Linux and Fushia, the locale is taken from the "LANG" environment
+  /// On Linux and Fuchsia, the locale is taken from the "LANG" environment
   /// variable, which may be set to any value. For example:
   /// ```shell
   /// LANG=kitten dart myfile.dart  # localeName is "kitten"

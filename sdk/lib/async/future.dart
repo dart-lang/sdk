@@ -72,7 +72,7 @@ abstract class FutureOr<T> {
 ///    return haystack.contains(needle);
 /// }
 /// ```
-/// Here the `File.readAsString` method from `dart:io` is an asychronous
+/// Here the `File.readAsString` method from `dart:io` is an asynchronous
 /// function returning a `Future<String>`.
 /// The `fileContains` function is marked with `async` right before its body,
 /// which means that you can use `await` inside it,
