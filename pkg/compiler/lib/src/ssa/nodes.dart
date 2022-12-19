@@ -2662,6 +2662,13 @@ class HSwitch extends HControlFlow {
 }
 
 abstract class HBinaryBitOp extends HInvokeBinary {
+  /// JavaScript bitwise operations like `&` produce a 32-bit signed results but
+  /// the Dart-web operations produce an unsigned result. Conversion to unsigned
+  /// might be unnecessary (e.g. the inputs are such that JavaScript operation
+  /// cannot produce a negative value). During instruction selection we
+  /// determine if conversion is unnecessary.
+  bool requiresUintConversion = true;
+
   HBinaryBitOp(HInstruction left, HInstruction right, AbstractValue type)
       : super(left, right, type);
 }
@@ -2789,6 +2796,12 @@ class HAbs extends HInvokeUnary {
 }
 
 class HBitNot extends HInvokeUnary {
+  /// JavaScript `~` produces a 32-bit signed result the Dart-web operation
+  /// produces an unsigned result. Conversion to unsigned might be unnecessary
+  /// (e.g. the value is immediately masked). During instruction selection we
+  /// determine if conversion is unnecessary.
+  bool requiresUintConversion = true;
+
   HBitNot(HInstruction input, AbstractValue type) : super(input, type);
   @override
   R accept<R>(HVisitor<R> visitor) => visitor.visitBitNot(this);
