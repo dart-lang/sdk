@@ -1,0 +1,27 @@
+library test;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inference/for_each_downcast_iterable.dart:5:1: Error: Library doesn't support null safety.
+// // @dart=2.9
+// ^^^^^^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method test() → dynamic async /* futureValueType= dynamic */ {
+  core::Object* o;
+  for (dynamic x in o as{TypeError} core::Iterable<dynamic>*) {
+  }
+  await for (dynamic x in o as{TypeError} asy::Stream<dynamic>*) {
+  }
+  core::int* y;
+  for (final dynamic #t1 in o as{TypeError} core::Iterable<dynamic>*) {
+    y = #t1 as{TypeError,ForDynamic} core::int*;
+  }
+  await for (final dynamic #t2 in o as{TypeError} asy::Stream<dynamic>*) {
+    y = #t2 as{TypeError,ForDynamic} core::int*;
+  }
+}
+static method main() → dynamic {}

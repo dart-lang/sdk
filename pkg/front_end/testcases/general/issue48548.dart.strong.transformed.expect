@@ -1,0 +1,39 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  abstract get value() → core::int;
+  static factory •({core::int value = #C2}) → self::A
+    return new self::_AImpl::•(value: value);
+}
+class _AImpl extends core::Object implements self::A {
+  final field core::int value;
+  constructor •({core::int value = #C2}) → self::_AImpl
+    : self::_AImpl::value = value, super core::Object::•()
+    ;
+}
+static const field ({value: core::int}) → self::A _new = #C3;
+static const field ({value: core::int}) → self::_AImpl _newImpl = #C4;
+static method main(core::List<core::String> args) → void {
+  self::expect(0, new self::_AImpl::•().{self::A::value}{core::int});
+  self::expect(0, new self::_AImpl::•().{self::A::value}{core::int});
+  self::expect(0, #C3(){({value: core::int}) → self::A}.{self::A::value}{core::int});
+  self::expect(0, #C3(){({value: core::int}) → self::A}.{self::A::value}{core::int});
+  self::expect(0, new self::_AImpl::•().{self::_AImpl::value}{core::int});
+  self::expect(0, new self::_AImpl::•().{self::_AImpl::value}{core::int});
+  self::expect(0, #C4(){({value: core::int}) → self::_AImpl}.{self::_AImpl::value}{core::int});
+  self::expect(0, #C4(){({value: core::int}) → self::_AImpl}.{self::_AImpl::value}{core::int});
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = constructor-tearoff self::A::•
+  #C2 = 0
+  #C3 = redirecting-factory-tearoff self::A::•
+  #C4 = constructor-tearoff self::_AImpl::•
+}

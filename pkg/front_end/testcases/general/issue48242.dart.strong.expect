@@ -1,0 +1,17 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class Base extends core::Object /*isMixinDeclaration*/  {
+  method methodWithDefaultImpl() → core::Object? {}
+}
+abstract class TestFailure<A extends core::Object? = dynamic> extends self::Base /*isMixinDeclaration*/  {
+  @#C1
+  abstract method methodWithDefaultImpl({covariant-by-class self::TestFailure::A? nameParam = #C2}) → core::Object?;
+}
+static method main() → void {}
+
+constants  {
+  #C1 = core::_Override {}
+  #C2 = null
+}

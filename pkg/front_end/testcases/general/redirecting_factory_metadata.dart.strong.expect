@@ -1,0 +1,24 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Foo extends core::Object {
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor named(dynamic p) → self::Foo
+    : super core::Object::•()
+    ;
+  @#C2
+  static factory •(@#C3 @#C4 dynamic p) → self::Foo
+    return new self::Foo::named(p);
+}
+static const field core::int forParameter = #C3;
+static const field core::int forFactoryItself = #C2;
+static const field core::int anotherForParameter = #C4;
+static method main() → dynamic {}
+
+constants  {
+  #C1 = constructor-tearoff self::Foo::•
+  #C2 = 2
+  #C3 = 1
+  #C4 = 3
+}

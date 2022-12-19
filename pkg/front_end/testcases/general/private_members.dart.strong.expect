@@ -1,0 +1,62 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+part private_members_part.dart;
+abstract class _AbstractClass extends core::Object { // from org-dartlang-testcase:///private_members_part.dart
+  synthetic constructor •() → self::_AbstractClass
+    : super core::Object::•()
+    ;
+  abstract get _privateAbstractField() → core::int;
+  abstract set _privateAbstractField(core::int #externalFieldValue) → void;
+}
+class _Class extends core::Object { // from org-dartlang-testcase:///private_members_part.dart
+  field core::int _privateField = 1;
+  field core::int _privateFinalField = 1;
+  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
+  constructor _privateConstructor() → self::_Class
+    : super core::Object::•()
+    ;
+  static factory _privateRedirectingFactory() → self::_Class
+    return new self::_Class::_privateConstructor();
+  method _privateMethod() → void {}
+  get _privateGetter() → core::int
+    return 42;
+  set _privateSetter(core::int value) → void {}
+}
+extension _Extension on core::int { // from org-dartlang-testcase:///private_members_part.dart
+  method _privateMethod = self::_Extension|_privateMethod;
+  tearoff _privateMethod = self::_Extension|get#_privateMethod;
+  get _privateGetter = self::_Extension|get#_privateGetter;
+  static field _privateField = self::_Extension|_privateField;
+  static field _privateFinalField = self::_Extension|_privateFinalField;
+  set _privateSetter = self::_Extension|set#_privateSetter;
+}
+static field core::int _Extension|_privateField = 1 /* from org-dartlang-testcase:///private_members_part.dart */;
+static field core::int _Extension|_privateFinalField = 1 /* from org-dartlang-testcase:///private_members_part.dart */;
+static method test(self::_AbstractClass c) → dynamic {
+  c.{self::_AbstractClass::_privateAbstractField} = c.{self::_AbstractClass::_privateAbstractField}{core::int};
+}
+static method main() → dynamic {
+  self::_Class c = new self::_Class::_privateConstructor();
+  c = new self::_Class::_privateConstructor();
+  c.{self::_Class::_privateMethod}(){() → void};
+  c.{self::_Class::_privateSetter} = c.{self::_Class::_privateGetter}{core::int};
+  c.{self::_Class::_privateField} = c.{self::_Class::_privateField}{core::int};
+  c.{self::_Class::_privateFinalField}{core::int};
+  self::_Extension|_privateMethod(0);
+  self::_Extension|get#_privateMethod(0)(){() → void};
+  self::_Extension|set#_privateSetter(0, self::_Extension|get#_privateGetter(0));
+  self::_Extension|_privateField = self::_Extension|_privateField;
+  self::_Extension|_privateFinalField;
+}
+static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateMethod(lowered final core::int #this) → void {}
+static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|get#_privateMethod(lowered final core::int #this) → () → void
+  return () → void => self::_Extension|_privateMethod(#this);
+static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|get#_privateGetter(lowered final core::int #this) → core::int
+  return 42;
+static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|set#_privateSetter(lowered final core::int #this, core::int value) → void {}
+
+constants  {
+  #C1 = constructor-tearoff self::_Class::_privateRedirectingFactory
+}

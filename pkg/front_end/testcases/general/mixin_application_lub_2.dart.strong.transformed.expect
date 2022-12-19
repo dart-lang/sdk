@@ -1,0 +1,48 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Diagnosticable extends core::Object {
+  synthetic constructor •() → self::Diagnosticable
+    : super core::Object::•()
+    ;
+}
+abstract class _SomeClass&Object&Diagnosticable extends core::Object implements self::Diagnosticable /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_SomeClass&Object&Diagnosticable
+    : super core::Object::•()
+    ;
+}
+class SomeClass extends self::_SomeClass&Object&Diagnosticable {
+  synthetic constructor •() → self::SomeClass
+    : super self::_SomeClass&Object&Diagnosticable::•()
+    ;
+}
+abstract class _State&Object&Diagnosticable extends core::Object implements self::Diagnosticable /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self::_State&Object&Diagnosticable
+    : super core::Object::•()
+    ;
+}
+class State<T extends core::Object? = dynamic> extends self::_State&Object&Diagnosticable {
+  synthetic constructor •() → self::State<self::State::T%>
+    : super self::_State&Object&Diagnosticable::•()
+    ;
+}
+class StateA extends self::State<dynamic> {
+  synthetic constructor •() → self::StateA
+    : super self::State::•()
+    ;
+}
+class StateB extends self::State<core::int> {
+  synthetic constructor •() → self::StateB
+    : super self::State::•()
+    ;
+}
+static field self::StateA? a = new self::StateA::•();
+static field self::StateB b = new self::StateB::•();
+static method foo<T extends core::Object? = dynamic>(self::foo::T% x) → dynamic {
+  core::print(self::foo::T%);
+}
+static method main() → dynamic {
+  self::Diagnosticable x = let final self::StateA? #t1 = self::a in #t1 == null ?{self::Diagnosticable} self::b : #t1{self::StateA};
+  self::foo<self::Diagnosticable>(x);
+}

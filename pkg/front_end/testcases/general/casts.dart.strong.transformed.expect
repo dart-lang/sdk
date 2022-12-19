@@ -1,0 +1,31 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::print("");
+  core::print(1);
+  core::print(1.0);
+  core::print("" is{ForNonNullableByDefault} core::String);
+  core::print("" is{ForNonNullableByDefault} core::int);
+  core::print("" is{ForNonNullableByDefault} core::double);
+  core::print(1 is{ForNonNullableByDefault} core::String);
+  core::print(1 is{ForNonNullableByDefault} core::int);
+  core::print(1 is{ForNonNullableByDefault} core::double);
+  core::print(1.0 is{ForNonNullableByDefault} core::String);
+  core::print(1.0 is{ForNonNullableByDefault} core::int);
+  core::print(1.0 is{ForNonNullableByDefault} core::double);
+}
+
+
+Extra constant evaluation status:
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:10:12 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:11:12 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:12:12 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:14:11 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:15:11 -> BoolConstant(true)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:16:11 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:18:13 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:19:13 -> BoolConstant(false)
+Evaluated: IsExpression @ org-dartlang-testcase:///casts.dart:20:13 -> BoolConstant(true)
+Extra constant evaluation: evaluated: 21, effectively constant: 9

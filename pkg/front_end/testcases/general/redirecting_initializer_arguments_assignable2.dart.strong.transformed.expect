@@ -1,0 +1,37 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/redirecting_initializer_arguments_assignable2.dart:13:42: Error: The argument type 'X' can't be assigned to the parameter type 'T'.
+//  - 'X' is from 'pkg/front_end/testcases/general/redirecting_initializer_arguments_assignable2.dart'.
+//   Foo.fromX(X _init) : this._internal(x: _init);
+//                                          ^
+//
+import self as self;
+import "dart:core" as core;
+
+class X extends core::Object {
+  synthetic constructor •() → self::X
+    : super core::Object::•()
+    ;
+}
+class Foo<T extends self::X> extends core::Object {
+  covariant-by-class field self::Foo::T x;
+  constructor fromX(self::X _init) → self::Foo<self::Foo::T>
+    : this self::Foo::_internal(x: invalid-expression "pkg/front_end/testcases/general/redirecting_initializer_arguments_assignable2.dart:13:42: Error: The argument type 'X' can't be assigned to the parameter type 'T'.
+ - 'X' is from 'pkg/front_end/testcases/general/redirecting_initializer_arguments_assignable2.dart'.
+  Foo.fromX(X _init) : this._internal(x: _init);
+                                         ^" in _init as{TypeError,ForNonNullableByDefault} Never)
+    ;
+  constructor fromT(self::Foo::T _init) → self::Foo<self::Foo::T>
+    : this self::Foo::_internal(x: _init)
+    ;
+  constructor _internal({required self::Foo::T x = #C1}) → self::Foo<self::Foo::T>
+    : self::Foo::x = x, super core::Object::•()
+    ;
+}
+static method main() → void {}
+
+constants  {
+  #C1 = null
+}

@@ -1,0 +1,39 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  method m(core::num n) → void {}
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  forwarding-stub forwarding-semi-stub method /* signature-type: (core::int) → void */ m(covariant-by-declaration core::num i) → void
+    return super.{self::A::m}(i);
+}
+class C extends self::B {
+  synthetic constructor •() → self::C
+    : super self::B::•()
+    ;
+  method m(covariant-by-declaration core::int i) → void {}
+}
+static method main() → dynamic {
+  self::A a = new self::C::•();
+  self::throws(() → void => a.{self::A::m}(1.5){(core::num) → void});
+  a = new self::B::•();
+  a.{self::A::m}(1.5){(core::num) → void};
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object e) {
+    core::print(e);
+    return;
+  }
+  throw "Exception expected";
+}

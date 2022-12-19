@@ -1,0 +1,51 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+class SliverConstraints extends core::Object {
+  synthetic constructor •() → self::SliverConstraints
+    : super core::Object::•()
+    ;
+}
+abstract class RenderSliver extends mai::RenderObject {
+  synthetic constructor •() → self::RenderSliver
+    : super mai::RenderObject::•()
+    ;
+  get constraints() → self::SliverConstraints
+    return super.{mai::RenderObject::constraints} as{ForNonNullableByDefault} self::SliverConstraints;
+}
+abstract class _RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin = self::RenderSliver with mai::RenderObjectWithChildMixin /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin
+    : super self::RenderSliver::•()
+    ;
+  abstract member-signature get constraints() → invalid-type; -> self::RenderSliver::constraints
+}
+abstract class RenderSliverSingleBoxAdapter extends self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin {
+  synthetic constructor •() → self::RenderSliverSingleBoxAdapter
+    : super self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin::•()
+    ;
+}
+static method main() → dynamic {}
+
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/crashes/crash_01/main_lib.dart:2:3: Error: Type 'Constraints' not found.
+//   Constraints get constraints {}
+//   ^^^^^^^^^^^
+//
+import self as mai;
+import "dart:core" as core;
+
+abstract class RenderObject extends core::Object {
+  synthetic constructor •() → mai::RenderObject
+    : super core::Object::•()
+    ;
+  get constraints() → invalid-type {}
+}
+abstract class RenderObjectWithChildMixin extends mai::RenderObject /*isMixinDeclaration*/  {
+}
