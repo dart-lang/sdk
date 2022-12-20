@@ -1234,7 +1234,7 @@ class Parser {
       reportRecoverableError(
           token, codes.messageMetadataTypeArgumentsUninstantiated);
     }
-    token = parseArgumentsOpt(token);
+    token = parseArgumentsOptMetadata(token);
     listener.endMetadata(atToken, period, token.next!);
     return token;
   }
@@ -7130,6 +7130,20 @@ class Parser {
       return next.endGroup!;
     } else {
       return token;
+    }
+  }
+
+  /// Parse optional arguments specifically for metadata as metadata arguments
+  /// has to follow the previous token without space.
+  /// See also
+  /// https://github.com/dart-lang/language/blob/master/accepted/future-releases/records/records-feature-specification.md#ambiguity-with-metadata-annotations
+  Token parseArgumentsOptMetadata(Token token) {
+    Token next = token.next!;
+    if (!optional('(', next) || (token.charEnd != next.charOffset)) {
+      listener.handleNoArguments(next);
+      return token;
+    } else {
+      return parseArguments(token);
     }
   }
 
