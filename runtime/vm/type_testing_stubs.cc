@@ -1334,7 +1334,7 @@ void RegisterTypeArgumentsUse(const Function& function,
       // This is an approximation: If we only know the type, but not the cid, we
       // might have a this-dispatch where we know it's either this class or any
       // subclass.
-      // We try to strengthen this assumption furher down by checking the offset
+      // We try to strengthen this assumption further down by checking the offset
       // of the type argument vector, but generally speaking this could be a
       // false-postive, which is still ok!
       const AbstractType& type = *instance->Type()->ToAbstractType();
