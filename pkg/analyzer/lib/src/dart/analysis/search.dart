@@ -142,20 +142,26 @@ class FindDeclarations {
   final int? maxResults;
   final RegExp? regExp;
   final String? onlyForFile;
+  final bool onlyAnalyzed;
 
   FindDeclarations(this.drivers, this.result, this.regExp, this.maxResults,
-      {this.onlyForFile});
+      {this.onlyForFile, this.onlyAnalyzed = false});
 
   Future<void> compute([CancellationToken? cancellationToken]) async {
     var searchedFiles = SearchedFiles();
-    await Future.wait(drivers.map((driver) => driver.discoverAvailableFiles()));
     // Add analyzed files first, so priority is given to drivers that analyze
     // files over those that just reference them.
     for (var driver in drivers) {
       searchedFiles.ownAnalyzed(driver.search);
     }
-    for (var driver in drivers) {
-      searchedFiles.ownKnown(driver.search);
+    if (!onlyAnalyzed) {
+      await Future.wait(
+        drivers.map((driver) => driver.discoverAvailableFiles()),
+      );
+
+      for (var driver in drivers) {
+        searchedFiles.ownKnown(driver.search);
+      }
     }
 
     await _FindDeclarations(searchedFiles, result, regExp, maxResults,
