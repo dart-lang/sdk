@@ -1560,11 +1560,11 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub(Assembler* assembler) {
 }
 
 // Helper to generate space allocation of context stub.
-// This does not initialise the fields of the context.
+// This does not initialize the fields of the context.
 // Input:
 //   R10: number of context variables.
 // Output:
-//   RAX: new, uinitialised allocated Context object.
+//   RAX: new, uninitialized allocated Context object.
 // Clobbered:
 //   R13
 static void GenerateAllocateContextSpaceStub(Assembler* assembler,
@@ -1652,7 +1652,7 @@ void StubCodeCompiler::GenerateAllocateContextStub(Assembler* assembler) {
 
     // Setup the parent field.
     // RAX: new object.
-    // R9: Parent object, initialised to null.
+    // R9: Parent object, initialized to null.
     // No generational barrier needed, since we are storing null.
     __ StoreCompressedIntoObjectNoBarrier(
         RAX, FieldAddress(RAX, target::Context::parent_offset()), R9);
