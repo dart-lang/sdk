@@ -1572,6 +1572,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       name: methodName,
       propertyErrorEntity: node.operator,
       nameErrorEntity: node,
+      parentNode: node,
     );
 
     if (result.needsGetterError) {

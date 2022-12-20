@@ -207,6 +207,12 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRelationalPattern(RelationalPattern node) {
+    usedElements.addMember(node.element);
+    super.visitRelationalPattern(node);
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
