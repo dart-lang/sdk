@@ -146,7 +146,7 @@ abstract class AbstractPositionSourceInformationStrategy
 /// Marker used to tag the root nodes of source-mapped code.
 ///
 /// This is needed to be able to distinguish JavaScript nodes that shouldn't
-/// have source locations (like the premable) from the nodes that should
+/// have source locations (like the preamble) from the nodes that should
 /// (like functions compiled from Dart code).
 class SourceMappedMarker extends SourceInformation {
   const SourceMappedMarker();

@@ -865,7 +865,7 @@ class DataSinkWriter {
     }
   }
 
-  /// Writes the [map] from references to type variable entites to [V] values
+  /// Writes the [map] from references to type variable entities to [V] values
   /// to this data sink, calling [f] to write each value to the data sink. If
   /// [allowNull] is `true`, [map] is allowed to be `null`.
   ///

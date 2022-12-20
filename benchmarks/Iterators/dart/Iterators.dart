@@ -38,7 +38,7 @@
 /// Generic Iterables have benchmarks for different element types. There are
 /// benchmarks for `int` type arguments, which have a fast type test, and for
 /// `Thing<Iterable<Comparable>>`, which is harder to test quickly. These tests
-/// are distingished by `int` and `Hard` in the name.
+/// are distinguished by `int` and `Hard` in the name.
 ///
 /// ## Monomorphic benchmarks
 ///
@@ -63,7 +63,7 @@
 ///
 /// ### Iterators.poly.Runes.1
 ///
-/// An interation over the String.runes iterable of a single character String
+/// An iteration over the String.runes iterable of a single character String
 /// using the shared polymorphic loop.
 ///
 /// ### Iterators.poly.HashMap.Hard.keys.100

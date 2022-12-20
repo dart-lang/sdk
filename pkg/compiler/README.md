@@ -61,7 +61,7 @@ The current compiler phases are:
      further understand what values flow through the program. This phase is
      very valuable in narrowing down possibilities that are ambiguous based
      solely on type information written by developers. It often finds
-     oportunities that enable the compiler to devirtualize or inline method
+     opportunities that enable the compiler to devirtualize or inline method
      calls, generate code specializations, or trigger performance optimizations.
 
      The result of this phase is a "global result" (g).
@@ -246,7 +246,7 @@ functionality is publicly exposed.
 
 * Tree-shaking: The compiler does two phases of reducing the program size by
   throwing away unreachable code. The first phase is done while resolving the
-  program (reachablity is basically based on dependencies that appear in the
+  program (reachability is basically based on dependencies that appear in the
   code), the second phase is done as functions are optimized (which in turn can
   delete branches of the code and make more code unreachable). Externally
   we refer to it as tree-shaking, but it behaves more like a tree-growing

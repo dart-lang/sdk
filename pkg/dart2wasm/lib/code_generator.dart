@@ -347,6 +347,16 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     int parameterOffset = _initializeThis(member);
     int implicitParams = parameterOffset + paramInfo.typeParamCount;
 
+    List<TypeParameter> typeParameters = member is Constructor
+        ? member.enclosingClass.typeParameters
+        : member.function!.typeParameters;
+    for (int i = 0; i < typeParameters.length; i++) {
+      typeLocals[typeParameters[i]] = paramLocals[parameterOffset + i];
+    }
+
+    // Local for the prameter type if any of the parameters need type checks
+    w.Local? parameterExpectedTypeLocal;
+
     void setupParamLocal(
         VariableDeclaration variable, int index, Constant? defaultValue) {
       w.Local local = paramLocals[implicitParams + index];
@@ -366,6 +376,17 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.local_set(local);
         b.end();
       }
+      if (variable.isCovariantByClass || variable.isCovariantByDeclaration) {
+        final typeLocal = parameterExpectedTypeLocal ??= addLocal(
+            translator.classInfo[translator.typeClass]!.nonNullableType);
+        _generateArgumentTypeCheck(
+          variable.name!,
+          () => b.local_get(local),
+          () => types.makeType(this, variable.type),
+          local,
+          typeLocal,
+        );
+      }
     }
 
     List<VariableDeclaration> positional =
@@ -377,12 +398,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     for (var param in named) {
       setupParamLocal(
           param, paramInfo.nameIndex[param.name]!, paramInfo.named[param.name]);
-    }
-    List<TypeParameter> typeParameters = member is Constructor
-        ? member.enclosingClass.typeParameters
-        : member.function!.typeParameters;
-    for (int i = 0; i < typeParameters.length; i++) {
-      typeLocals[typeParameters[i]] = paramLocals[parameterOffset + i];
     }
 
     // For all parameters whose Wasm type has been forced to `externref` due to

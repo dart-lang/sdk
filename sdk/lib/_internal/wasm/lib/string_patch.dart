@@ -95,6 +95,9 @@ abstract class _StringBase implements String {
 
   _StringBase._();
 
+  @override
+  Type get runtimeType => String;
+
   int get hashCode {
     int hash = _getHash(this);
     if (hash != 0) return hash;

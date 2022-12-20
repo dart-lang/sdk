@@ -2356,7 +2356,7 @@ const Set<String> reservedCapitalizedGlobalSymbols = {
 
   // Window methods (https://developer.mozilla.org/en/DOM/window)
   "GeckoActiveXObject", "QueryInterface", "XPCNativeWrapper",
-  "XPCSafeJSOjbectWrapper",
+  "XPCSafeJSObjectWrapper",
 
   // Common browser-defined identifiers not defined in ECMAScript
   "Debug", "Enumerator", "Global", "Image",

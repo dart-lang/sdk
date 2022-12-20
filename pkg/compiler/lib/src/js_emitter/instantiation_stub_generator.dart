@@ -99,7 +99,7 @@ class InstantiationStubGenerator {
   }
 
   /// Generates a stub for a 'signature' selector. The stub calls the underlying
-  /// function's 'signature' method and calls a helper to subsitute the type
+  /// function's 'signature' method and calls a helper to substitute the type
   /// parameters in the type term. The stub looks like this:
   ///
   /// ```

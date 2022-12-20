@@ -72,7 +72,7 @@ class SsaOptimizerTask extends CompilerTask {
       codegen.tracer.traceGraph(phase.name, graph);
       assert(graph.isValid(), 'Graph not valid after ${phase.name}');
       assert(phase.validPostcondition(graph),
-          'Graph does not satify phase postcondition after ${phase.name}');
+          'Graph does not satisfy phase postcondition after ${phase.name}');
     }
 
     SsaCodeMotion codeMotion;
@@ -930,7 +930,7 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
         method, [receiver], returnType, nativeBehavior,
         sourceInformation: node.sourceInformation);
     _registry.registerStaticUse(StaticUse.methodInlining(method, null));
-    // Assume Native getters effect-free as an approximantion to being
+    // Assume Native getters effect-free as an approximation to being
     // idempotent.
     // TODO(sra): [native.BehaviorBuilder.buildMethodBehavior] should do this
     // for us.
@@ -3225,7 +3225,7 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
 // 1) can be used for GVN, and
 // 2) do not use definitions of their own block.
 //
-// A basic block looks at its sucessors and finds the intersection of
+// A basic block looks at its successors and finds the intersection of
 // these computed ValueSet. It moves all instructions of the
 // intersection into its own list of instructions.
 class SsaCodeMotion extends HBaseVisitor<void> implements OptimizationPhase {

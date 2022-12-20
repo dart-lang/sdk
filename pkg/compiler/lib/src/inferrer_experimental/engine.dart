@@ -658,7 +658,7 @@ class InferrerEngine {
     // TODO(13429): We could do better here by using the
     // constant handler to figure out if it's a lazy field or not.
     // TODO(johnniwinther): Implement the ad-hoc check in ast inferrer? This
-    // mimicks that ast inferrer which return `true` for [ast.Send] and
+    // mimics that ast inferrer which return `true` for [ast.Send] and
     // non-const [ast.NewExpression].
     if (initializer is ir.InstanceInvocation ||
         initializer is ir.InstanceGetterInvocation ||

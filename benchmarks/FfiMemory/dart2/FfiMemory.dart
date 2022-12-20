@@ -206,7 +206,7 @@ double doLoadDouble(Pointer<Double> pointer, int length) {
   return x;
 }
 
-// Aggregates pointers through aggregrating their addresses.
+// Aggregates pointers through aggregating their addresses.
 int doLoadPointer(Pointer<Pointer<Int8>> pointer, int length) {
   Pointer<Int8> x;
   int address_xor = 0;

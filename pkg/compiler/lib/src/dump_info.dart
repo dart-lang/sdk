@@ -1014,7 +1014,7 @@ class DumpInfoAnnotator {
           : "${function.enclosingClass.name}.${function.name}";
     }
 
-    // Multiple kernel members members can sometimes map to a single JElement.
+    // Multiple kernel members can sometimes map to a single JElement.
     // [isSetter] and [isGetter] are required for disambiguating these cases.
     final kFunctionInfos = kernelInfo.state.info.functions
         .where((i) =>

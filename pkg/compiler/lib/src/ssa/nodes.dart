@@ -2345,7 +2345,7 @@ class HLocalSet extends HLocalAccess {
 ///
 /// HInvokeDynamicMethod can be lowered to HInvokeExternal with the same
 /// [element]. The difference is a HInvokeDynamicMethod is a call to a
-/// Dart-calling-convention stub identifed by [element] that contains a call to
+/// Dart-calling-convention stub identified by [element] that contains a call to
 /// the external method, whereas a HInvokeExternal instruction is a direct
 /// JavaScript call to the external method identified by [element].
 class HInvokeExternal extends HInvoke {
@@ -3363,7 +3363,7 @@ class HInterceptor extends HInstruction {
   }
 }
 
-/// A "one-shot" interceptor is a call to a synthetized method that will fetch
+/// A "one-shot" interceptor is a call to a synthesized method that will fetch
 /// the interceptor of its first parameter, and make a call on a given selector
 /// with the remaining parameters.
 ///

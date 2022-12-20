@@ -44,7 +44,7 @@ const txtId = DataId("txt");
 const fakeRoot = 'dev-dart-app:/';
 
 String getRootScheme(Module module) {
-  // We use non file-URI schemes for representeing source locations in a
+  // We use non file-URI schemes for representing source locations in a
   // root-agnostic way. This allows us to refer to file across modules and
   // across steps without exposing the underlying temporary folders that are
   // created by the framework. In build systems like bazel this is especially

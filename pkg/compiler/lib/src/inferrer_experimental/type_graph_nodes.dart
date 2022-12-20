@@ -1185,7 +1185,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
   ///
   /// Returns the more precise TypeInformation, or `null` to defer to the
   /// library code.
-  TypeInformation? handleIntrisifiedSelector(
+  TypeInformation? handleIntrinsifiedSelector(
       Selector selector, AbstractValue? mask, InferrerEngine inferrer) {
     AbstractValueDomain abstractValueDomain = inferrer.abstractValueDomain;
     if (mask == null) return null;
@@ -1362,7 +1362,7 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
           return abstractValueDomain.getMapValueType(typeMask);
         } else {
           final info =
-              handleIntrisifiedSelector(localSelector, typeMask, inferrer);
+              handleIntrinsifiedSelector(localSelector, typeMask, inferrer);
           if (info != null) return info.type;
           return inferrer
               .typeOfMemberWithSelector(element, selector,

@@ -137,7 +137,7 @@ class GridLayout extends ViewLayout {
   /// and Grid rows. The goal of the function is to ensure:
   ///   1. That each Grid Track satisfies its minSizing
   ///   2. That each Grid Track grows from the breadth which satisfied its
-  ///      minSizing to a breadth which satifies its
+  ///      minSizing to a breadth which satisfies its
   ///      maxSizing, subject to RemainingSpace.
   // Note: spec does not correctly doc all the parameters to this function.
   void _computeUsedBreadthOfTracks(List<GridTrack> tracks) {

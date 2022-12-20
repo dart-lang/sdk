@@ -168,6 +168,7 @@ records/issue50157: FormatterCrash
 records/issue50182: FormatterCrash
 records/issue50514: FormatterCrash
 records/issue50515: FormatterCrash
+records/metadata: FormatterCrash
 records/named_fields_clashing_with_positional: FormatterCrash
 records/names_of_positional_fields_same_as_object_members: FormatterCrash
 records/null_shorting: FormatterCrash

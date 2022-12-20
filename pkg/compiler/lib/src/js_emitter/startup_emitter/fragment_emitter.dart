@@ -2089,7 +2089,7 @@ class FragmentEmitter {
 
     // Emit the empty objects for main fragment in case we emit
     // getNativeInterceptor.
-    // TODO(sra): Refine the impacts to accuratley predict whether we need this
+    // TODO(sra): Refine the impacts to accurately predict whether we need this
     // at all, and delete 'setOrUpdateInterceptorsByTag' if it is not called.
     if (fragment.isMainFragment || interceptorsByTag.isNotEmpty) {
       statements.add(js.js.statement(
@@ -2136,7 +2136,7 @@ class DeferredLoadingState {
 class DeferredPrimaryExpression extends js.DeferredExpression {
   late final js.Expression _value;
 
-  /// Set the value for this defferred expression.
+  /// Set the value for this deferred expression.
   ///
   /// Ensure this is called exactly once before calling the [value] getter.
   void setValue(js.Expression value) {

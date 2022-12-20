@@ -369,7 +369,7 @@ input:focus {
   /* Set maximum width so the image shrinks to fit the column. */
   max-width: 100% !important;
   /*
-   * Set maximum height so the image wont't wrap between columns.
+   * Set maximum height so the image won't wrap between columns.
    * TODO(jmesserly): figure out why we can't use 100% here; it seems like
    * 100% is being interpreted as bigger than the column height.
    */

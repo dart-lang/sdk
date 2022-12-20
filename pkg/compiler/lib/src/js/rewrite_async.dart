@@ -364,7 +364,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     node.accept(this);
   }
 
-  /// Visits [node] to ensure its sideeffects are performed, but throwing away
+  /// Visits [node] to ensure its side effects are performed, but throwing away
   /// the result.
   ///
   /// If the return value of visiting [node] is an expression guaranteed to have

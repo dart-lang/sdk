@@ -1,0 +1,25 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/records/metadata.dart:13:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+// @metadata<int> (int, int) a = (42, 42);
+//  ^
+//
+import self as self;
+import "dart:core" as core;
+
+class metadata<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::metadata<self::metadata::T%>
+    : super core::Object::•()
+    ;
+}
+@invalid-expression "pkg/front_end/testcases/records/metadata.dart:13:2: Error: This can't be used as an annotation; an annotation should be a reference to a compile-time constant variable, or a call to a constant constructor.
+@metadata<int> (int, int) a = (42, 42);
+ ^"
+static field (core::int, core::int) a = (42, 42);
+
+
+Extra constant evaluation status:
+Evaluated: RecordLiteral @ org-dartlang-testcase:///metadata.dart:13:31 -> RecordConstant(const (42, 42))
+Extra constant evaluation: evaluated: 1, effectively constant: 1
