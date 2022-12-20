@@ -126,6 +126,17 @@ class SelectorInfo {
           returns = function.returnType is VoidType
               ? const []
               : [function.returnType];
+
+          // Box parameters that need covariance checks
+          for (int i = 0; i < function.positionalParameters.length; i += 1) {
+            final param = function.positionalParameters[i];
+            ensureBoxed[1 + i] |=
+                param.isCovariantByClass || param.isCovariantByDeclaration;
+          }
+          for (VariableDeclaration param in function.namedParameters) {
+            ensureBoxed[1 + nameIndex[param.name!]!] |=
+                param.isCovariantByClass || param.isCovariantByDeclaration;
+          }
         }
       }
       assert(returns.length <= outputSets.length);
