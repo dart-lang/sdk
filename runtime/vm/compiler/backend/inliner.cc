@@ -1519,7 +1519,7 @@ class CallSiteInliner : public ValueObject {
   }
 
   void PrintInlinedInfoFor(const Function& caller, intptr_t depth) {
-    // Prevent duplicate printing as inlined_info aggregates all inlinining.
+    // Prevent duplicate printing as inlined_info aggregates all inlining.
     GrowableArray<intptr_t> call_instructions_printed;
     // Print those that were inlined.
     for (intptr_t i = 0; i < inlined_info_.length(); i++) {

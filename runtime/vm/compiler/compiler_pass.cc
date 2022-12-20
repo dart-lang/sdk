@@ -461,7 +461,7 @@ COMPILER_PASS(OptimisticallySpecializeSmiPhis, {
 
 COMPILER_PASS(WidenSmiToInt32, {
   // Where beneficial convert Smi operations into Int32 operations.
-  // Only meanigful for 32bit platforms right now.
+  // Only meaningful for 32bit platforms right now.
   flow_graph->WidenSmiToInt32();
 });
 

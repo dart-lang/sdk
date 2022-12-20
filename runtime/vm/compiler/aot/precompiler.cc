@@ -2468,7 +2468,7 @@ static bool IsUserDefinedClass(Zone* zone,
 }
 
 /// Updates |visited| weak table with information about whether object
-/// (transitevly) references constants of user-defined classes: |kDrop|
+/// (transitively) references constants of user-defined classes: |kDrop|
 /// indicates it does, |kRetain| - does not.
 class ConstantInstanceVisitor {
  public:
@@ -3767,7 +3767,7 @@ Obfuscator::Obfuscator(Thread* thread, const String& private_key)
   }
   auto zone = thread->zone();
 
-  // Create ObfuscationState from ObjectStore::obfusction_map().
+  // Create ObfuscationState from ObjectStore::obfuscation_map().
   ObjectStore* store = isolate_group->object_store();
   Array& obfuscation_state = Array::Handle(zone, store->obfuscation_map());
 

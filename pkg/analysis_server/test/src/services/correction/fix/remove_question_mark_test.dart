@@ -99,6 +99,15 @@ mixin B on A {}
 ''');
   }
 
+  Future<void> test_unnecessaryQuestionMark() async {
+    await resolveTestCode('''
+dynamic? a;
+''');
+    await assertHasFix('''
+dynamic a;
+''');
+  }
+
   Future<void> test_withClause_class() async {
     await resolveTestCode('''
 class A {}

@@ -1029,7 +1029,7 @@ class Instruction : public ZoneAllocated {
 
   virtual bool ComputeCanDeoptimizeAfterCall() const {
     // TODO(dartbug.com/45213): Incrementally migrate IR instructions from using
-    // [ComputeCanDeoptimze] to either [ComputeCanDeoptimizeAfterCall] if they
+    // [ComputeCanDeoptimize] to either [ComputeCanDeoptimizeAfterCall] if they
     // can only lazy deoptimize.
     return false;
   }
@@ -2105,7 +2105,7 @@ class TargetEntryInstr : public BlockEntryInstr {
 // Represents an entrypoint to a function which callers can invoke (i.e. not
 // used for OSR entries).
 //
-// The flow graph builder might decide to create create multiple entrypoints
+// The flow graph builder might decide to create multiple entrypoints
 // (e.g. checked/unchecked entrypoints) and will attach those to the
 // [GraphEntryInstr].
 //
@@ -2977,7 +2977,7 @@ class StoreIndexedUnsafeInstr : public TemplateInstruction<2, NoThrow> {
 //
 // Currently this instruction uses pinpoints the register to be FP.
 //
-// This lowlevel instruction is non-inlinable since it makes assumptons about
+// This lowlevel instruction is non-inlinable since it makes assumptions about
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
 class LoadIndexedUnsafeInstr : public TemplateDefinition<1, NoThrow> {
  public:
@@ -3116,7 +3116,7 @@ class MemoryCopyInstr : public TemplateInstruction<5, NoThrow> {
 // usual location (stack or LR).  The arguments descriptor supplied by the
 // original caller will be put into ARGS_DESC_REG.
 //
-// This lowlevel instruction is non-inlinable since it makes assumptons about
+// This lowlevel instruction is non-inlinable since it makes assumptions about
 // the frame.  This is asserted via `inliner.cc::CalleeGraphValidator`.
 class TailCallInstr : public TemplateInstruction<1, Throws, Pure> {
  public:
@@ -3491,7 +3491,7 @@ class GotoInstr : public TemplateInstruction<0, NoThrow> {
 // The FlowGraphCompiler will - as a post-processing step - invoke
 // [ComputeOffsetTable] of all [IndirectGotoInstr]s. In there we initialize a
 // TypedDataInt32Array containing offsets of all [IndirectEntryInstr]s (the
-// offests are relative to start of the instruction payload).
+// offsets are relative to start of the instruction payload).
 //
 //  => See `FlowGraphCompiler::CompileGraph()`
 //  => See `IndirectGotoInstr::ComputeOffsetTable`
@@ -4676,7 +4676,7 @@ class PolymorphicInstanceCallInstr : public InstanceCallBaseInstr {
 
   virtual intptr_t CallCount() const;
 
-  // If this polymophic call site was created to cover the remaining cids after
+  // If this polymorphic call site was created to cover the remaining cids after
   // inlining then we need to keep track of the total number of calls including
   // the ones that we inlined. This is different from the CallCount above:  Eg
   // if there were 100 calls originally, distributed across three class-ids in
@@ -6658,7 +6658,7 @@ class RecordCoverageInstr : public TemplateInstruction<0, NoThrow> {
   DISALLOW_COPY_AND_ASSIGN(RecordCoverageInstr);
 };
 
-// Note overrideable, built-in: value ? false : true.
+// Note overridable, built-in: value ? false : true.
 class BooleanNegateInstr : public TemplateDefinition<1, NoThrow> {
  public:
   explicit BooleanNegateInstr(Value* value) { SetInputAt(0, value); }
@@ -10345,7 +10345,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, Pure> {
 // All SIMD intrinsics and recognized methods are represented via instances
 // of SimdOpInstr, a particular type of SimdOp is selected by SimdOpInstr::Kind.
 //
-// Defines below are used to contruct SIMD_OP_LIST - a list of all SIMD
+// Defines below are used to construct SIMD_OP_LIST - a list of all SIMD
 // operations. SIMD_OP_LIST contains information such as arity, input types and
 // output type for each SIMD op and is used to derive things like input
 // and output representations, type of return value, etc.

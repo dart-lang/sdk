@@ -118,7 +118,6 @@ void applyToAnalysisOptions(AnalysisOptionsImpl options, YamlMap optionMap) {
 /// `analyzer` analysis options constants.
 class AnalyzerOptions {
   static const String analyzer = 'analyzer';
-  static const String enablePreviewDart2 = 'enablePreviewDart2';
 
   static const String cannotIgnore = 'cannot-ignore';
   static const String codeStyle = 'code-style';
@@ -505,11 +504,7 @@ class LanguageOptionValidator extends OptionsValidator {
           bool validKey = false;
           if (k is YamlScalar) {
             key = k.value?.toString();
-            if (AnalyzerOptions.enablePreviewDart2 == key) {
-              reporter.reportErrorForSpan(
-                  AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED,
-                  k.span);
-            } else if (!AnalyzerOptions.languageOptions.contains(key)) {
+            if (!AnalyzerOptions.languageOptions.contains(key)) {
               _builder.reportError(reporter, AnalyzerOptions.language, k);
             } else {
               // If we have a valid key, go on and check the value.

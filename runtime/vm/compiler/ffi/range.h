@@ -52,7 +52,7 @@ class Range {
     return Contains(other.start_) && Contains(other.end_inclusive());
   }
 
-  // Returns true iff [this] is completey after [other].
+  // Returns true iff [this] is completely after [other].
   bool After(const Range& other) const {
     return other.end_exclusive_ <= start_;
   }

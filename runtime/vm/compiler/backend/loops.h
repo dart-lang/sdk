@@ -72,7 +72,7 @@ class InductionVar : public ZoneAllocated {
     }
   }
 
-  // Returns true if the other induction is structually equivalent.
+  // Returns true if the other induction is structurally equivalent.
   bool IsEqual(const InductionVar* other) const {
     ASSERT(other != nullptr);
     if (kind_ == other->kind_) {
@@ -288,7 +288,7 @@ class LoopInfo : public ZoneAllocated {
   // Header of loop.
   BlockEntryInstr* header_;
 
-  // Compact represention of every block in the loop,
+  // Compact representation of every block in the loop,
   // indexed by its "preorder_number".
   BitVector* blocks_;
 

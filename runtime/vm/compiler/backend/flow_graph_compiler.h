@@ -570,7 +570,7 @@ class FlowGraphCompiler : public ValueObject {
     return used_static_fields_;
   }
 
-  // Constructor is lighweight, major initialization work should occur here.
+  // Constructor is lightweight, major initialization work should occur here.
   // This makes it easier to measure time spent in the compiler.
   void InitCompiler();
 

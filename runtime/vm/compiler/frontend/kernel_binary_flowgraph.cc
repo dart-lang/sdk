@@ -4632,7 +4632,7 @@ Fragment StreamingFlowGraphBuilder::BuildAssertStatement(
 
 Fragment StreamingFlowGraphBuilder::BuildLabeledStatement(
     TokenPosition* position) {
-  // There can be serveral cases:
+  // There can be several cases:
   //
   //   * the body contains a break
   //   * the body doesn't contain a break

@@ -913,7 +913,7 @@ static bool CanPotentiallyBeSmi(const AbstractType& type, bool recurse) {
     return !recurse || CanPotentiallyBeSmi(AbstractType::Handle(param.bound()),
                                            /*recurse=*/false);
   } else if (type.HasTypeClass()) {
-    // If this is an unstantiated type then it can only potentially be a super
+    // If this is an uninstantiated type then it can only potentially be a super
     // type of a Smi if it is either FutureOr<...> or Comparable<...>.
     // In which case we need to look at the type argument to determine whether
     // this location can contain a smi.
@@ -1016,7 +1016,7 @@ CompileType* Value::Type() {
 
 void Value::SetReachingType(CompileType* type) {
   // If [type] is owned but not by the definition which flows into this use
-  // then we need to disconect the type from original owner by cloning it.
+  // then we need to disconnect the type from original owner by cloning it.
   // This is done to prevent situations when [type] is updated by its owner
   // but [owner] is no longer connected to this use through def-use chain
   // and as a result type propagator does not recompute type of the current

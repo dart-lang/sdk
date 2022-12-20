@@ -61,7 +61,7 @@ class ScopeBuilder {
 
   virtual void ReportUnexpectedTag(const char* variant, Tag tag);
 
-  // This enum controls which parameters would be marked as requring type
+  // This enum controls which parameters would be marked as requiring type
   // check on the callee side.
   enum ParameterTypeCheckMode {
     // All parameters will be checked.
