@@ -49,7 +49,7 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
-static constexpr dart::compiler::target::word Record_elements_start_offset = 12;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 8;
 static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 20;
@@ -76,7 +76,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    16383;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    16383;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -229,37 +238,38 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     192;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 148;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 492;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     212;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     132;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 524;
+    ObjectStore_suspend_state_await_offset = 532;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 528;
+    ObjectStore_suspend_state_await_with_type_check_offset = 536;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 560;
+    ObjectStore_suspend_state_handle_exception_offset = 568;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 520;
+    ObjectStore_suspend_state_init_async_offset = 528;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 540;
+    ObjectStore_suspend_state_init_async_star_offset = 548;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 552;
+    ObjectStore_suspend_state_init_sync_star_offset = 560;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 532;
+    ObjectStore_suspend_state_return_async_offset = 540;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 536;
+    ObjectStore_suspend_state_return_async_not_future_offset = 544;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 548;
+    ObjectStore_suspend_state_return_async_star_offset = 556;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 556;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 564;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 544;
+    ObjectStore_suspend_state_yield_async_star_offset = 552;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 4;
-static constexpr dart::compiler::target::word Record_field_names_offset = 8;
+static constexpr dart::compiler::target::word Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -712,7 +722,7 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
-static constexpr dart::compiler::target::word Record_elements_start_offset = 24;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 16;
 static constexpr dart::compiler::target::word Record_element_size = 8;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 40;
@@ -741,8 +751,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
-static constexpr dart::compiler::target::word Record_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    70368744177663;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    70368744177663;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -896,38 +914,39 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     384;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 296;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 984;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 1048;
+    ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 1120;
+    ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 1040;
+    ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 1080;
+    ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 1064;
+    ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 1096;
+    ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word Record_field_names_offset = 16;
+static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -1387,7 +1406,7 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
-static constexpr dart::compiler::target::word Record_elements_start_offset = 12;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 8;
 static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 20;
@@ -1414,7 +1433,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    16383;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    16383;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -1567,37 +1595,38 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     192;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 148;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 492;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     212;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     132;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 524;
+    ObjectStore_suspend_state_await_offset = 532;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 528;
+    ObjectStore_suspend_state_await_with_type_check_offset = 536;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 560;
+    ObjectStore_suspend_state_handle_exception_offset = 568;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 520;
+    ObjectStore_suspend_state_init_async_offset = 528;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 540;
+    ObjectStore_suspend_state_init_async_star_offset = 548;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 552;
+    ObjectStore_suspend_state_init_sync_star_offset = 560;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 532;
+    ObjectStore_suspend_state_return_async_offset = 540;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 536;
+    ObjectStore_suspend_state_return_async_not_future_offset = 544;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 548;
+    ObjectStore_suspend_state_return_async_star_offset = 556;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 556;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 564;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 544;
+    ObjectStore_suspend_state_yield_async_star_offset = 552;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 4;
-static constexpr dart::compiler::target::word Record_field_names_offset = 8;
+static constexpr dart::compiler::target::word Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -2050,7 +2079,7 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
-static constexpr dart::compiler::target::word Record_elements_start_offset = 24;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 16;
 static constexpr dart::compiler::target::word Record_element_size = 8;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 40;
@@ -2079,8 +2108,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
-static constexpr dart::compiler::target::word Record_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    70368744177663;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    70368744177663;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -2234,38 +2271,39 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     384;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 296;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 984;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 1048;
+    ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 1120;
+    ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 1040;
+    ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 1080;
+    ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 1064;
+    ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 1096;
+    ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word Record_field_names_offset = 16;
+static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -2753,7 +2791,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    16383;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    16383;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -2906,38 +2953,39 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     384;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 296;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 984;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 1048;
+    ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 1120;
+    ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 1040;
+    ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 1080;
+    ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 1064;
+    ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 1096;
+    ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word Record_field_names_offset = 12;
+static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -3425,7 +3473,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    16383;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    16383;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -3578,38 +3635,39 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     384;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 296;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 984;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 1048;
+    ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 1120;
+    ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 1040;
+    ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 1080;
+    ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 1064;
+    ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 1096;
+    ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word Record_field_names_offset = 12;
+static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -4071,7 +4129,7 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
-static constexpr dart::compiler::target::word Record_elements_start_offset = 12;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 8;
 static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 20;
@@ -4098,7 +4156,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    16383;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    16383;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -4251,37 +4318,38 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     192;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 148;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 492;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     212;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     132;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 524;
+    ObjectStore_suspend_state_await_offset = 532;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 528;
+    ObjectStore_suspend_state_await_with_type_check_offset = 536;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 560;
+    ObjectStore_suspend_state_handle_exception_offset = 568;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 520;
+    ObjectStore_suspend_state_init_async_offset = 528;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 540;
+    ObjectStore_suspend_state_init_async_star_offset = 548;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 552;
+    ObjectStore_suspend_state_init_sync_star_offset = 560;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 532;
+    ObjectStore_suspend_state_return_async_offset = 540;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 536;
+    ObjectStore_suspend_state_return_async_not_future_offset = 544;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 548;
+    ObjectStore_suspend_state_return_async_star_offset = 556;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 556;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 564;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 544;
+    ObjectStore_suspend_state_yield_async_star_offset = 552;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 4;
-static constexpr dart::compiler::target::word Record_field_names_offset = 8;
+static constexpr dart::compiler::target::word Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -4736,7 +4804,7 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
-static constexpr dart::compiler::target::word Record_elements_start_offset = 24;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 16;
 static constexpr dart::compiler::target::word Record_element_size = 8;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 40;
@@ -4765,8 +4833,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
-static constexpr dart::compiler::target::word Record_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    70368744177663;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    70368744177663;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -4920,38 +4996,39 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     384;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 296;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 984;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 1048;
+    ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 1120;
+    ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 1040;
+    ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 1080;
+    ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 1064;
+    ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 1096;
+    ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word Record_field_names_offset = 16;
+static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -5411,7 +5488,7 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
-static constexpr dart::compiler::target::word Record_elements_start_offset = 12;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 8;
 static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 20;
@@ -5438,7 +5515,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    16383;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    16383;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -5586,37 +5672,38 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     192;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 148;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 492;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     212;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     132;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 524;
+    ObjectStore_suspend_state_await_offset = 532;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 528;
+    ObjectStore_suspend_state_await_with_type_check_offset = 536;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 560;
+    ObjectStore_suspend_state_handle_exception_offset = 568;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 520;
+    ObjectStore_suspend_state_init_async_offset = 528;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 540;
+    ObjectStore_suspend_state_init_async_star_offset = 548;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 552;
+    ObjectStore_suspend_state_init_sync_star_offset = 560;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 532;
+    ObjectStore_suspend_state_return_async_offset = 540;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 536;
+    ObjectStore_suspend_state_return_async_not_future_offset = 544;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 548;
+    ObjectStore_suspend_state_return_async_star_offset = 556;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 556;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 564;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 544;
+    ObjectStore_suspend_state_yield_async_star_offset = 552;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 4;
-static constexpr dart::compiler::target::word Record_field_names_offset = 8;
+static constexpr dart::compiler::target::word Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -6066,7 +6153,7 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
-static constexpr dart::compiler::target::word Record_elements_start_offset = 24;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 16;
 static constexpr dart::compiler::target::word Record_element_size = 8;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 40;
@@ -6095,8 +6182,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
-static constexpr dart::compiler::target::word Record_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    70368744177663;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    70368744177663;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -6245,38 +6340,39 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     384;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 296;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 984;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 1048;
+    ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 1120;
+    ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 1040;
+    ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 1080;
+    ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 1064;
+    ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 1096;
+    ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word Record_field_names_offset = 16;
+static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -6733,7 +6829,7 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
-static constexpr dart::compiler::target::word Record_elements_start_offset = 12;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 8;
 static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 20;
@@ -6760,7 +6856,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    16383;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    16383;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -6908,37 +7013,38 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     192;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 148;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 492;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     212;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     132;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 524;
+    ObjectStore_suspend_state_await_offset = 532;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 528;
+    ObjectStore_suspend_state_await_with_type_check_offset = 536;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 560;
+    ObjectStore_suspend_state_handle_exception_offset = 568;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 520;
+    ObjectStore_suspend_state_init_async_offset = 528;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 540;
+    ObjectStore_suspend_state_init_async_star_offset = 548;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 552;
+    ObjectStore_suspend_state_init_sync_star_offset = 560;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 532;
+    ObjectStore_suspend_state_return_async_offset = 540;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 536;
+    ObjectStore_suspend_state_return_async_not_future_offset = 544;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 548;
+    ObjectStore_suspend_state_return_async_star_offset = 556;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 556;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 564;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 544;
+    ObjectStore_suspend_state_yield_async_star_offset = 552;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 4;
-static constexpr dart::compiler::target::word Record_field_names_offset = 8;
+static constexpr dart::compiler::target::word Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -7388,7 +7494,7 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
-static constexpr dart::compiler::target::word Record_elements_start_offset = 24;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 16;
 static constexpr dart::compiler::target::word Record_element_size = 8;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 40;
@@ -7417,8 +7523,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
-static constexpr dart::compiler::target::word Record_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    70368744177663;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    70368744177663;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -7567,38 +7681,39 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     384;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 296;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 984;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 1048;
+    ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 1120;
+    ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 1040;
+    ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 1080;
+    ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 1064;
+    ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 1096;
+    ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word Record_field_names_offset = 16;
+static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -8083,7 +8198,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    16383;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    16383;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -8231,38 +8355,39 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     384;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 296;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 984;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 1048;
+    ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 1120;
+    ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 1040;
+    ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 1080;
+    ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 1064;
+    ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 1096;
+    ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word Record_field_names_offset = 12;
+static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -8747,7 +8872,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    16383;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    16383;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -8895,38 +9029,39 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     384;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 296;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 984;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 1048;
+    ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 1120;
+    ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 1040;
+    ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 1080;
+    ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 1064;
+    ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 1096;
+    ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word Record_field_names_offset = 12;
+static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -9385,7 +9520,7 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 4;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
-static constexpr dart::compiler::target::word Record_elements_start_offset = 12;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 8;
 static constexpr dart::compiler::target::word Record_element_size = 4;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 20;
@@ -9412,7 +9547,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word Record_kMaxElements = 268435455;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    16383;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    16383;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements = 536870911;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 5;
@@ -9560,37 +9704,38 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     192;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 148;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 492;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     212;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     132;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 524;
+    ObjectStore_suspend_state_await_offset = 532;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 528;
+    ObjectStore_suspend_state_await_with_type_check_offset = 536;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 560;
+    ObjectStore_suspend_state_handle_exception_offset = 568;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 520;
+    ObjectStore_suspend_state_init_async_offset = 528;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 540;
+    ObjectStore_suspend_state_init_async_star_offset = 548;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 552;
+    ObjectStore_suspend_state_init_sync_star_offset = 560;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 532;
+    ObjectStore_suspend_state_return_async_offset = 540;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 536;
+    ObjectStore_suspend_state_return_async_not_future_offset = 544;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 548;
+    ObjectStore_suspend_state_return_async_star_offset = 556;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 556;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 564;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 544;
+    ObjectStore_suspend_state_yield_async_star_offset = 552;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 12;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 4;
-static constexpr dart::compiler::target::word Record_field_names_offset = 8;
+static constexpr dart::compiler::target::word Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -10042,7 +10187,7 @@ static constexpr dart::compiler::target::word ObjectPool_element_size = 8;
 static constexpr dart::compiler::target::word
     OneByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word OneByteString_element_size = 1;
-static constexpr dart::compiler::target::word Record_elements_start_offset = 24;
+static constexpr dart::compiler::target::word Record_elements_start_offset = 16;
 static constexpr dart::compiler::target::word Record_element_size = 8;
 static constexpr dart::compiler::target::word
     TypeArguments_elements_start_offset = 40;
@@ -10071,8 +10216,16 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word Page_kBytesPerCardLog2 = 10;
-static constexpr dart::compiler::target::word Record_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word RecordShape_kFieldNamesIndexMask =
+    70368744177663;
+static constexpr dart::compiler::target::word
+    RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word RecordShape_kMaxFieldNamesIndex =
+    70368744177663;
+static constexpr dart::compiler::target::word RecordShape_kMaxNumFields = 65535;
+static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -10221,38 +10374,39 @@ static constexpr dart::compiler::target::word NativeArguments_thread_offset = 0;
 static constexpr dart::compiler::target::word ObjectStore_double_type_offset =
     384;
 static constexpr dart::compiler::target::word ObjectStore_int_type_offset = 296;
+static constexpr dart::compiler::target::word
+    ObjectStore_record_field_names_offset = 984;
 static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
     424;
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_offset = 1048;
+    ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_handle_exception_offset = 1120;
+    ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_offset = 1040;
+    ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_async_star_offset = 1080;
+    ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_offset = 1064;
+    ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_return_async_star_offset = 1096;
+    ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word OneByteString_data_offset = 16;
 static constexpr dart::compiler::target::word PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word Pointer_type_arguments_offset =
     16;
-static constexpr dart::compiler::target::word Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word Record_field_names_offset = 16;
+static constexpr dart::compiler::target::word Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -10716,7 +10870,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
 static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
-    12;
+    8;
 static constexpr dart::compiler::target::word AOT_Record_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 20;
@@ -10747,8 +10901,17 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
-    268435455;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexMask = 16383;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kMaxFieldNamesIndex = 16383;
+static constexpr dart::compiler::target::word AOT_RecordShape_kMaxNumFields =
+    65535;
+static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -10919,38 +11082,39 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
     148;
 static constexpr dart::compiler::target::word
+    AOT_ObjectStore_record_field_names_offset = 492;
+static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 212;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     132;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_offset = 524;
+    AOT_ObjectStore_suspend_state_await_offset = 532;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 528;
+    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 536;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_handle_exception_offset = 560;
+    AOT_ObjectStore_suspend_state_handle_exception_offset = 568;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_offset = 520;
+    AOT_ObjectStore_suspend_state_init_async_offset = 528;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_star_offset = 540;
+    AOT_ObjectStore_suspend_state_init_async_star_offset = 548;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_sync_star_offset = 552;
+    AOT_ObjectStore_suspend_state_init_sync_star_offset = 560;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_offset = 532;
+    AOT_ObjectStore_suspend_state_return_async_offset = 540;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 536;
+    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 544;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_star_offset = 548;
+    AOT_ObjectStore_suspend_state_return_async_star_offset = 556;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 556;
+    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 564;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_yield_async_star_offset = 544;
+    AOT_ObjectStore_suspend_state_yield_async_star_offset = 552;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     12;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 4;
-static constexpr dart::compiler::target::word AOT_Record_field_names_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -11455,7 +11619,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
 static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
-    24;
+    16;
 static constexpr dart::compiler::target::word AOT_Record_element_size = 8;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 40;
@@ -11486,8 +11650,17 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
-static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexMask = 70368744177663;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kMaxFieldNamesIndex = 70368744177663;
+static constexpr dart::compiler::target::word AOT_RecordShape_kMaxNumFields =
+    65535;
+static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -11659,39 +11832,39 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
     296;
 static constexpr dart::compiler::target::word
+    AOT_ObjectStore_record_field_names_offset = 984;
+static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_offset = 1048;
+    AOT_ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_handle_exception_offset = 1120;
+    AOT_ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_offset = 1040;
+    AOT_ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_star_offset = 1080;
+    AOT_ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_offset = 1064;
+    AOT_ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_star_offset = 1096;
+    AOT_ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
-static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
-    16;
+static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -12203,7 +12376,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
 static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
-    24;
+    16;
 static constexpr dart::compiler::target::word AOT_Record_element_size = 8;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 40;
@@ -12234,8 +12407,17 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
-static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexMask = 70368744177663;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kMaxFieldNamesIndex = 70368744177663;
+static constexpr dart::compiler::target::word AOT_RecordShape_kMaxNumFields =
+    65535;
+static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -12407,39 +12589,39 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
     296;
 static constexpr dart::compiler::target::word
+    AOT_ObjectStore_record_field_names_offset = 984;
+static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_offset = 1048;
+    AOT_ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_handle_exception_offset = 1120;
+    AOT_ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_offset = 1040;
+    AOT_ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_star_offset = 1080;
+    AOT_ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_offset = 1064;
+    AOT_ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_star_offset = 1096;
+    AOT_ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
-static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
-    16;
+static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -12980,8 +13162,17 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
-    268435455;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexMask = 16383;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kMaxFieldNamesIndex = 16383;
+static constexpr dart::compiler::target::word AOT_RecordShape_kMaxNumFields =
+    65535;
+static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -13153,39 +13344,39 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
     296;
 static constexpr dart::compiler::target::word
+    AOT_ObjectStore_record_field_names_offset = 984;
+static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_offset = 1048;
+    AOT_ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_handle_exception_offset = 1120;
+    AOT_ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_offset = 1040;
+    AOT_ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_star_offset = 1080;
+    AOT_ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_offset = 1064;
+    AOT_ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_star_offset = 1096;
+    AOT_ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
-static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
-    12;
+static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -13726,8 +13917,17 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
-    268435455;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexMask = 16383;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kMaxFieldNamesIndex = 16383;
+static constexpr dart::compiler::target::word AOT_RecordShape_kMaxNumFields =
+    65535;
+static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -13899,39 +14099,39 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
     296;
 static constexpr dart::compiler::target::word
+    AOT_ObjectStore_record_field_names_offset = 984;
+static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_offset = 1048;
+    AOT_ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_handle_exception_offset = 1120;
+    AOT_ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_offset = 1040;
+    AOT_ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_star_offset = 1080;
+    AOT_ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_offset = 1064;
+    AOT_ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_star_offset = 1096;
+    AOT_ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
-static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
-    12;
+static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -14442,7 +14642,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
 static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
-    12;
+    8;
 static constexpr dart::compiler::target::word AOT_Record_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 20;
@@ -14473,8 +14673,17 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
-    268435455;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexMask = 16383;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kMaxFieldNamesIndex = 16383;
+static constexpr dart::compiler::target::word AOT_RecordShape_kMaxNumFields =
+    65535;
+static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -14645,38 +14854,39 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
     148;
 static constexpr dart::compiler::target::word
+    AOT_ObjectStore_record_field_names_offset = 492;
+static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 212;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     132;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_offset = 524;
+    AOT_ObjectStore_suspend_state_await_offset = 532;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 528;
+    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 536;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_handle_exception_offset = 560;
+    AOT_ObjectStore_suspend_state_handle_exception_offset = 568;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_offset = 520;
+    AOT_ObjectStore_suspend_state_init_async_offset = 528;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_star_offset = 540;
+    AOT_ObjectStore_suspend_state_init_async_star_offset = 548;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_sync_star_offset = 552;
+    AOT_ObjectStore_suspend_state_init_sync_star_offset = 560;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_offset = 532;
+    AOT_ObjectStore_suspend_state_return_async_offset = 540;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 536;
+    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 544;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_star_offset = 548;
+    AOT_ObjectStore_suspend_state_return_async_star_offset = 556;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 556;
+    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 564;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_yield_async_star_offset = 544;
+    AOT_ObjectStore_suspend_state_yield_async_star_offset = 552;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     12;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 4;
-static constexpr dart::compiler::target::word AOT_Record_field_names_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -15183,7 +15393,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
 static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
-    24;
+    16;
 static constexpr dart::compiler::target::word AOT_Record_element_size = 8;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 40;
@@ -15214,8 +15424,17 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
-static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexMask = 70368744177663;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kMaxFieldNamesIndex = 70368744177663;
+static constexpr dart::compiler::target::word AOT_RecordShape_kMaxNumFields =
+    65535;
+static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -15387,39 +15606,39 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
     296;
 static constexpr dart::compiler::target::word
+    AOT_ObjectStore_record_field_names_offset = 984;
+static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_offset = 1048;
+    AOT_ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_handle_exception_offset = 1120;
+    AOT_ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_offset = 1040;
+    AOT_ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_star_offset = 1080;
+    AOT_ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_offset = 1064;
+    AOT_ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_star_offset = 1096;
+    AOT_ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
-static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
-    16;
+static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -15928,7 +16147,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
 static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
-    12;
+    8;
 static constexpr dart::compiler::target::word AOT_Record_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 20;
@@ -15959,8 +16178,17 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
-    268435455;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexMask = 16383;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kMaxFieldNamesIndex = 16383;
+static constexpr dart::compiler::target::word AOT_RecordShape_kMaxNumFields =
+    65535;
+static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -16125,38 +16353,39 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
     148;
 static constexpr dart::compiler::target::word
+    AOT_ObjectStore_record_field_names_offset = 492;
+static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 212;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     132;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_offset = 524;
+    AOT_ObjectStore_suspend_state_await_offset = 532;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 528;
+    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 536;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_handle_exception_offset = 560;
+    AOT_ObjectStore_suspend_state_handle_exception_offset = 568;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_offset = 520;
+    AOT_ObjectStore_suspend_state_init_async_offset = 528;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_star_offset = 540;
+    AOT_ObjectStore_suspend_state_init_async_star_offset = 548;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_sync_star_offset = 552;
+    AOT_ObjectStore_suspend_state_init_sync_star_offset = 560;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_offset = 532;
+    AOT_ObjectStore_suspend_state_return_async_offset = 540;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 536;
+    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 544;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_star_offset = 548;
+    AOT_ObjectStore_suspend_state_return_async_star_offset = 556;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 556;
+    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 564;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_yield_async_star_offset = 544;
+    AOT_ObjectStore_suspend_state_yield_async_star_offset = 552;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     12;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 4;
-static constexpr dart::compiler::target::word AOT_Record_field_names_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -16658,7 +16887,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
 static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
-    24;
+    16;
 static constexpr dart::compiler::target::word AOT_Record_element_size = 8;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 40;
@@ -16689,8 +16918,17 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
-static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexMask = 70368744177663;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kMaxFieldNamesIndex = 70368744177663;
+static constexpr dart::compiler::target::word AOT_RecordShape_kMaxNumFields =
+    65535;
+static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -16856,39 +17094,39 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
     296;
 static constexpr dart::compiler::target::word
+    AOT_ObjectStore_record_field_names_offset = 984;
+static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_offset = 1048;
+    AOT_ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_handle_exception_offset = 1120;
+    AOT_ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_offset = 1040;
+    AOT_ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_star_offset = 1080;
+    AOT_ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_offset = 1064;
+    AOT_ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_star_offset = 1096;
+    AOT_ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
-static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
-    16;
+static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -17397,7 +17635,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
 static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
-    24;
+    16;
 static constexpr dart::compiler::target::word AOT_Record_element_size = 8;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 40;
@@ -17428,8 +17666,17 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
-static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexMask = 70368744177663;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kMaxFieldNamesIndex = 70368744177663;
+static constexpr dart::compiler::target::word AOT_RecordShape_kMaxNumFields =
+    65535;
+static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -17595,39 +17842,39 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
     296;
 static constexpr dart::compiler::target::word
+    AOT_ObjectStore_record_field_names_offset = 984;
+static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_offset = 1048;
+    AOT_ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_handle_exception_offset = 1120;
+    AOT_ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_offset = 1040;
+    AOT_ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_star_offset = 1080;
+    AOT_ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_offset = 1064;
+    AOT_ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_star_offset = 1096;
+    AOT_ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
-static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
-    16;
+static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -18165,8 +18412,17 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
-    268435455;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexMask = 16383;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kMaxFieldNamesIndex = 16383;
+static constexpr dart::compiler::target::word AOT_RecordShape_kMaxNumFields =
+    65535;
+static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -18332,39 +18588,39 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
     296;
 static constexpr dart::compiler::target::word
+    AOT_ObjectStore_record_field_names_offset = 984;
+static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_offset = 1048;
+    AOT_ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_handle_exception_offset = 1120;
+    AOT_ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_offset = 1040;
+    AOT_ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_star_offset = 1080;
+    AOT_ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_offset = 1064;
+    AOT_ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_star_offset = 1096;
+    AOT_ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
-static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
-    12;
+static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -18902,8 +19158,17 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
-    268435455;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexMask = 16383;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kMaxFieldNamesIndex = 16383;
+static constexpr dart::compiler::target::word AOT_RecordShape_kMaxNumFields =
+    65535;
+static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -19069,39 +19334,39 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
     296;
 static constexpr dart::compiler::target::word
+    AOT_ObjectStore_record_field_names_offset = 984;
+static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_offset = 1048;
+    AOT_ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_handle_exception_offset = 1120;
+    AOT_ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_offset = 1040;
+    AOT_ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_star_offset = 1080;
+    AOT_ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_offset = 1064;
+    AOT_ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_star_offset = 1096;
+    AOT_ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
-static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
-    12;
+static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word
@@ -19609,7 +19874,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
 static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
-    12;
+    8;
 static constexpr dart::compiler::target::word AOT_Record_element_size = 4;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 20;
@@ -19640,8 +19905,17 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 9;
-static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
-    268435455;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexMask = 16383;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kMaxFieldNamesIndex = 16383;
+static constexpr dart::compiler::target::word AOT_RecordShape_kMaxNumFields =
+    65535;
+static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     536870911;
 static constexpr dart::compiler::target::word
@@ -19806,38 +20080,39 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
     148;
 static constexpr dart::compiler::target::word
+    AOT_ObjectStore_record_field_names_offset = 492;
+static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 212;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     132;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_offset = 524;
+    AOT_ObjectStore_suspend_state_await_offset = 532;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 528;
+    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 536;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_handle_exception_offset = 560;
+    AOT_ObjectStore_suspend_state_handle_exception_offset = 568;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_offset = 520;
+    AOT_ObjectStore_suspend_state_init_async_offset = 528;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_star_offset = 540;
+    AOT_ObjectStore_suspend_state_init_async_star_offset = 548;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_sync_star_offset = 552;
+    AOT_ObjectStore_suspend_state_init_sync_star_offset = 560;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_offset = 532;
+    AOT_ObjectStore_suspend_state_return_async_offset = 540;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 536;
+    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 544;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_star_offset = 548;
+    AOT_ObjectStore_suspend_state_return_async_star_offset = 556;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 556;
+    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 564;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_yield_async_star_offset = 544;
+    AOT_ObjectStore_suspend_state_yield_async_star_offset = 552;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     12;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 8;
-static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 4;
-static constexpr dart::compiler::target::word AOT_Record_field_names_offset = 8;
+static constexpr dart::compiler::target::word AOT_Record_shape_offset = 4;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 8;
 static constexpr dart::compiler::target::word
@@ -20341,7 +20616,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_OneByteString_element_size =
     1;
 static constexpr dart::compiler::target::word AOT_Record_elements_start_offset =
-    24;
+    16;
 static constexpr dart::compiler::target::word AOT_Record_element_size = 8;
 static constexpr dart::compiler::target::word
     AOT_TypeArguments_elements_start_offset = 40;
@@ -20372,8 +20647,17 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word
     AOT_NativeEntry_kNumCallWrapperArguments = 2;
 static constexpr dart::compiler::target::word AOT_Page_kBytesPerCardLog2 = 10;
-static constexpr dart::compiler::target::word AOT_Record_kMaxElements =
-    576460752303423487;
+static constexpr dart::compiler::target::word AOT_Record_kMaxElements = 65535;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexMask = 70368744177663;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kFieldNamesIndexShift = 16;
+static constexpr dart::compiler::target::word
+    AOT_RecordShape_kMaxFieldNamesIndex = 70368744177663;
+static constexpr dart::compiler::target::word AOT_RecordShape_kMaxNumFields =
+    65535;
+static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
+    65535;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     2305843009213693951;
 static constexpr dart::compiler::target::word
@@ -20539,39 +20823,39 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_int_type_offset =
     296;
 static constexpr dart::compiler::target::word
+    AOT_ObjectStore_record_field_names_offset = 984;
+static constexpr dart::compiler::target::word
     AOT_ObjectStore_string_type_offset = 424;
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     264;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_offset = 1048;
+    AOT_ObjectStore_suspend_state_await_offset = 1064;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1056;
+    AOT_ObjectStore_suspend_state_await_with_type_check_offset = 1072;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_handle_exception_offset = 1120;
+    AOT_ObjectStore_suspend_state_handle_exception_offset = 1136;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_offset = 1040;
+    AOT_ObjectStore_suspend_state_init_async_offset = 1056;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_async_star_offset = 1080;
+    AOT_ObjectStore_suspend_state_init_async_star_offset = 1096;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1104;
+    AOT_ObjectStore_suspend_state_init_sync_star_offset = 1120;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_offset = 1064;
+    AOT_ObjectStore_suspend_state_return_async_offset = 1080;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1072;
+    AOT_ObjectStore_suspend_state_return_async_not_future_offset = 1088;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_return_async_star_offset = 1096;
+    AOT_ObjectStore_suspend_state_return_async_star_offset = 1112;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1112;
+    AOT_ObjectStore_suspend_state_suspend_sync_star_at_start_offset = 1128;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1088;
+    AOT_ObjectStore_suspend_state_yield_async_star_offset = 1104;
 static constexpr dart::compiler::target::word AOT_OneByteString_data_offset =
     16;
 static constexpr dart::compiler::target::word AOT_PointerBase_data_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_Pointer_type_arguments_offset = 16;
-static constexpr dart::compiler::target::word AOT_Record_num_fields_offset = 8;
-static constexpr dart::compiler::target::word AOT_Record_field_names_offset =
-    16;
+static constexpr dart::compiler::target::word AOT_Record_shape_offset = 8;
 static constexpr dart::compiler::target::word
     AOT_SingleTargetCache_entry_point_offset = 16;
 static constexpr dart::compiler::target::word

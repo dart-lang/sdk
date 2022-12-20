@@ -395,16 +395,6 @@ bool HierarchyInfo::CanUseRecordSubtypeRangeCheckFor(const AbstractType& type) {
     return false;
   }
   const RecordType& rec = RecordType::Cast(type);
-  // Type testing stubs have no access to their object pools
-  // so they will not be able to load field names from object pool
-  // in order to check the shape of a record instance.
-  // See TypeTestingStubGenerator::BuildOptimizedRecordSubtypeRangeCheck.
-  if (rec.NumNamedFields() != 0) {
-    return false;
-  } else {
-    ASSERT(rec.field_names() == Object::empty_array().ptr());
-    ASSERT(compiler::target::CanLoadFromThread(Object::empty_array()));
-  }
   Zone* zone = thread()->zone();
   auto& field_type = AbstractType::Handle(zone);
   for (intptr_t i = 0, n = rec.NumFields(); i < n; ++i) {
@@ -2708,16 +2698,9 @@ bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
       }
       return false;
 
-    case Slot::Kind::kRecord_num_fields:
+    case Slot::Kind::kRecord_shape:
       if (instance.IsRecord()) {
-        *result = Smi::New(Record::Cast(instance).num_fields());
-        return true;
-      }
-      return false;
-
-    case Slot::Kind::kRecord_field_names:
-      if (instance.IsRecord()) {
-        *result = Record::Cast(instance).field_names();
+        *result = Record::Cast(instance).shape().AsSmi();
         return true;
       }
       return false;
@@ -2847,37 +2830,17 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
         }
       }
       break;
-    case Slot::Kind::kRecord_num_fields:
+    case Slot::Kind::kRecord_shape:
       ASSERT(!calls_initializer());
       if (auto* alloc_rec = orig_instance->AsAllocateRecord()) {
-        return flow_graph->GetConstant(
-            Smi::Handle(Smi::New(alloc_rec->num_fields())));
+        return flow_graph->GetConstant(Smi::Handle(alloc_rec->shape().AsSmi()));
       } else if (auto* alloc_rec = orig_instance->AsAllocateSmallRecord()) {
-        return flow_graph->GetConstant(
-            Smi::Handle(Smi::New(alloc_rec->num_fields())));
+        return flow_graph->GetConstant(Smi::Handle(alloc_rec->shape().AsSmi()));
       } else {
         const AbstractType* type = instance()->Type()->ToAbstractType();
         if (type->IsRecordType()) {
           return flow_graph->GetConstant(
-              Smi::Handle(Smi::New(RecordType::Cast(*type).NumFields())));
-        }
-      }
-      break;
-    case Slot::Kind::kRecord_field_names:
-      ASSERT(!calls_initializer());
-      if (auto* alloc_rec = orig_instance->AsAllocateRecord()) {
-        return alloc_rec->field_names()->definition();
-      } else if (auto* alloc_rec = orig_instance->AsAllocateSmallRecord()) {
-        if (alloc_rec->has_named_fields()) {
-          return alloc_rec->field_names()->definition();
-        } else {
-          return flow_graph->GetConstant(Object::empty_array());
-        }
-      } else {
-        const AbstractType* type = instance()->Type()->ToAbstractType();
-        if (type->IsRecordType()) {
-          return flow_graph->GetConstant(
-              Array::Handle(RecordType::Cast(*type).field_names()));
+              Smi::Handle(RecordType::Cast(*type).shape().AsSmi()));
         }
       }
       break;
@@ -7765,12 +7728,10 @@ void SuspendInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* AllocateRecordInstr::MakeLocationSummary(Zone* zone,
                                                           bool opt) const {
-  const intptr_t kNumInputs = 1;
+  const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0,
-               Location::RegisterLocation(AllocateRecordABI::kFieldNamesReg));
   locs->set_out(0, Location::RegisterLocation(AllocateRecordABI::kResultReg));
   return locs;
 }
@@ -7779,8 +7740,8 @@ void AllocateRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::ZoneHandle(
       compiler->zone(),
       compiler->isolate_group()->object_store()->allocate_record_stub());
-  __ LoadImmediate(AllocateRecordABI::kNumFieldsReg,
-                   Smi::RawValue(num_fields()));
+  __ LoadImmediate(AllocateRecordABI::kShapeReg,
+                   Smi::RawValue(shape().AsInt()));
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                              locs(), deopt_id(), env());
 }
@@ -7792,35 +7753,25 @@ LocationSummary* AllocateSmallRecordInstr::MakeLocationSummary(Zone* zone,
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kCall);
-  if (has_named_fields()) {
+  locs->set_in(0,
+               Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
+  locs->set_in(1,
+               Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
+  if (num_fields() > 2) {
     locs->set_in(
-        0, Location::RegisterLocation(AllocateSmallRecordABI::kFieldNamesReg));
-    locs->set_in(
-        1, Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
-    locs->set_in(
-        2, Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
-    if (num_fields() > 2) {
-      locs->set_in(
-          3, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
-    }
-  } else {
-    locs->set_in(
-        0, Location::RegisterLocation(AllocateSmallRecordABI::kValue0Reg));
-    locs->set_in(
-        1, Location::RegisterLocation(AllocateSmallRecordABI::kValue1Reg));
-    if (num_fields() > 2) {
-      locs->set_in(
-          2, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
-    }
+        2, Location::RegisterLocation(AllocateSmallRecordABI::kValue2Reg));
   }
-  locs->set_out(0, Location::RegisterLocation(AllocateRecordABI::kResultReg));
+  locs->set_out(0,
+                Location::RegisterLocation(AllocateSmallRecordABI::kResultReg));
   return locs;
 }
 
 void AllocateSmallRecordInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto object_store = compiler->isolate_group()->object_store();
   Code& stub = Code::ZoneHandle(compiler->zone());
-  if (has_named_fields()) {
+  if (shape().HasNamedFields()) {
+    __ LoadImmediate(AllocateSmallRecordABI::kShapeReg,
+                     Smi::RawValue(shape().AsInt()));
     switch (num_fields()) {
       case 2:
         stub = object_store->allocate_record2_named_stub();

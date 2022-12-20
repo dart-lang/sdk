@@ -2000,18 +2000,14 @@ void FlowGraph::InsertRecordBoxing(Definition* def) {
   ASSERT(target != nullptr && !target->IsNull());
   const auto& type = AbstractType::Handle(Z, target->result_type());
   ASSERT(type.IsRecordType());
-  const auto& field_names =
-      Array::Handle(Z, RecordType::Cast(type).field_names());
-  Value* field_names_value = (field_names.Length() != 0)
-                                 ? new (Z) Value(GetConstant(field_names))
-                                 : nullptr;
+  const RecordShape shape = RecordType::Cast(type).shape();
   auto* x = new (Z)
       ExtractNthOutputInstr(new (Z) Value(def), 0, kTagged, kDynamicCid);
   auto* y = new (Z)
       ExtractNthOutputInstr(new (Z) Value(def), 1, kTagged, kDynamicCid);
-  auto* alloc = new (Z) AllocateSmallRecordInstr(
-      InstructionSource(), 2, field_names_value, new (Z) Value(x),
-      new (Z) Value(y), nullptr, def->deopt_id());
+  auto* alloc = new (Z)
+      AllocateSmallRecordInstr(InstructionSource(), shape, new (Z) Value(x),
+                               new (Z) Value(y), nullptr, def->deopt_id());
   def->ReplaceUsesWith(alloc);
   // Uses of 'def' in 'x' and 'y' should not be replaced as 'x' and 'y'
   // are not added to the flow graph yet.

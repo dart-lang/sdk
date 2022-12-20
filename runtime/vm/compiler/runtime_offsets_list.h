@@ -84,6 +84,11 @@
   CONSTANT(NativeEntry, kNumCallWrapperArguments)                              \
   CONSTANT(Page, kBytesPerCardLog2)                                            \
   CONSTANT(Record, kMaxElements)                                               \
+  CONSTANT(RecordShape, kFieldNamesIndexMask)                                  \
+  CONSTANT(RecordShape, kFieldNamesIndexShift)                                 \
+  CONSTANT(RecordShape, kMaxFieldNamesIndex)                                   \
+  CONSTANT(RecordShape, kMaxNumFields)                                         \
+  CONSTANT(RecordShape, kNumFieldsMask)                                        \
   CONSTANT(String, kMaxElements)                                               \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstanceCidOrSignature)                          \
@@ -185,6 +190,7 @@
   FIELD(NativeArguments, thread_offset)                                        \
   FIELD(ObjectStore, double_type_offset)                                       \
   FIELD(ObjectStore, int_type_offset)                                          \
+  FIELD(ObjectStore, record_field_names_offset)                                \
   FIELD(ObjectStore, string_type_offset)                                       \
   FIELD(ObjectStore, type_type_offset)                                         \
   FIELD(ObjectStore, suspend_state_await_offset)                               \
@@ -201,8 +207,7 @@
   FIELD(OneByteString, data_offset)                                            \
   FIELD(PointerBase, data_offset)                                              \
   FIELD(Pointer, type_arguments_offset)                                        \
-  FIELD(Record, num_fields_offset)                                             \
-  FIELD(Record, field_names_offset)                                            \
+  FIELD(Record, shape_offset)                                                  \
   FIELD(SingleTargetCache, entry_point_offset)                                 \
   FIELD(SingleTargetCache, lower_limit_offset)                                 \
   FIELD(SingleTargetCache, target_offset)                                      \

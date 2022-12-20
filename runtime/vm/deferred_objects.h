@@ -202,10 +202,11 @@ class DeferredObject {
   enum {
     kClassIndex = 0,
 
-    // Number of context variables for contexts,
-    // number of elements for arrays and typed data objects,
+    // For contexts: number of context variables.
+    // For arrays and typed data objects: number of elements.
+    // For records: shape.
     // -1 otherwise.
-    kLengthIndex,
+    kLengthOrShapeIndex,
 
     kFieldsStartIndex
   };
@@ -226,7 +227,7 @@ class DeferredObject {
 
   ObjectPtr GetClass() const { return GetArg(kClassIndex); }
 
-  ObjectPtr GetLength() const { return GetArg(kLengthIndex); }
+  ObjectPtr GetLengthOrShape() const { return GetArg(kLengthOrShapeIndex); }
 
   ObjectPtr GetFieldOffset(intptr_t index) const {
     return GetArg(kFieldsStartIndex + kFieldEntrySize * index + kOffsetIndex);

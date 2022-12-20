@@ -2251,11 +2251,7 @@ class LoadOptimizer : public ValueObject {
                 forward_def = alloc->InputAt(pos)->definition();
               } else {
                 // Fields not provided as an input to the instruction are
-                // initialized to null during allocation (except
-                // Record::num_fields).
-                // Accesses to Record::num_fields should be folded in
-                // LoadFieldInstr::Canonicalize.
-                ASSERT(slot->kind() != Slot::Kind::kRecord_num_fields);
+                // initialized to null during allocation.
                 forward_def = graph_->constant_null();
               }
             }
@@ -3839,7 +3835,7 @@ void AllocationSinking::CreateMaterializationAt(
   }
 
   const Class* cls = nullptr;
-  intptr_t num_elements = -1;
+  intptr_t length_or_shape = -1;
   if (auto instr = alloc->AsAllocateObject()) {
     cls = &(instr->cls());
   } else if (alloc->IsAllocateClosure()) {
@@ -3847,31 +3843,31 @@ void AllocationSinking::CreateMaterializationAt(
         flow_graph_->isolate_group()->object_store()->closure_class());
   } else if (auto instr = alloc->AsAllocateContext()) {
     cls = &Class::ZoneHandle(Object::context_class());
-    num_elements = instr->num_context_variables();
+    length_or_shape = instr->num_context_variables();
   } else if (auto instr = alloc->AsAllocateUninitializedContext()) {
     cls = &Class::ZoneHandle(Object::context_class());
-    num_elements = instr->num_context_variables();
+    length_or_shape = instr->num_context_variables();
   } else if (auto instr = alloc->AsCreateArray()) {
     cls = &Class::ZoneHandle(
         flow_graph_->isolate_group()->object_store()->array_class());
-    num_elements = instr->GetConstantNumElements();
+    length_or_shape = instr->GetConstantNumElements();
   } else if (auto instr = alloc->AsAllocateTypedData()) {
     cls = &Class::ZoneHandle(
         flow_graph_->isolate_group()->class_table()->At(instr->class_id()));
-    num_elements = instr->GetConstantNumElements();
+    length_or_shape = instr->GetConstantNumElements();
   } else if (auto instr = alloc->AsAllocateRecord()) {
     cls = &Class::ZoneHandle(
         flow_graph_->isolate_group()->class_table()->At(kRecordCid));
-    num_elements = instr->num_fields();
+    length_or_shape = instr->shape().AsInt();
   } else if (auto instr = alloc->AsAllocateSmallRecord()) {
     cls = &Class::ZoneHandle(
         flow_graph_->isolate_group()->class_table()->At(kRecordCid));
-    num_elements = instr->num_fields();
+    length_or_shape = instr->shape().AsInt();
   } else {
     UNREACHABLE();
   }
   MaterializeObjectInstr* mat = new (Z) MaterializeObjectInstr(
-      alloc->AsAllocation(), *cls, num_elements, slots, std::move(values));
+      alloc->AsAllocation(), *cls, length_or_shape, slots, std::move(values));
 
   flow_graph_->InsertBefore(exit, mat, nullptr, FlowGraph::kValue);
 

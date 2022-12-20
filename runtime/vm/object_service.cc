@@ -1229,7 +1229,8 @@ void RecordType::PrintJSONImpl(JSONStream* stream, bool ref) const {
     String& name = String::Handle();
     AbstractType& type = AbstractType::Handle();
     const intptr_t num_fields = NumFields();
-    const intptr_t num_positional_fields = NumPositionalFields();
+    const Array& field_names = Array::Handle(GetFieldNames(Thread::Current()));
+    const intptr_t num_positional_fields = num_fields - field_names.Length();
     for (intptr_t index = 0; index < num_fields; ++index) {
       JSONObject jsfield(&jsarr);
       // TODO(derekx): Remove this because BoundField isn't a response type in
@@ -1238,7 +1239,7 @@ void RecordType::PrintJSONImpl(JSONStream* stream, bool ref) const {
       if (index < num_positional_fields) {
         jsfield.AddProperty("name", index);
       } else {
-        name = FieldNameAt(index - num_positional_fields);
+        name ^= field_names.At(index - num_positional_fields);
         jsfield.AddProperty("name", name.ToCString());
       }
       type = FieldTypeAt(index);
@@ -1639,8 +1640,8 @@ void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
     String& name = String::Handle();
     Object& value = Object::Handle();
     const intptr_t num_fields = this->num_fields();
-    const intptr_t num_positional_fields = NumPositionalFields();
-    const Array& field_names = Array::Handle(this->field_names());
+    const Array& field_names = Array::Handle(GetFieldNames(Thread::Current()));
+    const intptr_t num_positional_fields = num_fields - field_names.Length();
     for (intptr_t index = 0; index < num_fields; ++index) {
       JSONObject jsfield(&jsarr);
       // TODO(derekx): Remove this because BoundField isn't a response type in

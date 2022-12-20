@@ -3879,27 +3879,14 @@ Fragment StreamingFlowGraphBuilder::BuildRecordIsTest(TokenPosition position,
     instructions.current = is_record;
   }
 
-  // Test number of fields.
-  {
-    TargetEntryInstr* same_num_fields;
-    TargetEntryInstr* different_num_fields;
-
-    instructions += LoadLocal(instance);
-    instructions += LoadNativeField(Slot::Record_num_fields());
-    instructions += IntConstant(type.NumFields());
-    instructions += BranchIfEqual(&same_num_fields, &different_num_fields);
-    Fragment(different_num_fields) + Goto(is_false);
-    instructions.current = same_num_fields;
-  }
-
   // Test record shape.
   {
     TargetEntryInstr* same_shape;
     TargetEntryInstr* different_shape;
 
     instructions += LoadLocal(instance);
-    instructions += LoadNativeField(Slot::Record_field_names());
-    instructions += Constant(Array::ZoneHandle(Z, type.field_names()));
+    instructions += LoadNativeField(Slot::Record_shape());
+    instructions += IntConstant(type.shape().AsInt());
     instructions += BranchIfEqual(&same_shape, &different_shape);
     Fragment(different_shape) + Goto(is_false);
     instructions.current = same_shape;
@@ -4161,20 +4148,17 @@ Fragment StreamingFlowGraphBuilder::BuildRecordLiteral(TokenPosition* p) {
         names.SetAt(i, name);
       }
       names.MakeImmutable();
-      names ^= H.Canonicalize(names);
       field_names = &names;
     }
   }
   const intptr_t num_fields = positional_count + named_count;
+  const RecordShape shape =
+      RecordShape::Register(thread(), num_fields, *field_names);
   Fragment instructions;
 
   if (num_fields == 2 ||
       (num_fields == 3 && AllocateSmallRecordABI::kValue2Reg != kNoRegister)) {
     // Generate specialized allocation for a small number of fields.
-    const bool has_named_fields = named_count > 0;
-    if (has_named_fields) {
-      instructions += Constant(*field_names);
-    }
     for (intptr_t i = 0; i < positional_count; ++i) {
       instructions += BuildExpression();  // read ith expression.
     }
@@ -4185,14 +4169,12 @@ Fragment StreamingFlowGraphBuilder::BuildRecordLiteral(TokenPosition* p) {
     }
     SkipDartType();  // read recordType.
 
-    instructions +=
-        B->AllocateSmallRecord(position, num_fields, has_named_fields);
+    instructions += B->AllocateSmallRecord(position, shape);
 
     return instructions;
   }
 
-  instructions += Constant(*field_names);
-  instructions += B->AllocateRecord(position, num_fields);
+  instructions += B->AllocateRecord(position, shape);
   LocalVariable* record = MakeTemporary();
 
   // List of positional.
@@ -4233,19 +4215,23 @@ Fragment StreamingFlowGraphBuilder::BuildRecordFieldGet(TokenPosition* p,
       RecordType::Cast(T.BuildType());  // read recordType.
 
   intptr_t field_index = -1;
+  const Array& field_names =
+      Array::Handle(Z, record_type.GetFieldNames(H.thread()));
+  const intptr_t num_positional_fields =
+      record_type.NumFields() - field_names.Length();
   if (is_named) {
     const String& field_name = H.DartSymbolPlain(ReadStringReference());
-    for (intptr_t i = 0, n = record_type.NumNamedFields(); i < n; ++i) {
-      if (record_type.FieldNameAt(i) == field_name.ptr()) {
+    for (intptr_t i = 0, n = field_names.Length(); i < n; ++i) {
+      if (field_names.At(i) == field_name.ptr()) {
         field_index = i;
         break;
       }
     }
-    ASSERT(field_index >= 0 && field_index < record_type.NumNamedFields());
-    field_index += record_type.NumPositionalFields();
+    ASSERT(field_index >= 0 && field_index < field_names.Length());
+    field_index += num_positional_fields;
   } else {
     field_index = ReadUInt();
-    ASSERT(field_index < record_type.NumPositionalFields());
+    ASSERT(field_index < num_positional_fields);
   }
 
   instructions += B->LoadNativeField(Slot::GetRecordFieldSlot(

@@ -4934,8 +4934,7 @@ class RecordSerializationCluster : public SerializationCluster {
     RecordPtr record = Record::RawCast(object);
     objects_.Add(record);
 
-    s->Push(record->untag()->field_names());
-    const intptr_t num_fields = Smi::Value(record->untag()->num_fields());
+    const intptr_t num_fields = Record::NumFields(record);
     for (intptr_t i = 0; i < num_fields; ++i) {
       s->Push(record->untag()->field(i));
     }
@@ -4948,7 +4947,7 @@ class RecordSerializationCluster : public SerializationCluster {
       RecordPtr record = objects_[i];
       s->AssignRef(record);
       AutoTraceObject(record);
-      const intptr_t num_fields = Smi::Value(record->untag()->num_fields());
+      const intptr_t num_fields = Record::NumFields(record);
       s->WriteUnsigned(num_fields);
       target_memory_size_ += compiler::target::Record::InstanceSize(num_fields);
     }
@@ -4959,9 +4958,9 @@ class RecordSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; ++i) {
       RecordPtr record = objects_[i];
       AutoTraceObject(record);
-      const intptr_t num_fields = Smi::Value(record->untag()->num_fields());
-      s->WriteUnsigned(num_fields);
-      WriteField(record, field_names());
+      const RecordShape shape(record->untag()->shape());
+      s->WriteUnsigned(shape.AsInt());
+      const intptr_t num_fields = shape.num_fields();
       for (intptr_t j = 0; j < num_fields; ++j) {
         s->WriteElementRef(record->untag()->field(j), j);
       }
@@ -4998,12 +4997,12 @@ class RecordDeserializationCluster
     const bool stamp_canonical = primary && is_canonical();
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       RecordPtr record = static_cast<RecordPtr>(d.Ref(id));
-      const intptr_t num_fields = d.ReadUnsigned();
+      const intptr_t shape = d.ReadUnsigned();
+      const intptr_t num_fields = RecordShape(shape).num_fields();
       Deserializer::InitializeHeader(record, kRecordCid,
                                      Record::InstanceSize(num_fields),
                                      stamp_canonical);
-      record->untag()->num_fields_ = Smi::New(num_fields);
-      record->untag()->field_names_ = static_cast<ArrayPtr>(d.ReadRef());
+      record->untag()->shape_ = Smi::New(shape);
       for (intptr_t j = 0; j < num_fields; ++j) {
         record->untag()->data()[j] = d.ReadRef();
       }

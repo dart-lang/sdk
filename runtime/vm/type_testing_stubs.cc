@@ -83,8 +83,9 @@ void TypeTestingStubNamer::StringifyTypeTo(BaseTextBuffer* buffer,
     const RecordType& rec = RecordType::Cast(type);
     buffer->AddString("Record");
     const intptr_t num_fields = rec.NumFields();
-    const intptr_t num_positional_fields = rec.NumPositionalFields();
-    const auto& field_names = Array::Handle(rec.field_names());
+    const auto& field_names =
+        Array::Handle(rec.GetFieldNames(Thread::Current()));
+    const intptr_t num_positional_fields = num_fields - field_names.Length();
     const auto& field_types = Array::Handle(rec.field_types());
     for (intptr_t i = 0; i < num_fields; ++i) {
       buffer->AddString("__");
@@ -707,19 +708,9 @@ void TypeTestingStubGenerator::BuildOptimizedRecordSubtypeRangeCheck(
   __ LoadCompressedSmi(
       TTSInternalRegs::kScratchReg,
       compiler::FieldAddress(TypeTestABI::kInstanceReg,
-                             compiler::target::Record::num_fields_offset()));
+                             compiler::target::Record::shape_offset()));
   __ CompareImmediate(TTSInternalRegs::kScratchReg,
-                      Smi::RawValue(type.NumFields()));
-  __ BranchIf(NOT_EQUAL, &is_not_subtype);
-
-  __ LoadCompressedField(
-      TTSInternalRegs::kScratchReg,
-      compiler::FieldAddress(TypeTestABI::kInstanceReg,
-                             compiler::target::Record::field_names_offset()));
-  // Cannot load arbitrary field names from object pool, so
-  // only record types without named fields are supported.
-  ASSERT(type.field_names() == Object::empty_array().ptr());
-  __ CompareObject(TTSInternalRegs::kScratchReg, Object::empty_array());
+                      Smi::RawValue(type.shape().AsInt()));
   __ BranchIf(NOT_EQUAL, &is_not_subtype);
 
   auto& field_type = AbstractType::Handle(zone);

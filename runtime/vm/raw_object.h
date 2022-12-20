@@ -2728,9 +2728,9 @@ class UntaggedRecordType : public UntaggedAbstractType {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(RecordType);
 
+  COMPRESSED_SMI_FIELD(SmiPtr, shape)
   COMPRESSED_POINTER_FIELD(ArrayPtr, field_types)
-  COMPRESSED_POINTER_FIELD(ArrayPtr, field_names);
-  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
+  COMPRESSED_SMI_FIELD(SmiPtr, hash)
   VISIT_TO(hash)
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
@@ -3224,14 +3224,13 @@ COMPILE_ASSERT(sizeof(UntaggedFloat64x2) == 24);
 class UntaggedRecord : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Record);
 
-  COMPRESSED_SMI_FIELD(SmiPtr, num_fields)
-  COMPRESSED_POINTER_FIELD(ArrayPtr, field_names)
-  VISIT_FROM(num_fields)
+  COMPRESSED_SMI_FIELD(SmiPtr, shape)
+  VISIT_FROM(shape)
   // Variable length data follows here.
   COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, field, data)
 
   friend void UpdateLengthField(intptr_t, ObjectPtr,
-                                ObjectPtr);  // num_fields_
+                                ObjectPtr);  // shape_
 };
 
 // Define an aliases for intptr_t.

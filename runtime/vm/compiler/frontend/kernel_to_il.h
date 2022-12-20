@@ -276,6 +276,12 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
   // Loads the (untagged) isolate address.
   Fragment LoadIsolate();
 
+  // Loads the (untagged) current IsolateGroup address.
+  Fragment LoadIsolateGroup();
+
+  // Loads the (untagged) current ObjectStore address.
+  Fragment LoadObjectStore();
+
   // Loads the (untagged) service extension stream address.
   Fragment LoadServiceExtensionStream();
 

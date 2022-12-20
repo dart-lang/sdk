@@ -8659,6 +8659,7 @@ bool Function::RecognizedKindForceOptimize() const {
     case MethodRecognizer::kFfiAsExternalTypedDataFloat:
     case MethodRecognizer::kFfiAsExternalTypedDataDouble:
     case MethodRecognizer::kGetNativeField:
+    case MethodRecognizer::kRecord_fieldNames:
     case MethodRecognizer::kRecord_numFields:
     case MethodRecognizer::kUtf8DecoderScan:
     case MethodRecognizer::kDouble_hashCode:
@@ -20172,15 +20173,12 @@ bool Instance::RuntimeTypeIsSubtypeOf(
     }
     const Record& record = Record::Cast(*this);
     const RecordType& record_type = RecordType::Cast(instantiated_other);
-    const intptr_t num_fields = record.num_fields();
-    ASSERT(Array::Handle(record.field_names()).IsCanonical());
-    ASSERT(Array::Handle(record_type.field_names()).IsCanonical());
-    if ((num_fields != record_type.NumFields()) ||
-        (record.field_names() != record_type.field_names())) {
+    if (record.shape() != record_type.shape()) {
       return false;
     }
     Instance& field_value = Instance::Handle(zone);
     AbstractType& field_type = AbstractType::Handle(zone);
+    const intptr_t num_fields = record.num_fields();
     for (intptr_t i = 0; i < num_fields; ++i) {
       field_value ^= record.FieldAt(i);
       field_type = record_type.FieldTypeAt(i);
@@ -27598,23 +27596,12 @@ void RecordType::set_field_types(const Array& value) const {
   untag()->set_field_types(value.ptr());
 }
 
-StringPtr RecordType::FieldNameAt(intptr_t index) const {
-  const Array& field_names = Array::Handle(untag()->field_names());
-  return String::RawCast(field_names.At(index));
+void RecordType::set_shape(RecordShape shape) const {
+  untag()->set_shape(shape.AsSmi());
 }
 
-void RecordType::SetFieldNameAt(intptr_t index, const String& value) const {
-  ASSERT(!value.IsNull());
-  ASSERT(value.IsSymbol());
-  const Array& field_names = Array::Handle(untag()->field_names());
-  field_names.SetAt(index, value);
-}
-
-void RecordType::set_field_names(const Array& value) const {
-  ASSERT(!value.IsNull());
-  ASSERT(value.IsImmutable());
-  ASSERT(value.ptr() == Object::empty_array().ptr() || value.Length() > 0);
-  untag()->set_field_names(value.ptr());
+ArrayPtr RecordType::GetFieldNames(Thread* thread) const {
+  return shape().GetFieldNames(thread);
 }
 
 void RecordType::Print(NameVisibility name_visibility,
@@ -27628,7 +27615,8 @@ void RecordType::Print(NameVisibility name_visibility,
   AbstractType& type = AbstractType::Handle(zone);
   String& name = String::Handle(zone);
   const intptr_t num_fields = NumFields();
-  const intptr_t num_positional_fields = NumPositionalFields();
+  const Array& field_names = Array::Handle(zone, GetFieldNames(thread));
+  const intptr_t num_positional_fields = num_fields - field_names.Length();
   printer->AddString("(");
   for (intptr_t i = 0; i < num_fields; ++i) {
     if (i != 0) {
@@ -27641,7 +27629,7 @@ void RecordType::Print(NameVisibility name_visibility,
     type.PrintName(name_visibility, printer);
     if (i >= num_positional_fields) {
       printer->AddString(" ");
-      name = FieldNameAt(i - num_positional_fields);
+      name ^= field_names.At(i - num_positional_fields);
       printer->AddString(name.ToCString());
     }
   }
@@ -27680,14 +27668,14 @@ RecordTypePtr RecordType::New(Heap::Space space) {
   return static_cast<RecordTypePtr>(raw);
 }
 
-RecordTypePtr RecordType::New(const Array& field_types,
-                              const Array& field_names,
+RecordTypePtr RecordType::New(RecordShape shape,
+                              const Array& field_types,
                               Nullability nullability,
                               Heap::Space space) {
   Zone* Z = Thread::Current()->zone();
   const RecordType& result = RecordType::Handle(Z, RecordType::New(space));
+  result.set_shape(shape);
   result.set_field_types(field_types);
-  result.set_field_names(field_names);
   result.SetHash(0);
   result.set_flags(0);
   result.set_nullability(nullability);
@@ -27737,9 +27725,9 @@ bool RecordType::IsEquivalent(const Instance& other,
     return false;
   }
   const RecordType& other_type = RecordType::Cast(other);
-  if ((NumFields() != other_type.NumFields()) ||
-      (NumNamedFields() != other_type.NumNamedFields())) {
-    // Different number of positional or named fields.
+  // Equal record types must have the same shape
+  // (number of fields and named fields).
+  if (shape() != other_type.shape()) {
     return false;
   }
   Thread* thread = Thread::Current();
@@ -27747,7 +27735,7 @@ bool RecordType::IsEquivalent(const Instance& other,
   if (!IsNullabilityEquivalent(thread, other_type, kind)) {
     return false;
   }
-  // Equal record types must have equal field types and names.
+  // Equal record types must have equal field types.
   AbstractType& field_type = Type::Handle(zone);
   AbstractType& other_field_type = Type::Handle(zone);
   const intptr_t num_fields = NumFields();
@@ -27756,14 +27744,6 @@ bool RecordType::IsEquivalent(const Instance& other,
     other_field_type = other_type.FieldTypeAt(i);
     if (!field_type.IsEquivalent(other_field_type, kind, trail)) {
       return false;
-    }
-  }
-  if (field_names() != other_type.field_names()) {
-    const intptr_t num_named_fields = NumNamedFields();
-    for (intptr_t i = 0; i < num_named_fields; ++i) {
-      if (FieldNameAt(i) != other_type.FieldNameAt(i)) {
-        return false;
-      }
     }
   }
   return true;
@@ -27779,19 +27759,12 @@ uword RecordType::ComputeHash() const {
     type_nullability = Nullability::kNonNullable;
   }
   result = CombineHashes(result, static_cast<uint32_t>(type_nullability));
+  result = CombineHashes(result, static_cast<uint32_t>(shape().AsInt()));
   AbstractType& type = AbstractType::Handle();
   const intptr_t num_fields = NumFields();
   for (intptr_t i = 0; i < num_fields; ++i) {
     type = FieldTypeAt(i);
     result = CombineHashes(result, type.Hash());
-  }
-  const intptr_t num_named_fields = NumNamedFields();
-  if (num_named_fields > 0) {
-    String& field_name = String::Handle();
-    for (intptr_t i = 0; i < num_named_fields; ++i) {
-      field_name = FieldNameAt(i);
-      result = CombineHashes(result, field_name.Hash());
-    }
   }
   result = FinalizeHash(result, kHashBits);
   SetHash(result);
@@ -27837,7 +27810,6 @@ AbstractTypePtr RecordType::Canonicalize(Thread* thread, TrailPtr trail) const {
 #ifdef DEBUG
     // Verify that all fields are allocated in old space and are canonical.
     ASSERT(Array::Handle(zone, field_types()).IsOld());
-    ASSERT(Array::Handle(zone, field_names()).IsOld());
     const intptr_t num_fields = NumFields();
     for (intptr_t i = 0; i < num_fields; ++i) {
       type = FieldTypeAt(i);
@@ -27858,7 +27830,6 @@ AbstractTypePtr RecordType::Canonicalize(Thread* thread, TrailPtr trail) const {
   }
   if (rec.IsNull()) {
     ASSERT(Array::Handle(zone, field_types()).IsOld());
-    ASSERT(Array::Handle(zone, field_names()).IsOld());
     const intptr_t num_fields = NumFields();
     for (intptr_t i = 0; i < num_fields; ++i) {
       type = FieldTypeAt(i);
@@ -27958,8 +27929,7 @@ AbstractTypePtr RecordType::InstantiateFrom(
   }
 
   const auto& rec = RecordType::Handle(
-      zone, RecordType::New(new_field_types, Array::Handle(zone, field_names()),
-                            nullability(), space));
+      zone, RecordType::New(shape(), new_field_types, nullability(), space));
 
   if (IsFinalized()) {
     rec.SetIsFinalized();
@@ -27980,8 +27950,7 @@ bool RecordType::IsSubtypeOf(const RecordType& other, Heap::Space space) const {
   ASSERT(IsFinalized());
   ASSERT(other.IsFinalized());
   const intptr_t num_fields = NumFields();
-  if ((num_fields != other.NumFields()) ||
-      (field_names() != other.field_names())) {
+  if (shape() != other.shape()) {
     // Different number of fields or different named fields.
     return false;
   }
@@ -28003,26 +27972,8 @@ bool RecordType::IsSubtypeOf(const RecordType& other, Heap::Space space) const {
   return true;
 }
 
-intptr_t Record::NumNamedFields() const {
-  return Array::LengthOf(field_names());
-}
-
-intptr_t Record::NumPositionalFields() const {
-  return num_fields() - NumNamedFields();
-}
-
-void Record::set_field_names(const Array& field_names) const {
-  ASSERT(!field_names.IsNull());
-  ASSERT(field_names.IsCanonical());
-  ASSERT(field_names.IsImmutable());
-  ASSERT(field_names.ptr() == Object::empty_array().ptr() ||
-         field_names.Length() > 0);
-  untag()->set_field_names(field_names.ptr());
-}
-
-RecordPtr Record::New(intptr_t num_fields,
-                      const Array& field_names,
-                      Heap::Space space) {
+RecordPtr Record::New(RecordShape shape, Heap::Space space) {
+  const intptr_t num_fields = shape.num_fields();
   ASSERT(num_fields >= 0);
   Record& result = Record::Handle();
   {
@@ -28030,10 +27981,9 @@ RecordPtr Record::New(intptr_t num_fields,
         Object::Allocate(Record::kClassId, Record::InstanceSize(num_fields),
                          space, Record::ContainsCompressedPointers()));
     NoSafepointScope no_safepoint;
-    raw->untag()->set_num_fields(Smi::New(num_fields));
+    raw->untag()->set_shape(shape.AsSmi());
     result ^= raw;
   }
-  result.set_field_names(field_names);
   return result.ptr();
 }
 
@@ -28041,11 +27991,12 @@ const char* Record::ToCString() const {
   if (IsNull()) {
     return "Record: null";
   }
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   ZoneTextBuffer printer(zone);
   const intptr_t num_fields = this->num_fields();
-  const intptr_t num_positional_fields = NumPositionalFields();
-  const Array& field_names = Array::Handle(zone, this->field_names());
+  const Array& field_names = Array::Handle(zone, GetFieldNames(thread));
+  const intptr_t num_positional_fields = num_fields - field_names.Length();
   Object& obj = Object::Handle(zone);
   printer.AddString("Record (");
   for (intptr_t i = 0; i < num_fields; ++i) {
@@ -28074,16 +28025,11 @@ bool Record::CanonicalizeEquals(const Instance& other) const {
   }
 
   const Record& other_rec = Record::Cast(other);
+  if (shape() != other_rec.shape()) {
+    return false;
+  }
 
   const intptr_t num_fields = this->num_fields();
-  if (num_fields != other_rec.num_fields()) {
-    return false;
-  }
-
-  if (field_names() != other_rec.field_names()) {
-    return false;
-  }
-
   for (intptr_t i = 0; i < num_fields; ++i) {
     if (this->FieldAt(i) != other_rec.FieldAt(i)) {
       return false;
@@ -28098,10 +28044,9 @@ uint32_t Record::CanonicalizeHash() const {
   if (hash != 0) {
     return hash;
   }
+  hash = shape().AsInt();
+  Instance& element = Instance::Handle();
   const intptr_t num_fields = this->num_fields();
-  hash = num_fields;
-  Instance& element = Instance::Handle(field_names());
-  hash = CombineHashes(hash, element.CanonicalizeHash());
   for (intptr_t i = 0; i < num_fields; ++i) {
     element ^= FieldAt(i);
     hash = CombineHashes(hash, element.CanonicalizeHash());
@@ -28134,8 +28079,7 @@ RecordTypePtr Record::GetRecordType() const {
     type = obj.GetType(Heap::kNew);
     field_types.SetAt(i, type);
   }
-  const Array& field_names = Array::Handle(zone, this->field_names());
-  type = RecordType::New(field_types, field_names, Nullability::kNonNullable);
+  type = RecordType::New(shape(), field_types, Nullability::kNonNullable);
   type = ClassFinalizer::FinalizeType(type);
   return RecordType::Cast(type).ptr();
 }
@@ -28155,21 +28099,137 @@ intptr_t Record::GetPositionalFieldIndexFromFieldName(
   return -1;
 }
 
-intptr_t Record::GetFieldIndexByName(const String& field_name) const {
+intptr_t Record::GetFieldIndexByName(Thread* thread,
+                                     const String& field_name) const {
   ASSERT(field_name.IsSymbol());
   const intptr_t field_index =
       Record::GetPositionalFieldIndexFromFieldName(field_name);
-  if ((field_index >= 0) && (field_index < NumPositionalFields())) {
+  const Array& field_names = Array::Handle(GetFieldNames(thread));
+  const intptr_t num_positional_fields = num_fields() - field_names.Length();
+  if ((field_index >= 0) && (field_index < num_positional_fields)) {
     return field_index;
   } else {
-    const Array& field_names = Array::Handle(this->field_names());
     for (intptr_t i = 0, n = field_names.Length(); i < n; ++i) {
       if (field_names.At(i) == field_name.ptr()) {
-        return NumPositionalFields() + i;
+        return num_positional_fields + i;
       }
     }
   }
   return -1;
+}
+
+class RecordFieldNamesMapTraits {
+ public:
+  static const char* Name() { return "RecordFieldNamesMapTraits"; }
+  static bool ReportStats() { return false; }
+
+  static bool IsMatch(const Object& a, const Object& b) {
+    return Array::Cast(a).CanonicalizeEquals(Array::Cast(b));
+  }
+
+  static uword Hash(const Object& key) {
+    return Array::Cast(key).CanonicalizeHash();
+  }
+
+  static ObjectPtr NewKey(const Array& arr) { return arr.ptr(); }
+};
+typedef UnorderedHashMap<RecordFieldNamesMapTraits> RecordFieldNamesMap;
+
+RecordShape RecordShape::Register(Thread* thread,
+                                  intptr_t num_fields,
+                                  const Array& field_names) {
+  ASSERT(!field_names.IsNull());
+  ASSERT(field_names.IsImmutable());
+  ASSERT(field_names.ptr() == Object::empty_array().ptr() ||
+         field_names.Length() > 0);
+
+  Zone* zone = thread->zone();
+  IsolateGroup* isolate_group = thread->isolate_group();
+  ObjectStore* object_store = isolate_group->object_store();
+
+  if (object_store->record_field_names<std::memory_order_acquire>() ==
+      Array::null()) {
+    // First-time initialization.
+    SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
+    if (object_store->record_field_names() == Array::null()) {
+      // Reserve record field names index 0 for records without named fields.
+      RecordFieldNamesMap map(
+          HashTables::New<RecordFieldNamesMap>(16, Heap::kOld));
+      map.InsertOrGetValue(Object::empty_array(),
+                           Smi::Handle(zone, Smi::New(0)));
+      ASSERT(map.NumOccupied() == 1);
+      object_store->set_record_field_names_map(map.Release());
+      const auto& table = Array::Handle(zone, Array::New(16));
+      table.SetAt(0, Object::empty_array());
+      object_store->set_record_field_names<std::memory_order_release>(table);
+    }
+  }
+
+#if defined(DART_PRECOMPILER)
+  const intptr_t kMaxNumFields = compiler::target::RecordShape::kMaxNumFields;
+  const intptr_t kMaxFieldNamesIndex =
+      compiler::target::RecordShape::kMaxFieldNamesIndex;
+#else
+  const intptr_t kMaxNumFields = RecordShape::kMaxNumFields;
+  const intptr_t kMaxFieldNamesIndex = RecordShape::kMaxFieldNamesIndex;
+#endif
+
+  if (num_fields > kMaxNumFields) {
+    FATAL("Too many record fields");
+  }
+  if (field_names.ptr() == Object::empty_array().ptr()) {
+    return RecordShape::ForUnnamed(num_fields);
+  }
+
+  {
+    SafepointReadRwLocker ml(thread, isolate_group->program_lock());
+    RecordFieldNamesMap map(object_store->record_field_names_map());
+    Smi& index = Smi::Handle(zone);
+    index ^= map.GetOrNull(field_names);
+    ASSERT(map.Release().ptr() == object_store->record_field_names_map());
+    if (!index.IsNull()) {
+      return RecordShape(num_fields, index.Value());
+    }
+  }
+
+  SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
+  RecordFieldNamesMap map(object_store->record_field_names_map());
+  const intptr_t new_index = map.NumOccupied();
+  if (new_index > kMaxFieldNamesIndex) {
+    FATAL("Too many record shapes");
+  }
+
+  const intptr_t index = Smi::Value(Smi::RawCast(map.InsertOrGetValue(
+      field_names, Smi::Handle(zone, Smi::New(new_index)))));
+  ASSERT(index > 0);
+
+  if (index == new_index) {
+    ASSERT(map.NumOccupied() == (new_index + 1));
+    Array& table = Array::Handle(zone, object_store->record_field_names());
+    intptr_t capacity = table.Length();
+    if (index >= table.Length()) {
+      capacity = capacity + (capacity >> 2);
+      table = Array::Grow(table, capacity);
+      object_store->set_record_field_names(table);
+    }
+    table.SetAt(index, field_names);
+  } else {
+    ASSERT(index < new_index);
+  }
+  object_store->set_record_field_names_map(map.Release());
+
+  const RecordShape shape(num_fields, index);
+  ASSERT(shape.GetFieldNames(thread) == field_names.ptr());
+  ASSERT(shape.num_fields() == num_fields);
+  return shape;
+}
+
+ArrayPtr RecordShape::GetFieldNames(Thread* thread) const {
+  ObjectStore* object_store = thread->isolate_group()->object_store();
+  Array& table =
+      Array::Handle(thread->zone(), object_store->record_field_names());
+  ASSERT(!table.IsNull());
+  return Array::RawCast(table.At(field_names_index()));
 }
 
 }  // namespace dart

@@ -2323,15 +2323,14 @@ class FieldInvalidator {
     }
 
     const Record& record = Record::Cast(value);
-    const intptr_t num_fields = record.num_fields();
-    if (num_fields != type.NumFields() ||
-        record.field_names() != type.field_names()) {
+    if (record.shape() != type.shape()) {
       return false;
     }
 
     // This method can be called recursively, so cannot reuse handles.
     auto& field_value = Object::Handle(zone_);
     auto& field_type = AbstractType::Handle(zone_);
+    const intptr_t num_fields = record.num_fields();
     for (intptr_t i = 0; i < num_fields; ++i) {
       field_value = record.FieldAt(i);
       field_type = type.FieldTypeAt(i);

@@ -138,7 +138,7 @@ void matchIL$test(FlowGraph graph) {
       'r4' << match.DispatchTableCall('obj2_cid'),
       'r4_0' << match.ExtractNthOutput('r4', index: 0),
       'r4_y' << match.ExtractNthOutput('r4', index: 1),
-      'r4_boxed' << match.AllocateSmallRecord(match.any, 'r4_0', 'r4_y'),
+      'r4_boxed' << match.AllocateSmallRecord('r4_0', 'r4_y'),
       match.PushArgument('r4_boxed'),
       match.StaticCall(),
 

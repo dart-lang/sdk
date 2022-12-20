@@ -3385,11 +3385,13 @@ void TypeTranslator::BuildRecordType() {
   if (named_count != 0) {
     field_names.MakeImmutable();
   }
+  const RecordShape shape =
+      RecordShape::Register(H.thread(), num_fields, field_names);
 
   finalize_ = finalize;
 
-  RecordType& rec = RecordType::Handle(
-      Z, RecordType::New(field_types, field_names, nullability));
+  RecordType& rec =
+      RecordType::Handle(Z, RecordType::New(shape, field_types, nullability));
 
   if (finalize_) {
     rec ^= ClassFinalizer::FinalizeType(rec);

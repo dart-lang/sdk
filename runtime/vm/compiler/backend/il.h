@@ -6982,40 +6982,27 @@ class AllocateUninitializedContextInstr : public TemplateAllocation<0> {
 };
 
 // Allocates and null initializes a record object.
-class AllocateRecordInstr : public TemplateAllocation<1> {
+class AllocateRecordInstr : public TemplateAllocation<0> {
  public:
-  enum { kFieldNamesPos = 0 };
   AllocateRecordInstr(const InstructionSource& source,
-                      intptr_t num_fields,
-                      Value* field_names,
+                      RecordShape shape,
                       intptr_t deopt_id)
-      : TemplateAllocation(source, deopt_id), num_fields_(num_fields) {
-    SetInputAt(kFieldNamesPos, field_names);
-  }
+      : TemplateAllocation(source, deopt_id), shape_(shape) {}
 
   DECLARE_INSTRUCTION(AllocateRecord)
   virtual CompileType ComputeType() const;
 
-  intptr_t num_fields() const { return num_fields_; }
-  Value* field_names() const { return InputAt(kFieldNamesPos); }
-
-  virtual const Slot* SlotForInput(intptr_t pos) {
-    switch (pos) {
-      case kFieldNamesPos:
-        return &Slot::Record_field_names();
-      default:
-        return TemplateAllocation::SlotForInput(pos);
-    }
-  }
+  RecordShape shape() const { return shape_; }
+  intptr_t num_fields() const { return shape_.num_fields(); }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
     return Heap::IsAllocatableInNewSpace(
-        compiler::target::Record::InstanceSize(num_fields_));
+        compiler::target::Record::InstanceSize(num_fields()));
   }
 
-#define FIELD_LIST(F) F(const intptr_t, num_fields_)
+#define FIELD_LIST(F) F(const RecordShape, shape_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateRecordInstr,
                                           TemplateAllocation,
@@ -7028,75 +7015,46 @@ class AllocateRecordInstr : public TemplateAllocation<1> {
 
 // Allocates and initializes fields of a small record object
 // (with 2 or 3 fields).
-class AllocateSmallRecordInstr : public TemplateAllocation<4> {
+class AllocateSmallRecordInstr : public TemplateAllocation<3> {
  public:
   AllocateSmallRecordInstr(const InstructionSource& source,
-                           intptr_t num_fields,  // 2 or 3.
-                           Value* field_names,   // Optional.
+                           RecordShape shape,  // 2 or 3 fields.
                            Value* value0,
                            Value* value1,
                            Value* value2,  // Optional.
                            intptr_t deopt_id)
-      : TemplateAllocation(source, deopt_id),
-        num_fields_(num_fields),
-        has_named_fields_(field_names != nullptr) {
+      : TemplateAllocation(source, deopt_id), shape_(shape) {
+    const intptr_t num_fields = shape.num_fields();
     ASSERT(num_fields == 2 || num_fields == 3);
     ASSERT((num_fields > 2) == (value2 != nullptr));
-    if (has_named_fields_) {
-      SetInputAt(0, field_names);
-      SetInputAt(1, value0);
-      SetInputAt(2, value1);
-      if (num_fields > 2) {
-        SetInputAt(3, value2);
-      }
-    } else {
-      SetInputAt(0, value0);
-      SetInputAt(1, value1);
-      if (num_fields > 2) {
-        SetInputAt(2, value2);
-      }
+    SetInputAt(0, value0);
+    SetInputAt(1, value1);
+    if (num_fields > 2) {
+      SetInputAt(2, value2);
     }
   }
 
   DECLARE_INSTRUCTION(AllocateSmallRecord)
   virtual CompileType ComputeType() const;
 
-  intptr_t num_fields() const { return num_fields_; }
-  bool has_named_fields() const { return has_named_fields_; }
+  RecordShape shape() const { return shape_; }
+  intptr_t num_fields() const { return shape().num_fields(); }
 
-  Value* field_names() const {
-    ASSERT(has_named_fields_);
-    return InputAt(0);
-  }
-
-  virtual intptr_t InputCount() const {
-    return (has_named_fields_ ? 1 : 0) + num_fields_;
-  }
+  virtual intptr_t InputCount() const { return num_fields(); }
 
   virtual const Slot* SlotForInput(intptr_t pos) {
-    if (has_named_fields_) {
-      if (pos == 0) {
-        return &Slot::Record_field_names();
-      } else {
-        return &Slot::GetRecordFieldSlot(
-            Thread::Current(), compiler::target::Record::field_offset(pos - 1));
-      }
-    } else {
-      return &Slot::GetRecordFieldSlot(
-          Thread::Current(), compiler::target::Record::field_offset(pos));
-    }
+    return &Slot::GetRecordFieldSlot(
+        Thread::Current(), compiler::target::Record::field_offset(pos));
   }
 
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
     return Heap::IsAllocatableInNewSpace(
-        compiler::target::Record::InstanceSize(num_fields_));
+        compiler::target::Record::InstanceSize(num_fields()));
   }
 
-#define FIELD_LIST(F)                                                          \
-  F(const intptr_t, num_fields_)                                               \
-  F(const bool, has_named_fields_)
+#define FIELD_LIST(F) F(const RecordShape, shape_)
 
   DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(AllocateSmallRecordInstr,
                                           TemplateAllocation,
@@ -7114,12 +7072,12 @@ class MaterializeObjectInstr : public VariadicDefinition {
  public:
   MaterializeObjectInstr(AllocationInstr* allocation,
                          const Class& cls,
-                         intptr_t num_elements,
+                         intptr_t length_or_shape,
                          const ZoneGrowableArray<const Slot*>& slots,
                          InputsArray&& values)
       : VariadicDefinition(std::move(values)),
         cls_(cls),
-        num_elements_(num_elements),
+        length_or_shape_(length_or_shape),
         slots_(slots),
         registers_remapped_(false),
         allocation_(allocation) {
@@ -7129,7 +7087,7 @@ class MaterializeObjectInstr : public VariadicDefinition {
   AllocationInstr* allocation() const { return allocation_; }
   const Class& cls() const { return cls_; }
 
-  intptr_t num_elements() const { return num_elements_; }
+  intptr_t length_or_shape() const { return length_or_shape_; }
 
   intptr_t FieldOffsetAt(intptr_t i) const {
     return slots_[i]->offset_in_bytes();
@@ -7169,7 +7127,7 @@ class MaterializeObjectInstr : public VariadicDefinition {
 
 #define FIELD_LIST(F)                                                          \
   F(const Class&, cls_)                                                        \
-  F(intptr_t, num_elements_)                                                   \
+  F(intptr_t, length_or_shape_)                                                \
   F(const ZoneGrowableArray<const Slot*>&, slots_)                             \
   F(bool, registers_remapped_)
 

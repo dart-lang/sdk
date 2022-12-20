@@ -254,6 +254,7 @@ class Assembler : public AssemblerBase {
   void pushl(Register reg);
   void pushl(const Address& address);
   void pushl(const Immediate& imm);
+  void PushImmediate(int32_t value) { pushl(Immediate(value)); }
 
   void popl(Register reg);
   void popl(const Address& address);
@@ -751,6 +752,7 @@ class Assembler : public AssemblerBase {
   void AddRegisters(Register dest, Register src) {
     addl(dest, src);
   }
+  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
                  Register src,
                  ScaleFactor scale,
@@ -772,6 +774,10 @@ class Assembler : public AssemblerBase {
     }
   }
   void AndImmediate(Register dst, int32_t value) {
+    andl(dst, Immediate(value));
+  }
+  void AndImmediate(Register dst, Register src, int32_t value) {
+    MoveRegister(dst, src);
     andl(dst, Immediate(value));
   }
   void AndRegisters(Register dst,

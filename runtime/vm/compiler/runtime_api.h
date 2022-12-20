@@ -594,10 +594,18 @@ class GrowableObjectArray : public AllStatic {
   FINAL_CLASS();
 };
 
+class RecordShape : public AllStatic {
+ public:
+  static const word kNumFieldsMask;
+  static const word kMaxNumFields;
+  static const word kFieldNamesIndexShift;
+  static const word kFieldNamesIndexMask;
+  static const word kMaxFieldNamesIndex;
+};
+
 class Record : public AllStatic {
  public:
-  static word num_fields_offset();
-  static word field_names_offset();
+  static word shape_offset();
   static word field_offset(intptr_t index);
   static intptr_t field_index_at_offset(intptr_t offset_in_bytes);
   static word InstanceSize(intptr_t length);
@@ -1309,6 +1317,7 @@ class ObjectStore : public AllStatic {
  public:
   static word double_type_offset();
   static word int_type_offset();
+  static word record_field_names_offset();
   static word string_type_offset();
   static word type_type_offset();
 

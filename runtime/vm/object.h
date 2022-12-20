@@ -9136,90 +9136,6 @@ class FunctionType : public AbstractType {
   friend class Function;
 };
 
-// A RecordType represents the type of a record. It describes
-// number of named and positional fields, field types and
-// names of the named fields.
-class RecordType : public AbstractType {
- public:
-  static intptr_t hash_offset() { return OFFSET_OF(UntaggedRecordType, hash_); }
-  virtual bool HasTypeClass() const { return false; }
-  RecordTypePtr ToNullability(Nullability value, Heap::Space space) const;
-  virtual classid_t type_class_id() const { return kIllegalCid; }
-  virtual bool IsInstantiated(Genericity genericity = kAny,
-                              intptr_t num_free_fun_type_params = kAllFree,
-                              TrailPtr trail = nullptr) const;
-  virtual bool IsEquivalent(const Instance& other,
-                            TypeEquality kind,
-                            TrailPtr trail = nullptr) const;
-  virtual bool IsRecursive(TrailPtr trail = nullptr) const;
-  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
-                                                TrailPtr trail = nullptr) const;
-
-  virtual AbstractTypePtr InstantiateFrom(
-      const TypeArguments& instantiator_type_arguments,
-      const TypeArguments& function_type_arguments,
-      intptr_t num_free_fun_type_params,
-      Heap::Space space,
-      TrailPtr trail = nullptr) const;
-  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
-#if defined(DEBUG)
-  // Check if type is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const;
-#endif  // DEBUG
-  virtual void EnumerateURIs(URIs* uris) const;
-  virtual void PrintName(NameVisibility visibility,
-                         BaseTextBuffer* printer) const;
-
-  virtual uword Hash() const;
-  uword ComputeHash() const;
-
-  bool IsSubtypeOf(const RecordType& other, Heap::Space space) const;
-
-  ArrayPtr field_types() const {
-    return untag()->field_types();
-  }
-
-  AbstractTypePtr FieldTypeAt(intptr_t index) const;
-  void SetFieldTypeAt(intptr_t index, const AbstractType& value) const;
-
-  // Names of the named fields, sorted.
-  ArrayPtr field_names() const {
-    return untag()->field_names();
-  }
-
-  StringPtr FieldNameAt(intptr_t index) const;
-  void SetFieldNameAt(intptr_t index, const String& value) const;
-
-  intptr_t NumFields() const;
-  intptr_t NumNamedFields() const;
-  intptr_t NumPositionalFields() const;
-
-  void Print(NameVisibility name_visibility, BaseTextBuffer* printer) const;
-
-  static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(UntaggedRecordType));
-  }
-
-  static RecordTypePtr New(const Array& field_types,
-                           const Array& field_names,
-                           Nullability nullability = Nullability::kLegacy,
-                           Heap::Space space = Heap::kOld);
-
- private:
-  void SetHash(intptr_t value) const;
-
-  void set_field_types(const Array& value) const;
-  void set_field_names(const Array& value) const;
-
-  static RecordTypePtr New(Heap::Space space);
-
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(RecordType, AbstractType);
-  friend class Class;
-  friend class ClassFinalizer;
-  friend class ClearTypeHashVisitor;
-  friend class Record;
-};
-
 // A TypeRef is used to break cycles in the representation of recursive types.
 // Its only field is the recursive AbstractType it refers to, which can
 // temporarily be null during finalization.
@@ -10956,23 +10872,160 @@ class Float64x2 : public Instance {
   friend class Class;
 };
 
+// Packed representation of record shape (number of fields and field names).
+class RecordShape {
+  enum {
+    kNumFieldsBits = 16,
+    kFieldNamesIndexBits = kSmiBits - kNumFieldsBits,
+  };
+  using NumFieldsBitField = BitField<intptr_t, intptr_t, 0, kNumFieldsBits>;
+  using FieldNamesIndexBitField = BitField<intptr_t,
+                                           intptr_t,
+                                           NumFieldsBitField::kNextBit,
+                                           kFieldNamesIndexBits>;
+
+ public:
+  static constexpr intptr_t kNumFieldsMask = NumFieldsBitField::mask();
+  static constexpr intptr_t kMaxNumFields = kNumFieldsMask;
+  static constexpr intptr_t kFieldNamesIndexMask =
+      FieldNamesIndexBitField::mask();
+  static constexpr intptr_t kFieldNamesIndexShift =
+      FieldNamesIndexBitField::shift();
+  static constexpr intptr_t kMaxFieldNamesIndex = kFieldNamesIndexMask;
+
+  explicit RecordShape(intptr_t value) : value_(value) { ASSERT(value_ >= 0); }
+  explicit RecordShape(SmiPtr smi_value) : value_(Smi::Value(smi_value)) {
+    ASSERT(value_ >= 0);
+  }
+  RecordShape(intptr_t num_fields, intptr_t field_names_index)
+      : value_(NumFieldsBitField::encode(num_fields) |
+               FieldNamesIndexBitField::encode(field_names_index)) {
+    ASSERT(value_ >= 0);
+  }
+  static RecordShape ForUnnamed(intptr_t num_fields) {
+    return RecordShape(num_fields, 0);
+  }
+
+  bool HasNamedFields() const { return field_names_index() != 0; }
+
+  intptr_t num_fields() const { return NumFieldsBitField::decode(value_); }
+
+  intptr_t field_names_index() const {
+    return FieldNamesIndexBitField::decode(value_);
+  }
+
+  SmiPtr AsSmi() const { return Smi::New(value_); }
+
+  intptr_t AsInt() const { return value_; }
+
+  bool operator==(const RecordShape& other) const {
+    return value_ == other.value_;
+  }
+  bool operator!=(const RecordShape& other) const {
+    return value_ != other.value_;
+  }
+
+  // Registers record shape with [num_fields] and [field_names] in the current
+  // isolate group.
+  static RecordShape Register(Thread* thread,
+                              intptr_t num_fields,
+                              const Array& field_names);
+
+  // Retrieves an array of field names.
+  ArrayPtr GetFieldNames(Thread* thread) const;
+
+ private:
+  intptr_t value_;
+
+  DISALLOW_ALLOCATION();
+};
+
+// A RecordType represents the type of a record. It describes
+// number of named and positional fields, field types and
+// names of the named fields.
+class RecordType : public AbstractType {
+ public:
+  static intptr_t hash_offset() { return OFFSET_OF(UntaggedRecordType, hash_); }
+  virtual bool HasTypeClass() const { return false; }
+  RecordTypePtr ToNullability(Nullability value, Heap::Space space) const;
+  virtual classid_t type_class_id() const { return kIllegalCid; }
+  virtual bool IsInstantiated(Genericity genericity = kAny,
+                              intptr_t num_free_fun_type_params = kAllFree,
+                              TrailPtr trail = nullptr) const;
+  virtual bool IsEquivalent(const Instance& other,
+                            TypeEquality kind,
+                            TrailPtr trail = nullptr) const;
+  virtual bool IsRecursive(TrailPtr trail = nullptr) const;
+  virtual bool RequireConstCanonicalTypeErasure(Zone* zone,
+                                                TrailPtr trail = nullptr) const;
+
+  virtual AbstractTypePtr InstantiateFrom(
+      const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
+      TrailPtr trail = nullptr) const;
+  virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
+#if defined(DEBUG)
+  // Check if type is canonical.
+  virtual bool CheckIsCanonical(Thread* thread) const;
+#endif  // DEBUG
+  virtual void EnumerateURIs(URIs* uris) const;
+  virtual void PrintName(NameVisibility visibility,
+                         BaseTextBuffer* printer) const;
+
+  virtual uword Hash() const;
+  uword ComputeHash() const;
+
+  bool IsSubtypeOf(const RecordType& other, Heap::Space space) const;
+
+  RecordShape shape() const { return RecordShape(untag()->shape()); }
+
+  ArrayPtr field_types() const { return untag()->field_types(); }
+
+  AbstractTypePtr FieldTypeAt(intptr_t index) const;
+  void SetFieldTypeAt(intptr_t index, const AbstractType& value) const;
+
+  // Names of the named fields, sorted.
+  ArrayPtr GetFieldNames(Thread* thread) const;
+
+  intptr_t NumFields() const;
+
+  void Print(NameVisibility name_visibility, BaseTextBuffer* printer) const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedRecordType));
+  }
+
+  static RecordTypePtr New(RecordShape shape,
+                           const Array& field_types,
+                           Nullability nullability = Nullability::kLegacy,
+                           Heap::Space space = Heap::kOld);
+
+ private:
+  void SetHash(intptr_t value) const;
+
+  void set_shape(RecordShape shape) const;
+  void set_field_types(const Array& value) const;
+
+  static RecordTypePtr New(Heap::Space space);
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(RecordType, AbstractType);
+  friend class Class;
+  friend class ClassFinalizer;
+  friend class ClearTypeHashVisitor;
+  friend class Record;
+};
+
 class Record : public Instance {
  public:
   intptr_t num_fields() const { return NumFields(ptr()); }
   static intptr_t NumFields(RecordPtr ptr) {
-    return Smi::Value(ptr->untag()->num_fields());
-  }
-  static intptr_t num_fields_offset() {
-    return OFFSET_OF(UntaggedRecord, num_fields_);
+    return RecordShape(ptr->untag()->shape()).num_fields();
   }
 
-  intptr_t NumNamedFields() const;
-  intptr_t NumPositionalFields() const;
-
-  ArrayPtr field_names() const { return untag()->field_names(); }
-  static intptr_t field_names_offset() {
-    return OFFSET_OF(UntaggedRecord, field_names_);
-  }
+  RecordShape shape() const { return RecordShape(untag()->shape()); }
+  static intptr_t shape_offset() { return OFFSET_OF(UntaggedRecord, shape_); }
 
   ObjectPtr FieldAt(intptr_t field_index) const {
     return untag()->field(field_index);
@@ -10982,7 +11035,7 @@ class Record : public Instance {
   }
 
   static const intptr_t kBytesPerElement = kCompressedWordSize;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static const intptr_t kMaxElements = RecordShape::kMaxNumFields;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() { return sizeof(UntaggedRecord); }
@@ -11012,9 +11065,7 @@ class Record : public Instance {
                                  (num_fields * kBytesPerElement));
   }
 
-  static RecordPtr New(intptr_t num_fields,
-                       const Array& field_names,
-                       Heap::Space space = Heap::kNew);
+  static RecordPtr New(RecordShape shape, Heap::Space space = Heap::kNew);
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
   virtual uint32_t CanonicalizeHash() const;
@@ -11034,14 +11085,15 @@ class Record : public Instance {
   // Returns index of the field with given name, or -1
   // if such field doesn't exist.
   // Supports positional field names ("$0", "$1", etc).
-  intptr_t GetFieldIndexByName(const String& field_name) const;
+  intptr_t GetFieldIndexByName(Thread* thread, const String& field_name) const;
+
+  ArrayPtr GetFieldNames(Thread* thread) const {
+    return shape().GetFieldNames(thread);
+  }
 
  private:
-  void set_field_names(const Array& field_names) const;
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Record, Instance);
   friend class Class;
-  friend class DeferredObject;  // For set_field_names.
   friend class Object;
 };
 
@@ -12969,14 +13021,6 @@ inline void RecordType::SetHash(intptr_t value) const {
 
 inline intptr_t RecordType::NumFields() const {
   return Array::LengthOf(field_types());
-}
-
-inline intptr_t RecordType::NumNamedFields() const {
-  return Array::LengthOf(field_names());
-}
-
-inline intptr_t RecordType::NumPositionalFields() const {
-  return NumFields() - NumNamedFields();
 }
 
 inline uword TypeParameter::Hash() const {
