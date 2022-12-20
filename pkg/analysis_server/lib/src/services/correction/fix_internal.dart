@@ -1448,6 +1448,9 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNNECESSARY_NULL_COMPARISON_TRUE: [
       RemoveComparison.new,
     ],
+    HintCode.UNNECESSARY_QUESTION_MARK: [
+      RemoveQuestionMark.new
+    ],
 //    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
 // TODO(brianwilkerson) Add a fix to remove the type check.
 //    ],
