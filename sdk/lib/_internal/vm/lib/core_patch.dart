@@ -58,7 +58,7 @@ import "dart:ffi" show Pointer, Struct, Union, NativePort;
 
 import "dart:isolate" show Isolate, RawReceivePort;
 
-import "dart:typed_data" show Uint8List, Uint16List;
+import "dart:typed_data" show Uint8List, Uint16List, Int32List;
 
 /// These are the additional parts of this patch library:
 part "array.dart";
