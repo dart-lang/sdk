@@ -1276,6 +1276,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
       _outCloseCode = code;
       _outCloseReason = reason;
     }
+    _pingTimer?.cancel();
     _writeClosed = true;
     _consumer.closeSocket();
     _webSockets.remove(_serviceId);
