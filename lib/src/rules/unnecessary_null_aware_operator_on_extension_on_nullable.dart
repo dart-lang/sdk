@@ -72,7 +72,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitIndexExpression(IndexExpression node) {
     if (node.isNullAware &&
         _isExtensionOnNullableType(node.inSetterContext()
-            ? (node.thisOrAncestorOfType<AssignmentExpression>())
+            ? node
+                .thisOrAncestorOfType<AssignmentExpression>()
                 ?.writeElement
                 ?.enclosingElement
             : node.staticElement?.enclosingElement)) {
