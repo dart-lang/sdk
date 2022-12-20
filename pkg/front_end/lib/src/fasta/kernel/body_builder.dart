@@ -7248,6 +7248,11 @@ class BodyBuilder extends StackListenerImpl
         } else if (labelExpressionOrPattern is PatternGuard) {
           expressionOrPatterns[expressionOrPatternIndex++] =
               labelExpressionOrPattern;
+          for (VariableDeclaration variable
+              in labelExpressionOrPattern.pattern.declaredVariables) {
+            declareVariable(variable, scope);
+            typeInferrer.assignedVariables.declare(variable);
+          }
           containsPatterns = true;
         } else {
           expressionOrPatterns[expressionOrPatternIndex++] =

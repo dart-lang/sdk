@@ -476,6 +476,14 @@ class Forest {
       ..fileOffset = fileOffset;
   }
 
+  /// Return a representation of a `switch` statement.
+  Statement createSwitchStatement(
+      int fileOffset, Expression expression, List<SwitchCase> cases) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new SwitchStatement(expression, cases)..fileOffset = fileOffset;
+  }
+
   /// Return a representation of an `is` expression at the given [fileOffset].
   /// The [operand] is the representation of the left operand. The [type] is a
   /// representation of the type that is the right operand. If [notFileOffset]

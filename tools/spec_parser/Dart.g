@@ -4,6 +4,8 @@
 
 // CHANGES:
 //
+// v0.26 Add missing `metadata` in `partDeclaration`.
+//
 // v0.25 Update pattern rules following changes to the patterns feature
 // specification since v0.24.
 //
@@ -1351,7 +1353,7 @@ partHeader
     ;
 
 partDeclaration
-    :    partHeader topLevelDefinition* EOF
+    :    partHeader (metadata topLevelDefinition)* EOF
     ;
 
 // In the specification a plain <stringLiteral> is used.

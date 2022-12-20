@@ -641,6 +641,7 @@ href
 html
 https
 human
+hvar
 i
 i'll
 i'm
@@ -1435,6 +1436,7 @@ supers
 suppose
 surprising
 suspended
+svar
 svg
 sw
 swapped

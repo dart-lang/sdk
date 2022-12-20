@@ -1,0 +1,70 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → dynamic {
+  dynamic #t1;
+  dynamic #t2;
+  final dynamic #t3 = x;
+  final core::int #t4 = -1;
+  final core::bool #t5 = false;
+  if(!#t5) {
+    final dynamic #t6 = #t3;
+    if(#t6 is core::int) {
+      #t4 = 0;
+      #t5 = true;
+      #t1 = #t6{core::int};
+    }
+  }
+  if(!#t5) {
+    final dynamic #t7 = #t3;
+    if(#t7 is core::List<dynamic> && #t7{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
+      final dynamic #t8 = #t7{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+      final dynamic #t9 = #t8;
+      if(#t9 is core::double) {
+        #t4 = 1;
+        #t5 = true;
+        #t2 = #t9{core::double};
+      }
+    }
+  }
+  switch(#t4) {
+    #L1:
+    case #C1:
+      {
+        core::int y = #t1{core::int};
+        {
+          return y;
+        }
+      }
+    #L2:
+    case #C2:
+      {
+        core::double z = #t2{core::double};
+        {
+          return z;
+        }
+      }
+    #L3:
+    default:
+      {
+        return null;
+      }
+  }
+}
+static method main() → dynamic {
+  self::expectEquals(self::test(0), 0);
+  self::expectEquals(self::test(core::_GrowableList::_literal1<core::double>(3.14)), 3.14);
+  self::expectEquals(self::test("foo"), null);
+  self::expectEquals(self::test(null), null);
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected ${x} to be equal to ${y}.";
+  }
+}
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+}

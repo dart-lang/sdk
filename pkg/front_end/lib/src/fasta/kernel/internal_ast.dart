@@ -424,9 +424,22 @@ class PatternSwitchCase extends TreeNode
       throw new UnimplementedError('PatternSwitchCase.expressionOffsets');
 }
 
-class PatternSwitchStatement extends InternalStatement {
+class PatternSwitchStatement extends InternalStatement
+    implements SwitchStatement {
+  @override
   Expression expression;
+
+  @override
   final List<SwitchCase> cases;
+
+  @override
+  bool isExplicitlyExhaustive = false;
+
+  @override
+  bool get hasDefault => throw new UnimplementedError();
+
+  @override
+  bool get isExhaustive => throw new UnimplementedError();
 
   PatternSwitchStatement(int fileOffset, this.expression, this.cases) {
     this.fileOffset = fileOffset;
