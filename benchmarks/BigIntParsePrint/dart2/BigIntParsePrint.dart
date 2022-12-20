@@ -14,7 +14,7 @@ import 'package:fixnum/fixnum.dart';
 import 'native_version_dummy.dart'
     if (dart.library.js) 'native_version_javascript.dart';
 
-// Benckmark BigInt and Int64 formatting and parsing.
+// Benchmark BigInt and Int64 formatting and parsing.
 
 // A global sink that is used in the [check] method ensures that the results are
 // not optimized.
@@ -312,7 +312,7 @@ void main() {
     selectFormatNativeBigIntBenchmark('JsBigInt.toString.4096.bits', 4096),
   ];
 
-  // Warm up all benchmarks to ensure consistent behavious of shared code.
+  // Warm up all benchmarks to ensure consistent behaviors of shared code.
   benchmarks.forEach((bm) => bm()
     ..setup()
     ..run()
