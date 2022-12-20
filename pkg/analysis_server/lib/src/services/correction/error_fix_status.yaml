@@ -40,9 +40,6 @@ AnalysisOptionsErrorCode.PARSE_ERROR:
   notes: |-
     Because of the way the YAML parser works, there isn't enough information to
     be able to provide a fix.
-AnalysisOptionsHintCode.PREVIEW_DART_2_SETTING_DEPRECATED:
-  status: needsFix
-  notes: Fixed.
 AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED:
   status: needsFix
   notes: Fixed.

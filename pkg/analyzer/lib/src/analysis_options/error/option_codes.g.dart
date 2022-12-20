@@ -59,15 +59,6 @@ class AnalysisOptionsErrorCode extends ErrorCode {
 }
 
 class AnalysisOptionsHintCode extends ErrorCode {
-  ///  An error code indicating that the enablePreviewDart2 setting is
-  ///  deprecated.
-  static const AnalysisOptionsHintCode PREVIEW_DART_2_SETTING_DEPRECATED =
-      AnalysisOptionsHintCode(
-    'PREVIEW_DART_2_SETTING_DEPRECATED',
-    "The 'enablePreviewDart2' setting is deprecated.",
-    correctionMessage: "It is no longer necessary to explicitly enable Dart 2.",
-  );
-
   ///  An error code indicating that strong-mode: true is deprecated.
   static const AnalysisOptionsHintCode STRONG_MODE_SETTING_DEPRECATED =
       AnalysisOptionsHintCode(
