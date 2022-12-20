@@ -129,6 +129,18 @@ enum E {
     ]);
   }
 
+  test_extension_unnamed_operator_isUsed_relationalPattern() async {
+    await assertNoErrorsInCode(r'''
+void f(int? x) {
+  if (x case > 0) {}
+}
+
+extension on int? {
+  bool operator >(int other) => true;
+}
+''');
+  }
+
   test_optionalParameter_isUsed_genericConstructor() async {
     await assertNoErrorsInCode('''
 class C<T> {
