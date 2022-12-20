@@ -2961,8 +2961,8 @@ Future<Null> _loadHunk(String hunkName, String loadId, int priority) {
     try {
       // Share the loadId that hunk belongs to, this will allow for any
       // additional loadId based bundling optimizations.
-      JS('void', '#(#, #, #, #)', deferredLibraryLoader, uriAsString, jsSuccess,
-          jsFailure, loadId);
+      JS('void', '#(#, #, #, #, #)', deferredLibraryLoader, uriAsString,
+          jsSuccess, jsFailure, loadId, priority);
     } catch (error, stackTrace) {
       failure(error, "invoking dartDeferredLibraryLoader hook", stackTrace);
     }
