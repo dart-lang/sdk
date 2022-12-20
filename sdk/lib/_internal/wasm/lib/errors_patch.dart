@@ -59,13 +59,6 @@ class _TypeError extends _Error implements TypeError {
   }
 
   @pragma("wasm:entry-point")
-  static Never _throwThrowNullError(StackTrace stackTrace) {
-    final typeError =
-        _TypeError.fromMessageAndStackTrace("Throw of null", stackTrace);
-    return _throwObjectWithStackTrace(typeError, stackTrace);
-  }
-
-  @pragma("wasm:entry-point")
   static Never _throwAsCheckError(
       Object? operand, Type? type, StackTrace stackTrace) {
     final typeError = _TypeError.fromMessageAndStackTrace(

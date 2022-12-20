@@ -2360,11 +2360,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitThrow(Throw node, w.ValueType expectedType) {
-    if (dartTypeOf(node.expression).isPotentiallyNullable) {
-      _nullCheck(node.expression, translator.throwThrowNullError);
-    } else {
-      wrap(node.expression, translator.topInfo.nonNullableType);
-    }
+    // Front-end wraps the argument with `as Object` when necessary, so we can
+    // assume non-nullable here.
+    assert(!dartTypeOf(node.expression).isPotentiallyNullable);
+    wrap(node.expression, translator.topInfo.nonNullableType);
     call(translator.stackTraceCurrent.reference);
 
     // At this point, we have the exception and the current stack trace on the

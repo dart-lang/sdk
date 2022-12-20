@@ -170,8 +170,6 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "StackTrace", "get:current");
   late final Procedure throwNullCheckError =
       index.getProcedure("dart:core", "_TypeError", "_throwNullCheckError");
-  late final Procedure throwThrowNullError =
-      index.getProcedure("dart:core", "_TypeError", "_throwThrowNullError");
   late final Procedure throwAsCheckError =
       index.getProcedure("dart:core", "_TypeError", "_throwAsCheckError");
   late final Procedure throwWasmRefError =
