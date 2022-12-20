@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:math' as math;
 import 'dart:collection' show Queue;
 
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
@@ -312,86 +311,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   bool isGenerateAtUseSite(HInstruction instruction) {
     return generateAtUseSite.contains(instruction);
-  }
-
-  bool hasNonBitOpUser(HInstruction instruction, Set<HPhi> phiSet) {
-    for (HInstruction user in instruction.usedBy) {
-      if (user is HPhi) {
-        if (!phiSet.contains(user)) {
-          phiSet.add(user);
-          if (hasNonBitOpUser(user, phiSet)) return true;
-        }
-      } else if (user is! HBitNot && user is! HBinaryBitOp) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  // Returns the number of bits occupied by the value computed by [instruction].
-  // Returns `32` if the value is negative or does not fit in a smaller number
-  // of bits.
-  int bitWidth(HInstruction instruction) {
-    const int MAX = 32;
-    int? constant(HInstruction instruction) {
-      if (instruction is HConstant) {
-        ConstantValue constant = instruction.constant;
-        if (constant is IntConstantValue) {
-          return constant.intValue.toInt();
-        }
-      }
-      return null;
-    }
-
-    if (instruction.isConstantInteger()) {
-      int value = constant(instruction)!;
-      if (value < 0) return MAX;
-      if (value > ((1 << 31) - 1)) return MAX;
-      return value.bitLength;
-    }
-    if (instruction is HBitAnd) {
-      return math.min(bitWidth(instruction.left), bitWidth(instruction.right));
-    }
-    if (instruction is HBitOr) {
-      int leftWidth = bitWidth(instruction.left);
-      if (leftWidth == MAX) return MAX;
-      return math.max(leftWidth, bitWidth(instruction.right));
-    }
-    if (instruction is HBitXor) {
-      int leftWidth = bitWidth(instruction.left);
-      if (leftWidth == MAX) return MAX;
-      return math.max(leftWidth, bitWidth(instruction.right));
-    }
-    if (instruction is HShiftLeft) {
-      int? shiftCount = constant(instruction.right);
-      if (shiftCount == null || shiftCount < 0 || shiftCount > 31) return MAX;
-      int leftWidth = bitWidth(instruction.left);
-      int width = leftWidth + shiftCount;
-      return math.min(width, MAX);
-    }
-    if (instruction is HShiftRight) {
-      int? shiftCount = constant(instruction.right);
-      if (shiftCount == null || shiftCount < 0 || shiftCount > 31) return MAX;
-      int leftWidth = bitWidth(instruction.left);
-      if (leftWidth >= MAX) return MAX;
-      return math.max(leftWidth - shiftCount, 0);
-    }
-    if (instruction is HAdd) {
-      return math.min(
-          1 + math.max(bitWidth(instruction.left), bitWidth(instruction.right)),
-          MAX);
-    }
-    return MAX;
-  }
-
-  bool requiresUintConversion(HInstruction instruction) {
-    if (instruction.isUInt31(_abstractValueDomain).isDefinitelyTrue) {
-      return false;
-    }
-    if (bitWidth(instruction) <= 31) return false;
-    // If the result of a bit-operation is only used by other bit
-    // operations, we do not have to convert to an unsigned integer.
-    return hasNonBitOpUser(instruction, Set<HPhi>());
   }
 
   /// If the [instruction] is not `null` it will be used to attach the position
@@ -1513,27 +1432,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   // We want the outcome of bit-operations to be positive. We use the unsigned
   // shift operator to achieve this.
+  void convertBitOpResultToUnsigned(HInstruction node) {
+    push(js.Binary(">>>", pop(), js.LiteralNumber("0"))
+        .withSourceInformation(node.sourceInformation));
+  }
+
   visitBitInvokeBinary(HBinaryBitOp node, String op) {
     visitInvokeBinary(node, op);
-    if (op != '>>>' && requiresUintConversion(node)) {
-      push(js.Binary(">>>", pop(), js.LiteralNumber("0"))
-          .withSourceInformation(node.sourceInformation));
-    }
+    if (node.requiresUintConversion) convertBitOpResultToUnsigned(node);
   }
 
   visitInvokeUnary(HInvokeUnary node, String op) {
     use(node.operand);
     push(js.Prefix(op, pop()).withSourceInformation(node.sourceInformation));
-  }
-
-  // We want the outcome of bit-operations to be positive. We use the unsigned
-  // shift operator to achieve this.
-  visitBitInvokeUnary(HInvokeUnary node, String op) {
-    visitInvokeUnary(node, op);
-    if (requiresUintConversion(node)) {
-      push(js.Binary(">>>", pop(), js.LiteralNumber("0"))
-          .withSourceInformation(node.sourceInformation));
-    }
   }
 
   void emitIdentityComparison(
@@ -1580,8 +1491,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitSubtract(HSubtract node) => visitInvokeBinary(node, '-');
   @override
   visitBitAnd(HBitAnd node) => visitBitInvokeBinary(node, '&');
-  @override
-  visitBitNot(HBitNot node) => visitBitInvokeUnary(node, '~');
+
   @override
   visitBitOr(HBitOr node) => visitBitInvokeBinary(node, '|');
   @override
@@ -1590,6 +1500,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitShiftLeft(HShiftLeft node) => visitBitInvokeBinary(node, '<<');
   @override
   visitShiftRight(HShiftRight node) => visitBitInvokeBinary(node, '>>>');
+
+  @override
+  visitBitNot(HBitNot node) {
+    visitInvokeUnary(node, '~');
+    if (node.requiresUintConversion) convertBitOpResultToUnsigned(node);
+  }
 
   @override
   visitTruncatingDivide(HTruncatingDivide node) {

@@ -1746,7 +1746,7 @@ class _HttpOutgoing implements StreamConsumer<List<int>> {
       return close();
     }
     // Use new stream so we are able to pause (see below listen). The
-    // alternative is to use stream.extand, but that won't give us a way of
+    // alternative is to use stream.expand, but that won't give us a way of
     // pausing.
     var controller = StreamController<List<int>>(sync: true);
 

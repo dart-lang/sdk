@@ -869,9 +869,7 @@ CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE:
 CompileTimeErrorCode.OBJECT_CANNOT_EXTEND_ANOTHER_CLASS:
   status: noFix
 CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE:
-  status: needsFix
-  notes: |-
-    ReplaceColonWithEquals should fix the issue, but it needs tests.
+  status: hasFix
 CompileTimeErrorCode.ON_REPEATED:
   status: needsEvaluation
 CompileTimeErrorCode.OPTIONAL_PARAMETER_IN_OPERATOR:
@@ -1535,6 +1533,9 @@ HintCode.MISSING_RETURN:
   status: hasFix
 HintCode.MIXIN_ON_SEALED_CLASS:
   status: noFix
+  notes: |-
+    `sealed` annotation is likely to be replaced by the `sealed` keyword
+    in the next stable release.
 HintCode.MUST_BE_IMMUTABLE:
   status: noFix
 HintCode.MUST_CALL_SUPER:
@@ -1597,6 +1598,8 @@ HintCode.STRICT_RAW_TYPE:
 HintCode.SUBTYPE_OF_SEALED_CLASS:
   status: needsFix
   notes: |-
+    `sealed` annotation is likely to be replaced by the `sealed` keyword
+    in the next stable release.
     Remove the sealed class in the `extends` or `implements` clause.
     Use RemoveNameFromDeclarationClause.
 HintCode.TYPE_CHECK_IS_NOT_NULL:

@@ -990,7 +990,7 @@ abstract class MethodMirror implements DeclarationMirror {
   List<ParameterMirror> get parameters;
 
   /**
-   * A function is considered non-static iff it is permited to refer to 'this'.
+   * A function is considered non-static iff it is permitted to refer to 'this'.
    *
    * Note that generative constructors are considered non-static, whereas
    * factory constructors are considered static.

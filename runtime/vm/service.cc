@@ -2319,6 +2319,7 @@ static void PrintInboundReferences(Thread* thread,
             (slot_offset.Value() - Array::element_offset(0)) /
             Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
+        jselement.AddProperty("parentField", element_index);
       } else if (source.IsRecord()) {
         AddParentFieldToResponseBasedOnRecord(&field_names, &name, jselement,
                                               Record::Cast(source),
@@ -2349,6 +2350,7 @@ static void PrintInboundReferences(Thread* thread,
               (slot_offset.Value() - Context::variable_offset(0)) /
               Context::kBytesPerElement;
           jselement.AddProperty("parentListIndex", element_index);
+          jselement.AddProperty("parentField", element_index);
         } else {
           jselement.AddProperty("_parentWordOffset", slot_offset.Value());
         }
@@ -2443,6 +2445,7 @@ static void PrintRetainingPath(Thread* thread,
             (slot_offset.Value() - Array::element_offset(0)) /
             Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
+        jselement.AddProperty("parentField", element_index);
       } else if (element.IsRecord()) {
         AddParentFieldToResponseBasedOnRecord(&field_names, &name, jselement,
                                               Record::Cast(element),
@@ -2489,6 +2492,7 @@ static void PrintRetainingPath(Thread* thread,
               (slot_offset.Value() - Context::variable_offset(0)) /
               Context::kBytesPerElement;
           jselement.AddProperty("parentListIndex", element_index);
+          jselement.AddProperty("parentField", element_index);
         } else {
           jselement.AddProperty("_parentWordOffset", slot_offset.Value());
         }
@@ -5413,27 +5417,6 @@ static const MethodParameter* const set_exception_pause_mode_params[] = {
     NULL,
 };
 
-static void SetExceptionPauseMode(Thread* thread, JSONStream* js) {
-  const char* mode = js->LookupParam("mode");
-  if (mode == NULL) {
-    PrintMissingParamError(js, "mode");
-    return;
-  }
-  Dart_ExceptionPauseInfo info =
-      EnumMapper(mode, exception_pause_mode_names, exception_pause_mode_values);
-  if (info == kInvalidExceptionPauseInfo) {
-    PrintInvalidParamError(js, "mode");
-    return;
-  }
-  Isolate* isolate = thread->isolate();
-  isolate->debugger()->SetExceptionPauseInfo(info);
-  if (Service::debug_stream.enabled()) {
-    ServiceEvent event(isolate, ServiceEvent::kDebuggerSettingsUpdate);
-    Service::HandleEvent(&event);
-  }
-  PrintSuccess(js);
-}
-
 static const MethodParameter* const set_isolate_pause_mode_params[] = {
     ISOLATE_PARAMETER,
     new EnumParameter("exceptionPauseMode", false, exception_pause_mode_names),
@@ -5887,8 +5870,6 @@ static const ServiceMethodDescriptor service_methods_[] = {
     evaluate_compiled_expression_params },
   { "setBreakpointState", SetBreakpointState,
     set_breakpoint_state_params },
-  { "setExceptionPauseMode", SetExceptionPauseMode,
-    set_exception_pause_mode_params },
   { "setIsolatePauseMode", SetIsolatePauseMode,
     set_isolate_pause_mode_params },
   { "setFlag", SetFlag,

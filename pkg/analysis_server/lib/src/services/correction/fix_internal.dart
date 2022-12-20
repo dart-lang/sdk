@@ -1144,6 +1144,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.NULLABLE_TYPE_IN_WITH_CLAUSE: [
       RemoveQuestionMark.new,
     ],
+    CompileTimeErrorCode.OBSOLETE_COLON_FOR_DEFAULT_VALUE: [
+      ReplaceColonWithEquals.new
+    ],
     CompileTimeErrorCode.RETURN_OF_INVALID_TYPE_FROM_FUNCTION: [
       MakeReturnTypeNullable.new,
       ReplaceReturnType.new,

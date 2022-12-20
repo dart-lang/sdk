@@ -1010,7 +1010,7 @@ class Primitives {
           }
         }
         if (used != namedArguments.length) {
-          // Named argument with name not accected by function.
+          // Named argument with name not accepted by function.
           return functionNoSuchMethod(function, arguments, namedArguments);
         }
       }

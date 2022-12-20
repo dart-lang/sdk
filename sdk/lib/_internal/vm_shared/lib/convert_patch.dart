@@ -250,7 +250,7 @@ class _NumberBuffer {
   }
 
   // TODO(lrn): See if parsing of numbers can be abstracted to something
-  // not only working on strings, but also on char-code lists, without lossing
+  // not only working on strings, but also on char-code lists, without losing
   // performance.
   num parseNum() => num.parse(getString());
   double parseDouble() => double.parse(getString());
@@ -431,7 +431,7 @@ abstract class _ChunkedJsonParser<T> {
    *      ..0ddd0011 : Partial 'null' keyword.
    *      ..0ddd0111 : Partial 'true' keyword.
    *      ..0ddd1011 : Partial 'false' keyword.
-   *      ..0ddd1111 : Partial UTF-8 BOM byte seqeuence ("\xEF\xBB\xBF").
+   *      ..0ddd1111 : Partial UTF-8 BOM byte sequence ("\xEF\xBB\xBF").
    *                   For all keywords, the `ddd` bits encode the number
    *                   of letters seen.
    *                   The BOM byte sequence is only used by [_JsonUtf8Parser],
@@ -530,7 +530,7 @@ abstract class _ChunkedJsonParser<T> {
   T get chunk;
 
   /**
-   * Get charcacter/code unit of current chunk.
+   * Get character/code unit of current chunk.
    *
    * The [index] must be non-negative and less than `chunkEnd`.
    * In practive, [index] will be no smaller than the `start` argument passed

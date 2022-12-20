@@ -592,6 +592,8 @@ import 'nullable_type_in_on_clause_test.dart' as nullable_type_in_on_clause;
 import 'nullable_type_in_with_clause_test.dart' as nullable_type_in_with_clause;
 import 'object_cannot_extend_another_class_test.dart'
     as object_cannot_extend_another_class;
+import 'obsolete_colon_for_default_value_test.dart'
+    as obsolete_colon_for_default_value;
 import 'on_repeated_test.dart' as on_repeated;
 import 'optional_parameter_in_operator_test.dart'
     as optional_parameter_in_operator;
@@ -1216,6 +1218,7 @@ main() {
     nullable_type_in_on_clause.main();
     nullable_type_in_with_clause.main();
     object_cannot_extend_another_class.main();
+    obsolete_colon_for_default_value.main();
     on_repeated.main();
     optional_parameter_in_operator.main();
     override_on_non_overriding_field.main();

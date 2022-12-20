@@ -34,7 +34,6 @@ src/org/dartlang/vm/service/consumer/ReloadSourcesConsumer.java
 src/org/dartlang/vm/service/consumer/RemoveBreakpointConsumer.java
 src/org/dartlang/vm/service/consumer/RequestHeapSnapshotConsumer.java
 src/org/dartlang/vm/service/consumer/ResumeConsumer.java
-src/org/dartlang/vm/service/consumer/SetExceptionPauseModeConsumer.java
 src/org/dartlang/vm/service/consumer/SetFlagConsumer.java
 src/org/dartlang/vm/service/consumer/SetIsolatePauseModeConsumer.java
 src/org/dartlang/vm/service/consumer/SetLibraryDebuggableConsumer.java
