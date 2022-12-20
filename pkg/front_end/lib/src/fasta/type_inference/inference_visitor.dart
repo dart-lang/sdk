@@ -1761,14 +1761,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     VariableDeclaration matchedExpressionVariable = engine.forest
         .createVariableDeclarationForValue(node.expression,
             type: scrutineeType);
-    PatternTransformationResult transformationResult = node.patternGuard.pattern
-        .transform(
-            engine.forest
-                .createVariableGet(node.fileOffset, matchedExpressionVariable),
-            scrutineeType,
-            engine.forest
-                .createVariableGet(node.fileOffset, matchedExpressionVariable),
-            this);
 
     // isPatternMatchingFailed: bool VAR = true;
     VariableDeclaration isPatternMatchingFailed = engine.forest
@@ -1816,6 +1808,32 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ];
     }
 
+    PatternTransformationResult transformationResult = node.patternGuard.pattern
+        .transform(
+            engine.forest
+                .createVariableGet(node.fileOffset, matchedExpressionVariable),
+            scrutineeType,
+            engine.forest
+                .createVariableGet(node.fileOffset, matchedExpressionVariable),
+            this);
+    replacementStatements = _transformationResultToStatements(
+        node.fileOffset, transformationResult, replacementStatements);
+
+    replacementStatements = [
+      matchedExpressionVariable,
+      if (otherwise != null) isPatternMatchingFailed,
+      ...replacementStatements,
+      if (otherwiseBranchAsStatement != null) otherwiseBranchAsStatement
+    ];
+
+    return new StatementInferenceResult.multiple(
+        node.fileOffset, replacementStatements);
+  }
+
+  List<Statement> _transformationResultToStatements(
+      int fileOffset,
+      PatternTransformationResult transformationResult,
+      List<Statement> replacementStatements) {
     List<ContinuationStackElement> continuationStack = [];
     for (int i = transformationResult.elements.length - 1; i >= 0; i--) {
       PatternTransformationElement transformationElement =
@@ -1831,10 +1849,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           if (condition != null) {
             replacementStatements = [
               engine.forest.createIfStatement(
-                  node.fileOffset,
+                  fileOffset,
                   condition,
                   engine.forest.createBlock(
-                      node.fileOffset, node.fileOffset, replacementStatements),
+                      fileOffset, fileOffset, replacementStatements),
                   null)
             ];
           }
@@ -1870,16 +1888,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     assert(continuationStack.isEmpty,
         "Continuation stack is not empty at the end of desugaring.");
-
-    replacementStatements = [
-      matchedExpressionVariable,
-      if (otherwise != null) isPatternMatchingFailed,
-      ...replacementStatements,
-      if (otherwiseBranchAsStatement != null) otherwiseBranchAsStatement
-    ];
-
-    return new StatementInferenceResult.multiple(
-        node.fileOffset, replacementStatements);
+    return replacementStatements;
   }
 
   ExpressionInferenceResult visitIntJudgment(
@@ -7721,8 +7730,158 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   StatementInferenceResult visitPatternSwitchStatement(
       PatternSwitchStatement node) {
-    return new StatementInferenceResult.single(
-        new ExpressionStatement(new InvalidExpression('$node')));
+    Expression expression = node.expression;
+    SwitchStatementTypeAnalysisResult<DartType> analysisResult =
+        analyzeSwitchStatement(node, expression, node.cases.length);
+    DartType scrutineeType = analysisResult.scrutineeType;
+    // Stack: (Expression)
+    Node? rewrite = popRewrite();
+    if (!identical(expression, rewrite)) {
+      expression = rewrite as Expression;
+    }
+
+    // matchedExpressionVariable: `scrutineeType` MVAR = `node.expression`;
+    VariableDeclaration matchedExpressionVariable = engine.forest
+        .createVariableDeclarationForValue(node.expression,
+            type: scrutineeType);
+
+    // matchResultVariable: int RVAR = -1;
+    VariableDeclaration matchResultVariable = engine.forest
+        .createVariableDeclarationForValue(
+            engine.forest.createIntLiteral(node.fileOffset, -1),
+            type: coreTypes.intNonNullableRawType);
+
+    // matchSucceeded: bool SVAR = false;
+    VariableDeclaration matchSucceeded = engine.forest
+        .createVariableDeclarationForValue(
+            engine.forest.createBoolLiteral(node.fileOffset, false),
+            type: coreTypes.boolNonNullableRawType);
+
+    List<Statement> replacementStatements = [
+      matchedExpressionVariable,
+      matchResultVariable,
+      matchSucceeded
+    ];
+
+    List<SwitchCase> replacementCases = [];
+
+    List<VariableDeclaration> declaredVariableHelpers = [];
+
+    for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
+      SwitchCase switchCase = node.cases[caseIndex];
+      if (switchCase is PatternSwitchCase) {
+        if (switchCase.patternGuards.length != 1) {
+          // TODO(cstefantsova): Handle multiple patternGuards.
+        }
+        Pattern pattern = switchCase.patternGuards.first.pattern;
+        Statement body = switchCase.body;
+
+        // setMatchResult: `matchResultVariable` = `caseIndex`;
+        //   ==> RVAR = `caseIndex`;
+        Statement setMatchResult = engine.forest.createExpressionStatement(
+            node.fileOffset,
+            engine.forest.createVariableSet(
+                node.fileOffset,
+                matchResultVariable,
+                engine.forest.createIntLiteral(node.fileOffset, caseIndex)));
+
+        // setMatchSucceeded: `matchSucceeded` = true;
+        //   ==> SVAR = true;
+        Statement setMatchSucceeded = engine.forest.createExpressionStatement(
+            node.fileOffset,
+            engine.forest.createVariableSet(node.fileOffset, matchSucceeded,
+                engine.forest.createBoolLiteral(node.fileOffset, true)));
+
+        PatternTransformationResult transformationResult = pattern.transform(
+            engine.forest
+                .createVariableGet(node.fileOffset, matchedExpressionVariable),
+            scrutineeType,
+            engine.forest
+                .createVariableGet(node.fileOffset, matchedExpressionVariable),
+            this);
+
+        // condition: `matchSucceeded`!
+        //   ==> SVAR!
+        transformationResult = transformationResult.prependElement(
+            new PatternTransformationElement(
+                condition: engine.forest.createNot(
+                    node.fileOffset,
+                    engine.forest
+                        .createVariableGet(node.fileOffset, matchSucceeded)),
+                variableInitializers: [],
+                kind: PatternTransformationElementKind.regular),
+            this);
+
+        List<VariableDeclaration> caseDeclaredVariableHelpers = [];
+        List<Statement> caseDeclaredVariableHelperInitializers = [];
+        for (VariableDeclaration declaredVariable
+            in pattern.declaredVariables) {
+          // declaredVariableHelper: dynamic HVAR;
+          VariableDeclaration declaredVariableHelper = engine.forest
+              .createVariableDeclaration(node.fileOffset, null,
+                  type: const DynamicType());
+
+          caseDeclaredVariableHelpers.add(declaredVariableHelper);
+
+          // initializer:
+          //     `declaredVariableHelper` = `declaredVariable.initializer`;
+          //   ==> HVAR = `declaredVariable.initializer`;
+          caseDeclaredVariableHelperInitializers.add(engine.forest
+              .createExpressionStatement(
+                  node.fileOffset,
+                  engine.forest.createVariableSet(node.fileOffset,
+                      declaredVariableHelper, declaredVariable.initializer!)));
+
+          // `declaredVariable`:
+          //     declaredVariable` =
+          //         `declaredVariableHelper`{`declaredVariable.type`}
+          //   ==> `declaredVariable` = HVAR{`declaredVariable.type`}
+          declaredVariable.initializer = engine.forest
+              .createVariableGet(node.fileOffset, declaredVariableHelper)
+            ..promotedType = declaredVariable.type
+            ..parent = declaredVariable;
+        }
+
+        List<Statement> caseReplacementStatements = [
+          setMatchResult,
+          setMatchSucceeded,
+          ...caseDeclaredVariableHelperInitializers
+        ];
+
+        declaredVariableHelpers.addAll(caseDeclaredVariableHelpers);
+
+        caseReplacementStatements = _transformationResultToStatements(
+            node.fileOffset, transformationResult, caseReplacementStatements);
+
+        replacementStatements.addAll(caseReplacementStatements);
+
+        replacementCases.add(new SwitchCaseImpl(
+            [engine.forest.createIntLiteral(node.fileOffset, caseIndex)],
+            [node.fileOffset],
+            engine.forest
+                .createBlock(node.fileOffset, node.fileOffset, <Statement>[
+              ...pattern.declaredVariables,
+              if (body is! Block || body.statements.isNotEmpty) body
+            ]),
+            hasLabel: false));
+      } else if (switchCase is SwitchCaseImpl && switchCase.isDefault) {
+        replacementCases.add(switchCase);
+      } else {
+        // TODO(cstefantsova): Report an internal or compile-time error.
+      }
+    }
+
+    replacementStatements = [
+      ...declaredVariableHelpers,
+      ...replacementStatements,
+      engine.forest.createSwitchStatement(
+          node.fileOffset,
+          engine.forest.createVariableGet(node.fileOffset, matchResultVariable),
+          replacementCases)
+    ];
+
+    return new StatementInferenceResult.multiple(
+        node.fileOffset, replacementStatements);
   }
 
   @override
@@ -8697,23 +8856,42 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   SwitchStatementMemberInfo<Node, Statement, Expression, VariableDeclaration>
       getSwitchStatementMemberInfo(
           covariant SwitchStatement node, int caseIndex) {
-    SwitchCaseImpl case_ = node.cases[caseIndex] as SwitchCaseImpl;
-    return new SwitchStatementMemberInfo([
-      for (Expression expression in case_.expressions)
-        new CaseHeadOrDefaultInfo(
-          pattern: expression,
-          // TODO(scheglov) pass actual variables, not just `{}`.
-          variables: {},
-        ),
-      if (case_.isDefault)
-        new CaseHeadOrDefaultInfo(
-          pattern: null,
-          variables: {},
-        )
-    ], [
-      case_.body
-    ], {}, hasLabels: case_.hasLabel);
-    // TODO(scheglov) pass actual variables, not just `{}`.
+    SwitchCase case_ = node.cases[caseIndex];
+    if (case_ is SwitchCaseImpl) {
+      return new SwitchStatementMemberInfo([
+        for (Expression expression in case_.expressions)
+          new CaseHeadOrDefaultInfo(
+            pattern: expression,
+            // TODO(scheglov) pass actual variables, not just `{}`.
+            variables: {},
+          ),
+        if (case_.isDefault)
+          new CaseHeadOrDefaultInfo(
+            pattern: null,
+            variables: {},
+          )
+      ], [
+        case_.body
+      ], {}, hasLabels: case_.hasLabel);
+      // TODO(scheglov) pass actual variables, not just `{}`.
+    } else {
+      case_ as PatternSwitchCase;
+      return new SwitchStatementMemberInfo([
+        for (PatternGuard patternGuard in case_.patternGuards)
+          new CaseHeadOrDefaultInfo(
+            pattern: patternGuard.pattern,
+            // TODO(cstefantsova): Pass actual variables, not just `{}`.
+            variables: {},
+          ),
+        if (case_.isDefault)
+          new CaseHeadOrDefaultInfo(
+            pattern: null,
+            variables: {},
+          )
+      ], [
+        case_.body
+      ], {}, hasLabels: case_.hasLabel);
+    }
   }
 
   @override
@@ -8722,21 +8900,25 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Stack: (Pattern, Expression)
     popRewrite(); // "when" expression
     // Stack: (Pattern)
-    SwitchCaseImpl case_ = node.cases[caseIndex] as SwitchCaseImpl;
-    Expression expression = case_.expressions[subIndex];
-    Node? rewrite = popRewrite();
-    // Stack: ()
-    if (!identical(expression, rewrite)) {
-      expression = rewrite as Expression;
-      case_.expressions[subIndex] = expression..parent = case_;
-    }
-    Set<Field?>? enumFields = _enumFields;
-    if (enumFields != null) {
-      if (expression is StaticGet) {
-        enumFields.remove(expression.target);
-      } else if (expression is NullLiteral) {
-        enumFields.remove(null);
+    SwitchCase case_ = node.cases[caseIndex];
+    if (case_ is SwitchCaseImpl) {
+      Expression expression = case_.expressions[subIndex];
+      Node? rewrite = popRewrite();
+      // Stack: ()
+      if (!identical(expression, rewrite)) {
+        expression = rewrite as Expression;
+        case_.expressions[subIndex] = expression..parent = case_;
       }
+      Set<Field?>? enumFields = _enumFields;
+      if (enumFields != null) {
+        if (expression is StaticGet) {
+          enumFields.remove(expression.target);
+        } else if (expression is NullLiteral) {
+          enumFields.remove(null);
+        }
+      }
+    } else {
+      case_ as PatternSwitchCase;
     }
   }
 
