@@ -12,7 +12,7 @@ import '../util/util.dart' show Hashing, Setlet;
 import 'selector.dart' show Selector;
 
 // TODO(kasperl): This actually holds getters and setters just fine
-// too and stricly they aren't functions. Maybe this needs a better
+// too and strictly they aren't functions. Maybe this needs a better
 // name -- something like ElementSet seems a bit too generic.
 class FunctionSet {
   final Map<String, FunctionSetNode> _publicNodes;

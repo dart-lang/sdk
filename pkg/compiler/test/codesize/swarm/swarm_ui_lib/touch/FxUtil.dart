@@ -41,7 +41,7 @@ class FxUtil {
       [num z = 0, num rotation, num scale, num originX, num originY]) {
     final style = el.style;
     // TODO(jacobr): create a helper class that simplifies building
-    // transformation matricies that will be set as CSS styles. We should
+    // transformation matrices that will be set as CSS styles. We should
     // consider using CSSMatrix although that may be overkill.
     String transform = '$TRANSLATE_3D(${x}px,${y}px,${z}px)';
     if (rotation != null) {

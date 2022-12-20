@@ -217,7 +217,7 @@ class Article {
     if (Sections.runningFromFile) {
       _htmlBody = CannedData.data[name];
     } else {
-      // TODO(jimhug): Remove this truly evil synchronoush xhr.
+      // TODO(jimhug): Remove this truly evil synchronous xhr.
       final req = HttpRequest();
       req.open('GET', 'data/$name', async: false);
       req.send();

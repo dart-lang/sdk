@@ -96,7 +96,7 @@ class _Move {
 /// Secant method root solver helper class.
 /// We use http://en.wikipedia.org/wiki/Secant_method
 /// falling back to the http://en.wikipedia.org/wiki/Bisection_method
-/// if it doesn't appear we are converging properlty.
+/// if it doesn't appear we are converging properly.
 /// TODO(jacobr): simplify the code so we don't have to use this solver
 /// class at all.
 class Solver {

@@ -56,7 +56,7 @@ class ConveyorView extends CompositeView {
 
     final style = container.style;
     // TODO(jacobr): modify setTransitionDuration so the input is always
-    // specified in miliseconds rather than accepting a string.
+    // specified in milliseconds rather than accepting a string.
     style.transitionDuration = '${durationSeconds}s';
     final xTranslationPercent = -index * 100;
     style.transform = 'translate3d($xTranslationPercent%, 0px, 0px)';

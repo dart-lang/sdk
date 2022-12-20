@@ -26,14 +26,14 @@ void main() {
     var mainOutputUnit = closedWorld.outputUnitData.mainOutputUnit;
     List<ConstantValue> allConstants = [];
 
-    addConstantWithDependendencies(ConstantValue c) {
+    addConstantWithDependencies(ConstantValue c) {
       allConstants.add(c);
-      c.getDependencies().forEach(addConstantWithDependendencies);
+      c.getDependencies().forEach(addConstantWithDependencies);
     }
 
     dynamic codegenWorldBuilder = compiler.codegenWorldBuilder;
     codegenWorldBuilder.compiledConstantsForTesting
-        .forEach(addConstantWithDependendencies);
+        .forEach(addConstantWithDependencies);
     for (String stringValue in ["cA", "cB", "cC"]) {
       StringConstantValue constant =
           allConstants.firstWhere((dynamic constant) {

@@ -675,7 +675,7 @@ class ModuloSpecializer extends BinaryArithmeticSpecializer {
 
     // We can use HRemainder if both inputs are non-negative and the receiver
     // cannot be -0.0.  Note that -0.0 is considered to be an int, so until we
-    // track -0.0 precisely, we have to syntatically filter inputs that cannot
+    // track -0.0 precisely, we have to syntactically filter inputs that cannot
     // generate -0.0.
 
     HInstruction receiver = instruction.getDartReceiver(closedWorld);

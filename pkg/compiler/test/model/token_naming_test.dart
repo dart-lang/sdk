@@ -38,7 +38,7 @@ void main() {
   Expect.equals("aZ", forwardN(scope, 25));
   // Overflow to first position.
   Expect.equals("b_", forwardN(scope, 1));
-  // Make sure we skipe g. We have 1 + 10 + 26 + 26 = 63 digits.
+  // Make sure we skip g. We have 1 + 10 + 26 + 26 = 63 digits.
   Expect.equals("h_", forwardN(scope, 63 * 5));
   // Likewise, ensure we skip s.
   Expect.equals("t_", forwardN(scope, 63 * 11));

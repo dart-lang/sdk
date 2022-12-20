@@ -206,7 +206,7 @@
 ///    update(s5, oldSet, newSet) {
 ///      var currentSet = importSet[s];
 ///      if (currentSet == oldSet) {
-///        // Use the memoized result, whohoo!
+///        // Use the memoized result, woohoo!
 ///        importSet[s] = newSet;
 ///      } else {
 ///        // Don't use the memoized result, instead use the worklist to later

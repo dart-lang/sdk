@@ -91,14 +91,14 @@ returnInt8() {
 
 /*member: returnEmpty1:[empty]*/
 returnEmpty1() {
-  // Ensure that we don't intrisify a wrong call to [int.remainder].
+  // Ensure that we don't intrinsify a wrong call to [int.remainder].
   dynamic a = 42;
   return a. /*invoke: [exact=JSUInt31]*/ remainder();
 }
 
 /*member: returnEmpty2:[empty]*/
 returnEmpty2() {
-  // Ensure that we don't intrisify a wrong call to [int.abs].
+  // Ensure that we don't intrinsify a wrong call to [int.abs].
   dynamic a = 42;
   return a. /*invoke: [exact=JSUInt31]*/ abs(42);
 }

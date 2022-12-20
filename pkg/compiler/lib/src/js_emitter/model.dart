@@ -252,7 +252,7 @@ class Class {
   final bool isMixinApplicationWithMembers;
 
   // If the class implements a function type, and the type is encoded in the
-  // metatada table, then this field contains the index into that field.
+  // metadata table, then this field contains the index into that field.
   final js.Expression? functionTypeIndex;
 
   /// Whether the class must be evaluated eagerly.

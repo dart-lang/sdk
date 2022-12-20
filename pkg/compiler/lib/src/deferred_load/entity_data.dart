@@ -99,7 +99,7 @@ class EntityDataRegistry {
   }
 }
 
-/// A trivial visitor to facilate interacting with [EntityData].
+/// A trivial visitor to facilitate interacting with [EntityData].
 abstract class EntityDataVisitor {
   void visitClassEntityData(ClassEntity element);
   void visitClassTypeEntityData(ClassEntity element);
