@@ -333,7 +333,7 @@ ISOLATE_UNIT_TEST_CASE(CodeRelocator_OutOfRangeForwardCall) {
     // no later.
     EXPECT_EQ(ImageWriterCommand::InsertBytesOfTrampoline, commands[1].op);
     EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[2].op);
-    // This is the target of the forwwards call.
+    // This is the target of the forwards call.
     EXPECT_EQ(ImageWriterCommand::InsertInstructionOfCode, commands[3].op);
 
     *entry_point = commands[0].expected_offset;

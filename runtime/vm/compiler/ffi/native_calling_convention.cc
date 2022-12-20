@@ -258,12 +258,12 @@ class ArgumentAllocator : public ValueObject {
 #endif  // defined(TARGET_ARCH_IA32)
 
 #if defined(TARGET_ARCH_ARM)
-  // Transfer homogenuous floats in FPU registers, and allocate the rest
+  // Transfer homogeneous floats in FPU registers, and allocate the rest
   // in 4 or 8 size chunks in registers and stack.
   const NativeLocation& AllocateCompound(
       const NativeCompoundType& payload_type) {
     const auto& compound_type = payload_type.AsCompound();
-    if (compound_type.ContainsHomogenuousFloats() && !SoftFpAbi() &&
+    if (compound_type.ContainsHomogeneousFloats() && !SoftFpAbi() &&
         compound_type.NumPrimitiveMembersRecursive() <= 4) {
       const auto& elem_type = compound_type.FirstPrimitiveMember();
       const intptr_t size = compound_type.SizeInBytes();
@@ -329,7 +329,7 @@ class ArgumentAllocator : public ValueObject {
       const NativeCompoundType& payload_type) {
     const auto& compound_type = payload_type.AsCompound();
     const intptr_t size = compound_type.SizeInBytes();
-    if (compound_type.ContainsHomogenuousFloats() &&
+    if (compound_type.ContainsHomogeneousFloats() &&
         compound_type.NumPrimitiveMembersRecursive() <= 4) {
       const auto& elem_type = compound_type.FirstPrimitiveMember();
       const intptr_t elem_size = elem_type.SizeInBytes();
@@ -748,13 +748,13 @@ static const NativeLocation& CompoundResultLocation(
 
 #if defined(TARGET_ARCH_ARM)
 // Arm passes homogenous float return values in FPU registers and small
-// composities in a single integer register. The rest is stored into the
+// composites in a single integer register. The rest is stored into the
 // location passed in by pointer.
 static const NativeLocation& CompoundResultLocation(
     Zone* zone,
     const NativeCompoundType& payload_type) {
   const intptr_t num_members = payload_type.NumPrimitiveMembersRecursive();
-  if (payload_type.ContainsHomogenuousFloats() && !SoftFpAbi() &&
+  if (payload_type.ContainsHomogeneousFloats() && !SoftFpAbi() &&
       num_members <= 4) {
     NativeLocations& multiple_locations =
         *new (zone) NativeLocations(zone, num_members);

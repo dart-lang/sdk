@@ -89,7 +89,7 @@ class NativeType : public ZoneAllocated {
   // Does not take into account padding required if repeating.
   virtual intptr_t SizeInBytes() const = 0;
 
-  // The alignment in bytes of this represntation on the stack.
+  // The alignment in bytes of this representation on the stack.
   virtual intptr_t AlignmentInBytesStack() const = 0;
 
   // The alignment in bytes of this representation as member of a composite.
@@ -141,7 +141,7 @@ class NativeType : public ZoneAllocated {
   virtual intptr_t NumPrimitiveMembersRecursive() const = 0;
   virtual const NativePrimitiveType& FirstPrimitiveMember() const = 0;
 
-  // Returns the number of primitive members when this aggregrate is flattened
+  // Returns the number of primitive members when this aggregate is flattened
   // out, and sets the out-parameters to the first two such primitive members.
   virtual intptr_t PrimitivePairMembers(
       const NativePrimitiveType** first,
@@ -295,7 +295,7 @@ class NativeCompoundType : public NativeType {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   virtual bool ContainsOnlyFloats(Range range) const = 0;
 
-  // Returns how many word-sized chuncks _only_ contain floats.
+  // Returns how many word-sized chunks _only_ contain floats.
   //
   // Useful for determining whether struct is passed in FP registers on x64.
   intptr_t NumberOfWordSizeChunksOnlyFloat() const;
@@ -312,7 +312,7 @@ class NativeCompoundType : public NativeType {
   //
   // Useful for determining whether struct is passed in FP registers in hardfp
   // and arm64.
-  bool ContainsHomogenuousFloats() const;
+  bool ContainsHomogeneousFloats() const;
 
   virtual intptr_t NumPrimitiveMembersRecursive() const = 0;
   virtual const NativePrimitiveType& FirstPrimitiveMember() const;

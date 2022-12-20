@@ -304,7 +304,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_union16bytesHomogenousx10) {
   const auto& union_type = NativeUnionType::FromNativeTypes(Z, member_types);
 
   EXPECT_EQ(16, union_type.SizeInBytes());
-  EXPECT(union_type.ContainsHomogenuousFloats());
+  EXPECT(union_type.ContainsHomogeneousFloats());
 
   auto& arguments = *new (Z) NativeTypes(Z, 13);
   arguments.Add(&union_type);

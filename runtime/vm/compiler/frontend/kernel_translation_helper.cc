@@ -2962,7 +2962,7 @@ const String& KernelReaderHelper::GetSourceFor(intptr_t index) {
 
 TypedDataPtr KernelReaderHelper::GetLineStartsFor(intptr_t index) {
   // Line starts are delta encoded. So get the max delta first so that we
-  // can store them as tighly as possible.
+  // can store them as tightly as possible.
   AlternativeReadingScope alt(&reader_);
   SetOffset(GetOffsetForSourceInfo(index));
   SkipBytes(ReadUInt());  // skip uri.

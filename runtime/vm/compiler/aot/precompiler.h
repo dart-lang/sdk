@@ -612,7 +612,7 @@ class Obfuscator : public ValueObject {
     String& renamed_;
   };
 
-  // Current obfucation state or NULL if obfuscation is not enabled.
+  // Current obfuscation state or NULL if obfuscation is not enabled.
   ObfuscationState* state_;
 };
 #else

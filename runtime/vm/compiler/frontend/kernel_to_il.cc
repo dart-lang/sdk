@@ -4345,7 +4345,7 @@ Fragment FlowGraphBuilder::PopFromStackToTypedDataBase(
                                          /*index_unboxed=*/false);
     offset_in_bytes += RepresentationUtils::ValueSize(representation);
   }
-  body += DropTempsPreserveTop(num_defs);  // Drop chunck defs keep TypedData.
+  body += DropTempsPreserveTop(num_defs);  // Drop chunk defs keep TypedData.
   return body;
 }
 

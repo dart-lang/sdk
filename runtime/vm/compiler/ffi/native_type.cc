@@ -162,7 +162,7 @@ intptr_t NativePrimitiveType::AlignmentInBytesField() const {
   }
 }
 
-static bool ContainsHomogenuousFloatsInternal(const NativeTypes& types);
+static bool ContainsHomogeneousFloatsInternal(const NativeTypes& types);
 
 // Keep consistent with
 // pkg/vm/lib/transformations/ffi_definitions.dart:StructLayout:_calculateLayout.
@@ -190,7 +190,7 @@ NativeStructType& NativeStructType::FromNativeTypes(Zone* zone,
   // However, homogenous structs are treated differently. They are aligned to
   // their member alignment. (Which is 4 in case of a homogenous float).
   // Source: manual testing.
-  if (!ContainsHomogenuousFloatsInternal(members)) {
+  if (!ContainsHomogeneousFloatsInternal(members)) {
     alignment_stack = compiler::target::kWordSize;
   }
 #endif
@@ -977,7 +977,7 @@ bool NativeUnionType::ContainsUnalignedMembers(intptr_t offset) const {
   return false;
 }
 
-static void ContainsHomogenuousFloatsRecursive(const NativeTypes& types,
+static void ContainsHomogeneousFloatsRecursive(const NativeTypes& types,
                                                bool* only_float,
                                                bool* only_double) {
   for (intptr_t i = 0; i < types.length(); i++) {
@@ -990,21 +990,21 @@ static void ContainsHomogenuousFloatsRecursive(const NativeTypes& types,
       *only_double = *only_double && (type == kDouble);
     }
     if (member_type.IsCompound()) {
-      ContainsHomogenuousFloatsRecursive(member_type.AsCompound().members(),
+      ContainsHomogeneousFloatsRecursive(member_type.AsCompound().members(),
                                          only_float, only_double);
     }
   }
 }
 
-static bool ContainsHomogenuousFloatsInternal(const NativeTypes& types) {
+static bool ContainsHomogeneousFloatsInternal(const NativeTypes& types) {
   bool only_float = true;
   bool only_double = true;
-  ContainsHomogenuousFloatsRecursive(types, &only_float, &only_double);
+  ContainsHomogeneousFloatsRecursive(types, &only_float, &only_double);
   return (only_double || only_float) && types.length() > 0;
 }
 
-bool NativeCompoundType::ContainsHomogenuousFloats() const {
-  return ContainsHomogenuousFloatsInternal(this->members());
+bool NativeCompoundType::ContainsHomogeneousFloats() const {
+  return ContainsHomogeneousFloatsInternal(this->members());
 }
 
 const NativeType& NativeType::WidenTo4Bytes(Zone* zone) const {

@@ -1599,7 +1599,7 @@ class Assembler : public AssemblerBase {
   // beginning of the branch instruction.
   //
   // Use this function for testing whether [distance] can be encoded using the
-  // 24-bit offets in the branch instructions, which are multiples of 4.
+  // 24-bit offsets in the branch instructions, which are multiples of 4.
   static bool CanEncodeBranchDistance(int32_t distance) {
     ASSERT(Utils::IsAligned(distance, 4));
     // The distance is off by 8 due to the way the ARM CPUs read PC.

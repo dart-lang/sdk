@@ -142,7 +142,7 @@ class CSEInstructionSet : public ValueObject {
 //     of the data type. Obviously X[C|S] and X[K|U] alias if and only if either
 //     C = RoundDown(K, S) or K = RoundDown(C, U).
 //     Note that not all accesses to typed data are aligned: e.g. ByteData
-//     allows unanaligned access through it's get*/set* methods.
+//     allows unaligned access through it's get*/set* methods.
 //     Check in Place::SetIndex ensures that we never create a place X[C|S]
 //     such that C is not aligned by S.
 //
@@ -169,7 +169,7 @@ class Place : public ValueObject {
     // nullptr instance.
     kStaticField,
 
-    // Instance field location. It is reprensented by a pair of instance
+    // Instance field location. It is represented by a pair of instance
     // and a Slot.
     kInstanceField,
 
@@ -792,7 +792,7 @@ class AliasedSet : public ZoneAllocated {
 
   const PhiPlaceMoves* phi_moves() const { return phi_moves_; }
 
-  void RollbackAliasedIdentites() {
+  void RollbackAliasedIdentities() {
     for (intptr_t i = 0; i < identity_rollback_.length(); ++i) {
       identity_rollback_[i]->SetIdentity(AliasIdentity::Unknown());
     }
@@ -949,7 +949,7 @@ class AliasedSet : public ZoneAllocated {
   }
 
   // When computing kill sets we let less generic alias insert its
-  // representatives into more generic alias'es kill set. For example
+  // representatives into more generic aliases kill set. For example
   // when visiting alias X[*] instead of searching for all aliases X[C]
   // and inserting their representatives into kill set for X[*] we update
   // kill set for X[*] each time we visit new X[C] for some C.
@@ -1783,7 +1783,7 @@ class LoadOptimizer : public ValueObject {
     }
   }
 
-  ~LoadOptimizer() { aliased_set_->RollbackAliasedIdentites(); }
+  ~LoadOptimizer() { aliased_set_->RollbackAliasedIdentities(); }
 
   Zone* zone() const { return graph_->zone(); }
 
@@ -3310,7 +3310,7 @@ enum SafeUseCheck { kOptimisticCheck, kStrictCheck };
 //     - strict, when only marked allocations are assumed to be allocation
 //       sinking candidates.
 //
-// Fix-point algorithm in CollectCandiates first collects a set of allocations
+// Fix-point algorithm in CollectCandidates first collects a set of allocations
 // optimistically and then checks each collected candidate strictly and unmarks
 // invalid candidates transitively until only strictly valid ones remain.
 static bool IsSafeUse(Value* use, SafeUseCheck check_type) {

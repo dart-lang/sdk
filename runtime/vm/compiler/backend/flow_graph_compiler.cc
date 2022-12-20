@@ -3570,7 +3570,7 @@ void FlowGraphCompiler::EmitNativeMove(
     return;
   }
 
-  // Solve descrepancies between container size and payload size.
+  // Solve discrepancies between container size and payload size.
   if (src_payload_type.IsInt() && dst_payload_type.IsInt() &&
       (src_payload_size != src_container_size ||
        dst_payload_size != dst_container_size)) {

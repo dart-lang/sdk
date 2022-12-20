@@ -702,7 +702,7 @@ void StubCodeCompiler::GenerateRangeError(Assembler* assembler,
       __ BranchIf(EQ, &length);
 #endif
       {
-        // Allocate a mint, reload the two registers and popualte the mint.
+        // Allocate a mint, reload the two registers and populate the mint.
         __ PushRegister(NULL_REG);
         __ CallRuntime(kAllocateMintRuntimeEntry, /*argument_count=*/0);
         __ PopRegister(RangeErrorABI::kIndexReg);

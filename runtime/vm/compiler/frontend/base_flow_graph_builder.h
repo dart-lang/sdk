@@ -247,7 +247,7 @@ class BaseFlowGraphBuilder {
   // Note: SSA construction currently does not support inserting Phi functions
   // for expression stack locations - only real local variables are supported.
   // This means that you can't use MakeTemporary in a way that would require
-  // a Phi in SSA form. For example example below will be miscompiled or
+  // a Phi in SSA form. For example, the example below will be miscompiled or
   // will crash debug VM with assertion when building SSA for optimizing
   // compiler:
   //
@@ -387,7 +387,7 @@ class BaseFlowGraphBuilder {
   // NoSuchMethod message).
   // Sets 'receiver' to 'null' after the check if 'clear_the_temp'.
   // Note that this does _not_ use the result of the CheckNullInstr, so it does
-  // not create a data depedency and might break with code motion.
+  // not create a data dependency and might break with code motion.
   Fragment CheckNull(TokenPosition position,
                      LocalVariable* receiver,
                      const String& function_name,

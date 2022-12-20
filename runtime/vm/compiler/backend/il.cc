@@ -2552,7 +2552,7 @@ Definition* Definition::Canonicalize(FlowGraph* flow_graph) {
 }
 
 Definition* RedefinitionInstr::Canonicalize(FlowGraph* flow_graph) {
-  // Must not remove Redifinitions without uses until LICM, even though
+  // Must not remove Redefinitions without uses until LICM, even though
   // Redefinition might not have any uses itself it can still be dominating
   // uses of the value it redefines and must serve as a barrier for those
   // uses. RenameUsesDominatedByRedefinitions would normalize the graph and
@@ -3310,7 +3310,7 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
   UnboxInt64Instr* unbox_defn = value()->definition()->AsUnboxInt64();
   if (unbox_defn != NULL && (from() == kUnboxedInt64) &&
       (to() == kUnboxedInt32) && unbox_defn->HasOnlyInputUse(value())) {
-    // TODO(vegorov): there is a duplication of code between UnboxedIntCoverter
+    // TODO(vegorov): there is a duplication of code between UnboxedIntConverter
     // and code path that unboxes Mint into Int32. We should just schedule
     // these instructions close to each other instead of fusing them.
     Definition* replacement =
@@ -3930,7 +3930,7 @@ const CallTargets* CallTargets::CreateAndExpand(Zone* zone,
     // into a suffix that consists purely of abstract classes to
     // shorten the range.
     // However such spreading is beneficial when it allows to
-    // merge to consequtive ranges.
+    // merge to consecutive ranges.
     intptr_t cid_end_including_abstract = target_info->cid_end;
     for (int i = target_info->cid_end + 1; i < upper_limit_cid; i++) {
       bool class_is_abstract = false;
@@ -6899,7 +6899,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
                    compiler::FieldAddress(
                        temp0, compiler::target::PointerBase::data_offset()));
 
-      // Copy chuncks.
+      // Copy chunks.
       const intptr_t sp_offset =
           marshaller_.PassByPointerStackOffset(arg_index);
       // Struct size is rounded up to a multiple of target::kWordSize.
