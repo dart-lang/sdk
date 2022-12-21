@@ -755,7 +755,7 @@ class HtmlDartInterfaceGenerator(object):
                 class_modifiers = ''
             else:
                 # For Dartium w/ JsInterop these suppressed interfaces are needed to
-                # instanciate the internal classes.
+                # instantiate the internal classes.
                 if (self._renamer.ShouldSuppressInterface(self._interface) and
                         not (isinstance(self._backend, Dart2JSBackend)) and
                         self._options.dart_js_interop):
@@ -840,7 +840,7 @@ class HtmlDartInterfaceGenerator(object):
                 implementation_members_emitter = \
                     implementation_members_emitter[2]
 
-            # We add special emmiters for classes migrated to static type extensions
+            # We add special emitters for classes migrated to static type extensions
             elif (len(implementation_members_emitter) == 2):
                 class_members_emitter = \
                     implementation_members_emitter[0]
@@ -1394,7 +1394,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         return argument.optional
 
     def EmitStaticFactoryOverload(self, constructor_info, name, arguments,
-                                  emmiter):
+                                  emitter):
         if self._interface_type_info.has_generated_interface():
             # Use dart_type name, we're generating.
             interface_name = self._interface_type_info.interface_name()
@@ -1406,7 +1406,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         arguments = constructor_info.ParametersAsArgumentList(index)
         if arguments:
             arguments = ', ' + arguments
-        (emmiter if (emmiter != None) else self._members_emitter).Emit(
+        (emitter if (emitter != None) else self._members_emitter).Emit(
             "  static $INTERFACE_NAME $NAME($PARAMETERS) => "
             "JS('$INTERFACE_NAME', 'new $CTOR_NAME($PLACEHOLDERS)'$ARGUMENTS);\n",
             INTERFACE_NAME=interface_name,

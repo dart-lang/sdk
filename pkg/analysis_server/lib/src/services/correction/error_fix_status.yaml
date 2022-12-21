@@ -1642,11 +1642,9 @@ HintCode.UNNECESSARY_TYPE_CHECK_TRUE:
   status: needsFix
   issue: https://github.com/dart-lang/sdk/issues/47793
 HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT:
-  status: needsFix
-  since: ~2.16
+  status: hasFix
 HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL:
-  status: needsFix
-  since: ~2.16
+  status: hasFix
 HintCode.UNUSED_CATCH_CLAUSE:
   status: hasFix
 HintCode.UNUSED_CATCH_STACK:

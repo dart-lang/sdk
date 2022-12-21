@@ -79,7 +79,7 @@ _dart2js_annotations = monitored.Dict(
             "@Returns('NodeList|HtmlCollection')",
         ],
 
-        # querysSelectorAll never returns `null`.
+        # querySelectorAll never returns `null`.
         'Document.querySelectorAll': [
             "@Creates('NodeList')",
             "@Returns('NodeList')",

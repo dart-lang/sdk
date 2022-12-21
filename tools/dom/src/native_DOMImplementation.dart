@@ -321,7 +321,7 @@ class _Utils {
     try {
       return new DateTime.fromMillisecondsSinceEpoch(dateTime.toInt());
     } catch (_) {
-      // TODO(antonnm): treat exceptions properly in bindings and
+      // TODO(antonm): treat exceptions properly in bindings and
       // find out how to treat NaNs.
       return null;
     }

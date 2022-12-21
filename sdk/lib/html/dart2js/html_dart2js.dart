@@ -32735,7 +32735,7 @@ class Window extends EventTarget
    * ## Other resources
    *
    * * [Measuring page load speed with navigation
-   *   timeing](http://www.html5rocks.com/en/tutorials/webperformance/basics/)
+   *   timing](http://www.html5rocks.com/en/tutorials/webperformance/basics/)
    *   from HTML5Rocks.
    * * [Navigation timing
    *   specification](http://www.w3.org/TR/navigation-timing/) from W3C.

@@ -505,7 +505,7 @@ class DatabaseBuilder(object):
         return changed
 
     def _merge_impl_stmt(self, impl_stmt, import_options):
-        """Applies "X implements Y" statemetns on the proper places in the
+        """Applies "X implements Y" statements on the proper places in the
     database"""
         implementor_name = impl_stmt.implementor.id
         implemented_name = impl_stmt.implemented.id

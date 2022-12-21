@@ -117,6 +117,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_argument.dar
 import 'package:analysis_server/src/services/correction/dart/remove_assertion.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_character.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comparison.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_const.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_constructor_name.dart';
@@ -192,6 +193,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_is_emp
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_unicode_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_combinators.dart';
@@ -1415,6 +1417,14 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
       RemoveAnnotation.new,
+    ],
+    HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT: [
+      RemoveCharacter.new,
+      ReplaceWithUnicodeEscape.new,
+    ],
+    HintCode.TEXT_DIRECTION_CODE_POINT_IN_LITERAL: [
+      RemoveCharacter.new,
+      ReplaceWithUnicodeEscape.new,
     ],
     // TODO(brianwilkerson) Add a fix to normalize the path.
 //    HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT: [],
