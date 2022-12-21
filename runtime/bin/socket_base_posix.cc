@@ -375,10 +375,6 @@ static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
            ((family == AF_INET) || (family == AF_INET6))));
 }
 
-bool SocketBase::ListInterfacesSupported() {
-  return true;
-}
-
 AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
     int type,
     OSError** os_error) {

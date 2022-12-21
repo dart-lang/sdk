@@ -294,10 +294,6 @@ void FUNCTION_NAME(InternetAddress_RawAddrToString)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, ThrowIfError(DartUtils::NewString(str)));
 }
 
-void FUNCTION_NAME(NetworkInterface_ListSupported)(Dart_NativeArguments args) {
-  Dart_SetBooleanReturnValue(args, SocketBase::ListInterfacesSupported());
-}
-
 void FUNCTION_NAME(SocketBase_IsBindError)(Dart_NativeArguments args) {
   intptr_t error_number =
       DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 1));

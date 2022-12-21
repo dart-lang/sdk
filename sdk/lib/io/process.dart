@@ -216,6 +216,25 @@ class ProcessStartMode {
 /// A `Process`'s streams are distinct from the top-level streams
 /// for the current program.
 ///
+/// **NOTE:**
+/// `stdin`, `stdout`, and `stderr` are implemented using pipes between
+/// the parent process and the spawned subprocess. These pipes have limited
+/// capacity. If the subprocess writes to stderr or stdout in excess of that
+/// limit without the output being read, the subprocess blocks waiting for
+/// the pipe buffer to accept more data. For example:
+///
+/// ```dart
+/// import 'dart:io';
+///
+/// main() async {
+///   var process = await Process.start('cat', ['largefile.txt']);
+///   // The following await statement will never complete because the
+///   // subprocess never exits since it is blocked waiting for its
+///   // stdout to be read.
+///   await process.stderr.forEach(print);
+/// }
+/// ```
+///
 /// ## Exit codes
 ///
 /// Call the [exitCode] method to get the exit code of the process.
@@ -413,9 +432,47 @@ abstract class Process {
       [ProcessSignal signal = ProcessSignal.sigterm]);
 
   /// The standard output stream of the process as a `Stream`.
+  ///
+  /// **NOTE:**
+  /// `stdin`, `stdout`, and `stderr` are implemented using pipes between
+  /// the parent process and the spawned subprocess. These pipes have limited
+  /// capacity. If the subprocess writes to stderr or stdout in excess of that
+  /// limit without the output being read, the subprocess blocks waiting for
+  /// the pipe buffer to accept more data. For example:
+  ///
+  /// ```dart
+  /// import 'dart:io';
+  ///
+  /// main() async {
+  ///   var process = await Process.start('cat', ['largefile.txt']);
+  ///   // The following await statement will never complete because the
+  ///   // subprocess never exits since it is blocked waiting for its
+  ///   // stdout to be read.
+  ///   await process.stderr.forEach(print);
+  /// }
+  /// ```
   Stream<List<int>> get stdout;
 
   /// The standard error stream of the process as a `Stream`.
+  ///
+  /// **NOTE:**
+  /// `stdin`, `stdout`, and `stderr` are implemented using pipes between
+  /// the parent process and the spawned subprocess. These pipes have limited
+  /// capacity. If the subprocess writes to stderr or stdout in excess of that
+  /// limit without the output being read, the subprocess blocks waiting for
+  /// the pipe buffer to accept more data. For example:
+  ///
+  /// ```dart
+  /// import 'dart:io';
+  ///
+  /// main() async {
+  ///   var process = await Process.start('cat', ['largefile.txt']);
+  ///   // The following await statement will never complete because the
+  ///   // subprocess never exits since it is blocked waiting for its
+  ///   // stdout to be read.
+  ///   await process.stderr.forEach(print);
+  /// }
+  /// ```
   Stream<List<int>> get stderr;
 
   /// The standard input stream of the process as an [IOSink].

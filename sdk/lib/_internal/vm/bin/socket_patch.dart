@@ -99,9 +99,7 @@ class InternetAddress {
 @patch
 class NetworkInterface {
   @patch
-  static bool get listSupported {
-    return _listSupported();
-  }
+  static bool get listSupported => true;
 
   @patch
   static Future<List<NetworkInterface>> list(
@@ -113,9 +111,6 @@ class NetworkInterface {
         includeLinkLocal: includeLinkLocal,
         type: type);
   }
-
-  @pragma("vm:external-name", "NetworkInterface_ListSupported")
-  external static bool _listSupported();
 }
 
 void _throwOnBadPort(int port) {
@@ -761,8 +756,7 @@ class _NativeSocket extends _NativeSocketNativeWrapper with _ServiceObject {
                 "Address family not supported by protocol family, "
                 // ...and then add some details.
                 "sourceAddress.type must be ${InternetAddressType.unix} but was "
-                "${source.type}",
-                address: address);
+                "${source.type}", address: address);
           }
           connectionResult = socket.nativeCreateUnixDomainBindConnect(
               address.address, source.address, _Namespace._namespace);
