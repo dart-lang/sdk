@@ -74,10 +74,10 @@ abstract class LocalsHandler {
 
   DartType substInContext(DartType type);
 
-  HInstruction readThis({SourceInformation sourceInformation});
+  HInstruction readThis({SourceInformation? sourceInformation});
 
   Local getTypeVariableAsLocal(TypeVariableType parameter);
 
   HInstruction readLocal(Local typeVariableLocal,
-      {SourceInformation sourceInformation});
+      {SourceInformation? sourceInformation});
 }
