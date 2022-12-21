@@ -35,6 +35,9 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.printKernel),
   Flag("print-wasm", (o, value) => o.translatorOptions.printWasm = value,
       defaultsTo: _d.translatorOptions.printWasm),
+  Flag(
+      "enable-asserts", (o, value) => o.translatorOptions.enableAsserts = value,
+      defaultsTo: _d.translatorOptions.enableAsserts),
   IntOption(
       "inlining-limit", (o, value) => o.translatorOptions.inliningLimit = value,
       defaultsTo: "${_d.translatorOptions.inliningLimit}"),

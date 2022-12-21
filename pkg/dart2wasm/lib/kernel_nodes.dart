@@ -176,6 +176,8 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "_TypeError", "_throwWasmRefError");
   late final Procedure throwArgumentTypeCheckError = index.getProcedure(
       "dart:core", "_TypeError", "_throwArgumentTypeCheckError");
+  late final Procedure throwAssertionError =
+      index.getProcedure("dart:core", "AssertionError", "_throwWithMessage");
 
   // dart:core type procedures
   late final Procedure isSubtype =

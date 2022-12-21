@@ -814,7 +814,26 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void visitEmptyStatement(EmptyStatement node) {}
 
   @override
-  void visitAssertStatement(AssertStatement node) {}
+  void visitAssertStatement(AssertStatement node) {
+    if (options.enableAsserts) {
+      w.Label assertBlock = b.block();
+      wrap(node.condition, w.NumType.i32);
+      b.br_if(assertBlock);
+
+      Expression? message = node.message;
+      if (message != null) {
+        wrap(message, translator.topInfo.nullableType);
+      } else {
+        b.ref_null(w.HeapType.none);
+      }
+      w.BaseFunction f = translator.functions
+          .getFunction(translator.throwAssertionError.reference);
+      b.call(f);
+
+      b.unreachable();
+      b.end();
+    }
+  }
 
   @override
   void visitAssertBlock(AssertBlock node) {}
