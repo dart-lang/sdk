@@ -1,4 +1,11 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/null_assert_inside_extractor_pattern_implicitly_named.dart:10:10: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
+//     case C(: var f!):
+//          ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -11,17 +18,27 @@ class C extends core::Object {
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    final dynamic #t1 = x;
-    final core::int #t2 = -1;
-    final core::bool #t3 = false;
-    if(!#t3) {
-      #t2 = 0;
-      #t3 = true;
+    dynamic #t1;
+    final dynamic #t2 = x;
+    final core::int #t3 = -1;
+    final core::bool #t4 = false;
+    if(!#t4) {
+      final dynamic #t5 = #t2;
+      if(#t5 is self::C) {
+        final invalid-type #t6 = invalid-expression "pkg/front_end/testcases/patterns/null_assert_inside_extractor_pattern_implicitly_named.dart:10:10: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
+    case C(: var f!):
+         ^";
+        final invalid-type #t7 = #t6!;
+        #t3 = 0;
+        #t4 = true;
+        #t1 = #t7;
+      }
     }
-    switch(#t2) {
+    switch(#t3) {
       #L2:
       case #C1:
         {
+          dynamic f = #t1{dynamic};
           {
             break #L1;
           }
