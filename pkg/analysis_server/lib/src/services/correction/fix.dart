@@ -924,6 +924,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove awaits in file',
   );
+  static const REMOVE_CHARACTER = FixKind(
+    'dart.fix.remove.character',
+    DartFixKindPriority.DEFAULT,
+    "Remove the 'U+{0}' code point",
+  );
   static const REMOVE_COMPARISON = FixKind(
     'dart.fix.remove.comparison',
     DartFixKindPriority.DEFAULT,
@@ -1594,6 +1599,11 @@ class DartFixKind {
     'dart.fix.replace.withTearOff.multi',
     DartFixKindPriority.IN_FILE,
     'Replace function literals with tear-offs everywhere in file',
+  );
+  static const REPLACE_WITH_UNICODE_ESCAPE = FixKind(
+    'dart.fix.replace.withUnicodeEscape',
+    DartFixKindPriority.DEFAULT,
+    "Replace with Unicode escape",
   );
   static const REPLACE_WITH_VAR = FixKind(
     'dart.fix.replace.withVar',
