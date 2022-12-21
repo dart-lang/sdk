@@ -157,7 +157,6 @@ _full_sdk_libraries = [
   "mirrors",
   "svg",
   "typed_data",
-  "wasm",
   "web_audio",
   "web_gl",
   "web_sql",
@@ -811,14 +810,6 @@ group("create_full_sdk") {
     ":copy_full_sdk_scripts",
     ":copy_full_sdk_snapshots",
   ]
-
-  if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
-    public_deps += [
-      ":copy_dart2wasm_platform",
-      ":copy_dart2wasm_runtime",
-      ":copy_dart2wasm_snapshot",
-    ]
-  }
 }
 
 # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
