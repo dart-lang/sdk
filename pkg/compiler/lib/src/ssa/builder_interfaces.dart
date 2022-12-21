@@ -39,8 +39,8 @@ abstract class KernelSsaGraphBuilder extends ir.Visitor<void> {
 
   MemberEntity get sourceElement;
 
-  HLocalValue get lastAddedParameter;
-  set lastAddedParameter(HLocalValue parameter);
+  HLocalValue? get lastAddedParameter;
+  set lastAddedParameter(HLocalValue? parameter);
 
   set elidedParameters(Set<Local> elidedParameters);
 

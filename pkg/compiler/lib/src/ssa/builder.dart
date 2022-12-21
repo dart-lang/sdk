@@ -280,7 +280,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   bool _isReachable = true;
 
   @override
-  HLocalValue lastAddedParameter;
+  HLocalValue /*?*/ lastAddedParameter;
 
   @override
   Map<Local, HInstruction> parameters = {};
@@ -339,7 +339,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   }
 
   @override
-  HLocalValue addParameter(Entity parameter, AbstractValue type,
+  HLocalValue addParameter(Entity /*?*/ parameter, AbstractValue type,
       {bool isElided = false}) {
     HLocalValue result = isElided
         ? HLocalValue(parameter, type)
