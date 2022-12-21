@@ -53,7 +53,7 @@ vars = {
   # hashes.
   "co19_rev": "be8f8ae44d3f5222713ab1c51e7dbf2296db0719",
   # This line prevents conflicts when both packages are rolled simultaneously.
-  "co19_2_rev": "f691647f1c2cc4f1019fb619932c52d0a1adbf2c",
+  "co19_2_rev": "8ba5eb65399044d20370c8cfd115e1f6bc51acb1",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "599aa474a03c37be146f82dfbad85f34f25ffa47",
@@ -66,7 +66,7 @@ vars = {
   # Checkout extra javascript engines for testing or benchmarking.
   # d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:10.9.192",
+  "d8_tag": "version:11.1.11",
   "jsshell_tag": "version:95.0",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -111,7 +111,7 @@ vars = {
   "csslib_rev": "34203c09f073ed8267f5d6e333daddb02e6ff609",
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
-  "binaryen_rev" : "7769139efbe818c7ba36d1a382db5114ebee9df8",
+  "binaryen_rev" : "12ad604c17407f6b36d52c6404f2dab32e5c7960",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`

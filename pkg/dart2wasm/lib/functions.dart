@@ -82,6 +82,18 @@ class FunctionCollector {
     String? exportName =
         translator.getPragma(member, "wasm:export", member.name.text);
     if (exportName != null) {
+      if (member is Procedure) {
+        // Although we don't need type unification for the types of exported
+        // functions, we still place these types in singleton recursion groups,
+        // since Binaryen's `--closed-world` optimization mode requires all
+        // publicly exposed types to be defined in separate recursion groups
+        // from GC types.
+        m.splitRecursionGroup();
+        _makeFunctionType(
+            translator, member.reference, member.function.returnType, null,
+            isImportOrExport: true);
+        m.splitRecursionGroup();
+      }
       addExport(member.reference, exportName);
     }
   }

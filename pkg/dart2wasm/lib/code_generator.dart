@@ -2660,8 +2660,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     translator.convertType(
         function, argLocal.type, info.struct.fields[fieldIndex].type.unpacked);
     b.struct_set(info.struct, fieldIndex);
-    translator.constants.instantiateConstant(
-        function, b, NullConstant(), translator.topInfo.nullableType);
+    b.local_get(argLocal);
     b.end();
   }
 
