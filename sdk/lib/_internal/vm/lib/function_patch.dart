@@ -8,21 +8,22 @@ part of "core_patch.dart";
 class Function {
   // TODO(regis): Pass type arguments to generic functions. Wait for API spec.
   @pragma("vm:external-name", "Function_apply")
-  external static _apply(List<dynamic>? arguments, List<dynamic>? names);
+  external static _apply(List<dynamic> arguments, List<dynamic> names);
 
   @patch
   static apply(Function function, List<dynamic>? positionalArguments,
       [Map<Symbol, dynamic>? namedArguments]) {
-    int numPositionalArguments = 1 + // Function is first implicit argument.
-        (positionalArguments != null ? positionalArguments.length : 0);
-    int numNamedArguments = namedArguments != null ? namedArguments.length : 0;
-    int numArguments = numPositionalArguments + numNamedArguments;
-    List arguments = new List<dynamic>.filled(numArguments, null);
+    final int numPositionalArguments =
+        1 + // Function is first implicit argument.
+            (positionalArguments?.length ?? 0);
+    final int numNamedArguments = namedArguments?.length ?? 0;
+    final int numArguments = numPositionalArguments + numNamedArguments;
+    final List arguments = List<dynamic>.filled(numArguments, null);
     arguments[0] = function;
     if (positionalArguments != null) {
       arguments.setRange(1, numPositionalArguments, positionalArguments);
     }
-    List names = new List<dynamic>.filled(numNamedArguments, null);
+    final List names = List<dynamic>.filled(numNamedArguments, null);
     int argumentIndex = numPositionalArguments;
     int nameIndex = 0;
     if (numNamedArguments > 0) {
