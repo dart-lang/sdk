@@ -330,13 +330,13 @@ InstancePtr ConstantReader::ReadConstantInternal(intptr_t constant_index) {
             reader.ReadUInt();
           }
           names.MakeImmutable();
-          names ^= H.Canonicalize(names);
           field_names = &names;
         }
       }
       const intptr_t num_fields = num_positional + num_named;
-      const auto& record =
-          Record::Handle(Z, Record::New(num_fields, *field_names));
+      const RecordShape shape =
+          RecordShape::Register(H.thread(), num_fields, *field_names);
+      const auto& record = Record::Handle(Z, Record::New(shape));
       intptr_t pos = 0;
       for (intptr_t j = 0; j < num_positional; ++j) {
         const intptr_t entry_index = reader.ReadUInt();

@@ -150,6 +150,7 @@ class ObjectPointerVisitor;
   V(GetLength, "get:length")                                                   \
   V(GetRuntimeType, "get:runtimeType")                                         \
   V(GetterPrefix, "get:")                                                      \
+  V(Get_fieldNames, "get:_fieldNames")                                         \
   V(GreaterEqualOperator, ">=")                                                \
   V(HaveSameRuntimeType, "_haveSameRuntimeType")                               \
   V(ICData, "ICData")                                                          \

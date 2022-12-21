@@ -283,8 +283,8 @@ void UpdateLengthField(intptr_t cid, ObjectPtr from, ObjectPtr to) {
     static_cast<UntaggedTypedDataBase*>(to.untag())->length_ =
         static_cast<UntaggedTypedDataBase*>(from.untag())->length_;
   } else if (cid == kRecordCid) {
-    static_cast<UntaggedRecord*>(to.untag())->num_fields_ =
-        static_cast<UntaggedRecord*>(from.untag())->num_fields_;
+    static_cast<UntaggedRecord*>(to.untag())->shape_ =
+        static_cast<UntaggedRecord*>(from.untag())->shape_;
   }
 }
 
@@ -1425,11 +1425,9 @@ class ObjectCopy : public Base {
 
   void CopyRecord(typename Types::Record from, typename Types::Record to) {
     const intptr_t num_fields = Record::NumFields(Types::GetRecordPtr(from));
-    Base::StoreCompressedPointersNoBarrier(
-        from, to, OFFSET_OF(UntaggedRecord, num_fields_),
-        OFFSET_OF(UntaggedRecord, num_fields_));
-    Base::ForwardCompressedPointer(from, to,
-                                   OFFSET_OF(UntaggedRecord, field_names_));
+    Base::StoreCompressedPointersNoBarrier(from, to,
+                                           OFFSET_OF(UntaggedRecord, shape_),
+                                           OFFSET_OF(UntaggedRecord, shape_));
     Base::ForwardCompressedPointers(
         from, to, Record::field_offset(0),
         Record::field_offset(0) + Record::kBytesPerElement * num_fields);

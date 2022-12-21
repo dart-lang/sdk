@@ -134,7 +134,6 @@ bool Slot::IsImmutableLengthSlot() const {
   switch (kind()) {
     case Slot::Kind::kArray_length:
     case Slot::Kind::kTypedDataBase_length:
-    case Slot::Kind::kRecord_num_fields:
     case Slot::Kind::kString_length:
     case Slot::Kind::kTypeArguments_length:
       return true;
@@ -191,7 +190,7 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kFunctionType_parameter_types:
     case Slot::Kind::kFunctionType_type_parameters:
     case Slot::Kind::kRecordField:
-    case Slot::Kind::kRecord_field_names:
+    case Slot::Kind::kRecord_shape:
     case Slot::Kind::kSuspendState_function_data:
     case Slot::Kind::kSuspendState_then_callback:
     case Slot::Kind::kSuspendState_error_callback:

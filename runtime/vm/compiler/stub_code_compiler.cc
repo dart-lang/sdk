@@ -1326,8 +1326,7 @@ void StubCodeCompiler::GenerateAllocateGrowableArrayStub(Assembler* assembler) {
 
 void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
   const Register result_reg = AllocateRecordABI::kResultReg;
-  const Register num_fields_reg = AllocateRecordABI::kNumFieldsReg;
-  const Register field_names_reg = AllocateRecordABI::kFieldNamesReg;
+  const Register shape_reg = AllocateRecordABI::kShapeReg;
   const Register temp_reg = AllocateRecordABI::kTemp1Reg;
   const Register new_top_reg = AllocateRecordABI::kTemp2Reg;
   Label slow_case;
@@ -1335,11 +1334,16 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
   // Check for allocation tracing.
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(kRecordCid, &slow_case, temp_reg));
 
+  // Extract number of fields from the shape.
+  __ AndImmediate(
+      temp_reg, shape_reg,
+      compiler::target::RecordShape::kNumFieldsMask << kSmiTagShift);
+
   // Compute the rounded instance size.
   const intptr_t fixed_size_plus_alignment_padding =
       (target::Record::field_offset(0) +
        target::ObjectAlignment::kObjectAlignment - 1);
-  __ AddScaled(temp_reg, num_fields_reg, TIMES_COMPRESSED_HALF_WORD_SIZE,
+  __ AddScaled(temp_reg, temp_reg, TIMES_COMPRESSED_HALF_WORD_SIZE,
                fixed_size_plus_alignment_padding);
   __ AndImmediate(temp_reg, -target::ObjectAlignment::kObjectAlignment);
 
@@ -1380,17 +1384,12 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
   }
 
   __ StoreCompressedIntoObjectNoBarrier(
-      result_reg, FieldAddress(result_reg, target::Record::num_fields_offset()),
-      num_fields_reg);
-
-  __ StoreCompressedIntoObjectNoBarrier(
-      result_reg,
-      FieldAddress(result_reg, target::Record::field_names_offset()),
-      field_names_reg);
+      result_reg, FieldAddress(result_reg, target::Record::shape_offset()),
+      shape_reg);
 
   // Initialize the remaining words of the object.
   {
-    const Register field_reg = field_names_reg;
+    const Register field_reg = shape_reg;
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
     defined(TARGET_ARCH_RISCV64)
     const Register null_reg = NULL_REG;
@@ -1424,9 +1423,9 @@ void StubCodeCompiler::GenerateAllocateRecordStub(Assembler* assembler) {
 
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Space on the stack for the return value.
-  __ PushRegistersInOrder({num_fields_reg, field_names_reg});
-  __ CallRuntime(kAllocateRecordRuntimeEntry, 2);
-  __ Drop(2);
+  __ PushRegister(shape_reg);
+  __ CallRuntime(kAllocateRecordRuntimeEntry, 1);
+  __ Drop(1);
   __ PopRegister(AllocateRecordABI::kResultReg);
 
   EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);
@@ -1439,7 +1438,7 @@ void StubCodeCompiler::GenerateAllocateSmallRecordStub(Assembler* assembler,
                                                        bool has_named_fields) {
   ASSERT(num_fields == 2 || num_fields == 3);
   const Register result_reg = AllocateSmallRecordABI::kResultReg;
-  const Register field_names_reg = AllocateSmallRecordABI::kFieldNamesReg;
+  const Register shape_reg = AllocateSmallRecordABI::kShapeReg;
   const Register value0_reg = AllocateSmallRecordABI::kValue0Reg;
   const Register value1_reg = AllocateSmallRecordABI::kValue1Reg;
   const Register value2_reg = AllocateSmallRecordABI::kValue2Reg;
@@ -1462,18 +1461,13 @@ void StubCodeCompiler::GenerateAllocateSmallRecordStub(Assembler* assembler,
   __ TryAllocateObject(kRecordCid, target::Record::InstanceSize(num_fields),
                        &slow_case, distance, result_reg, temp_reg);
 
-  __ LoadImmediate(temp_reg, Smi::RawValue(num_fields));
-  __ StoreCompressedIntoObjectNoBarrier(
-      result_reg, FieldAddress(result_reg, target::Record::num_fields_offset()),
-      temp_reg);
-
   if (!has_named_fields) {
-    __ LoadObject(field_names_reg, Object::empty_array());
+    __ LoadImmediate(
+        shape_reg, Smi::RawValue(RecordShape::ForUnnamed(num_fields).AsInt()));
   }
   __ StoreCompressedIntoObjectNoBarrier(
-      result_reg,
-      FieldAddress(result_reg, target::Record::field_names_offset()),
-      field_names_reg);
+      result_reg, FieldAddress(result_reg, target::Record::shape_offset()),
+      shape_reg);
 
   __ StoreCompressedIntoObjectNoBarrier(
       result_reg, FieldAddress(result_reg, target::Record::field_offset(0)),
@@ -1495,11 +1489,11 @@ void StubCodeCompiler::GenerateAllocateSmallRecordStub(Assembler* assembler,
 
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Space on the stack for the return value.
-  __ PushObject(Smi::ZoneHandle(Smi::New(num_fields)));
   if (has_named_fields) {
-    __ PushRegister(field_names_reg);
+    __ PushRegister(shape_reg);
   } else {
-    __ PushObject(Object::empty_array());
+    __ PushImmediate(
+        Smi::RawValue(RecordShape::ForUnnamed(num_fields).AsInt()));
   }
   __ PushRegistersInOrder({value0_reg, value1_reg});
   if (num_fields > 2) {
@@ -1507,8 +1501,8 @@ void StubCodeCompiler::GenerateAllocateSmallRecordStub(Assembler* assembler,
   } else {
     __ PushObject(NullObject());
   }
-  __ CallRuntime(kAllocateSmallRecordRuntimeEntry, 5);
-  __ Drop(5);
+  __ CallRuntime(kAllocateSmallRecordRuntimeEntry, 4);
+  __ Drop(4);
   __ PopRegister(result_reg);
 
   EnsureIsNewOrRemembered(assembler, /*preserve_registers=*/false);

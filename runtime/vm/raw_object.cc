@@ -160,7 +160,8 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
     }
     case kRecordCid: {
       const RecordPtr raw_record = static_cast<const RecordPtr>(this);
-      intptr_t num_fields = Smi::Value(raw_record->untag()->num_fields());
+      intptr_t num_fields =
+          RecordShape(raw_record->untag()->shape()).num_fields();
       instance_size = Record::InstanceSize(num_fields);
       break;
     }
@@ -576,7 +577,8 @@ VARIABLE_COMPRESSED_VISITOR(
     TypedData::ElementSizeInBytes(raw_obj->GetClassId()) *
         Smi::Value(raw_obj->untag()->length()))
 VARIABLE_COMPRESSED_VISITOR(ContextScope, raw_obj->untag()->num_variables_)
-VARIABLE_COMPRESSED_VISITOR(Record, Smi::Value(raw_obj->untag()->num_fields()))
+VARIABLE_COMPRESSED_VISITOR(Record,
+                            RecordShape(raw_obj->untag()->shape()).num_fields())
 NULL_VISITOR(Sentinel)
 REGULAR_VISITOR(InstructionsTable)
 NULL_VISITOR(Mint)

@@ -351,10 +351,8 @@ class BaseFlowGraphBuilder {
   // Top of the stack should be the closure function.
   Fragment AllocateClosure(TokenPosition position = TokenPosition::kNoSource);
   Fragment CreateArray();
-  Fragment AllocateRecord(TokenPosition position, intptr_t num_fields);
-  Fragment AllocateSmallRecord(TokenPosition position,
-                               intptr_t num_fields,
-                               bool has_named_fields);
+  Fragment AllocateRecord(TokenPosition position, RecordShape shape);
+  Fragment AllocateSmallRecord(TokenPosition position, RecordShape shape);
   Fragment AllocateTypedData(TokenPosition position, classid_t class_id);
   Fragment InstantiateType(const AbstractType& type);
   Fragment InstantiateTypeArguments(const TypeArguments& type_arguments);

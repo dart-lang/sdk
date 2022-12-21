@@ -940,11 +940,6 @@ AbstractTypePtr ClassFinalizer::FinalizeRecordType(
       record.SetFieldTypeAt(i, finalized_type);
     }
   }
-  // Canonicalize field names so they can be compared with pointer comparison.
-  // The field names are already sorted in the front-end.
-  Array& field_names = Array::Handle(zone, record.field_names());
-  field_names ^= field_names.Canonicalize(Thread::Current());
-  record.set_field_names(field_names);
 
   if (FLAG_trace_type_finalization) {
     THR_Print("Marking record type '%s' as finalized\n",

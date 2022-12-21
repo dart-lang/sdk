@@ -586,6 +586,10 @@ class Assembler : public AssemblerBase {
   void AndImmediate(Register dst, int64_t value) {
     AndImmediate(dst, Immediate(value));
   }
+  void AndImmediate(Register dst, Register src, int64_t value) {
+    MoveRegister(dst, src);
+    AndImmediate(dst, value);
+  }
   void AndRegisters(Register dst,
                     Register src1,
                     Register src2 = kNoRegister) override;
@@ -783,6 +787,7 @@ class Assembler : public AssemblerBase {
   void AddRegisters(Register dest, Register src) {
     addq(dest, src);
   }
+  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
                  Register src,
                  ScaleFactor scale,

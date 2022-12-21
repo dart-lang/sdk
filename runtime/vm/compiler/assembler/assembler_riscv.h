@@ -1009,6 +1009,7 @@ class Assembler : public MicroAssembler {
     MulImmediate(dest, dest, imm, width);
   }
   void AddRegisters(Register dest, Register src) { add(dest, dest, src); }
+  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
                  Register src,
                  ScaleFactor scale,

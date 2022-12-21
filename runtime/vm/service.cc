@@ -2271,13 +2271,15 @@ static Breakpoint* LookupBreakpoint(Isolate* isolate,
 }
 
 static inline void AddParentFieldToResponseBasedOnRecord(
+    Thread* thread,
     Array* field_names_handle,
     String* name_handle,
     const JSONObject& jsresponse,
     const Record& record,
     const intptr_t field_slot_offset) {
-  const intptr_t num_positional_fields = record.NumPositionalFields();
-  *field_names_handle = record.field_names();
+  *field_names_handle = record.GetFieldNames(thread);
+  const intptr_t num_positional_fields =
+      record.num_fields() - field_names_handle->Length();
   const intptr_t field_index =
       (field_slot_offset - Record::field_offset(0)) / Record::kBytesPerElement;
   if (field_index < num_positional_fields) {
@@ -2321,8 +2323,8 @@ static void PrintInboundReferences(Thread* thread,
         jselement.AddProperty("parentListIndex", element_index);
         jselement.AddProperty("parentField", element_index);
       } else if (source.IsRecord()) {
-        AddParentFieldToResponseBasedOnRecord(&field_names, &name, jselement,
-                                              Record::Cast(source),
+        AddParentFieldToResponseBasedOnRecord(thread, &field_names, &name,
+                                              jselement, Record::Cast(source),
                                               slot_offset.Value());
       } else {
         if (source.IsInstance()) {
@@ -2447,8 +2449,8 @@ static void PrintRetainingPath(Thread* thread,
         jselement.AddProperty("parentListIndex", element_index);
         jselement.AddProperty("parentField", element_index);
       } else if (element.IsRecord()) {
-        AddParentFieldToResponseBasedOnRecord(&field_names, &name, jselement,
-                                              Record::Cast(element),
+        AddParentFieldToResponseBasedOnRecord(thread, &field_names, &name,
+                                              jselement, Record::Cast(element),
                                               slot_offset.Value());
       } else if (element.IsMap()) {
         map = static_cast<MapPtr>(path.At(i * 2));

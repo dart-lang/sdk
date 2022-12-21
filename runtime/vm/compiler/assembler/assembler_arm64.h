@@ -1824,12 +1824,17 @@ class Assembler : public AssemblerBase {
   void AddRegisters(Register dest, Register src) {
     add(dest, dest, Operand(src));
   }
+  // [dest] = [src] << [scale] + [value].
   void AddScaled(Register dest,
                  Register src,
                  ScaleFactor scale,
                  int32_t value) {
-    LoadImmediate(dest, value);
-    add(dest, dest, Operand(src, LSL, scale));
+    if (scale == 0) {
+      AddImmediate(dest, src, value);
+    } else {
+      orr(dest, ZR, Operand(src, LSL, scale));
+      AddImmediate(dest, dest, value);
+    }
   }
   void SubImmediateSetFlags(Register dest,
                             Register rn,

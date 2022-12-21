@@ -532,17 +532,16 @@ struct AllocateArrayABI {
 // ABI for AllocateRecordStub.
 struct AllocateRecordABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kNumFieldsReg = R2;
-  static const Register kFieldNamesReg = R1;
-  static const Register kTemp1Reg = R3;
-  static const Register kTemp2Reg = R4;
+  static const Register kShapeReg = R1;
+  static const Register kTemp1Reg = R2;
+  static const Register kTemp2Reg = R3;
 };
 
 // ABI for AllocateSmallRecordStub (AllocateRecord2, AllocateRecord2Named,
 // AllocateRecord3, AllocateRecord3Named).
 struct AllocateSmallRecordABI {
   static const Register kResultReg = AllocateObjectABI::kResultReg;
-  static const Register kFieldNamesReg = R1;
+  static const Register kShapeReg = R1;
   static const Register kValue0Reg = R2;
   static const Register kValue1Reg = R3;
   static const Register kValue2Reg = R4;

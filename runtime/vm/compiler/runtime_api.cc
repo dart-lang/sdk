@@ -1118,6 +1118,13 @@ const word Array::kMaxElements = Array_kMaxElements;
 const word Context::kMaxElements = Context_kMaxElements;
 const word Record::kMaxElements = Record_kMaxElements;
 
+const word RecordShape::kNumFieldsMask = RecordShape_kNumFieldsMask;
+const word RecordShape::kMaxNumFields = RecordShape_kMaxNumFields;
+const word RecordShape::kFieldNamesIndexShift =
+    RecordShape_kFieldNamesIndexShift;
+const word RecordShape::kFieldNamesIndexMask = RecordShape_kFieldNamesIndexMask;
+const word RecordShape::kMaxFieldNamesIndex = RecordShape_kMaxFieldNamesIndex;
+
 }  // namespace target
 }  // namespace compiler
 }  // namespace dart
