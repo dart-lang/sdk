@@ -1,0 +1,6 @@
+Non-fatal Exception: io.flutter.plugins.firebase.crashlytics.FlutterError: Bad state: No element. Error thrown null.
+BuildId: c3126a4381294e13185549e5e94a4db9
+at . #00 abs 0 virt 000000000031ba6f _kDartIsolateSnapshotInstructions+0x14e87f
+at . #01 abs 0 virt 0000000000472017 _kDartIsolateSnapshotInstructions+0x2a4e27
+at . #02 abs 0 virt 00000000006bb31b _kDartIsolateSnapshotInstructions+0x4ee12b
+at . #03 abs 0 virt 00000000006451b7 _kDartIsolateSnapshotInstructions+0x477fc7
