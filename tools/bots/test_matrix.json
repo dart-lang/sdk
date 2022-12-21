@@ -2418,6 +2418,7 @@
             "--enable-asserts",
             "pkg/dev_compiler/bin/dartdevc.dart",
             "-k",
+            "--sound-null-safety",
             "-o",
             "out/ReleaseX64/dartdevk.js",
             "pkg/dev_compiler/bin/dartdevc.dart"
@@ -2673,6 +2674,7 @@
             "--enable-asserts",
             "pkg/dev_compiler/bin/dartdevc.dart",
             "-k",
+            "--sound-null-safety",
             "-o",
             "xcodebuild/ReleaseX64/dartdevk.js",
             "pkg/dev_compiler/bin/dartdevc.dart"

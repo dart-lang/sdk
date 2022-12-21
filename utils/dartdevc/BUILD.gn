@@ -29,7 +29,7 @@ application_snapshot("dartdevc") {
     rebase_path("../../sdk"),
     "--dart-sdk-summary",
     rebase_path(sdk_outline_dill),
-    "-k",
+    "--no-sound-null-safety",
     "-o",
     "dartdevc.js",
     rebase_path("../../pkg/dev_compiler/bin/dartdevc.dart"),
@@ -218,6 +218,8 @@ template("dartdevc_kernel_compile") {
 
     if (invoker.sound_null_safety) {
       args += [ "--sound-null-safety" ]
+    } else {
+      args += [ "--no-sound-null-safety" ]
     }
   }
 }
@@ -288,6 +290,8 @@ template("compile_dartdevc_platform") {
         sdk_outline_sound_dill,
       ]
     } else {
+      args += [ "--nnbd-weak" ]
+
       outputs = [
         sdk_full_dill,
         sdk_outline_dill,
@@ -368,6 +372,8 @@ template("dartdevc_sdk_js") {
 
     if (invoker.sound_null_safety) {
       args += [ "--sound-null-safety" ]
+    } else {
+      args += [ "--no-sound-null-safety" ]
     }
 
     if (ddc_canary) {

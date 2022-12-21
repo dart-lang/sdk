@@ -606,7 +606,10 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       ..._configuration.sharedOptions,
       ..._experimentsArgument(_configuration, testFile),
       ...testFile.ddcOptions,
-      if (_configuration.nnbdMode == NnbdMode.strong) '--sound-null-safety',
+      if (_configuration.nnbdMode == NnbdMode.strong)
+        '--sound-null-safety'
+      else
+        '--no-sound-null-safety',
       if (_configuration.configuration.builderTag == 'canary') '--canary',
       // The file being compiled is the last argument.
       args.last
