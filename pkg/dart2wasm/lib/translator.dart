@@ -84,6 +84,7 @@ class Translator with KernelNodes {
   final Map<TypeParameter, int> typeParameterIndex = {};
   final Map<Reference, ParameterInfo> staticParamInfo = {};
   final Map<Field, w.DefinedTable> declaredTables = {};
+  final List<_ClosureTrampolineGenerator> pendingClosureTrampolines = [];
   late Procedure mainFunction;
   late final w.Module m;
   late final w.DefinedFunction initFunction;
@@ -285,6 +286,12 @@ class Translator with KernelNodes {
                 .generateLambda(lambda, codeGen.closures);
         _printFunction(lambdaFunction, "$canonicalName (closure)");
       }
+    }
+
+    // Use an indexed loop to handle pending closure trampolines, since new
+    // entries might be added during iteration.
+    for (int i = 0; i < pendingClosureTrampolines.length; i++) {
+      pendingClosureTrampolines[i].generate(this);
     }
 
     dispatchTable.output();
@@ -595,54 +602,20 @@ class Translator with KernelNodes {
 
     w.DefinedFunction makeTrampoline(
         w.FunctionType signature, int posArgCount, List<String> argNames) {
-      w.DefinedFunction function = m.addFunction(signature, name);
-      w.Instructions b = function.body;
-      int targetIndex = 0;
-      if (takesContextOrReceiver) {
-        w.Local receiver = function.locals[0];
-        b.local_get(receiver);
-        convertType(function, receiver.type, target.type.inputs[targetIndex++]);
-      }
-      int argIndex = 1;
-      for (int i = 0; i < typeCount; i++) {
-        b.local_get(function.locals[argIndex++]);
-        targetIndex++;
-      }
-      for (int i = 0; i < paramInfo.positional.length; i++) {
-        if (i < posArgCount) {
-          w.Local arg = function.locals[argIndex++];
-          b.local_get(arg);
-          convertType(function, arg.type, target.type.inputs[targetIndex++]);
-        } else {
-          constants.instantiateConstant(function, b, paramInfo.positional[i]!,
-              target.type.inputs[targetIndex++]);
-        }
-      }
-      int argNameIndex = 0;
-      for (int i = 0; i < paramInfo.names.length; i++) {
-        String argName = paramInfo.names[i];
-        if (argNameIndex < argNames.length &&
-            argNames[argNameIndex] == argName) {
-          w.Local arg = function.locals[argIndex++];
-          b.local_get(arg);
-          convertType(function, arg.type, target.type.inputs[targetIndex++]);
-          argNameIndex++;
-        } else {
-          constants.instantiateConstant(function, b, paramInfo.named[argName]!,
-              target.type.inputs[targetIndex++]);
-        }
-      }
-      assert(argIndex == signature.inputs.length);
-      assert(targetIndex == target.type.inputs.length);
-      assert(argNameIndex == argNames.length);
+      w.DefinedFunction trampoline = m.addFunction(signature, name);
 
-      b.call(target);
+      // Defer generation of the trampoline body to avoid cyclic dependency when
+      // a tear-off constant is used as default value in the torn-off function.
+      pendingClosureTrampolines.add(_ClosureTrampolineGenerator(
+          trampoline,
+          target,
+          typeCount,
+          posArgCount,
+          argNames,
+          paramInfo,
+          takesContextOrReceiver));
 
-      convertType(function, outputOrVoid(target.type.outputs),
-          outputOrVoid(signature.outputs));
-      b.end();
-
-      return function;
+      return trampoline;
     }
 
     void fillVtableEntry(
@@ -887,6 +860,77 @@ class Translator with KernelNodes {
     ClassInfo info = classInfo[listBaseClass]!;
     b.struct_get(info.struct, FieldIndex.listLength);
     b.i32_wrap_i64();
+  }
+}
+
+class _ClosureTrampolineGenerator {
+  final w.DefinedFunction trampoline;
+  final w.BaseFunction target;
+  final int typeCount;
+  final int posArgCount;
+  final List<String> argNames;
+  final ParameterInfo paramInfo;
+  final bool takesContextOrReceiver;
+
+  _ClosureTrampolineGenerator(
+      this.trampoline,
+      this.target,
+      this.typeCount,
+      this.posArgCount,
+      this.argNames,
+      this.paramInfo,
+      this.takesContextOrReceiver);
+
+  void generate(Translator translator) {
+    w.Instructions b = trampoline.body;
+    int targetIndex = 0;
+    if (takesContextOrReceiver) {
+      w.Local receiver = trampoline.locals[0];
+      b.local_get(receiver);
+      translator.convertType(
+          trampoline, receiver.type, target.type.inputs[targetIndex++]);
+    }
+    int argIndex = 1;
+    for (int i = 0; i < typeCount; i++) {
+      b.local_get(trampoline.locals[argIndex++]);
+      targetIndex++;
+    }
+    for (int i = 0; i < paramInfo.positional.length; i++) {
+      if (i < posArgCount) {
+        w.Local arg = trampoline.locals[argIndex++];
+        b.local_get(arg);
+        translator.convertType(
+            trampoline, arg.type, target.type.inputs[targetIndex++]);
+      } else {
+        translator.constants.instantiateConstant(trampoline, b,
+            paramInfo.positional[i]!, target.type.inputs[targetIndex++]);
+      }
+    }
+    int argNameIndex = 0;
+    for (int i = 0; i < paramInfo.names.length; i++) {
+      String argName = paramInfo.names[i];
+      if (argNameIndex < argNames.length && argNames[argNameIndex] == argName) {
+        w.Local arg = trampoline.locals[argIndex++];
+        b.local_get(arg);
+        translator.convertType(
+            trampoline, arg.type, target.type.inputs[targetIndex++]);
+        argNameIndex++;
+      } else {
+        translator.constants.instantiateConstant(trampoline, b,
+            paramInfo.named[argName]!, target.type.inputs[targetIndex++]);
+      }
+    }
+    assert(argIndex == trampoline.type.inputs.length);
+    assert(targetIndex == target.type.inputs.length);
+    assert(argNameIndex == argNames.length);
+
+    b.call(target);
+
+    translator.convertType(
+        trampoline,
+        translator.outputOrVoid(target.type.outputs),
+        translator.outputOrVoid(trampoline.type.outputs));
+    b.end();
   }
 }
 
