@@ -125,9 +125,9 @@ const _symbolOffsetREString = r'(?<symbol>' +
     constants.isolateSymbolName +
     r')\+(?<offset>(?:0x)?[\da-f]+)';
 final _symbolOffsetRE = RegExp(_symbolOffsetREString);
-final _traceLineRE =
-    RegExp(r'#(\d+) abs (?<absolute>[\da-f]+)(?: virt (?<virtual>[\da-f]+))? '
-        r'(?<rest>.*)$');
+final _traceLineRE = RegExp(
+    r'    #(\d+) abs (?<absolute>[\da-f]+)(?: virt (?<virtual>[\da-f]+))? '
+    r'(?<rest>.*)$');
 
 /// Parses strings of the format <static symbol>+<integer offset>, where
 /// <static symbol> is one of the static symbols used for Dart instruction

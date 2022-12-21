@@ -1,7 +1,3 @@
-## 0.5.4
-
-- Relaxed requirement for spaces before non-symbolic stack trace line.
-
 ## 0.5.3
 
 - Exported more ELF utilities for use in Dart tests.
