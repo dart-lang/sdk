@@ -775,7 +775,7 @@ void Func1() {
 
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
-  EXPECT_SUBSTRING("isolate terminated by Isolate.kill", Dart_GetError(result));
+  EXPECT_SUBSTRING("isolate terminated by Isolate.exit", Dart_GetError(result));
 
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
