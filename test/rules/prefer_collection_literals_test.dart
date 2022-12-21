@@ -8,46 +8,29 @@ import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(PreferCollectionLiteralsPreNNBDTest);
     defineReflectiveTests(PreferCollectionLiteralsTest);
   });
-}
-
-@reflectiveTest
-class PreferCollectionLiteralsPreNNBDTest extends LintRuleTest {
-  @override
-  String get lintRule => 'prefer_collection_literals';
-
-  test_list_empty() async {
-    await assertDiagnostics(r'''
-// @dart=2.9    
-var list = List(); 
-''', [
-      lint(28, 6),
-    ]);
-  }
-
-  test_list_inList() async {
-    await assertDiagnostics(r'''
-// @dart=2.9    
-var list = [[], List()];
-''', [
-      lint(33, 6),
-    ]);
-  }
-
-  test_list_sized() async {
-    await assertNoDiagnostics(r'''
-// @dart=2.9    
-var list = List(5);
-''');
-  }
 }
 
 @reflectiveTest
 class PreferCollectionLiteralsTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_collection_literals';
+
+  @failingTest
+  test_closure_returns_linkedHashSet() async {
+    await assertDiagnostics(r'''
+import 'dart:collection';
+
+void a(Set<int> Function() f) {}
+
+void c() {
+  a(() => LinkedHashSet<int>());
+}
+''', [
+      lint(82, 20),
+    ]);
+  }
 
   /// https://github.com/dart-lang/linter/issues/2985
   test_linkedHashSetParameter_named_type_required() async {
@@ -120,21 +103,6 @@ void f() {
 ''', [
       // No lints.
       error(CompileTimeErrorCode.UNDEFINED_FUNCTION, 44, 15),
-    ]);
-  }
-
-  @failingTest
-  test_closure_returns_linkedHashSet() async {
-    await assertDiagnostics(r'''
-import 'dart:collection';
-
-void a(Set<int> Function() f) {}
-
-void c() {
-  a(() => LinkedHashSet<int>());
-}
-''', [
-      lint(82, 20),
     ]);
   }
 }

@@ -16,7 +16,6 @@ const _details = r'''
 
 **BAD:**
 ```dart
-var points = List();
 var addresses = Map<String, String>();
 var uniqueNames = Set<String>();
 var ids = LinkedHashSet<int>();
@@ -25,7 +24,6 @@ var coordinates = LinkedHashMap<int, int>();
 
 **GOOD:**
 ```dart
-var points = [];
 var addresses = <String, String>{};
 var uniqueNames = <String>{};
 var ids = <int>{};
@@ -88,8 +86,8 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     var constructorName = node.constructorName.name?.name;
 
-    // Lists, Maps.
-    if (_isList(node) || _isMap(node) || _isHashMap(node)) {
+    // Maps.
+    if (_isMap(node) || _isHashMap(node)) {
       if (_shouldSkipLinkedHashLint(node, _isTypeHashMap)) {
         return;
       }
@@ -138,9 +136,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   bool _isHashSet(Expression expression) =>
       _isTypeHashSet(expression.staticType);
-
-  bool _isList(Expression expression) =>
-      expression.staticType?.isDartCoreList ?? false;
 
   bool _isMap(Expression expression) =>
       expression.staticType?.isDartCoreMap ?? false;
