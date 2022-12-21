@@ -111,7 +111,7 @@ vars = {
   "csslib_rev": "34203c09f073ed8267f5d6e333daddb02e6ff609",
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
-  "binaryen_rev" : "7769139efbe818c7ba36d1a382db5114ebee9df8",
+  "binaryen_rev" : "12ad604c17407f6b36d52c6404f2dab32e5c7960",
 
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
