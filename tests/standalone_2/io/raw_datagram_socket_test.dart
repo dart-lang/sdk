@@ -128,10 +128,6 @@ testDatagramSocketMulticastIf() {
       option = RawSocketOption(RawSocketOption.levelIPv4,
           RawSocketOption.IPv4MulticastInterface, address.rawAddress);
     } else {
-      if (!NetworkInterface.listSupported) {
-        asyncEnd();
-        return;
-      }
       var interface = await NetworkInterface.list();
       if (interface.length == 0) {
         asyncEnd();

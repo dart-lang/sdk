@@ -94,7 +94,6 @@ namespace bin {
   V(Namespace_Create, 2)                                                       \
   V(Namespace_GetDefault, 0)                                                   \
   V(Namespace_GetPointer, 1)                                                   \
-  V(NetworkInterface_ListSupported, 0)                                         \
   V(OSError_inProgressErrorCode, 0)                                            \
   V(Platform_NumberOfProcessors, 0)                                            \
   V(Platform_OperatingSystem, 0)                                               \

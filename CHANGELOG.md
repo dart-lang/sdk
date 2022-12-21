@@ -84,6 +84,11 @@
   removed.  See [#49536](https://github.com/dart-lang/sdk/issues/49536) for
   details.
 
+#### `dart:io`
+
+- Deprecated `NetworkInterface.listSupported`. Has always returned true since
+  Dart 2.3.
+
 #### `dart:js_util`
 
 - Added several helper functions to access more JavaScript operator, like

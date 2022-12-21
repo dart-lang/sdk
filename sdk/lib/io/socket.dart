@@ -178,7 +178,9 @@ abstract class NetworkInterface {
 
   /// Whether the [list] method is supported.
   ///
-  /// The [list] method is currently unsupported on Android.
+  /// The [list] method is supported on all platforms supported by Dart so this
+  /// property is always true.
+  @Deprecated("listSupported is always true.")
   external static bool get listSupported;
 
   /// Query the system for [NetworkInterface]s.
