@@ -12,6 +12,7 @@ import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 
 import 'builder.dart';
+import 'builder_interfaces.dart' as interfaces;
 import 'jump_handler.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
@@ -101,8 +102,8 @@ abstract class LoopHandler {
       HBasicBlock updateBlock = builder.addNewBlock();
 
       List<LocalsHandler> continueHandlers = <LocalsHandler>[];
-      jumpHandler
-          .forEachContinue((HContinue instruction, LocalsHandler locals) {
+      jumpHandler.forEachContinue(
+          (HContinue instruction, interfaces.LocalsHandler locals) {
         instruction.block.addSuccessor(updateBlock);
         continueHandlers.add(locals);
       });
@@ -261,7 +262,8 @@ abstract class LoopHandler {
 
     List<LocalsHandler> breakHandlers = <LocalsHandler>[];
     // Collect data for the successors and the phis at each break.
-    jumpHandler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
+    jumpHandler.forEachBreak(
+        (HBreak breakInstruction, interfaces.LocalsHandler locals) {
       breakInstruction.block.addSuccessor(loopExitBlock);
       breakHandlers.add(locals);
     });

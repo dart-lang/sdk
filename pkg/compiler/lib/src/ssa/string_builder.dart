@@ -8,7 +8,7 @@ import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../inferrer/abstract_value_domain.dart';
-import 'builder.dart';
+import 'builder_interfaces.dart';
 import 'nodes.dart';
 
 /// Visits and concatenates the expressions in a string concatenation.

@@ -19,14 +19,14 @@ import '../js_model/closure.dart' show JContextField, JClosureField;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/locals.dart' show GlobalLocalsMap, JLocal;
 
-import 'builder.dart';
+import 'builder_interfaces.dart' as interfaces;
 import 'nodes.dart';
 import 'types.dart';
 
 /// Keeps track of locals (including parameters and phis) when building. The
 /// 'this' reference is treated as parameter and hence handled by this class,
 /// too.
-class LocalsHandler {
+class LocalsHandler implements interfaces.LocalsHandler {
   /// The values of locals that can be directly accessed (without redirections
   /// to boxes or closure-fields).
   ///
@@ -36,7 +36,7 @@ class LocalsHandler {
   /// don't have source locations for [Elements.compareByPosition].
   Map<Local, HInstruction> directLocals = {};
   Map<Local, FieldEntity> redirectionMapping = {};
-  final KernelSsaGraphBuilder builder;
+  final interfaces.KernelSsaGraphBuilder builder;
 
   MemberEntity _scopeInfoMember;
   ScopeInfo _scopeInfo;
@@ -85,6 +85,7 @@ class LocalsHandler {
 
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
+  @override
   DartType substInContext(DartType type) {
     DartType newType = type;
     if (instanceType != null) {
@@ -343,6 +344,7 @@ class LocalsHandler {
   /// Returns an [HInstruction] for the given element. If the element is
   /// boxed or stored in a closure then the method generates code to retrieve
   /// the value.
+  @override
   HInstruction /*!*/ readLocal(Local local,
       {SourceInformation sourceInformation}) {
     if (isAccessedDirectly(local)) {
@@ -407,6 +409,7 @@ class LocalsHandler {
     }
   }
 
+  @override
   HInstruction readThis({SourceInformation sourceInformation}) {
     HInstruction res =
         readLocal(_scopeInfo.thisLocal, sourceInformation: sourceInformation);
@@ -435,12 +438,14 @@ class LocalsHandler {
     });
   }
 
+  @override
   Local getTypeVariableAsLocal(TypeVariableType type) {
     return typeVariableLocals[type.element] ??= TypeVariableLocal(type.element);
   }
 
   /// Sets the [element] to [value]. If the element is boxed or stored in a
   /// closure then the method generates code to set the value.
+  @override
   void updateLocal(Local local, HInstruction value,
       {SourceInformation sourceInformation}) {
     if (value is HRef) {

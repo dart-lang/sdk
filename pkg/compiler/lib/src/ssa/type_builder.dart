@@ -4,7 +4,7 @@
 
 // @dart = 2.10
 
-import 'builder.dart';
+import 'builder_interfaces.dart';
 import 'nodes.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';

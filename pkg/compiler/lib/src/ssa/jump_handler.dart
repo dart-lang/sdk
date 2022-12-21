@@ -9,7 +9,7 @@ import '../elements/jumps.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 
-import 'builder.dart';
+import 'builder_interfaces.dart' as interfaces;
 import 'locals_handler.dart';
 import 'nodes.dart';
 
@@ -22,22 +22,11 @@ class _JumpHandlerEntry {
   _JumpHandlerEntry(this.jumpInstruction, this.locals);
 }
 
-abstract class JumpHandler {
-  factory JumpHandler(KernelSsaGraphBuilder builder, JumpTarget target) {
+abstract class JumpHandler extends interfaces.JumpHandler {
+  factory JumpHandler(
+      interfaces.KernelSsaGraphBuilder builder, JumpTarget target) {
     return TargetJumpHandler(builder, target);
   }
-  void generateBreak(SourceInformation sourceInformation,
-      [LabelDefinition label]);
-  void generateContinue(SourceInformation sourceInformation,
-      [LabelDefinition label]);
-  void forEachBreak(void action(HBreak instruction, LocalsHandler locals));
-  void forEachContinue(
-      void action(HContinue instruction, LocalsHandler locals));
-  bool hasAnyContinue();
-  bool hasAnyBreak();
-  void close();
-  final JumpTarget target;
-  List<LabelDefinition> get labels;
 }
 
 /// Jump handler used to avoid null checks when a target isn't used as the
@@ -84,7 +73,7 @@ class NullJumpHandler implements JumpHandler {
 /// Breaks are always forward jumps. Continues in loops are implemented as
 /// breaks of the body. Continues in switches is currently not handled.
 class TargetJumpHandler implements JumpHandler {
-  final KernelSsaGraphBuilder builder;
+  final interfaces.KernelSsaGraphBuilder builder;
   @override
   final JumpTarget target;
   final List<_JumpHandlerEntry> jumps = [];
@@ -188,7 +177,8 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
   /// switch case loop.
   final Map<JumpTarget, int> targetIndexMap = {};
 
-  SwitchCaseJumpHandler(KernelSsaGraphBuilder builder, JumpTarget target)
+  SwitchCaseJumpHandler(
+      interfaces.KernelSsaGraphBuilder builder, JumpTarget target)
       : super(builder, target);
 
   @override
