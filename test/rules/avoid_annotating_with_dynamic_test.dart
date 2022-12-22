@@ -17,6 +17,11 @@ class AvoidAnnotatingWithDynamicTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_annotating_with_dynamic';
 
+  // TODO(srawlins): Test parameter of function-typed typedef (both old and
+  // new style).
+  // Test parameter of function-typed parameter (`f(void g(dynamic x))`).
+  // Test parameter with a default value.
+
   test_fieldFormals() async {
     await assertDiagnostics(r'''
 class A {
@@ -25,6 +30,44 @@ class A {
 }
 ''', [
       lint(23, 14),
+    ]);
+  }
+
+  test_returnType() async {
+    await assertNoDiagnostics(r'''
+dynamic f() {
+  return null; 
+}
+''');
+  }
+
+  test_requiredParameter() async {
+    await assertDiagnostics(r'''
+void f(dynamic p) {}
+''', [
+      lint(7, 9),
+    ]);
+  }
+
+  test_implicitDynamic() async {
+    await assertNoDiagnostics(r'''
+void f(p) {}
+''');
+  }
+
+  test_optionalParameter() async {
+    await assertDiagnostics(r'''
+void f([dynamic p]) {}
+''', [
+      lint(8, 9),
+    ]);
+  }
+
+  test_optionalNamedParameter() async {
+    await assertDiagnostics(r'''
+void f({dynamic p}) {}
+''', [
+      lint(8, 9),
     ]);
   }
 
