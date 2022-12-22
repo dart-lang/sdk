@@ -24,7 +24,6 @@ import '../../base/nnbd_mode.dart';
 import '../../base/processed_options.dart' show ProcessedOptions;
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/constructor_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
@@ -64,7 +63,6 @@ import '../messages.dart'
         templateSuperclassHasNoDefaultConstructor;
 import '../problems.dart' show unhandled;
 import '../scope.dart' show AmbiguousBuilder;
-import '../source/name_scheme.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
 import '../source/source_field_builder.dart';
@@ -927,7 +925,7 @@ class KernelTarget extends TargetImplementation {
       Map<TypeParameter, DartType>? substitutionMap;
 
       NameIterator<MemberBuilder> iterator =
-          superclassBuilder.fullConstructorNameIterator;
+          superclassBuilder.fullConstructorNameIterator();
       while (iterator.moveNext()) {
         String name = iterator.name;
         MemberBuilder memberBuilder = iterator.current;
@@ -1267,12 +1265,14 @@ class KernelTarget extends TargetImplementation {
     List<SourceFieldBuilder> nonFinalFields = [];
     List<SourceFieldBuilder> lateFinalFields = [];
 
-    builder
-        .forEachDeclaredField((String name, SourceFieldBuilder fieldBuilder) {
+    Iterator<SourceFieldBuilder> fieldIterator =
+        builder.fullMemberIterator<SourceFieldBuilder>();
+    while (fieldIterator.moveNext()) {
+      SourceFieldBuilder fieldBuilder = fieldIterator.current;
       if (fieldBuilder.isAbstract || fieldBuilder.isExternal) {
         // Skip abstract and external fields. These are abstract/external
         // getters/setters and have no initialization.
-        return;
+        continue;
       }
       if (fieldBuilder.isDeclarationInstanceMember && !fieldBuilder.isFinal) {
         nonFinalFields.add(fieldBuilder);
@@ -1283,48 +1283,11 @@ class KernelTarget extends TargetImplementation {
         lateFinalFields.add(fieldBuilder);
       }
       if (!fieldBuilder.hasInitializer) {
-        // In case of duplicating fields the earliest ones (those that
-        // declared towards the beginning of the file) come last in the list.
-        // To report errors on the first definition of a field, we need to
-        // iterate until that last element.
-        SourceFieldBuilder earliest = fieldBuilder;
-        Builder current = fieldBuilder;
-        while (current.next != null) {
-          current = current.next!;
-          if (current is SourceFieldBuilder && !fieldBuilder.hasInitializer) {
-            earliest = current;
-          }
-        }
-        uninitializedFields.add(earliest);
+        uninitializedFields.add(fieldBuilder);
       }
-    });
+    }
 
     Constructor? superTarget;
-    // In the underlying Kernel IR the patches are already applied, so
-    // cls.constructors should contain both constructors from the original
-    // declaration and the constructors from the patch.  The assert checks that
-    // it's so.
-    assert(() {
-      Set<String> patchConstructorNames = {};
-      builder.forEachDeclaredConstructor(
-          (String name, ConstructorBuilder constructorBuilder) {
-        // Don't add the default constructor's name.
-        if (name.isNotEmpty) {
-          patchConstructorNames.add(name);
-        }
-      });
-      NameIterator<ConstructorBuilder> iterator = builder.constructorScope
-          .filteredNameIterator<ConstructorBuilder>(
-              includeDuplicates: false, includeAugmentations: true);
-      while (iterator.moveNext()) {
-        patchConstructorNames.remove(iterator.name);
-      }
-      Set<String> kernelConstructorNames =
-          cls.constructors.map((c) => c.name.text).toSet().difference({""});
-      return kernelConstructorNames.containsAll(patchConstructorNames);
-    }(),
-        "Constructors of class '${builder.fullNameForErrors}' "
-        "aren't fully patched.");
     for (Constructor constructor in cls.constructors) {
       if (constructor.isExternal) {
         continue;
@@ -1404,22 +1367,25 @@ class KernelTarget extends TargetImplementation {
         constructorInitializedFields = new Map.identity();
     Set<SourceFieldBuilder>? initializedFields = null;
 
-    builder.forEachDeclaredConstructor(
-        (String name, DeclaredSourceConstructorBuilder constructorBuilder) {
-      if (constructorBuilder.isEffectivelyExternal) return;
-      if (constructorBuilder.isEffectivelyRedirecting) return;
+    Iterator<DeclaredSourceConstructorBuilder> constructorIterator =
+        builder.fullConstructorIterator<DeclaredSourceConstructorBuilder>();
+    while (constructorIterator.moveNext()) {
+      DeclaredSourceConstructorBuilder constructorBuilder =
+          constructorIterator.current;
+      if (constructorBuilder.isEffectivelyExternal) continue;
+      if (constructorBuilder.isEffectivelyRedirecting) continue;
       Set<SourceFieldBuilder> fields =
           constructorBuilder.takeInitializedFields() ?? const {};
       constructorInitializedFields[constructorBuilder] = fields;
       (initializedFields ??= new Set<SourceFieldBuilder>.identity())
           .addAll(fields);
-    });
+    }
 
     // Run through all fields that aren't initialized by any constructor, and
     // set their initializer to `null`.
     for (SourceFieldBuilder fieldBuilder in uninitializedFields) {
       if (initializedFields == null ||
-          !initializedFields!.contains(fieldBuilder)) {
+          !initializedFields.contains(fieldBuilder)) {
         bool uninitializedFinalOrNonNullableFieldIsError =
             cls.enclosingLibrary.isNonNullableByDefault ||
                 (cls.constructors.isNotEmpty || cls.isMixinDeclaration);
@@ -1513,39 +1479,12 @@ class KernelTarget extends TargetImplementation {
 
     Set<Field>? initializedFieldsKernel = null;
     if (initializedFields != null) {
-      for (FieldBuilder fieldBuilder in initializedFields!) {
+      for (FieldBuilder fieldBuilder in initializedFields) {
         (initializedFieldsKernel ??= new Set<Field>.identity())
             .add(fieldBuilder.field);
       }
     }
-    // In the underlying Kernel IR the patches are already applied, so
-    // cls.fields should contain both fields from the original
-    // declaration and the fields from the patch.  The assert checks that
-    // it's so.
-    assert(() {
-      Set<String> patchFieldNames = {};
-      builder
-          .forEachDeclaredField((String name, SourceFieldBuilder fieldBuilder) {
-        patchFieldNames.add(NameScheme.createFieldName(
-          FieldNameType.Field,
-          name,
-          containerType: ContainerType.Class,
-          containerName: new ClassName(builder.name),
-          isInstanceMember: fieldBuilder.isClassInstanceMember,
-          isSynthesized: fieldBuilder.isLateLowered,
-        ));
-      });
-      NameIterator<Builder> fieldIterator = builder.fullMemberNameIterator;
-      while (fieldIterator.moveNext()) {
-        if (fieldIterator.current is FieldBuilder) {
-          patchFieldNames.remove(fieldIterator.name);
-        }
-      }
-      Set<String> kernelFieldNames = cls.fields.map((f) => f.name.text).toSet();
-      return kernelFieldNames.containsAll(patchFieldNames);
-    }(),
-        "Fields of class '${builder.fullNameForErrors}' "
-        "aren't fully patched.");
+
     for (Field field in cls.fields) {
       if (field.initializer == null &&
           !field.isLate &&

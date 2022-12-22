@@ -12,7 +12,6 @@ import 'package:kernel/src/norm.dart';
 import 'package:kernel/type_algebra.dart' show Substitution;
 
 import '../../../base/common.dart';
-import '../../builder/builder.dart';
 import '../../builder/class_builder.dart';
 import '../../builder/formal_parameter_builder.dart';
 import '../../builder/library_builder.dart';
@@ -617,9 +616,10 @@ class ClassMembersNodeBuilder {
 
     Map<Name, Tuple> memberMap = {};
 
-    Iterator<Builder> iterator = classBuilder.fullMemberIterator;
+    Iterator<MemberBuilder> iterator =
+        classBuilder.fullMemberIterator<MemberBuilder>();
     while (iterator.moveNext()) {
-      MemberBuilder memberBuilder = iterator.current as MemberBuilder;
+      MemberBuilder memberBuilder = iterator.current;
       for (ClassMember classMember in memberBuilder.localMembers) {
         Name name = classMember.name;
         if (classMember.isAbstract) {
@@ -668,9 +668,10 @@ class ClassMembersNodeBuilder {
             usedAsClassFileUri: namedBuilder.fileUri)!;
       }
       if (mixin is ClassBuilder) {
-        Iterator<Builder> iterator = mixin.fullMemberIterator;
+        Iterator<MemberBuilder> iterator =
+            mixin.fullMemberIterator<MemberBuilder>();
         while (iterator.moveNext()) {
-          MemberBuilder memberBuilder = iterator.current as MemberBuilder;
+          MemberBuilder memberBuilder = iterator.current;
           if (memberBuilder.isStatic) {
             continue;
           }

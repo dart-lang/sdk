@@ -266,7 +266,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
       tearOffs = {};
       _tearOffDependencies = {};
       NameIterator<MemberBuilder> iterator =
-          declaration.fullConstructorNameIterator;
+          declaration.fullConstructorNameIterator();
       while (iterator.moveNext()) {
         String constructorName = iterator.name;
         MemberBuilder builder = iterator.current;
