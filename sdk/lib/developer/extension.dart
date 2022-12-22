@@ -171,7 +171,7 @@ void postEvent(String eventKind, Map eventData, {String stream = 'Extension'}) {
         stream, 'stream', 'Cannot be a protected stream.');
   } else if (stream.startsWith('_')) {
     throw ArgumentError.value(
-        stream, 'stream', 'Cannot start with and underscore.');
+        stream, 'stream', 'Cannot start with an underscore.');
   }
 
   if (!extensionStreamHasListener) {
@@ -181,8 +181,9 @@ void postEvent(String eventKind, Map eventData, {String stream = 'Extension'}) {
   checkNotNullable(eventKind, 'eventKind');
   checkNotNullable(eventData, 'eventData');
   checkNotNullable(stream, 'stream');
-  eventData[destinationStreamKey] = stream;
-  String eventDataAsString = json.encode(eventData);
+  Map mutableEventData = Map.from(eventData); // Shallow copy.
+  mutableEventData[destinationStreamKey] = stream;
+  String eventDataAsString = json.encode(mutableEventData);
   _postEvent(eventKind, eventDataAsString);
 }
 

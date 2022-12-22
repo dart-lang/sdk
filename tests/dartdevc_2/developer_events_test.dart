@@ -10,6 +10,7 @@ import 'dart:developer'
 import 'dart:convert';
 
 import 'package:js/js.dart';
+import 'package:expect/expect.dart';
 import 'package:expect/minitest.dart';
 
 @JS(r'$emitDebugEvent')
@@ -80,7 +81,7 @@ void testBackwardsCompatibility() {
 
     expect(consoleDebugLog.single[0], 'dart.developer.postEvent');
     expect(consoleDebugLog.single[1], 'kind0');
-    expect(consoleDebugLog.single[2], jsonEncode(data0));
+    Expect.contains('"key0":"value0"', consoleDebugLog.single[2]);
 
     var testHandler = (String s, Map<String, String> m) async =>
         ServiceExtensionResponse.result('test result');
@@ -96,7 +97,7 @@ void testBackwardsCompatibility() {
     expect(consoleDebugLog.length, 3);
     expect(consoleDebugLog[2][0], 'dart.developer.postEvent');
     expect(consoleDebugLog[2][1], 'kind1');
-    expect(consoleDebugLog[2][2], jsonEncode(data1));
+    Expect.contains('"key1":"value1"', consoleDebugLog[2][2]);
 
     registerExtension('ext.method1', testHandler);
     expect(consoleDebugLog.length, 4);
@@ -177,7 +178,7 @@ void testPostEvent() {
     postEvent('kind0', data0);
 
     expect(debugEventLog.single.kind, 'kind0');
-    expect(debugEventLog.single.eventData, jsonEncode(data0));
+    Expect.contains('"key0":"value0"', debugEventLog.single.eventData);
 
     var data1 = {'key1': 'value1'};
     var data2 = {'key2': 'value2'};
@@ -186,11 +187,11 @@ void testPostEvent() {
 
     expect(debugEventLog.length, 3);
     expect(debugEventLog[0].kind, 'kind0');
-    expect(debugEventLog[0].eventData, jsonEncode(data0));
+    Expect.contains('"key0":"value0"', debugEventLog[0].eventData);
     expect(debugEventLog[1].kind, 'kind1');
-    expect(debugEventLog[1].eventData, jsonEncode(data1));
+    Expect.contains('"key1":"value1"', debugEventLog[1].eventData);
     expect(debugEventLog[2].kind, 'kind2');
-    expect(debugEventLog[2].eventData, jsonEncode(data2));
+    Expect.contains('"key2":"value2"', debugEventLog[2].eventData);
   } finally {
     emitDebugEvent = savedEmitDebugEvent;
     dwdsVersion = savedDwdsVersion;
