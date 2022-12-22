@@ -2368,8 +2368,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
       HBasicBlock conditionBlock = addNewBlock();
 
       List<LocalsHandler> continueHandlers = <LocalsHandler>[];
-      jumpHandler.forEachContinue(
-          (HContinue instruction, interfaces.LocalsHandler locals) {
+      jumpHandler
+          .forEachContinue((HContinue instruction, LocalsHandler locals) {
         instruction.block.addSuccessor(conditionBlock);
         continueHandlers.add(locals);
       });
@@ -2724,8 +2724,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
 
     HBasicBlock joinBlock = graph.addNewBlock();
     List<LocalsHandler> breakHandlers = [];
-    handler.forEachBreak(
-        (HBreak breakInstruction, interfaces.LocalsHandler locals) {
+    handler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
       breakInstruction.block.addSuccessor(joinBlock);
       breakHandlers.add(locals);
     });
@@ -3072,13 +3071,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
     // the join block is never added to the graph.
     HBasicBlock joinBlock = HBasicBlock();
     List<LocalsHandler> caseHandlers = [];
-    jumpHandler
-        .forEachBreak((HBreak instruction, interfaces.LocalsHandler locals) {
+    jumpHandler.forEachBreak((HBreak instruction, LocalsHandler locals) {
       instruction.block.addSuccessor(joinBlock);
       caseHandlers.add(locals);
     });
-    jumpHandler.forEachContinue(
-        (HContinue instruction, interfaces.LocalsHandler locals) {
+    jumpHandler.forEachContinue((HContinue instruction, LocalsHandler locals) {
       assert(
           false,
           failedAt(_elementMap.getSpannable(targetElement, switchStatement),
