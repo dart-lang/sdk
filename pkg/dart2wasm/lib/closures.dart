@@ -800,7 +800,8 @@ class Closures {
 
   void collectContexts(TreeNode node, {TreeNode? container}) {
     if (captures.isNotEmpty || isThisCaptured) {
-      node.accept(ContextCollector(this, container));
+      node.accept(
+          ContextCollector(this, container, translator.options.enableAsserts));
     }
   }
 
@@ -854,7 +855,11 @@ class CaptureFinder extends RecursiveVisitor {
   w.Module get m => translator.m;
 
   @override
-  void visitAssertStatement(AssertStatement node) {}
+  void visitAssertStatement(AssertStatement node) {
+    if (translator.options.enableAsserts) {
+      node.visitChildren(this);
+    }
+  }
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
@@ -976,15 +981,20 @@ class CaptureFinder extends RecursiveVisitor {
 class ContextCollector extends RecursiveVisitor {
   final Closures closures;
   Context? currentContext;
+  final bool enableAsserts;
 
-  ContextCollector(this.closures, TreeNode? container) {
+  ContextCollector(this.closures, TreeNode? container, this.enableAsserts) {
     if (container != null) {
       currentContext = closures.contexts[container]!;
     }
   }
 
   @override
-  void visitAssertStatement(AssertStatement node) {}
+  void visitAssertStatement(AssertStatement node) {
+    if (enableAsserts) {
+      node.visitChildren(this);
+    }
+  }
 
   void _newContext(TreeNode node) {
     bool outerMost = currentContext == null;

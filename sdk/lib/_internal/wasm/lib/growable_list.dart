@@ -284,9 +284,7 @@ class _GrowableListIterator<E> implements Iterator<E> {
   _GrowableListIterator(_GrowableList<E> list)
       : _list = list,
         _length = list.length,
-        _index = 0 {
-    assert(list is _List<E> || list is _ImmutableList<E>);
-  }
+        _index = 0;
 
   E get current => _current as E;
 
