@@ -110,6 +110,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   /// A stack of instructions.
   ///
   /// We build the SSA graph by simulating a stack machine.
+  @override
   List<HInstruction /*!*/ > stack = [];
 
   /// The count of nested loops we are currently building.
@@ -241,6 +242,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
 
   DartTypes get dartTypes => closedWorld.dartTypes;
 
+  @override
   void push(HInstruction instruction) {
     add(instruction);
     stack.add(instruction);
@@ -252,6 +254,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   }
 
   /// Pushes a boolean checking [expression] against null.
+  @override
   pushCheckNull(HInstruction expression) {
     push(HIdentity(expression, graph.addConstantNull(closedWorld),
         _abstractValueDomain.boolType));
@@ -262,7 +265,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   /// The current block to add instructions to. Might be null, if we are
   /// visiting dead code, but see [_isReachable].
   @override
-  HBasicBlock get current => _current;
+  HBasicBlock get current => _current /*!*/;
 
   void set current(c) {
     _isReachable = c != null;
@@ -320,6 +323,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
     return result;
   }
 
+  @override
   void goto(HBasicBlock from, HBasicBlock to) {
     from.close(HGoto(_abstractValueDomain));
     from.addSuccessor(to);
@@ -673,6 +677,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
 
   /// Pops the most recent instruction from the stack and ensures that it is a
   /// non-null bool.
+  @override
   HInstruction popBoolified() {
     HInstruction value = pop();
     return _typeBuilder.potentiallyCheckOrTrustTypeOfCondition(

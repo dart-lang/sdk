@@ -28,6 +28,8 @@ abstract class KernelSsaGraphBuilder extends ir.Visitor<void> {
   Map<JumpTarget, JumpHandler> get jumpTargets;
 
   LocalsHandler get localsHandler;
+
+  List<HInstruction> get stack;
   set localsHandler(LocalsHandler handler);
 
   CodegenRegistry get registry;
@@ -75,4 +77,12 @@ abstract class KernelSsaGraphBuilder extends ir.Visitor<void> {
 
   JumpHandler createJumpHandler(ir.TreeNode node, JumpTarget? jumpTarget,
       {required bool isLoopJump});
+
+  HInstruction popBoolified();
+
+  void goto(HBasicBlock current, HBasicBlock block);
+
+  void pushCheckNull(HInstruction leftExpression);
+
+  void push(HNot hNot);
 }
