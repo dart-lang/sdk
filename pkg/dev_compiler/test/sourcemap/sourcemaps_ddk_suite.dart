@@ -65,6 +65,7 @@ class DevCompilerRunner implements CompilerRunner {
       '--packages=$packageConfigPath',
       '--modules=es6',
       '--dart-sdk-summary=${ddcSdkSummary.path}',
+      '--no-sound-null-safety',
       '-o',
       outputFile.toFilePath(),
       inputFile.toFilePath()

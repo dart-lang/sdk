@@ -58,6 +58,7 @@ import '../universe/selector.dart';
 import '../universe/target_checks.dart' show TargetChecks;
 import '../universe/use.dart' show ConstantUse, StaticUse, TypeUse;
 import 'branch_builder.dart';
+import 'builder_interfaces.dart' as interfaces;
 import 'jump_handler.dart';
 import 'locals_handler.dart';
 import 'loop_handler.dart';
@@ -90,8 +91,11 @@ class StackFrame {
       this.staticTypeProvider);
 }
 
-class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
+class KernelSsaGraphBuilder extends ir.Visitor<void>
+    with ir.VisitorVoidMixin
+    implements interfaces.KernelSsaGraphBuilder {
   /// Holds the resulting SSA graph.
+  @override
   final HGraph graph = HGraph();
 
   /// True if the builder is processing nodes inside a try statement. This is
@@ -100,6 +104,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   bool _inTryStatement = false;
 
   /// Used to track the locals while building the graph.
+  @override
   LocalsHandler localsHandler;
 
   /// A stack of instructions.
@@ -114,15 +119,21 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   int loopDepth = 0;
 
   /// A mapping from jump targets to their handlers.
+  @override
   Map<JumpTarget, JumpHandler> jumpTargets = {};
 
+  @override
   final CompilerOptions options;
+  @override
   final DiagnosticReporter reporter;
   final ModularEmitter _emitter;
   final ModularNamer _namer;
+  @override
   final MemberEntity targetElement;
   final MemberEntity _initialTargetElement;
+  @override
   final JClosedWorld closedWorld;
+  @override
   final CodegenRegistry registry;
   final ClosureData _closureDataLookup;
   final Tracer _tracer;
@@ -145,6 +156,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   final SourceInformationStrategy _sourceInformationStrategy;
   final JsToElementMap _elementMap;
+  @override
   final GlobalTypeInferenceResults globalInferenceResults;
   LoopHandler _loopHandler;
   TypeBuilder _typeBuilder;
@@ -233,6 +245,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     stack.add(instruction);
   }
 
+  @override
   HInstruction /*!*/ pop() {
     return stack.removeLast();
   }
@@ -266,8 +279,10 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// [isAborted].
   bool _isReachable = true;
 
-  HLocalValue lastAddedParameter;
+  @override
+  HLocalValue /*?*/ lastAddedParameter;
 
+  @override
   Map<Local, HInstruction> parameters = {};
   Set<Local> elidedParameters;
 
@@ -284,6 +299,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     lastOpenedBlock = block;
   }
 
+  @override
   HBasicBlock close(HControlFlow end) {
     HBasicBlock result = current;
     current.close(end);
@@ -317,11 +333,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     return newBlock;
   }
 
+  @override
   void add(HInstruction instruction) {
     current.add(instruction);
   }
 
-  HLocalValue addParameter(Entity parameter, AbstractValue type,
+  @override
+  HLocalValue addParameter(Entity /*?*/ parameter, AbstractValue type,
       {bool isElided = false}) {
     HLocalValue result = isElided
         ? HLocalValue(parameter, type)
@@ -1745,6 +1763,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   // TODO(efortuna): Update this when we implement inlining.
   // TODO(sra): Re-implement type builder using Kernel types and the
   // `target` for context.
+  @override
   MemberEntity get sourceElement => _currentFrame.member;
 
   @override
@@ -2349,8 +2368,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       HBasicBlock conditionBlock = addNewBlock();
 
       List<LocalsHandler> continueHandlers = <LocalsHandler>[];
-      jumpHandler
-          .forEachContinue((HContinue instruction, LocalsHandler locals) {
+      jumpHandler.forEachContinue(
+          (HContinue instruction, interfaces.LocalsHandler locals) {
         instruction.block.addSuccessor(conditionBlock);
         continueHandlers.add(locals);
       });
@@ -2705,7 +2724,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
     HBasicBlock joinBlock = graph.addNewBlock();
     List<LocalsHandler> breakHandlers = [];
-    handler.forEachBreak((HBreak breakInstruction, LocalsHandler locals) {
+    handler.forEachBreak(
+        (HBreak breakInstruction, interfaces.LocalsHandler locals) {
       breakInstruction.block.addSuccessor(joinBlock);
       breakHandlers.add(locals);
     });
@@ -3052,11 +3072,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     // the join block is never added to the graph.
     HBasicBlock joinBlock = HBasicBlock();
     List<LocalsHandler> caseHandlers = [];
-    jumpHandler.forEachBreak((HBreak instruction, LocalsHandler locals) {
+    jumpHandler
+        .forEachBreak((HBreak instruction, interfaces.LocalsHandler locals) {
       instruction.block.addSuccessor(joinBlock);
       caseHandlers.add(locals);
     });
-    jumpHandler.forEachContinue((HContinue instruction, LocalsHandler locals) {
+    jumpHandler.forEachContinue(
+        (HContinue instruction, interfaces.LocalsHandler locals) {
       assert(
           false,
           failedAt(_elementMap.getSpannable(targetElement, switchStatement),

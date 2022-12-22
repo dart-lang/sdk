@@ -59,6 +59,14 @@ class ExperimentalFlag {
           experimentEnabledVersion: const Version(2, 18),
           experimentReleasedVersion: const Version(2, 18));
 
+  static const ExperimentalFlag classModifiers = const ExperimentalFlag(
+      name: 'class-modifiers',
+      isEnabledByDefault: false,
+      isExpired: false,
+      enabledVersion: const Version(3, 0),
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0));
+
   static const ExperimentalFlag constFunctions = const ExperimentalFlag(
       name: 'const-functions',
       isEnabledByDefault: false,
@@ -318,6 +326,10 @@ class GlobalFeatures {
       _alternativeInvalidationStrategy ??= _computeGlobalFeature(
           ExperimentalFlag.alternativeInvalidationStrategy);
 
+  GlobalFeature? _classModifiers;
+  GlobalFeature get classModifiers => _classModifiers ??=
+      _computeGlobalFeature(ExperimentalFlag.classModifiers);
+
   GlobalFeature? _constFunctions;
   GlobalFeature get constFunctions => _constFunctions ??=
       _computeGlobalFeature(ExperimentalFlag.constFunctions);
@@ -439,6 +451,11 @@ class LibraryFeatures {
               ExperimentalFlag.alternativeInvalidationStrategy,
               canonicalUri,
               libraryVersion);
+
+  LibraryFeature? _classModifiers;
+  LibraryFeature get classModifiers =>
+      _classModifiers ??= globalFeatures._computeLibraryFeature(
+          ExperimentalFlag.classModifiers, canonicalUri, libraryVersion);
 
   LibraryFeature? _constFunctions;
   LibraryFeature get constFunctions =>
@@ -580,6 +597,8 @@ class LibraryFeatures {
   LibraryFeature fromSharedExperimentalFlags(
       shared.ExperimentalFlag experimentalFlag) {
     switch (experimentalFlag) {
+      case shared.ExperimentalFlag.classModifiers:
+        return classModifiers;
       case shared.ExperimentalFlag.constFunctions:
         return constFunctions;
       case shared.ExperimentalFlag.constantUpdate2018:
@@ -643,6 +662,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
   switch (flag) {
     case "alternative-invalidation-strategy":
       return ExperimentalFlag.alternativeInvalidationStrategy;
+    case "class-modifiers":
+      return ExperimentalFlag.classModifiers;
     case "const-functions":
       return ExperimentalFlag.constFunctions;
     case "constant-update-2018":
@@ -702,6 +723,8 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
 final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.alternativeInvalidationStrategy:
       ExperimentalFlag.alternativeInvalidationStrategy.isEnabledByDefault,
+  ExperimentalFlag.classModifiers:
+      ExperimentalFlag.classModifiers.isEnabledByDefault,
   ExperimentalFlag.constFunctions:
       ExperimentalFlag.constFunctions.isEnabledByDefault,
   ExperimentalFlag.constantUpdate2018:
@@ -928,6 +951,7 @@ const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
   },
 });
 const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
+  shared.ExperimentalFlag.classModifiers: ExperimentalFlag.classModifiers,
   shared.ExperimentalFlag.constFunctions: ExperimentalFlag.constFunctions,
   shared.ExperimentalFlag.constantUpdate2018:
       ExperimentalFlag.constantUpdate2018,

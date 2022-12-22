@@ -87,7 +87,6 @@ class SourceToSummaryDillStep implements IOModularStep {
       extraArgs = [
         '--libraries-file',
         '$rootScheme:///sdk/lib/libraries.json',
-        '--no-sound-null-safety',
       ];
       assert(transitiveDependencies.isEmpty);
     } else {
@@ -111,6 +110,7 @@ class SourceToSummaryDillStep implements IOModularStep {
       '--multi-root-scheme',
       rootScheme,
       ...extraArgs,
+      '--no-sound-null-safety',
       '--output',
       '${toUri(module, dillId)}',
       if (!module.isSdk) ...[
@@ -175,7 +175,6 @@ class DDCStep implements IOModularStep {
         '--compile-sdk',
         '--libraries-file',
         '$rootScheme:///sdk/lib/libraries.json',
-        '--no-sound-null-safety',
       ];
       assert(transitiveDependencies.isEmpty);
     } else {
@@ -206,6 +205,7 @@ class DDCStep implements IOModularStep {
       rootScheme,
       ...sources,
       ...extraArgs,
+      '--no-sound-null-safety',
       for (String flag in flags) '--enable-experiment=$flag',
       ...transitiveDependencies
           .where((m) => !m.isSdk)

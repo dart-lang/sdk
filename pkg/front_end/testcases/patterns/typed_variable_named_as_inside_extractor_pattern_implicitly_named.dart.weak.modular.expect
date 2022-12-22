@@ -1,4 +1,13 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/typed_variable_named_as_inside_extractor_pattern_implicitly_named.dart:10:10: Error: The getter 'as' isn't defined for the class 'C'.
+//  - 'C' is from 'pkg/front_end/testcases/patterns/typed_variable_named_as_inside_extractor_pattern_implicitly_named.dart'.
+// Try correcting the name to the name of an existing getter, or defining a getter or field named 'as'.
+//     case C(: int as):
+//          ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -11,17 +20,31 @@ class C extends core::Object {
 static method test(dynamic x) → dynamic {
   #L1:
   {
-    final dynamic #t1 = x;
-    final core::int #t2 = -1;
-    final core::bool #t3 = false;
-    if(!#t3) {
-      #t2 = 0;
-      #t3 = true;
+    dynamic #t1;
+    final dynamic #t2 = x;
+    final core::int #t3 = -1;
+    final core::bool #t4 = false;
+    if(!#t4) {
+      final dynamic #t5 = #t2;
+      if(#t5 is self::C) {
+        final invalid-type #t6 = invalid-expression "pkg/front_end/testcases/patterns/typed_variable_named_as_inside_extractor_pattern_implicitly_named.dart:10:10: Error: The getter 'as' isn't defined for the class 'C'.
+ - 'C' is from 'pkg/front_end/testcases/patterns/typed_variable_named_as_inside_extractor_pattern_implicitly_named.dart'.
+Try correcting the name to the name of an existing getter, or defining a getter or field named 'as'.
+    case C(: int as):
+         ^";
+        final invalid-type #t7 = #t6;
+        if(#t7 is core::int) {
+          #t3 = 0;
+          #t4 = true;
+          #t1 = #t7{core::int};
+        }
+      }
     }
-    switch(#t2) {
+    switch(#t3) {
       #L2:
       case #C1:
         {
+          core::int as = #t1{core::int};
           {
             break #L1;
           }

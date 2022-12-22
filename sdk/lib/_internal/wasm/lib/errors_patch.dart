@@ -156,6 +156,14 @@ class NoSuchMethodError {
   }
 }
 
+@patch
+class AssertionError {
+  @pragma("wasm:entry-point")
+  static Never _throwWithMessage(Object? message) {
+    throw AssertionError(message);
+  }
+}
+
 /// Used by Fasta to report a runtime error when a final field with an
 /// initializer is also initialized in a generative constructor.
 ///

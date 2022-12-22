@@ -6025,3 +6025,12 @@ CantUseClassAsMixin:
   script: |
     class A {}
     class B with A {}
+
+UnspecifiedGetterNameInObjectPattern:
+  problemMessage: "The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern."
+  experiments: patterns
+  analyzerCode: MISSING_OBJECT_PATTERN_GETTER_NAME
+  script: |
+    abstract class A { int get foo;}
+    test(dynamic x) { if (x case A(: 0)) {} }
+

@@ -45,6 +45,7 @@ void testParseDill() {
   Expect.listEquals(<String>[], file.dartOptions);
   Expect.listEquals(<String>[], file.sharedOptions);
   Expect.listEquals(<String>[], file.dart2jsOptions);
+  Expect.listEquals(<String>[], file.dart2wasmOptions);
   Expect.listEquals(<String>[], file.ddcOptions);
   Expect.listEquals(<String>[], file.otherResources);
   Expect.listEquals(<String>[], file.sharedObjects);
@@ -95,6 +96,7 @@ void testParseOtherOptions() {
   Expect.listEquals(<String>[], file.dartOptions);
   Expect.listEquals(<String>[], file.sharedOptions);
   Expect.listEquals(<String>[], file.dart2jsOptions);
+  Expect.listEquals(<String>[], file.dart2wasmOptions);
   Expect.listEquals(<String>[], file.ddcOptions);
   Expect.listEquals(<String>[], file.otherResources);
   Expect.listEquals(<String>[], file.sharedObjects);
@@ -105,6 +107,7 @@ void testParseOtherOptions() {
   /\/ DartOptions=dart options
   /\/ SharedOptions=shared options
   /\/ dart2jsOptions=dart2js options
+  /\/ dart2wasmOptions=dart2wasm options
   /\/ dartdevcOptions=ddc options
   /\/ OtherResources=other resources
   /\/ SharedObjects=shared objects
@@ -113,6 +116,7 @@ void testParseOtherOptions() {
   Expect.listEquals(["dart", "options"], file.dartOptions);
   Expect.listEquals(["shared", "options"], file.sharedOptions);
   Expect.listEquals(["dart2js", "options"], file.dart2jsOptions);
+  Expect.listEquals(["dart2wasm", "options"], file.dart2wasmOptions);
   Expect.listEquals(["ddc", "options"], file.ddcOptions);
   Expect.listEquals(["other", "resources"], file.otherResources);
   Expect.listEquals([Feature.nnbd, Feature.nnbdStrong], file.requirements);
@@ -129,6 +133,10 @@ void testParseOtherOptions() {
   expectParseThrows("""
   /\/ dart2jsOptions=first
   /\/ dart2jsOptions=second
+  """);
+  expectParseThrows("""
+  /\/ dart2wasmOptions=first
+  /\/ dart2wasmOptions=second
   """);
   expectParseThrows("""
   /\/ dartdevcOptions=first

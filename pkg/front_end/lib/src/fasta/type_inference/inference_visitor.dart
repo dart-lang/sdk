@@ -9120,6 +9120,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const PatternInferenceResult();
   }
 
+  PatternInferenceResult visitObjectPattern(ObjectPattern pattern,
+      {required SharedMatchContext context}) {
+    analyzeObjectPattern(context, pattern,
+        fields: <RecordPatternField<Node, Pattern>>[
+          for (NamedPattern field in pattern.fields)
+            new RecordPatternField(
+                node: field, name: field.name, pattern: field.pattern)
+        ]);
+    return const PatternInferenceResult();
+  }
+
   PatternInferenceResult visitRelationalPattern(
     RelationalPattern pattern, {
     required SharedMatchContext context,
@@ -9208,8 +9219,27 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required DartType matchedType,
     required Pattern pattern,
   }) {
-    // TODO(scheglov): implement downwardInferObjectPatternRequiredType
-    throw new UnimplementedError('TODO(scheglov)');
+    if (pattern is! ObjectPattern) return const InvalidType();
+    if (pattern.classNode.typeParameters.isEmpty) {
+      return new InterfaceType(pattern.classNode, Nullability.nonNullable, []);
+    }
+    if (pattern.typeArguments != null) {
+      return new InterfaceType(
+          pattern.classNode, Nullability.nonNullable, pattern.typeArguments);
+    }
+
+    DartType typeToInfer =
+        pattern.classNode.getThisType(coreTypes, Nullability.nonNullable);
+    List<TypeParameter> typeParametersToInfer =
+        pattern.classNode.typeParameters;
+    TypeConstraintGatherer gatherer =
+        typeSchemaEnvironment.setupGenericTypeInference(typeToInfer,
+            typeParametersToInfer, matchedType, libraryBuilder.library);
+    List<DartType> inferredTypes = typeSchemaEnvironment.partialInfer(
+        gatherer, typeParametersToInfer, null, libraryBuilder.library);
+    Substitution substitution =
+        Substitution.fromPairs(typeParametersToInfer, inferredTypes);
+    return substitution.substituteType(typeToInfer);
   }
 
   @override
@@ -9223,8 +9253,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     required DartType receiverType,
     required shared.RecordPatternField<Node, Pattern> field,
   }) {
-    // TODO(scheglov): implement resolveObjectPatternPropertyGet
-    throw new UnimplementedError('TODO(scheglov)');
+    // TODO(cstefantsova): Provide a better fileOffset.
+    ObjectAccessTarget fieldAccessTarget = findInterfaceMember(
+        receiverType, new Name(field.name!), field.pattern.fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+    return fieldAccessTarget.getGetterType(this);
   }
 
   @override

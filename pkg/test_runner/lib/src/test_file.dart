@@ -151,6 +151,10 @@ abstract class _TestFileBase {
 ///
 ///         // dart2jsOptions=--flag1 --flag2
 ///
+/// *   Flags can be passed to dart2wasm by adding a comment to the test file:
+///
+///         // dart2wasmOptions=--flag1 --flag2
+///
 /// *   Flags can be passed to the dart script that contains the test also
 ///     using comments, as follows:
 ///
@@ -191,6 +195,7 @@ class TestFile extends _TestFileBase {
           vmOptions: [[]],
           sharedOptions: [],
           dart2jsOptions: [],
+          dart2wasmOptions: [],
           ddcOptions: [],
           dartOptions: [],
           packages: null,
@@ -231,6 +236,8 @@ class TestFile extends _TestFileBase {
     var sharedOptions = _parseStringOption(filePath, contents, 'SharedOptions');
     var dart2jsOptions =
         _parseStringOption(filePath, contents, 'dart2jsOptions');
+    var dart2wasmOptions =
+        _parseStringOption(filePath, contents, 'dart2wasmOptions');
     var ddcOptions = _parseStringOption(filePath, contents, 'dartdevcOptions');
     var otherResources = _parseStringOption(
         filePath, contents, 'OtherResources',
@@ -337,6 +344,7 @@ class TestFile extends _TestFileBase {
         sharedOptions: sharedOptions,
         dartOptions: dartOptions,
         dart2jsOptions: dart2jsOptions,
+        dart2wasmOptions: dart2wasmOptions,
         ddcOptions: ddcOptions,
         vmOptions: vmOptions,
         sharedObjects: sharedObjects,
@@ -359,6 +367,7 @@ class TestFile extends _TestFileBase {
         sharedOptions = [],
         dartOptions = [],
         dart2jsOptions = [],
+        dart2wasmOptions = [],
         ddcOptions = [],
         vmOptions = [],
         sharedObjects = [],
@@ -380,6 +389,7 @@ class TestFile extends _TestFileBase {
       required this.sharedOptions,
       required this.dartOptions,
       required this.dart2jsOptions,
+      required this.dart2wasmOptions,
       required this.ddcOptions,
       required this.vmOptions,
       required this.sharedObjects,
@@ -416,6 +426,7 @@ class TestFile extends _TestFileBase {
   final List<String> sharedOptions;
   final List<String> dartOptions;
   final List<String> dart2jsOptions;
+  final List<String> dart2wasmOptions;
   final List<String> ddcOptions;
   final List<List<String>> vmOptions;
   final List<String> sharedObjects;
@@ -455,6 +466,7 @@ class TestFile extends _TestFileBase {
   sharedOptions: $sharedOptions
   dartOptions: $dartOptions
   dart2jsOptions: $dart2jsOptions
+  dart2wasmOptions: $dart2wasmOptions
   ddcOptions: $ddcOptions
   vmOptions: $vmOptions
   sharedObjects: $sharedObjects
@@ -494,6 +506,7 @@ class _MultitestFile extends _TestFileBase implements TestFile {
 
   List<Feature> get requirements => _origin.requirements;
   List<String> get dart2jsOptions => _origin.dart2jsOptions;
+  List<String> get dart2wasmOptions => _origin.dart2wasmOptions;
   List<String> get dartOptions => _origin.dartOptions;
   List<String> get ddcOptions => _origin.ddcOptions;
   Map<String, String> get environment => _origin.environment;

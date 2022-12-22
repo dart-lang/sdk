@@ -37,6 +37,7 @@ class TranslatorOptions {
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
+  bool enableAsserts = false;
   int? sharedMemoryMaxPages;
   List<int>? watchPoints = null;
 }

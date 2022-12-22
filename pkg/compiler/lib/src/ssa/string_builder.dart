@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 import 'package:kernel/ast.dart' as ir;
 
 import '../common.dart';
 import '../inferrer/abstract_value_domain.dart';
-import 'builder.dart';
+import 'builder_interfaces.dart';
 import 'nodes.dart';
 
 /// Visits and concatenates the expressions in a string concatenation.
@@ -16,7 +14,7 @@ class KernelStringBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   final KernelSsaGraphBuilder builder;
 
   /// The string value generated so far.
-  HInstruction result = null;
+  HInstruction? result;
 
   KernelStringBuilder(this.builder);
 
@@ -58,7 +56,7 @@ class KernelStringBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   void append(HInstruction expression) {
-    result = (result == null) ? expression : concat(result, expression);
+    result = (result == null) ? expression : concat(result!, expression);
   }
 
   HInstruction concat(HInstruction left, HInstruction right) {

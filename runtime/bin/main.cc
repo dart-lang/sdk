@@ -938,18 +938,18 @@ static void ServiceStreamCancelCallback(const char* stream_id) {
 }
 
 static bool FileModifiedCallback(const char* url, int64_t since) {
-  if (strncmp(url, "file:///", 8) != 0) {
+  auto path = File::UriToPath(url);
+  if (path == nullptr) {
     // If it isn't a file on local disk, we don't know if it has been
     // modified.
     return true;
   }
   int64_t data[File::kStatSize];
-  File::Stat(NULL, url + 7, data);
+  File::Stat(NULL, path.get(), data);
   if (data[File::kType] == File::kDoesNotExist) {
     return true;
   }
-  bool modified = data[File::kModifiedTime] > since;
-  return modified;
+  return data[File::kModifiedTime] > since;
 }
 
 static void EmbedderInformationCallback(Dart_EmbedderInformation* info) {

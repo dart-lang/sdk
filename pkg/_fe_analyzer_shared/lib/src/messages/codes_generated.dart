@@ -12085,6 +12085,17 @@ Message _withArgumentsUnspecified(String string) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnspecifiedGetterNameInObjectPattern =
+    messageUnspecifiedGetterNameInObjectPattern;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnspecifiedGetterNameInObjectPattern = const MessageCode(
+    "UnspecifiedGetterNameInObjectPattern",
+    analyzerCodes: <String>["MISSING_OBJECT_PATTERN_GETTER_NAME"],
+    problemMessage:
+        r"""The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeUnsupportedDartExt = messageUnsupportedDartExt;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

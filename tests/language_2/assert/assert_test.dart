@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--enable-asserts
 // dart2jsOptions=--enable-asserts
+// dart2wasmOptions=--enable-asserts
 
 // @dart = 2.9
 

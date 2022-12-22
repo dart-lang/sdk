@@ -8328,11 +8328,16 @@ class BodyBuilder extends StackListenerImpl
             count)));
     reportIfNotEnabled(
         libraryFeatures.patterns, beginToken.charOffset, beginToken.charCount);
+    List<NamedPattern>? fields;
     for (int i = 0; i < count; i++) {
-      pop();
+      Object? field = pop();
+      if (field is NamedPattern) {
+        (fields ??= <NamedPattern>[]).add(field);
+      } else {
+        // TODO(cstefantsova): Report an error.
+      }
     }
-    // TODO(johnniwinther): Push (named) patterns.
-    push(count != 0 ? <Pattern>[] : NullValue.PatternList);
+    push(fields ?? NullValue.PatternList);
   }
 
   @override
@@ -8347,13 +8352,40 @@ class BodyBuilder extends StackListenerImpl
     reportIfNotEnabled(libraryFeatures.patterns, firstIdentifier.charOffset,
         firstIdentifier.charCount);
 
-    // ignore: unused_local_variable
-    List<Pattern>? fields = pop() as List<Pattern>?;
-    // ignore: unused_local_variable
+    List<NamedPattern>? fields = pop() as List<NamedPattern>?;
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
 
-    // TODO(johnniwinther): Create object pattern.
-    push(new DummyPattern(firstIdentifier.charOffset));
+    // TODO(cstefantsova): Handle the case of secondIdentifier != null
+    handleIdentifier(firstIdentifier, IdentifierContext.typeReference);
+    Object? resolvedIdentifier = pop();
+    if (resolvedIdentifier is TypeUseGenerator) {
+      TypeDeclarationBuilder typeDeclaration = resolvedIdentifier.declaration;
+      if (typeDeclaration is ClassBuilder) {
+        List<DartType>? builtTypeArguments;
+        if (typeArguments != null) {
+          if (typeArguments.length ==
+              typeDeclaration.cls.typeParameters.length) {
+            for (TypeBuilder typeBuilder in typeArguments) {
+              (builtTypeArguments ??= <DartType>[])
+                  .add(typeBuilder.build(libraryBuilder, TypeUse.typeArgument));
+            }
+          } else {
+            // TODO(cstefantsova): Report an error.
+          }
+        }
+        push(new ObjectPattern(
+            typeDeclaration.cls.reference,
+            fields ?? <NamedPattern>[],
+            builtTypeArguments,
+            firstIdentifier.offset));
+      } else {
+        // TODO(cstefantsova): Handle this case.
+        push(new DummyPattern(firstIdentifier.charOffset));
+      }
+    } else {
+      // TODO(cstefantsova): Handle the error.
+      push(new DummyPattern(firstIdentifier.charOffset));
+    }
   }
 
   @override

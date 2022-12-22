@@ -9,6 +9,13 @@
 
 /// Enum for experimental flags shared between the CFE and the analyzer.
 enum ExperimentalFlag {
+  classModifiers(
+      name: 'class-modifiers',
+      isEnabledByDefault: false,
+      isExpired: false,
+      experimentEnabledVersion: const Version(3, 0),
+      experimentReleasedVersion: const Version(3, 0)),
+
   constFunctions(
       name: 'const-functions',
       isEnabledByDefault: false,

@@ -25,4 +25,7 @@ class _Function implements Function {
   // Simple hash code for now, we can optimize later
   @override
   int get hashCode => runtimeType.hashCode;
+
+  // Support dynamic tear-off of `.call` on functions
+  _Function get call => this;
 }
