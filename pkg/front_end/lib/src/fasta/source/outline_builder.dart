@@ -896,8 +896,8 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
     if (mixinToken != null) {
-      if (reportIfNotEnabled(libraryFeatures.sealedClass, mixinToken.charOffset,
-          mixinToken.length)) {
+      if (reportIfNotEnabled(libraryFeatures.classModifiers,
+          mixinToken.charOffset, mixinToken.length)) {
         mixinToken = null;
       }
     }
@@ -1035,8 +1035,8 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
     if (mixinToken != null) {
-      if (reportIfNotEnabled(libraryFeatures.sealedClass, mixinToken.charOffset,
-          mixinToken.length)) {
+      if (reportIfNotEnabled(libraryFeatures.classModifiers,
+          mixinToken.charOffset, mixinToken.length)) {
         mixinToken = null;
       }
     }

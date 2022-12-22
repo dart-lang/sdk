@@ -149,6 +149,9 @@ class AstBuilder extends StackListener {
   /// `true` if sealed-class is enabled
   final bool enableSealedClass;
 
+  /// `true` if class-modifiers is enabled
+  final bool enableClassModifiers;
+
   final FeatureSet _featureSet;
 
   final LineInfo _lineInfo;
@@ -175,6 +178,7 @@ class AstBuilder extends StackListener {
             _featureSet.isEnabled(Feature.unnamedLibraries),
         enableInlineClass = _featureSet.isEnabled(Feature.inline_class),
         enableSealedClass = _featureSet.isEnabled(Feature.sealed_class),
+        enableClassModifiers = _featureSet.isEnabled(Feature.class_modifiers),
         uri = uri ?? fileUri;
 
   @override
@@ -256,9 +260,11 @@ class AstBuilder extends StackListener {
         // Pretend that 'sealed' didn't occur while this feature is incomplete.
         sealedToken = null;
       }
+    }
+    if (!enableClassModifiers) {
       if (mixinToken != null) {
         _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.sealed_class,
+          feature: ExperimentalFeatures.class_modifiers,
           startToken: mixinToken,
         );
         // Pretend that 'mixin' didn't occur while this feature is incomplete.
@@ -447,9 +453,11 @@ class AstBuilder extends StackListener {
         // Pretend that 'sealed' didn't occur while this feature is incomplete.
         sealedToken = null;
       }
+    }
+    if (!enableClassModifiers) {
       if (mixinToken != null) {
         _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.sealed_class,
+          feature: ExperimentalFeatures.class_modifiers,
           startToken: mixinToken,
         );
         // Pretend that 'mixin' didn't occur while this feature is incomplete.

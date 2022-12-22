@@ -168,18 +168,18 @@ abstract class KernelToTypeInferenceMap {
   /// Returns the inferred receiver type of the dynamic [invocation].
   // TODO(johnniwinther): Improve the type of the [invocation] once the new
   // method invocation encoding is fully utilized.
-  AbstractValue receiverTypeOfInvocation(
+  AbstractValue? receiverTypeOfInvocation(
       ir.Expression invocation, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred receiver type of the dynamic [read].
   // TODO(johnniwinther): Improve the type of the [invocation] once the new
   // method invocation encoding is fully utilized.
-  AbstractValue receiverTypeOfGet(ir.Expression read);
+  AbstractValue? receiverTypeOfGet(ir.Expression read);
 
   /// Returns the inferred receiver type of the dynamic [write].
   // TODO(johnniwinther): Improve the type of the [invocation] once the new
   // method invocation encoding is fully utilized.
-  AbstractValue receiverTypeOfSet(
+  AbstractValue? receiverTypeOfSet(
       ir.Expression write, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred type of [listLiteral].
@@ -187,13 +187,13 @@ abstract class KernelToTypeInferenceMap {
       ir.ListLiteral listLiteral, AbstractValueDomain abstractValueDomain);
 
   /// Returns the inferred type of iterator in [forInStatement].
-  AbstractValue typeOfIterator(ir.ForInStatement forInStatement);
+  AbstractValue? typeOfIterator(ir.ForInStatement forInStatement);
 
   /// Returns the inferred type of `current` in [forInStatement].
-  AbstractValue typeOfIteratorCurrent(ir.ForInStatement forInStatement);
+  AbstractValue? typeOfIteratorCurrent(ir.ForInStatement forInStatement);
 
   /// Returns the inferred type of `moveNext` in [forInStatement].
-  AbstractValue typeOfIteratorMoveNext(ir.ForInStatement forInStatement);
+  AbstractValue? typeOfIteratorMoveNext(ir.ForInStatement forInStatement);
 
   /// Returns `true` if [forInStatement] is inferred to be a JavaScript
   /// indexable iterator.
