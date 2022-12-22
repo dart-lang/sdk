@@ -25,7 +25,7 @@ static method test2(dynamic x) → dynamic {
   dynamic #t10;
   dynamic #t11;
   final dynamic #t12 = #t7;
-  if(#t12 is core::List<dynamic> && #t12{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool}) {
+  if(#t12 is core::List<dynamic> && #t12{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(2){(core::Object) → core::bool}) {
     final dynamic #t13 = #t12{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     final dynamic #t14 = #t13;
     if(#t14 is core::int) {
@@ -35,7 +35,7 @@ static method test2(dynamic x) → dynamic {
   }
   if(!#t8) {
     final dynamic #t15 = #t7;
-    if(#t15 is core::List<dynamic> && #t15{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool}) {
+    if(#t15 is core::List<dynamic> && #t15{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(2){(core::Object) → core::bool}) {
       final dynamic #t16 = #t15{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
       final dynamic #t17 = #t16;
       if(#t17 is core::String) {

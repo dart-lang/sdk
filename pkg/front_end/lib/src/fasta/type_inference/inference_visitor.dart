@@ -9131,6 +9131,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const PatternInferenceResult();
   }
 
+  PatternInferenceResult visitRestPattern(RestPattern pattern,
+      {required SharedMatchContext context}) {
+    return const PatternInferenceResult();
+  }
+
   PatternInferenceResult visitRelationalPattern(
     RelationalPattern pattern, {
     required SharedMatchContext context,
