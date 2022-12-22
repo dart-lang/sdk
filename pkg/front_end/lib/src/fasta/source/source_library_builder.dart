@@ -4033,16 +4033,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
               inErrorRecovery: issues.isNotEmpty);
         }
 
-        Iterator<Builder> memberIterator = declaration.fullMemberIterator;
+        Iterator<SourceMemberBuilder> memberIterator =
+            declaration.fullMemberIterator<SourceMemberBuilder>();
         while (memberIterator.moveNext()) {
-          Builder member = memberIterator.current;
-          if (member is SourceMemberBuilder) {
-            processSourceMemberBuilder(member,
-                inErrorRecovery: issues.isNotEmpty);
-          } else {
-            assert(false,
-                "Unexpected class member $member (${member.runtimeType}).");
-          }
+          SourceMemberBuilder member = memberIterator.current;
+          processSourceMemberBuilder(member,
+              inErrorRecovery: issues.isNotEmpty);
         }
       } else if (declaration is SourceTypeAliasBuilder) {
         List<NonSimplicityIssue> issues = getNonSimplicityIssuesForDeclaration(

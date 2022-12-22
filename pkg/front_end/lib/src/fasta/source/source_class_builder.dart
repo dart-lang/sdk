@@ -383,62 +383,20 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   @override
-  Iterator<Builder> get fullMemberIterator =>
-      new ClassMemberIterator(this, includeDuplicates: false);
+  Iterator<T> fullMemberIterator<T extends Builder>() =>
+      new ClassMemberIterator<T>(this, includeDuplicates: false);
 
   @override
-  NameIterator<Builder> get fullMemberNameIterator =>
-      new ClassMemberNameIterator(this, includeDuplicates: false);
+  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
+      new ClassMemberNameIterator<T>(this, includeDuplicates: false);
 
   @override
-  Iterator<MemberBuilder> get fullConstructorIterator =>
-      new ClassConstructorIterator(this, includeDuplicates: false);
+  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
+      new ClassConstructorIterator<T>(this, includeDuplicates: false);
 
   @override
-  NameIterator<MemberBuilder> get fullConstructorNameIterator =>
-      new ClassConstructorNameIterator(this, includeDuplicates: false);
-
-  void forEachDeclaredField(
-      void Function(String name, SourceFieldBuilder fieldBuilder) callback) {
-    // Currently, fields can't be patched, but can be injected.  When the fields
-    // will be made available for patching, the following code should iterate
-    // first over the fields from the patch and then -- over the fields in the
-    // original declaration, filtering out the patched fields.  For now, the
-    // assert checks that the names of the fields from the original declaration
-    // and from the patch don't intersect.
-    assert(
-        _patches == null ||
-            _patches!.every((patchClass) => patchClass.scope
-                .filteredIterator<SourceFieldBuilder>(
-                    parent: patchClass,
-                    includeDuplicates: false,
-                    includeAugmentations: false)
-                .toList()
-                .map((b) => b.name)
-                .toSet()
-                .intersection(scope
-                    .filteredIterator<SourceFieldBuilder>(
-                        parent: this,
-                        includeDuplicates: false,
-                        includeAugmentations: false)
-                    .toList()
-                    .map((b) => b.name)
-                    .toSet())
-                .isEmpty),
-        "Detected an attempt to patch a field");
-    new ClassMemberNameIterator<SourceFieldBuilder>(this,
-            includeDuplicates: false)
-        .forEach(callback);
-  }
-
-  void forEachDeclaredConstructor(
-      void Function(
-              String name, DeclaredSourceConstructorBuilder constructorBuilder)
-          callback) {
-    new ClassConstructorNameIterator<DeclaredSourceConstructorBuilder>(this,
-            includeDuplicates: false)
-        .forEach(callback);
-  }
+  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
+      new ClassConstructorNameIterator<T>(this, includeDuplicates: false);
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
@@ -1103,29 +1061,19 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   void checkTypesInOutline(TypeEnvironment typeEnvironment) {
-    Iterator<Builder> memberIterator = fullMemberIterator;
+    Iterator<SourceMemberBuilder> memberIterator =
+        fullMemberIterator<SourceMemberBuilder>();
     while (memberIterator.moveNext()) {
-      Builder builder = memberIterator.current;
-      if (builder is SourceMemberBuilder) {
-        builder.checkVariance(this, typeEnvironment);
-        builder.checkTypes(libraryBuilder, typeEnvironment);
-      } else {
-        assert(
-            false,
-            "Unexpected class member builder $builder "
-            "(${builder.runtimeType})");
-      }
+      SourceMemberBuilder builder = memberIterator.current;
+      builder.checkVariance(this, typeEnvironment);
+      builder.checkTypes(libraryBuilder, typeEnvironment);
     }
 
-    Iterator<MemberBuilder> constructorIterator = fullConstructorIterator;
+    Iterator<SourceMemberBuilder> constructorIterator =
+        fullConstructorIterator<SourceMemberBuilder>();
     while (constructorIterator.moveNext()) {
-      MemberBuilder builder = constructorIterator.current;
-      if (builder is SourceMemberBuilder) {
-        builder.checkTypes(libraryBuilder, typeEnvironment);
-      } else {
-        assert(false,
-            "Unexpected constructor builder $builder (${builder.runtimeType})");
-      }
+      SourceMemberBuilder builder = constructorIterator.current;
+      builder.checkTypes(libraryBuilder, typeEnvironment);
     }
   }
 

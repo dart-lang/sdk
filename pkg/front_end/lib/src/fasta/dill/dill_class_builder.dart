@@ -194,19 +194,24 @@ class DillClassBuilder extends ClassBuilderImpl {
   }
 
   @override
-  Iterator<MemberBuilder> get fullConstructorIterator =>
-      constructorScope.unfilteredIterator;
+  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
+      constructorScope.filteredIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
 
   @override
-  NameIterator<MemberBuilder> get fullConstructorNameIterator =>
-      constructorScope.unfilteredNameIterator;
+  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
+      constructorScope.filteredNameIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
 
   @override
-  Iterator<Builder> get fullMemberIterator => scope.unfilteredIterator;
+  Iterator<T> fullMemberIterator<T extends Builder>() =>
+      scope.filteredIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
 
   @override
-  NameIterator<Builder> get fullMemberNameIterator =>
-      scope.unfilteredNameIterator;
+  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
+      scope.filteredNameIterator<T>(
+          includeAugmentations: true, includeDuplicates: false);
 
   void clearCachedValues() {
     supertypeBuilder = null;

@@ -136,25 +136,25 @@ abstract class ClassBuilder implements DeclarationBuilder {
   /// augmentations.
   ///
   /// Duplicates and augmenting constructor are _not_ included.
-  Iterator<MemberBuilder> get fullConstructorIterator;
+  Iterator<T> fullConstructorIterator<T extends MemberBuilder>();
 
   /// [NameIterator] for all constructors declared in this class or any of its
   /// augmentations.
   ///
   /// Duplicates and augmenting constructors are _not_ included.
-  NameIterator<MemberBuilder> get fullConstructorNameIterator;
+  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>();
 
   /// [Iterator] for all members declared in this class or any of its
   /// augmentations.
   ///
   /// Duplicates and augmenting members are _not_ included.
-  Iterator<Builder> get fullMemberIterator;
+  Iterator<T> fullMemberIterator<T extends Builder>();
 
   /// [NameIterator] for all members declared in this class or any of its
   /// augmentations.
   ///
   /// Duplicates and augmenting members are _not_ included.
-  NameIterator<Builder> get fullMemberNameIterator;
+  NameIterator<T> fullMemberNameIterator<T extends Builder>();
 }
 
 abstract class ClassBuilderImpl extends DeclarationBuilderImpl

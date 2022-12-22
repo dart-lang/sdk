@@ -1721,7 +1721,7 @@ severity: $severity
             classMacroApplicationData.classApplications = new ApplicationData(
                 libraryBuilder, classBuilder, classMacroApplications);
           }
-          Iterator<Builder> memberIterator = classBuilder.fullMemberIterator;
+          Iterator<Builder> memberIterator = classBuilder.fullMemberIterator();
           while (memberIterator.moveNext()) {
             Builder memberBuilder = memberIterator.current;
             if (memberBuilder is SourceProcedureBuilder) {
@@ -1752,7 +1752,7 @@ severity: $severity
             }
           }
           Iterator<MemberBuilder> constructorIterator =
-              classBuilder.fullConstructorIterator;
+              classBuilder.fullConstructorIterator();
           while (constructorIterator.moveNext()) {
             MemberBuilder memberBuilder = constructorIterator.current;
             if (memberBuilder is DeclaredSourceConstructorBuilder) {
