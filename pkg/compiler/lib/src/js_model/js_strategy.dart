@@ -6,8 +6,6 @@
 
 library dart2js.js_model.strategy;
 
-import 'package:kernel/ast.dart' as ir;
-
 import '../common.dart';
 import '../common/codegen.dart';
 import '../common/elements.dart' show CommonElements, ElementEnvironment;
@@ -22,7 +20,6 @@ import '../enqueue.dart';
 import '../io/kernel_source_information.dart'
     show KernelSourceInformationStrategy;
 import '../io/source_information.dart';
-import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/type_graph_inferrer.dart';
 import '../inferrer/types.dart';
 import '../inferrer_experimental/types.dart' as experimentalInferrer;
@@ -56,7 +53,6 @@ import '../js_model/js_world.dart' show JClosedWorld;
 import '../js/js.dart' as js;
 import '../kernel/kernel_strategy.dart';
 import '../kernel/kernel_world.dart';
-import '../native/behavior.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
@@ -64,10 +60,8 @@ import '../ssa/builder.dart';
 import '../ssa/metrics.dart';
 import '../ssa/nodes.dart';
 import '../ssa/ssa.dart';
-import '../ssa/types.dart';
 import '../tracer.dart';
 import '../universe/codegen_world_builder.dart';
-import '../universe/selector.dart';
 import '../universe/world_impact.dart';
 import 'closure.dart';
 import 'element_map.dart';
@@ -554,105 +548,5 @@ class KernelSsaBuilder implements SsaBuilder {
           _inlineDataCache);
       return builder.build();
     });
-  }
-}
-
-class KernelToTypeInferenceMapImpl implements KernelToTypeInferenceMap {
-  final GlobalTypeInferenceResults _globalInferenceResults;
-  GlobalTypeInferenceMemberResult _targetResults;
-
-  KernelToTypeInferenceMapImpl(
-      MemberEntity target, this._globalInferenceResults) {
-    _targetResults = _resultOf(target);
-  }
-
-  GlobalTypeInferenceMemberResult _resultOf(MemberEntity e) =>
-      _globalInferenceResults
-          .resultOfMember(e is ConstructorBodyEntity ? e.constructor : e);
-
-  @override
-  AbstractValue getReturnTypeOf(FunctionEntity function) {
-    return AbstractValueFactory.inferredReturnTypeForElement(
-        function, _globalInferenceResults);
-  }
-
-  @override
-  AbstractValue receiverTypeOfInvocation(
-      ir.Expression node, AbstractValueDomain abstractValueDomain) {
-    return _targetResults.typeOfReceiver(node);
-  }
-
-  @override
-  AbstractValue receiverTypeOfGet(ir.Expression node) {
-    return _targetResults.typeOfReceiver(node);
-  }
-
-  @override
-  AbstractValue receiverTypeOfSet(
-      ir.Expression node, AbstractValueDomain abstractValueDomain) {
-    return _targetResults.typeOfReceiver(node);
-  }
-
-  @override
-  AbstractValue typeOfListLiteral(
-      ir.ListLiteral listLiteral, AbstractValueDomain abstractValueDomain) {
-    return _globalInferenceResults.typeOfListLiteral(listLiteral) ??
-        abstractValueDomain.dynamicType;
-  }
-
-  @override
-  AbstractValue typeOfIterator(ir.ForInStatement node) {
-    return _targetResults.typeOfIterator(node);
-  }
-
-  @override
-  AbstractValue typeOfIteratorCurrent(ir.ForInStatement node) {
-    return _targetResults.typeOfIteratorCurrent(node);
-  }
-
-  @override
-  AbstractValue typeOfIteratorMoveNext(ir.ForInStatement node) {
-    return _targetResults.typeOfIteratorMoveNext(node);
-  }
-
-  @override
-  bool isJsIndexableIterator(
-      ir.ForInStatement node, AbstractValueDomain abstractValueDomain) {
-    AbstractValue mask = typeOfIterator(node);
-    // TODO(sra): Investigate why mask is sometimes null.
-    if (mask == null) return false;
-    return abstractValueDomain.isJsIndexableAndIterable(mask).isDefinitelyTrue;
-  }
-
-  @override
-  AbstractValue inferredIndexType(ir.ForInStatement node) {
-    return AbstractValueFactory.inferredResultTypeForSelector(
-        Selector.index(), typeOfIterator(node), _globalInferenceResults);
-  }
-
-  @override
-  AbstractValue getInferredTypeOf(MemberEntity member) {
-    return AbstractValueFactory.inferredTypeForMember(
-        member, _globalInferenceResults);
-  }
-
-  @override
-  AbstractValue getInferredTypeOfParameter(Local parameter) {
-    return AbstractValueFactory.inferredTypeForParameter(
-        parameter, _globalInferenceResults);
-  }
-
-  @override
-  AbstractValue resultTypeOfSelector(Selector selector, AbstractValue mask) {
-    return AbstractValueFactory.inferredResultTypeForSelector(
-        selector, mask, _globalInferenceResults);
-  }
-
-  @override
-  AbstractValue typeFromNativeBehavior(
-      // TODO(48820): remove covariant once interface and implementation match.
-      NativeBehavior nativeBehavior,
-      covariant JClosedWorld closedWorld) {
-    return AbstractValueFactory.fromNativeBehavior(nativeBehavior, closedWorld);
   }
 }

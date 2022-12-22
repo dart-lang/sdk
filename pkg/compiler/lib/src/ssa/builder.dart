@@ -42,7 +42,7 @@ import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_model/class_type_variable_access.dart';
 import '../js_model/element_map.dart';
 import '../js_model/elements.dart' show JGeneratorBody;
-import '../js_model/js_strategy.dart';
+import '../js_model/js_strategy_migrated.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/locals.dart' show GlobalLocalsMap, JumpVisitor;
 import '../js_model/type_recipe.dart';
@@ -265,7 +265,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   /// The current block to add instructions to. Might be null, if we are
   /// visiting dead code, but see [_isReachable].
   @override
-  HBasicBlock get current => _current /*!*/;
+  HBasicBlock get current => _current;
 
   void set current(c) {
     _isReachable = c != null;
