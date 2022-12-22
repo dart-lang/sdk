@@ -11,7 +11,7 @@ static method test(dynamic x) → dynamic {
     if(!#t3) {
       final core::Object #t4 = #t1;
       final core::Object #t5 = #t4;
-      if(#t5 is core::List<dynamic> && #t5{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
+      if(#t5 is core::List<dynamic> && #t5{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(1){(core::Object) → core::bool}) {
         final dynamic #t6 = #t5{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
         if(#t6 =={core::Object::==}{(core::Object) → core::bool} 1) {
           #t2 = 0;

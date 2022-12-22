@@ -6,7 +6,7 @@ static method test(dynamic x) → dynamic {
   final dynamic #t1 = x;
   final core::bool #t2 = true;
   final dynamic #t3 = #t1;
-  if(#t3 is core::List<dynamic> && #t3{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
+  if(#t3 is core::List<dynamic> && #t3{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(1){(core::Object) → core::bool}) {
     final dynamic #t4 = #t3{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     final dynamic #t5 = #t4;
     if(#t5 is core::String) {
@@ -24,9 +24,12 @@ static method test(dynamic x) → dynamic {
   }
 }
 static method main() → dynamic {
-  self::expectEquals(self::test(core::_GrowableList::_literal3<core::String>("one", "two", "three")), "one");
+  self::expectEquals(self::test(core::_GrowableList::_literal3<core::String>("one", "two", "three")), null);
+  self::expectEquals(self::test(core::_GrowableList::_literal1<core::String>("one")), "one");
   self::expectEquals(self::test(core::_GrowableList::_literal3<core::int>(1, 2, 3)), null);
+  self::expectEquals(self::test(core::_GrowableList::_literal1<core::int>(1)), null);
   self::expectEquals(self::test(core::_GrowableList::_literal2<core::bool>(true, false)), null);
+  self::expectEquals(self::test(core::_GrowableList::_literal1<core::bool>(true)), null);
   self::expectEquals(self::test(core::_GrowableList::•<dynamic>(0)), null);
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic {

@@ -4413,21 +4413,49 @@ class ListPattern extends Pattern {
             greaterThanOrEqualsName,
             fileOffset,
             callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+    ObjectAccessTarget equalsTarget = inferenceVisitor.findInterfaceMember(
+        inferenceVisitor.coreTypes.intNonNullableRawType,
+        equalsName,
+        fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
-    // greaterThanOrEqualsInvocation: `lengthGet` >= `patterns.length`
-    //   ==> LVAR.length >= `patterns.length`
-    Expression greaterThanOrEqualsInvocation = new InstanceInvocation(
-        InstanceAccessKind.Instance,
-        lengthGet,
-        greaterThanOrEqualsName,
-        inferenceVisitor.engine.forest.createArguments(fileOffset, [
-          inferenceVisitor.engine.forest
-              .createIntLiteral(fileOffset, patterns.length)
-        ]),
-        functionType:
-            greaterThanOrEqualsTarget.getFunctionType(inferenceVisitor),
-        interfaceTarget: greaterThanOrEqualsTarget.member as Procedure)
-      ..fileOffset = fileOffset;
+    Expression lengthCheck;
+    bool hasRestPattern = false;
+    for (Pattern pattern in patterns) {
+      if (pattern is RestPattern) {
+        hasRestPattern = true;
+        break;
+      }
+    }
+    if (hasRestPattern) {
+      // lengthCheck: `lengthGet` >= `patterns.length - 1`
+      //   ==> LVAR.length >= `patterns.length - 1`
+      lengthCheck = new InstanceInvocation(
+          InstanceAccessKind.Instance,
+          lengthGet,
+          greaterThanOrEqualsName,
+          inferenceVisitor.engine.forest.createArguments(fileOffset, [
+            inferenceVisitor.engine.forest
+                .createIntLiteral(fileOffset, patterns.length - 1)
+          ]),
+          functionType:
+              greaterThanOrEqualsTarget.getFunctionType(inferenceVisitor),
+          interfaceTarget: greaterThanOrEqualsTarget.member as Procedure)
+        ..fileOffset = fileOffset;
+    } else {
+      // lengthCheck: `lengthGet` == `patterns.length`
+      lengthCheck = new InstanceInvocation(
+          InstanceAccessKind.Instance,
+          lengthGet,
+          equalsName,
+          inferenceVisitor.engine.forest.createArguments(fileOffset, [
+            inferenceVisitor.engine.forest
+                .createIntLiteral(fileOffset, patterns.length)
+          ]),
+          functionType: equalsTarget.getFunctionType(inferenceVisitor),
+          interfaceTarget: equalsTarget.member as Procedure)
+        ..fileOffset = fileOffset;
+    }
 
     // typeAndLengthCheck: `listVariable` is `targetListType`
     //     && `greaterThanOrEqualsInvocation`
@@ -4445,10 +4473,14 @@ class ListPattern extends Pattern {
                   targetListType,
                   forNonNullableByDefault: false),
               doubleAmpersandName.text,
-              greaterThanOrEqualsInvocation);
+              lengthCheck);
     } else {
-      typeAndLengthCheck = greaterThanOrEqualsInvocation;
+      typeAndLengthCheck = lengthCheck;
     }
+
+    ObjectAccessTarget intSubtraction = inferenceVisitor.findInterfaceMember(
+        inferenceVisitor.coreTypes.intNonNullableRawType, minusName, fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
 
     ObjectAccessTarget elementAccess = inferenceVisitor.findInterfaceMember(
         targetListType, indexGetName, fileOffset,
@@ -4458,17 +4490,58 @@ class ListPattern extends Pattern {
     PatternTransformationResult transformationResult =
         new PatternTransformationResult([]);
     List<VariableDeclaration> elementAccessVariables = [];
+    bool hasSeenRestPattern = false;
     for (int i = 0; i < patterns.length; i++) {
-      // listElement: `listVariable`[`i`]
-      //   ==> LVAR[`i`]
+      if (patterns[i] is RestPattern) {
+        hasSeenRestPattern = true;
+        continue;
+      }
+
+      Expression elementIndex;
+      if (!hasSeenRestPattern) {
+        // elementIndex: `i`
+        elementIndex =
+            inferenceVisitor.engine.forest.createIntLiteral(fileOffset, i);
+      } else {
+        // elementIndex: `listVariable`.length - `patterns.length - i`
+        //   ==> LVAR.length - `patterns.length - i`
+
+        // lengthGet: `listVariable`.length ==> LVAR.length
+        Expression lengthGet = new InstanceGet(
+            InstanceAccessKind.Instance,
+            inferenceVisitor.engine.forest
+                .createVariableGet(fileOffset, listVariable)
+              ..promotedType =
+                  typeCheckForTargetListNeeded ? targetListType : null,
+            lengthName,
+            resultType: lengthTarget.getGetterType(inferenceVisitor),
+            interfaceTarget: lengthTarget.member as Procedure)
+          ..fileOffset = fileOffset;
+
+        // elementIndex: `lengthGet` - `patterns.length - i`
+        //   ==> LVAR.length - `patterns.length - i`
+        elementIndex = new InstanceInvocation(
+            InstanceAccessKind.Instance,
+            lengthGet,
+            minusName,
+            inferenceVisitor.engine.forest.createArguments(fileOffset, [
+              inferenceVisitor.engine.forest
+                  .createIntLiteral(fileOffset, patterns.length - i)
+            ]),
+            interfaceTarget: intSubtraction.member as Procedure,
+            functionType: intSubtraction.getFunctionType(inferenceVisitor));
+      }
+
+      // listElement: `listVariable`[`elementIndex`]
+      //   ==> LVAR[`elementIndex`]
       Expression listElement = new InstanceInvocation(
           InstanceAccessKind.Instance,
           inferenceVisitor.engine.forest
               .createVariableGet(fileOffset, listVariable)
             ..promotedType = targetListType,
           indexGetName,
-          inferenceVisitor.engine.forest.createArguments(fileOffset,
-              [inferenceVisitor.engine.forest.createIntLiteral(fileOffset, i)]),
+          inferenceVisitor.engine.forest
+              .createArguments(fileOffset, [elementIndex]),
           functionType: elementAccessFunctionType,
           interfaceTarget: elementAccess.member as Procedure);
 
@@ -5541,6 +5614,39 @@ class VariablePattern extends Pattern {
   @override
   String toString() {
     return "VariableBinder(${toStringInternal()})";
+  }
+}
+
+class RestPattern extends Pattern {
+  RestPattern(int fileOffset) : super(fileOffset);
+
+  @override
+  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required SharedMatchContext context}) {
+    return visitor.visitRestPattern(this, context: context);
+  }
+
+  @override
+  List<VariableDeclaration> get declaredVariables => const [];
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write('...');
+  }
+
+  @override
+  String toString() {
+    return "RestPattern(${toStringInternal()}";
+  }
+
+  @override
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
+      InferenceVisitorBase inferenceVisitor) {
+    return unsupported(
+        "RestPattern.transform", fileOffset, inferenceVisitor.helper.uri);
   }
 }
 
