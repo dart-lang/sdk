@@ -8,15 +8,15 @@
 mixin class MixinClass {}
 // [error column 1, length 5]
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'sealed-class' language feature to be enabled.
+// [cfe] This requires the experimental 'class-modifiers' language feature to be enabled.
 
 abstract mixin class AbstractMixinClass {}
 //       ^^^^^
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'sealed-class' language feature to be enabled.
+// [cfe] This requires the experimental 'class-modifiers' language feature to be enabled.
 
 mixin M {}
 mixin class NamedMixinClassApplication = Object with M;
 // [error column 1, length 5]
 // [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
-// [cfe] This requires the experimental 'sealed-class' language feature to be enabled.
+// [cfe] This requires the experimental 'class-modifiers' language feature to be enabled.

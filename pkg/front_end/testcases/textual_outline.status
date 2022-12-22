@@ -21,6 +21,7 @@ regress/issue_39035.crash: EmptyOutput
 regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
+class_modifiers/mixin/mixin_class_declaration: FormatterCrash
 const_functions/const_functions_const_ctor: FormatterCrash
 const_functions/const_functions_const_ctor_error: FormatterCrash
 const_functions/const_functions_const_factory: FormatterCrash
@@ -132,7 +133,6 @@ macros/macro_class: FormatterCrash
 macros/multiple_augment_class: FormatterCrash
 macros/multiple_imports: FormatterCrash
 macros/scope_access: FormatterCrash
-mixin_class/mixin_class_declaration: FormatterCrash
 nnbd/abstract_field_errors: FormatterCrash
 nnbd/duplicates_instance_extension: FormatterCrash
 nnbd/field_vs_setter: FormatterCrash
