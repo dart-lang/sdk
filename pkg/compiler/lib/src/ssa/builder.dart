@@ -116,6 +116,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   ///
   /// The loop nesting is consulted when inlining a function invocation. The
   /// inlining heuristics take this information into account.
+  @override
   int loopDepth = 0;
 
   /// A mapping from jump targets to their handlers.
@@ -260,6 +261,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
 
   /// The current block to add instructions to. Might be null, if we are
   /// visiting dead code, but see [_isReachable].
+  @override
   HBasicBlock get current => _current;
 
   void set current(c) {
@@ -270,6 +272,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   /// The most recently opened block. Has the same value as [current] while
   /// the block is open, but unlike [current], it isn't cleared when the
   /// current block is closed.
+  @override
   HBasicBlock lastOpenedBlock;
 
   /// Indicates whether the current block is dead (because it has a throw or a
@@ -286,6 +289,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   Map<Local, HInstruction> parameters = {};
   Set<Local> elidedParameters;
 
+  @override
   HBasicBlock addNewBlock() {
     HBasicBlock block = graph.addNewBlock();
     // If adding a new block during building of an expression, it is due to
@@ -293,6 +297,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
     return block;
   }
 
+  @override
   void open(HBasicBlock block) {
     block.open();
     current = block;
@@ -320,12 +325,14 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
     from.addSuccessor(to);
   }
 
+  @override
   bool isAborted() {
     return current == null;
   }
 
   /// Creates a new block, transitions to it from any current block, and
   /// opens the new block.
+  @override
   HBasicBlock openNewBlock() {
     HBasicBlock newBlock = addNewBlock();
     if (!isAborted()) goto(current, newBlock);
@@ -353,11 +360,13 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
     return result;
   }
 
+  @override
   HSubGraphBlockInformation wrapStatementGraph(SubGraph statements) {
     if (statements == null) return null;
     return HSubGraphBlockInformation(statements);
   }
 
+  @override
   HSubExpressionBlockInformation wrapExpressionGraph(SubExpression expression) {
     if (expression == null) return null;
     return HSubExpressionBlockInformation(expression);
@@ -2661,7 +2670,8 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   /// [isLoopJump] is true when the jump handler is for a loop. This is used
   /// to distinguish the synthesized loop created for a switch statement with
   /// continue statements from simple switch statements.
-  JumpHandler createJumpHandler(ir.TreeNode node, JumpTarget target,
+  @override
+  JumpHandler createJumpHandler(ir.TreeNode node, JumpTarget /*?*/ target,
       {bool isLoopJump = false}) {
     if (target == null) {
       // No breaks or continues to this node.

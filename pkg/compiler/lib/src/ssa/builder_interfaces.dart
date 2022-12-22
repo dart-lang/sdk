@@ -28,6 +28,7 @@ abstract class KernelSsaGraphBuilder extends ir.Visitor<void> {
   Map<JumpTarget, JumpHandler> get jumpTargets;
 
   LocalsHandler get localsHandler;
+  set localsHandler(LocalsHandler handler);
 
   CodegenRegistry get registry;
 
@@ -42,6 +43,13 @@ abstract class KernelSsaGraphBuilder extends ir.Visitor<void> {
   HLocalValue? get lastAddedParameter;
   set lastAddedParameter(HLocalValue? parameter);
 
+  HBasicBlock? get current;
+
+  int get loopDepth;
+  set loopDepth(int depth);
+
+  HBasicBlock get lastOpenedBlock;
+
   set elidedParameters(Set<Local> elidedParameters);
 
   void add(HInstruction box);
@@ -52,4 +60,19 @@ abstract class KernelSsaGraphBuilder extends ir.Visitor<void> {
   HBasicBlock close(HControlFlow end);
 
   HInstruction pop();
+
+  HBasicBlock openNewBlock();
+
+  bool isAborted();
+
+  HBasicBlock addNewBlock();
+
+  void open(HBasicBlock beginBodyBlock);
+
+  HExpressionInformation wrapExpressionGraph(SubExpression initializerGraph);
+
+  HStatementInformation wrapStatementGraph(SubGraph bodyGraph);
+
+  JumpHandler createJumpHandler(ir.TreeNode node, JumpTarget? jumpTarget,
+      {required bool isLoopJump});
 }
