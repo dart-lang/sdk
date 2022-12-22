@@ -24,7 +24,7 @@ import 'types.dart';
 /// Keeps track of locals (including parameters and phis) when building. The
 /// 'this' reference is treated as parameter and hence handled by this class,
 /// too.
-class LocalsHandler implements interfaces.LocalsHandler {
+class LocalsHandler {
   /// The values of locals that can be directly accessed (without redirections
   /// to boxes or closure-fields).
   ///
@@ -83,7 +83,6 @@ class LocalsHandler implements interfaces.LocalsHandler {
 
   /// Substituted type variables occurring in [type] into the context of
   /// [contextClass].
-  @override
   DartType substInContext(DartType type) {
     DartType newType = type;
     final iType = instanceType;
@@ -341,7 +340,6 @@ class LocalsHandler implements interfaces.LocalsHandler {
   /// Returns an [HInstruction] for the given element. If the element is
   /// boxed or stored in a closure then the method generates code to retrieve
   /// the value.
-  @override
   HInstruction readLocal(Local local, {SourceInformation? sourceInformation}) {
     if (isAccessedDirectly(local)) {
       HInstruction? value = directLocals[local];
@@ -401,7 +399,6 @@ class LocalsHandler implements interfaces.LocalsHandler {
     }
   }
 
-  @override
   HInstruction readThis({SourceInformation? sourceInformation}) {
     return readLocal(_scopeInfo!.thisLocal!,
         sourceInformation: sourceInformation);
@@ -426,14 +423,12 @@ class LocalsHandler implements interfaces.LocalsHandler {
     });
   }
 
-  @override
   Local getTypeVariableAsLocal(TypeVariableType type) {
     return typeVariableLocals[type.element] ??= TypeVariableLocal(type.element);
   }
 
   /// Sets the [element] to [value]. If the element is boxed or stored in a
   /// closure then the method generates code to set the value.
-  @override
   void updateLocal(Local local, HInstruction value,
       {SourceInformation? sourceInformation}) {
     if (value is HRef) {
