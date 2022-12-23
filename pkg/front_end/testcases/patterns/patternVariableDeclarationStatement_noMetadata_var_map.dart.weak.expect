@@ -1,6 +1,19 @@
 library /*isNonNullableByDefault*/;
 import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method f(dynamic x) → dynamic {
-  invalid-expression "PatternVariableDeclaration(var {\"a\": var a} = x;)";
+  final dynamic #t1 = x;
+  final core::bool #t2 = true;
+  dynamic #t3;
+  final dynamic #t4 = #t1;
+  if(#t4 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #t4{core::Map<dynamic, dynamic>}.{core::Map::containsKey}("a"){(core::Object?) → core::bool}) {
+    final dynamic #t5 = #t4{core::Map<dynamic, dynamic>}.{core::Map::[]}("a"){(core::Object?) → dynamic};
+    #t3 = #t5;
+    #t2 = false;
+  }
+  if(#t2)
+    throw new _in::ReachabilityError::•();
+  dynamic a = #t3{dynamic};
 }

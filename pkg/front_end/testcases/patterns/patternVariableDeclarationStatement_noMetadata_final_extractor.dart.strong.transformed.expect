@@ -1,6 +1,12 @@
 library /*isNonNullableByDefault*/;
 import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static method f(dynamic x) → dynamic {
-  invalid-expression "PatternVariableDeclaration(final <dummy-pattern> = x;)";
+  final dynamic #t1 = x;
+  final core::bool #t2 = true;
+  #t2 = false;
+  if(#t2)
+    throw new _in::ReachabilityError::•();
 }
