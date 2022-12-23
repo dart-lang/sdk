@@ -1124,8 +1124,8 @@ void Instance::PrintSharedInstanceJSON(JSONObject* jsobj,
           if (!field.is_static()) {
             field_value = GetField(field);
             JSONObject jsfield(&jsarr);
+            jsfield.AddProperty("type", "BoundField");
             jsfield.AddProperty("decl", field);
-            jsfield.AddProperty("name", field.UserVisibleNameCString());
             jsfield.AddProperty("value", field_value);
           }
         }
@@ -1219,7 +1219,7 @@ void FunctionType::PrintJSONImpl(JSONStream* stream, bool ref) const {
 void RecordType::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
-  jsobj.AddProperty("kind", "RecordType");
+  jsobj.AddProperty("kind", "_RecordType");
   if (ref) {
     return;
   }
@@ -1630,7 +1630,7 @@ void Closure::PrintJSONImpl(JSONStream* stream, bool ref) const {
 void Record::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
-  jsobj.AddProperty("kind", "Record");
+  jsobj.AddProperty("kind", "_Record");
   if (ref) {
     return;
   }

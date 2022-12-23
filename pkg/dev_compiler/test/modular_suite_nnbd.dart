@@ -196,7 +196,6 @@ class DDCStep implements IOModularStep {
     var args = [
       '--packages=${sdkRoot.toFilePath()}/.dart_tool/package_config.json',
       _dartdevcScript,
-      '--kernel',
       '--modules=es6',
       '--no-summarize',
       '--no-source-map',
