@@ -26,7 +26,7 @@ static method test(dynamic x) → dynamic {
       #L2:
       case #C1:
         {
-          dynamic n = #t1{dynamic};
+          core::int n = #t1{core::int};
           {
             break #L1;
           }

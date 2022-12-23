@@ -8552,10 +8552,16 @@ class BodyBuilder extends StackListenerImpl
     ]));
     Expression initializer = popForValue();
     Pattern pattern = toPattern(pop());
+    bool isFinal = keyword.lexeme == 'final';
+    for (VariableDeclaration variable in pattern.declaredVariables) {
+      variable.isFinal = isFinal;
+      declareVariable(variable, scope);
+      typeInferrer.assignedVariables.declare(variable);
+    }
     // TODO(johnniwinther,cstefantsova): Handle metadata.
     pop(NullValue.Metadata) as List<Expression>?;
     push(new PatternVariableDeclaration(pattern, initializer,
-        offset: keyword.charOffset, isFinal: keyword.lexeme == 'final'));
+        offset: keyword.charOffset, isFinal: isFinal));
   }
 }
 

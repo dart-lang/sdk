@@ -5126,10 +5126,9 @@ class MapPatternEntry extends TreeNode with InternalTreeNode {
 }
 
 class MapPattern extends Pattern {
-  final DartType? keyType;
-  final DartType? valueType;
+  DartType? keyType;
+  DartType? valueType;
   final List<MapPatternEntry> entries;
-  late final InterfaceType type;
 
   @override
   List<VariableDeclaration> get declaredVariables =>
@@ -5173,13 +5172,18 @@ class MapPattern extends Pattern {
       DartType matchedType,
       Expression variableInitializingContext,
       InferenceVisitorBase inferenceVisitor) {
-    DartType valueType = type.typeArguments[1];
+    DartType keyType = this.keyType ?? const DynamicType();
+    DartType valueType = this.valueType ?? const DynamicType();
+    DartType targetMapType = new InterfaceType(
+        inferenceVisitor.coreTypes.mapClass,
+        Nullability.nonNullable,
+        [keyType, valueType]);
 
     ObjectAccessTarget containsKeyTarget = inferenceVisitor.findInterfaceMember(
-        type, containsKeyName, fileOffset,
+        targetMapType, containsKeyName, fileOffset,
         callSiteAccessKind: CallSiteAccessKind.methodInvocation);
     bool typeCheckForTargetMapNeeded =
-        !inferenceVisitor.isAssignable(type, matchedType) ||
+        !inferenceVisitor.isAssignable(targetMapType, matchedType) ||
             matchedType is DynamicType;
 
     // mapVariable: `matchedType` MVAR = `matchedExpression`
@@ -5198,7 +5202,7 @@ class MapPattern extends Pattern {
           InstanceAccessKind.Instance,
           inferenceVisitor.engine.forest
               .createVariableGet(fileOffset, mapVariable)
-            ..promotedType = typeCheckForTargetMapNeeded ? type : null,
+            ..promotedType = typeCheckForTargetMapNeeded ? targetMapType : null,
           containsKeyName,
           inferenceVisitor.engine.forest
               .createArguments(fileOffset, [keyPattern.expression]),
@@ -5224,7 +5228,7 @@ class MapPattern extends Pattern {
           fileOffset,
           inferenceVisitor.engine.forest
               .createVariableGet(fileOffset, mapVariable),
-          type,
+          targetMapType,
           forNonNullableByDefault: inferenceVisitor.isNonNullableByDefault);
     }
 
@@ -5242,7 +5246,7 @@ class MapPattern extends Pattern {
     }
 
     ObjectAccessTarget valueAccess = inferenceVisitor.findInterfaceMember(
-        type, indexGetName, fileOffset,
+        targetMapType, indexGetName, fileOffset,
         callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
     FunctionType valueAccessFunctionType =
         valueAccess.getFunctionType(inferenceVisitor);
@@ -5263,7 +5267,7 @@ class MapPattern extends Pattern {
           InstanceAccessKind.Instance,
           inferenceVisitor.engine.forest
               .createVariableGet(fileOffset, mapVariable)
-            ..promotedType = typeCheckForTargetMapNeeded ? type : null,
+            ..promotedType = typeCheckForTargetMapNeeded ? targetMapType : null,
           indexGetName,
           inferenceVisitor.engine.forest.createArguments(
               fileOffset, [cloner.clone(keyPattern.expression)]),

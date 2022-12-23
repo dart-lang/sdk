@@ -1,10 +1,18 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 static const field core::int annotation = #C1;
 static method f(dynamic x) → dynamic {
-  invalid-expression "PatternVariableDeclaration(final var a = x;)";
+  final dynamic #t1 = x;
+  final core::bool #t2 = true;
+  dynamic #t3;
+  #t3 = #t1;
+  #t2 = false;
+  if(#t2)
+    throw new _in::ReachabilityError::•();
+  final dynamic a = #t3{dynamic};
 }
 
 constants  {

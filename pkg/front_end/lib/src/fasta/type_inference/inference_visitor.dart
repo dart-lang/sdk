@@ -5,9 +5,10 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
-    hide NamedType, RecordType;
+    hide NamedType, RecordType, MapPatternEntry;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
@@ -8263,8 +8264,91 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   StatementInferenceResult visitPatternVariableDeclaration(
       PatternVariableDeclaration node) {
-    return new StatementInferenceResult.single(
-        new ExpressionStatement(new InvalidExpression('$node')));
+    // TODO(cstefantsova): Support late variables.
+    analyzePatternVariableDeclarationStatement(
+        node, node.pattern, node.initializer,
+        isFinal: node.isFinal, isLate: false);
+    Expression initializer = node.initializer;
+    // Stack: (Expression initializer)
+    Node? rewrite = popRewrite();
+    if (!identical(initializer, rewrite)) {
+      initializer = rewrite as Expression;
+    }
+
+    // TODO(cstefantsova): Do we need a more precise type for the variable?
+    VariableDeclaration matchedExpressionVariable = engine.forest
+        .createVariableDeclarationForValue(initializer,
+            type: const DynamicType());
+
+    // isPatternMatchingFailed: bool VAR = true;
+    VariableDeclaration isPatternMatchingFailed = engine.forest
+        .createVariableDeclarationForValue(
+            engine.forest.createBoolLiteral(node.fileOffset, true),
+            type: coreTypes.boolNonNullableRawType);
+
+    // patternMatchedSet: `isPatternMatchingFailed` = false;
+    //   ==> VAR = true;
+    Statement patternMatchedSet = engine.forest.createExpressionStatement(
+        node.fileOffset,
+        engine.forest.createVariableSet(
+            node.fileOffset,
+            isPatternMatchingFailed,
+            engine.forest.createBoolLiteral(node.fileOffset, false)));
+
+    PatternTransformationResult transformationResult = node.pattern.transform(
+        engine.forest
+            .createVariableGet(node.fileOffset, matchedExpressionVariable),
+        const DynamicType(),
+        engine.forest
+            .createVariableGet(node.fileOffset, matchedExpressionVariable),
+        this);
+
+    List<VariableDeclaration> declaredVariableHelpers = [];
+    List<Statement> replacementStatements = [];
+    for (VariableDeclaration declaredVariable
+        in node.pattern.declaredVariables) {
+      VariableDeclaration declaredVariableHelper = engine.forest
+          .createVariableDeclaration(node.fileOffset, null,
+              type: const DynamicType());
+      replacementStatements.add(engine.forest.createExpressionStatement(
+          node.fileOffset,
+          engine.forest.createVariableSet(node.fileOffset,
+              declaredVariableHelper, declaredVariable.initializer!)));
+      declaredVariable.initializer = engine.forest
+          .createVariableGet(node.fileOffset, declaredVariableHelper)
+        ..promotedType = declaredVariable.type
+        ..parent = declaredVariable;
+      declaredVariableHelpers.add(declaredVariableHelper);
+    }
+    replacementStatements.add(patternMatchedSet);
+
+    replacementStatements = _transformationResultToStatements(
+        node.fileOffset, transformationResult, replacementStatements);
+
+    replacementStatements = [
+      matchedExpressionVariable,
+      isPatternMatchingFailed,
+      ...declaredVariableHelpers,
+      ...replacementStatements,
+      // TODO(cstefantsova): Figure out the right exception to throw.
+      engine.forest.createIfStatement(
+          node.fileOffset,
+          engine.forest
+              .createVariableGet(node.fileOffset, isPatternMatchingFailed),
+          engine.forest.createExpressionStatement(
+              node.fileOffset,
+              new Throw(
+                  new ConstructorInvocation(
+                      coreTypes.reachabilityErrorConstructor,
+                      engine.forest.createArguments(node.fileOffset, []))
+                    ..fileOffset = node.fileOffset)
+                ..fileOffset = node.fileOffset),
+          null),
+      ...node.pattern.declaredVariables
+    ];
+
+    return new StatementInferenceResult.multiple(
+        node.fileOffset, replacementStatements);
   }
 
   @override
@@ -9151,21 +9235,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     MapPattern pattern, {
     required SharedMatchContext context,
   }) {
-    // TODO(cstefantsova): Use [analyzeMapPattern] when it's available.
-    // Until then, an ad-hoc inference is used.
-    DartType keyType = const DynamicType();
-    DartType valueType = const DynamicType();
+    analyzeMapPattern(context, pattern,
+        typeArguments: new MapPatternTypeArguments<DartType>(
+            keyType: pattern.keyType ?? const DynamicType(),
+            valueType: pattern.valueType ?? const DynamicType()),
+        elements: pattern.entries);
     DartType matchedType = flow.getMatchedValueType();
-    if (matchedType is InterfaceType) {
-      List<DartType>? typeArguments = hierarchyBuilder
-          .getTypeArgumentsAsInstanceOf(matchedType, coreTypes.mapClass);
-      if (typeArguments != null) {
-        keyType = typeArguments[0];
-        valueType = typeArguments[1];
+    for (int i = pattern.entries.length - 1; i >= 0; i--) {
+      Node? rewrite = popRewrite();
+      if (!identical(pattern.entries[i], rewrite)) {
+        pattern.entries[i] = (rewrite as MapPatternEntry)..parent = pattern;
       }
     }
-    pattern.type = new InterfaceType(coreTypes.mapClass,
-        Nullability.nonNullable, <DartType>[keyType, valueType]);
+    if (matchedType is InterfaceType) {
+      List<DartType>? mapTypeArguments = hierarchyBuilder
+          .getTypeArgumentsAsInstanceOf(matchedType, coreTypes.mapClass);
+      if (mapTypeArguments != null && mapTypeArguments.length == 2) {
+        pattern.keyType = mapTypeArguments[0];
+        pattern.valueType = mapTypeArguments[1];
+      }
+    }
     return const PatternInferenceResult();
   }
 
@@ -9185,12 +9274,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       for (Pattern fieldPattern in pattern.patterns)
         new RecordPatternField(
             node: fieldPattern,
-            pattern: fieldPattern,
+            pattern: fieldPattern is NamedPattern
+                ? fieldPattern.pattern
+                : fieldPattern,
             name: fieldPattern is NamedPattern ? fieldPattern.name : null)
     ];
-    DartType patternType =
+    DartType recordType =
         analyzeRecordPattern(context, pattern, fields: fields);
-    pattern.type = patternType as RecordType;
+    pattern.type = recordType as RecordType;
     return const PatternInferenceResult();
   }
 
@@ -9328,20 +9419,30 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   shared.MapPatternEntry<Expression, Pattern>? getMapPatternEntry(
       Node element) {
-    // TODO(scheglov): implement getMapPatternEntry
-    throw new UnimplementedError('TODO(scheglov)');
+    element as MapPatternEntry;
+    return new shared.MapPatternEntry<Expression, Pattern>(
+        key: (element.key as ExpressionPattern).expression,
+        value: element.value);
   }
 
   @override
   void handleMapPatternEntry(Pattern container, Node entryElement) {
-    // TODO(scheglov): implement handleMapPatternEntry
-    throw new UnimplementedError('TODO(scheglov)');
+    entryElement as MapPatternEntry;
+    ExpressionPattern pattern = entryElement.key as ExpressionPattern;
+    Node? key = popRewrite();
+    if (!identical(pattern.expression, key)) {
+      entryElement = new MapPatternEntry(
+          new ExpressionPattern(key as Expression),
+          entryElement.value,
+          entryElement.fileOffset);
+    }
+    pushRewrite(entryElement);
   }
 
   @override
   DartType mapType({required DartType keyType, required DartType valueType}) {
-    // TODO(scheglov): implement mapType
-    throw new UnimplementedError('TODO(scheglov)');
+    return new InterfaceType(coreTypes.mapClass, Nullability.nonNullable,
+        <DartType>[keyType, valueType]);
   }
 
   @override

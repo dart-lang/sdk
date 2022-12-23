@@ -1,0 +1,74 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method test1(dynamic x) → dynamic {
+  final dynamic #t1 = x;
+  final core::bool #t2 = true;
+  dynamic #t3;
+  final dynamic #t4 = #t1;
+  if(#t4 is core::List<dynamic> && #t4{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(1){(core::Object) → core::bool}) {
+    final dynamic #t5 = #t4{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    final dynamic #t6 = #t5;
+    if(#t6 is core::int) {
+      #t3 = #t6{core::int};
+      #t2 = false;
+    }
+  }
+  if(#t2)
+    throw new _in::ReachabilityError::•();
+  core::int y = #t3{core::int};
+  return y;
+}
+static method test2(dynamic x) → dynamic {
+  final dynamic #t7 = x;
+  final core::bool #t8 = true;
+  dynamic #t9;
+  dynamic #t10;
+  final dynamic #t11 = #t7;
+  if(#t11 is core::List<dynamic> && #t11{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool}) {
+    final dynamic #t12 = #t11{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    final dynamic #t13 = #t11{core::List<dynamic>}.{core::List::[]}(#t11{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::num}){(core::int) → dynamic};
+    final dynamic #t14 = #t12;
+    if(#t14 is core::String) {
+      final dynamic #t15 = #t13;
+      if(#t15 is core::String) {
+        #t9 = #t14{core::String};
+        #t10 = #t15{core::String};
+        #t8 = false;
+      }
+    }
+  }
+  if(#t8)
+    throw new _in::ReachabilityError::•();
+  core::String a = #t9{core::String};
+  core::String b = #t10{core::String};
+  return a.{core::String::+}(b){(core::String) → core::String};
+}
+static method main() → dynamic {
+  self::expectEquals(self::test1(core::_GrowableList::_literal1<core::int>(0)), 0);
+  self::expectThrows(() → void => self::test1(core::_GrowableList::•<dynamic>(0)));
+  self::expectThrows(() → void => self::test1(core::_GrowableList::_literal3<core::int>(0, 1, 2)));
+  self::expectEquals(self::test2(core::_GrowableList::_literal4<core::String>("one", "two", "three", "four")), "onefour");
+  self::expectThrows(() → void => self::test2(core::_GrowableList::_literal1<core::String>("one")));
+  self::expectThrows(() → void => self::test2("one"));
+  self::expectThrows(() → void => self::test2(null));
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected ${x} to be equal to ${y}.";
+  }
+}
+static method expectThrows(() → void f) → dynamic {
+  core::bool hasThrown = true;
+  try {
+    f(){() → void};
+    hasThrown = false;
+  }
+  on core::Object catch(final core::Object e) {
+  }
+  if(!hasThrown) {
+    throw "Expected function to throw.";
+  }
+}
