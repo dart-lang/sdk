@@ -8,6 +8,7 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:collection/collection.dart';
@@ -25,6 +26,10 @@ void main() {
 
 @reflectiveTest
 class AnalysisNotificationHighlightsTest extends HighlightsTestSupport {
+  @override
+  List<String> get experiments =>
+      [...super.experiments, EnableString.sealed_class];
+
   void assertHighlightText(TestCode testCode, int index, String expected) {
     var actual = _getHighlightText(testCode, index);
     if (actual != expected) {
@@ -362,6 +367,22 @@ void f() {
     assertHasRegion(HighlightRegionType.BUILT_IN, 'part of', 'part of'.length);
     assertNoRegion(HighlightRegionType.BUILT_IN, 'part = 1');
     assertNoRegion(HighlightRegionType.BUILT_IN, 'of = 2');
+  }
+
+  Future<void> test_BUILT_IN_sealed() async {
+    addTestFile('''
+sealed class A {}
+sealed mixin M {}
+sealed class B = Object with M;
+void f() {
+  var sealed = 42;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'sealed class A');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'sealed mixin M');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'sealed class B');
+    assertNoRegion(HighlightRegionType.BUILT_IN, 'sealed = 42');
   }
 
   Future<void> test_BUILT_IN_set() async {
