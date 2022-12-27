@@ -1331,7 +1331,7 @@
           "name": "ffi tests",
           "arguments": [
             "-ndartk-android-${mode}-${arch}",
-            "ffi_2"
+            "ffi"
           ],
           "fileset": "vm-kernel",
           "shards": 1
@@ -1390,7 +1390,7 @@
           "name": "ffi tests",
           "arguments": [
             "-ndartkp-linux-${mode}-arm-qemu",
-            "ffi_2"
+            "ffi"
           ]
         }
       ]
@@ -1434,7 +1434,7 @@
           "name": "ffi tests",
           "arguments": [
             "-ndartkp-linux-${mode}-riscv64-qemu",
-            "ffi_2"
+            "ffi"
           ]
         }
       ]
