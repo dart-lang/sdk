@@ -571,7 +571,8 @@ class Compiler
 
   DataAndIndices<GlobalTypeInferenceResults> globalTypeInferenceResultsTestMode(
       DataAndIndices<GlobalTypeInferenceResults> results) {
-    SerializationStrategy strategy = const BytesInMemorySerializationStrategy();
+    SerializationStrategy strategy =
+        const BytesInMemorySerializationStrategy(useDataKinds: true);
     List<int> irData = strategy.unpackAndSerializeComponent(results.data);
     List<int> closedWorldData =
         strategy.serializeClosedWorld(results.data.closedWorld, options);

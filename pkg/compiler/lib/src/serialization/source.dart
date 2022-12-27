@@ -809,7 +809,7 @@ class DataSourceReader {
   /// returned type is allowed to be `null`.
   ir.DartType readDartTypeNode() {
     _checkDataKind(DataKind.dartTypeNode);
-    ir.DartType? type = readDartTypeNodeOrNull();
+    ir.DartType? type = _readDartTypeNodeOrNull();
     if (type == null) throw UnsupportedError('Unexpected `null` DartTypeNode');
     return type;
   }
@@ -818,6 +818,10 @@ class DataSourceReader {
   /// allowed to be `null`.
   ir.DartType? readDartTypeNodeOrNull() {
     _checkDataKind(DataKind.dartTypeNode);
+    return _readDartTypeNodeOrNull();
+  }
+
+  ir.DartType? _readDartTypeNodeOrNull() {
     final type = _readDartTypeNode([]);
     return interner?.internDartTypeNode(type) ?? type;
   }
