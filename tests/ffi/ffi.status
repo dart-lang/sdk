@@ -52,7 +52,14 @@ regress_47594_test: Skip # DynamicLibrary.process() is not available on Windows.
 *: SkipByDesign # FFI is a VM-only feature. (This test suite is part of the default set.)
 
 [ $compiler == dartkp && $system == windows ]
+vmspecific_ffi_native_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
+vmspecific_function_gc_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 vmspecific_handle_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
+vmspecific_object_gc_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
+vmspecific_regress_37100_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
+vmspecific_regress_37511_callbacks_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
+vmspecific_regress_37511_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
+vmspecific_regress_37780_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 
 [ $system != android && $system != linux && $system != macos && $system != windows ]
 *: Skip # FFI not yet supported on other OSes.
