@@ -97,6 +97,7 @@ import 'source_enum_builder.dart';
 import 'source_extension_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
+import 'source_inline_class_builder.dart';
 import 'source_library_builder.dart'
     show
         ImplicitLanguageVersion,
@@ -1936,13 +1937,13 @@ severity: $severity
     }
   }
 
-  /// Returns classes defined in libraries in this [SourceLoader].
-  List<SourceClassBuilder> collectSourceClasses() {
-    List<SourceClassBuilder> sourceClasses = <SourceClassBuilder>[];
+  /// Add classes (and inline classes) defined in libraries in this
+  /// [SourceLoader] to [sourceClasses], and [inlineClasses], if provided.
+  void collectSourceClasses(List<SourceClassBuilder> sourceClasses,
+      [List<SourceInlineClassBuilder>? inlineClasses]) {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      library.collectSourceClasses(sourceClasses);
+      library.collectSourceClasses(sourceClasses, inlineClasses);
     }
-    return sourceClasses;
   }
 
   /// Returns a list of all class builders declared in this loader.  As the
@@ -1969,8 +1970,10 @@ severity: $severity
     }
 
     // Sort the classes topologically.
+    List<SourceClassBuilder> sourceClasses = [];
+    collectSourceClasses(sourceClasses);
     _SourceClassGraph classGraph =
-        new _SourceClassGraph(collectSourceClasses(), objectClass);
+        new _SourceClassGraph(sourceClasses, objectClass);
     TopologicalSortResult<SourceClassBuilder> result =
         topologicalSort(classGraph);
     List<SourceClassBuilder> classes = result.sortedVertices;

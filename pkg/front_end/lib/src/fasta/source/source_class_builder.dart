@@ -385,19 +385,27 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>
-      new ClassMemberIterator<T>(this, includeDuplicates: false);
+      new ClassDeclarationMemberIterator<SourceClassBuilder, T>(
+          const _SourceClassBuilderAugmentationAccess(), this,
+          includeDuplicates: false);
 
   @override
   NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      new ClassMemberNameIterator<T>(this, includeDuplicates: false);
+      new ClassDeclarationMemberNameIterator<SourceClassBuilder, T>(
+          const _SourceClassBuilderAugmentationAccess(), this,
+          includeDuplicates: false);
 
   @override
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      new ClassConstructorIterator<T>(this, includeDuplicates: false);
+      new ClassDeclarationConstructorIterator<SourceClassBuilder, T>(
+          const _SourceClassBuilderAugmentationAccess(), this,
+          includeDuplicates: false);
 
   @override
   NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      new ClassConstructorNameIterator<T>(this, includeDuplicates: false);
+      new ClassDeclarationConstructorNameIterator<SourceClassBuilder, T>(
+          const _SourceClassBuilderAugmentationAccess(), this,
+          includeDuplicates: false);
 
   @override
   bool get hasGenerativeConstructor =>
@@ -2362,6 +2370,20 @@ int? getOverlookedOverrideProblemChoice(ClassBuilder classBuilder) {
   return null;
 }
 
+class _SourceClassBuilderAugmentationAccess
+    implements ClassDeclarationAugmentationAccess<SourceClassBuilder> {
+  const _SourceClassBuilderAugmentationAccess();
+
+  @override
+  SourceClassBuilder getOrigin(SourceClassBuilder classDeclaration) =>
+      classDeclaration.origin;
+
+  @override
+  Iterable<SourceClassBuilder>? getAugmentations(
+          SourceClassBuilder classDeclaration) =>
+      classDeclaration._patches;
+}
+
 class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
     with SourceMemberBuilderMixin {
   _RedirectingConstructorsFieldBuilder(Field field, SourceClassBuilder parent)
@@ -2386,196 +2408,4 @@ class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
   @override
   void checkTypes(
       SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {}
-}
-
-class ClassMemberIterator<T extends Builder> implements Iterator<T> {
-  Iterator<T>? _iterator;
-  Iterator<SourceClassBuilder>? augmentationBuilders;
-  final bool includeDuplicates;
-
-  factory ClassMemberIterator(SourceClassBuilder classBuilder,
-      {required bool includeDuplicates}) {
-    return new ClassMemberIterator._(classBuilder.origin,
-        includeDuplicates: includeDuplicates);
-  }
-
-  ClassMemberIterator._(SourceClassBuilder classBuilder,
-      {required this.includeDuplicates})
-      : _iterator = classBuilder.scope.filteredIterator<T>(
-            parent: classBuilder,
-            includeDuplicates: includeDuplicates,
-            includeAugmentations: false),
-        augmentationBuilders = classBuilder._patches?.iterator;
-
-  @override
-  bool moveNext() {
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
-      SourceClassBuilder augmentationClassBuilder =
-          augmentationBuilders!.current;
-      _iterator = augmentationClassBuilder.scope.filteredIterator<T>(
-          parent: augmentationClassBuilder,
-          includeDuplicates: includeDuplicates,
-          includeAugmentations: false);
-    }
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  T get current => _iterator?.current ?? (throw new StateError('No element'));
-}
-
-class ClassMemberNameIterator<T extends Builder> implements NameIterator<T> {
-  NameIterator<T>? _iterator;
-  Iterator<SourceClassBuilder>? augmentationBuilders;
-  final bool includeDuplicates;
-
-  factory ClassMemberNameIterator(SourceClassBuilder classBuilder,
-      {required bool includeDuplicates}) {
-    return new ClassMemberNameIterator._(classBuilder.origin,
-        includeDuplicates: includeDuplicates);
-  }
-
-  ClassMemberNameIterator._(SourceClassBuilder classBuilder,
-      {required this.includeDuplicates})
-      : _iterator = classBuilder.scope.filteredNameIterator<T>(
-            parent: classBuilder,
-            includeDuplicates: includeDuplicates,
-            includeAugmentations: false),
-        augmentationBuilders = classBuilder._patches?.iterator;
-
-  @override
-  bool moveNext() {
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
-      SourceClassBuilder augmentationClassBuilder =
-          augmentationBuilders!.current;
-      _iterator = augmentationClassBuilder.scope.filteredNameIterator<T>(
-          parent: augmentationClassBuilder,
-          includeDuplicates: includeDuplicates,
-          includeAugmentations: false);
-    }
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  T get current => _iterator?.current ?? (throw new StateError('No element'));
-
-  @override
-  String get name => _iterator?.name ?? (throw new StateError('No element'));
-}
-
-class ClassConstructorIterator<T extends MemberBuilder> implements Iterator<T> {
-  Iterator<T>? _iterator;
-  Iterator<SourceClassBuilder>? augmentationBuilders;
-  final bool includeDuplicates;
-
-  factory ClassConstructorIterator(SourceClassBuilder classBuilder,
-      {required bool includeDuplicates}) {
-    return new ClassConstructorIterator._(classBuilder.origin,
-        includeDuplicates: includeDuplicates);
-  }
-
-  ClassConstructorIterator._(SourceClassBuilder classBuilder,
-      {required this.includeDuplicates})
-      : _iterator = classBuilder.constructorScope.filteredIterator<T>(
-            parent: classBuilder,
-            includeDuplicates: includeDuplicates,
-            includeAugmentations: false),
-        augmentationBuilders = classBuilder._patches?.iterator;
-
-  @override
-  bool moveNext() {
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
-      SourceClassBuilder augmentationClassBuilder =
-          augmentationBuilders!.current;
-      _iterator = augmentationClassBuilder.constructorScope.filteredIterator<T>(
-          parent: augmentationClassBuilder,
-          includeDuplicates: includeDuplicates,
-          includeAugmentations: false);
-    }
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  T get current => _iterator?.current ?? (throw new StateError('No element'));
-}
-
-class ClassConstructorNameIterator<T extends MemberBuilder>
-    implements NameIterator<T> {
-  NameIterator<T>? _iterator;
-  Iterator<SourceClassBuilder>? augmentationBuilders;
-  final bool includeDuplicates;
-
-  factory ClassConstructorNameIterator(SourceClassBuilder classBuilder,
-      {required bool includeDuplicates}) {
-    return new ClassConstructorNameIterator._(classBuilder.origin,
-        includeDuplicates: includeDuplicates);
-  }
-
-  ClassConstructorNameIterator._(SourceClassBuilder classBuilder,
-      {required this.includeDuplicates})
-      : _iterator = classBuilder.constructorScope.filteredNameIterator<T>(
-            parent: classBuilder,
-            includeDuplicates: includeDuplicates,
-            includeAugmentations: false),
-        augmentationBuilders = classBuilder._patches?.iterator;
-
-  @override
-  bool moveNext() {
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
-      SourceClassBuilder augmentationClassBuilder =
-          augmentationBuilders!.current;
-      _iterator = augmentationClassBuilder.constructorScope
-          .filteredNameIterator<T>(
-              parent: augmentationClassBuilder,
-              includeDuplicates: includeDuplicates,
-              includeAugmentations: false);
-    }
-    if (_iterator != null) {
-      if (_iterator!.moveNext()) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  @override
-  T get current => _iterator?.current ?? (throw new StateError('No element'));
-
-  @override
-  String get name => _iterator?.name ?? (throw new StateError('No element'));
 }

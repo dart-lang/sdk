@@ -203,35 +203,50 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
   DartType get declaredRepresentationType => throw new UnimplementedError();
 
   @override
-  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() {
-    // TODO(johnniwinther): Implement fullConstructorIterator
-    throw new UnimplementedError();
-  }
+  Iterator<T> fullMemberIterator<T extends Builder>() =>
+      new ClassDeclarationMemberIterator<SourceInlineClassBuilder, T>(
+          const _SourceInlineClassBuilderAugmentationAccess(), this,
+          includeDuplicates: false);
 
   @override
-  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() {
-    // TODO(johnniwinther): Implement fullConstructorNameIterator
-    throw new UnimplementedError();
-  }
+  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
+      new ClassDeclarationMemberNameIterator<SourceInlineClassBuilder, T>(
+          const _SourceInlineClassBuilderAugmentationAccess(), this,
+          includeDuplicates: false);
 
   @override
-  Iterator<T> fullMemberIterator<T extends Builder>() {
-    // TODO(johnniwinther): Implement fullMemberIterator
-    throw new UnimplementedError();
-  }
+  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
+      new ClassDeclarationConstructorIterator<SourceInlineClassBuilder, T>(
+          const _SourceInlineClassBuilderAugmentationAccess(), this,
+          includeDuplicates: false);
 
   @override
-  NameIterator<T> fullMemberNameIterator<T extends Builder>() {
-    // TODO(johnniwinther): Implement fullMemberNameIterator
-    throw new UnimplementedError();
-  }
+  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
+      new ClassDeclarationConstructorNameIterator<SourceInlineClassBuilder, T>(
+          const _SourceInlineClassBuilderAugmentationAccess(), this,
+          includeDuplicates: false);
 
   @override
   bool get isMixinDeclaration => false;
 
   @override
   bool get hasGenerativeConstructor {
-    // TODO(johnniwinther): Implement hasGenerativeConstructor
-    throw new UnimplementedError();
+    // TODO(johnniwinther): Support default constructor? and factories.
+    return true;
   }
+}
+
+class _SourceInlineClassBuilderAugmentationAccess
+    implements ClassDeclarationAugmentationAccess<SourceInlineClassBuilder> {
+  const _SourceInlineClassBuilderAugmentationAccess();
+
+  @override
+  SourceInlineClassBuilder getOrigin(
+          SourceInlineClassBuilder classDeclaration) =>
+      classDeclaration.origin;
+
+  @override
+  Iterable<SourceInlineClassBuilder>? getAugmentations(
+          SourceInlineClassBuilder classDeclaration) =>
+      null;
 }

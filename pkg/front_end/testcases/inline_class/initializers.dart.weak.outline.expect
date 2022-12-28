@@ -1,0 +1,31 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+inline class Class1 /* declaredRepresentationType = core::int */ {
+  constructor • = self::Class1|;
+}
+inline class Class2 /* declaredRepresentationType = core::int */ {
+  constructor • = self::Class2|;
+}
+inline class Class3 /* declaredRepresentationType = core::int */ {
+}
+inline class Class4 /* declaredRepresentationType = core::int */ {
+  constructor • = self::Class4|;
+}
+inline class Class5 /* declaredRepresentationType = core::int */ {
+  constructor • = self::Class5|;
+}
+inline class Class6 /* declaredRepresentationType = core::int */ {
+  constructor • = self::Class6|;
+}
+method Class1|(core::int field) → self::Class1
+  ;
+method Class2|(core::int field) → self::Class2
+  ;
+method Class4|(core::int field, dynamic nonexisting) → self::Class4
+  ;
+method Class5|(core::int field) → self::Class5
+  ;
+method Class6|(core::int field) → self::Class6
+  ;
