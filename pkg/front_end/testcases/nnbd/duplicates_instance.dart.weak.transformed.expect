@@ -108,14 +108,14 @@ import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  field core::int instanceField = null;
+  field core::int instanceField = 1;
   field core::int instanceFieldAndSetter1 = 1;
   field core::int instanceFieldAndSetter2 = 1;
   late final [setter] field core::int instanceLateFinalFieldAndSetter1;
   late final [setter] field core::int instanceLateFinalFieldAndSetter2;
-  final field core::int instanceDuplicateFieldAndSetter = null;
+  final field core::int instanceDuplicateFieldAndSetter = 1;
   final field core::int instanceFieldAndDuplicateSetter = 1;
-  final field core::int instanceDuplicateFieldAndDuplicateSetter = null;
+  final field core::int instanceDuplicateFieldAndDuplicateSetter = 1;
   synthetic constructor •() → self::Class
     : super core::Object::•()
     ;

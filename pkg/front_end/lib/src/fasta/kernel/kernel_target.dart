@@ -63,6 +63,8 @@ import '../messages.dart'
         templateSuperclassHasNoDefaultConstructor;
 import '../problems.dart' show unhandled;
 import '../scope.dart' show AmbiguousBuilder;
+import '../source/class_declaration.dart';
+import '../source/constructor_declaration.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
 import '../source/source_field_builder.dart';
@@ -1259,34 +1261,6 @@ class KernelTarget extends TargetImplementation {
     if (builder.isPatch) return;
     Class cls = builder.cls;
 
-    /// Quotes below are from [Dart Programming Language Specification, 4th
-    /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
-    List<SourceFieldBuilder> uninitializedFields = [];
-    List<SourceFieldBuilder> nonFinalFields = [];
-    List<SourceFieldBuilder> lateFinalFields = [];
-
-    Iterator<SourceFieldBuilder> fieldIterator =
-        builder.fullMemberIterator<SourceFieldBuilder>();
-    while (fieldIterator.moveNext()) {
-      SourceFieldBuilder fieldBuilder = fieldIterator.current;
-      if (fieldBuilder.isAbstract || fieldBuilder.isExternal) {
-        // Skip abstract and external fields. These are abstract/external
-        // getters/setters and have no initialization.
-        continue;
-      }
-      if (fieldBuilder.isDeclarationInstanceMember && !fieldBuilder.isFinal) {
-        nonFinalFields.add(fieldBuilder);
-      }
-      if (fieldBuilder.isDeclarationInstanceMember &&
-          fieldBuilder.isLate &&
-          fieldBuilder.isFinal) {
-        lateFinalFields.add(fieldBuilder);
-      }
-      if (!fieldBuilder.hasInitializer) {
-        uninitializedFields.add(fieldBuilder);
-      }
-    }
-
     Constructor? superTarget;
     for (Constructor constructor in cls.constructors) {
       if (constructor.isExternal) {
@@ -1336,63 +1310,95 @@ class KernelTarget extends TargetImplementation {
           constructor.function.body = new EmptyStatement()
             ..parent = constructor.function;
         }
-
-        if (constructor.isConst && nonFinalFields.isNotEmpty) {
-          builder.addProblem(messageConstConstructorNonFinalField,
-              constructor.fileOffset, noLength,
-              context: nonFinalFields
-                  .map((field) => messageConstConstructorNonFinalFieldCause
-                      .withLocation(field.fileUri, field.charOffset, noLength))
-                  .toList());
-          nonFinalFields.clear();
-        }
-        SourceLibraryBuilder library = builder.libraryBuilder;
-        if (library.isNonNullableByDefault) {
-          if (constructor.isConst && lateFinalFields.isNotEmpty) {
-            for (FieldBuilder field in lateFinalFields) {
-              builder.addProblem(messageConstConstructorLateFinalFieldError,
-                  field.charOffset, noLength,
-                  context: [
-                    messageConstConstructorLateFinalFieldCause.withLocation(
-                        constructor.fileUri, constructor.fileOffset, noLength)
-                  ]);
-            }
-            lateFinalFields.clear();
-          }
-        }
       }
     }
 
-    Map<DeclaredSourceConstructorBuilder, Set<SourceFieldBuilder>>
-        constructorInitializedFields = new Map.identity();
-    Set<SourceFieldBuilder>? initializedFields = null;
+    finishConstructorsInternal(builder);
+  }
 
-    Iterator<DeclaredSourceConstructorBuilder> constructorIterator =
-        builder.fullConstructorIterator<DeclaredSourceConstructorBuilder>();
+  void finishConstructorsInternal(ClassDeclaration builder) {
+    SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
+
+    /// Quotes below are from [Dart Programming Language Specification, 4th
+    /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
+    List<SourceFieldBuilder> uninitializedFields = [];
+    List<SourceFieldBuilder> nonFinalFields = [];
+    List<SourceFieldBuilder> lateFinalFields = [];
+
+    Iterator<SourceFieldBuilder> fieldIterator =
+        builder.fullMemberIterator<SourceFieldBuilder>();
+    while (fieldIterator.moveNext()) {
+      SourceFieldBuilder fieldBuilder = fieldIterator.current;
+      if (fieldBuilder.isAbstract || fieldBuilder.isExternal) {
+        // Skip abstract and external fields. These are abstract/external
+        // getters/setters and have no initialization.
+        continue;
+      }
+      if (fieldBuilder.isDeclarationInstanceMember && !fieldBuilder.isFinal) {
+        nonFinalFields.add(fieldBuilder);
+      }
+      if (fieldBuilder.isDeclarationInstanceMember &&
+          fieldBuilder.isLate &&
+          fieldBuilder.isFinal) {
+        lateFinalFields.add(fieldBuilder);
+      }
+      if (!fieldBuilder.hasInitializer) {
+        uninitializedFields.add(fieldBuilder);
+      }
+    }
+
+    Map<ConstructorDeclaration, Set<SourceFieldBuilder>>
+        constructorInitializedFields = new Map.identity();
+    Set<SourceFieldBuilder>? initializedFieldBuilders = null;
+
+    Iterator<ConstructorDeclaration> constructorIterator =
+        builder.fullConstructorIterator<ConstructorDeclaration>();
     while (constructorIterator.moveNext()) {
-      DeclaredSourceConstructorBuilder constructorBuilder =
-          constructorIterator.current;
-      if (constructorBuilder.isEffectivelyExternal) continue;
-      if (constructorBuilder.isEffectivelyRedirecting) continue;
+      ConstructorDeclaration constructor = constructorIterator.current;
+      if (constructor.isEffectivelyRedirecting) continue;
+      if (constructor.isConst && nonFinalFields.isNotEmpty) {
+        builder.addProblem(messageConstConstructorNonFinalField,
+            constructor.charOffset, noLength,
+            context: nonFinalFields
+                .map((field) => messageConstConstructorNonFinalFieldCause
+                    .withLocation(field.fileUri, field.charOffset, noLength))
+                .toList());
+        nonFinalFields.clear();
+      }
+      if (libraryBuilder.isNonNullableByDefault) {
+        if (constructor.isConst && lateFinalFields.isNotEmpty) {
+          for (FieldBuilder field in lateFinalFields) {
+            builder.addProblem(messageConstConstructorLateFinalFieldError,
+                field.charOffset, noLength,
+                context: [
+                  messageConstConstructorLateFinalFieldCause.withLocation(
+                      constructor.fileUri!, constructor.charOffset, noLength)
+                ]);
+          }
+          lateFinalFields.clear();
+        }
+      }
+      if (constructor.isEffectivelyExternal) continue;
       Set<SourceFieldBuilder> fields =
-          constructorBuilder.takeInitializedFields() ?? const {};
-      constructorInitializedFields[constructorBuilder] = fields;
-      (initializedFields ??= new Set<SourceFieldBuilder>.identity())
+          constructor.takeInitializedFields() ?? const {};
+      constructorInitializedFields[constructor] = fields;
+      (initializedFieldBuilders ??= new Set<SourceFieldBuilder>.identity())
           .addAll(fields);
     }
 
     // Run through all fields that aren't initialized by any constructor, and
     // set their initializer to `null`.
     for (SourceFieldBuilder fieldBuilder in uninitializedFields) {
-      if (initializedFields == null ||
-          !initializedFields.contains(fieldBuilder)) {
+      if (initializedFieldBuilders == null ||
+          !initializedFieldBuilders.contains(fieldBuilder)) {
         bool uninitializedFinalOrNonNullableFieldIsError =
-            cls.enclosingLibrary.isNonNullableByDefault ||
-                (cls.constructors.isNotEmpty || cls.isMixinDeclaration);
+            libraryBuilder.isNonNullableByDefault ||
+                builder.hasGenerativeConstructor ||
+                builder.isMixinDeclaration;
         if (!fieldBuilder.isLate) {
           if (fieldBuilder.isFinal &&
               uninitializedFinalOrNonNullableFieldIsError) {
-            String uri = '${fieldBuilder.libraryBuilder.importUri}';
+            String uri = '${libraryBuilder.importUri}';
             String file = fieldBuilder.fileUri.pathSegments.last;
             if (uri == 'dart:html' ||
                 uri == 'dart:svg' ||
@@ -1401,7 +1407,7 @@ class KernelTarget extends TargetImplementation {
               // TODO(johnniwinther): Use external getters instead of final
               // fields. See https://github.com/dart-lang/sdk/issues/33762
             } else {
-              builder.libraryBuilder.addProblem(
+              libraryBuilder.addProblem(
                   templateFinalFieldNotInitialized
                       .withArguments(fieldBuilder.name),
                   fieldBuilder.charOffset,
@@ -1411,37 +1417,38 @@ class KernelTarget extends TargetImplementation {
           } else if (fieldBuilder.fieldType is! InvalidType &&
               fieldBuilder.fieldType.isPotentiallyNonNullable &&
               uninitializedFinalOrNonNullableFieldIsError) {
-            SourceLibraryBuilder library = builder.libraryBuilder;
-            if (library.isNonNullableByDefault) {
-              library.addProblem(
+            if (libraryBuilder.isNonNullableByDefault) {
+              libraryBuilder.addProblem(
                   templateFieldNonNullableWithoutInitializerError.withArguments(
                       fieldBuilder.name,
                       fieldBuilder.fieldType,
-                      library.isNonNullableByDefault),
+                      libraryBuilder.isNonNullableByDefault),
                   fieldBuilder.charOffset,
                   fieldBuilder.name.length,
                   fieldBuilder.fileUri);
             }
           }
+          fieldBuilder.field.initializer = new NullLiteral()
+            ..parent = fieldBuilder.field;
         }
       }
     }
 
     // Run through all fields that are initialized by some constructor, and
     // make sure that all other constructors also initialize them.
-    constructorInitializedFields.forEach(
-        (DeclaredSourceConstructorBuilder constructorBuilder,
-            Set<FieldBuilder> fieldBuilders) {
+    for (MapEntry<ConstructorDeclaration, Set<FieldBuilder>> entry
+        in constructorInitializedFields.entries) {
+      ConstructorDeclaration constructorBuilder = entry.key;
+      Set<FieldBuilder> fieldBuilders = entry.value;
       for (SourceFieldBuilder fieldBuilder
-          in initializedFields!.difference(fieldBuilders)) {
+          in initializedFieldBuilders!.difference(fieldBuilders)) {
         if (!fieldBuilder.hasInitializer && !fieldBuilder.isLate) {
           FieldInitializer initializer =
               new FieldInitializer(fieldBuilder.field, new NullLiteral())
                 ..isSynthetic = true;
-          initializer.parent = constructorBuilder.constructor;
-          constructorBuilder.constructor.initializers.insert(0, initializer);
+          constructorBuilder.prependInitializer(initializer);
           if (fieldBuilder.isFinal) {
-            builder.libraryBuilder.addProblem(
+            libraryBuilder.addProblem(
                 templateFinalFieldNotInitializedByConstructor
                     .withArguments(fieldBuilder.name),
                 constructorBuilder.charOffset,
@@ -1456,12 +1463,11 @@ class KernelTarget extends TargetImplementation {
           } else if (fieldBuilder.field.type is! InvalidType &&
               !fieldBuilder.isLate &&
               fieldBuilder.field.type.isPotentiallyNonNullable) {
-            SourceLibraryBuilder library = builder.libraryBuilder;
-            if (library.isNonNullableByDefault) {
-              library.addProblem(
+            if (libraryBuilder.isNonNullableByDefault) {
+              libraryBuilder.addProblem(
                   templateFieldNonNullableNotInitializedByConstructorError
                       .withArguments(fieldBuilder.name, fieldBuilder.field.type,
-                          library.isNonNullableByDefault),
+                          libraryBuilder.isNonNullableByDefault),
                   constructorBuilder.charOffset,
                   noLength,
                   constructorBuilder.fileUri,
@@ -1474,23 +1480,6 @@ class KernelTarget extends TargetImplementation {
             }
           }
         }
-      }
-    });
-
-    Set<Field>? initializedFieldsKernel = null;
-    if (initializedFields != null) {
-      for (FieldBuilder fieldBuilder in initializedFields) {
-        (initializedFieldsKernel ??= new Set<Field>.identity())
-            .add(fieldBuilder.field);
-      }
-    }
-
-    for (Field field in cls.fields) {
-      if (field.initializer == null &&
-          !field.isLate &&
-          (initializedFieldsKernel == null ||
-              !initializedFieldsKernel.contains(field))) {
-        field.initializer = new NullLiteral()..parent = field;
       }
     }
   }

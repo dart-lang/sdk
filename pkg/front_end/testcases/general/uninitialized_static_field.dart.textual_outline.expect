@@ -1,0 +1,11 @@
+// @dart = 2.9
+class C {
+  static var field;
+  static final finalField;
+}
+
+class D {
+  static var field;
+  static final finalField;
+  factory D() => throw '';
+}

@@ -107,6 +107,7 @@ import '../operator.dart';
 import '../problems.dart' show unexpected, unhandled;
 import '../scope.dart';
 import '../util/helpers.dart';
+import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
@@ -3990,9 +3991,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             inErrorRecovery: inErrorRecovery);
         formals = member.formals;
       } else {
-        assert(member is AbstractSourceConstructorBuilder,
+        assert(member is ConstructorDeclaration,
             "Unexpected constructor member (${member.runtimeType}).");
-        formals = (member as AbstractSourceConstructorBuilder).formals;
+        formals = (member as ConstructorDeclaration).formals;
       }
       if (formals != null && formals.isNotEmpty) {
         for (FormalParameterBuilder formal in formals) {

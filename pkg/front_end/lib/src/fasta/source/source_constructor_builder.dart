@@ -53,6 +53,8 @@ import '../source/source_member_builder.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart' show DelayedActionPerformer;
+import 'class_declaration.dart';
+import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
@@ -78,7 +80,7 @@ abstract class SourceConstructorBuilder
 
 abstract class AbstractSourceConstructorBuilder
     extends SourceFunctionBuilderImpl
-    implements SourceConstructorBuilder, Inferable {
+    implements SourceConstructorBuilder, Inferable, ConstructorDeclaration {
   @override
   final OmittedTypeBuilder returnType;
 
@@ -166,6 +168,7 @@ abstract class AbstractSourceConstructorBuilder
     }
   }
 
+  @override
   List<Initializer> get initializers;
 
   @override
@@ -193,6 +196,7 @@ abstract class AbstractSourceConstructorBuilder
 
   RedirectingInitializer? redirectingInitializer;
 
+  @override
   void addInitializer(Initializer initializer, ExpressionGeneratorHelper helper,
       {required InitializerInferenceResult? inferenceResult}) {
     if (initializer is SuperInitializer) {
@@ -391,6 +395,9 @@ class DeclaredSourceConstructorBuilder
   }
 
   @override
+  ClassDeclaration get classDeclaration => classBuilder;
+
+  @override
   SourceClassBuilder get classBuilder =>
       super.classBuilder as SourceClassBuilder;
 
@@ -423,11 +430,7 @@ class DeclaredSourceConstructorBuilder
   @override
   bool get isClassInstanceMember => false;
 
-  /// Returns `true` if this constructor, including its augmentations, is
-  /// external.
-  ///
-  /// An augmented constructor is considered external if all of the origin
-  /// and augmentation constructors are external.
+  @override
   bool get isEffectivelyExternal {
     bool isExternal = this.isExternal;
     if (isExternal) {
@@ -441,13 +444,7 @@ class DeclaredSourceConstructorBuilder
     return isExternal;
   }
 
-  /// Returns `true` if this constructor or any of its augmentations are
-  /// redirecting.
-  ///
-  /// An augmented constructor is considered redirecting if any of the origin
-  /// or augmentation constructors is redirecting. Since it is an error if more
-  /// than one is redirecting, only one can be redirecting in the without
-  /// errors.
+  @override
   bool get isEffectivelyRedirecting {
     bool isRedirecting = this.isRedirecting;
     if (!isRedirecting) {
@@ -849,6 +846,7 @@ class DeclaredSourceConstructorBuilder
     }
   }
 
+  @override
   void prepareInitializers() {
     // For const constructors we parse initializers already at the outlining
     // stage, there is no easy way to make body building stage skip initializer
@@ -864,10 +862,13 @@ class DeclaredSourceConstructorBuilder
     superInitializer = null;
   }
 
-  /// Registers field as being initialized by this constructor.
-  ///
-  /// The field can be initialized either via an initializing formal or via an
-  /// entry in the constructor initializer list.
+  @override
+  void prependInitializer(Initializer initializer) {
+    initializer.parent = constructor;
+    constructor.initializers.insert(0, initializer);
+  }
+
+  @override
   void registerInitializedField(SourceFieldBuilder fieldBuilder) {
     if (isPatch) {
       origin.registerInitializedField(fieldBuilder);
@@ -876,11 +877,7 @@ class DeclaredSourceConstructorBuilder
     }
   }
 
-  /// Returns the fields registered as initialized by this constructor.
-  ///
-  /// Returns the set of fields previously registered via
-  /// [registerInitializedField] and passes on the ownership of the collection
-  /// to the caller.
+  @override
   Set<SourceFieldBuilder>? takeInitializedFields() {
     Set<SourceFieldBuilder>? result = _initializedFields;
     _initializedFields = null;
@@ -1028,8 +1025,10 @@ class SourceInlineClassConstructorBuilder
   late final Procedure _constructor;
   late final Procedure? _constructorTearOff;
 
+  Set<SourceFieldBuilder>? _initializedFields;
+
   @override
-  final List<Initializer> initializers = [];
+  List<Initializer> initializers = [];
 
   SourceInlineClassConstructorBuilder(
       List<MetadataBuilder>? metadata,
@@ -1081,6 +1080,9 @@ class SourceInlineClassConstructorBuilder
           .attachMember(_constructorTearOff!);
     }
   }
+
+  @override
+  ClassDeclaration get classDeclaration => inlineClassBuilder;
 
   SourceInlineClassBuilder get inlineClassBuilder =>
       parent as SourceInlineClassBuilder;
@@ -1170,5 +1172,44 @@ class SourceInlineClassConstructorBuilder
     _buildFormals(_constructor);
   }
 
-  // TODO(johnniwinther): Generate initializers and return statement.
+  @override
+  void prepareInitializers() {
+    // For const constructors we parse initializers already at the outlining
+    // stage, there is no easy way to make body building stage skip initializer
+    // parsing, so we simply clear parsed initializers and rebuild them
+    // again.
+    // For when doing an experimental incremental compilation they are also
+    // potentially done more than once (because it rebuilds the bodies of an old
+    // compile), and so we also clear them.
+    // Note: this method clears both initializers from the target Kernel node
+    // and internal state associated with parsing initializers.
+    initializers = [];
+    redirectingInitializer = null;
+    superInitializer = null;
+  }
+
+  @override
+  void prependInitializer(Initializer initializer) {
+    initializers.insert(0, initializer);
+  }
+
+  @override
+  void registerInitializedField(SourceFieldBuilder fieldBuilder) {
+    (_initializedFields ??= {}).add(fieldBuilder);
+  }
+
+  @override
+  Set<SourceFieldBuilder>? takeInitializedFields() {
+    Set<SourceFieldBuilder>? result = _initializedFields;
+    _initializedFields = null;
+    return result;
+  }
+
+  @override
+  bool get isEffectivelyExternal => isExternal;
+
+  @override
+  bool get isEffectivelyRedirecting => isRedirecting;
+
+// TODO(johnniwinther): Generate initializers and return statement.
 }

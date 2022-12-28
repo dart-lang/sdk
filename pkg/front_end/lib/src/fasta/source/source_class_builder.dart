@@ -40,6 +40,7 @@ import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
 import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
+import '../identifiers.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
@@ -47,12 +48,12 @@ import '../kernel/redirecting_factory_body.dart'
     show RedirectingFactoryBody, redirectingName;
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
-import '../identifiers.dart';
 import '../names.dart' show equalsName;
 import '../problems.dart' show unexpected, unhandled, unimplemented;
 import '../scope.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart';
+import 'class_declaration.dart';
 import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
@@ -93,7 +94,7 @@ Class initializeClass(
 }
 
 class SourceClassBuilder extends ClassBuilderImpl
-    implements Comparable<SourceClassBuilder> {
+    implements Comparable<SourceClassBuilder>, ClassDeclaration {
   final Class actualCls;
 
   final List<ConstructorReferenceBuilder>? constructorReferences;
@@ -397,6 +398,10 @@ class SourceClassBuilder extends ClassBuilderImpl
   @override
   NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
       new ClassConstructorNameIterator<T>(this, includeDuplicates: false);
+
+  @override
+  bool get hasGenerativeConstructor =>
+      fullConstructorNameIterator<SourceConstructorBuilder>().moveNext();
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
