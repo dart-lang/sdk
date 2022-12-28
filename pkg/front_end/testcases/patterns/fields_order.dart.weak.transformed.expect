@@ -1,0 +1,38 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get foo() → core::String
+    return "foo";
+  get bar() → core::Object?
+    return null;
+}
+static method test(dynamic x) → dynamic {
+  final dynamic #t1 = x;
+  final core::bool #t2 = true;
+  final dynamic #t3 = #t1;
+  if(#t3 is self::A) {
+    final core::String #t4 = #t3{self::A}.{self::A::foo}{core::String};
+    final core::Object? #t5 = #t3{self::A}.{self::A::bar}{core::Object?};
+    if(#t4 =={core::String::==}{(core::Object) → core::bool} "") {
+      final core::String #t6 = #t5 as{ForNonNullableByDefault} core::String;
+      final core::String #t7 = #t6;
+      if(#t7 is core::String) {
+        #t2 = false;
+        {
+          core::String y = #t7{core::String};
+          {
+            return y;
+          }
+        }
+      }
+    }
+  }
+  if(#t2) {
+    return null;
+  }
+}
