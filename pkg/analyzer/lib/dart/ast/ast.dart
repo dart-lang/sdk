@@ -1001,9 +1001,11 @@ abstract class ClassAugmentationDeclaration
 /// The declaration of a class.
 ///
 ///    classDeclaration ::=
-///        'abstract'? 'class' name [TypeParameterList]?
+///        classModifiers? 'class' name [TypeParameterList]?
 ///        [ExtendsClause]? [WithClause]? [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
+///
+///    classModifiers ::= 'sealed' | 'abstract'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassDeclaration implements ClassOrAugmentationDeclaration {
@@ -1090,6 +1092,9 @@ abstract class ClassOrAugmentationDeclaration
   /// Returns the right curly bracket.
   Token get rightBracket;
 
+  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
+  Token? get sealedKeyword;
+
   /// Returns the type parameters for the class, or `null` if the class does
   /// not have any type parameters.
   TypeParameterList? get typeParameters;
@@ -1126,6 +1131,9 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// Return the implements clause for this class, or `null` if there is no
   /// implements clause.
   ImplementsClause? get implementsClause;
+
+  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
+  Token? get sealedKeyword;
 
   /// Return the name of the superclass of the class being declared.
   NamedType get superclass;
@@ -3752,7 +3760,7 @@ abstract class MixinAugmentationDeclaration
 /// The declaration of a mixin.
 ///
 ///    mixinDeclaration ::=
-///        'mixin' name [TypeParameterList]?
+///        'sealed'? 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -3820,6 +3828,9 @@ abstract class MixinOrAugmentationDeclaration
 
   /// Returns the right curly bracket.
   Token get rightBracket;
+
+  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
+  Token? get sealedKeyword;
 
   /// Returns the type parameters for the mixin, or `null` if the mixin does
   /// not have any type parameters.

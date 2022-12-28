@@ -1891,10 +1891,13 @@ class ChildEntity {
 /// The declaration of a class.
 ///
 ///    classDeclaration ::=
-///        'abstract'? 'class' [SimpleIdentifier] [TypeParameterList]?
+///        classModifiers? 'class' [SimpleIdentifier] [TypeParameterList]?
 ///        ([ExtendsClause] [WithClause]?)?
 ///        [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
+///
+///    classModifiers ::= 'sealed' | 'abstract'
+///
 class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements ClassDeclaration {
   /// The 'abstract' keyword, or `null` if the keyword was absent.
@@ -1908,6 +1911,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token? inlineKeyword;
 
   /// The 'sealed' keyword, or `null` if the keyword was absent.
+  @override
   final Token? sealedKeyword;
 
   /// The 'augment' keyword, or `null` if the keyword was absent.
@@ -2127,6 +2131,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   /// The token for the 'sealed' keyword, or `null` if this is not defining a
   /// sealed class.
+  @override
   final Token? sealedKeyword;
 
   /// The token for the 'augment' keyword, or `null` if this is not defining an
@@ -8918,7 +8923,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 /// The declaration of a mixin.
 ///
 ///    mixinDeclaration ::=
-///        metadata? 'mixin' [SimpleIdentifier] [TypeParameterList]?
+///        'sealed'? metadata? 'mixin' [SimpleIdentifier] [TypeParameterList]?
 ///        [RequiresClause]? [ImplementsClause]? '{' [ClassMember]* '}'
 class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements MixinDeclaration {
@@ -8926,6 +8931,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token? augmentKeyword;
 
   /// Return the 'sealed' keyword, or `null` if the keyword was absent.
+  @override
   final Token? sealedKeyword;
 
   @override
