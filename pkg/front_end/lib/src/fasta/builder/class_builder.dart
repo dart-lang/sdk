@@ -42,7 +42,33 @@ import 'type_variable_builder.dart';
 
 const Uri? noUri = null;
 
-abstract class ClassBuilder implements DeclarationBuilder {
+abstract class ClassMemberAccess {
+  /// [Iterator] for all members declared in this class or any of its
+  /// augmentations.
+  ///
+  /// Duplicates and augmenting constructor are _not_ included.
+  Iterator<T> fullConstructorIterator<T extends MemberBuilder>();
+
+  /// [NameIterator] for all constructors declared in this class or any of its
+  /// augmentations.
+  ///
+  /// Duplicates and augmenting constructors are _not_ included.
+  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>();
+
+  /// [Iterator] for all members declared in this class or any of its
+  /// augmentations.
+  ///
+  /// Duplicates and augmenting members are _not_ included.
+  Iterator<T> fullMemberIterator<T extends Builder>();
+
+  /// [NameIterator] for all members declared in this class or any of its
+  /// augmentations.
+  ///
+  /// Duplicates and augmenting members are _not_ included.
+  NameIterator<T> fullMemberNameIterator<T extends Builder>();
+}
+
+abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   /// The type variables declared on a class, extension or mixin declaration.
   List<TypeVariableBuilder>? get typeVariables;
 
@@ -128,33 +154,6 @@ abstract class ClassBuilder implements DeclarationBuilder {
   /// class.
   Member? lookupInstanceMember(ClassHierarchy hierarchy, Name name,
       {bool isSetter = false, bool isSuper = false});
-
-  // TODO(johnniwinther): Support filtering on the returns builder types in
-  // these:
-
-  /// [Iterator] for all members declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting constructor are _not_ included.
-  Iterator<T> fullConstructorIterator<T extends MemberBuilder>();
-
-  /// [NameIterator] for all constructors declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting constructors are _not_ included.
-  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>();
-
-  /// [Iterator] for all members declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting members are _not_ included.
-  Iterator<T> fullMemberIterator<T extends Builder>();
-
-  /// [NameIterator] for all members declared in this class or any of its
-  /// augmentations.
-  ///
-  /// Duplicates and augmenting members are _not_ included.
-  NameIterator<T> fullMemberNameIterator<T extends Builder>();
 }
 
 abstract class ClassBuilderImpl extends DeclarationBuilderImpl

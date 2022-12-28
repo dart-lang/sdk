@@ -89,9 +89,9 @@ import '../modifier.dart'
 import '../names.dart' show emptyName, minusName, plusName;
 import '../problems.dart' show internalProblem, unhandled, unsupported;
 import '../scope.dart';
+import '../source/constructor_declaration.dart';
 import '../source/diet_parser.dart';
 import '../source/source_class_builder.dart';
-import '../source/source_constructor_builder.dart';
 import '../source/source_enum_builder.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_field_builder.dart';
@@ -961,25 +961,34 @@ class BodyBuilder extends StackListenerImpl
       Identifier identifier = pop() as Identifier;
       String name = identifier.name;
       Builder declaration;
+      int fileOffset = identifier.charOffset;
       if (declarationBuilder != null) {
         declaration =
             declarationBuilder!.lookupLocalMember(name, required: true)!;
       } else {
         declaration = libraryBuilder.lookupLocalMember(name, required: true)!;
       }
+      while (declaration.next != null) {
+        // If we have duplicates, we try to find the right declaration.
+        if (declaration.fileUri == uri &&
+            declaration.charOffset == fileOffset) {
+          break;
+        }
+        declaration = declaration.next!;
+      }
+      if (declaration.fileUri != uri || declaration.charOffset != fileOffset) {
+        // If we don't have the right declaration, skip the initializer.
+        continue;
+      }
       SourceFieldBuilder fieldBuilder;
-      if (declaration.isField && declaration.next == null) {
+      if (declaration.isField) {
         fieldBuilder = declaration as SourceFieldBuilder;
       } else {
         continue;
       }
       fields.add(fieldBuilder);
       if (initializer != null) {
-        if (fieldBuilder.isDuplicate) {
-          // Duplicate definition. The field might not be the correct one,
-          // so we skip inference of the initializer.
-          // Error reporting and recovery is handled elsewhere.
-        } else if (fieldBuilder.hasBodyBeenBuilt) {
+        if (fieldBuilder.hasBodyBeenBuilt) {
           // The initializer was already compiled (e.g., if it appear in the
           // outline, like constant field initializers) so we do not need to
           // perform type inference or transformations.
@@ -1082,7 +1091,7 @@ class BodyBuilder extends StackListenerImpl
   void prepareInitializers() {
     SourceFunctionBuilder member = this.member as SourceFunctionBuilder;
     scope = member.computeFormalParameterInitializerScope(scope);
-    if (member is DeclaredSourceConstructorBuilder) {
+    if (member is ConstructorDeclaration) {
       member.prepareInitializers();
       if (member.formals != null) {
         for (FormalParameterBuilder formal in member.formals!) {
@@ -1290,7 +1299,7 @@ class BodyBuilder extends StackListenerImpl
         }
       }
     }
-    if (builder is AbstractSourceConstructorBuilder) {
+    if (builder is ConstructorDeclaration) {
       finishConstructor(builder, asyncModifier, body,
           superParametersAsArguments: superParametersAsArguments);
     } else if (builder is SourceProcedureBuilder) {
@@ -1829,8 +1838,8 @@ class BodyBuilder extends StackListenerImpl
       handleNoInitializers();
     }
     if (doFinishConstructor) {
-      AbstractSourceConstructorBuilder constructorBuilder =
-          member as AbstractSourceConstructorBuilder;
+      ConstructorDeclaration constructorBuilder =
+          member as ConstructorDeclaration;
       List<FormalParameterBuilder>? formals = constructorBuilder.formals;
       finishConstructor(constructorBuilder, AsyncMarker.Sync, null,
           superParametersAsArguments: formals != null
@@ -1879,7 +1888,7 @@ class BodyBuilder extends StackListenerImpl
     return arguments;
   }
 
-  void finishConstructor(AbstractSourceConstructorBuilder builder,
+  void finishConstructor(ConstructorDeclaration builder,
       AsyncMarker asyncModifier, Statement? body,
       {required List<Object /* Expression | NamedExpression */ >?
           superParametersAsArguments}) {
@@ -1984,7 +1993,7 @@ class BodyBuilder extends StackListenerImpl
       if (initializers.last is SuperInitializer) {
         SuperInitializer superInitializer =
             initializers.last as SuperInitializer;
-        if (builder.declarationBuilder.isEnum) {
+        if (builder.classDeclaration.isEnum) {
           initializers[initializers.length - 1] = buildInvalidInitializer(
               buildProblem(fasta.messageEnumConstructorSuperInitializer,
                   superInitializer.fileOffset, noLength))
@@ -7932,8 +7941,8 @@ class BodyBuilder extends StackListenerImpl
                 ]);
           }
         }
-        DeclaredSourceConstructorBuilder constructorBuilder =
-            member as DeclaredSourceConstructorBuilder;
+        ConstructorDeclaration constructorBuilder =
+            member as ConstructorDeclaration;
         constructorBuilder.registerInitializedField(builder);
         return builder.buildInitializer(assignmentOffset, expression,
             isSynthetic: formal != null);

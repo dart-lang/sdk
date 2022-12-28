@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/fasta/source/source_builder_mixins.dart';
 import 'package:kernel/ast.dart';
 
 import '../../base/common.dart';
 import '../builder/builder.dart';
 import '../builder/inline_class_builder.dart';
 import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/name_iterator.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../fasta_codes.dart'
@@ -19,12 +20,15 @@ import '../fasta_codes.dart'
         noLength;
 import '../problems.dart';
 import '../scope.dart';
+import 'class_declaration.dart';
+import 'source_builder_mixins.dart';
 import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 
 class SourceInlineClassBuilder extends InlineClassBuilderImpl
-    with SourceDeclarationBuilderMixin {
+    with SourceDeclarationBuilderMixin
+    implements ClassDeclaration {
   final InlineClass _inlineClass;
 
   SourceInlineClassBuilder? _origin;
@@ -197,4 +201,37 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
   // TODO(johnniwinther): Implement representationType.
   @override
   DartType get declaredRepresentationType => throw new UnimplementedError();
+
+  @override
+  Iterator<T> fullConstructorIterator<T extends MemberBuilder>() {
+    // TODO(johnniwinther): Implement fullConstructorIterator
+    throw new UnimplementedError();
+  }
+
+  @override
+  NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() {
+    // TODO(johnniwinther): Implement fullConstructorNameIterator
+    throw new UnimplementedError();
+  }
+
+  @override
+  Iterator<T> fullMemberIterator<T extends Builder>() {
+    // TODO(johnniwinther): Implement fullMemberIterator
+    throw new UnimplementedError();
+  }
+
+  @override
+  NameIterator<T> fullMemberNameIterator<T extends Builder>() {
+    // TODO(johnniwinther): Implement fullMemberNameIterator
+    throw new UnimplementedError();
+  }
+
+  @override
+  bool get isMixinDeclaration => false;
+
+  @override
+  bool get hasGenerativeConstructor {
+    // TODO(johnniwinther): Implement hasGenerativeConstructor
+    throw new UnimplementedError();
+  }
 }

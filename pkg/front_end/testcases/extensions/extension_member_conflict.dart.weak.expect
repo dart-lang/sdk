@@ -168,7 +168,7 @@ extension Extension<T extends core::Object? = dynamic> on core::int {
   set instanceSetterAndStaticGetter = self::Extension|set#instanceSetterAndStaticGetter;
   set instanceSetterAndStaticField = self::Extension|set#instanceSetterAndStaticField;
 }
-static field core::int Extension|duplicateStaticField;
+static field core::int Extension|duplicateStaticField = 0;
 static method Extension|get#duplicateInstanceGetter<T extends core::Object? = dynamic>(lowered final core::int #this) → core::int
   return 0;
 static method Extension|set#duplicateInstanceSetter<T extends core::Object? = dynamic>(lowered final core::int #this, core::int value) → void {}

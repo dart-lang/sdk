@@ -232,14 +232,14 @@ import self as self;
 import "dart:core" as core;
 
 static field dynamic result;
-static field core::int topLevelField;
+static field core::int topLevelField = 1;
 static field core::int topLevelFieldAndSetter1 = 1;
 static field core::int topLevelFieldAndSetter2 = 1;
 late static final [setter] field core::int topLevelLateFinalFieldAndSetter1;
 late static final [setter] field core::int topLevelLateFinalFieldAndSetter2;
-static final field core::int topLevelDuplicateFieldAndSetter;
+static final field core::int topLevelDuplicateFieldAndSetter = 1;
 static final field core::int topLevelFieldAndDuplicateSetter = 1;
-static final field core::int topLevelDuplicateFieldAndDuplicateSetter;
+static final field core::int topLevelDuplicateFieldAndDuplicateSetter = 1;
 static field invalid-type field = invalid-expression "pkg/front_end/testcases/nnbd/duplicates_toplevel.dart:82:13: Error: Can't use 'topLevelMethod' because it is declared more than once.
 var field = topLevelMethod;
             ^";
