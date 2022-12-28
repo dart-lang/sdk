@@ -68,6 +68,7 @@ import '../source/constructor_declaration.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
 import '../source/source_field_builder.dart';
+import '../source/source_inline_class_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../target_implementation.dart' show TargetImplementation;
@@ -620,7 +621,9 @@ class KernelTarget extends TargetImplementation {
       loader.finishNoSuchMethodForwarders();
 
       benchmarker?.enterPhase(BenchmarkPhases.body_collectSourceClasses);
-      List<SourceClassBuilder>? sourceClasses = loader.collectSourceClasses();
+      List<SourceClassBuilder>? sourceClasses = [];
+      List<SourceInlineClassBuilder>? inlineClasses = [];
+      loader.collectSourceClasses(sourceClasses, inlineClasses);
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishNativeMethods);
       loader.finishNativeMethods();
@@ -629,7 +632,7 @@ class KernelTarget extends TargetImplementation {
       loader.buildBodyNodes();
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishAllConstructors);
-      finishAllConstructors(sourceClasses);
+      finishAllConstructors(sourceClasses, inlineClasses);
 
       benchmarker?.enterPhase(BenchmarkPhases.body_runBuildTransformations);
       runBuildTransformations();
@@ -649,6 +652,7 @@ class KernelTarget extends TargetImplementation {
       // (for whatever amount of time) even though we convert them to dill
       // library builders. To avoid it we null it out here.
       sourceClasses = null;
+      inlineClasses = null;
       return new BuildResult(
           component: component, macroApplications: macroApplications);
     }, () => loader.currentUriForCrashReporting);
@@ -1244,22 +1248,27 @@ class KernelTarget extends TargetImplementation {
     loader.computeCoreTypes(platformLibraries);
   }
 
-  void finishAllConstructors(List<SourceClassBuilder> builders) {
+  void finishAllConstructors(List<SourceClassBuilder> sourceClassBuilders,
+      List<SourceInlineClassBuilder> inlineClassBuilders) {
     Class objectClass = this.objectClass;
-    for (SourceClassBuilder builder in builders) {
+    for (SourceClassBuilder builder in sourceClassBuilders) {
       Class cls = builder.cls;
       if (cls != objectClass) {
         finishConstructors(builder);
       }
     }
+    for (SourceInlineClassBuilder builder in inlineClassBuilders) {
+      finishInlineConstructors(builder);
+    }
+
     ticker.logMs("Finished constructors");
   }
 
-  /// Ensure constructors of [builder] have the correct initializers and other
-  /// requirements.
-  void finishConstructors(SourceClassBuilder builder) {
-    if (builder.isPatch) return;
-    Class cls = builder.cls;
+  /// Ensure constructors of [classBuilder] have the correct initializers and
+  /// other requirements.
+  void finishConstructors(SourceClassBuilder classBuilder) {
+    if (classBuilder.isPatch) return;
+    Class cls = classBuilder.cls;
 
     Constructor? superTarget;
     for (Constructor constructor in cls.constructors) {
@@ -1270,8 +1279,10 @@ class KernelTarget extends TargetImplementation {
       for (Initializer initializer in constructor.initializers) {
         if (initializer is RedirectingInitializer) {
           if (constructor.isConst && !initializer.target.isConst) {
-            builder.addProblem(messageConstConstructorRedirectionToNonConst,
-                initializer.fileOffset, initializer.target.name.text.length);
+            classBuilder.addProblem(
+                messageConstConstructorRedirectionToNonConst,
+                initializer.fileOffset,
+                initializer.target.name.text.length);
           }
           isRedirecting = true;
           break;
@@ -1289,7 +1300,7 @@ class KernelTarget extends TargetImplementation {
             if (offset == -1 && constructor.isSynthetic) {
               offset = cls.fileOffset;
             }
-            builder.addProblem(
+            classBuilder.addProblem(
                 templateSuperclassHasNoDefaultConstructor
                     .withArguments(cls.superclass!.name),
                 offset,
@@ -1313,11 +1324,15 @@ class KernelTarget extends TargetImplementation {
       }
     }
 
-    finishConstructorsInternal(builder);
+    _finishConstructors(classBuilder);
   }
 
-  void finishConstructorsInternal(ClassDeclaration builder) {
-    SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
+  void finishInlineConstructors(SourceInlineClassBuilder inlineClass) {
+    _finishConstructors(inlineClass);
+  }
+
+  void _finishConstructors(ClassDeclaration classDeclaration) {
+    SourceLibraryBuilder libraryBuilder = classDeclaration.libraryBuilder;
 
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf):
@@ -1326,7 +1341,7 @@ class KernelTarget extends TargetImplementation {
     List<SourceFieldBuilder> lateFinalFields = [];
 
     Iterator<SourceFieldBuilder> fieldIterator =
-        builder.fullMemberIterator<SourceFieldBuilder>();
+        classDeclaration.fullMemberIterator<SourceFieldBuilder>();
     while (fieldIterator.moveNext()) {
       SourceFieldBuilder fieldBuilder = fieldIterator.current;
       if (fieldBuilder.isAbstract || fieldBuilder.isExternal) {
@@ -1352,12 +1367,12 @@ class KernelTarget extends TargetImplementation {
     Set<SourceFieldBuilder>? initializedFieldBuilders = null;
 
     Iterator<ConstructorDeclaration> constructorIterator =
-        builder.fullConstructorIterator<ConstructorDeclaration>();
+        classDeclaration.fullConstructorIterator<ConstructorDeclaration>();
     while (constructorIterator.moveNext()) {
       ConstructorDeclaration constructor = constructorIterator.current;
       if (constructor.isEffectivelyRedirecting) continue;
       if (constructor.isConst && nonFinalFields.isNotEmpty) {
-        builder.addProblem(messageConstConstructorNonFinalField,
+        classDeclaration.addProblem(messageConstConstructorNonFinalField,
             constructor.charOffset, noLength,
             context: nonFinalFields
                 .map((field) => messageConstConstructorNonFinalFieldCause
@@ -1368,8 +1383,10 @@ class KernelTarget extends TargetImplementation {
       if (libraryBuilder.isNonNullableByDefault) {
         if (constructor.isConst && lateFinalFields.isNotEmpty) {
           for (FieldBuilder field in lateFinalFields) {
-            builder.addProblem(messageConstConstructorLateFinalFieldError,
-                field.charOffset, noLength,
+            classDeclaration.addProblem(
+                messageConstConstructorLateFinalFieldError,
+                field.charOffset,
+                noLength,
                 context: [
                   messageConstConstructorLateFinalFieldCause.withLocation(
                       constructor.fileUri!, constructor.charOffset, noLength)
@@ -1393,8 +1410,8 @@ class KernelTarget extends TargetImplementation {
           !initializedFieldBuilders.contains(fieldBuilder)) {
         bool uninitializedFinalOrNonNullableFieldIsError =
             libraryBuilder.isNonNullableByDefault ||
-                builder.hasGenerativeConstructor ||
-                builder.isMixinDeclaration;
+                classDeclaration.hasGenerativeConstructor ||
+                classDeclaration.isMixinDeclaration;
         if (!fieldBuilder.isLate) {
           if (fieldBuilder.isFinal &&
               uninitializedFinalOrNonNullableFieldIsError) {

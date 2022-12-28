@@ -117,6 +117,7 @@ general/type_parameters_on_void: FormatterCrash
 general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash
 inline_class/constructors: FormatterCrash
+inline_class/initializers: FormatterCrash
 inline_class/inline_class_declaration: FormatterCrash
 inline_class/procedures: FormatterCrash
 inline_class/representation: FormatterCrash

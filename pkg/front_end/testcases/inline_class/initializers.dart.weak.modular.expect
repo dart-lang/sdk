@@ -1,0 +1,51 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inline_class/initializers.dart:24:27: Error: 'nonexisting' isn't an instance field of this class.
+//   Class4(this.field, this.nonexisting);
+//                           ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/initializers.dart:30:35: Error: 'field' was already initialized by this constructor.
+//   Class5(this.field) : this.field = 42;
+//                                   ^
+//
+// pkg/front_end/testcases/inline_class/initializers.dart:36:29: Error: 'nonexisting' isn't an instance field of this class.
+//   Class6(this.field) : this.nonexisting = 42;
+//                             ^^^^^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/initializers.dart:18:13: Error: Final field 'field' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int field;
+//             ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+inline class Class1 /* declaredRepresentationType = core::int */ {
+  constructor • = self::Class1|;
+}
+inline class Class2 /* declaredRepresentationType = core::int */ {
+  constructor • = self::Class2|;
+}
+inline class Class3 /* declaredRepresentationType = core::int */ {
+}
+inline class Class4 /* declaredRepresentationType = core::int */ {
+  constructor • = self::Class4|;
+}
+inline class Class5 /* declaredRepresentationType = core::int */ {
+  constructor • = self::Class5|;
+}
+inline class Class6 /* declaredRepresentationType = core::int */ {
+  constructor • = self::Class6|;
+}
+method Class1|(core::int field) → self::Class1
+  ;
+method Class2|(core::int field) → self::Class2
+  ;
+method Class4|(core::int field, dynamic nonexisting) → self::Class4
+  ;
+method Class5|(core::int field) → self::Class5
+  ;
+method Class6|(core::int field) → self::Class6
+  ;

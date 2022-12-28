@@ -1,4 +1,17 @@
 library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inline_class/inline_class_declaration.dart:7:13: Error: Final field 'it' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final int it;
+//             ^^
+//
+// pkg/front_end/testcases/inline_class/inline_class_declaration.dart:11:17: Error: Final field 'it' is not initialized.
+// Try to initialize the field in the declaration or in every constructor.
+//   final List<T> it;
+//                 ^^
+//
 import self as self;
 import "dart:core" as core;
 
