@@ -174,7 +174,7 @@ vars = {
   "vector_math_rev": "1eee95b15e5d35cf519514cc253037b19705fb7a",
   "watcher_rev": "32591071a83f632478e702f67e29de6e54428ce9",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
-  "web_socket_channel_rev": "1b0561cfec8ff7e9465896eb340ea3c382b59393",
+  "web_socket_channel_rev": "a90e740dad4739d578e09eb0e076ac2846f9404e",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "webdev_rev": "317288a015970a594c11a50ddcd4ff071419beba",
   "webdriver_rev": "fcce0f0d0ebbda36398e1a6e3f29dfeb4eda43db",
