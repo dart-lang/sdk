@@ -8337,6 +8337,13 @@ class BodyBuilder extends StackListenerImpl
         // TODO(cstefantsova): Report an error.
       }
     }
+    if (fields != null) {
+      for (int i = 0, j = fields.length - 1; i < j; i++, j--) {
+        NamedPattern field = fields[i];
+        fields[i] = fields[j];
+        fields[j] = field;
+      }
+    }
     push(fields ?? NullValue.PatternList);
   }
 
