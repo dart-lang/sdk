@@ -792,6 +792,9 @@ class AccessErrorBuilder extends ProblemBuilder {
   bool get isExtensionInstanceMember => builder.isExtensionInstanceMember;
 
   @override
+  bool get isInlineClassInstanceMember => builder.isInlineClassInstanceMember;
+
+  @override
   bool get isStatic => builder.isStatic;
 
   @override

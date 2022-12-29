@@ -1,0 +1,7 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+
+static set setter(Never n) → void
+  ;
+static method method() → dynamic
+  ;

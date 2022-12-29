@@ -2,66 +2,6 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inline_class/procedures.dart:10:18: Error: The method 'instanceMethod' isn't defined for the class 'Class'.
-// Try correcting the name to the name of an existing method, or defining a method named 'instanceMethod'.
-//     var localM = instanceMethod();
-//                  ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/procedures.dart:11:18: Error: The getter 'instanceMethod' isn't defined for the class 'Class'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceMethod'.
-//     var localT = instanceMethod;
-//                  ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/procedures.dart:12:18: Error: The getter 'instanceGetter' isn't defined for the class 'Class'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceGetter'.
-//     var localG = instanceGetter;
-//                  ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/procedures.dart:21:19: Error: The method 'genericInstanceMethod' isn't defined for the class 'Class'.
-// Try correcting the name to the name of an existing method, or defining a method named 'genericInstanceMethod'.
-//     var localG1 = genericInstanceMethod(s);
-//                   ^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/procedures.dart:22:19: Error: The method 'genericInstanceMethod' isn't defined for the class 'Class'.
-// Try correcting the name to the name of an existing method, or defining a method named 'genericInstanceMethod'.
-//     var localG2 = genericInstanceMethod(i);
-//                   ^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/procedures.dart:23:19: Error: The method 'genericInstanceMethod' isn't defined for the class 'Class'.
-// Try correcting the name to the name of an existing method, or defining a method named 'genericInstanceMethod'.
-//     var localG3 = genericInstanceMethod<num>(i);
-//                   ^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/procedures.dart:43:18: Error: The method 'instanceMethod' isn't defined for the class 'GenericClass<T>'.
-// Try correcting the name to the name of an existing method, or defining a method named 'instanceMethod'.
-//     var localM = instanceMethod();
-//                  ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/procedures.dart:44:18: Error: The getter 'instanceMethod' isn't defined for the class 'GenericClass<T>'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceMethod'.
-//     var localT = instanceMethod;
-//                  ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/procedures.dart:45:18: Error: The getter 'instanceGetter' isn't defined for the class 'GenericClass<T>'.
-// Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceGetter'.
-//     var localG = instanceGetter;
-//                  ^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/procedures.dart:54:19: Error: The method 'genericInstanceMethod' isn't defined for the class 'GenericClass<T>'.
-// Try correcting the name to the name of an existing method, or defining a method named 'genericInstanceMethod'.
-//     var localG1 = genericInstanceMethod(s);
-//                   ^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/procedures.dart:55:19: Error: The method 'genericInstanceMethod' isn't defined for the class 'GenericClass<T>'.
-// Try correcting the name to the name of an existing method, or defining a method named 'genericInstanceMethod'.
-//     var localG2 = genericInstanceMethod(i);
-//                   ^^^^^^^^^^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/procedures.dart:56:19: Error: The method 'genericInstanceMethod' isn't defined for the class 'GenericClass<T>'.
-// Try correcting the name to the name of an existing method, or defining a method named 'genericInstanceMethod'.
-//     var localG3 = genericInstanceMethod<num>(i);
-//                   ^^^^^^^^^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/inline_class/procedures.dart:6:13: Error: Final field 'it' is not initialized.
 // Try to initialize the field in the declaration or in every constructor.
 //   final int it;
@@ -99,18 +39,9 @@ inline class GenericClass<T extends core::Object? = dynamic> /* declaredRepresen
 }
 static method Class|instanceMethod(lowered final self::Class #this) → void {
   self::Class local = #this;
-  dynamic localM = invalid-expression "pkg/front_end/testcases/inline_class/procedures.dart:10:18: Error: The method 'instanceMethod' isn't defined for the class 'Class'.
-Try correcting the name to the name of an existing method, or defining a method named 'instanceMethod'.
-    var localM = instanceMethod();
-                 ^^^^^^^^^^^^^^" in #this{<unresolved>}.instanceMethod();
-  dynamic localT = invalid-expression "pkg/front_end/testcases/inline_class/procedures.dart:11:18: Error: The getter 'instanceMethod' isn't defined for the class 'Class'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceMethod'.
-    var localT = instanceMethod;
-                 ^^^^^^^^^^^^^^" in #this{<unresolved>}.instanceMethod;
-  dynamic localG = invalid-expression "pkg/front_end/testcases/inline_class/procedures.dart:12:18: Error: The getter 'instanceGetter' isn't defined for the class 'Class'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceGetter'.
-    var localG = instanceGetter;
-                 ^^^^^^^^^^^^^^" in #this{<unresolved>}.instanceGetter;
+  void localM = self::Class|instanceMethod(#this);
+  () → void localT = self::Class|get#instanceMethod(#this);
+  core::int localG = self::Class|get#instanceGetter(#this);
 }
 static method Class|get#instanceMethod(lowered final self::Class #this) → () → void
   return () → void => self::Class|instanceMethod(#this);
@@ -120,18 +51,9 @@ static method Class|instanceMethod2(lowered final self::Class #this, core::Strin
   self::Class local = #this;
   core::String localS = s;
   core::int localI = i;
-  dynamic localG1 = invalid-expression "pkg/front_end/testcases/inline_class/procedures.dart:21:19: Error: The method 'genericInstanceMethod' isn't defined for the class 'Class'.
-Try correcting the name to the name of an existing method, or defining a method named 'genericInstanceMethod'.
-    var localG1 = genericInstanceMethod(s);
-                  ^^^^^^^^^^^^^^^^^^^^^" in #this{<unresolved>}.genericInstanceMethod(s);
-  dynamic localG2 = invalid-expression "pkg/front_end/testcases/inline_class/procedures.dart:22:19: Error: The method 'genericInstanceMethod' isn't defined for the class 'Class'.
-Try correcting the name to the name of an existing method, or defining a method named 'genericInstanceMethod'.
-    var localG2 = genericInstanceMethod(i);
-                  ^^^^^^^^^^^^^^^^^^^^^" in #this{<unresolved>}.genericInstanceMethod(i);
-  dynamic localG3 = invalid-expression "pkg/front_end/testcases/inline_class/procedures.dart:23:19: Error: The method 'genericInstanceMethod' isn't defined for the class 'Class'.
-Try correcting the name to the name of an existing method, or defining a method named 'genericInstanceMethod'.
-    var localG3 = genericInstanceMethod<num>(i);
-                  ^^^^^^^^^^^^^^^^^^^^^" in #this{<unresolved>}.genericInstanceMethod<core::num>(i);
+  core::String localG1 = self::Class|genericInstanceMethod<core::String>(#this, s);
+  core::int localG2 = self::Class|genericInstanceMethod<core::int>(#this, i);
+  core::num localG3 = self::Class|genericInstanceMethod<core::num>(#this, i);
 }
 static method Class|get#instanceMethod2(lowered final self::Class #this) → (core::String, [core::int]) → void
   return (core::String s, [core::int i = #C1]) → void => self::Class|instanceMethod2(#this, s, i);
@@ -149,18 +71,9 @@ static method Class|genericStaticMethod<S extends core::Object? = dynamic>(self:
   return s;
 static method GenericClass|instanceMethod<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|instanceMethod::T%> #this) → void {
   self::GenericClass<self::GenericClass|instanceMethod::T%> local = #this;
-  dynamic localM = invalid-expression "pkg/front_end/testcases/inline_class/procedures.dart:43:18: Error: The method 'instanceMethod' isn't defined for the class 'GenericClass<T>'.
-Try correcting the name to the name of an existing method, or defining a method named 'instanceMethod'.
-    var localM = instanceMethod();
-                 ^^^^^^^^^^^^^^" in #this{<unresolved>}.instanceMethod();
-  dynamic localT = invalid-expression "pkg/front_end/testcases/inline_class/procedures.dart:44:18: Error: The getter 'instanceMethod' isn't defined for the class 'GenericClass<T>'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceMethod'.
-    var localT = instanceMethod;
-                 ^^^^^^^^^^^^^^" in #this{<unresolved>}.instanceMethod;
-  dynamic localG = invalid-expression "pkg/front_end/testcases/inline_class/procedures.dart:45:18: Error: The getter 'instanceGetter' isn't defined for the class 'GenericClass<T>'.
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'instanceGetter'.
-    var localG = instanceGetter;
-                 ^^^^^^^^^^^^^^" in #this{<unresolved>}.instanceGetter;
+  void localM = self::GenericClass|instanceMethod<self::GenericClass|instanceMethod::T%>(#this);
+  () → void localT = self::GenericClass|get#instanceMethod<self::GenericClass|instanceMethod::T%>(#this);
+  self::GenericClass|instanceMethod::T% localG = self::GenericClass|get#instanceGetter<self::GenericClass|instanceMethod::T%>(#this);
 }
 static method GenericClass|get#instanceMethod<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#instanceMethod::T%> #this) → () → void
   return () → void => self::GenericClass|instanceMethod<self::GenericClass|get#instanceMethod::T%>(#this);
@@ -170,18 +83,9 @@ static method GenericClass|instanceMethod2<T extends core::Object? = dynamic>(lo
   self::GenericClass<self::GenericClass|instanceMethod2::T%> local = #this;
   core::String localS = s;
   core::int localI = i;
-  dynamic localG1 = invalid-expression "pkg/front_end/testcases/inline_class/procedures.dart:54:19: Error: The method 'genericInstanceMethod' isn't defined for the class 'GenericClass<T>'.
-Try correcting the name to the name of an existing method, or defining a method named 'genericInstanceMethod'.
-    var localG1 = genericInstanceMethod(s);
-                  ^^^^^^^^^^^^^^^^^^^^^" in #this{<unresolved>}.genericInstanceMethod(s);
-  dynamic localG2 = invalid-expression "pkg/front_end/testcases/inline_class/procedures.dart:55:19: Error: The method 'genericInstanceMethod' isn't defined for the class 'GenericClass<T>'.
-Try correcting the name to the name of an existing method, or defining a method named 'genericInstanceMethod'.
-    var localG2 = genericInstanceMethod(i);
-                  ^^^^^^^^^^^^^^^^^^^^^" in #this{<unresolved>}.genericInstanceMethod(i);
-  dynamic localG3 = invalid-expression "pkg/front_end/testcases/inline_class/procedures.dart:56:19: Error: The method 'genericInstanceMethod' isn't defined for the class 'GenericClass<T>'.
-Try correcting the name to the name of an existing method, or defining a method named 'genericInstanceMethod'.
-    var localG3 = genericInstanceMethod<num>(i);
-                  ^^^^^^^^^^^^^^^^^^^^^" in #this{<unresolved>}.genericInstanceMethod<core::num>(i);
+  core::String localG1 = self::GenericClass|genericInstanceMethod<self::GenericClass|instanceMethod2::T%, core::String>(#this, s);
+  core::int localG2 = self::GenericClass|genericInstanceMethod<self::GenericClass|instanceMethod2::T%, core::int>(#this, i);
+  core::num localG3 = self::GenericClass|genericInstanceMethod<self::GenericClass|instanceMethod2::T%, core::num>(#this, i);
 }
 static method GenericClass|get#instanceMethod2<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#instanceMethod2::T%> #this) → (core::String, {i: core::int}) → void
   return (core::String s, {core::int i = #C1}) → void => self::GenericClass|instanceMethod2<self::GenericClass|get#instanceMethod2::T%>(#this, s, i: i);
