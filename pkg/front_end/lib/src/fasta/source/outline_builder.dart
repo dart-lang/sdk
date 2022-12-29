@@ -1972,19 +1972,19 @@ class OutlineBuilder extends StackListenerImpl {
                   TypeParameterScopeKind.extensionDeclaration ||
               libraryBuilder.currentTypeParameterScopeBuilder.kind ==
                   TypeParameterScopeKind.inlineClassDeclaration)) {
-        TypeParameterScopeBuilder extension =
+        TypeParameterScopeBuilder declaration =
             libraryBuilder.currentTypeParameterScopeBuilder;
         Map<TypeVariableBuilder, TypeBuilder>? substitution;
-        if (extension.typeVariables != null) {
+        if (declaration.typeVariables != null) {
           // We synthesize the names of the generated [TypeParameter]s, i.e.
           // rename 'T' to '#T'. We cannot do it on the builders because their
           // names are used to create the scope.
           List<TypeVariableBuilder> synthesizedTypeVariables = libraryBuilder
-              .copyTypeVariables(extension.typeVariables!, declarationBuilder,
+              .copyTypeVariables(declaration.typeVariables!, declarationBuilder,
                   kind: TypeVariableKind.extensionSynthesized);
           substitution = {};
           for (int i = 0; i < synthesizedTypeVariables.length; i++) {
-            substitution[extension.typeVariables![i]] =
+            substitution[declaration.typeVariables![i]] =
                 new NamedTypeBuilder.fromTypeDeclarationBuilder(
                     synthesizedTypeVariables[i],
                     const NullabilityBuilder.omitted(),
@@ -1999,15 +1999,15 @@ class OutlineBuilder extends StackListenerImpl {
         }
         List<FormalParameterBuilder> synthesizedFormals = [];
         TypeBuilder thisType;
-        if (extension.kind == TypeParameterScopeKind.extensionDeclaration) {
-          thisType = extension.extensionThisType;
+        if (declaration.kind == TypeParameterScopeKind.extensionDeclaration) {
+          thisType = declaration.extensionThisType;
         } else {
           thisType = libraryBuilder.addNamedType(
-              extension.name,
+              declaration.name,
               const NullabilityBuilder.omitted(),
-              extension.typeVariables != null
+              declaration.typeVariables != null
                   ? new List<TypeBuilder>.generate(
-                      extension.typeVariables!.length,
+                      declaration.typeVariables!.length,
                       (int index) =>
                           new NamedTypeBuilder.fromTypeDeclarationBuilder(
                               typeVariables![index],
@@ -2026,7 +2026,7 @@ class OutlineBuilder extends StackListenerImpl {
               unboundTypes: unboundTypes,
               unboundTypeVariables: unboundTypeVariables);
           for (NamedTypeBuilder unboundType in unboundTypes) {
-            extension.registerUnresolvedNamedType(unboundType);
+            declaration.registerUnresolvedNamedType(unboundType);
           }
           libraryBuilder.unboundTypeVariables.addAll(unboundTypeVariables);
         }

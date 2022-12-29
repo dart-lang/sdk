@@ -584,13 +584,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           }
           break;
         case ObjectAccessTargetKind.extensionMember:
+        case ObjectAccessTargetKind.inlineClassMember:
           if (callMember.tearoffTarget != null &&
-              callMember.extensionMethodKind == ProcedureKind.Method) {
+              callMember.declarationMethodKind == ProcedureKind.Method) {
             operandType = callMember.getGetterType(this);
             operand = new StaticInvocation(
                 callMember.tearoffTarget as Procedure,
                 new Arguments(<Expression>[operand],
-                    types: callMember.inferredExtensionTypeArguments)
+                    types: callMember.receiverTypeArguments)
                   ..fileOffset = operand.fileOffset)
               ..fileOffset = operand.fileOffset;
           }
@@ -610,6 +611,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.nullableRecordIndexed:
         case ObjectAccessTargetKind.nullableRecordNamed:
         case ObjectAccessTargetKind.recordNamed:
+        case ObjectAccessTargetKind.nullableInlineClassMember:
           break;
       }
     }
@@ -1045,7 +1047,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           readTarget.member as Procedure,
           new Arguments(<Expression>[
             readReceiver,
-          ], types: readTarget.inferredExtensionTypeArguments)
+          ], types: readTarget.receiverTypeArguments)
             ..fileOffset = node.readOffset)
         ..fileOffset = node.readOffset;
     }
@@ -1090,7 +1092,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           new Arguments(<Expression>[
             writeReceiver,
             value,
-          ], types: writeTarget.inferredExtensionTypeArguments)
+          ], types: writeTarget.receiverTypeArguments)
             ..fileOffset = node.writeOffset)
         ..fileOffset = node.writeOffset;
     }
@@ -5540,13 +5542,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-        assert(binaryTarget.extensionMethodKind != ProcedureKind.Setter);
+      case ObjectAccessTargetKind.inlineClassMember:
+      case ObjectAccessTargetKind.nullableInlineClassMember:
+        assert(binaryTarget.declarationMethodKind != ProcedureKind.Setter);
         binary = new StaticInvocation(
             binaryTarget.member as Procedure,
             new Arguments(<Expression>[
               left,
               right,
-            ], types: binaryTarget.inferredExtensionTypeArguments)
+            ], types: binaryTarget.receiverTypeArguments)
               ..fileOffset = fileOffset)
           ..fileOffset = fileOffset;
         break;
@@ -5682,12 +5686,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-        assert(unaryTarget.extensionMethodKind != ProcedureKind.Setter);
+      case ObjectAccessTargetKind.inlineClassMember:
+      case ObjectAccessTargetKind.nullableInlineClassMember:
+        assert(unaryTarget.declarationMethodKind != ProcedureKind.Setter);
         unary = new StaticInvocation(
             unaryTarget.member as Procedure,
             new Arguments(<Expression>[
               expression,
-            ], types: unaryTarget.inferredExtensionTypeArguments)
+            ], types: unaryTarget.receiverTypeArguments)
               ..fileOffset = fileOffset)
           ..fileOffset = fileOffset;
         break;
@@ -5795,12 +5801,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
+      case ObjectAccessTargetKind.inlineClassMember:
+      case ObjectAccessTargetKind.nullableInlineClassMember:
         read = new StaticInvocation(
             readTarget.member as Procedure,
             new Arguments(<Expression>[
               readReceiver,
               readIndex,
-            ], types: readTarget.inferredExtensionTypeArguments)
+            ], types: readTarget.receiverTypeArguments)
               ..fileOffset = fileOffset)
           ..fileOffset = fileOffset;
         break;
@@ -5934,11 +5942,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-        assert(writeTarget.extensionMethodKind != ProcedureKind.Setter);
+      case ObjectAccessTargetKind.inlineClassMember:
+      case ObjectAccessTargetKind.nullableInlineClassMember:
+        assert(writeTarget.declarationMethodKind != ProcedureKind.Setter);
         write = new StaticInvocation(
             writeTarget.member as Procedure,
             new Arguments(<Expression>[receiver, index, value],
-                types: writeTarget.inferredExtensionTypeArguments)
+                types: writeTarget.receiverTypeArguments)
               ..fileOffset = fileOffset)
           ..fileOffset = fileOffset;
         break;
@@ -6056,13 +6066,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-        switch (readTarget.extensionMethodKind) {
+      case ObjectAccessTargetKind.inlineClassMember:
+      case ObjectAccessTargetKind.nullableInlineClassMember:
+        switch (readTarget.declarationMethodKind) {
           case ProcedureKind.Getter:
             read = new StaticInvocation(
                 readTarget.member as Procedure,
                 new Arguments(<Expression>[
                   receiver,
-                ], types: readTarget.inferredExtensionTypeArguments)
+                ], types: readTarget.receiverTypeArguments)
                   ..fileOffset = fileOffset)
               ..fileOffset = fileOffset;
             break;
@@ -6071,7 +6083,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 readTarget.tearoffTarget as Procedure,
                 new Arguments(<Expression>[
                   receiver,
-                ], types: readTarget.inferredExtensionTypeArguments)
+                ], types: readTarget.receiverTypeArguments)
                   ..fileOffset = fileOffset)
               ..fileOffset = fileOffset;
             readResult = instantiateTearOff(readType, typeContext, read);
@@ -6241,11 +6253,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
+      case ObjectAccessTargetKind.inlineClassMember:
+      case ObjectAccessTargetKind.nullableInlineClassMember:
         if (forEffect) {
           write = new StaticInvocation(
               writeTarget.member as Procedure,
               new Arguments(<Expression>[receiver, value],
-                  types: writeTarget.inferredExtensionTypeArguments)
+                  types: writeTarget.receiverTypeArguments)
                 ..fileOffset = fileOffset)
             ..fileOffset = fileOffset;
           // The generate invocation has a void return type.
@@ -6257,7 +6271,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                   writeTarget.member as Procedure,
                   new Arguments(
                       <Expression>[receiver, createVariableGet(valueVariable)],
-                      types: writeTarget.inferredExtensionTypeArguments)
+                      types: writeTarget.receiverTypeArguments)
                     ..fileOffset = fileOffset)
                 ..fileOffset = fileOffset,
               const VoidType());

@@ -372,7 +372,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
         }
       }
     }
-    if (!isExtensionInstanceMember &&
+    if (!(isExtensionInstanceMember || isInlineClassInstanceMember) &&
         isSetter &&
         (formals?.length != 1 || formals![0].isOptionalPositional)) {
       // Replace illegal parameters by single dummy parameter.

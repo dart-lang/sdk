@@ -864,6 +864,71 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
   }
 
+  /// Returns inline class member declared immediately for [inlineType].
+  ///
+  /// If none is found, [defaultTarget] is returned.
+  ObjectAccessTarget _findDirectInlineTypeMember(
+      DartType receiverType, InlineType inlineType, Name name, int fileOffset,
+      {required ObjectAccessTarget defaultTarget,
+      required bool isSetter,
+      required bool isReceiverTypePotentiallyNullable}) {
+    // TODO(johnniwinther): Cache this to speed up the lookup.
+    Member? targetMember;
+    Member? targetTearoff;
+    ProcedureKind? targetKind;
+    for (InlineClassMemberDescriptor descriptor
+        in inlineType.inlineClass.members) {
+      if (descriptor.name == name) {
+        switch (descriptor.kind) {
+          case InlineClassMemberKind.Method:
+            if (!isSetter) {
+              targetMember = descriptor.member.asMember;
+              targetTearoff ??= targetMember;
+              targetKind = ProcedureKind.Method;
+            }
+            break;
+          case InlineClassMemberKind.TearOff:
+            if (!isSetter) {
+              targetTearoff = descriptor.member.asMember;
+            }
+            break;
+          case InlineClassMemberKind.Getter:
+            if (!isSetter) {
+              targetMember = descriptor.member.asMember;
+              targetTearoff = null;
+              targetKind = ProcedureKind.Getter;
+            }
+            break;
+          case InlineClassMemberKind.Setter:
+            if (isSetter) {
+              targetMember = descriptor.member.asMember;
+              targetTearoff = null;
+              targetKind = ProcedureKind.Setter;
+            }
+            break;
+          case InlineClassMemberKind.Operator:
+            if (!isSetter) {
+              targetMember = descriptor.member.asMember;
+              targetTearoff = null;
+              targetKind = ProcedureKind.Operator;
+            }
+            break;
+          default:
+            unhandled("${descriptor.kind}", "_findDirectInlineClassMember",
+                fileOffset, libraryBuilder.fileUri);
+        }
+      }
+    }
+    if (targetMember != null) {
+      assert(targetKind != null);
+      return new ObjectAccessTarget.inlineClassMember(receiverType,
+          targetMember, targetTearoff, targetKind!, inlineType.typeArguments,
+          isPotentiallyNullable: isReceiverTypePotentiallyNullable);
+    } else {
+      return defaultTarget;
+    }
+  }
+
   /// Returns extension member declared immediately for [receiverType].
   ///
   /// If none is found, [defaultTarget] is returned.
@@ -1106,7 +1171,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Class classNode = receiverBound is InterfaceType
         ? receiverBound.classNode
         : coreTypes.objectClass;
-
     _ObjectAccessDescriptor objectAccessDescriptor =
         new _ObjectAccessDescriptor(
             receiverType: receiverType,
@@ -2201,18 +2265,21 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   StaticInvocation transformExtensionMethodInvocation(int fileOffset,
       ObjectAccessTarget target, Expression receiver, Arguments arguments) {
-    assert(target.isExtensionMember || target.isNullableExtensionMember);
+    assert(target.isExtensionMember ||
+        target.isNullableExtensionMember ||
+        target.isInlineClassMember ||
+        target.isNullableInlineClassMember);
     Procedure procedure = target.member as Procedure;
     return engine.forest.createStaticInvocation(
         fileOffset,
         procedure,
         engine.forest.createArgumentsForExtensionMethod(
             arguments.fileOffset,
-            target.inferredExtensionTypeArguments.length,
+            target.receiverTypeArguments.length,
             procedure.function.typeParameters.length -
-                target.inferredExtensionTypeArguments.length,
+                target.receiverTypeArguments.length,
             receiver,
-            extensionTypeArguments: target.inferredExtensionTypeArguments,
+            extensionTypeArguments: target.receiverTypeArguments,
             positionalArguments: arguments.positional,
             namedArguments: arguments.named,
             typeArguments: arguments.types));
@@ -2322,11 +2389,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       {required bool isImplicitCall}) {
     // ignore: unnecessary_null_comparison
     assert(isImplicitCall != null);
-    assert(target.isExtensionMember || target.isNullableExtensionMember);
+    assert(target.isExtensionMember ||
+        target.isNullableExtensionMember ||
+        target.isInlineClassMember ||
+        target.isNullableInlineClassMember);
     DartType calleeType = target.getGetterType(this);
     FunctionType functionType = target.getFunctionType(this);
 
-    if (target.extensionMethodKind == ProcedureKind.Getter) {
+    if (target.declarationMethodKind == ProcedureKind.Getter) {
       StaticInvocation staticInvocation = transformExtensionMethodInvocation(
           fileOffset, target, receiver, new Arguments.empty());
       ExpressionInferenceResult result = inferMethodInvocation(
@@ -3152,6 +3222,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             isImplicitCall: isImplicitCall);
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
+      case ObjectAccessTargetKind.inlineClassMember:
+      case ObjectAccessTargetKind.nullableInlineClassMember:
         return _inferExtensionInvocation(
             visitor,
             fileOffset,
@@ -4278,9 +4350,7 @@ class _ObjectAccessDescriptor {
               fileOffset,
               visitor.libraryBuilder.fileUri);
       }
-    }
-
-    if (receiverBound is RecordType && !isSetter) {
+    } else if (receiverBound is RecordType && !isSetter) {
       String text = name.text;
       int? index = tryParseRecordPositionalGetterName(
           text, receiverBound.positional.length);
@@ -4300,6 +4370,12 @@ class _ObjectAccessDescriptor {
                   receiverBound, field.type, field.name);
         }
       }
+    } else if (receiverBound is InlineType) {
+      return visitor._findDirectInlineTypeMember(
+          receiverType, receiverBound, name, fileOffset,
+          defaultTarget: const ObjectAccessTarget.missing(),
+          isSetter: isSetter,
+          isReceiverTypePotentiallyNullable: isReceiverTypePotentiallyNullable);
     }
 
     ObjectAccessTarget? target;
@@ -4410,6 +4486,7 @@ class _ObjectAccessDescriptor {
       case ObjectAccessTargetKind.ambiguous:
       case ObjectAccessTargetKind.recordIndexed:
       case ObjectAccessTargetKind.recordNamed:
+      case ObjectAccessTargetKind.inlineClassMember:
         return true;
       case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.nullableCallFunction:
@@ -4418,6 +4495,7 @@ class _ObjectAccessDescriptor {
       case ObjectAccessTargetKind.missing:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
+      case ObjectAccessTargetKind.nullableInlineClassMember:
         return false;
     }
   }
