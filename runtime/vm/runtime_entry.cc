@@ -270,7 +270,7 @@ DEFINE_RUNTIME_ENTRY(DispatchTableNullError, 1) {
   const Smi& cid = Smi::CheckedHandle(zone, arguments.ArgAt(0));
   if (cid.Value() != kNullCid) {
     // We hit null error, but receiver is not null itself. This most likely
-    // is a memory corruption. Crash the VM but provide some additonal
+    // is a memory corruption. Crash the VM but provide some additional
     // information about the arguments on the stack.
     DartFrameIterator iterator(thread,
                                StackFrameIterator::kNoCrossThreadIteration);
@@ -504,12 +504,12 @@ DEFINE_LEAF_RUNTIME_ENTRY(uword /*ObjectPtr*/,
 
   // If we eliminate a generational write barriers on allocations of an object
   // we need to ensure it's either a new-space object or it has been added to
-  // the remebered set.
+  // the remembered set.
   //
   // NOTE: We use reinterpret_cast<>() instead of ::RawCast() to avoid handle
   // allocations in debug mode. Handle allocations in leaf runtimes can cause
   // memory leaks because they will allocate into a handle scope from the next
-  // outermost runtime code (to which the genenerated Dart code might not return
+  // outermost runtime code (to which the generated Dart code might not return
   // in a long time).
   bool add_to_remembered_set = true;
   if (object->untag()->IsRemembered()) {
@@ -2394,7 +2394,7 @@ FunctionPtr PatchableCallHandler::ResolveTargetFunction(const Object& data) {
 }
 
 void PatchableCallHandler::ResolveSwitchAndReturn(const Object& old_data) {
-  // Find out actual target (which can be time consuminmg) without holding any
+  // Find out actual target (which can be time consuming) without holding any
   // locks.
   const auto& target_function =
       Function::Handle(zone_, ResolveTargetFunction(old_data));

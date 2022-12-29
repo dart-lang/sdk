@@ -1099,7 +1099,7 @@ ISOLATE_UNIT_TEST_CASE(SafepointRwLockExclusiveNestedWriter_Regress44000) {
 ISOLATE_UNIT_TEST_CASE(SafepointMonitorUnlockScope) {
   // This test uses ASSERT instead of EXPECT because IsOwnedByCurrentThread is
   // only available in debug mode. Since our vm/cc tests run in DEBUG mode that
-  // is sufficent for this test.
+  // is sufficient for this test.
   Monitor monitor;
   {
     SafepointMonitorLocker ml(&monitor);

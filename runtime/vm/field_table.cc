@@ -35,7 +35,7 @@ void FieldTable::MarkReadyToUse() {
   // in new static field registrations.
   //
   // By requiring a read lock here we ensure no other thread is is registering a
-  // new static field at this moment (it would need exlusive writer lock).
+  // new static field at this moment (it would need exclusive writer lock).
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadReader());
   ASSERT(!is_ready_to_use_);

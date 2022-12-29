@@ -19,10 +19,10 @@ class TypeTestingStubNamer {
  public:
   TypeTestingStubNamer();
 
-  // Simple helper for stringinfying a [type] and prefix it with the type
+  // Simple helper for stringifying a [type] and prefix it with the type
   // testing
   //
-  // (only during dart_boostrap).
+  // (only during dart_bootstrap).
   const char* StubNameForType(const AbstractType& type) const;
   void WriteStubNameForTypeTo(BaseTextBuffer* buffer,
                               const AbstractType& type) const;
@@ -188,7 +188,7 @@ class ScopedHandle {
 // come from the same class and returns `null` otherwise.
 //
 // It is safe to use this class inside loops since the implementation uses a
-// [ReusableHandleStack] (which in pratice will only use a handful of handles).
+// [ReusableHandleStack] (which in practice will only use a handful of handles).
 class TypeArgumentClassFinder {
  public:
   explicit TypeArgumentClassFinder(Zone* zone)
@@ -249,7 +249,7 @@ class TypeArgumentClassFinder {
 // parameters based on an instantiator [TypeArguments] vector.
 //
 // It is safe to use this class inside loops since the implementation uses a
-// [ReusableHandleStack] (which in pratice will only use a handful of handles).
+// [ReusableHandleStack] (which in practice will only use a handful of handles).
 class TypeArgumentInstantiator {
  public:
   explicit TypeArgumentInstantiator(Zone* zone)

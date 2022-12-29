@@ -59,7 +59,7 @@ static const int kExitLinkSlotFromEntryFp = -11;
 #endif  // defined(DART_TARGET_OS_WINDOWS)
 
 // For FFI native -> Dart callbacks, the number of stack slots between arguments
-// passed on stack and arguments saved in callback prologue. 2 = return adddress
+// passed on stack and arguments saved in callback prologue. 2 = return address
 // (1) + saved frame pointer (1). Also add slots for the shadow space, if
 // present.
 //

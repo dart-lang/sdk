@@ -172,7 +172,7 @@ class InfiniteLoopTask : public ThreadPool::Task {
       ml.Notify();
     }
     Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
-    // Test should run an inifinite loop and expect that to be killed.
+    // Test should run an infinite loop and expect that to be killed.
     EXPECT(Dart_IsError(result));
     EXPECT_STREQ("isolate terminated by Isolate.kill", Dart_GetError(result));
     {
@@ -590,7 +590,7 @@ static Dart_NativeFunction CurrentStackTraceNativeLookup(
 
 TEST_CASE(DartAPI_CurrentStackTraceInfo) {
   const char* kScriptChars = R"(
-@pragma("vm:external-name", "CurrentStackTraceNatve")
+@pragma("vm:external-name", "CurrentStackTraceNative")
 external inspectStack();
 foo(n) => n == 1 ? inspectStack() : foo(n-1);
 testMain() => foo(100);

@@ -2730,7 +2730,7 @@ void Object::InitializeObject(uword address,
         cur += kWordSize;
       }
     } else {
-      // Check that MemorySantizer understands this is initialized.
+      // Check that MemorySanitizer understands this is initialized.
       MSAN_CHECK_INITIALIZED(reinterpret_cast<void*>(address), size);
 #if defined(DEBUG)
       while (cur < end) {
@@ -3267,7 +3267,7 @@ void Class::SetFunctions(const Array& value) const {
   }
 #endif
   set_functions(value);
-  if (len >= kFunctionLookupHashTreshold) {
+  if (len >= kFunctionLookupHashThreshold) {
     ClassFunctionsSet set(HashTables::New<ClassFunctionsSet>(len, Heap::kOld));
     Function& func = Function::Handle();
     for (intptr_t i = 0; i < len; ++i) {
@@ -3297,10 +3297,10 @@ void Class::AddFunction(const Function& function) const {
   set_functions(new_array);
   // Add to hash table, if any.
   const intptr_t new_len = new_array.Length();
-  if (new_len == kFunctionLookupHashTreshold) {
+  if (new_len == kFunctionLookupHashThreshold) {
     // Transition to using hash table.
     SetFunctions(new_array);
-  } else if (new_len > kFunctionLookupHashTreshold) {
+  } else if (new_len > kFunctionLookupHashThreshold) {
     ClassFunctionsSet set(untag()->functions_hash_table());
     set.Insert(function);
     untag()->set_functions_hash_table(set.Release().ptr());
@@ -5949,7 +5949,7 @@ FunctionPtr Class::LookupFunctionReadLocked(const String& name,
   ASSERT(!funcs.IsNull());
   const intptr_t len = funcs.Length();
   Function& function = thread->FunctionHandle();
-  if (len >= kFunctionLookupHashTreshold) {
+  if (len >= kFunctionLookupHashThreshold) {
     // TODO(dartbug.com/36097): We require currently a read lock in the resolver
     // to avoid read-write race access to this hash table.
     // If we want to increase resolver speed by avoiding the need for read lock,
@@ -12147,7 +12147,7 @@ StaticTypeExactnessState StaticTypeExactnessState::Compute(
   // However this would complicate fast path in the native code. To avoid this
   // complication we would optimize for the trivial case: we check if
   // C<X0, ..., Xn> at G is exactly G<X0, ..., Xn> which means we can simply
-  // compare values type arguements (<T0, ..., Tn>) to fields type arguments
+  // compare values type arguments (<T0, ..., Tn>) to fields type arguments
   // (<U0, ..., Un>) to establish if field type is exact.
   ASSERT(cls.IsGeneric());
   const intptr_t num_type_params = cls.NumTypeParameters();
@@ -17600,7 +17600,7 @@ void Code::Disassemble(DisassemblyFormatter* formatter) const {
 #if defined(PRODUCT)
 // In PRODUCT builds we don't have space in Code object to store code comments
 // so we move them into malloced heap (and leak them). This functionality
-// is only indended to be used in AOT compiler so leaking is fine.
+// is only intended to be used in AOT compiler so leaking is fine.
 class MallocCodeComments final : public CodeComments {
  public:
   explicit MallocCodeComments(const CodeComments& comments)
@@ -17796,7 +17796,7 @@ CodePtr Code::FinalizeCode(FlowGraphCompiler* compiler,
       assembler->CodeSize(), assembler->has_monomorphic_entry()));
 
   {
-    // Important: if GC is triggerred at any point between Instructions::New
+    // Important: if GC is triggered at any point between Instructions::New
     // and here it would write protect instructions object that we are trying
     // to fill in.
     NoSafepointScope no_safepoint;
