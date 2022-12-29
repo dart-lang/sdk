@@ -1114,6 +1114,19 @@ class SourceInlineClassConstructorBuilder
 
   @override
   int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
+    VariableDeclaration thisVariable = this.thisVariable!;
+    List<Statement> statements = [thisVariable];
+    _InitializerToStatementConverter visitor =
+        new _InitializerToStatementConverter(statements, thisVariable);
+    for (Initializer initializer in initializers) {
+      initializer.accept(visitor);
+    }
+    if (body != null && body is! EmptyStatement) {
+      statements.add(body!);
+    }
+    statements.add(new ReturnStatement(new VariableGet(thisVariable)));
+    body = new Block(statements);
+
     // TODO(johnniwinther): Support augmentation.
     return 0;
   }
@@ -1212,4 +1225,51 @@ class SourceInlineClassConstructorBuilder
   bool get isEffectivelyRedirecting => isRedirecting;
 
 // TODO(johnniwinther): Generate initializers and return statement.
+}
+
+class _InitializerToStatementConverter implements InitializerVisitor<void> {
+  VariableDeclaration thisVariable;
+  final List<Statement> statements;
+
+  _InitializerToStatementConverter(this.statements, this.thisVariable);
+
+  @override
+  void defaultInitializer(Initializer node) {
+    throw new UnsupportedError(
+        "Unexpected initializer $node (${node.runtimeType})");
+  }
+
+  @override
+  void visitAssertInitializer(AssertInitializer node) {
+    statements.add(node.statement);
+  }
+
+  @override
+  void visitFieldInitializer(FieldInitializer node) {
+    thisVariable
+      ..initializer = node.value
+      ..fileOffset = node.fileOffset;
+  }
+
+  @override
+  void visitInvalidInitializer(InvalidInitializer node) {
+    statements.add(new ExpressionStatement(
+        new InvalidExpression(null)..fileOffset = node.fileOffset)
+      ..fileOffset);
+  }
+
+  @override
+  void visitLocalInitializer(LocalInitializer node) {
+    statements.add(node.variable);
+  }
+
+  @override
+  void visitRedirectingInitializer(RedirectingInitializer node) {
+    // TODO(johnniwinther): Support redirecting generative constructors.
+  }
+
+  @override
+  void visitSuperInitializer(SuperInitializer node) {
+    // TODO(johnniwinther): Report error for this case.
+  }
 }

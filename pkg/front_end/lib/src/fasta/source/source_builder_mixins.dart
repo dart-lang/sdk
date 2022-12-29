@@ -95,9 +95,13 @@ mixin SourceDeclarationBuilderMixin
 
   int buildBodyNodes({required bool addMembersToLibrary}) {
     int count = 0;
-    Iterator<SourceMemberBuilder> iterator =
-        scope.filteredIterator<SourceMemberBuilder>(
-            parent: this, includeDuplicates: false, includeAugmentations: true);
+    Iterator<SourceMemberBuilder> iterator = scope
+        .filteredIterator<SourceMemberBuilder>(
+            parent: this, includeDuplicates: false, includeAugmentations: true)
+        .join(constructorScope.filteredIterator<SourceMemberBuilder>(
+            parent: this,
+            includeDuplicates: false,
+            includeAugmentations: true));
     while (iterator.moveNext()) {
       SourceMemberBuilder declaration = iterator.current;
       count +=

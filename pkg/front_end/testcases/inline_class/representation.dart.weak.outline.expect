@@ -2,10 +2,10 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inline_class/representation.dart:19:13: Error: 'instanceField' is already declared in this scope.
+// pkg/front_end/testcases/inline_class/representation.dart:23:13: Error: 'instanceField' is already declared in this scope.
 //   final int instanceField;
 //             ^^^^^^^^^^^^^
-// pkg/front_end/testcases/inline_class/representation.dart:18:14: Context: Previous declaration of 'instanceField'.
+// pkg/front_end/testcases/inline_class/representation.dart:22:14: Context: Previous declaration of 'instanceField'.
 //   final bool instanceField;
 //              ^^^^^^^^^^^^^
 //
@@ -16,9 +16,18 @@ inline class Missing /* declaredRepresentationType = invalid-type */ {
 }
 inline class Static /* declaredRepresentationType = core::bool */ {
   static field staticField = self::Static|staticField;
+  constructor • = self::Static|;
 }
 inline class Multiple /* declaredRepresentationType = core::bool */ {
+  constructor • = self::Multiple|;
 }
 inline class Duplicate /* declaredRepresentationType = core::bool */ {
+  constructor • = self::Duplicate|;
 }
 static field core::int Static|staticField;
+method Static|(core::bool instanceField) → self::Static
+  ;
+method Multiple|(core::bool instanceField1) → self::Multiple
+  ;
+method Duplicate|(core::int instanceField) → self::Duplicate
+  ;

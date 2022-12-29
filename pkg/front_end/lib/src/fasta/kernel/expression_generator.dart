@@ -531,7 +531,9 @@ class PropertyAccessGenerator extends Generator {
       Expression receiver, Name name, bool isNullAware) {
     if (helper.forest.isThisExpression(receiver)) {
       return new ThisPropertyAccessGenerator(helper, token, name,
-          thisOffset: receiver.fileOffset, isNullAware: isNullAware);
+          thisVariable: null,
+          thisOffset: receiver.fileOffset,
+          isNullAware: isNullAware);
     } else {
       return isNullAware
           ? new NullAwarePropertyAccessGenerator(helper, token, receiver, name)
@@ -578,9 +580,13 @@ class ThisPropertyAccessGenerator extends Generator {
   final int? thisOffset;
   final bool isNullAware;
 
+  /// The synthetic variable used for 'this' in instance extension members
+  /// and instance inline class members/constructor bodies.
+  VariableDeclaration? thisVariable;
+
   ThisPropertyAccessGenerator(
       ExpressionGeneratorHelper helper, Token token, this.name,
-      {this.thisOffset, this.isNullAware = false})
+      {this.thisVariable, this.thisOffset, this.isNullAware = false})
       : super(helper, token);
 
   @override
@@ -599,6 +605,10 @@ class ThisPropertyAccessGenerator extends Generator {
     }
   }
 
+  Expression get _thisExpression => thisVariable != null
+      ? _forest.createVariableGet(fileOffset, thisVariable!)
+      : _forest.createThisExpression(fileOffset);
+
   @override
   Expression buildSimpleRead() {
     return _createRead();
@@ -606,8 +616,7 @@ class ThisPropertyAccessGenerator extends Generator {
 
   Expression _createRead() {
     _reportNonNullableInNullAwareWarningIfNeeded();
-    return _forest.createPropertyGet(
-        fileOffset, _forest.createThisExpression(fileOffset), name);
+    return _forest.createPropertyGet(fileOffset, _thisExpression, name);
   }
 
   @override
@@ -619,7 +628,7 @@ class ThisPropertyAccessGenerator extends Generator {
   Expression _createWrite(int offset, Expression value,
       {required bool forEffect}) {
     return _helper.forest.createPropertySet(
-        fileOffset, _forest.createThisExpression(fileOffset), name, value,
+        fileOffset, _thisExpression, name, value,
         forEffect: forEffect);
   }
 
@@ -667,7 +676,7 @@ class ThisPropertyAccessGenerator extends Generator {
       int offset, List<TypeBuilder>? typeArguments, Arguments arguments,
       {bool isTypeArgumentsInForest = false}) {
     return _helper.buildMethodInvocation(
-        _forest.createThisExpression(fileOffset), name, arguments, offset);
+        _thisExpression, name, arguments, offset);
   }
 
   @override
@@ -1543,289 +1552,6 @@ class StaticAccessGenerator extends Generator {
     } else {
       return _helper.buildStaticInvocation(readTarget as Procedure, arguments,
           charOffset: offset);
-    }
-  }
-
-  @override
-  Generator buildIndexedAccess(Expression index, Token token,
-      {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
-    return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
-        isNullAware: isNullAware);
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", targetName: ");
-    sink.write(targetName);
-    sink.write(", readTarget: ");
-    printQualifiedNameOn(readTarget, sink);
-    sink.write(", writeTarget: ");
-    printQualifiedNameOn(writeTarget, sink);
-  }
-}
-
-/// An [InlineClassInstanceAccessGenerator] represents a subexpression whose
-/// prefix is an inline class instance member.
-///
-/// For instance
-///
-///   class A {}
-///   inline class B {
-///     final A it;
-///     B(this.it);
-///     get property => 0;
-///     set property(_) {}
-///     method() {
-///       property;     // this generator is created for `property`.
-///       property = 0; // this generator is created for `property`.
-///       method;       // this generator is created for `method`.
-///       method();     // this generator is created for `method`.
-///     }
-///   }
-///
-/// These can only occur within an inline class instance member.
-class InlineClassInstanceAccessGenerator extends Generator {
-  final InlineClass inlineClass;
-
-  /// The original name of the target.
-  final String targetName;
-
-  /// The static [Member] generated for an inline class instance member which is
-  /// used for performing a read on this subexpression.
-  ///
-  /// This can be `null` if the subexpression doesn't have a readable target.
-  /// For instance if the subexpression is a setter without a corresponding
-  /// getter.
-  final Procedure? readTarget;
-
-  /// The static [Member] generated for an inline class instance member which is
-  /// used for performing an invocation on this subexpression.
-  ///
-  /// This can be `null` if the subexpression doesn't have an invokable target.
-  /// For instance if the subexpression is a getter or setter.
-  final Procedure? invokeTarget;
-
-  /// The static [Member] generated for an inline class instance member which is
-  /// used for performing a write on this subexpression.
-  ///
-  /// This can be `null` if the subexpression doesn't have a writable target.
-  /// For instance if the subexpression is a final field, a method, or a getter
-  /// without a corresponding setter.
-  final Procedure? writeTarget;
-
-  /// The parameter holding the value for `this` within the current inline class
-  /// instance method.
-  final VariableDeclaration inlineClassThis;
-
-  /// The type parameters synthetically added to  the current inline class
-  /// instance method.
-  final List<TypeParameter>? inlineClassTypeParameters;
-
-  InlineClassInstanceAccessGenerator(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      this.inlineClass,
-      this.targetName,
-      this.readTarget,
-      this.invokeTarget,
-      this.writeTarget,
-      this.inlineClassThis,
-      this.inlineClassTypeParameters)
-      : assert(
-            readTarget != null || invokeTarget != null || writeTarget != null),
-        super(helper, token);
-
-  factory InlineClassInstanceAccessGenerator.fromBuilder(
-      ExpressionGeneratorHelper helper,
-      Token token,
-      InlineClass inlineClass,
-      String? targetName,
-      VariableDeclaration inlineClassThis,
-      List<TypeParameter>? inlineClassTypeParameters,
-      MemberBuilder? getterBuilder,
-      MemberBuilder? setterBuilder) {
-    Procedure? readTarget;
-    Procedure? invokeTarget;
-    if (getterBuilder != null) {
-      if (getterBuilder.isGetter) {
-        assert(!getterBuilder.isStatic);
-        readTarget = getterBuilder.readTarget as Procedure?;
-      } else if (getterBuilder.isRegularMethod) {
-        assert(!getterBuilder.isStatic);
-        readTarget = getterBuilder.readTarget as Procedure?;
-        invokeTarget = getterBuilder.invokeTarget as Procedure?;
-      } else if (getterBuilder.isOperator) {
-        assert(!getterBuilder.isStatic);
-        invokeTarget = getterBuilder.invokeTarget as Procedure?;
-      } else {
-        return unhandled(
-            "${getterBuilder.runtimeType}",
-            "InlineClassInstanceAccessGenerator.fromBuilder",
-            offsetForToken(token),
-            helper.uri);
-      }
-    }
-    Procedure? writeTarget;
-    if (setterBuilder != null) {
-      if (setterBuilder.isSetter) {
-        assert(!setterBuilder.isStatic);
-        writeTarget = setterBuilder.writeTarget as Procedure?;
-        targetName ??= setterBuilder.name;
-      } else {
-        return unhandled(
-            "${setterBuilder.runtimeType}",
-            "InlineClassInstanceAccessGenerator.fromBuilder",
-            offsetForToken(token),
-            helper.uri);
-      }
-    }
-    return new InlineClassInstanceAccessGenerator(
-        helper,
-        token,
-        inlineClass,
-        targetName!,
-        readTarget,
-        invokeTarget,
-        writeTarget,
-        inlineClassThis,
-        inlineClassTypeParameters);
-  }
-
-  @override
-  String get _debugName => "InlineClassInstanceAccessGenerator";
-
-  @override
-  String get _plainNameForRead => targetName;
-
-  int get _inlineClassTypeParameterCount =>
-      inlineClassTypeParameters?.length ?? 0;
-
-  List<DartType> _createInlineClassTypeArguments() {
-    List<DartType> inlineClassTypeArguments = const <DartType>[];
-    if (inlineClassTypeParameters != null) {
-      inlineClassTypeArguments = [];
-      for (TypeParameter typeParameter in inlineClassTypeParameters!) {
-        inlineClassTypeArguments.add(
-            _forest.createTypeParameterTypeWithDefaultNullabilityForLibrary(
-                typeParameter, inlineClass.enclosingLibrary));
-      }
-    }
-    return inlineClassTypeArguments;
-  }
-
-  @override
-  Expression buildSimpleRead() {
-    return _createRead();
-  }
-
-  Expression _createRead() {
-    Expression read;
-    if (readTarget == null) {
-      read = _makeInvalidRead(UnresolvedKind.Getter);
-    } else {
-      read = _helper.buildExtensionMethodInvocation(
-          fileOffset,
-          readTarget!,
-          _helper.forest.createArgumentsForExtensionMethod(
-              fileOffset,
-              _inlineClassTypeParameterCount,
-              0,
-              _helper.createVariableGet(inlineClassThis, fileOffset),
-              extensionTypeArguments: _createInlineClassTypeArguments()),
-          isTearOff: invokeTarget != null);
-    }
-    return read;
-  }
-
-  @override
-  Expression buildAssignment(Expression value, {bool voidContext = false}) {
-    return _createWrite(fileOffset, value, forEffect: voidContext);
-  }
-
-  Expression _createWrite(int offset, Expression value,
-      {required bool forEffect}) {
-    Expression write;
-    if (writeTarget == null) {
-      write = _makeInvalidWrite(value);
-    } else {
-      // TODO(johnniwinther): Support inline class instance setter writes.
-      throw new UnsupportedError("InlineClassSet");
-      /*write = new InlineClassSet(
-          inlineClass,
-          _createInlineClassTypeArguments(),
-          _helper.createVariableGet(inlineClassThis, fileOffset),
-          writeTarget!,
-          value,
-          forEffect: forEffect);*/
-    }
-    write.fileOffset = offset;
-    return write;
-  }
-
-  @override
-  Expression buildIfNullAssignment(Expression value, DartType type, int offset,
-      {bool voidContext = false}) {
-    return new IfNullSet(
-        _createRead(), _createWrite(fileOffset, value, forEffect: voidContext),
-        forEffect: voidContext)
-      ..fileOffset = offset;
-  }
-
-  @override
-  Expression buildCompoundAssignment(Name binaryOperator, Expression value,
-      {int offset = TreeNode.noOffset,
-      bool voidContext = false,
-      bool isPreIncDec = false,
-      bool isPostIncDec = false}) {
-    Expression binary = _helper.forest
-        .createBinary(offset, _createRead(), binaryOperator, value);
-    return _createWrite(fileOffset, binary, forEffect: voidContext);
-  }
-
-  @override
-  Expression buildPostfixIncrement(Name binaryOperator,
-      {int offset = TreeNode.noOffset, bool voidContext = false}) {
-    Expression value = _forest.createIntLiteral(offset, 1);
-    if (voidContext) {
-      return buildCompoundAssignment(binaryOperator, value,
-          offset: offset, voidContext: voidContext, isPostIncDec: true);
-    }
-    VariableDeclarationImpl read =
-        _helper.createVariableDeclarationForValue(_createRead());
-    Expression binary = _helper.forest.createBinary(offset,
-        _helper.createVariableGet(read, fileOffset), binaryOperator, value);
-    VariableDeclarationImpl write = _helper.createVariableDeclarationForValue(
-        _createWrite(fileOffset, binary, forEffect: true));
-    return new PropertyPostIncDec.onReadOnly(read, write)..fileOffset = offset;
-  }
-
-  @override
-  Expression doInvocation(
-      int offset, List<TypeBuilder>? typeArguments, ArgumentsImpl arguments,
-      {bool isTypeArgumentsInForest = false}) {
-    if (invokeTarget != null) {
-      return _helper.buildExtensionMethodInvocation(
-          offset,
-          invokeTarget!,
-          _forest.createArgumentsForExtensionMethod(
-              fileOffset,
-              _inlineClassTypeParameterCount,
-              invokeTarget!.function.typeParameters.length -
-                  _inlineClassTypeParameterCount,
-              _helper.createVariableGet(inlineClassThis, offset),
-              extensionTypeArguments: _createInlineClassTypeArguments(),
-              typeArguments: arguments.types,
-              positionalArguments: arguments.positional,
-              namedArguments: arguments.named,
-              argumentsOriginalOrder: arguments.argumentsOriginalOrder),
-          isTearOff: false);
-    } else {
-      return _helper.forest.createExpressionInvocation(
-          adjustForImplicitCall(_plainNameForRead, offset),
-          buildSimpleRead(),
-          arguments);
     }
   }
 
@@ -4796,6 +4522,7 @@ class ThisAccessGenerator extends Generator {
             // TODO(ahe): This is not the 'this' token.
             selector.token,
             name,
+            thisVariable: null,
             thisOffset: fileOffset,
             isNullAware: isNullAware);
       }

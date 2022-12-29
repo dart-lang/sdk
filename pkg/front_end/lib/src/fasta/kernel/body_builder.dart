@@ -46,13 +46,11 @@ import 'package:kernel/type_environment.dart';
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
-import '../builder/constructor_builder.dart';
 import '../builder/declaration_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
-import '../builder/inline_class_builder.dart';
 import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
@@ -331,12 +329,13 @@ class BodyBuilder extends StackListenerImpl
   /// Their types need to be inferred late, for example, in [finishFunction].
   List<List<VariableDeclaration>>? multiVariablesWithMetadata;
 
-  /// If the current member is an instance member in an extension declaration,
-  /// [extensionThis] holds the synthetically add parameter holding the value
+  /// If the current member is an instance member in an extension declaration or
+  /// an instance member or constructor in and inline class declaration,
+  /// [thisVariable] holds the synthetically added variable holding the value
   /// for `this`.
-  final VariableDeclaration? extensionThis;
+  final VariableDeclaration? thisVariable;
 
-  final List<TypeParameter>? extensionTypeParameters;
+  final List<TypeParameter>? thisTypeParameters;
 
   Scope scope;
 
@@ -353,8 +352,8 @@ class BodyBuilder extends StackListenerImpl
       required this.coreTypes,
       this.declarationBuilder,
       required this.isDeclarationInstanceMember,
-      this.extensionThis,
-      this.extensionTypeParameters,
+      this.thisVariable,
+      this.thisTypeParameters,
       required this.uri,
       required this.typeInferrer})
       : forest = const Forest(),
@@ -397,7 +396,7 @@ class BodyBuilder extends StackListenerImpl
             coreTypes: part.loader.coreTypes,
             declarationBuilder: declarationBuilder,
             isDeclarationInstanceMember: field.isDeclarationInstanceMember,
-            extensionThis: null,
+            thisVariable: null,
             uri: field.fileUri!,
             typeInferrer: typeInferrer);
 
@@ -428,7 +427,7 @@ class BodyBuilder extends StackListenerImpl
             coreTypes: library.loader.coreTypes,
             declarationBuilder: declarationBuilder,
             isDeclarationInstanceMember: member.isDeclarationInstanceMember,
-            extensionThis: null,
+            thisVariable: null,
             uri: fileUri,
             typeInferrer: library.loader.typeInferenceEngine
                 .createLocalTypeInferrer(
@@ -576,12 +575,12 @@ class BodyBuilder extends StackListenerImpl
   }
 
   bool get inConstructor {
-    return functionNestingLevel == 0 && member is ConstructorBuilder;
+    return functionNestingLevel == 0 && member is ConstructorDeclaration;
   }
 
   @override
   bool get isDeclarationInstanceContext {
-    return isDeclarationInstanceMember || member is ConstructorBuilder;
+    return isDeclarationInstanceMember || member is ConstructorDeclaration;
   }
 
   @override
@@ -1174,7 +1173,7 @@ class BodyBuilder extends StackListenerImpl
     List<Initializer> initializers;
 
     final ModifierBuilder member = this.member;
-    if (!(member is ConstructorBuilder && !member.isExternal)) {
+    if (!(member is ConstructorDeclaration && !member.isExternal)) {
       // An error has been reported by the parser.
       initializers = <Initializer>[];
     } else if (node is Initializer) {
@@ -1214,7 +1213,7 @@ class BodyBuilder extends StackListenerImpl
     } else if (member is SourceFactoryBuilder) {
       return member.function.returnType;
     } else {
-      assert(member is ConstructorBuilder);
+      assert(member is ConstructorDeclaration);
       return const DynamicType();
     }
   }
@@ -1258,8 +1257,8 @@ class BodyBuilder extends StackListenerImpl
     typeInferrer.assignedVariables.finish();
 
     final SourceFunctionBuilder builder = member as SourceFunctionBuilder;
-    if (extensionThis != null) {
-      typeInferrer.flowAnalysis.declare(extensionThis!, true);
+    if (thisVariable != null) {
+      typeInferrer.flowAnalysis.declare(thisVariable!, true);
     }
     if (formals?.parameters != null) {
       for (int i = 0; i < formals!.parameters!.length; i++) {
@@ -3129,14 +3128,15 @@ class BodyBuilder extends StackListenerImpl
           return new UnresolvedNameGenerator(this, token, n,
               unresolvedReadKind: UnresolvedKind.Unknown);
         }
-        if (extensionThis != null) {
+        if (thisVariable != null) {
           // If we are in an extension instance member we interpret this as an
           // implicit access on the 'this' parameter.
           return PropertyAccessGenerator.make(this, token,
-              createVariableGet(extensionThis!, charOffset), n, false);
+              createVariableGet(thisVariable!, charOffset), n, false);
         } else {
           // This is an implicit access on 'this'.
-          return new ThisPropertyAccessGenerator(this, token, n);
+          return new ThisPropertyAccessGenerator(this, token, n,
+              thisVariable: thisVariable);
         }
       } else if (ignoreMainInGetMainClosure &&
           name == "main" &&
@@ -3175,7 +3175,8 @@ class BodyBuilder extends StackListenerImpl
       } else {
         return new VariableUseGenerator(this, token, variable);
       }
-    } else if (declaration.isClassInstanceMember) {
+    } else if (declaration.isClassInstanceMember ||
+        declaration.isInlineClassInstanceMember) {
       if (constantContext != ConstantContext.none &&
           !inInitializerLeftHandSide &&
           // TODO(ahe): This is a hack because Fasta sets up the scope
@@ -3187,7 +3188,8 @@ class BodyBuilder extends StackListenerImpl
             fasta.messageNotAConstantExpression, charOffset, token.length);
       }
       Name n = new Name(name, libraryBuilder.nameOrigin);
-      return new ThisPropertyAccessGenerator(this, token, n);
+      return new ThisPropertyAccessGenerator(this, token, n,
+          thisVariable: inConstructorInitializer ? null : thisVariable);
     } else if (declaration.isExtensionInstanceMember) {
       ExtensionBuilder extensionBuilder =
           declarationBuilder as ExtensionBuilder;
@@ -3213,37 +3215,8 @@ class BodyBuilder extends StackListenerImpl
           token,
           extensionBuilder.extension,
           name,
-          extensionThis!,
-          extensionTypeParameters,
-          getterBuilder,
-          setterBuilder);
-    } else if (declaration.isInlineClassInstanceMember) {
-      InlineClassBuilder inlineClassBuilder =
-          declarationBuilder as InlineClassBuilder;
-      MemberBuilder? setterBuilder =
-          _getCorrespondingSetterBuilder(scope, declaration, name, charOffset);
-      // TODO(johnniwinther): Check for constantContext like below?
-      if (declaration.isField) {
-        declaration = null;
-      }
-      if (setterBuilder != null &&
-          (setterBuilder.isField || setterBuilder.isStatic)) {
-        setterBuilder = null;
-      }
-      if (declaration == null && setterBuilder == null) {
-        return new UnresolvedNameGenerator(
-            this, token, new Name(name, libraryBuilder.nameOrigin),
-            unresolvedReadKind: UnresolvedKind.Unknown);
-      }
-      MemberBuilder? getterBuilder =
-          declaration is MemberBuilder ? declaration : null;
-      return new InlineClassInstanceAccessGenerator.fromBuilder(
-          this,
-          token,
-          inlineClassBuilder.inlineClass,
-          name,
-          extensionThis!,
-          extensionTypeParameters,
+          thisVariable!,
+          thisTypeParameters,
           getterBuilder,
           setterBuilder);
     } else if (declaration.isRegularMethod) {
@@ -6444,8 +6417,8 @@ class BodyBuilder extends StackListenerImpl
   void handleThisExpression(Token token, IdentifierContext context) {
     debugEvent("ThisExpression");
     if (context.isScopeReference && isDeclarationInstanceContext) {
-      if (extensionThis != null) {
-        push(_createReadOnlyVariableAccess(extensionThis!, token,
+      if (thisVariable != null && !inConstructorInitializer) {
+        push(_createReadOnlyVariableAccess(thisVariable!, token,
             offsetForToken(token), 'this', ReadOnlyAccessKind.ExtensionThis));
       } else {
         push(new ThisAccessGenerator(this, token, inInitializerLeftHandSide,
@@ -6462,7 +6435,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("SuperExpression");
     if (context.isScopeReference &&
         isDeclarationInstanceContext &&
-        extensionThis == null) {
+        thisVariable == null) {
       MemberBuilder memberBuilder = member as MemberBuilder;
       memberBuilder.member.transformerFlags |= TransformerFlag.superCalls;
       push(new ThisAccessGenerator(this, token, inInitializerLeftHandSide,

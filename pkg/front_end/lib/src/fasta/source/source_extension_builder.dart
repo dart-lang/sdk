@@ -24,8 +24,6 @@ import 'source_builder_mixins.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 
-const String extensionThisName = '#this';
-
 class SourceExtensionBuilder extends ExtensionBuilderImpl
     with SourceDeclarationBuilderMixin {
   final Extension _extension;

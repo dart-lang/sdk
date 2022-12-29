@@ -12,6 +12,7 @@ import 'package:kernel/src/legacy_erasure.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../../api_prototype/lowering_predicates.dart';
 import '../builder/class_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/member_builder.dart';
@@ -1602,7 +1603,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           dummyName,
           ProcedureKind.Method,
           new FunctionNode(null, positionalParameters: [
-            new VariableDeclaration(extensionThisName)..fileOffset
+            new VariableDeclaration(syntheticThisName)..fileOffset
           ]),
           isAbstractFieldAccessor: isAbstract,
           fileUri: fileUri,
@@ -1623,7 +1624,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
             ProcedureKind.Method,
             new FunctionNode(null,
                 positionalParameters: [
-                  new VariableDeclaration(extensionThisName)..fileOffset,
+                  new VariableDeclaration(syntheticThisName)..fileOffset,
                   parameter
                 ],
                 returnType: const VoidType())
