@@ -36,4 +36,56 @@ enum E {
       // No lint.
     ]);
   }
+
+  test_immutableClass() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@immutable
+class A {
+  final String key;
+  const A(this.key);
+  @override
+  operator ==(other) => other is A && other.key == key;
+  @override
+  int get hashCode => key.hashCode;
+}
+''');
+  }
+
+  test_mutableClass() async {
+    await assertDiagnostics(r'''
+class A {
+  final String key;
+  const A(this.key);
+  @override
+  operator ==(other) => other is A && other.key == key;
+  @override
+  int get hashCode => key.hashCode;
+}
+''', [
+      lint(65, 8),
+      lint(133, 3),
+    ]);
+  }
+
+  test_subtypeOfImmutableClass() async {
+    await assertNoDiagnostics(r'''
+import 'package:meta/meta.dart';
+
+@immutable
+class A {
+  const A();
+}
+
+class B extends A {
+  final String key;
+  const B(this.key);
+  @override
+  operator ==(other) => other is B && other.key == key;
+  @override
+  int get hashCode => key.hashCode;
+}
+''');
+  }
 }
