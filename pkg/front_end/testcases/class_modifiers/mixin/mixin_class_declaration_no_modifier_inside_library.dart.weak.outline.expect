@@ -2,17 +2,17 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-mixin class A extends core::Object {
+class A extends core::Object {
   synthetic constructor •() → self::A
     ;
 }
-abstract mixin class B extends core::Object {
+abstract class B extends core::Object {
   synthetic constructor •() → self::B
     ;
 }
 abstract class M extends core::Object /*isMixinDeclaration*/  {
 }
-mixin class C = core::Object with self::M /*hasConstConstructor*/  {
+class C = core::Object with self::M /*hasConstConstructor*/  {
   const synthetic constructor •() → self::C
     : super core::Object::•()
     ;

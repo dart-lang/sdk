@@ -1,25 +1,11 @@
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
+import "main_lib.dart" as mai;
 
-mixin class A extends core::Object {
-  synthetic constructor •() → self::A
-    : super core::Object::•()
-    ;
-}
-abstract mixin class B extends core::Object {
-  synthetic constructor •() → self::B
-    : super core::Object::•()
-    ;
-}
-abstract class M extends core::Object /*isMixinDeclaration*/  {
-}
-mixin class C = core::Object with self::M /*hasConstConstructor*/  {
-  const synthetic constructor •() → self::C
-    : super core::Object::•()
-    ;
-}
-abstract class _AWith&Object&A = core::Object with self::A /*isAnonymousMixin,hasConstConstructor*/  {
+import "org-dartlang-testcase:///main_lib.dart";
+
+abstract class _AWith&Object&A = core::Object with mai::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_AWith&Object&A
     : super core::Object::•()
     ;
@@ -29,7 +15,7 @@ class AWith extends self::_AWith&Object&A {
     : super self::_AWith&Object&A::•()
     ;
 }
-abstract class _BWith&Object&B = core::Object with self::B /*isAnonymousMixin,hasConstConstructor*/  {
+abstract class _BWith&Object&B = core::Object with mai::B /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_BWith&Object&B
     : super core::Object::•()
     ;
@@ -39,7 +25,7 @@ class BWith extends self::_BWith&Object&B {
     : super self::_BWith&Object&B::•()
     ;
 }
-abstract class _CWith&Object&C = core::Object with self::C /*isAnonymousMixin,hasConstConstructor*/  {
+abstract class _CWith&Object&C = core::Object with mai::C /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_CWith&Object&C
     : super core::Object::•()
     ;
@@ -49,12 +35,12 @@ class CWith extends self::_CWith&Object&C {
     : super self::_CWith&Object&C::•()
     ;
 }
-abstract class _MultipleWithMixin&Object&A = core::Object with self::A /*isAnonymousMixin,hasConstConstructor*/  {
+abstract class _MultipleWithMixin&Object&A = core::Object with mai::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MultipleWithMixin&Object&A
     : super core::Object::•()
     ;
 }
-abstract class _MultipleWithMixin&Object&A&M = self::_MultipleWithMixin&Object&A with self::M /*isAnonymousMixin,hasConstConstructor*/  {
+abstract class _MultipleWithMixin&Object&A&M = self::_MultipleWithMixin&Object&A with mai::M /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MultipleWithMixin&Object&A&M
     : super self::_MultipleWithMixin&Object&A::•()
     ;
@@ -64,12 +50,12 @@ class MultipleWithMixin extends self::_MultipleWithMixin&Object&A&M {
     : super self::_MultipleWithMixin&Object&A&M::•()
     ;
 }
-abstract class _MultipleWithAnotherClass&Object&A = core::Object with self::A /*isAnonymousMixin,hasConstConstructor*/  {
+abstract class _MultipleWithAnotherClass&Object&A = core::Object with mai::A /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MultipleWithAnotherClass&Object&A
     : super core::Object::•()
     ;
 }
-abstract class _MultipleWithAnotherClass&Object&A&B = self::_MultipleWithAnotherClass&Object&A with self::B /*isAnonymousMixin,hasConstConstructor*/  {
+abstract class _MultipleWithAnotherClass&Object&A&B = self::_MultipleWithAnotherClass&Object&A with mai::B /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_MultipleWithAnotherClass&Object&A&B
     : super self::_MultipleWithAnotherClass&Object&A::•()
     ;
@@ -77,5 +63,27 @@ abstract class _MultipleWithAnotherClass&Object&A&B = self::_MultipleWithAnother
 class MultipleWithAnotherClass extends self::_MultipleWithAnotherClass&Object&A&B {
   synthetic constructor •() → self::MultipleWithAnotherClass
     : super self::_MultipleWithAnotherClass&Object&A&B::•()
+    ;
+}
+
+library /*isNonNullableByDefault*/;
+import self as mai;
+import "dart:core" as core;
+
+mixin class A extends core::Object {
+  synthetic constructor •() → mai::A
+    : super core::Object::•()
+    ;
+}
+abstract mixin class B extends core::Object {
+  synthetic constructor •() → mai::B
+    : super core::Object::•()
+    ;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+mixin class C extends core::Object implements mai::M /*isEliminatedMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → mai::C
+    : super core::Object::•()
     ;
 }

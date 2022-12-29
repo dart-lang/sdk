@@ -2072,23 +2072,35 @@ severity: $severity
               noLength);
         }
       } else if (supertype is ClassBuilder &&
-          cls.libraryBuilder.libraryFeatures.sealedClass.isEnabled) {
-        // Check for implicit class mixins.
-        TypeBuilder? mixedInType = cls.mixedInTypeBuilder;
-        if (cls.isMixinApplication &&
-            mixedInType != null &&
-            mixedInType.declaration == supertype &&
-            !supertype.isMixinDeclaration) {
-          cls.addProblem(
-              templateCantUseClassAsMixin
-                  .withArguments(supertype.fullNameForErrors),
-              cls.charOffset,
-              noLength);
+          supertype.libraryBuilder.origin != cls.libraryBuilder.origin) {
+        if (supertype.libraryBuilder.library.languageVersion >=
+                ExperimentalFlag.classModifiers.experimentEnabledVersion &&
+            // TODO (kallentu): Only enable with classes that have the
+            // 'classModifiers' experiment enabled right now, otherwise the
+            // change breaks core libraries. Remove when class modifiers are
+            // done.
+            cls.libraryBuilder.libraryFeatures.classModifiers.isEnabled) {
+          // Check for implicit class mixins.
+          // Only classes declared with a 'mixin' modifier are allowed to be
+          // mixed in outside of its library.
+          TypeBuilder? mixedInType = cls.mixedInTypeBuilder;
+          bool isSuperTypeImplicitMixin = mixedInType != null &&
+              mixedInType.declaration == supertype &&
+              !supertype.isMixinDeclaration;
+          if (cls.isMixinApplication &&
+              isSuperTypeImplicitMixin &&
+              !supertype.isMixinClass) {
+            cls.addProblem(
+                templateCantUseClassAsMixin
+                    .withArguments(supertype.fullNameForErrors),
+                cls.charOffset,
+                noLength);
+          }
         }
 
         // Report error for subtyping outside of sealed supertype's library.
-        if (supertype.isSealed &&
-            supertype.libraryBuilder.origin != cls.libraryBuilder.origin) {
+        if (cls.libraryBuilder.libraryFeatures.sealedClass.isEnabled &&
+            supertype.isSealed) {
           // If the class is a mixin declaration with an `on` clause which is
           // the supertype we are evaluating right now, we want to avoid
           // reporting an error.

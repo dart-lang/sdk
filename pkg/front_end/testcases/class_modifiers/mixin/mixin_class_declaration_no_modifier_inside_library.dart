@@ -2,12 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-mixin class A {}
+class A {}
 
-abstract mixin class B {}
+abstract class B {}
 
 mixin M {}
-mixin class C = Object with M;
+class C = Object with M;
 
 class AWith with A {}
 
