@@ -17,6 +17,50 @@ class AvoidEscapingInnerQuotesTest extends LintRuleTest {
   @override
   String get lintRule => 'avoid_escaping_inner_quotes';
 
+  test_doubleQuotes_empty() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print("");
+}
+''');
+  }
+
+  test_doubleQuotes_escapedQuote() async {
+    await assertDiagnostics(r'''
+void f() {
+  print("\"");
+}
+''', [
+      lint(19, 4),
+    ]);
+  }
+
+  test_doubleQuotes_escapedQuote_withInterpolation() async {
+    await assertDiagnostics(r'''
+void f() {
+  print("\"$f");
+}
+''', [
+      lint(19, 6),
+    ]);
+  }
+
+  test_doubleQuotes_escapedQuote_withSingleQuote() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print("\"'");
+}
+''');
+  }
+
+  test_doubleQuotes_escapedQuote_withSingleQuote_andInterpolation() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print("\"'$f");
+}
+''');
+  }
+
   test_singleQuotes() async {
     await assertDiagnostics(r'''
 void f(String d) {
@@ -24,6 +68,50 @@ void f(String d) {
 }
 ''', [
       lint(27, 21),
+    ]);
+  }
+
+  test_singleQuotes_empty() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print('');
+}
+''');
+  }
+
+  test_singleQuotes_escapedQuote() async {
+    await assertDiagnostics(r'''
+void f() {
+  print('\'');
+}
+''', [
+      lint(19, 4),
+    ]);
+  }
+
+  test_singleQuotes_escapedQuote_withDoubleQuote() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print('\'"');
+}
+''');
+  }
+
+  test_singleQuotes_escapedQuote_withDoubleQuote_andInterpolation() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print('\'"$f');
+}
+''');
+  }
+
+  test_singleQuotes_escapedQuote_withInterpolation() async {
+    await assertDiagnostics(r'''
+void f() {
+  print('\'$f');
+}
+''', [
+      lint(19, 6),
     ]);
   }
 }
