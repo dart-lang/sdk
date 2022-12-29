@@ -11,7 +11,8 @@ inline class Class1 {
 inline class Class2 = Object with Mixin;
 inline class Class3<T> {
   final List<T> it;
-  // TODO(johnniwinther): Support generic inline class constructor.
+
+  Class3(this.it);
 }
 
 method(Class1 c1, Class3<int> c3) {}

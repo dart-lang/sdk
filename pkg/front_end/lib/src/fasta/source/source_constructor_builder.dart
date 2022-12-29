@@ -137,7 +137,8 @@ abstract class AbstractSourceConstructorBuilder
         for (FormalParameterBuilder formal in formals!) {
           if (formal.type is InferableTypeBuilder) {
             if (formal.isInitializingFormal) {
-              formal.finalizeInitializingFormal(declarationBuilder, hierarchy);
+              formal.finalizeInitializingFormal(
+                  declarationBuilder, this, hierarchy);
             }
           }
         }
@@ -903,6 +904,13 @@ class DeclaredSourceConstructorBuilder
       }
     }
   }
+
+  @override
+  DartType substituteFieldType(DartType fieldType) {
+    // Nothing to do. Regular generative constructors don't have their own
+    // type variables.
+    return fieldType;
+  }
 }
 
 class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
@@ -1150,8 +1158,8 @@ class SourceInlineClassConstructorBuilder
 
     InlineClass inlineClass = inlineClassBuilder.inlineClass;
     List<DartType> typeParameterTypes = <DartType>[];
-    for (int i = 0; i < inlineClass.typeParameters.length; i++) {
-      TypeParameter typeParameter = inlineClass.typeParameters[i];
+    for (int i = 0; i < function.typeParameters.length; i++) {
+      TypeParameter typeParameter = function.typeParameters[i];
       typeParameterTypes.add(
           new TypeParameterType.withDefaultNullabilityForLibrary(
               typeParameter, libraryBuilder.library));
@@ -1166,7 +1174,6 @@ class SourceInlineClassConstructorBuilder
       buildFunction();
       _constructor.function.fileOffset = charOpenParenOffset;
       _constructor.function.fileEndOffset = _constructor.fileEndOffset;
-      _constructor.function.typeParameters = const <TypeParameter>[];
       _constructor.isConst = isConst;
       _constructor.isExternal = isExternal;
 
@@ -1224,7 +1231,30 @@ class SourceInlineClassConstructorBuilder
   @override
   bool get isEffectivelyRedirecting => isRedirecting;
 
-// TODO(johnniwinther): Generate initializers and return statement.
+  Substitution? _substitutionCache;
+
+  Substitution get _substitution {
+    if (typeVariables != null) {
+      assert(
+          inlineClassBuilder.typeParameters!.length == typeVariables?.length);
+      _substitutionCache = Substitution.fromPairs(
+          inlineClassBuilder.inlineClass.typeParameters,
+          new List<DartType>.generate(
+              inlineClassBuilder.typeParameters!.length,
+              (int index) =>
+                  new TypeParameterType.withDefaultNullabilityForLibrary(
+                      function.typeParameters[index],
+                      libraryBuilder.origin.library)));
+    } else {
+      _substitutionCache = Substitution.empty;
+    }
+    return _substitutionCache!;
+  }
+
+  @override
+  DartType substituteFieldType(DartType fieldType) {
+    return _substitution.substituteType(fieldType);
+  }
 }
 
 class _InitializerToStatementConverter implements InitializerVisitor<void> {

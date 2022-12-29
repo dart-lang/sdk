@@ -54,4 +54,12 @@ abstract class ConstructorDeclaration implements SourceFunctionBuilder {
   /// [registerInitializedField] and passes on the ownership of the collection
   /// to the caller.
   Set<SourceFieldBuilder>? takeInitializedFields();
+
+  /// Substitute [fieldType] from the context of the enclosing class or
+  /// inline class to this constructor.
+  ///
+  /// This is used for generic inline class constructors where the type
+  /// variable referring to the class type variables must be substituted for
+  /// the synthesized constructor type variables.
+  DartType substituteFieldType(DartType fieldType);
 }
