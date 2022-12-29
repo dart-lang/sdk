@@ -1845,7 +1845,7 @@ class UntaggedObjectPool : public UntaggedObject {
   DEFINE_CONTAINS_COMPRESSED(decltype(Entry::raw_obj_));
 
   // The entry bits are located after the last entry. They are encoded versions
-  // of `ObjectPool::TypeBits() | ObjectPool::PatchabililtyBit()`.
+  // of `ObjectPool::TypeBits() | ObjectPool::PatchabilityBit()`.
   uint8_t* entry_bits() { return reinterpret_cast<uint8_t*>(&data()[length_]); }
   uint8_t const* entry_bits() const {
     return reinterpret_cast<uint8_t const*>(&data()[length_]);
@@ -1946,7 +1946,7 @@ class UntaggedPcDescriptors : public UntaggedObject {
   static const char* KindToCString(Kind k);
   static bool ParseKind(const char* cstr, Kind* out);
 
-  // Used to represent the absense of a yield index in PcDescriptors.
+  // Used to represent the absence of a yield index in PcDescriptors.
   static constexpr intptr_t kInvalidYieldIndex = -1;
 
   class KindAndMetadata {

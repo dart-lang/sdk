@@ -96,7 +96,7 @@ void OSThread::SetName(const char* name) {
   set_name(name);
 }
 
-// Disable AdressSanitizer and SafeStack transformation on this function. In
+// Disable AddressSanitizer and SafeStack transformation on this function. In
 // particular, taking the address of a local gives an address on the stack
 // instead of an address in the shadow memory (AddressSanitizer) or the safe
 // stack (SafeStack).
@@ -153,7 +153,7 @@ void OSThread::Init() {
   // Enable creation of OSThread structures in the VM.
   EnableOSThreadCreation();
 
-  // Create a new OSThread strcture and set it as the TLS.
+  // Create a new OSThread structure and set it as the TLS.
   OSThread* os_thread = CreateOSThread();
   ASSERT(os_thread != NULL);
   OSThread::SetCurrent(os_thread);

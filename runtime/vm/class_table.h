@@ -39,7 +39,7 @@ class PersistentHandle;
 // There is a bit for each word in an instance of the class.
 //
 // Words corresponding to set bits must be ignored by the GC because they
-// don't contain pointers. All words beyound the first 64 words of an object
+// don't contain pointers. All words beyond the first 64 words of an object
 // are expected to contain pointers.
 class UnboxedFieldBitmap {
  public:
@@ -147,7 +147,7 @@ class ClassTableAllocator : public ValueObject {
 
 // A table with the given |Columns| indexed by class id.
 //
-// Each column is a continous array of a the given type. All columns have
+// Each column is a continuous array of a the given type. All columns have
 // the same number of used elements (|num_cids()|) and the same capacity.
 template <typename CidType, typename... Columns>
 class CidIndexedTable {

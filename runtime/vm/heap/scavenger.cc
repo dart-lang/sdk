@@ -1860,7 +1860,7 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
   // Release any remaining part of the promotion worklist that wasn't completed.
   promotion_stack_.Reset();
 
-  // Release any remaining part of the rememebred set that wasn't completed.
+  // Release any remaining part of the remembered set that wasn't completed.
   StoreBuffer* store_buffer = heap_->isolate_group()->store_buffer();
   StoreBufferBlock* pending = blocks_;
   while (pending != nullptr) {

@@ -45,7 +45,7 @@ Thread::~Thread() {
   ASSERT(marking_stack_block_ == nullptr);
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == nullptr);
-  // Delete the resusable api scope if there is one.
+  // Delete the reusable api scope if there is one.
   if (api_reusable_scope_ != nullptr) {
     delete api_reusable_scope_;
     api_reusable_scope_ = nullptr;

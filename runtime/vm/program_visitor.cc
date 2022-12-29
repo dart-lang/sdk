@@ -1112,7 +1112,7 @@ void ProgramVisitor::DedupLists(Thread* thread) {
     }
 
     void VisitFunction(const Function& function) {
-      // Don't bother dedupping the positional names in precompiled mode, as
+      // Don't bother deduping the positional names in precompiled mode, as
       // they'll be dropped anyway.
       if (!FLAG_precompiled_mode) {
         list_ = function.positional_parameter_names();

@@ -121,7 +121,7 @@ static void* ThreadStart(void* data_ptr) {
     int policy = SCHED_FIFO;
     struct sched_param schedule;
     if (pthread_getschedparam(thread, &policy, &schedule) != 0) {
-      FATAL1("Obtainign sched param failed: errno = %d\n", errno);
+      FATAL1("Obtaining sched param failed: errno = %d\n", errno);
     }
     schedule.sched_priority = FLAG_worker_thread_priority;
     if (pthread_setschedparam(thread, policy, &schedule) != 0) {

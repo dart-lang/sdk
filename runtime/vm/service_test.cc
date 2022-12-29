@@ -105,10 +105,10 @@ static ArrayPtr Eval(Dart_Handle lib, const char* expr) {
 }
 
 static ArrayPtr EvalF(Dart_Handle lib, const char* fmt, ...) {
-  va_list messure_args;
-  va_start(messure_args, fmt);
-  intptr_t len = Utils::VSNPrint(NULL, 0, fmt, messure_args);
-  va_end(messure_args);
+  va_list measure_args;
+  va_start(measure_args, fmt);
+  intptr_t len = Utils::VSNPrint(NULL, 0, fmt, measure_args);
+  va_end(measure_args);
 
   char* buffer = Thread::Current()->zone()->Alloc<char>(len + 1);
   va_list print_args;
