@@ -10,8 +10,11 @@ class Class2 = core::Object with self::Mixin /*hasConstConstructor*/  {
     ;
 }
 inline class Class1 /* declaredRepresentationType = core::int */ {
+  constructor • = self::Class1|;
 }
 inline class Class3<T extends core::Object? = dynamic> /* declaredRepresentationType = core::List<T%> */ {
 }
+method Class1|(core::int it) → self::Class1
+  ;
 static method method(self::Class1 c1, self::Class3<core::int> c3) → dynamic
   ;

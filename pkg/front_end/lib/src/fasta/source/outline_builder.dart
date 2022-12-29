@@ -24,6 +24,7 @@ import 'package:kernel/ast.dart'
     show AsyncMarker, InvalidType, Nullability, ProcedureKind, Variance;
 
 import '../../api_prototype/experimental_flags.dart';
+import '../../api_prototype/lowering_predicates.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
@@ -2034,7 +2035,7 @@ class OutlineBuilder extends StackListenerImpl {
             FormalParameterKind.requiredPositional,
             finalMask,
             thisType,
-            extensionThisName,
+            syntheticThisName,
             null,
             charOffset,
             fileUri: uri,

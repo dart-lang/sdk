@@ -1233,6 +1233,10 @@ extension IteratorExtension<T extends Builder> on Iterator<T> {
     }
     return list;
   }
+
+  Iterator<T> join(Iterator<T> other) {
+    return new IteratorSequence<T>([this, other]);
+  }
 }
 
 extension NameIteratorExtension<T extends Builder> on NameIterator<T> {
@@ -1548,5 +1552,40 @@ extension on Builder {
       self.isConflictingAugmentationMember = value;
     }
     // TODO(johnniwinther): Handle all cases here.
+  }
+}
+
+class IteratorSequence<T> implements Iterator<T> {
+  Iterator<Iterator<T>> _iterators;
+
+  Iterator<T>? _current;
+
+  IteratorSequence(Iterable<Iterator<T>> iterators)
+      : _iterators = iterators.iterator;
+
+  @override
+  T get current {
+    if (_current != null) {
+      return _current!.current;
+    }
+    throw new StateError("No current element");
+  }
+
+  @override
+  bool moveNext() {
+    if (_current != null) {
+      if (_current!.moveNext()) {
+        return true;
+      }
+      _current = null;
+    }
+    while (_iterators.moveNext()) {
+      _current = _iterators.current;
+      if (_current!.moveNext()) {
+        return true;
+      }
+      _current = null;
+    }
+    return false;
   }
 }

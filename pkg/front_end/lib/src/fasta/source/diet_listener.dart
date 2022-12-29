@@ -759,8 +759,8 @@ class DietListener extends StackListenerImpl {
 
   BodyBuilder createListener(ModifierBuilder builder, Scope memberScope,
       {required bool isDeclarationInstanceMember,
-      VariableDeclaration? extensionThis,
-      List<TypeParameter>? extensionTypeParameters,
+      VariableDeclaration? thisVariable,
+      List<TypeParameter>? thisTypeParameters,
       Scope? formalParameterScope,
       InferenceDataForTesting? inferenceDataForTesting}) {
     // Note: we set thisType regardless of whether we are building a static
@@ -768,7 +768,7 @@ class DietListener extends StackListenerImpl {
     // TODO(johnniwinther): Provide a dummy this on static extension methods
     // for better error recovery?
     InterfaceType? thisType =
-        extensionThis == null ? currentDeclaration?.thisType : null;
+        thisVariable == null ? currentDeclaration?.thisType : null;
     TypeInferrer typeInferrer = typeInferenceEngine.createLocalTypeInferrer(
         uri, thisType, libraryBuilder, inferenceDataForTesting);
     ConstantContext constantContext = builder.isConstructor && builder.isConst
@@ -779,8 +779,8 @@ class DietListener extends StackListenerImpl {
         memberScope,
         formalParameterScope,
         isDeclarationInstanceMember,
-        extensionThis,
-        extensionTypeParameters,
+        thisVariable,
+        thisTypeParameters,
         typeInferrer,
         constantContext);
   }
@@ -790,8 +790,8 @@ class DietListener extends StackListenerImpl {
       Scope memberScope,
       Scope? formalParameterScope,
       bool isDeclarationInstanceMember,
-      VariableDeclaration? extensionThis,
-      List<TypeParameter>? extensionTypeParameters,
+      VariableDeclaration? thisVariable,
+      List<TypeParameter>? thisTypeParameters,
       TypeInferrer typeInferrer,
       ConstantContext constantContext) {
     return new BodyBuilder(
@@ -803,8 +803,8 @@ class DietListener extends StackListenerImpl {
         coreTypes: coreTypes,
         declarationBuilder: currentDeclaration,
         isDeclarationInstanceMember: isDeclarationInstanceMember,
-        extensionThis: extensionThis,
-        extensionTypeParameters: extensionTypeParameters,
+        thisVariable: thisVariable,
+        thisTypeParameters: thisTypeParameters,
         uri: uri,
         typeInferrer: typeInferrer)
       ..constantContext = constantContext;
@@ -821,8 +821,8 @@ class DietListener extends StackListenerImpl {
     assert(formalParameterScope != null);
     return createListener(builder, typeParameterScope,
         isDeclarationInstanceMember: builder.isDeclarationInstanceMember,
-        extensionThis: builder.extensionThis,
-        extensionTypeParameters: builder.extensionTypeParameters,
+        thisVariable: builder.thisVariable,
+        thisTypeParameters: builder.thisTypeParameters,
         formalParameterScope: formalParameterScope,
         inferenceDataForTesting: builder.dataForTesting?.inferenceData);
   }

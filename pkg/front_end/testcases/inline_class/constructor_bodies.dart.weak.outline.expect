@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+inline class Class1 /* declaredRepresentationType = core::int */ {
+  constructor • = self::Class1|;
+  constructor named1 = self::Class1|named1;
+  constructor named2 = self::Class1|named2;
+  constructor named3 = self::Class1|named3;
+  constructor named4 = self::Class1|named4;
+  constructor named5 = self::Class1|named5;
+  constructor named6 = self::Class1|named6;
+}
+method Class1|(core::int it) → self::Class1
+  ;
+method Class1|named1(core::int it, core::int additional) → self::Class1
+  ;
+method Class1|named2(core::int it, core::int additional) → self::Class1
+  ;
+method Class1|named3(core::int it) → self::Class1
+  ;
+method Class1|named4(core::int additional, core::int it) → self::Class1
+  ;
+method Class1|named5(core::int additional, core::int it) → self::Class1
+  ;
+method Class1|named6(core::String text) → self::Class1
+  ;

@@ -1332,7 +1332,7 @@ severity: $severity
     BodyBuilder listener = dietListener.createListener(
         builder, dietListener.memberScope,
         isDeclarationInstanceMember: isClassInstanceMember,
-        extensionThis: extensionThis);
+        thisVariable: extensionThis);
     for (VariableDeclaration variable in parameters.positionalParameters) {
       listener.typeInferrer.assignedVariables.declare(variable);
     }

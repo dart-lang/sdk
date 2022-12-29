@@ -135,6 +135,9 @@ abstract class MemberBuilderImpl extends ModifierBuilderImpl
   bool get isExtensionInstanceMember => isExtensionMember && !isStatic;
 
   @override
+  bool get isInlineClassInstanceMember => isInlineClassMember && !isStatic;
+
+  @override
   bool get isDeclarationMember => parent is DeclarationBuilder;
 
   @override

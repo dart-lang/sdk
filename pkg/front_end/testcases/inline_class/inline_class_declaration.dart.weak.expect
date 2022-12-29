@@ -2,12 +2,7 @@ library /*isNonNullableByDefault*/;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/inline_class/inline_class_declaration.dart:7:13: Error: Final field 'it' is not initialized.
-// Try to initialize the field in the declaration or in every constructor.
-//   final int it;
-//             ^^
-//
-// pkg/front_end/testcases/inline_class/inline_class_declaration.dart:11:17: Error: Final field 'it' is not initialized.
+// pkg/front_end/testcases/inline_class/inline_class_declaration.dart:13:17: Error: Final field 'it' is not initialized.
 // Try to initialize the field in the declaration or in every constructor.
 //   final List<T> it;
 //                 ^^
@@ -23,7 +18,12 @@ class Class2 = core::Object with self::Mixin /*hasConstConstructor*/  {
     ;
 }
 inline class Class1 /* declaredRepresentationType = core::int */ {
+  constructor • = self::Class1|;
 }
 inline class Class3<T extends core::Object? = dynamic> /* declaredRepresentationType = core::List<T%> */ {
+}
+method Class1|(core::int it) → self::Class1 {
+  final self::Class1 #this = it;
+  return #this;
 }
 static method method(self::Class1 c1, self::Class3<core::int> c3) → dynamic {}

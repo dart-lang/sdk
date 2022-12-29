@@ -7,6 +7,7 @@ library fasta.procedure_builder;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 
+import '../../api_prototype/lowering_predicates.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/declaration_builder.dart';
@@ -35,6 +36,7 @@ import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'source_builder_mixins.dart';
+import 'source_inline_class_builder.dart';
 import 'source_member_builder.dart';
 
 abstract class SourceFunctionBuilder
@@ -112,11 +114,11 @@ abstract class SourceFunctionBuilder
 
   /// Returns the parameter for 'this' synthetically added to extension
   /// instance members.
-  VariableDeclaration? get extensionThis;
+  VariableDeclaration? get thisVariable;
 
   /// Returns a list of synthetic type parameters added to extension instance
   /// members.
-  List<TypeParameter>? get extensionTypeParameters;
+  List<TypeParameter>? get thisTypeParameters;
 
   void becomeNative(SourceLoader loader);
 
@@ -143,14 +145,14 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   final List<FormalParameterBuilder>? formals;
 
-  /// If this procedure is an extension instance member, [_extensionThis] holds
-  /// the synthetically added `this` parameter.
-  VariableDeclaration? _extensionThis;
+  /// If this procedure is an extension instance member or inline class instance
+  /// member, [_thisVariable] holds the synthetically added `this` parameter.
+  VariableDeclaration? _thisVariable;
 
-  /// If this procedure is an extension instance member,
-  /// [_extensionTypeParameters] holds the type parameters copied from the
-  /// extension declaration.
-  List<TypeParameter>? _extensionTypeParameters;
+  /// If this procedure is an extension instance member or inline class instance
+  /// member, [_thisTypeParameters] holds the type parameters copied from the
+  /// extension/inline class declaration.
+  List<TypeParameter>? _thisTypeParameters;
 
   SourceFunctionBuilderImpl(
       this.metadata,
@@ -387,16 +389,36 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       function.returnType =
           returnType.build(libraryBuilder, TypeUse.returnType);
     }
-    if (isExtensionInstanceMember || isInlineClassInstanceMember) {
-      SourceDeclarationBuilderMixin extensionBuilder =
+    if (isInlineClassInstanceMember && isConstructor) {
+      SourceInlineClassBuilder inlineClassBuilder =
+          parent as SourceInlineClassBuilder;
+      // TODO(johnniwinther): Support [_thisTypeParameters] for inline class
+      //  constructors.
+      List<DartType> typeArguments;
+      if (_thisTypeParameters != null) {
+        typeArguments = new List<DartType>.generate(
+            _thisTypeParameters!.length,
+            (int index) => new TypeParameterType(
+                _thisTypeParameters![index],
+                TypeParameterType.computeNullabilityFromBound(
+                    _thisTypeParameters![index])));
+      } else {
+        typeArguments = [];
+      }
+      _thisVariable = new VariableDeclarationImpl(syntheticThisName,
+          isFinal: true,
+          type: new InlineType(inlineClassBuilder.inlineClass,
+              libraryBuilder.nonNullable, typeArguments));
+    } else if (isExtensionInstanceMember || isInlineClassInstanceMember) {
+      SourceDeclarationBuilderMixin declarationBuilder =
           parent as SourceDeclarationBuilderMixin;
-      _extensionThis = function.positionalParameters.first;
-      if (extensionBuilder.typeParameters != null) {
-        int count = extensionBuilder.typeParameters!.length;
-        _extensionTypeParameters = new List<TypeParameter>.generate(
+      if (declarationBuilder.typeParameters != null) {
+        int count = declarationBuilder.typeParameters!.length;
+        _thisTypeParameters = new List<TypeParameter>.generate(
             count, (int index) => function.typeParameters[index],
             growable: false);
       }
+      _thisVariable = function.positionalParameters.first;
     }
   }
 
@@ -413,23 +435,23 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   VariableDeclaration? getTearOffParameter(int index) => null;
 
   @override
-  VariableDeclaration? get extensionThis {
+  VariableDeclaration? get thisVariable {
     assert(
-        _extensionThis != null ||
+        _thisVariable != null ||
             !(isExtensionInstanceMember || isInlineClassInstanceMember),
-        "ProcedureBuilder.extensionThis has not been set.");
-    return _extensionThis;
+        "ProcedureBuilder.thisVariable has not been set.");
+    return _thisVariable;
   }
 
   @override
-  List<TypeParameter>? get extensionTypeParameters {
-    // Use [_extensionThis] as marker for whether extension type parameters have
+  List<TypeParameter>? get thisTypeParameters {
+    // Use [_thisVariable] as marker for whether this type parameters have
     // been computed.
     assert(
-        _extensionThis != null ||
+        _thisVariable != null ||
             !(isExtensionInstanceMember || isInlineClassInstanceMember),
-        "ProcedureBuilder.extensionTypeParameters has not been set.");
-    return _extensionTypeParameters;
+        "ProcedureBuilder.thisTypeParameters has not been set.");
+    return _thisTypeParameters;
   }
 
   @override
