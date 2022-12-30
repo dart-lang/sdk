@@ -9304,6 +9304,82 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const PatternInferenceResult();
   }
 
+  ExpressionInferenceResult visitPatternAssignment(
+      PatternAssignment node, DartType typeContext) {
+    Expression expression = node.expression;
+    ExpressionTypeAnalysisResult<DartType> analysisResult =
+        analyzePatternAssignment(node, node.pattern, expression);
+    Node? rewrite = popRewrite();
+    if (!identical(expression, rewrite)) {
+      expression = rewrite as Expression;
+    }
+
+    // TODO(cstefantsova): Do we need a more precise type for the variable?
+    VariableDeclaration matchedExpressionVariable = engine.forest
+        .createVariableDeclarationForValue(expression,
+            type: const DynamicType());
+    VariableDeclaration isPatternMatchingFailed = engine.forest
+        .createVariableDeclarationForValue(
+            engine.forest.createBoolLiteral(node.fileOffset, true),
+            type: coreTypes.boolNonNullableRawType);
+
+    // patternMatchedSet: `isPatternMatchingFailed` = false;
+    //   ==> VAR = true;
+    Statement patternMatchedSet = engine.forest.createExpressionStatement(
+        node.fileOffset,
+        engine.forest.createVariableSet(
+            node.fileOffset,
+            isPatternMatchingFailed,
+            engine.forest.createBoolLiteral(node.fileOffset, false)));
+
+    PatternTransformationResult transformationResult = node.pattern.transform(
+        engine.forest
+            .createVariableGet(node.fileOffset, matchedExpressionVariable),
+        const DynamicType(),
+        engine.forest
+            .createVariableGet(node.fileOffset, matchedExpressionVariable),
+        this);
+
+    List<Statement> replacementStatements = _transformationResultToStatements(
+        node.fileOffset, transformationResult, [patternMatchedSet]);
+
+    replacementStatements = [
+      matchedExpressionVariable,
+      isPatternMatchingFailed,
+      ...replacementStatements,
+      // TODO(cstefantsova): Figure out the right exception to throw.
+      engine.forest.createIfStatement(
+          node.fileOffset,
+          engine.forest
+              .createVariableGet(node.fileOffset, isPatternMatchingFailed),
+          engine.forest.createExpressionStatement(
+              node.fileOffset,
+              new Throw(
+                  new ConstructorInvocation(
+                      coreTypes.reachabilityErrorConstructor,
+                      engine.forest.createArguments(node.fileOffset, []))
+                    ..fileOffset = node.fileOffset)
+                ..fileOffset = node.fileOffset),
+          null),
+    ];
+
+    Expression replacement = engine.forest.createBlockExpression(
+        node.fileOffset,
+        engine.forest.createBlock(
+            node.fileOffset, node.fileOffset, replacementStatements),
+        engine.forest
+            .createVariableGet(node.fileOffset, matchedExpressionVariable));
+    return new ExpressionInferenceResult(
+        analysisResult.resolveShorting(), replacement);
+  }
+
+  PatternInferenceResult visitAssignedVariablePattern(
+      AssignedVariablePattern node,
+      {required SharedMatchContext context}) {
+    analyzeAssignedVariablePattern(context, node, node.variable);
+    return const PatternInferenceResult();
+  }
+
   @override
   shared.RecordType<DartType>? asRecordType(DartType type) {
     if (type is RecordType) {

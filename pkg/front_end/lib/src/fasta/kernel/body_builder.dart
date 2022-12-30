@@ -8483,8 +8483,17 @@ class BodyBuilder extends StackListenerImpl
     Pattern pattern;
     if (variable.lexeme == "_") {
       pattern = new WildcardPattern(patternType, variable.charOffset);
+    } else if (inAssignmentPattern) {
+      Expression variableUse =
+          toValue(scopeLookup(scope, variable.lexeme, variable));
+      if (variableUse is VariableGet) {
+        pattern = new AssignedVariablePattern(variableUse.variable,
+            offset: variable.charOffset);
+      } else {
+        // Recover by using [WildcardPattern] instead.
+        pattern = new WildcardPattern(patternType, variable.charOffset);
+      }
     } else {
-      // TODO(paulberry): use inAssignmentPattern.
       pattern = new VariablePattern(
           patternType,
           variable.lexeme,
@@ -8552,7 +8561,24 @@ class BodyBuilder extends StackListenerImpl
     // TODO(johnniwinther,cstefantsova): Handle metadata.
     pop(NullValue.Metadata) as List<Expression>?;
     push(new PatternVariableDeclaration(pattern, initializer,
-        offset: keyword.charOffset, isFinal: isFinal));
+        fileOffset: keyword.charOffset, isFinal: isFinal));
+  }
+
+  @override
+  void handlePatternAssignment(Token equals) {
+    debugEvent("PatternAssignment");
+    assert(checkState(equals, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
+      ValueKinds.Pattern
+    ]));
+    Expression expression = popForValue();
+    Pattern pattern = toPattern(pop());
+    push(new PatternAssignment(pattern, expression,
+        fileOffset: equals.charOffset));
   }
 }
 

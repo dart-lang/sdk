@@ -386,6 +386,14 @@ class Forest {
       ..fileEndOffset = fileEndOffset;
   }
 
+  /// Return a representation of a block expression.
+  BlockExpression createBlockExpression(
+      int fileOffset, Block body, Expression value) {
+    // ignore: unnecessary_null_comparison
+    assert(fileOffset != null);
+    return new BlockExpression(body, value)..fileOffset = fileOffset;
+  }
+
   /// Return a representation of a break statement.
   Statement createBreakStatement(int fileOffset, Object? label) {
     // ignore: unnecessary_null_comparison

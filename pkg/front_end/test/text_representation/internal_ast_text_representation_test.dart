@@ -1318,14 +1318,14 @@ void _testPatternVariableDeclaration() {
   testStatement(
       new PatternVariableDeclaration(
           new ExpressionPattern(new IntLiteral(0)), new IntLiteral(1),
-          isFinal: false, offset: TreeNode.noOffset),
+          isFinal: false, fileOffset: TreeNode.noOffset),
       '''
 var 0 = 1;''');
 
   testStatement(
       new PatternVariableDeclaration(
           new ExpressionPattern(new IntLiteral(0)), new IntLiteral(1),
-          isFinal: true, offset: TreeNode.noOffset),
+          isFinal: true, fileOffset: TreeNode.noOffset),
       '''
 final 0 = 1;''');
 }
