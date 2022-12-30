@@ -5020,8 +5020,8 @@ class PatternVariableDeclaration extends InternalStatement {
   final bool isFinal;
 
   PatternVariableDeclaration(this.pattern, this.initializer,
-      {required int offset, required this.isFinal}) {
-    fileOffset = offset;
+      {required int fileOffset, required this.isFinal}) {
+    super.fileOffset = fileOffset;
   }
 
   @override
@@ -5045,6 +5045,72 @@ class PatternVariableDeclaration extends InternalStatement {
   @override
   String toString() {
     return "PatternVariableDeclaration(${toStringInternal()})";
+  }
+}
+
+class PatternAssignment extends InternalExpression {
+  final Pattern pattern;
+  final Expression expression;
+
+  PatternAssignment(this.pattern, this.expression, {required int fileOffset}) {
+    super.fileOffset = fileOffset;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+      InferenceVisitorImpl visitor, DartType typeContext) {
+    return visitor.visitPatternAssignment(this, typeContext);
+  }
+
+  @override
+  String toString() {
+    return "PatternAssignment(${toStringInternal()})";
+  }
+}
+
+class AssignedVariablePattern extends Pattern {
+  final VariableDeclaration variable;
+
+  AssignedVariablePattern(this.variable, {required int offset}) : super(offset);
+
+  @override
+  PatternInferenceResult acceptInference(InferenceVisitorImpl visitor,
+      {required SharedMatchContext context}) {
+    return visitor.visitAssignedVariablePattern(this, context: context);
+  }
+
+  @override
+  List<VariableDeclaration> get declaredVariables => [variable];
+
+  @override
+  void toTextInternal(AstPrinter printer) {
+    printer.write(variable.name!);
+  }
+
+  @override
+  String toString() {
+    return "AssignedVariablePattern(${toStringInternal()})";
+  }
+
+  @override
+  PatternTransformationResult transform(
+      Expression matchedExpression,
+      DartType matchedType,
+      Expression variableInitializingContext,
+      InferenceVisitorBase inferenceVisitor) {
+    // condition: let _ = `variable` = `matchedExpression` in true
+    return new PatternTransformationResult([
+      new PatternTransformationElement(
+          kind: PatternTransformationElementKind.regular,
+          condition: inferenceVisitor.engine.forest.createLet(
+              inferenceVisitor.engine.forest.createVariableDeclarationForValue(
+                  inferenceVisitor.engine.forest.createVariableSet(
+                      fileOffset, variable, matchedExpression)),
+              inferenceVisitor.engine.forest
+                  .createBoolLiteral(fileOffset, true))
+            ..fileOffset = fileOffset,
+          variableInitializers: [])
+    ]);
   }
 }
 
@@ -5617,7 +5683,7 @@ class VariablePattern extends Pattern {
 
   @override
   String toString() {
-    return "VariableBinder(${toStringInternal()})";
+    return "VariablePattern(${toStringInternal()})";
   }
 }
 
