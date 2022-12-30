@@ -125,7 +125,12 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
       String code, List<ExpectedDiagnostic> expectedDiagnostics) async {
     addTestFile(code);
     await resolveTestFile();
+    await assertDiagnosticsIn(errors, expectedDiagnostics);
+  }
 
+  /// Assert that the diagnostics in [errors] match [expectedDiagnostics].
+  Future<void> assertDiagnosticsIn(List<AnalysisError> errors,
+      List<ExpectedDiagnostic> expectedDiagnostics) async {
     //
     // Match actual diagnostics to expected diagnostics.
     //
@@ -217,6 +222,10 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
   /// Assert that there are no diagnostics in the given [code].
   Future<void> assertNoDiagnostics(String code) async =>
       assertDiagnostics(code, const []);
+
+  /// Assert that there are no diagnostics in [errors].
+  Future<void> assertNoDiagnosticsIn(List<AnalysisError> errors) =>
+      assertDiagnosticsIn(errors, const []);
 
   ExpectedLint lint(int offset, int length, {Pattern? messageContains}) =>
       ExpectedLint(lintRule!, offset, length, messageContains: messageContains);

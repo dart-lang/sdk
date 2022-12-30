@@ -14,8 +14,6 @@ import 'package:yaml/yaml.dart';
 import '../test_data/rules/experiments/experiments.dart';
 import 'integration/always_require_non_null_named_parameters.dart'
     as always_require_non_null_named_parameters;
-import 'integration/avoid_private_typedef_functions.dart'
-    as avoid_private_typedef_functions;
 import 'integration/avoid_relative_lib_imports.dart'
     as avoid_relative_lib_imports;
 import 'integration/avoid_renaming_method_parameters.dart'
@@ -197,7 +195,6 @@ void ruleTests() {
     public_member_api_docs.main();
     secure_pubspec_urls.main();
     avoid_renaming_method_parameters.main();
-    avoid_private_typedef_functions.main();
     sort_pub_dependencies.main();
     unnecessary_string_escapes.main();
     prefer_mixin.main();
