@@ -389,27 +389,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       function.returnType =
           returnType.build(libraryBuilder, TypeUse.returnType);
     }
-    if (isInlineClassInstanceMember && isConstructor) {
-      SourceInlineClassBuilder inlineClassBuilder =
-          parent as SourceInlineClassBuilder;
-      // TODO(johnniwinther): Support [_thisTypeParameters] for inline class
-      //  constructors.
-      List<DartType> typeArguments;
-      if (_thisTypeParameters != null) {
-        typeArguments = new List<DartType>.generate(
-            _thisTypeParameters!.length,
-            (int index) => new TypeParameterType(
-                _thisTypeParameters![index],
-                TypeParameterType.computeNullabilityFromBound(
-                    _thisTypeParameters![index])));
-      } else {
-        typeArguments = [];
-      }
-      _thisVariable = new VariableDeclarationImpl(syntheticThisName,
-          isFinal: true,
-          type: new InlineType(inlineClassBuilder.inlineClass,
-              libraryBuilder.nonNullable, typeArguments));
-    } else if (isExtensionInstanceMember || isInlineClassInstanceMember) {
+    if (isExtensionInstanceMember || isInlineClassInstanceMember) {
       SourceDeclarationBuilderMixin declarationBuilder =
           parent as SourceDeclarationBuilderMixin;
       if (declarationBuilder.typeParameters != null) {
@@ -418,7 +398,27 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
             count, (int index) => function.typeParameters[index],
             growable: false);
       }
-      _thisVariable = function.positionalParameters.first;
+      if (isInlineClassInstanceMember && isConstructor) {
+        SourceInlineClassBuilder inlineClassBuilder =
+            parent as SourceInlineClassBuilder;
+        List<DartType> typeArguments;
+        if (_thisTypeParameters != null) {
+          typeArguments = new List<DartType>.generate(
+              _thisTypeParameters!.length,
+              (int index) => new TypeParameterType(
+                  _thisTypeParameters![index],
+                  TypeParameterType.computeNullabilityFromBound(
+                      _thisTypeParameters![index])));
+        } else {
+          typeArguments = [];
+        }
+        _thisVariable = new VariableDeclarationImpl(syntheticThisName,
+            isFinal: true,
+            type: new InlineType(inlineClassBuilder.inlineClass,
+                libraryBuilder.nonNullable, typeArguments));
+      } else {
+        _thisVariable = function.positionalParameters.first;
+      }
     }
   }
 

@@ -1887,14 +1887,14 @@ class BodyBuilder extends StackListenerImpl
     return arguments;
   }
 
-  void finishConstructor(ConstructorDeclaration builder,
+  void finishConstructor(ConstructorDeclaration constructorDeclaration,
       AsyncMarker asyncModifier, Statement? body,
       {required List<Object /* Expression | NamedExpression */ >?
           superParametersAsArguments}) {
     /// Quotes below are from [Dart Programming Language Specification, 4th
     /// Edition](
     /// https://ecma-international.org/publications/files/ECMA-ST/ECMA-408.pdf).
-    assert(builder == this.member);
+    assert(constructorDeclaration == this.member);
     assert(() {
       if (superParametersAsArguments == null) {
         return true;
@@ -1933,9 +1933,9 @@ class BodyBuilder extends StackListenerImpl
         "Expected 'superParametersAsArguments' "
         "to be sorted by occurrence in file.");
 
-    Member member = builder.member;
-    FunctionNode function = builder.function;
-    List<FormalParameterBuilder>? formals = builder.formals;
+    Member member = constructorDeclaration.member;
+    FunctionNode function = constructorDeclaration.function;
+    List<FormalParameterBuilder>? formals = constructorDeclaration.formals;
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder parameter = formals[i];
@@ -1992,7 +1992,7 @@ class BodyBuilder extends StackListenerImpl
       if (initializers.last is SuperInitializer) {
         SuperInitializer superInitializer =
             initializers.last as SuperInitializer;
-        if (builder.classDeclaration.isEnum) {
+        if (constructorDeclaration.classDeclaration.isEnum) {
           initializers[initializers.length - 1] = buildInvalidInitializer(
               buildProblem(fasta.messageEnumConstructorSuperInitializer,
                   superInitializer.fileOffset, noLength))
@@ -2054,19 +2054,19 @@ class BodyBuilder extends StackListenerImpl
       List<InitializerInferenceResult> inferenceResults =
           new List<InitializerInferenceResult>.generate(
               initializers.length,
-              (index) =>
-                  typeInferrer.inferInitializer(this, initializers[index]),
+              (index) => typeInferrer.inferInitializer(
+                  this, constructorDeclaration, initializers[index]),
               growable: false);
 
-      if (!builder.isExternal) {
+      if (!constructorDeclaration.isExternal) {
         for (int i = 0; i < initializers.length; i++) {
-          builder.addInitializer(initializers[i], this,
+          constructorDeclaration.addInitializer(initializers[i], this,
               inferenceResult: inferenceResults[i]);
         }
       }
     }
 
-    List<Initializer> builtInitializers = builder.initializers;
+    List<Initializer> builtInitializers = constructorDeclaration.initializers;
     if (asyncModifier != AsyncMarker.Sync) {
       builtInitializers.add(buildInvalidInitializer(buildProblem(
           fasta.messageConstructorNotSync, body!.fileOffset, noLength)));
@@ -2110,11 +2110,11 @@ class BodyBuilder extends StackListenerImpl
 
       if (superTarget == null ||
           checkArgumentsForFunction(superTarget.function, arguments,
-                  builder.charOffset, const <TypeParameter>[]) !=
+                  constructorDeclaration.charOffset, const <TypeParameter>[]) !=
               null) {
         String superclass =
             sourceClassBuilder!.supertypeBuilder!.fullNameForErrors;
-        int length = builder.name.length;
+        int length = constructorDeclaration.name.length;
         if (length == 0) {
           length = sourceClassBuilder!.cls.name.length;
         }
@@ -2122,17 +2122,17 @@ class BodyBuilder extends StackListenerImpl
             buildProblem(
                 fasta.templateSuperclassHasNoDefaultConstructor
                     .withArguments(superclass),
-                builder.charOffset,
+                constructorDeclaration.charOffset,
                 length),
-            builder.charOffset);
+            constructorDeclaration.charOffset);
       } else {
         initializer = buildSuperInitializer(
-            true, superTarget, arguments, builder.charOffset);
+            true, superTarget, arguments, constructorDeclaration.charOffset);
       }
       if (libraryFeatures.superParameters.isEnabled) {
-        InitializerInferenceResult inferenceResult =
-            typeInferrer.inferInitializer(this, initializer);
-        builder.addInitializer(initializer, this,
+        InitializerInferenceResult inferenceResult = typeInferrer
+            .inferInitializer(this, constructorDeclaration, initializer);
+        constructorDeclaration.addInitializer(initializer, this,
             inferenceResult: inferenceResult);
       } else {
         builtInitializers.add(initializer);
@@ -7895,10 +7895,14 @@ class BodyBuilder extends StackListenerImpl
             ..fileOffset = assignmentOffset
         ];
       } else {
+        ConstructorDeclaration constructorBuilder =
+            member as ConstructorDeclaration;
         if (formal != null && formal.type is! OmittedTypeBuilder) {
           DartType formalType = formal.variable!.type;
-          if (!typeEnvironment.isSubtypeOf(formalType, builder.fieldType,
-              SubtypeCheckMode.withNullabilities)) {
+          DartType fieldType =
+              constructorBuilder.substituteFieldType(builder.fieldType);
+          if (!typeEnvironment.isSubtypeOf(
+              formalType, fieldType, SubtypeCheckMode.withNullabilities)) {
             libraryBuilder.addProblem(
                 fasta.templateInitializingFormalTypeMismatch.withArguments(
                     name,
@@ -7914,8 +7918,6 @@ class BodyBuilder extends StackListenerImpl
                 ]);
           }
         }
-        ConstructorDeclaration constructorBuilder =
-            member as ConstructorDeclaration;
         constructorBuilder.registerInitializedField(builder);
         return builder.buildInitializer(assignmentOffset, expression,
             isSynthetic: formal != null);

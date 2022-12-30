@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=sealed-class
+// SharedOptions=--enable-experiment=sealed-class,class-modifiers
 
 // Error when attempting to mix in a sealed class outside of library.
 
@@ -16,7 +16,7 @@ abstract class OutsideA with SealedClass {}
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
 
 class OutsideB with SealedClass {
-// [error column 1, length 299]
+// [error column 1, length 378]
 // [analyzer] COMPILE_TIME_ERROR.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY
 //    ^
 // [cfe] Class 'SealedClass' can't be used as a mixin.
@@ -56,8 +56,3 @@ abstract class OutsideF with Mixin, SealedClass {}
 //             ^
 // [cfe] Class 'SealedClass' can't be used as a mixin.
 // [cfe] Sealed class 'SealedClass' can't be extended, implemented, or mixed in outside of its library.
-
-class OutsideG with Mixin, Class {}
-//    ^
-// [analyzer] unspecified
-// [cfe] Class 'Class' can't be used as a mixin.

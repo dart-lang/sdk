@@ -1966,8 +1966,8 @@ class OutlineBuilder extends StackListenerImpl {
           break;
       }
       bool isStatic = (modifiers & staticMask) != 0;
-      if (constructorName == null &&
-          !isStatic &&
+      bool isConstructor = constructorName != null;
+      if (!isStatic &&
           (libraryBuilder.currentTypeParameterScopeBuilder.kind ==
                   TypeParameterScopeKind.extensionDeclaration ||
               libraryBuilder.currentTypeParameterScopeBuilder.kind ==
@@ -1997,53 +1997,56 @@ class OutlineBuilder extends StackListenerImpl {
             typeVariables = synthesizedTypeVariables;
           }
         }
-        List<FormalParameterBuilder> synthesizedFormals = [];
-        TypeBuilder thisType;
-        if (declaration.kind == TypeParameterScopeKind.extensionDeclaration) {
-          thisType = declaration.extensionThisType;
-        } else {
-          thisType = libraryBuilder.addNamedType(
-              declaration.name,
-              const NullabilityBuilder.omitted(),
-              declaration.typeVariables != null
-                  ? new List<TypeBuilder>.generate(
-                      declaration.typeVariables!.length,
-                      (int index) =>
-                          new NamedTypeBuilder.fromTypeDeclarationBuilder(
-                              typeVariables![index],
-                              const NullabilityBuilder.omitted(),
-                              instanceTypeVariableAccess:
-                                  InstanceTypeVariableAccessState.Allowed))
-                  : null,
-              charOffset,
-              instanceTypeVariableAccess:
-                  InstanceTypeVariableAccessState.Allowed);
-        }
-        if (substitution != null) {
-          List<NamedTypeBuilder> unboundTypes = [];
-          List<TypeVariableBuilder> unboundTypeVariables = [];
-          thisType = substitute(thisType, substitution,
-              unboundTypes: unboundTypes,
-              unboundTypeVariables: unboundTypeVariables);
-          for (NamedTypeBuilder unboundType in unboundTypes) {
-            declaration.registerUnresolvedNamedType(unboundType);
+        if (!isConstructor) {
+          List<FormalParameterBuilder> synthesizedFormals = [];
+          TypeBuilder thisType;
+          if (declaration.kind == TypeParameterScopeKind.extensionDeclaration) {
+            thisType = declaration.extensionThisType;
+          } else {
+            thisType = libraryBuilder.addNamedType(
+                declaration.name,
+                const NullabilityBuilder.omitted(),
+                declaration.typeVariables != null
+                    ? new List<TypeBuilder>.generate(
+                        declaration.typeVariables!.length,
+                        (int index) =>
+                            new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                                typeVariables![index],
+                                const NullabilityBuilder.omitted(),
+                                instanceTypeVariableAccess:
+                                    InstanceTypeVariableAccessState.Allowed))
+                    : null,
+                charOffset,
+                instanceTypeVariableAccess:
+                    InstanceTypeVariableAccessState.Allowed);
           }
-          libraryBuilder.unboundTypeVariables.addAll(unboundTypeVariables);
+          if (substitution != null) {
+            List<NamedTypeBuilder> unboundTypes = [];
+            List<TypeVariableBuilder> unboundTypeVariables = [];
+            thisType = substitute(thisType, substitution,
+                unboundTypes: unboundTypes,
+                unboundTypeVariables: unboundTypeVariables);
+            for (NamedTypeBuilder unboundType in unboundTypes) {
+              declaration.registerUnresolvedNamedType(unboundType);
+            }
+            libraryBuilder.unboundTypeVariables.addAll(unboundTypeVariables);
+          }
+          synthesizedFormals.add(new FormalParameterBuilder(
+              /* metadata = */
+              null,
+              FormalParameterKind.requiredPositional,
+              finalMask,
+              thisType,
+              syntheticThisName,
+              null,
+              charOffset,
+              fileUri: uri,
+              isExtensionThis: true));
+          if (formals != null) {
+            synthesizedFormals.addAll(formals);
+          }
+          formals = synthesizedFormals;
         }
-        synthesizedFormals.add(new FormalParameterBuilder(
-            /* metadata = */ null,
-            FormalParameterKind.requiredPositional,
-            finalMask,
-            thisType,
-            syntheticThisName,
-            null,
-            charOffset,
-            fileUri: uri,
-            isExtensionThis: true));
-        if (formals != null) {
-          synthesizedFormals.addAll(formals);
-        }
-        formals = synthesizedFormals;
       }
 
       declarationBuilder.resolveNamedTypes(typeVariables, libraryBuilder);

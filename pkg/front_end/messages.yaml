@@ -6021,10 +6021,13 @@ SealedMixinSubtypeOutsideOfLibrary:
 
 CantUseClassAsMixin:
   problemMessage: "Class '#name' can't be used as a mixin."
-  experiments: sealed-class
-  script: |
-    class A {}
-    class B with A {}
+  experiments: class-modifiers
+  script:
+    main.dart:
+      import 'lib.dart';
+      class B with A {}
+    lib.dart:
+      class A {}
 
 UnspecifiedGetterNameInObjectPattern:
   problemMessage: "The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern."
@@ -6033,4 +6036,3 @@ UnspecifiedGetterNameInObjectPattern:
   script: |
     abstract class A { int get foo;}
     test(dynamic x) { if (x case A(: 0)) {} }
-

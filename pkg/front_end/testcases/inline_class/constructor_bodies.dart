@@ -9,7 +9,7 @@ inline class Class1 {
 
   Class1.named1(this.it, int additional);
 
-  Class1.named2(this.it, int additional) {
+  Class1.named2(int this.it, int additional) {
     print(additional);
   }
 
@@ -24,7 +24,6 @@ inline class Class1 {
   Class1.named6(String text) : it = text.length;
 }
 
-/* TODO(johnniwinther): Support generic inline class constructors.
 inline class Class2<T> {
   final T it;
 
@@ -32,7 +31,7 @@ inline class Class2<T> {
 
   Class2.named1(this.it, int additional);
 
-  Class2.named2(this.it, int additional) {
+  Class2.named2(T this.it, int additional) {
     print(additional);
   }
 
@@ -45,4 +44,4 @@ inline class Class2<T> {
   }
 
   Class2.named6(List<T> list) : it = list.first;
-}*/
+}

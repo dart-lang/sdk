@@ -8,3 +8,13 @@ abstract mixin class B {}
 
 mixin M {}
 mixin class C = Object with M;
+
+class AWith with A {}
+
+class BWith with B {}
+
+class CWith with C {}
+
+class MultipleWithMixin with A, M {}
+
+class MultipleWithAnotherClass with A, B {}

@@ -65,6 +65,7 @@ CantInferPackagesFromPackageUri/example: Fail
 CantInferTypeDueToCircularity/example: Fail
 CantReadFile/part_wrapped_script: Fail # Importing file in the (now) part.
 CantUseClassAsMixin/analyzerCode: Fail
+CantUseClassAsMixin/part_wrapped_script: Fail # Uses imports
 CantUseControlFlowOrSpreadAsConstant/example: Fail
 CantUseDeferredPrefixAsConstant/part_wrapped_script: Fail # Importing file in the (now) part.
 CantUsePrefixAsExpression/part_wrapped_script: Fail # Importing file in the (now) part.

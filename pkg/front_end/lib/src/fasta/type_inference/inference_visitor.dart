@@ -42,6 +42,7 @@ import '../kernel/internal_ast.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
 import '../names.dart';
 import '../problems.dart' show unhandled;
+import '../source/constructor_declaration.dart';
 import '../source/source_library_builder.dart';
 import '../uri_offset.dart';
 import 'closure_context.dart';
@@ -128,12 +129,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   final TypeAnalyzerOptions options;
 
+  final ConstructorDeclaration? constructorDeclaration;
+
   @override
   late final SharedTypeAnalyzerErrors errors = new SharedTypeAnalyzerErrors(
       helper: helper, uriForInstrumentation: uriForInstrumentation);
 
-  InferenceVisitorImpl(
-      TypeInferrerImpl inferrer, InferenceHelper helper, this.operations)
+  InferenceVisitorImpl(TypeInferrerImpl inferrer, InferenceHelper helper,
+      this.constructorDeclaration, this.operations)
       : options = new TypeAnalyzerOptions(
             nullSafetyEnabled: inferrer.libraryBuilder.isNonNullableByDefault,
             patternsEnabled: false),
@@ -1301,10 +1304,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   InitializerInferenceResult visitFieldInitializer(FieldInitializer node) {
+    DartType fieldType = node.field.type;
+    fieldType = constructorDeclaration!.substituteFieldType(fieldType);
     ExpressionInferenceResult initializerResult =
-        inferExpression(node.value, node.field.type);
+        inferExpression(node.value, fieldType);
     Expression initializer = ensureAssignableResult(
-            node.field.type, initializerResult,
+            fieldType, initializerResult,
             fileOffset: node.fileOffset)
         .expression;
     node.value = initializer..parent = node;

@@ -11,6 +11,15 @@ inline class Class1 /* declaredRepresentationType = core::int */ {
   constructor named5 = self::Class1|named5;
   constructor named6 = self::Class1|named6;
 }
+inline class Class2<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
+  constructor • = self::Class2|;
+  constructor named1 = self::Class2|named1;
+  constructor named2 = self::Class2|named2;
+  constructor named3 = self::Class2|named3;
+  constructor named4 = self::Class2|named4;
+  constructor named5 = self::Class2|named5;
+  constructor named6 = self::Class2|named6;
+}
 method Class1|(core::int it) → self::Class1 {
   final self::Class1 #this = it;
   return #this;
@@ -43,5 +52,39 @@ method Class1|named5(core::int additional, core::int it) → self::Class1 {
 }
 method Class1|named6(core::String text) → self::Class1 {
   final self::Class1 #this = text.{core::String::length}{core::int};
+  return #this;
+}
+method Class2|<T extends core::Object? = dynamic>(self::Class2|::T% it) → self::Class2<self::Class2|::T%> {
+  final self::Class2<self::Class2|::T%> #this = it;
+  return #this;
+}
+method Class2|named1<T extends core::Object? = dynamic>(self::Class2|named1::T% it, core::int additional) → self::Class2<self::Class2|named1::T%> {
+  final self::Class2<self::Class2|named1::T%> #this = it;
+  return #this;
+}
+method Class2|named2<T extends core::Object? = dynamic>(self::Class2|named2::T% it, core::int additional) → self::Class2<self::Class2|named2::T%> {
+  final self::Class2<self::Class2|named2::T%> #this = it;
+  {
+    core::print(additional);
+  }
+  return #this;
+}
+method Class2|named3<T extends core::Object? = dynamic>(self::Class2|named3::T% it) → self::Class2<self::Class2|named3::T%> {
+  final self::Class2<self::Class2|named3::T%> #this = it;
+  return #this;
+}
+method Class2|named4<T extends core::Object? = dynamic>(core::int additional, self::Class2|named4::T% it) → self::Class2<self::Class2|named4::T%> {
+  final self::Class2<self::Class2|named4::T%> #this = it;
+  return #this;
+}
+method Class2|named5<T extends core::Object? = dynamic>(core::int additional, self::Class2|named5::T% it) → self::Class2<self::Class2|named5::T%> {
+  final self::Class2<self::Class2|named5::T%> #this = it;
+  {
+    core::print(additional);
+  }
+  return #this;
+}
+method Class2|named6<T extends core::Object? = dynamic>(core::List<self::Class2|named6::T%> list) → self::Class2<self::Class2|named6::T%> {
+  final self::Class2<self::Class2|named6::T%> #this = list.{core::Iterable::first}{self::Class2|named6::T%};
   return #this;
 }
