@@ -451,7 +451,7 @@ class DateTime {
 
   @patch
   Duration difference(DateTime other) {
-    return Duration(milliseconds: _value - other._value);
+    return Duration(milliseconds: _value - other.millisecondsSinceEpoch);
   }
 
   @patch
