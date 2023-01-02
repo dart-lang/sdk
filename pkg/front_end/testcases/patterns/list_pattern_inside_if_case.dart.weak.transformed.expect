@@ -161,7 +161,7 @@ static method test2(core::List<core::Object?> x) → dynamic {
         final dynamic #t62 = #t61;
         if(!(#t62 == null)) {
           {
-            dynamic a = #t62;
+            core::Object a = #t62;
             {
               return 3;
             }

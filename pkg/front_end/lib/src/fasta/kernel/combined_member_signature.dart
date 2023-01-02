@@ -718,7 +718,9 @@ abstract class CombinedMemberSignatureBase<T> {
       return type;
     }
     InterfaceType? instance = hierarchy.getTypeAsInstanceOf(
-        thisType, member.enclosingClass!, classBuilder.libraryBuilder.library);
+        thisType, member.enclosingClass!,
+        isNonNullableByDefault:
+            classBuilder.libraryBuilder.isNonNullableByDefault);
     assert(
         instance != null,
         "No instance of $thisType as ${member.enclosingClass} found for "

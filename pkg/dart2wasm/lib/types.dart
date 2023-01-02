@@ -510,7 +510,9 @@ class Types {
       // necessary to test the type arguments.
       Class cls = translator.classForType(operandType);
       InterfaceType? base = translator.hierarchy
-          .getTypeAsInstanceOf(type, cls, codeGen.member.enclosingLibrary)
+          .getTypeAsInstanceOf(type, cls,
+              isNonNullableByDefault:
+                  codeGen.member.enclosingLibrary.isNonNullableByDefault)
           ?.withDeclaredNullability(operandType.declaredNullability);
       if (base != operandType) {
         makeType(codeGen, type);

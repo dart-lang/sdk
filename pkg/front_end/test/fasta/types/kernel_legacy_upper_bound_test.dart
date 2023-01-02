@@ -4,7 +4,7 @@
 
 import "legacy_upper_bound_helper.dart" show LegacyUpperBoundTest;
 
-import "package:kernel/ast.dart" show DartType, InterfaceType, Library;
+import "package:kernel/ast.dart" show DartType, InterfaceType;
 
 import "package:kernel/class_hierarchy.dart" show ClassHierarchy;
 
@@ -21,10 +21,11 @@ class KernelLegacyUpperBoundTest extends LegacyUpperBoundTest {
   }
 
   @override
-  DartType getLegacyLeastUpperBound(
-      DartType a, DartType b, Library clientLibrary) {
+  DartType getLegacyLeastUpperBound(DartType a, DartType b,
+      {required bool isNonNullableByDefault}) {
     return hierarchy.getLegacyLeastUpperBound(
-        a as InterfaceType, b as InterfaceType, clientLibrary);
+        a as InterfaceType, b as InterfaceType,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 }
 

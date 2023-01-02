@@ -6036,3 +6036,9 @@ UnspecifiedGetterNameInObjectPattern:
   script: |
     abstract class A { int get foo;}
     test(dynamic x) { if (x case A(: 0)) {} }
+
+SwitchExpressionEmpty:
+  problemMessage: "Switch expressions must contain at least one case."
+  experiments: patterns
+  script: |
+    test(dynamic x) => switch (x) {};

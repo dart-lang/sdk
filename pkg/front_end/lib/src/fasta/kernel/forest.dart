@@ -399,7 +399,9 @@ class Forest {
     // ignore: unnecessary_null_comparison
     assert(fileOffset != null);
     // TODO(johnniwinther): Use [label]?
-    return new BreakStatementImpl(isContinue: false)..fileOffset = fileOffset;
+    return new BreakStatementImpl(isContinue: false)
+      ..fileOffset = fileOffset
+      ..target = label is LabeledStatement ? label : dummyLabeledStatement;
   }
 
   /// Return a representation of a catch clause.

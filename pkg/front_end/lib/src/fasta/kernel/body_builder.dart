@@ -4145,7 +4145,7 @@ class BodyBuilder extends StackListenerImpl
       patterns[i] = toPattern(pop());
     }
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
-    DartType typeArgument;
+    DartType? typeArgument;
     if (typeArguments != null) {
       if (typeArguments.length > 1) {
         addProblem(
@@ -4160,8 +4160,6 @@ class BodyBuilder extends StackListenerImpl
         typeArgument = instantiateToBounds(
             typeArgument, coreTypes.objectClass, libraryBuilder.library);
       }
-    } else {
-      typeArgument = implicitTypeArgument;
     }
 
     push(new ListPattern(typeArgument, patterns, leftBracket.charOffset));

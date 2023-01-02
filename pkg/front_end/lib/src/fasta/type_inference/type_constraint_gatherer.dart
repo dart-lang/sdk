@@ -39,11 +39,11 @@ abstract class TypeConstraintGatherer {
 
   CoreTypes get coreTypes;
 
-  void addUpperBound(
-      TypeConstraint constraint, DartType upper, Library clientLibrary);
+  void addUpperBound(TypeConstraint constraint, DartType upper,
+      {required bool isNonNullableByDefault});
 
-  void addLowerBound(
-      TypeConstraint constraint, DartType lower, Library clientLibrary);
+  void addLowerBound(TypeConstraint constraint, DartType lower,
+      {required bool isNonNullableByDefault});
 
   /// Applies all the argument constraints implied by trying to make
   /// [actualTypes] assignable to [formalTypes].
@@ -77,10 +77,10 @@ abstract class TypeConstraintGatherer {
     for (_ProtoConstraint protoConstraint in _protoConstraints) {
       if (protoConstraint.isUpper) {
         addUpperBound(result[protoConstraint.parameter]!, protoConstraint.bound,
-            clientLibrary);
+            isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
       } else {
         addLowerBound(result[protoConstraint.parameter]!, protoConstraint.bound,
-            clientLibrary);
+            isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
       }
     }
     return result;
@@ -1095,15 +1095,17 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   CoreTypes get coreTypes => environment.coreTypes;
 
   @override
-  void addUpperBound(
-      TypeConstraint constraint, DartType upper, Library clientLibrary) {
-    environment.addUpperBound(constraint, upper, clientLibrary);
+  void addUpperBound(TypeConstraint constraint, DartType upper,
+      {required bool isNonNullableByDefault}) {
+    environment.addUpperBound(constraint, upper,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   @override
-  void addLowerBound(
-      TypeConstraint constraint, DartType lower, Library clientLibrary) {
-    environment.addLowerBound(constraint, lower, clientLibrary);
+  void addLowerBound(TypeConstraint constraint, DartType lower,
+      {required bool isNonNullableByDefault}) {
+    environment.addLowerBound(constraint, lower,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   @override

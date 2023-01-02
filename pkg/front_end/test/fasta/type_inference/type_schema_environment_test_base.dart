@@ -130,7 +130,8 @@ abstract class TypeSchemaEnvironmentTestBase {
         (List<TypeParameter> typeParameterNodes) {
       expect(
           typeSchemaEnvironment.getStandardLowerBound(
-              parseType(type1), parseType(type2), testLibrary),
+              parseType(type1), parseType(type2),
+              isNonNullableByDefault: testLibrary.isNonNullableByDefault),
           parseType(lowerBound));
     });
   }
@@ -241,12 +242,12 @@ abstract class TypeSchemaEnvironmentTestBase {
         if (firstLowerBoundSegment) {
           firstLowerBoundSegment = false;
           if (segment.isNotEmpty) {
-            typeSchemaEnvironment.addUpperBound(
-                result, parseType(segment), testLibrary);
+            typeSchemaEnvironment.addUpperBound(result, parseType(segment),
+                isNonNullableByDefault: testLibrary.isNonNullableByDefault);
           }
         } else {
-          typeSchemaEnvironment.addLowerBound(
-              result, parseType(segment), testLibrary);
+          typeSchemaEnvironment.addLowerBound(result, parseType(segment),
+              isNonNullableByDefault: testLibrary.isNonNullableByDefault);
         }
       }
     }
