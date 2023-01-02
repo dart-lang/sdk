@@ -543,7 +543,8 @@ class OperationsCfe
 
   @override
   DartType lub(DartType type1, DartType type2) {
-    throw new UnimplementedError('TODO(paulberry)');
+    return typeEnvironment.getStandardUpperBound(type1, type2,
+        isNonNullableByDefault: true);
   }
 
   @override
@@ -553,7 +554,18 @@ class OperationsCfe
 
   @override
   DartType? matchListType(DartType type) {
-    throw new UnimplementedError('TODO(paulberry)');
+    if (type is InterfaceType) {
+      List<DartType>? typeArguments =
+          typeEnvironment.getTypeArgumentsAsInstanceOf(
+              type, typeEnvironment.coreTypes.listClass);
+      if (typeArguments == null || typeArguments.length != 1) {
+        return null;
+      } else {
+        return typeArguments.single;
+      }
+    } else {
+      return null;
+    }
   }
 
   @override

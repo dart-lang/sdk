@@ -256,7 +256,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       // failing to acquire the mark bit here doesn't reliably indicate the
       // object was already encountered through the deferred marking stack. Our
       // processing here is idempotent, so repeated visits only hurt performance
-      // but not correctness. Duplicatation is expected to be low.
+      // but not correctness. Duplication is expected to be low.
       // By the absence of a special case, we are treating WeakProperties as
       // strong references here. This guarantees a WeakProperty will only be
       // added to the delayed_weak_properties_ list of the worker that
@@ -880,7 +880,7 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
   {
     // Bulk increase task count before starting any task, instead of
     // incrementing as each task is started, to prevent a task which
-    // races ahead from falsly beleiving it was the last task to complete.
+    // races ahead from falsely believing it was the last task to complete.
     MonitorLocker ml(page_space->tasks_lock());
     ASSERT(page_space->phase() == PageSpace::kDone);
     page_space->set_phase(PageSpace::kMarking);

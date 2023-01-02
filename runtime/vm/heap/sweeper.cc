@@ -30,7 +30,7 @@ bool GCSweeper::SweepPage(Page* page, FreeList* freelist, bool locked) {
     ObjectPtr raw_obj = UntaggedObject::FromAddr(current);
     ASSERT(Page::Of(raw_obj) == page);
     // These acquire operations balance release operations in array
-    // truncaton, ensuring the writes creating the filler object are ordered
+    // truncation, ensuring the writes creating the filler object are ordered
     // before the writes inserting the filler object into the freelist.
     uword tags = raw_obj->untag()->tags_.load(std::memory_order_acquire);
     intptr_t obj_size = raw_obj->untag()->HeapSize(tags);

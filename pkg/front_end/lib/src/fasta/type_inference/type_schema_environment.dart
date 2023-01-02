@@ -112,17 +112,17 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   }
 
   /// Modify the given [constraint]'s lower bound to include [lower].
-  void addLowerBound(
-      TypeConstraint constraint, DartType lower, Library clientLibrary) {
-    constraint.lower =
-        getStandardUpperBound(constraint.lower, lower, clientLibrary);
+  void addLowerBound(TypeConstraint constraint, DartType lower,
+      {required bool isNonNullableByDefault}) {
+    constraint.lower = getStandardUpperBound(constraint.lower, lower,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   /// Modify the given [constraint]'s upper bound to include [upper].
-  void addUpperBound(
-      TypeConstraint constraint, DartType upper, Library clientLibrary) {
-    constraint.upper =
-        getStandardLowerBound(constraint.upper, upper, clientLibrary);
+  void addUpperBound(TypeConstraint constraint, DartType upper,
+      {required bool isNonNullableByDefault}) {
+    constraint.upper = getStandardLowerBound(constraint.upper, upper,
+        isNonNullableByDefault: isNonNullableByDefault);
   }
 
   /// Performs partial (either downwards or horizontal) inference, producing a
@@ -549,7 +549,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
 
     if (extendsConstraint != null) {
       constraint = constraint.clone();
-      addUpperBound(constraint, extendsConstraint, clientLibrary);
+      addUpperBound(constraint, extendsConstraint,
+          isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
     }
 
     return solveTypeConstraint(
@@ -600,7 +601,8 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
     // If we consider the `T extends num` we conclude `<num>`, which works.
     if (extendsConstraint != null) {
       constraint = constraint.clone();
-      addUpperBound(constraint, extendsConstraint, clientLibrary);
+      addUpperBound(constraint, extendsConstraint,
+          isNonNullableByDefault: clientLibrary.isNonNullableByDefault);
       return solveTypeConstraint(
           constraint,
           clientLibrary.isNonNullableByDefault

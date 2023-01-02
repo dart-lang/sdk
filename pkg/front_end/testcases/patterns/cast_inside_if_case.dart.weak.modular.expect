@@ -34,7 +34,7 @@ static method test(dynamic x) → dynamic {
       final dynamic #t13 = #t12{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
       if(#t10 =={core::Object::==}{(core::Object) → core::bool} 0) {
         {
-          dynamic y = #t13;
+          core::bool y = #t13;
           {
             return 2;
           }
