@@ -325,6 +325,7 @@ namespace dart {
   V(_Smi, get:hashCode, Smi_hashCode, 0x75e0ccd2)                              \
   V(_Mint, get:hashCode, Mint_hashCode, 0x75e0ccd2)                            \
   V(_Double, get:hashCode, Double_hashCode, 0x75e0ccd2)                        \
+  V(::, _memCopy, MemCopy, 0x274f4816)                                         \
 
 // List of intrinsics:
 // (class-name, function-name, intrinsification method, fingerprint).
