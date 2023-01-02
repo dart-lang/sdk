@@ -47,7 +47,7 @@ class HeapProfileSampler {
   // Returns number of bytes that should be be attributed to the sample.
   // If returned size is 0, the allocation should not be sampled.
   //
-  // Due to how the poission sampling works, some samples should be accounted
+  // Due to how the poisson sampling works, some samples should be accounted
   // multiple times if they cover allocations larger than the average sampling
   // rate.
   void SampleSize(intptr_t allocation_size);

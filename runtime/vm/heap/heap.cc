@@ -398,7 +398,7 @@ void Heap::NotifyIdle(int64_t deadline) {
     if (old_space_.ShouldPerformIdleMarkCompact(deadline)) {
       // We prefer mark-compact over other old space GCs if we have enough time,
       // since it removes old space fragmentation and frees up most memory.
-      // Blocks for O(heap), roughtly twice as costly as mark-sweep.
+      // Blocks for O(heap), roughly twice as costly as mark-sweep.
       CollectOldSpaceGarbage(thread, GCType::kMarkCompact, GCReason::kIdle);
     } else if (old_space_.ReachedHardThreshold()) {
       // Even though the following GC may exceed our idle deadline, we need to
@@ -977,7 +977,7 @@ void Heap::ForwardWeakTables(ObjectPointerVisitor* visitor) {
     GetWeakTable(Heap::kOld, selector)->Forward(visitor);
   }
 
-  // Isolates might have forwarding tables (used for during snapshoting in
+  // Isolates might have forwarding tables (used for during snapshotting in
   // isolate communication).
   isolate_group()->ForEachIsolate(
       [&](Isolate* isolate) {

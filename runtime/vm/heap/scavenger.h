@@ -86,7 +86,7 @@ class ScavengeStats {
 
   // Of all data before scavenge, what fraction was found to be garbage?
   // If this scavenge included growth, assume the extra capacity would become
-  // garbage to give the scavenger a chance to stablize at the new capacity.
+  // garbage to give the scavenger a chance to stabilize at the new capacity.
   double ExpectedGarbageFraction() const {
     double work =
         after_.used_in_words + promoted_in_words_ + abandoned_in_words_;
