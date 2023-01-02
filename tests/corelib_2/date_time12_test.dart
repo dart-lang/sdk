@@ -6,14 +6,14 @@
 
 import "package:expect/expect.dart";
 
-// Test DateTime comparison operators.
+// Test DateTime.unixEpoch Constructor
 
 main() {
-  var unixEpoch = new DateTime.unixEpoch();
+  const unixEpoch = DateTime.unixEpoch();
 
   var d1 = new DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
-  var d2 = new DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+  var d2 = new DateTime.fromMicrosecondsSinceEpoch(0, isUtc: true);
 
-  Expect.equals(unixEpoch.millisecondsSinceEpoch, d1.millisecondsSinceEpoch);
-  Expect.equals(unixEpoch.millisecondsSinceEpoch, d2.millisecondsSinceEpoch);
+  Expect.equals(true, unixEpoch == d1);
+  Expect.equals(true, unixEpoch == d2);
 }
