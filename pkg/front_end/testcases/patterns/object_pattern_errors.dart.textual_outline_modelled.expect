@@ -1,0 +1,4 @@
+class A {}
+
+test(dynamic x) {}
+typedef B<X> = A;

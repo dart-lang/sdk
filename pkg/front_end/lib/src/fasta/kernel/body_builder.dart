@@ -8347,8 +8347,37 @@ class BodyBuilder extends StackListenerImpl
     // TODO(cstefantsova): Handle the case of secondIdentifier != null
     handleIdentifier(firstIdentifier, IdentifierContext.typeReference);
     Object? resolvedIdentifier = pop();
+
     if (resolvedIdentifier is TypeUseGenerator) {
       TypeDeclarationBuilder typeDeclaration = resolvedIdentifier.declaration;
+
+      if (typeDeclaration is TypeAliasBuilder) {
+        if (typeArguments == null ||
+            typeArguments.length ==
+                typeDeclaration.typedef.typeParameters.length) {
+          TypeDeclarationBuilder? unaliasedTypeDeclaration =
+              typeDeclaration.unaliasDeclaration(typeArguments);
+          List<TypeBuilder>? unaliasedTypeArguments =
+              typeDeclaration.unaliasTypeArguments(typeArguments);
+          if (unaliasedTypeDeclaration == null) {
+            // TODO(cstefantsova): Make sure an error is reported elsewhere.
+            push(new DummyPattern(firstIdentifier.charOffset));
+            return;
+          } else {
+            typeDeclaration = unaliasedTypeDeclaration;
+            typeArguments = unaliasedTypeArguments;
+          }
+        } else {
+          addProblem(
+              fasta.templateTypeArgumentMismatch
+                  .withArguments(typeDeclaration.typedef.typeParameters.length),
+              firstIdentifier.charOffset,
+              noLength);
+          push(new DummyPattern(firstIdentifier.charOffset));
+          return;
+        }
+      }
+
       if (typeDeclaration is ClassBuilder) {
         List<DartType>? builtTypeArguments;
         if (typeArguments != null) {
@@ -8359,7 +8388,13 @@ class BodyBuilder extends StackListenerImpl
                   .add(typeBuilder.build(libraryBuilder, TypeUse.typeArgument));
             }
           } else {
-            // TODO(cstefantsova): Report an error.
+            addProblem(
+                fasta.templateTypeArgumentMismatch
+                    .withArguments(typeDeclaration.cls.typeParameters.length),
+                firstIdentifier.charOffset,
+                noLength);
+            push(new DummyPattern(firstIdentifier.charOffset));
+            return;
           }
         }
         push(new ObjectPattern(
@@ -8368,7 +8403,7 @@ class BodyBuilder extends StackListenerImpl
             builtTypeArguments,
             firstIdentifier.offset));
       } else {
-        // TODO(cstefantsova): Handle this case.
+        // TODO(cstefantsova): Handle other possibilities.
         push(new DummyPattern(firstIdentifier.charOffset));
       }
     } else {
