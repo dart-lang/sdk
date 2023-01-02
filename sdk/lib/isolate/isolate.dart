@@ -720,7 +720,9 @@ abstract class SendPort implements Capability {
   ///     - [List], [Map], [LinkedHashMap], [Set] and [LinkedHashSet]
   ///     - [TransferableTypedData]
   ///     - [Capability]
-  ///   - [SendPort] instances returned by [ReceivePort]'s `sendPort` getter
+  ///   - [SendPort] instances from [ReceivePort.sendPort] or
+  ///     [RawReceivePort.sendPort] where the receive ports are created
+  ///     using those classes' constructors.
   ///   - Instances of [Type] representing one of the types mentioned above,
   ///     `Object`, `dynamic`, `void` and `Never` as well as nullable variants
   ///     of all these types. For generic types type arguments must be sendable
