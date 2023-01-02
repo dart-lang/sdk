@@ -44,6 +44,7 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
+        "/testcases/dart2wasm/",
         "/testcases/expression/"
       ]
     },
@@ -79,6 +80,7 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
+        "/testcases/dart2wasm/",
         "/testcases/expression/"
       ]
     },
@@ -96,6 +98,7 @@
         "/testcases/.*_part[0-9]*\\.dart$",
         "/testcases/.*_lib[0-9]*\\.dart$",
         "/testcases/dartino/",
+        "/testcases/dart2wasm/",
         "/testcases/expression/"
       ]
     },

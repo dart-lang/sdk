@@ -1,0 +1,27 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+typedef B = self::A;
+typedef D<X extends core::Object? = dynamic> = self::C<X%, X%>;
+class A extends core::Object {
+  field core::int foo;
+  constructor •(core::int foo) → self::A
+    ;
+}
+class C<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> extends core::Object {
+  covariant-by-class field self::C::X% x;
+  covariant-by-class field self::C::Y% y;
+  constructor •(self::C::X% x, self::C::Y% y) → self::C<self::C::X%, self::C::Y%>
+    ;
+}
+static method test1(dynamic x) → dynamic
+  ;
+static method test2(dynamic x) → dynamic
+  ;
+static method main() → dynamic
+  ;
+static method expectEquals(dynamic x, dynamic y) → dynamic
+  ;
+static method _#D#new#tearOff<X extends core::Object? = dynamic>(self::_#D#new#tearOff::X% x, self::_#D#new#tearOff::X% y) → self::C<self::_#D#new#tearOff::X%, self::_#D#new#tearOff::X%>
+  return new self::C::•<self::_#D#new#tearOff::X%, self::_#D#new#tearOff::X%>(x, y);

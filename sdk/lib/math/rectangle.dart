@@ -49,7 +49,7 @@ abstract class _RectangleBase<T extends num> {
       bottom == other.bottom;
 
   int get hashCode => SystemHash.hash4(
-      left.hashCode, top.hashCode, right.hashCode, bottom.hashCode);
+      left.hashCode, top.hashCode, right.hashCode, bottom.hashCode, 0);
 
   /// Computes the intersection of `this` and [other].
   ///

@@ -30,6 +30,9 @@
     ways instead, possibly with a StackOverflowError.
   - Removed the deprecated [`NoSuchMethodError`][] default constructor.
     Use the [`NoSuchMethodError.withInvocation`][] named constructor instead.
+  - Removed the deprecated [`BidirectionalIterator`][] class.
+    Existing bidirectional iterators can still work, they just don't have
+    a shared supertype locking them to a specific name for moving backwards.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [`List.filled`]: https://api.dart.dev/stable/2.18.6/dart-core/List/List.filled.html
@@ -54,6 +57,7 @@
 [`NullThrownError`]: https://api.dart.dev/dev/2.19.0-430.0.dev/dart-core/NullThrownError-class.html
 [`AbstractClassInstantiationError`]: https://api.dart.dev/stable/2.18.3/dart-core/AbstractClassInstantiationError-class.html
 [`CyclicInitializationError`]: https://api.dart.dev/dev/2.19.0-430.0.dev/dart-core/CyclicInitializationError-class.html
+[`BidirectionalIterator`]: https://api.dart.dev/dev/2.19.0-430.0.dev/dart-core/BidirectionalIterator-class.html
 
 #### `dart:async`
 
@@ -68,7 +72,7 @@
 #### `dart:developer`
 
 - **Breaking change** [#49529][]:
-  - Removed the deprecated [`MAX_USER_TAGS`][] constant. 
+  - Removed the deprecated [`MAX_USER_TAGS`][] constant.
     Use [`maxUserTags`][] instead.
 - Callbacks passed to `registerExtension` will be run in the zone from which
   they are registered.
