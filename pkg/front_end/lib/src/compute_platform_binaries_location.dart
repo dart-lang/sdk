@@ -64,6 +64,17 @@ String? computePlatformDillName(
       return "vm_platform_strong.dill";
     case 'none':
       return "vm_platform_strong.dill";
+    case 'wasm':
+      switch (nnbdMode) {
+        case NnbdMode.Strong:
+          return 'dart2wasm_outline.dill';
+        //TODO(johnniwinther): Support using the full dill.
+        //return 'dart2wasm_platform.dill';
+        case NnbdMode.Weak:
+        case NnbdMode.Agnostic:
+          break;
+      }
+      break;
     default:
       break;
   }

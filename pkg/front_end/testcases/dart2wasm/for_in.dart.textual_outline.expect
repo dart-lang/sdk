@@ -1,0 +1,2 @@
+method(Iterable<int> iterable) {}
+asyncMethod(Stream<int> stream) async {}
