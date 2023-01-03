@@ -542,13 +542,11 @@ static method main() → dynamic {
     if(#t13 is core::int) {
       final dynamic #t14 = #t12;
       if(#t14 is core::int) {
+        core::int x = #t13{core::int};
+        core::int y = #t14{core::int};
         {
-          core::int x = #t13{core::int};
-          core::int y = #t14{core::int};
-          {
-            self::expectEquals(x, 0);
-            self::expectEquals(y, 0);
-          }
+          self::expectEquals(x, 0);
+          self::expectEquals(y, 0);
         }
       }
     }

@@ -3,7 +3,5 @@ import self as self;
 
 static method test(dynamic x) → dynamic {
   final dynamic #t1 = x;
-  {
-    final dynamic y = #t1;
-  }
+  final dynamic y = #t1;
 }

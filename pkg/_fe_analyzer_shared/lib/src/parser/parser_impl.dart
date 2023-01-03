@@ -6324,7 +6324,9 @@ class Parser {
       Token? when;
       if (optional('when', next)) {
         when = token = next;
+        listener.beginPatternGuard(when);
         token = parseExpression(token);
+        listener.endPatternGuard(when);
       }
       token = ensureCloseParen(token, begin);
       listener.handleParenthesizedCondition(begin, case_, when);

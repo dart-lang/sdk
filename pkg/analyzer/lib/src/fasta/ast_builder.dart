@@ -472,6 +472,11 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void beginPatternGuard(Token when) {
+    debugEvent("PatternGuard");
+  }
+
+  @override
   void beginTopLevelMethod(
       Token lastConsumed, Token? augmentToken, Token? externalToken) {
     push(_Modifiers()
@@ -2795,6 +2800,11 @@ class AstBuilder extends StackListener {
         semicolon: semicolon,
       ),
     );
+  }
+
+  @override
+  void endPatternGuard(Token token) {
+    debugEvent("PatternGuard");
   }
 
   @override

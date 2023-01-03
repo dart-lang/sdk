@@ -66,13 +66,11 @@ static method test5(dynamic x) → dynamic {
     final dynamic #t24 = #t23!;
     final dynamic #t25 = #t24;
     if(#t25 is core::String) {
+      dynamic y1 = #t22;
+      core::String y2 = #t25{core::String};
       #t20 = false;
       {
-        dynamic y1 = #t22;
-        core::String y2 = #t25{core::String};
-        {
-          return 0;
-        }
+        return 0;
       }
     }
   }

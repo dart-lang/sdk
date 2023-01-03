@@ -2739,6 +2739,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void beginPatternGuard(Token when) {
+    seen(when);
+    doPrint('beginPatternGuard(' '$when)');
+    indent++;
+  }
+
+  @override
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {
     seen(token);
     doPrint('beginParenthesizedExpressionOrRecordLiteral(' '$token)');
@@ -2757,6 +2764,13 @@ class ParserTestListener implements Listener {
   void handleRecordPattern(Token token, int count) {
     seen(token);
     doPrint('handleRecordPattern(' '$token, ' '$count)');
+  }
+
+  @override
+  void endPatternGuard(Token token) {
+    indent--;
+    seen(token);
+    doPrint('endPatternGuard(' '$token)');
   }
 
   @override

@@ -1898,6 +1898,11 @@ class Listener implements UnescapeErrorListener {
     logEvent("ParenthesizedCondition");
   }
 
+  /// Starts a pattern guard, the expression that follows the 'when' keyword
+  void beginPatternGuard(Token when) {
+    logEvent("PatternGuard");
+  }
+
   /// Starts a parenthesized expression or a record literal. Will be ended with
   /// either [endParenthesizedExpression] or [endRecordLiteral].
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {}
@@ -1911,6 +1916,11 @@ class Listener implements UnescapeErrorListener {
   /// `(`, a comma-separated sequence of patternFields, and a `)`.
   void handleRecordPattern(Token token, int count) {
     logEvent("RecordPattern");
+  }
+
+  /// End a pattern guard, the expression that follows the 'when' keyword
+  void endPatternGuard(Token token) {
+    logEvent("PatternGuard");
   }
 
   /// End a parenthesized expression.
