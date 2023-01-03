@@ -3062,6 +3062,7 @@ abstract class IfStatement implements Statement {
   Expression get expression;
 
   /// Return the token representing the 'if' keyword.
+  /// TODO(scheglov) Extract shared `IfCondition`, see the patterns spec.
   Token get ifKeyword;
 
   /// Return the left parenthesis.
