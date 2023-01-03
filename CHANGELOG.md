@@ -100,6 +100,9 @@
 
 ### Tools
 
+#### Web Dev Compiler (DDC)
+- Removed deprecated command line flags `-k`, `--kernel`, and `--dart-sdk`.
+
 #### Linter
 
 Updates the Linter to `1.32.0`, which includes changes that

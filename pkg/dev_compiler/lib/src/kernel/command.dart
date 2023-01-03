@@ -32,7 +32,7 @@ import 'module_symbols.dart';
 import 'module_symbols_collector.dart';
 import 'target.dart';
 
-const _binaryName = 'dartdevc -k';
+const _binaryName = 'dartdevc';
 
 /// Invoke the compiler with [args].
 ///
@@ -104,18 +104,12 @@ Future<CompilerResult> _compile(List<String> args,
         help: 'The directories to search when encountering uris with the '
             'specified multi-root scheme.',
         defaultsTo: [Uri.base.path])
-    ..addOption('dart-sdk',
-        help: '(unsupported with --kernel) path to the Dart SDK.', hide: true)
     ..addFlag('compile-sdk',
         help: 'Build an SDK module.', defaultsTo: false, hide: true)
     ..addOption('libraries-file',
         help: 'The path to the libraries.json file for the sdk.')
     ..addOption('used-inputs-file',
-        help: 'If set, the file to record inputs used.', hide: true)
-    ..addFlag('kernel',
-        abbr: 'k',
-        help: 'Deprecated and ignored. To be removed in a future release.',
-        hide: true);
+        help: 'If set, the file to record inputs used.', hide: true);
   SharedCompilerOptions.addArguments(argParser);
   var declaredVariables = parseAndRemoveDeclaredVariables(args);
   ArgResults argResults;
