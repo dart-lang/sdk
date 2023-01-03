@@ -38,9 +38,10 @@ class DocumentationValidator {
     'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT',
-    // These docs need to be published until 3.0 ships but can't be verified
-    // since the default List constructor has been removed from the mocks.
-    // todo(pq): remove for 3.0
+    // These docs need to be published until there are few enough users that
+    // are on a pre-3.0 SDK that we're OK with the possibility of them
+    // encountering a broken link.
+    // todo(pq): remove (some time) post 3.0
     'CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR',
     // The mock SDK doesn't define any internal libraries.
     'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
