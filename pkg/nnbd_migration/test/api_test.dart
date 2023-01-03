@@ -1389,6 +1389,26 @@ Function f(C c) => c;
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_cascade_on_nullable() async {
+    var content = '''
+class C {
+  int /*?*/ x;
+  void f() {
+    x..isEven;
+  }
+}
+''';
+    var expected = '''
+class C {
+  int? x;
+  void f() {
+    x!..isEven;
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_catch_simple() async {
     var content = '''
 void f() {
