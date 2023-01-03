@@ -28,12 +28,13 @@ abstract class Node5 {
 class Node5Hash extends Node5 {
   // This is the main subject of the benchmark - a typical use of `Object.hash`.
   @override
-  int get hashCode => Object.hash(item1, item2, item3, item4, item5, 0);
+  int get hashCode => Object.hash(item1, item2, item3, item4, item5);
 }
 
 class Node5Manual extends Node5 {
   // This is a similar quality hashCode but with statically resolvable
-  // `hashCode` calls.
+  // `hashCode` calls and a 0 seed (instead of loading a unique random seed from
+  // global late-final variable).
   @override
   int get hashCode => _SystemHash.hash5(item1.hashCode, item2.hashCode,
       item3.hashCode, item4.hashCode, item5.hashCode, 0);
