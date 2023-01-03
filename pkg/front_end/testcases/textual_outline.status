@@ -92,6 +92,7 @@ general/issue28565: FormatterCrash
 general/issue41842: FormatterCrash
 general/issue42997: FormatterCrash
 general/issue43363: FormatterCrash
+general/issue44781: FormatterCrash
 general/issue45490: FormatterCrash
 general/issue45700.crash: FormatterCrash
 general/issue47728_2: FormatterCrash

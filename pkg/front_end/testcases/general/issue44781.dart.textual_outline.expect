@@ -1,0 +1,1 @@
+class FB<T extends F> = S Function<S extends T>(S)with;
