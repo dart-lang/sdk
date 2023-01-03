@@ -1001,11 +1001,11 @@ abstract class ClassAugmentationDeclaration
 /// The declaration of a class.
 ///
 ///    classDeclaration ::=
-///        classModifiers? 'class' name [TypeParameterList]?
+///        classModifier? 'class' name [TypeParameterList]?
 ///        [ExtendsClause]? [WithClause]? [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
 ///
-///    classModifiers ::= 'sealed' | 'abstract'
+///    classModifier ::= 'sealed' | 'abstract'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassDeclaration implements ClassOrAugmentationDeclaration {
@@ -1107,7 +1107,9 @@ abstract class ClassOrAugmentationDeclaration
 /// A class type alias.
 ///
 ///    classTypeAlias ::=
-///        name [TypeParameterList]? '=' 'abstract'? mixinApplication
+///        name [TypeParameterList]? '=' classModifier? mixinApplication
+///
+///    classModifier ::= 'sealed' | 'abstract'
 ///
 ///    mixinApplication ::=
 ///        [TypeName] [WithClause] [ImplementsClause]? ';'
