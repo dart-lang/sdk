@@ -4921,7 +4921,7 @@ void g(C<int?> y) {
   Future<void> test_generic_exact_propagation_premigratedListClass() async {
     var content = '''
 void f() {
-  List<int> x = new List<int>();
+  List<int> x = new List<int>.empty();
   g(x);
 }
 void g(List<int> y) {
@@ -4930,7 +4930,7 @@ void g(List<int> y) {
 ''';
     var expected = '''
 void f() {
-  List<int?> x = new List<int?>();
+  List<int?> x = new List<int?>.empty();
   g(x);
 }
 void g(List<int?> y) {

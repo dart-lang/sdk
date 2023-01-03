@@ -421,7 +421,7 @@ class ClassMemberParserTest extends FastaParserTestCase
   }
 
   void test_parseClassMember_field_generic() {
-    createParser('List<List<N>> _allComponents = new List<List<N>>();');
+    createParser('List<List<N>> _allComponents = new List<List<N>>.empty();');
     ClassMember member = parser.parseClassMember('C');
     expect(member, isNotNull);
     assertNoErrors();

@@ -919,7 +919,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       } else {
         _checkForNewWithUndefinedConstructor(node, constructorName, namedType);
       }
-      _checkForListConstructor(node, type);
     }
     _checkForImplicitDynamicType(namedType);
     super.visitInstanceCreationExpression(node);
@@ -3167,18 +3166,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       CompileTimeErrorCode.LATE_FINAL_FIELD_WITH_CONST_CONSTRUCTOR,
       lateKeyword,
     );
-  }
-
-  void _checkForListConstructor(
-      InstanceCreationExpression node, InterfaceType type) {
-    if (!_isNonNullableByDefault) return;
-
-    if (node.constructorName.name == null && type.isDartCoreList) {
-      errorReporter.reportErrorForNode(
-        CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR,
-        node.constructorName,
-      );
-    }
   }
 
   /// Verify that the elements of the given list [literal] are subtypes of the

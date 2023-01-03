@@ -77,7 +77,6 @@ import 'convert_to_if_null_test.dart' as convert_to_if_null;
 import 'convert_to_initializing_formal_test.dart'
     as convert_to_initializing_formal;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
-import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_named_arguments_test.dart' as convert_to_named_arguments;
 import 'convert_to_null_aware_spread_test.dart' as convert_to_null_aware_spread;
@@ -227,7 +226,6 @@ import 'replace_with_conditional_assignment_test.dart'
     as replace_with_conditional_assignment;
 import 'replace_with_eight_digit_hex_test.dart' as replace_with_eight_digit_hex;
 import 'replace_with_extension_name_test.dart' as replace_with_extension_name;
-import 'replace_with_filled_test.dart' as replace_with_filled;
 import 'replace_with_identifier_test.dart' as replace_with_identifier;
 import 'replace_with_interpolation_test.dart' as replace_with_interpolation;
 import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
@@ -316,7 +314,6 @@ void main() {
     convert_to_if_null.main();
     convert_to_initializing_formal.main();
     convert_to_int_literal.main();
-    convert_to_list_literal.main();
     convert_to_map_literal.main();
     convert_to_named_arguments.main();
     convert_to_null_aware.main();
@@ -449,7 +446,6 @@ void main() {
     replace_with_conditional_assignment.main();
     replace_with_eight_digit_hex.main();
     replace_with_extension_name.main();
-    replace_with_filled.main();
     replace_with_identifier.main();
     replace_with_interpolation.main();
     replace_with_is_empty.main();

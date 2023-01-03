@@ -452,7 +452,6 @@ abstract class Iterator<E> {
 }
 
 class List<E> implements Iterable<E> {
-  external factory List([int? length]);
   external factory List.filled(int length, E fill, {bool growable = false});
   external factory List.empty({bool growable = false});
   external factory List.from(Iterable elements, {bool growable = true});

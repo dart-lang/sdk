@@ -341,8 +341,9 @@ CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH:
 CompileTimeErrorCode.COULD_NOT_INFER:
   status: needsEvaluation
 CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR:
-  status: hasFix
-  issue: https://github.com/dart-lang/sdk/issues/48644
+  status: noFix
+  notes: |-
+    Removed in Dart 3.0.
 CompileTimeErrorCode.DEFAULT_VALUE_IN_REDIRECTING_FACTORY_CONSTRUCTOR:
   status: needsEvaluation
 CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER:

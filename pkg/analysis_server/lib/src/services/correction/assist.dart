@@ -151,11 +151,6 @@ class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Convert to an int literal',
   );
-  static const CONVERT_TO_LIST_LITERAL = AssistKind(
-    'dart.assist.convert.toListLiteral',
-    DartAssistKindPriority.DEFAULT,
-    'Convert to list literal',
-  );
   static const CONVERT_TO_MAP_LITERAL = AssistKind(
     'dart.assist.convert.toMapLiteral',
     DartAssistKindPriority.DEFAULT,

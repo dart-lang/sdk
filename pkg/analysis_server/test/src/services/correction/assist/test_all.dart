@@ -32,7 +32,6 @@ import 'convert_to_field_parameter_test.dart' as convert_to_field_parameter;
 import 'convert_to_for_element_test.dart' as convert_to_for_element;
 import 'convert_to_if_element_test.dart' as convert_to_if_element;
 import 'convert_to_int_literal_test.dart' as convert_to_int_literal;
-import 'convert_to_list_literal_test.dart' as convert_to_list_literal;
 import 'convert_to_map_literal_test.dart' as convert_to_map_literal;
 import 'convert_to_multiline_string_test.dart' as convert_to_multiline_string;
 import 'convert_to_normal_parameter_test.dart' as convert_to_normal_parameter;
@@ -118,7 +117,6 @@ void main() {
     convert_to_for_element.main();
     convert_to_if_element.main();
     convert_to_int_literal.main();
-    convert_to_list_literal.main();
     convert_to_map_literal.main();
     convert_to_multiline_string.main();
     convert_to_normal_parameter.main();
