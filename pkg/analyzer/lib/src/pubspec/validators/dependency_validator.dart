@@ -36,8 +36,11 @@ class DependencyValidator extends BasePubspecValidator {
     for (var dependency in declaredDevDependencies.entries) {
       var packageName = dependency.key as YamlNode;
       if (declaredDependencies.containsKey(packageName)) {
-        reportErrorForNode(reporter, packageName,
-            PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY, [packageName.value]);
+        reportErrorForNode(
+            reporter,
+            packageName,
+            PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY,
+            [packageName.valueOrThrow]);
       }
       _validatePathEntries(reporter, dependency.value, false);
     }

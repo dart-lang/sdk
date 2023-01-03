@@ -23,7 +23,7 @@ class ScreenshotsValidator extends BasePubspecValidator {
       var path = entryValue.value;
       if (path is String && !_fileExistsAtPath(path)) {
         reportErrorForNode(reporter, entryValue,
-            PubspecWarningCode.PATH_DOES_NOT_EXIST, [entryValue.value]);
+            PubspecWarningCode.PATH_DOES_NOT_EXIST, [entryValue.valueOrThrow]);
       }
     }
   }
