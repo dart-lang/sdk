@@ -10,9 +10,9 @@ import '../analyzer.dart';
 const _desc = r"Don't use adjacent strings in list.";
 
 const _details = r'''
-**DON'T** use adjacent strings in list.
+**DON'T** use adjacent strings in a list.
 
-This can be sign of forgotten comma.
+This can indicate a forgotten comma.
 
 **BAD:**
 ```dart
@@ -53,7 +53,10 @@ class NoAdjacentStringsInList extends LintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
+    registry.addForElement(this, visitor);
+    registry.addIfElement(this, visitor);
     registry.addListLiteral(this, visitor);
+    registry.addSetOrMapLiteral(this, visitor);
   }
 }
 
@@ -63,7 +66,33 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
+  void visitForElement(ForElement node) {
+    if (node.body is AdjacentStrings) {
+      rule.reportLint(node.body);
+    }
+  }
+
+  @override
+  void visitIfElement(IfElement node) {
+    if (node.elseElement == null && node.thenElement is AdjacentStrings) {
+      rule.reportLint(node.thenElement);
+    } else if (node.elseElement is AdjacentStrings) {
+      rule.reportLint(node.elseElement);
+    }
+  }
+
+  @override
   void visitListLiteral(ListLiteral node) {
+    for (var e in node.elements) {
+      if (e is AdjacentStrings) {
+        rule.reportLint(e);
+      }
+    }
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (node.isMap) return;
     for (var e in node.elements) {
       if (e is AdjacentStrings) {
         rule.reportLint(e);
