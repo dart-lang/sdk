@@ -632,7 +632,7 @@ class SetCommand extends DebuggerCommand {
   };
 
   static Future _setBreakOnException(debugger, name, value) async {
-    var result = await debugger.isolate.setExceptionPauseMode(value);
+    var result = await debugger.isolate.setIsolatePauseMode(value);
     if (result.isError) {
       debugger.console.print(result.toString());
     } else {
