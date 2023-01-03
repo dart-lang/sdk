@@ -1802,24 +1802,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           null);
     }
 
-    List<Statement> replacementStatements;
-    if (node.patternGuard.pattern.declaredVariables.isEmpty) {
-      replacementStatements = [
-        if (otherwise != null) patternMatchedSet,
-        if (then is! Block || then.statements.isNotEmpty) then
-      ];
-    } else {
-      replacementStatements = [
-        if (otherwise != null) patternMatchedSet,
-
-        // The block is created to avoid having variables with the same name in
-        // the same scope.
-        engine.forest.createBlock(node.fileOffset, node.fileOffset, [
-          ...node.patternGuard.pattern.declaredVariables,
-          if (then is! Block || then.statements.isNotEmpty) then
-        ])
-      ];
-    }
+    List<Statement> replacementStatements = [
+      if (otherwise != null) patternMatchedSet,
+      if (then is! Block || then.statements.isNotEmpty) then
+    ];
 
     PatternTransformationResult transformationResult = node.patternGuard.pattern
         .transform(this,
@@ -1828,6 +1814,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             matchedType: scrutineeType,
             variableInitializingContext: engine.forest
                 .createVariableGet(node.fileOffset, matchedExpressionVariable));
+    transformationResult = transformationResult.combine(
+        new PatternTransformationResult([
+          new PatternTransformationElement(
+              kind: PatternTransformationElementKind.regular,
+              condition: null,
+              variableInitializers:
+                  node.patternGuard.pattern.declaredVariables),
+          new PatternTransformationElement(
+              kind: PatternTransformationElementKind.regular,
+              condition: node.patternGuard.guard,
+              variableInitializers: [])
+        ]),
+        this);
+
     replacementStatements = _transformationResultToStatements(
         node.fileOffset, transformationResult, replacementStatements);
 

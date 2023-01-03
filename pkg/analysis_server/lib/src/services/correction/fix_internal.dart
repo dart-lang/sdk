@@ -62,7 +62,6 @@ import 'package:analysis_server/src/services/correction/dart/convert_to_generic_
 import 'package:analysis_server/src/services/correction/dart/convert_to_if_null.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_initializing_formal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_int_literal.dart';
-import 'package:analysis_server/src/services/correction/dart/convert_to_list_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_map_literal.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_named_arguments.dart';
 import 'package:analysis_server/src/services/correction/dart/convert_to_null_aware.dart';
@@ -186,7 +185,6 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_bracke
 import 'package:analysis_server/src/services/correction/dart/replace_with_conditional_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_eight_digit_hex.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_extension_name.dart';
-import 'package:analysis_server/src/services/correction/dart/replace_with_filled.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_identifier.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
@@ -530,7 +528,6 @@ class FixProcessor extends BaseProcessor {
       RemoveOperator.new,
     ],
     LintNames.prefer_collection_literals: [
-      ConvertToListLiteral.new,
       ConvertToMapLiteral.new,
       ConvertToSetLiteral.new,
     ],
@@ -954,10 +951,6 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.CONST_WITH_NON_TYPE: [
       ChangeTo.classOrMixin,
-    ],
-    CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR: [
-      ConvertToListLiteral.new,
-      ReplaceWithFilled.new,
     ],
     CompileTimeErrorCode.DEFAULT_VALUE_ON_REQUIRED_PARAMETER: [
       RemoveDefaultValue.new,
@@ -1459,7 +1452,7 @@ class FixProcessor extends BaseProcessor {
       RemoveComparison.new,
     ],
     HintCode.UNNECESSARY_QUESTION_MARK: [
-      RemoveQuestionMark.new
+      RemoveQuestionMark.new,
     ],
 //    HintCode.UNNECESSARY_TYPE_CHECK_FALSE: [
 // TODO(brianwilkerson) Add a fix to remove the type check.

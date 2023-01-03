@@ -47,12 +47,10 @@ static method test1(core::Record x) → dynamic {
       if(#t23 is core::double) {
         final core::Object #t24 = #t22!;
         if(#t24 is core::String) {
+          core::double y = #t23{core::double};
           #t18 = false;
           {
-            core::double y = #t23{core::double};
-            {
-              return 0;
-            }
+            return 0;
           }
         }
       }
@@ -104,12 +102,10 @@ static method test5((core::int, core::double, {required bar: dynamic, required f
     if(#t47 is core::double) {
       final core::Object #t48 = #t46!;
       if(#t48 is core::String) {
+        core::double y = #t47{core::double};
         #t42 = false;
         {
-          core::double y = #t47{core::double};
-          {
-            return 0;
-          }
+          return 0;
         }
       }
     }

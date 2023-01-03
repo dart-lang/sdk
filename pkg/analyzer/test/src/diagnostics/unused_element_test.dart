@@ -1024,7 +1024,7 @@ main() {
     await assertNoErrorsInCode(r'''
 class _A {}
 main() {
-  var v = new List<_A>();
+  var v = new List<_A>.empty();
   print(v);
 }
 ''');
@@ -1305,7 +1305,7 @@ main(_F f) {
     await assertNoErrorsInCode(r'''
 typedef _F(a, b);
 main() {
-  var v = new List<_F>();
+  var v = new List<_F>.empty();
   print(v);
 }
 ''');
@@ -1367,7 +1367,7 @@ class A {
   test_getter_isUsed_invocation_parameterized() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
-  List<int> _list = List(1);
+  List<int> _list = List.filled(1, 1);
   int get _item => _list.first;
   set _item(int item) => _list[0] = item;
 }
@@ -2618,7 +2618,7 @@ main(_F f) {
     await assertNoErrorsInCode(r'''
 typedef _F = void Function();
 main() {
-  var v = new List<_F>();
+  var v = new List<_F>.empty();
   print(v);
 }
 ''');

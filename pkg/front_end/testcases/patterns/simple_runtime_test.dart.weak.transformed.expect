@@ -10,12 +10,10 @@ static method test(dynamic x) → dynamic {
     final dynamic #t4 = #t3{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     final dynamic #t5 = #t4;
     if(#t5 is core::String) {
+      core::String y = #t5{core::String};
       #t2 = false;
       {
-        core::String y = #t5{core::String};
-        {
-          return y;
-        }
+        return y;
       }
     }
   }

@@ -40,6 +40,16 @@ class AnalysisOptionsFixKind {
     50,
     "Remove '{0}'",
   );
+  static const REPLACE_WITH_STRICT_CASTS = FixKind(
+    'analysisOptions.fix.replaceWithStrictCasts',
+    50,
+    'Replace with the strict-casts analysis mode',
+  );
+  static const REPLACE_WITH_STRICT_RAW_TYPES = FixKind(
+    'analysisOptions.fix.replaceWithStrictRawTypes',
+    50,
+    'Replace with the strict-raw-types analysis mode',
+  );
 }
 
 /// The implementation of [DartFixContext].
@@ -507,16 +517,6 @@ class DartFixKind {
     'dart.fix.convert.toLineComment.multi',
     DartFixKindPriority.IN_FILE,
     'Convert to line documentation comments everywhere in file',
-  );
-  static const CONVERT_TO_LIST_LITERAL = FixKind(
-    'dart.fix.convert.toListLiteral',
-    DartFixKindPriority.DEFAULT,
-    'Convert to list literal',
-  );
-  static const CONVERT_TO_LIST_LITERAL_MULTI = FixKind(
-    'dart.fix.convert.toListLiteral.multi',
-    DartFixKindPriority.IN_FILE,
-    'Convert to list literals everywhere in file',
   );
   static const CONVERT_TO_MAP_LITERAL = FixKind(
     'dart.fix.convert.toMapLiteral',
@@ -1392,11 +1392,6 @@ class DartFixKind {
     'dart.fix.replace.colonWithEquals.multi',
     DartFixKindPriority.IN_FILE,
     "Replace ':'s with '='s everywhere in file",
-  );
-  static const REPLACE_WITH_FILLED = FixKind(
-    'dart.fix.replace.finalWithListFilled',
-    DartFixKindPriority.DEFAULT,
-    "Replace with 'List.filled'",
   );
   static const REPLACE_FINAL_WITH_CONST = FixKind(
     'dart.fix.replace.finalWithConst',

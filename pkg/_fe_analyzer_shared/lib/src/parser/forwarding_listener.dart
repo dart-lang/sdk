@@ -1827,6 +1827,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginPatternGuard(Token when) {
+    listener?.beginPatternGuard(when);
+  }
+
+  @override
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {
     listener?.beginParenthesizedExpressionOrRecordLiteral(token);
   }
@@ -1839,6 +1844,11 @@ class ForwardingListener implements Listener {
   @override
   void handleRecordPattern(Token token, int count) {
     listener?.handleRecordPattern(token, count);
+  }
+
+  @override
+  void endPatternGuard(Token token) {
+    listener?.endPatternGuard(token);
   }
 
   @override

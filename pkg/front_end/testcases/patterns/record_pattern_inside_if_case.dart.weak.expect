@@ -47,12 +47,10 @@ static method test(dynamic x) → dynamic {
       if(#t23 is core::double) {
         final core::Object #t24 = #t22!;
         if(#t24 is core::String) {
+          core::double y = #t23{core::double};
           #t18 = false;
           {
-            core::double y = #t23{core::double};
-            {
-              return 0;
-            }
+            return 0;
           }
         }
       }

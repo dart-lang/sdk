@@ -2055,6 +2055,11 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void beginPatternGuard(Token token) {
+    _unhandled();
+  }
+
+  @override
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {
     _unhandled();
   }
@@ -2067,6 +2072,11 @@ class _MacroListener implements Listener {
   @override
   void handleRecordPattern(Token token, int count) {
     _unsupported();
+  }
+
+  @override
+  void endPatternGuard(Token token) {
+    _unhandled();
   }
 
   @override

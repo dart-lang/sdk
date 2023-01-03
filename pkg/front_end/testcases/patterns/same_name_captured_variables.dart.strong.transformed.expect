@@ -4,20 +4,14 @@ import "dart:core" as core;
 
 static method test(dynamic x1, dynamic x2) → dynamic {
   final dynamic #t1 = x1;
-  {
-    dynamic y = #t1;
-  }
+  dynamic y = #t1;
   final dynamic #t2 = x1;
+  dynamic y = #t2;
   {
-    dynamic y = #t2;
+    final dynamic #t3 = x2;
+    dynamic y = #t3;
     {
-      final dynamic #t3 = x2;
-      {
-        dynamic y = #t3;
-        {
-          return y;
-        }
-      }
+      return y;
     }
   }
   throw "Expected to never reach this line of the program.";

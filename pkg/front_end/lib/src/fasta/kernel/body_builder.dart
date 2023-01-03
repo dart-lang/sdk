@@ -2252,6 +2252,7 @@ class BodyBuilder extends StackListenerImpl
     if (case_ != null) {
       // ignore: unused_local_variable
       Expression? guard;
+      Scope? scope;
       if (when != null) {
         assert(checkState(token, [
           unionOfKinds([
@@ -2259,6 +2260,7 @@ class BodyBuilder extends StackListenerImpl
             ValueKinds.Generator,
             ValueKinds.ProblemBuilder,
           ]),
+          ValueKinds.Scope,
           unionOfKinds([
             ValueKinds.Expression,
             ValueKinds.Pattern,
@@ -2270,6 +2272,7 @@ class BodyBuilder extends StackListenerImpl
           ]),
         ]));
         guard = popForValue();
+        scope = pop() as Scope;
       }
       assert(checkState(token, [
         unionOfKinds([
@@ -2286,6 +2289,9 @@ class BodyBuilder extends StackListenerImpl
           libraryFeatures.patterns, case_.charOffset, case_.charCount);
       Pattern pattern = toPattern(pop());
       Expression expression = popForValue();
+      if (scope != null) {
+        push(scope);
+      }
       push(new Condition(expression, new PatternGuard(pattern, guard)));
     } else {
       assert(checkState(token, [
@@ -3431,20 +3437,53 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  void beginPatternGuard(Token when) {
+    debugEvent("PatternGuard");
+    assert(checkState(when, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Pattern,
+      ])
+    ]));
+
+    Pattern pattern = toPattern(peek());
+    enterLocalScope("then");
+    for (VariableDeclaration variable in pattern.declaredVariables) {
+      declareVariable(variable, scope);
+      typeInferrer.assignedVariables.declare(variable);
+    }
+  }
+
+  @override
+  void endPatternGuard(Token token) {
+    debugEvent("PatternGuard");
+  }
+
+  @override
   void beginThenStatement(Token token) {
     debugEvent("beginThenStatement");
     assert(checkState(token, [ValueKinds.Condition]));
     // This is matched by the call to [deferNode] in
     // [endThenStatement].
     typeInferrer.assignedVariables.beginNode();
-    Condition condition = peek() as Condition;
-    enterLocalScope("then");
+    Condition condition = pop() as Condition;
     PatternGuard? patternGuard = condition.patternGuard;
-    if (patternGuard != null) {
-      for (VariableDeclaration variable
-          in patternGuard.pattern.declaredVariables) {
-        declareVariable(variable, scope);
-        typeInferrer.assignedVariables.declare(variable);
+    if (patternGuard != null && patternGuard.guard != null) {
+      assert(checkState(token, [ValueKinds.Scope]));
+      Scope scope = pop() as Scope;
+      push(condition);
+      push(scope);
+    } else {
+      push(condition);
+      // There is no guard, so the scope for "then" isn't entered yet.
+      enterLocalScope("then");
+      if (patternGuard != null) {
+        for (VariableDeclaration variable
+            in patternGuard.pattern.declaredVariables) {
+          declareVariable(variable, scope);
+          typeInferrer.assignedVariables.declare(variable);
+        }
       }
     }
   }

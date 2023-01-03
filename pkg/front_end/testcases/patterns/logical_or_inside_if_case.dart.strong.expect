@@ -45,12 +45,10 @@ static method test2(dynamic x) → dynamic {
     }
   }
   if(#t8 || #t9) {
+    dynamic y = #t8 ?{core::Object} #t10{core::int} : #t11{core::String};
     #t6 = false;
     {
-      dynamic y = #t8 ?{core::Object} #t10{core::int} : #t11{core::String};
-      {
-        return y;
-      }
+      return y;
     }
   }
   if(#t6) {
