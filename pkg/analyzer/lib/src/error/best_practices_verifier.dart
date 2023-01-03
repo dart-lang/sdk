@@ -671,19 +671,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var element = node.declaredElement!;
     var enclosingElement = element.enclosingElement;
 
-    Name name = Name(_currentLibrary.source.uri, element.name);
-
-    ExecutableElement? getConcreteOverriddenElement() =>
-        element is ClassMemberElement && enclosingElement is InterfaceElement
-            ? _inheritanceManager.getMember2(enclosingElement, name,
-                forSuper: true)
-            : null;
-    ExecutableElement? getOverriddenPropertyAccessor() => element
-                is PropertyAccessorElement &&
-            enclosingElement is InterfaceElement
-        ? _inheritanceManager.getMember2(enclosingElement, name, forSuper: true)
-        : null;
-
     _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
     if (element.hasDoNotStore) {
       _inDoNotStoreMember = true;
@@ -695,6 +682,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _mustCallSuperVerifier.checkMethodDeclaration(node);
       _checkForUnnecessaryNoSuchMethod(node);
 
+      var name = Name(_currentLibrary.source.uri, element.name);
       var elementIsOverride = element is ClassMemberElement &&
               enclosingElement is InterfaceElement
           ? _inheritanceManager.getOverridden2(enclosingElement, name) != null
@@ -708,10 +696,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _checkStrictInferenceInParameters(node.parameters, body: node.body);
       }
 
-      var overriddenElement = getConcreteOverriddenElement();
-      if (overriddenElement == null && (node.isSetter || node.isGetter)) {
-        overriddenElement = getOverriddenPropertyAccessor();
-      }
+      var overriddenElement = enclosingElement is InterfaceElement
+          ? _inheritanceManager.getMember2(enclosingElement, name,
+              forSuper: true)
+          : null;
 
       if (overriddenElement != null &&
           _hasNonVirtualAnnotation(overriddenElement)) {
