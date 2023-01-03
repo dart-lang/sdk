@@ -762,7 +762,11 @@ class _TestEdgeOrigin implements EdgeOrigin {
   String get description => 'Test edge';
 
   @override
+  bool get isSetupAssignment => false;
+
+  @override
   EdgeOriginKind? get kind => null;
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

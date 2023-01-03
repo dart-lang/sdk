@@ -2507,7 +2507,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _graph.makeNonNullable(
           destinationType.node,
           AssignmentFromAngularInjectorGetOrigin(
-              source, assignmentExpression!.leftHandSide as SimpleIdentifier));
+              source, assignmentExpression!.leftHandSide as SimpleIdentifier,
+              isSetupAssignment: sourceIsSetupCall));
     }
 
     if (questionAssignNode != null) {
@@ -3387,7 +3388,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   EdgeOrigin _makeEdgeOrigin(DecoratedType sourceType, Expression expression,
       {bool isSetupAssignment = false}) {
     if (sourceType.type!.isDynamic) {
-      return DynamicAssignmentOrigin(source, expression);
+      return DynamicAssignmentOrigin(source, expression,
+          isSetupAssignment: isSetupAssignment);
     } else {
       ExpressionChecksOrigin expressionChecksOrigin = ExpressionChecksOrigin(
           source, expression, ExpressionChecks(),

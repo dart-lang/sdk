@@ -9299,6 +9299,42 @@ void main() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_testVariable_assignedInjectorGet_nullableUse() async {
+    addAngularPackage();
+    addTestCorePackage();
+    var content = '''
+import 'package:angular/angular.dart';
+import 'package:test/test.dart';
+void f(int /*?*/ i) {}
+void main() {
+  int i;
+  setUp(() {
+    var injector = Injector();
+    i = injector.get(int);
+  });
+  test('a', () {
+    f(i);
+  });
+}
+''';
+    var expected = '''
+import 'package:angular/angular.dart';
+import 'package:test/test.dart';
+void f(int? i) {}
+void main() {
+  late int i;
+  setUp(() {
+    var injector = Injector();
+    i = injector.get(int);
+  });
+  test('a', () {
+    f(i);
+  });
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_testVariable_assignedInjectorGet_outsideSetup() async {
     addAngularPackage();
     addTestCorePackage();

@@ -127,7 +127,8 @@ class ArgumentErrorCheckNotNullOrigin extends EdgeOrigin {
 /// likely intended to yield a non-null value.
 class AssignmentFromAngularInjectorGetOrigin extends EdgeOrigin {
   AssignmentFromAngularInjectorGetOrigin(
-      super.source, SimpleIdentifier super.node);
+      super.source, SimpleIdentifier super.node,
+      {super.isSetupAssignment = false});
 
   @override
   String get description => 'value retrieved from Injector.get in test setUp';
@@ -189,7 +190,8 @@ class DummyOrigin extends EdgeOrigin {
 /// An edge origin used for edges that originated because of an assignment
 /// involving a value with a dynamic type.
 class DynamicAssignmentOrigin extends EdgeOrigin {
-  DynamicAssignmentOrigin(super.source, super.node);
+  DynamicAssignmentOrigin(super.source, super.node,
+      {super.isSetupAssignment = false});
 
   @override
   String get description => 'assignment of dynamic value';
@@ -211,9 +213,15 @@ abstract class EdgeOrigin extends EdgeOriginInfo {
   @override
   final Element? element;
 
-  EdgeOrigin(this.source, this.node) : element = null;
+  /// Whether the origin of the edge is due to the assignment of a variable
+  /// from within function literal argument to the `setUp` function of the test
+  /// package.
+  final bool isSetupAssignment;
 
-  EdgeOrigin.forElement(this.element)
+  EdgeOrigin(this.source, this.node, {this.isSetupAssignment = false})
+      : element = null;
+
+  EdgeOrigin.forElement(this.element, {this.isSetupAssignment = false})
       : source = null,
         node = null;
 
