@@ -50,7 +50,7 @@ void main(List<String> args) async {
     ..addFlag('sound-null-safety',
         help: 'Compile for sound null safety at runtime. Passed through to the '
             'DDC binary. Defaults to false.',
-        defaultsTo: false)
+        negatable: true, defaultsTo: true)
     ..addFlag('emit-debug-symbols',
         help: 'Pass through flag for DDC, emits debug symbols file along with '
             'the compiled module.',

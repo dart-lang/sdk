@@ -116,7 +116,7 @@ class SharedCompilerOptions {
       this.multiRootScheme = 'org-dartlang-app',
       this.multiRootOutputPath,
       this.experiments = const {},
-      this.soundNullSafety = false,
+      this.soundNullSafety = true,
       this.canaryFeatures = false})
       : // Current canary features.
         newRuntimeTypes = canaryFeatures;
@@ -224,7 +224,7 @@ class SharedCompilerOptions {
       ..addFlag('sound-null-safety',
           help: 'Compile for sound null safety at runtime.',
           negatable: true,
-          defaultsTo: false)
+          defaultsTo: true)
       ..addFlag('canary',
           help: 'Enable all compiler features under active development. '
               'This option is intended for compiler development only. '

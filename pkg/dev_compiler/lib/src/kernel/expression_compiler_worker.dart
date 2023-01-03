@@ -771,7 +771,7 @@ final argParser = ArgParser()
   ..addOption('asset-server-port')
   ..addOption('module-format', defaultsTo: 'amd')
   ..addFlag('track-widget-creation', defaultsTo: false)
-  ..addFlag('sound-null-safety', defaultsTo: false)
+  ..addFlag('sound-null-safety', negatable: true, defaultsTo: true)
   ..addFlag('verbose', defaultsTo: false);
 
 Uri? _argToUri(String? uriArg) =>
