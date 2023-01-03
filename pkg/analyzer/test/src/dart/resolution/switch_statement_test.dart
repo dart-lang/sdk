@@ -887,6 +887,70 @@ SwitchStatement
 ''');
   }
 
+  test_variables_logicalOr() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  switch (x) {
+    case <int>[var a || var a]:
+      a;
+  }
+}
+''');
+
+    final node = findNode.switchStatement('switch');
+    assertResolvedNodeText(node, r'''
+SwitchStatement
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  rightParenthesis: )
+  leftBracket: {
+  members
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: ListPattern
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: SimpleIdentifier
+                  token: int
+                  staticElement: dart:core::@class::int
+                  staticType: null
+                type: int
+            rightBracket: >
+          leftBracket: [
+          elements
+            BinaryPattern
+              leftOperand: DeclaredVariablePattern
+                keyword: var
+                name: a
+                declaredElement: hasImplicitType a@54
+                  type: int
+              operator: ||
+              rightOperand: DeclaredVariablePattern
+                keyword: var
+                name: a
+                declaredElement: hasImplicitType a@63
+                  type: int
+          rightBracket: ]
+          requiredType: List<int>
+      colon: :
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            staticElement: a[a@54, a@63]
+            staticType: int
+          semicolon: ;
+  rightBracket: }
+''');
+  }
+
   test_variables_scope() async {
     await assertErrorsInCode(r'''
 const a = 0;

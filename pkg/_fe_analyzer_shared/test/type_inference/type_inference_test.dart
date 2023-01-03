@@ -272,9 +272,9 @@ main() {
                     .checkContext('bool'))
                 .thenExpr(expr('String')),
           ])
-              .checkIr('switchExpr(expr(int), '
-                  'case(head(varPattern(i, matchedType: int, '
-                  'staticType: int), ==(i, expr(num))), expr(String)))')
+              .checkIr('switchExpr(expr(int), case(head(varPattern(i, '
+                  'matchedType: int, staticType: int), ==(i, expr(num)), '
+                  'variables(i)), expr(String)))')
               .stmt,
         ]);
       });
@@ -310,6 +310,82 @@ main() {
               x.pattern().when(expr('dynamic')).thenExpr(expr('int')),
             ]).stmt,
           ], expectedErrors: {});
+        });
+      });
+
+      group('Variables:', () {
+        group('logical-or:', () {
+          test('consistent', () {
+            var x1 = Var('x', identity: 'x1');
+            var x2 = Var('x', identity: 'x2');
+            h.run([
+              switchExpr(expr('double'), [
+                x1.pattern().or(x2.pattern()).thenExpr(expr('int')),
+                default_.thenExpr(expr('int')),
+              ])
+                  .checkType('int')
+                  .checkIr(
+                    'switchExpr(expr(double), case(head(logicalOrPattern('
+                    'varPattern(x, matchedType: double, staticType: double), '
+                    'varPattern(x, matchedType: double, staticType: double), '
+                    'matchedType: double), true, '
+                    'variables(double x = [x1, x2])), expr(int)), '
+                    'case(default, expr(int)))',
+                  )
+                  .stmt,
+            ]);
+          });
+          group('not consistent:', () {
+            test('different finality', () {
+              var x1 = Var('x', identity: 'x1', isFinal: true);
+              var x2 = Var('x', identity: 'x2')..errorId = 'x2';
+              h.run([
+                switchExpr(expr('double'), [
+                  x1.pattern().or(x2.pattern()).thenExpr(expr('int')),
+                  default_.thenExpr(expr('int')),
+                ])
+                    .checkType('int')
+                    .checkIr(
+                      'switchExpr(expr(double), case(head(logicalOrPattern('
+                      'varPattern(x, matchedType: double, staticType: double), '
+                      'varPattern(x, matchedType: double, staticType: '
+                      'double), matchedType: double), true, variables('
+                      'notConsistent dynamic x = [x1, x2])), expr(int)), '
+                      'case(default, expr(int)))',
+                    )
+                    .stmt,
+              ], expectedErrors: {
+                'inconsistentJoinedPatternVariable(variable: x = [x1, x2], '
+                    'component: x2)'
+              });
+            });
+            test('different types', () {
+              var x1 = Var('x', identity: 'x1');
+              var x2 = Var('x', identity: 'x2')..errorId = 'x2';
+              h.run([
+                switchExpr(expr('double'), [
+                  x1
+                      .pattern(type: 'double')
+                      .or(x2.pattern(type: 'num'))
+                      .thenExpr(expr('int')),
+                  default_.thenExpr(expr('int')),
+                ])
+                    .checkType('int')
+                    .checkIr(
+                      'switchExpr(expr(double), case(head(logicalOrPattern('
+                      'varPattern(x, matchedType: double, staticType: double), '
+                      'varPattern(x, matchedType: double, staticType: '
+                      'num), matchedType: double), true, variables('
+                      'notConsistent dynamic x = [x1, x2])), expr(int)), '
+                      'case(default, expr(int)))',
+                    )
+                    .stmt,
+              ], expectedErrors: {
+                'inconsistentJoinedPatternVariable(variable: x = [x1, x2], '
+                    'component: x2)'
+              });
+            });
+          });
         });
       });
     });
@@ -541,9 +617,9 @@ main() {
                 break_(),
               ]),
             ],
-          ).checkIr('switch(expr(int), '
-              'case(heads(head(const(0, matchedType: int), true), '
-              'variables()), block(break())))'),
+          ).checkIr('switch(expr(int), case(heads(head(const(0, '
+              'matchedType: int), true, variables()), variables()), '
+              'block(break())))'),
         ]);
       });
 
@@ -558,10 +634,9 @@ main() {
                   break_(),
                 ]),
               ],
-            ).checkIr('switch(expr(int), '
-                'case(heads(head(varPattern(x, matchedType: int, '
-                'staticType: int), true), variables(x)), '
-                'block(break())))'),
+            ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
+                'matchedType: int, staticType: int), true, variables(x)), '
+                'variables(x)), block(break())))'),
           ]);
         });
 
@@ -575,10 +650,9 @@ main() {
                   break_(),
                 ]),
               ],
-            ).checkIr('switch(expr(int), '
-                'case(heads(head(varPattern(x, matchedType: int, '
-                'staticType: num), true), variables(x)), '
-                'block(break())))'),
+            ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
+                'matchedType: int, staticType: num), true, variables(x)), '
+                'variables(x)), block(break())))'),
           ]);
         });
       });
@@ -606,10 +680,10 @@ main() {
               ]),
               intLiteral(1).pattern.then([]),
             ],
-          ).checkIr('switch(expr(int), case(heads(head(const(0, matchedType: '
-              'int), true), variables()), block(break())), case(heads('
-              'head(const(1, matchedType: int), true), variables()), '
-              'block(synthetic-break())))'),
+          ).checkIr('switch(expr(int), case(heads(head(const(0, '
+              'matchedType: int), true, variables()), variables()), '
+              'block(break())), case(heads(head(const(1, matchedType: int), '
+              'true, variables()), variables()), block(synthetic-break())))'),
         ]);
       });
 
@@ -630,8 +704,8 @@ main() {
               ]),
             ],
           ).checkIr('switch(expr(int), case(heads(head(varPattern(i, '
-              'matchedType: int, staticType: int), ==(i, expr(num))), '
-              'variables(i)), block(break())))'),
+              'matchedType: int, staticType: int), ==(i, expr(num)), '
+              'variables(i)), variables(i)), block(break())))'),
         ]);
       });
 
@@ -651,9 +725,9 @@ main() {
                 ]),
               ],
             ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
-                'matchedType: int, staticType: int), true), variables(x)), '
-                'block(break())), case(heads(head(varPattern(y, '
-                'matchedType: int, staticType: int), true), '
+                'matchedType: int, staticType: int), true, variables(x)), '
+                'variables(x)), block(break())), case(heads(head(varPattern(y, '
+                'matchedType: int, staticType: int), true, variables(y)), '
                 'variables(y)), block(break())))'),
           ]);
         });
@@ -674,9 +748,10 @@ main() {
                     ]),
                   ],
                 ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
-                    'matchedType: int, staticType: int), true), '
+                    'matchedType: int, staticType: int), true, variables(x1)), '
                     'head(varPattern(x, matchedType: int, staticType: int), '
-                    'true), variables(int x = [x1, x2])), block(break())))'),
+                    'true, variables(x2)), variables(int x = [x1, x2])), '
+                    'block(break())))'),
               ]);
             });
             test('With the same type and finality, with logical-or', () {
@@ -697,8 +772,9 @@ main() {
                 ).checkIr('switch(expr(int), case(heads(head(logicalOrPattern('
                     'varPattern(x, matchedType: int, staticType: int), '
                     'varPattern(x, matchedType: int, staticType: int), '
-                    'matchedType: int), true), head(varPattern(x, matchedType: '
-                    'int, staticType: int), true), variables(int x = '
+                    'matchedType: int), true, variables(int x = [x1, x2])), '
+                    'head(varPattern(x, matchedType: int, staticType: int), '
+                    'true, variables(x3)), variables(int x = '
                     '[int x = [x1, x2], x3])), block(break())))'),
               ]);
             });
@@ -718,9 +794,10 @@ main() {
                       ]),
                     ],
                   ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
-                      'matchedType: int, staticType: num), true), '
-                      'head(varPattern(x, matchedType: int, staticType: int), '
-                      'true), variables(notConsistent dynamic x = [x1, x2])), '
+                      'matchedType: int, staticType: num), true, '
+                      'variables(x1)), head(varPattern(x, matchedType: int, '
+                      'staticType: int), true, variables(x2)), '
+                      'variables(notConsistent dynamic x = [x1, x2])), '
                       'block(break())))'),
                 ]);
               });
@@ -739,9 +816,10 @@ main() {
                       ]),
                     ],
                   ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
-                      'matchedType: int, staticType: num), true), '
-                      'head(varPattern(x, matchedType: int, staticType: int), '
-                      'true), variables(notConsistent dynamic x = [x1, x2])), '
+                      'matchedType: int, staticType: num), true, variables('
+                      'x1)), head(varPattern(x, matchedType: int, '
+                      'staticType: int), true, variables(x2)), '
+                      'variables(notConsistent dynamic x = [x1, x2])), '
                       'block(break())))'),
                 ]);
               });
@@ -761,12 +839,12 @@ main() {
                     ],
                   ).checkIr(
                       'switch(expr(List<int>), case(heads(head(varPattern(x, '
-                      'matchedType: List<int>, staticType: List<int>), true), '
-                      'head(listPattern(varPattern(x, matchedType: int, '
-                      'staticType: int), matchedType: List<int>, '
-                      'requiredType: List<int>), true), '
-                      'variables(notConsistent dynamic x = [x1, x2])), '
-                      'block(break())))'),
+                      'matchedType: List<int>, staticType: List<int>), true, '
+                      'variables(x1)), head(listPattern(varPattern(x, '
+                      'matchedType: int, staticType: int), matchedType: '
+                      'List<int>, requiredType: List<int>), true, '
+                      'variables(x2)), variables(notConsistent dynamic '
+                      'x = [x1, x2])), block(break())))'),
                 ]);
               });
             });
@@ -785,10 +863,10 @@ main() {
                     ]),
                   ],
                 ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
-                    'matchedType: int, staticType: int), true), '
+                    'matchedType: int, staticType: int), true, variables(x1)), '
                     'head(varPattern(x, matchedType: int, staticType: int), '
-                    'true), variables(notConsistent dynamic x = [x1, x2])), '
-                    'block(break())))'),
+                    'true, variables(x2)), variables(notConsistent '
+                    'dynamic x = [x1, x2])), block(break())))'),
               ]);
             });
           });
@@ -806,8 +884,8 @@ main() {
                   ]),
                 ],
               ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
-                  'matchedType: int, staticType: int), true), '
-                  'head(const(0, matchedType: int), true), '
+                  'matchedType: int, staticType: int), true, variables(x1)), '
+                  'head(const(0, matchedType: int), true, variables()), '
                   'variables(notConsistent int x = [x1])), block(break())))'),
             ]);
           });
@@ -825,10 +903,9 @@ main() {
                   ]),
                 ],
               ).checkIr('switch(expr(int), case(heads(head(const(0, '
-                  'matchedType: int), true), head(varPattern(x, matchedType: '
-                  'int, staticType: int), true), '
-                  'variables(notConsistent int x = [x1])), '
-                  'block(break())))'),
+                  'matchedType: int), true, variables()), head(varPattern(x, '
+                  'matchedType: int, staticType: int), true, variables(x1)), '
+                  'variables(notConsistent int x = [x1])), block(break())))'),
             ]);
           });
           test('case has, default', () {
@@ -845,8 +922,9 @@ main() {
                   ]),
                 ],
               ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
-                  'matchedType: int, staticType: int), true), default, '
-                  'variables(notConsistent int x = [x1])), block(break())))'),
+                  'matchedType: int, staticType: int), true, variables(x1)), '
+                  'default, variables(notConsistent int x = [x1])), '
+                  'block(break())))'),
             ]);
           });
           test('case has, with label', () {
@@ -862,9 +940,8 @@ main() {
                   ], hasLabels: true),
                 ],
               ).checkIr('switch(expr(int), case(heads(head(varPattern(x, '
-                  'matchedType: int, staticType: int), true), '
-                  'variables(notConsistent int x = [x1])), '
-                  'block(break())))'),
+                  'matchedType: int, staticType: int), true, variables(x1)), '
+                  'variables(notConsistent int x = [x1])), block(break())))'),
             ]);
           });
         });
@@ -1260,8 +1337,9 @@ main() {
                 ]),
               ],
             ).checkIr('switch(expr(int), case(heads(head(const(0, '
-                'matchedType: int), true), head(const(1, matchedType: '
-                'int), true), variables()), block(break())))'),
+                'matchedType: int), true, variables()), head(const(1, '
+                'matchedType: int), true, variables()), variables()), '
+                'block(break())))'),
           ]);
         });
       });

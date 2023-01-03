@@ -873,6 +873,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     variable.isConsistent &= isConsistent;
     variable.isFinal = isFinal;
     variable.type = type;
+    flow.declare(variable, true);
   }
 
   @override
