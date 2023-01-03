@@ -84,13 +84,6 @@ class DocumentationValidator {
     'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
     // Produces multiple diagnostic because of poor recovery.
     'CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR',
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50502
-    // 'CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER',
-    // 'CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
-    // 'CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
-    // 'CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION',
-    // 'CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
-    // 'CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY',
     // This no longer works in 3.0.
     'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     // The code has been replaced but is not yet removed.

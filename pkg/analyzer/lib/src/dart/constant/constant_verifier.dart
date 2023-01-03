@@ -99,12 +99,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstantPattern(ConstantPattern node) {
+    super.visitConstantPattern(node);
+
+    var expression = node.expression.unParenthesized;
     _validate(
-      node.expression,
+      expression,
       CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
     );
-
-    super.visitConstantPattern(node);
   }
 
   @override
@@ -461,7 +462,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           identical(
               dataErrorCode,
               CompileTimeErrorCode
-                  .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY)) {
+                  .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY) ||
+          identical(dataErrorCode,
+              CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY)) {
         _errorReporter.reportError(data);
       } else if (errorCode != null) {
         _errorReporter.reportError(
@@ -676,26 +679,38 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _validateSwitchStatement_nullSafety(SwitchStatement node) {
-    for (var switchMember in node.members) {
-      if (switchMember is SwitchCase) {
-        Expression expression = switchMember.expression;
+    void validateExpression(Expression expression) {
+      var expressionValue = _validate(
+        expression,
+        CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
+      );
+      if (expressionValue == null) {
+        return;
+      }
 
-        var expressionValue = _validate(
-          expression,
-          CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
-        );
-        if (expressionValue == null) {
-          continue;
-        }
-
+      if (!_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
         var expressionType = expressionValue.type;
-
         if (_implementsEqualsWhenNotAllowed(expressionType)) {
           _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
             expression,
             [expressionType],
           );
+        }
+      }
+    }
+
+    for (var switchMember in node.members) {
+      if (switchMember is SwitchCase) {
+        validateExpression(switchMember.expression);
+      } else if (switchMember is SwitchPatternCase) {
+        if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
+          switchMember.accept(this);
+        } else {
+          var pattern = switchMember.guardedPattern.pattern;
+          if (pattern is ConstantPattern) {
+            validateExpression(pattern.expression.unParenthesized);
+          }
         }
       }
     }

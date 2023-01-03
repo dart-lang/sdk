@@ -17,17 +17,24 @@ main() {
 
 @reflectiveTest
 class NonConstantCaseExpressionTest extends PubPackageResolutionTest
-    with NonConstantCaseExpressionTestCases {
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50502')
-  @override
-  test_parameter() {
-    return super.test_parameter();
-  }
-}
+    with NonConstantCaseExpressionTestCases {}
 
 @reflectiveTest
 class NonConstantCaseExpressionTest_Language218 extends PubPackageResolutionTest
-    with WithLanguage218Mixin, NonConstantCaseExpressionTestCases {}
+    with WithLanguage218Mixin, NonConstantCaseExpressionTestCases {
+  test_parameter() async {
+    await assertErrorsInCode(r'''
+void f(var e, int a) {
+  switch (e) {
+    case 3 + a:
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION, 51, 1),
+    ]);
+  }
+}
 
 mixin NonConstantCaseExpressionTestCases on PubPackageResolutionTest {
   test_constField() async {
@@ -48,19 +55,6 @@ class C {
   const C(this.a);
 }
 ''');
-  }
-
-  test_parameter() async {
-    await assertErrorsInCode(r'''
-void f(var e, int a) {
-  switch (e) {
-    case 3 + a:
-      break;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION, 51, 1),
-    ]);
   }
 
   test_typeLiteral() async {

@@ -1674,6 +1674,10 @@ CompileTimeErrorCode:
       ```dart
       var l = const [0];
       ```
+  PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY:
+    problemMessage: Constant values from a deferred library can't be used in patterns.
+    correctionMessage: Try removing the keyword 'deferred' from the import.
+    comment: No parameters.
   SET_ELEMENT_FROM_DEFERRED_LIBRARY:
     sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
     problemMessage: "Constant values from a deferred library can't be used as values in a 'const' set literal."
