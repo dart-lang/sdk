@@ -7,6 +7,7 @@
 
 library get_object_rpc_test;
 
+import 'dart:collection';
 import 'dart:convert' show base64Decode;
 import 'dart:typed_data';
 
@@ -693,19 +694,23 @@ var tests = <IsolateTest>[
             as InstanceRef;
     final objectId = evalResult.id!;
     final result = await service.getObject(isolateId, objectId) as Instance;
-    expect(result.kind, '_Record');
+    expect(result.kind, InstanceKind.kRecord);
     expect(result.json!['_vmType'], 'Record');
     expect(result.id, startsWith('objects/'));
     expect(result.valueAsString, isNull);
     expect(result.classRef!.name, '_Record');
     expect(result.size, isPositive);
-    final fields = result.fields!;
-    expect(fields.length, 4);
-    // TODO(derekx): Include field names in this test once they are accessible
-    // through package:vm_service.
-    Set<String> fieldValues =
-        Set.from(fields.map((f) => f.value.valueAsString));
-    expect(fieldValues.containsAll(['1', '2', '3.0', '4.0']), true);
+    final fieldsMap = HashMap.fromEntries(
+        result.fields!.map((f) => MapEntry(f.name, f.value)));
+    expect(fieldsMap.keys.length, 4);
+    expect(fieldsMap.containsKey(0), true);
+    expect(fieldsMap[0].valueAsString, '1');
+    expect(fieldsMap.containsKey("x"), true);
+    expect(fieldsMap["x"].valueAsString, '2');
+    expect(fieldsMap.containsKey(1), true);
+    expect(fieldsMap[1].valueAsString, '3.0');
+    expect(fieldsMap.containsKey("y"), true);
+    expect(fieldsMap["y"].valueAsString, '4.0');
   },
 
   // library.

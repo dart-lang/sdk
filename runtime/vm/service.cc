@@ -2321,6 +2321,7 @@ static void PrintInboundReferences(Thread* thread,
             (slot_offset.Value() - Array::element_offset(0)) /
             Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
+        jselement.AddProperty("parentField", element_index);
       } else if (source.IsRecord()) {
         AddParentFieldToResponseBasedOnRecord(thread, &field_names, &name,
                                               jselement, Record::Cast(source),
@@ -2351,6 +2352,7 @@ static void PrintInboundReferences(Thread* thread,
               (slot_offset.Value() - Context::variable_offset(0)) /
               Context::kBytesPerElement;
           jselement.AddProperty("parentListIndex", element_index);
+          jselement.AddProperty("parentField", element_index);
         } else {
           jselement.AddProperty("_parentWordOffset", slot_offset.Value());
         }
@@ -2445,6 +2447,7 @@ static void PrintRetainingPath(Thread* thread,
             (slot_offset.Value() - Array::element_offset(0)) /
             Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
+        jselement.AddProperty("parentField", element_index);
       } else if (element.IsRecord()) {
         AddParentFieldToResponseBasedOnRecord(thread, &field_names, &name,
                                               jselement, Record::Cast(element),
@@ -2491,6 +2494,7 @@ static void PrintRetainingPath(Thread* thread,
               (slot_offset.Value() - Context::variable_offset(0)) /
               Context::kBytesPerElement;
           jselement.AddProperty("parentListIndex", element_index);
+          jselement.AddProperty("parentField", element_index);
         } else {
           jselement.AddProperty("_parentWordOffset", slot_offset.Value());
         }
