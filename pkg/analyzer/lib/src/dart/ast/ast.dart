@@ -10061,8 +10061,7 @@ class PatternAssignmentImpl extends ExpressionImpl
   @override
   final Token equals;
 
-  @override
-  final ExpressionImpl expression;
+  ExpressionImpl _expression;
 
   @override
   final DartPatternImpl pattern;
@@ -10070,10 +10069,10 @@ class PatternAssignmentImpl extends ExpressionImpl
   PatternAssignmentImpl({
     required this.pattern,
     required this.equals,
-    required this.expression,
-  }) {
+    required ExpressionImpl expression,
+  }) : _expression = expression {
     _becomeParentOf(pattern);
-    _becomeParentOf(expression);
+    _becomeParentOf(_expression);
   }
 
   @override
@@ -10081,6 +10080,13 @@ class PatternAssignmentImpl extends ExpressionImpl
 
   @override
   Token get endToken => expression.endToken;
+
+  @override
+  ExpressionImpl get expression => _expression;
+
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf(expression);
+  }
 
   @override
   // TODO(brianwilkerson) Create a new precedence constant for pattern

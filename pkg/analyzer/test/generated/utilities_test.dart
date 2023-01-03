@@ -1433,6 +1433,40 @@ part of 'a.dart';
     );
   }
 
+  void test_patternAssignment() {
+    var findNode = _parseStringToFindNode(r'''
+void f() {
+  int a;
+  int b;
+  (a) = 0;
+  (b) = 1;
+}
+''');
+    _assertReplacementForChildren<PatternAssignment>(
+      destination: findNode.patternAssignment('0'),
+      source: findNode.patternAssignment('1'),
+      childAccessors: [
+        (node) => node.expression,
+      ],
+    );
+  }
+
+  void test_patternVariableDeclaration() {
+    var findNode = _parseStringToFindNode(r'''
+void f() {
+  var (a) = 0;
+  var (b) = 1;
+}
+''');
+    _assertReplacementForChildren<PatternVariableDeclaration>(
+      destination: findNode.patternVariableDeclaration('0'),
+      source: findNode.patternVariableDeclaration('1'),
+      childAccessors: [
+        (node) => node.expression,
+      ],
+    );
+  }
+
   void test_postfixExpression() {
     var findNode = _parseStringToFindNode(r'''
 void f() {
