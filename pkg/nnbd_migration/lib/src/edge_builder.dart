@@ -920,7 +920,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitExpressionStatement(ExpressionStatement node) {
     var decoratedType = _dispatch(node.expression)!;
-    _graph.connectDummy(decoratedType.node, DummyOrigin(source, node));
+    if (node.expression is! CascadeExpression) {
+      // Don't add a dummy edge for cascade expression, since
+      // it forces the target of cascade to be nullable, which
+      // is almost always wrong.
+      _graph.connectDummy(decoratedType.node, DummyOrigin(source, node));
+    }
     return decoratedType;
   }
 

@@ -5502,7 +5502,6 @@ class C<T> {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49689')
   Future<void> test_infer_late_with_cascaded_usage() async {
     var content = '''
 class A {
