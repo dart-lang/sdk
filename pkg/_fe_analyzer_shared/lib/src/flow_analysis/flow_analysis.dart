@@ -3261,8 +3261,11 @@ class _AssertContext<Type extends Object> extends _SimpleContext<Type> {
   _AssertContext(super.previous);
 
   @override
-  String toString() =>
-      '_AssertContext(previous: $_previous, conditionInfo: $_conditionInfo)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['conditionInfo'] = _conditionInfo;
+
+  @override
+  String get _debugType => '_AssertContext';
 }
 
 /// [_FlowContext] representing a language construct that branches on a boolean
@@ -3275,7 +3278,11 @@ class _BranchContext<Type extends Object> extends _FlowContext {
   _BranchContext(this._branchModel);
 
   @override
-  String toString() => '_BranchContext(branchModel: $_branchModel)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['branchModel'] = _branchModel;
+
+  @override
+  String get _debugType => '_BranchContext';
 }
 
 /// [_FlowContext] representing a language construct that can be targeted by
@@ -3298,8 +3305,13 @@ class _BranchTargetContext<Type extends Object> extends _FlowContext {
   _BranchTargetContext(this._checkpoint);
 
   @override
-  String toString() => '_BranchTargetContext(breakModel: $_breakModel, '
-      'continueModel: $_continueModel, checkpoint: $_checkpoint)';
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['breakModel'] = _breakModel
+    ..['continueModel'] = _continueModel
+    ..['checkpoint'] = _checkpoint;
+
+  @override
+  String get _debugType => '_BranchTargetContext';
 }
 
 /// [_FlowContext] representing a conditional expression.
@@ -3311,8 +3323,11 @@ class _ConditionalContext<Type extends Object> extends _BranchContext<Type> {
   _ConditionalContext(super._branchModel);
 
   @override
-  String toString() => '_ConditionalContext(branchModel: $_branchModel, '
-      'thenInfo: $_thenInfo)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['thenInfo'] = _thenInfo;
+
+  @override
+  String get _debugType => '_ConditionalContext';
 }
 
 /// Data structure representing the result of demoting a variable from one type
@@ -4320,7 +4335,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _TryFinallyContext<Type> context =
         _stack.removeLast() as _TryFinallyContext<Type>;
     _current = context._afterBodyAndCatches!
-        .attachFinally(operations, context._beforeFinally, _current);
+        .attachFinally(operations, context._beforeFinally!, _current);
   }
 
   @override
@@ -4660,7 +4675,43 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
 /// Base class for objects representing constructs in the Dart programming
 /// language for which flow analysis information needs to be tracked.
-abstract class _FlowContext {}
+abstract class _FlowContext {
+  _FlowContext() {
+    assert(() {
+      // Check that `_debugType` has been overridden in a way that reflects the
+      // class name.  Note that this assumes the behavior of `runtimeType` in
+      // the VM, but that's ok, because this code is only active when asserts
+      // are enabled, and we only run unit tests on the VM.
+      String expectedDebugType = runtimeType.toString();
+      int lessThanIndex = expectedDebugType.indexOf('<');
+      if (lessThanIndex > 0) {
+        expectedDebugType = expectedDebugType.substring(0, lessThanIndex);
+      }
+      assert(_debugType == expectedDebugType,
+          'Expected a debug type of $expectedDebugType, got $_debugType');
+      return true;
+    }());
+  }
+
+  /// Returns a freshly allocated map whose keys are the names of fields in the
+  /// class, and whose values are the values of those fields.
+  ///
+  /// This is used by [toString] to print out information for debugging.
+  Map<String, Object?> get _debugFields => {};
+
+  /// Returns a string representation of the class name.  This is used by
+  /// [toString] to print out information for debugging.
+  String get _debugType;
+
+  @override
+  String toString() {
+    List<String> fields = [
+      for (MapEntry<String, Object?> entry in _debugFields.entries)
+        if (entry.value != null) '${entry.key}: ${entry.value}'
+    ];
+    return '$_debugType(${fields.join(', ')})';
+  }
+}
 
 /// [_FlowContext] representing a function expression.
 class _FunctionExpressionContext<Type extends Object>
@@ -4668,7 +4719,7 @@ class _FunctionExpressionContext<Type extends Object>
   _FunctionExpressionContext(super.previous);
 
   @override
-  String toString() => '_FunctionExpressionContext(previous: $_previous)';
+  String get _debugType => '_FunctionExpressionContext';
 }
 
 /// [_FlowContext] representing an `if` statement.
@@ -4680,8 +4731,11 @@ class _IfContext<Type extends Object> extends _BranchContext<Type> {
   _IfContext(super._branchModel);
 
   @override
-  String toString() =>
-      '_IfContext(branchModel: $_branchModel, afterThen: $_afterThen)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['afterThen'] = _afterThen;
+
+  @override
+  String get _debugType => '_IfContext';
 }
 
 /// [_FlowContext] representing an "if-null" (`??`) expression.
@@ -4693,7 +4747,11 @@ class _IfNullExpressionContext<Type extends Object> extends _FlowContext {
   _IfNullExpressionContext(this._shortcutState);
 
   @override
-  String toString() => '_IfNullExpressionContext($_shortcutState)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['shortcutState'] = _shortcutState;
+
+  @override
+  String get _debugType => '_IfNullExpressionContext';
 }
 
 /// Contextual information tracked by legacy type promotion about a binary "and"
@@ -5346,7 +5404,7 @@ class _NullAwareAccessContext<Type extends Object>
   _NullAwareAccessContext(super.previous);
 
   @override
-  String toString() => '_NullAwareAccessContext(previous: $_previous)';
+  String get _debugType => '_NullAwareAccessContext';
 }
 
 /// [ExpressionInfo] representing a `null` literal.
@@ -5392,10 +5450,12 @@ class _OrPatternContext<Type extends Object> extends _PatternContext<Type> {
       this._previousUnmatched);
 
   @override
-  String toString() =>
-      '_OrPatternContext(matchedValueReference: $_matchedValueReference, '
-      'matchedValueType: $_matchedValueType, '
-      'previousUnmatched: $_previousUnmatched, lhsMatched: $_lhsMatched)';
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['previousUnmatched'] = _previousUnmatched
+    ..['lhsMatched'] = _lhsMatched;
+
+  @override
+  String get _debugType => '_OrPatternContext';
 }
 
 /// [_FlowContext] representing a pattern.
@@ -5409,9 +5469,12 @@ class _PatternContext<Type extends Object> extends _FlowContext {
   _PatternContext(this._matchedValueReference, this._matchedValueType);
 
   @override
-  String toString() =>
-      '_PatternContext(matchedValueReference: $_matchedValueReference, '
-      'matchedValueType: $_matchedValueType)';
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['matchedValueReference'] = _matchedValueReference
+    ..['matchedValueType'] = _matchedValueType;
+
+  @override
+  String get _debugType => '_PatternContext';
 }
 
 /// [ReferenceWithType] object representing a property get.
@@ -5451,10 +5514,13 @@ class _ScrutineeContext<Type extends Object> extends _FlowContext {
       required this.previousScrutineeType});
 
   @override
-  String toString() => '_ScrutineeContext('
-      'previousScrutineeReference: $previousScrutineeReference, '
-      'previousScrutineeSsaNode: $previousScrutineeSsaNode, '
-      'previousScrutineeType: $previousScrutineeType)';
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['previousScrutineeReference'] = previousScrutineeReference
+    ..['previousScrutineeSsaNode'] = previousScrutineeSsaNode
+    ..['previousScrutineeType'] = previousScrutineeType;
+
+  @override
+  String get _debugType => '_ScrutineeContext';
 }
 
 /// [_FlowContext] representing a language construct for which flow analysis
@@ -5467,6 +5533,10 @@ abstract class _SimpleContext<Type extends Object> extends _FlowContext {
   final FlowModel<Type> _previous;
 
   _SimpleContext(this._previous);
+
+  @override
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['previous'] = _previous;
 }
 
 /// [_FlowContext] representing a language construct that can be targeted by
@@ -5483,9 +5553,11 @@ class _SimpleStatementContext<Type extends Object>
   _SimpleStatementContext(super.checkpoint, this._previous);
 
   @override
-  String toString() => '_SimpleStatementContext(breakModel: $_breakModel, '
-      'continueModel: $_continueModel, previous: $_previous, '
-      'checkpoint: $_checkpoint)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['previous'] = _previous;
+
+  @override
+  String get _debugType => '_SimpleStatementContext';
 }
 
 class _SwitchAlternativesContext<Type extends Object> extends _FlowContext {
@@ -5496,8 +5568,12 @@ class _SwitchAlternativesContext<Type extends Object> extends _FlowContext {
   _SwitchAlternativesContext(this._previous);
 
   @override
-  String toString() => '_SwitchAlternativesContext(previous: $_previous, '
-      'combinedModel: $_combinedModel)';
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['previous'] = _previous
+    ..['combinedModel'] = _combinedModel;
+
+  @override
+  String get _debugType => '_SwitchAlternativesContext';
 }
 
 /// [_FlowContext] representing a switch statement.
@@ -5510,9 +5586,11 @@ class _SwitchStatementContext<Type extends Object>
       super.checkpoint, super._previous, this._scrutineeType);
 
   @override
-  String toString() => '_SwitchStatementContext(breakModel: $_breakModel, '
-      'continueModel: $_continueModel, previous: $_previous, '
-      'checkpoint: $_checkpoint, scrutineeType: $_scrutineeType)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['scrutineeType'] = _scrutineeType;
+
+  @override
+  String get _debugType => '_SwitchStatementContext';
 }
 
 /// [_FlowContext] representing the top level of a pattern syntax tree.
@@ -5520,9 +5598,7 @@ class _TopPatternContext<Type extends Object> extends _PatternContext<Type> {
   _TopPatternContext(super._matchedValueReference, super.matchedValueType);
 
   @override
-  String toString() =>
-      '_TopPatternContext(matchedValueReference: $_matchedValueReference, '
-      'matchedValueType: $_matchedValueType)';
+  String get _debugType => '_TopPatternContext';
 }
 
 /// Specialization of [ExpressionInfo] for the case where the information we
@@ -5566,17 +5642,27 @@ class _TryContext<Type extends Object> extends _SimpleContext<Type> {
   _TryContext(super.previous);
 
   @override
-  String toString() =>
-      '_TryContext(previous: $_previous, beforeCatch: $_beforeCatch, '
-      'afterBodyAndCatches: $_afterBodyAndCatches)';
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['beforeCatch'] = _beforeCatch
+    ..['afterBodyAndCatches'] = '_afterBodyAndCatches';
+
+  @override
+  String get _debugType => '_TryContext';
 }
 
 class _TryFinallyContext<Type extends Object> extends _TryContext<Type> {
   /// The flow model representing program state at the top of the `finally`
   /// block.
-  late final FlowModel<Type> _beforeFinally;
+  FlowModel<Type>? _beforeFinally;
 
   _TryFinallyContext(super.previous);
+
+  @override
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['beforeFinally'] = _beforeFinally;
+
+  @override
+  String get _debugType => '_TryFinallyContext';
 }
 
 /// [_FlowContext] representing a `while` loop (or a C-style `for` loop, which
@@ -5588,7 +5674,9 @@ class _WhileContext<Type extends Object> extends _BranchTargetContext<Type> {
   _WhileContext(super.checkpoint, this._conditionInfo);
 
   @override
-  String toString() => '_WhileContext(breakModel: $_breakModel, '
-      'continueModel: $_continueModel, conditionInfo: $_conditionInfo, '
-      'checkpoint: $_checkpoint)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['conditionInfo'] = _conditionInfo;
+
+  @override
+  String get _debugType => '_WhileContext';
 }
