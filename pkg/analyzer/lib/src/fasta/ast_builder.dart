@@ -2803,8 +2803,15 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endPatternGuard(Token token) {
+  void endPatternGuard(Token when) {
     debugEvent("PatternGuard");
+    var expression = pop() as ExpressionImpl;
+    push(
+      WhenClauseImpl(
+        whenKeyword: when,
+        expression: expression,
+      ),
+    );
   }
 
   @override
@@ -4853,11 +4860,7 @@ class AstBuilder extends StackListener {
     ExpressionImpl condition;
     CaseClauseImpl? caseClause;
     if (case_ != null) {
-      WhenClauseImpl? whenClause;
-      if (when != null) {
-        var expression = pop() as ExpressionImpl;
-        whenClause = WhenClauseImpl(whenKeyword: when, expression: expression);
-      }
+      var whenClause = when != null ? pop() as WhenClauseImpl : null;
       var pattern = pop() as DartPatternImpl;
       caseClause = CaseClauseImpl(
         caseKeyword: case_,
