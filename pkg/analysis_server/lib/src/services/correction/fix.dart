@@ -40,6 +40,16 @@ class AnalysisOptionsFixKind {
     50,
     "Remove '{0}'",
   );
+  static const REPLACE_WITH_STRICT_CASTS = FixKind(
+    'analysisOptions.fix.replaceWithStrictCasts',
+    50,
+    'Replace with the strict-casts analysis mode',
+  );
+  static const REPLACE_WITH_STRICT_RAW_TYPES = FixKind(
+    'analysisOptions.fix.replaceWithStrictRawTypes',
+    50,
+    'Replace with the strict-raw-types analysis mode',
+  );
 }
 
 /// The implementation of [DartFixContext].

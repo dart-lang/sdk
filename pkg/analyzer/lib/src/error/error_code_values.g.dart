@@ -23,6 +23,8 @@ const List<ErrorCode> errorCodeValues = [
   AnalysisOptionsErrorCode.INCLUDED_FILE_PARSE_ERROR,
   AnalysisOptionsErrorCode.PARSE_ERROR,
   AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED,
+  AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED,
+  AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT,
   AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING,
   AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND,
   AnalysisOptionsWarningCode.INVALID_OPTION,

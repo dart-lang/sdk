@@ -59,6 +59,23 @@ AnalysisOptionsHintCode:
     correctionMessage: It is no longer necessary to explicitly enable strong mode.
     comment: "An error code indicating that strong-mode: true is deprecated."
 AnalysisOptionsWarningCode:
+  ANALYSIS_OPTION_DEPRECATED:
+    problemMessage: "The option '{0}' is no longer supported."
+    comment: |
+      An error code indicating that the given option is deprecated.
+
+      Parameters:
+      0: the option name
+  ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
+    sharedName: ANALYSIS_OPTION_DEPRECATED
+    problemMessage: "The option '{0}' is no longer supported."
+    correctionMessage: "Try using the new '{1}' option."
+    comment: |-
+      An error code indicating that the given option is deprecated.
+
+      Parameters:
+      0: the option name
+      1: the replacement option name
   INCLUDED_FILE_WARNING:
     problemMessage: "Warning in the included options file {0}({1}..{2}): {3}"
     comment: |-

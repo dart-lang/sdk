@@ -43,6 +43,10 @@ AnalysisOptionsErrorCode.PARSE_ERROR:
 AnalysisOptionsHintCode.STRONG_MODE_SETTING_DEPRECATED:
   status: needsFix
   notes: Fixed.
+AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED:
+  status: needsEvaluation
+AnalysisOptionsWarningCode.ANALYSIS_OPTION_DEPRECATED_WITH_REPLACEMENT:
+  status: needsEvaluation
 AnalysisOptionsWarningCode.INCLUDE_FILE_NOT_FOUND:
   status: noFix
   notes: |-

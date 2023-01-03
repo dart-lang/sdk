@@ -271,7 +271,7 @@ class BasicCompletionTest2 extends AbstractCompletionDriverTest
 }
 
 mixin BasicCompletionTestCases on AbstractCompletionDriverTest {
-  /// Duplicates (and potentially replaces DeprecatedMemberRelevanceTest).
+  /// Duplicates (and potentially replaces) [DeprecatedMemberRelevanceTest].
   Future<void> test_deprecated_member_relevance() async {
     await addTestFile('''
 class A {
