@@ -501,7 +501,7 @@ class CObjectString : public CObject {
   DECLARE_COBJECT_CONSTRUCTORS(String)
 
   intptr_t Length() const { return strlen(cobject_->value.as_string); }
-  char* CString() const { return cobject_->value.as_string; }
+  const char* CString() const { return cobject_->value.as_string; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(CObjectString);

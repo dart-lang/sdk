@@ -884,7 +884,7 @@ Dart_CObject* CObject::NewString(intptr_t length) {
 Dart_CObject* CObject::NewString(const char* str) {
   intptr_t length = strlen(str);
   Dart_CObject* cobject = NewString(length);
-  memmove(cobject->value.as_string, str, length + 1);
+  memmove(const_cast<char*>(cobject->value.as_string), str, length + 1);
   return cobject;
 }
 
