@@ -42,5 +42,6 @@ The features are listed in alphabetical order.
 - [ ] selectionRange
 - [ ] Semantic Highlights
 - [ ] signatureHelp
+- [ ] Snippets
 - [ ] Sort Members
 - [ ] Type Hierarchy
