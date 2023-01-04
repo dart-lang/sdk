@@ -142,9 +142,15 @@ class FunctionCollector {
       _worklist.add(target);
 
       if (target.isTypeCheckerReference) {
-        final Member member = target.asMember;
-        return m.addFunction(
-            translator.dynamicForwarderFunctionType, '$member type checker');
+        Member member = target.asMember;
+        if (member is Field || (member is Procedure && member.isSetter)) {
+          return m.addFunction(translator.dynamicSetForwarderFunctionType,
+              '${target.asMember} setter type checker');
+        } else {
+          return m.addFunction(
+              translator.dynamicInvocationForwarderFunctionType,
+              '${target.asMember} invocation type checker');
+        }
       }
 
       if (target.isTearOffReference) {
