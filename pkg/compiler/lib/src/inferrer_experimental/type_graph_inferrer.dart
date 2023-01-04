@@ -7,7 +7,7 @@ library type_graph_inferrer;
 import 'package:kernel/ast.dart' as ir;
 import '../closure.dart';
 import '../common/metrics.dart' show Metrics;
-import '../compiler_interfaces.dart';
+import '../compiler.dart';
 import '../elements/entities.dart';
 import '../js_backend/inferred_data.dart';
 import '../js_model/elements.dart' show JClosureCallMethod;
@@ -23,7 +23,7 @@ class TypeGraphInferrer implements TypesInferrer {
   late InferrerEngine inferrer;
   final JClosedWorld closedWorld;
 
-  final CompilerInferrerFacade _compiler;
+  final Compiler _compiler;
   final GlobalLocalsMap _globalLocalsMap;
   final InferredDataBuilder _inferredDataBuilder;
   Metrics _metrics = Metrics.none();

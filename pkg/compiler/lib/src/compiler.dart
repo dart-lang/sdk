@@ -18,16 +18,6 @@ import 'common/metrics.dart' show Metric;
 import 'common/names.dart' show Selectors;
 import 'common/tasks.dart' show CompilerTask, GenericTask, Measurer;
 import 'common/work.dart' show WorkItem;
-import 'compiler_interfaces.dart'
-    show
-        CompilerDeferredLoadingFacade,
-        CompilerDiagnosticsFacade,
-        CompilerDumpInfoFacade,
-        CompilerEmitterFacade,
-        CompilerInferrerFacade,
-        CompilerJsBackendStrategyFacade,
-        CompilerKernelStrategyFacade,
-        CompilerTypeInferenceFacade;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
 import 'deferred_load/output_unit.dart' show OutputUnitData;
 import 'deferred_load/program_split_constraints/nodes.dart' as psc
@@ -78,24 +68,12 @@ import 'compiler_migrated.dart';
 
 /// Implementation of the compiler using a [api.CompilerInput] for supplying
 /// the sources.
-class Compiler
-    implements
-        CompilerDiagnosticsFacade,
-        CompilerDeferredLoadingFacade,
-        CompilerDumpInfoFacade,
-        CompilerEmitterFacade,
-        CompilerInferrerFacade,
-        CompilerJsBackendStrategyFacade,
-        CompilerKernelStrategyFacade,
-        CompilerTypeInferenceFacade {
-  @override
+class Compiler {
   final Measurer measurer;
   final api.CompilerInput provider;
   final api.CompilerDiagnostics handler;
 
-  @override
   late final KernelFrontendStrategy frontendStrategy;
-  @override
   late final JsBackendStrategy backendStrategy;
   late final DiagnosticReporter _reporter;
   late final Map<Entity, WorldImpact> _impactCache;
@@ -103,7 +81,6 @@ class Compiler
   late final GenericTask userProviderTask;
 
   /// Options provided from command-line arguments.
-  @override // CompilerDiagnosticsFacade
   final CompilerOptions options;
 
   // These internal flags are used to stop compilation after a specific phase.
@@ -114,7 +91,6 @@ class Compiler
   /// Output provider from user of Compiler API.
   late final api.CompilerOutput _outputProvider;
 
-  @override
   api.CompilerOutput get outputProvider => _outputProvider;
 
   late ir.Component componentForTesting;
@@ -126,12 +102,9 @@ class Compiler
 
   ir.Component? untrimmedComponentForDumpInfo;
 
-  @override
   DiagnosticReporter get reporter => _reporter;
-  @override
   Map<Entity, WorldImpact> get impactCache => _impactCache;
 
-  @override
   final Environment environment;
 
   late final List<CompilerTask> tasks;
@@ -143,19 +116,15 @@ class Compiler
       experimentalGlobalInference;
   late final CodegenWorldBuilder _codegenWorldBuilder;
 
-  @override
   late AbstractValueStrategy abstractValueStrategy;
 
   late final GenericTask selfTask;
 
   late final GenericTask enqueueTask;
-  @override
   late final DeferredLoadTask deferredLoadTask;
-  @override
   late final DumpInfoTask dumpInfoTask;
   late final SerializationTask serializationTask;
 
-  @override
   Progress progress = const Progress();
 
   static const int PHASE_SCANNING = 0;
@@ -164,10 +133,8 @@ class Compiler
   static const int PHASE_COMPILING = 3;
   int? phase;
 
-  @override // CompilerDiagnosticsFacade
   bool compilationFailed = false;
 
-  @override
   psc.ConstraintData? programSplitConstraintsData;
 
   // Callback function used for testing resolution enqueuing.
@@ -255,7 +222,6 @@ class Compiler
 
   CodegenWorld? codegenWorldForTesting;
 
-  @override
   bool get disableTypeInference =>
       options.disableTypeInference || compilationFailed;
 
@@ -844,7 +810,6 @@ class Compiler
         'Compiled ', enqueuer.processedEntities.length, ' methods.');
   }
 
-  @override // CompilerDiagnosticsFacade
   void reportDiagnostic(DiagnosticMessage message,
       List<DiagnosticMessage> infos, api.Diagnostic kind) {
     _reportDiagnosticMessage(message, kind);
@@ -909,7 +874,6 @@ class Compiler
     return !BENIGN_ERRORS.contains(message.message.kind);
   }
 
-  @override // CompilerDiagnosticsFacade
   void fatalDiagnosticReported(DiagnosticMessage message,
       List<DiagnosticMessage> infos, api.Diagnostic kind) {
     if (markCompilationAsFailed(message, kind)) {
@@ -919,7 +883,6 @@ class Compiler
 
   /// Compute a [SourceSpan] from spannable using the [currentElement] as
   /// context.
-  @override // CompilerDiagnosticsFacade
   SourceSpan spanFromSpannable(Spannable spannable, Entity? currentElement) {
     SourceSpan span;
     if (phase == Compiler.PHASE_COMPILING) {
@@ -931,7 +894,6 @@ class Compiler
   }
 
   /// Helper for determining whether [element] is declared within 'user code'.
-  @override // CompilerDiagnosticsFacade
   bool inUserCode(Entity? element) {
     return element == null || _uriFromElement(element) != null;
   }
@@ -941,7 +903,6 @@ class Compiler
   /// For a package library with canonical URI 'package:foo/bar/baz.dart' the
   /// return URI is 'package:foo'. For non-package libraries the returned URI is
   /// the canonical URI of the library itself.
-  @override // CompilerDiagnosticsFacade
   Uri? getCanonicalUri(Entity element) {
     final libraryUri = _uriFromElement(element);
     if (libraryUri == null) return null;

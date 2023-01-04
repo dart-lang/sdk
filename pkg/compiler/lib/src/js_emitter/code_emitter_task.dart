@@ -6,7 +6,7 @@ library dart2js.js_emitter.code_emitter_task;
 
 import '../common/metrics.dart' show Metric, Metrics, CountMetric;
 import '../common/tasks.dart' show CompilerTask;
-import '../compiler_interfaces.dart' show CompilerEmitterFacade;
+import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
 import '../deferred_load/output_unit.dart' show OutputUnit;
 import '../elements/entities.dart';
@@ -17,7 +17,6 @@ import '../js_backend/namer.dart' show Namer;
 import '../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../js_model/js_strategy.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
-import '../dump_info.dart';
 import '../options.dart';
 import '../universe/codegen_world_builder.dart';
 import 'program_builder/program_builder.dart';
@@ -36,7 +35,7 @@ class CodeEmitterTask extends CompilerTask {
   late final NativeEmitter nativeEmitter;
   late final MetadataCollector metadataCollector;
   late final Emitter emitter;
-  final CompilerEmitterFacade _compiler;
+  final Compiler _compiler;
   final bool _generateSourceMap;
 
   JsBackendStrategy get _backendStrategy => _compiler.backendStrategy;
@@ -77,7 +76,7 @@ class CodeEmitterTask extends CompilerTask {
           _compiler.options,
           _compiler.reporter,
           _compiler.outputProvider,
-          _compiler.dumpInfoTask as DumpInfoTask,
+          _compiler.dumpInfoTask,
           namer,
           closedWorld,
           codegen.rtiRecipeEncoder,

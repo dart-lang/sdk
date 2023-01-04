@@ -9,7 +9,7 @@ import '../common/codegen.dart';
 import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/tasks.dart';
 import '../common/work.dart';
-import '../compiler_interfaces.dart';
+import '../compiler.dart';
 import '../deferred_load/output_unit.dart'
     show LateOutputUnitDataBuilder, OutputUnitData;
 import '../dump_info.dart';
@@ -71,7 +71,7 @@ import 'locals.dart';
 /// JS Strategy pattern that defines the element model used in type inference
 /// and code generation.
 class JsBackendStrategy {
-  final CompilerJsBackendStrategyFacade _compiler;
+  final Compiler _compiler;
   late JsKernelToElementMap _elementMap;
 
   /// Codegen support for generating table of interceptors and
@@ -371,8 +371,7 @@ class JsBackendStrategy {
         task,
         _compiler.options,
         _compiler.reporter,
-        // TODO(48820): Remove cast when interface is removed.
-        _compiler.dumpInfoTask as DumpInfoTask,
+        _compiler.dumpInfoTask,
         _ssaMetrics,
         _elementMap,
         sourceInformationStrategy);
