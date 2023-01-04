@@ -130,7 +130,7 @@ List<String?> _getUnfixableLints() {
   // todo(pq): consider moving this data elsewhere
   var excludes = File('tool/canonical/fix_excludes.json');
   var contents = excludes.readAsStringSync();
-  var json = jsonDecode(contents);
+  var json = jsonDecode(contents) as Iterable;
   var skipped = <String?>[];
   for (var entry in json) {
     var name = entry['lint'];
@@ -352,7 +352,7 @@ class ScoreCard {
   static List<String?> _getLintsWithAssists() {
     var assists = File('tool/canonical/assists.json');
     var contents = assists.readAsStringSync();
-    var json = jsonDecode(contents);
+    var json = jsonDecode(contents) as Iterable;
     var lints = <String?>[];
     for (var entry in json) {
       lints.add(entry['lint'] as String?);

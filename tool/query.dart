@@ -34,7 +34,7 @@ Future<void> main(List<String> args) async {
   var token = options['token'];
   var auth = token is String ? Authentication.withToken(token) : null;
 
-  var machine = json.decode(req.body);
+  var machine = json.decode(req.body) as Iterable;
 
   for (var rule in rules) {
     for (var entry in machine) {

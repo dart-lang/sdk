@@ -1,12 +1,12 @@
 include: package:lints/recommended.yaml
 
 analyzer:
-  strong-mode:
-    implicit-casts: false
   exclude:
     # ignore vscode .history files
     - .history/**
     - test_data/**
+  language:
+    strict-casts: true
 linter:
   rules:
 #    - always_put_control_body_on_new_line

@@ -13,7 +13,7 @@ main(List<String> args) async {
   var req = await client.get(
       Uri.parse('https://dart-lang.github.io/linter/lints/machine/rules.json'));
 
-  var machine = json.decode(req.body);
+  var machine = json.decode(req.body) as Iterable;
 
   var coreLints = <String>[];
   var recommendedLints = <String>[];
