@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart=2.12
-
 // TODO(johnniwinther): Add a test that ensure that this library doesn't depend
 // on the dart2js internals.
 library compiler.src.kernel.dart2js_target;
