@@ -397,6 +397,7 @@ class _Transform extends RecursiveVisitor {
         } else {
           positional.add(variable);
           variable.initializer = null;
+          variable.hasDeclaredInitializer = false;
         }
       } else {
         unusedParams.add(variable);
@@ -415,6 +416,7 @@ class _Transform extends RecursiveVisitor {
             eliminateUsedParameter(member, param, variable);
           } else {
             variable.initializer = null;
+            variable.hasDeclaredInitializer = false;
             variable.isRequired = false;
             positional.add(variable);
           }
