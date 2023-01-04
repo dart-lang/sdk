@@ -67,6 +67,10 @@ AnalysisOptionsWarningCode.INVALID_OPTION:
     replace the invalid option with the selected replacement.
 AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT:
   status: needsEvaluation
+AnalysisOptionsWarningCode.REMOVED_LINT:
+  status: needsFix
+AnalysisOptionsWarningCode.REPLACED_LINT:
+  status: needsFix
 AnalysisOptionsWarningCode.SPEC_MODE_REMOVED:
   status: needsFix
   notes: |-
@@ -1584,6 +1588,10 @@ HintCode.RECEIVER_OF_TYPE_NEVER:
   status: needsFix
   notes: |-
     We _could_ remove the thing being received (method invocation, etc.)
+HintCode.REMOVED_LINT_USE:
+  status: needsFix
+HintCode.REPLACED_LINT_USE:
+  status: needsFix
 HintCode.RETURN_OF_DO_NOT_STORE:
   status: needsFix
   notes: |-

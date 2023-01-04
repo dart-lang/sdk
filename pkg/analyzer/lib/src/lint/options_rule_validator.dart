@@ -7,6 +7,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/plugin/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:collection/collection.dart';
@@ -107,8 +108,19 @@ class LinterRuleOptionsValidator extends OptionsValidator {
           reporter.reportErrorForSpan(DUPLICATE_RULE_HINT, node.span, [value]);
         }
       }
-      if (rule.maturity == Maturity.deprecated) {
+      var state = rule.state;
+      if (state is DeprecatedState) {
         reporter.reportErrorForSpan(DEPRECATED_LINT_HINT, node.span, [value]);
+      } else if (state is RemovedState) {
+        var since = state.since.toString();
+        var replacedBy = state.replacedBy;
+        if (replacedBy != null) {
+          reporter.reportErrorForSpan(AnalysisOptionsWarningCode.REPLACED_LINT,
+              node.span, [value, since, replacedBy]);
+        } else {
+          reporter.reportErrorForSpan(AnalysisOptionsWarningCode.REMOVED_LINT,
+              node.span, [value, since]);
+        }
       }
     }
 

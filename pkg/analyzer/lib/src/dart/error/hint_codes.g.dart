@@ -1032,6 +1032,29 @@ class HintCode extends AnalyzerErrorCode {
         "Try checking for throw expressions or type errors in the receiver",
   );
 
+  ///  An error code indicating use of a removed lint rule.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  ///  1: the SDK version in which the lint was removed
+  static const HintCode REMOVED_LINT_USE = HintCode(
+    'REMOVED_LINT_USE',
+    "'{0}' was removed in Dart '{1}'",
+    correctionMessage: "Remove the reference to '{0}'.",
+  );
+
+  ///  An error code indicating use of a removed lint rule.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  ///  1: the SDK version in which the lint was removed
+  ///  2: the name of a replacing lint
+  static const HintCode REPLACED_LINT_USE = HintCode(
+    'REPLACED_LINT_USE',
+    "'{0}' was replaced by '{2}' in Dart '{1}'.",
+    correctionMessage: "Replace '{0}' with '{1}'.",
+  );
+
   ///  Parameters:
   ///  0: the name of the annotated function being invoked
   ///  1: the name of the function containing the return
