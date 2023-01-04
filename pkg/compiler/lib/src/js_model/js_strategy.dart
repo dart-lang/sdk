@@ -384,6 +384,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   }
 
   /// Creates the [SsaBuilder] used for the element model.
+  @override
   SsaBuilder createSsaBuilder(
       CompilerTask task, SourceInformationStrategy sourceInformationStrategy) {
     return KernelSsaBuilder(

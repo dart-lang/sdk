@@ -396,7 +396,7 @@ class CodegenRegistry {
     _expressions.add(expression);
   }
 
-  CodegenResult close(js.Fun code) {
+  CodegenResult close(js.Fun? code) {
     return CodegenResult(code, _worldImpact, _names.isEmpty ? const [] : _names,
         _expressions.isEmpty ? const [] : _expressions);
   }

@@ -14,6 +14,7 @@ import '../js_emitter/js_emitter.dart' show CodeEmitterTask;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../native/enqueue.dart';
 import '../serialization/serialization.dart';
+import '../ssa/ssa.dart';
 import 'locals.dart';
 
 abstract class JsBackendStrategy {
@@ -31,4 +32,6 @@ abstract class JsBackendStrategy {
   Map<MemberEntity, js.Expression> get generatedCode;
   void prepareCodegenReader(DataSourceReader source);
   EntityWriter forEachCodegenMember(void Function(MemberEntity member) f);
+  SsaBuilder createSsaBuilder(SsaBuilderTask ssaBuilderTask,
+      SourceInformationStrategy sourceInformationFactory);
 }
