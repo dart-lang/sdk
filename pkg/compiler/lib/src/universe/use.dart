@@ -645,7 +645,7 @@ class StaticUse {
 
   /// Inlining of [element].
   factory StaticUse.constructorInlining(
-      ConstructorEntity element, InterfaceType instanceType) {
+      ConstructorEntity element, InterfaceType? instanceType) {
     return StaticUse.internal(element, StaticUseKind.INLINING,
         type: instanceType);
   }

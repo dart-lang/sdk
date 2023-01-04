@@ -1478,7 +1478,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   @override
-  ConstantValue? getConstantValue(ir.Member memberContext, ir.Expression? node,
+  ConstantValue? getConstantValue(ir.Member? memberContext, ir.Expression? node,
       {bool requireConstant = true, bool implicitNull = false}) {
     if (node == null) {
       if (!implicitNull) {
@@ -1493,7 +1493,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       // be replaced in the scope visitor as part of the initializer complexity
       // computation.
       ir.StaticTypeContext staticTypeContext =
-          getStaticTypeContext(memberContext);
+          getStaticTypeContext(memberContext!);
       ir.Constant? constant = constantEvaluator.evaluateOrNull(
           staticTypeContext, node,
           requireConstant: requireConstant);

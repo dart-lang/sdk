@@ -26,9 +26,9 @@ abstract class JumpHandler {
     return TargetJumpHandler(builder, target);
   }
 
-  void generateBreak(SourceInformation sourceInformation,
+  void generateBreak(SourceInformation? sourceInformation,
       [LabelDefinition? label]);
-  void generateContinue(SourceInformation sourceInformation,
+  void generateContinue(SourceInformation? sourceInformation,
       [LabelDefinition? label]);
   void forEachBreak(void action(HBreak instruction, LocalsHandler locals));
   void forEachContinue(
@@ -49,14 +49,14 @@ class NullJumpHandler implements JumpHandler {
   NullJumpHandler(this.reporter);
 
   @override
-  void generateBreak(SourceInformation sourceInformation,
+  void generateBreak(SourceInformation? sourceInformation,
       [LabelDefinition? label]) {
     reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
         'NullJumpHandler.generateBreak should not be called.');
   }
 
   @override
-  void generateContinue(SourceInformation sourceInformation,
+  void generateContinue(SourceInformation? sourceInformation,
       [LabelDefinition? label]) {
     reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
         'NullJumpHandler.generateContinue should not be called.');
@@ -98,7 +98,7 @@ class TargetJumpHandler implements JumpHandler {
       builder.closedWorld.abstractValueDomain;
 
   @override
-  void generateBreak(SourceInformation sourceInformation,
+  void generateBreak(SourceInformation? sourceInformation,
       [LabelDefinition? label]) {
     HInstruction breakInstruction;
     if (label == null) {
@@ -114,7 +114,7 @@ class TargetJumpHandler implements JumpHandler {
   }
 
   @override
-  void generateContinue(SourceInformation sourceInformation,
+  void generateContinue(SourceInformation? sourceInformation,
       [LabelDefinition? label]) {
     HInstruction continueInstruction;
     if (label == null) {
@@ -193,7 +193,7 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
   SwitchCaseJumpHandler(super.builder, super.target);
 
   @override
-  void generateBreak(SourceInformation sourceInformation,
+  void generateBreak(SourceInformation? sourceInformation,
       [LabelDefinition? label]) {
     if (label == null) {
       // Creates a special break instruction for the synthetic loop generated
@@ -216,7 +216,7 @@ abstract class SwitchCaseJumpHandler extends TargetJumpHandler {
   }
 
   @override
-  void generateContinue(SourceInformation sourceInformation,
+  void generateContinue(SourceInformation? sourceInformation,
       [LabelDefinition? label]) {
     if (isContinueToSwitchCase(label)) {
       // Creates the special instructions 'label = i; continue l;' used in

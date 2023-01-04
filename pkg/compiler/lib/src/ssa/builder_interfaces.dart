@@ -71,9 +71,9 @@ abstract class KernelSsaGraphBuilder extends ir.Visitor<void> {
 
   void open(HBasicBlock beginBodyBlock);
 
-  HExpressionInformation wrapExpressionGraph(SubExpression initializerGraph);
+  HExpressionInformation? wrapExpressionGraph(SubExpression? initializerGraph);
 
-  HStatementInformation wrapStatementGraph(SubGraph bodyGraph);
+  HStatementInformation? wrapStatementGraph(SubGraph? bodyGraph);
 
   JumpHandler createJumpHandler(ir.TreeNode node, JumpTarget? jumpTarget,
       {required bool isLoopJump});

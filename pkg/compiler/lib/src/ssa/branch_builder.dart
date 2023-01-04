@@ -152,7 +152,7 @@ class SsaBranchBuilder {
   ///     }
   ///     result = phi(t1, true);
   void handleLogicalBinary(
-      void left(), void right(), SourceInformation sourceInformation,
+      void left(), void right(), SourceInformation? sourceInformation,
       {required bool isAnd}) {
     late HInstruction boolifiedLeft;
     late HInstruction boolifiedRight;

@@ -35,7 +35,7 @@ abstract class LoopHandler {
       HInstruction condition(),
       void update(),
       void body(),
-      SourceInformation sourceInformation) {
+      SourceInformation? sourceInformation) {
     // Generate:
     //  <initializer>
     //  loop-entry:

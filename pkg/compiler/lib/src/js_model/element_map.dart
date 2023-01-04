@@ -101,7 +101,7 @@ abstract class JsToElementMap {
   //  only needed because effectively constant expressions are not replaced by
   //  constant expressions during resolution.
   ConstantValue? getConstantValue(
-      ir.Member memberContext, ir.Expression? expression,
+      ir.Member? memberContext, ir.Expression? expression,
       {bool requireConstant = true, bool implicitNull = false});
 
   /// Returns the [ConstantValue] for the sentinel used to indicate that a
