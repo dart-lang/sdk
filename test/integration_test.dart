@@ -30,7 +30,6 @@ import 'integration/flutter_style_todos.dart' as flutter_style_todos;
 import 'integration/lines_longer_than_80_chars.dart'
     as lines_longer_than_80_chars;
 import 'integration/only_throw_errors.dart' as only_throw_errors;
-import 'integration/overridden_fields.dart' as overridden_fields;
 import 'integration/prefer_asserts_in_initializer_lists.dart'
     as prefer_asserts_in_initializer_lists;
 import 'integration/prefer_const_constructors.dart'
@@ -179,7 +178,6 @@ void ruleTests() {
     unnecessary_lambdas.main();
     exhaustive_cases.main();
     avoid_web_libraries_in_flutter.main();
-    overridden_fields.main();
     close_sinks.main();
     cancel_subscriptions.main();
     depend_on_referenced_packages.main();

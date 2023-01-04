@@ -30,17 +30,35 @@ class B extends A {
 ''');
   }
 
-  test_recursiveInterfaceInheritance() async {
-    // Produces a recursive_interface_inheritance diagnostic.
+  test_externalLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int? public;
+}
+''');
     await assertDiagnostics(r'''
-class A extends B {}
+import 'a.dart';
 class B extends A {
-  int field = 0;
+  int? public;
 }
 ''', [
-      // No lint
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
-      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
+      lint(44, 6),
+    ]);
+  }
+
+  test_externalLibraryWithPrivateField() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  int? _private;
+}
+''');
+    await assertDiagnostics(r'''
+import 'a.dart';
+class B extends A {
+  int? _private;
+}
+''', [
+      error(HintCode.UNUSED_FIELD, 44, 8),
     ]);
   }
 
@@ -129,6 +147,20 @@ class GC34 extends GC33 {
       lint(829, 4),
       lint(891, 1),
       lint(920, 4),
+    ]);
+  }
+
+  test_recursiveInterfaceInheritance() async {
+    // Produces a recursive_interface_inheritance diagnostic.
+    await assertDiagnostics(r'''
+class A extends B {}
+class B extends A {
+  int field = 0;
+}
+''', [
+      // No lint
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 6, 1),
+      error(CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE, 27, 1),
     ]);
   }
 }
