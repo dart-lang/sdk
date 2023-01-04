@@ -4,6 +4,7 @@
 
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/analysis_options/error/option_codes.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/string_source.dart';
@@ -24,7 +25,7 @@ class DeprecatedLint extends LintRule {
       : super(
           name: 'deprecated_lint',
           group: Group.style,
-          maturity: Maturity.deprecated,
+          state: State.deprecated(),
           description: '',
           details: '',
         );
@@ -33,7 +34,15 @@ class DeprecatedLint extends LintRule {
 @reflectiveTest
 class OptionsRuleValidatorTest extends Object with ResourceProviderMixin {
   LinterRuleOptionsValidator validator = LinterRuleOptionsValidator(
-      provider: () => [DeprecatedLint(), StableLint(), RuleNeg(), RulePos()]);
+      provider: () => [
+            DeprecatedLint(),
+            StableLint(),
+            RuleNeg(),
+            RulePos(),
+            RemovedLint(),
+            ReplacedLint(),
+            ReplacingLint(),
+          ]);
 
   /// Assert that when the validator is used on the given [content] the
   /// [expectedErrorCodes] are produced.
@@ -100,6 +109,22 @@ linter:
       ''', []);
   }
 
+  test_removed_rule() {
+    assertErrors('''
+linter:
+  rules:
+    - removed_lint
+      ''', [AnalysisOptionsWarningCode.REMOVED_LINT]);
+  }
+
+  test_replaced_rule() {
+    assertErrors('''
+linter:
+  rules:
+    - replaced_lint
+      ''', [AnalysisOptionsWarningCode.REPLACED_LINT]);
+  }
+
   test_stable_rule() {
     assertErrors('''
 linter:
@@ -133,6 +158,38 @@ linter:
   }
 }
 
+class RemovedLint extends LintRule {
+  RemovedLint()
+      : super(
+          name: 'removed_lint',
+          group: Group.style,
+          state: State.removed(since: dart3),
+          description: '',
+          details: '',
+        );
+}
+
+class ReplacedLint extends LintRule {
+  ReplacedLint()
+      : super(
+          name: 'replaced_lint',
+          group: Group.style,
+          state: State.removed(since: dart3, replacedBy: 'replacing_lint'),
+          description: '',
+          details: '',
+        );
+}
+
+class ReplacingLint extends LintRule {
+  ReplacingLint()
+      : super(
+          name: 'replacing_lint',
+          group: Group.style,
+          description: '',
+          details: '',
+        );
+}
+
 class RuleNeg extends LintRule {
   RuleNeg()
       : super(
@@ -164,7 +221,7 @@ class StableLint extends LintRule {
       : super(
           name: 'stable_lint',
           group: Group.style,
-          maturity: Maturity.stable,
+          state: State.stable(),
           description: '',
           details: '',
         );

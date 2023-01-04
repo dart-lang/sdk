@@ -1242,6 +1242,10 @@ mixin TypeAnalyzer<
           ),
           pattern,
         );
+        _finishJoinedVariables(
+          memberInfo.head.variables,
+          reportErrors: true,
+        );
         // Stack: (Expression, i * ExpressionCase, Pattern)
         guard = memberInfo.head.guard;
         bool hasGuard = guard != null;

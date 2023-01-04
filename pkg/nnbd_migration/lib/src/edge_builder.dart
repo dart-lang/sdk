@@ -920,7 +920,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitExpressionStatement(ExpressionStatement node) {
     var decoratedType = _dispatch(node.expression)!;
-    _graph.connectDummy(decoratedType.node, DummyOrigin(source, node));
+    if (node.expression is! CascadeExpression) {
+      // Don't add a dummy edge for cascade expression, since
+      // it forces the target of cascade to be nullable, which
+      // is almost always wrong.
+      _graph.connectDummy(decoratedType.node, DummyOrigin(source, node));
+    }
     return decoratedType;
   }
 
@@ -2502,7 +2507,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _graph.makeNonNullable(
           destinationType.node,
           AssignmentFromAngularInjectorGetOrigin(
-              source, assignmentExpression!.leftHandSide as SimpleIdentifier));
+              source, assignmentExpression!.leftHandSide as SimpleIdentifier,
+              isSetupAssignment: sourceIsSetupCall));
     }
 
     if (questionAssignNode != null) {
@@ -3382,7 +3388,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   EdgeOrigin _makeEdgeOrigin(DecoratedType sourceType, Expression expression,
       {bool isSetupAssignment = false}) {
     if (sourceType.type!.isDynamic) {
-      return DynamicAssignmentOrigin(source, expression);
+      return DynamicAssignmentOrigin(source, expression,
+          isSetupAssignment: isSetupAssignment);
     } else {
       ExpressionChecksOrigin expressionChecksOrigin = ExpressionChecksOrigin(
           source, expression, ExpressionChecks(),

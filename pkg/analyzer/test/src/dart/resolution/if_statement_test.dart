@@ -122,6 +122,83 @@ IfStatement
 ''');
   }
 
+  test_caseClause_variables_logicalOr2_nested() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  if (x case <int>[var a || var a] when a > 0) {
+    a;
+  }
+}
+''');
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: ListPattern
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+          rightBracket: >
+        leftBracket: [
+        elements
+          BinaryPattern
+            leftOperand: DeclaredVariablePattern
+              keyword: var
+              name: a
+              declaredElement: hasImplicitType a@43
+                type: int
+            operator: ||
+            rightOperand: DeclaredVariablePattern
+              keyword: var
+              name: a
+              declaredElement: hasImplicitType a@52
+                type: int
+        rightBracket: ]
+        requiredType: List<int>
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: a[a@43, a@52]
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: dart:core::@class::num::@method::>::@parameter::other
+            staticType: int
+          staticElement: dart:core::@class::num::@method::>
+          staticInvokeType: bool Function(num)
+          staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a[a@43, a@52]
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
   test_caseClause_variables_logicalOr2_notConsistent_differentFinality() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {

@@ -67,6 +67,10 @@ AnalysisOptionsWarningCode.INVALID_OPTION:
     replace the invalid option with the selected replacement.
 AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT:
   status: needsEvaluation
+AnalysisOptionsWarningCode.REMOVED_LINT:
+  status: needsFix
+AnalysisOptionsWarningCode.REPLACED_LINT:
+  status: needsFix
 AnalysisOptionsWarningCode.SPEC_MODE_REMOVED:
   status: needsFix
   notes: |-
@@ -884,6 +888,8 @@ CompileTimeErrorCode.PART_OF_UNNAMED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE:
   status: needsEvaluation
+CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY:
+  status: needsEvaluation
 CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT:
   status: needsEvaluation
 CompileTimeErrorCode.POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
@@ -1582,6 +1588,10 @@ HintCode.RECEIVER_OF_TYPE_NEVER:
   status: needsFix
   notes: |-
     We _could_ remove the thing being received (method invocation, etc.)
+HintCode.REMOVED_LINT_USE:
+  status: needsFix
+HintCode.REPLACED_LINT_USE:
+  status: needsFix
 HintCode.RETURN_OF_DO_NOT_STORE:
   status: needsFix
   notes: |-

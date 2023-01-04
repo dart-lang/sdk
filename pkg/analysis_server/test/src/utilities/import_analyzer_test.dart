@@ -637,7 +637,7 @@ abstract class ImportAnalyzerTest extends PubPackageAnalysisServerTest {
     var result = await context.currentSession.getResolvedLibrary(pathToInclude)
         as ResolvedLibraryResult;
     var analyzer =
-        ImportAnalyzer(result, pathToInclude, testCode.range.sourceRange);
+        ImportAnalyzer(result, pathToInclude, [testCode.range.sourceRange]);
 
     if (expectedMovingDeclarations != null) {
       var movingDeclarations = analyzer.movingDeclarations.toList();

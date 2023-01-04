@@ -38,9 +38,10 @@ class DocumentationValidator {
     'CompileTimeErrorCode.CONST_DEFERRED_CLASS',
     // Produces two diagnostics when it should only produce one.
     'CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT',
-    // These docs need to be published until 3.0 ships but can't be verified
-    // since the default List constructor has been removed from the mocks.
-    // todo(pq): remove for 3.0
+    // These docs need to be published until there are few enough users that
+    // are on a pre-3.0 SDK that we're OK with the possibility of them
+    // encountering a broken link.
+    // todo(pq): remove (some time) post 3.0
     'CompileTimeErrorCode.DEFAULT_LIST_CONSTRUCTOR',
     // The mock SDK doesn't define any internal libraries.
     'CompileTimeErrorCode.EXPORT_INTERNAL_LIBRARY',
@@ -83,13 +84,6 @@ class DocumentationValidator {
     'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
     // Produces multiple diagnostic because of poor recovery.
     'CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR',
-    // TODO(scheglov) https://github.com/dart-lang/sdk/issues/50502
-    // 'CompileTimeErrorCode.BREAK_LABEL_ON_SWITCH_MEMBER',
-    // 'CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS',
-    // 'CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE',
-    // 'CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION',
-    // 'CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY',
-    // 'CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY',
     // This no longer works in 3.0.
     'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     // The code has been replaced but is not yet removed.

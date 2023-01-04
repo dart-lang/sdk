@@ -161,6 +161,31 @@ class AnalysisOptionsWarningCode extends ErrorCode {
     "Invalid format for the '{0}' section.",
   );
 
+  ///  An error code indicating a removed lint rule.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  ///  1: the SDK version in which the lint was removed
+  static const AnalysisOptionsWarningCode REMOVED_LINT =
+      AnalysisOptionsWarningCode(
+    'REMOVED_LINT',
+    "'{0}' was removed in Dart '{1}'",
+    correctionMessage: "Remove the reference to '{0}'.",
+  );
+
+  ///  An error code indicating a removed lint rule.
+  ///
+  ///  Parameters:
+  ///  0: the rule name
+  ///  1: the SDK version in which the lint was removed
+  ///  2: the name of a replacing lint
+  static const AnalysisOptionsWarningCode REPLACED_LINT =
+      AnalysisOptionsWarningCode(
+    'REPLACED_LINT',
+    "'{0}' was replaced by '{2}' in Dart '{1}'.",
+    correctionMessage: "Replace '{0}' with '{1}'.",
+  );
+
   ///  An error code indicating that strong-mode: false is has been removed.
   static const AnalysisOptionsWarningCode SPEC_MODE_REMOVED =
       AnalysisOptionsWarningCode(

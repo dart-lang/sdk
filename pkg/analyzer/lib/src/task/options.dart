@@ -311,12 +311,12 @@ class CodeStyleOptionsValidator extends OptionsValidator {
           format.span,
           [AnalyzerOptions.format]);
     } else if (format is YamlScalar) {
-      var formatValue = toBool(format.value);
+      var formatValue = toBool(format.valueOrThrow);
       if (formatValue == null) {
         reporter.reportErrorForSpan(
             AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, format.span, [
           AnalyzerOptions.format,
-          format.value,
+          format.valueOrThrow,
           AnalyzerOptions.trueOrFalseProposal
         ]);
       }
@@ -414,9 +414,10 @@ class ErrorBuilder {
   void reportError(ErrorReporter reporter, String scopeName, YamlNode node) {
     if (proposal.isNotEmpty) {
       reporter.reportErrorForSpan(
-          code, node.span, [scopeName, node.value, proposal]);
+          code, node.span, [scopeName, node.valueOrThrow, proposal]);
     } else {
-      reporter.reportErrorForSpan(code, node.span, [scopeName, node.value]);
+      reporter
+          .reportErrorForSpan(code, node.span, [scopeName, node.valueOrThrow]);
     }
   }
 }
@@ -519,7 +520,7 @@ class LanguageOptionValidator extends OptionsValidator {
               reporter.reportErrorForSpan(
                   AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
                   v.span,
-                  [key!, v.value, AnalyzerOptions.trueOrFalseProposal]);
+                  [key!, v.valueOrThrow, AnalyzerOptions.trueOrFalseProposal]);
             }
           }
         });
@@ -572,9 +573,11 @@ class OptionalChecksValueValidator extends OptionsValidator {
               value = toLowerCase(v.value);
               if (!AnalyzerOptions.trueOrFalse.contains(value)) {
                 reporter.reportErrorForSpan(
-                    AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
-                    v.span,
-                    [key!, v.value, AnalyzerOptions.trueOrFalseProposal]);
+                    AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, v.span, [
+                  key!,
+                  v.valueOrThrow,
+                  AnalyzerOptions.trueOrFalseProposal
+                ]);
               }
             }
           }
@@ -671,7 +674,7 @@ class StrongModeOptionValueValidator extends OptionsValidator {
               reporter.reportErrorForSpan(
                   AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
                   v.span,
-                  [key!, v.value, AnalyzerOptions.trueOrFalseProposal]);
+                  [key!, v.valueOrThrow, AnalyzerOptions.trueOrFalseProposal]);
             }
           }
         }
@@ -729,8 +732,8 @@ class TopLevelOptionValidator extends OptionsValidator {
       node.nodes.forEach((k, v) {
         if (k is YamlScalar) {
           if (!supportedOptions.contains(k.value)) {
-            reporter.reportErrorForSpan(
-                _warningCode, k.span, [pluginName, k.value, _valueProposal]);
+            reporter.reportErrorForSpan(_warningCode, k.span,
+                [pluginName, k.valueOrThrow, _valueProposal]);
           }
         }
         //TODO(pq): consider an error if the node is not a Scalar.
@@ -803,7 +806,7 @@ class _OptionsProcessor {
           }
         }
       } else if (names is YamlMap) {
-        for (var key in names.nodes.keys) {
+        for (var key in names.nodes.keys.cast<YamlNode?>()) {
           var pluginName = _toString(key);
           if (pluginName != null) {
             pluginNames.add(pluginName);
@@ -857,7 +860,7 @@ class _OptionsProcessor {
       configs.nodes.forEach((key, value) {
         if (key is YamlScalar && value is YamlScalar) {
           var feature = key.value?.toString();
-          _applyLanguageOption(options, feature, value.value);
+          _applyLanguageOption(options, feature, value.valueOrThrow);
         }
       });
     }
@@ -867,7 +870,8 @@ class _OptionsProcessor {
     if (config is YamlMap) {
       config.nodes.forEach((k, v) {
         if (k is YamlScalar && v is YamlScalar) {
-          _applyOptionalChecksOption(options, k.value?.toString(), v.value);
+          _applyOptionalChecksOption(
+              options, k.value?.toString(), v.valueOrThrow);
         }
       });
     }
@@ -913,7 +917,7 @@ class _OptionsProcessor {
     if (config is YamlMap) {
       config.nodes.forEach((k, v) {
         if (k is YamlScalar && v is YamlScalar) {
-          _applyStrongModeOption(options, k.value?.toString(), v.value);
+          _applyStrongModeOption(options, k.value?.toString(), v.valueOrThrow);
         }
       });
     }

@@ -95,7 +95,7 @@ GuardedPattern
 ''');
   }
 
-  test_importPredix_class_field_const() async {
+  test_importPrefix_class_field_const() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const a = 0;
@@ -136,7 +136,7 @@ GuardedPattern
 ''');
   }
 
-  test_importPredix_class_field_notConst() async {
+  test_importPrefix_class_field_notConst() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const a = 0;
@@ -483,6 +483,20 @@ GuardedPattern
       isMap: false
       staticType: Set<int>
 ''');
+  }
+
+  test_switch_constPattern_parameter() async {
+    await assertErrorsInCode(r'''
+void f(var e, int a) {
+  switch (e) {
+    case const (3 + a):
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          58, 1),
+    ]);
   }
 
   test_topLevelVariable_const() async {

@@ -539,12 +539,15 @@ class ExpressionCase extends Node {
       ].join('');
 
   void _preVisit(PreVisitor visitor) {
-    var variableBinder = _VariableBinder(errors: visitor.errors);
-    variableBinder.casePatternStart();
-    guardedPattern?.pattern
-        .preVisit(visitor, variableBinder, isInAssignment: false);
-    variableBinder.casePatternFinish();
-    variableBinder.finish();
+    final guardedPattern = this.guardedPattern;
+    if (guardedPattern != null) {
+      var variableBinder = _VariableBinder(errors: visitor.errors);
+      variableBinder.casePatternStart();
+      guardedPattern.pattern
+          .preVisit(visitor, variableBinder, isInAssignment: false);
+      guardedPattern.variables = variableBinder.casePatternFinish();
+      variableBinder.finish();
+    }
     expression.preVisit(visitor);
   }
 }
@@ -965,6 +968,7 @@ class MiniAstOperations
     'Object - FutureOr<Object>': Type('Object'),
     'Object - int': Type('Object'),
     'Object - String': Type('Object'),
+    'double - num': Type('Never'),
     'int - num': Type('int'),
     'int - Object': Type('Never'),
     'int - String': Type('int'),
@@ -1028,6 +1032,7 @@ class MiniAstOperations
   static final Map<String, Type> _coreNormalizeResults = {
     'Object': Type('Object'),
     'FutureOr<Object>': Type('Object'),
+    'double': Type('double'),
     'int': Type('int'),
     'num': Type('num'),
     'List<int>': Type('List<int>'),
@@ -1035,6 +1040,7 @@ class MiniAstOperations
 
   static final Map<String, bool> _coreAreStructurallyEqualResults = {
     'Object == FutureOr<Object>': false,
+    'double == num': false,
     'int == Object': false,
     'int == num': false,
     'num == int': false,
@@ -3564,7 +3570,7 @@ class _MiniAstTypeAnalyzer
     return SwitchExpressionMemberInfo(
       head: CaseHeadOrDefaultInfo(
         pattern: case_.guardedPattern?.pattern,
-        variables: {}, // TODO(scheglov) provide it
+        variables: case_.guardedPattern?.variables ?? {},
         guard: case_.guardedPattern?.guard,
       ),
       expression: case_.expression,
@@ -3608,17 +3614,7 @@ class _MiniAstTypeAnalyzer
     required covariant _IfCase node,
     required Iterable<Var> variables,
   }) {
-    var variableList = variables.toList();
-    for (var variable in variableList) {
-      _irBuilder.atom(variable.stringToCheckVariables, Kind.variable,
-          location: variable.location);
-    }
-    _irBuilder.apply(
-      'variables',
-      List.filled(variableList.length, Kind.variable),
-      Kind.variables,
-      location: node.location,
-    );
+    _irVariables(node, variables);
   }
 
   void handleAssignedVariablePattern(covariant _VariablePattern node) {
@@ -3634,17 +3630,7 @@ class _MiniAstTypeAnalyzer
   void handleCase_afterCaseHeads(
       covariant _SwitchStatement node, int caseIndex, Iterable<Var> variables) {
     var case_ = node.cases[caseIndex];
-
-    for (var variable in variables) {
-      _irBuilder.atom(variable.stringToCheckVariables, Kind.variable,
-          location: variable.location);
-    }
-    _irBuilder.apply(
-      'variables',
-      List.filled(variables.length, Kind.variable),
-      Kind.variables,
-      location: node.location,
-    );
+    _irVariables(node, variables);
     _irBuilder.apply(
       'heads',
       [
@@ -3659,7 +3645,24 @@ class _MiniAstTypeAnalyzer
   @override
   void handleCaseHead(Node node,
       {required int caseIndex, required int subIndex}) {
-    _irBuilder.apply('head', [Kind.pattern, Kind.expression], Kind.caseHead,
+    Iterable<Var> variables = [];
+    if (node is _SwitchExpression) {
+      var guardedPattern = node.cases[caseIndex].guardedPattern;
+      if (guardedPattern != null) {
+        variables = guardedPattern.variables.values;
+      }
+    } else if (node is _SwitchStatement) {
+      var head = node.cases[caseIndex].elements[subIndex];
+      if (head is _SwitchHeadCase) {
+        variables = head.guardedPattern.variables.values;
+      }
+    } else {
+      throw UnimplementedError('(${node.runtimeType}) $node');
+    }
+    _irVariables(node, variables);
+
+    _irBuilder.apply(
+        'head', [Kind.pattern, Kind.expression, Kind.variables], Kind.caseHead,
         location: node.location);
   }
 
@@ -3852,6 +3855,20 @@ class _MiniAstTypeAnalyzer
     // TODO(paulberry): add language tests to verify that the behavior of
     // `type.recursivelyDemote` matches what the analyzer and CFE do.
     return type.recursivelyDemote(covariant: true) ?? type;
+  }
+
+  void _irVariables(Node node, Iterable<Var> variables) {
+    var variableList = variables.toList();
+    for (var variable in variableList) {
+      _irBuilder.atom(variable.stringToCheckVariables, Kind.variable,
+          location: variable.location);
+    }
+    _irBuilder.apply(
+      'variables',
+      List.filled(variableList.length, Kind.variable),
+      Kind.variables,
+      location: node.location,
+    );
   }
 
   _PropertyElement? _lookupMember(

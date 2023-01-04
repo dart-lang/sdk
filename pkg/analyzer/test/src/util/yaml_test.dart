@@ -100,9 +100,10 @@ main() {
 
 final Merger merger = Merger();
 
-Object merge(Object o1, Object o2) => merger.merge(wrap(o1), wrap(o2)).value;
+Object merge(Object o1, Object o2) =>
+    merger.merge(wrap(o1), wrap(o2)).valueOrThrow;
 
-YamlNode wrap(Object value) {
+YamlNode wrap(Object? value) {
   if (value is List) {
     var wrappedElements = value.map((e) => wrap(e)).toList();
     return YamlList.internal(

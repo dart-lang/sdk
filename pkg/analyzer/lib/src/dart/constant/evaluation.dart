@@ -1520,6 +1520,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         } else if (current is SwitchCase) {
           return CompileTimeErrorCode
               .NON_CONSTANT_CASE_EXPRESSION_FROM_DEFERRED_LIBRARY;
+        } else if (current is SwitchPatternCase) {
+          return CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY;
         } else if (current is VariableDeclaration) {
           return CompileTimeErrorCode
               .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY;

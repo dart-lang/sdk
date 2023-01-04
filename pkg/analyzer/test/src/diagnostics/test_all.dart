@@ -661,6 +661,8 @@ import 'refutable_pattern_in_irrefutable_context_test.dart'
     as refutable_pattern_in_irrefutable_context;
 import 'relational_pattern_operator_return_type_not_assignable_to_bool_test.dart'
     as relational_pattern_operator_return_type_not_assignable_to_bool;
+import 'removed_lint_use_test.dart' as removed_lint_in_ignore;
+import 'replaced_lint_use_test.dart' as replaced_lint_in_ignore;
 import 'rethrow_outside_catch_test.dart' as rethrow_outside_catch;
 import 'return_in_generative_constructor_test.dart'
     as return_in_generative_constructor;
@@ -1256,6 +1258,8 @@ main() {
     referenced_before_declaration.main();
     refutable_pattern_in_irrefutable_context.main();
     relational_pattern_operator_return_type_not_assignable_to_bool.main();
+    removed_lint_in_ignore.main();
+    replaced_lint_in_ignore.main();
     rethrow_outside_catch.main();
     return_in_generative_constructor.main();
     return_in_generator.main();

@@ -3689,6 +3689,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try assigning to a local variable.",
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY =
+      CompileTimeErrorCode(
+    'PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY',
+    "Constant values from a deferred library can't be used in patterns.",
+    correctionMessage: "Try removing the keyword 'deferred' from the import.",
+  );
+
   ///  Parameters:
   ///  0: the matched type
   ///  1: the required type
