@@ -55,7 +55,6 @@ import '../universe/selector.dart';
 import '../universe/target_checks.dart' show TargetChecks;
 import '../universe/use.dart' show ConstantUse, StaticUse, TypeUse;
 import 'branch_builder.dart';
-import 'builder_interfaces.dart' as interfaces;
 import 'jump_handler.dart';
 import 'locals_handler.dart';
 import 'loop_handler.dart';
@@ -88,11 +87,8 @@ class StackFrame {
       this.staticTypeProvider);
 }
 
-class KernelSsaGraphBuilder extends ir.Visitor<void>
-    with ir.VisitorVoidMixin
-    implements interfaces.KernelSsaGraphBuilder {
+class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// Holds the resulting SSA graph.
-  @override
   final HGraph graph = HGraph();
 
   /// True if the builder is processing nodes inside a try statement. This is
@@ -101,38 +97,29 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   bool _inTryStatement = false;
 
   /// Used to track the locals while building the graph.
-  @override
   late LocalsHandler localsHandler;
 
   /// A stack of instructions.
   ///
   /// We build the SSA graph by simulating a stack machine.
-  @override
   List<HInstruction> stack = [];
 
   /// The count of nested loops we are currently building.
   ///
   /// The loop nesting is consulted when inlining a function invocation. The
   /// inlining heuristics take this information into account.
-  @override
   int loopDepth = 0;
 
   /// A mapping from jump targets to their handlers.
-  @override
   Map<JumpTarget, JumpHandler> jumpTargets = {};
 
-  @override
   final CompilerOptions options;
-  @override
   final DiagnosticReporter reporter;
   final ModularEmitter _emitter;
   final ModularNamer _namer;
-  @override
   final MemberEntity targetElement;
   final MemberEntity _initialTargetElement;
-  @override
   final JClosedWorld closedWorld;
-  @override
   final CodegenRegistry registry;
   final ClosureData _closureDataLookup;
   final Tracer _tracer;
@@ -155,7 +142,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
 
   final SourceInformationStrategy _sourceInformationStrategy;
   final JsToElementMap _elementMap;
-  @override
   final GlobalTypeInferenceResults globalInferenceResults;
   late final LoopHandler _loopHandler;
   late final TypeBuilder _typeBuilder;
@@ -239,19 +225,16 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
 
   DartTypes get dartTypes => closedWorld.dartTypes;
 
-  @override
   void push(HInstruction instruction) {
     add(instruction);
     stack.add(instruction);
   }
 
-  @override
   HInstruction pop() {
     return stack.removeLast();
   }
 
   /// Pushes a boolean checking [expression] against null.
-  @override
   pushCheckNull(HInstruction expression) {
     push(HIdentity(expression, graph.addConstantNull(closedWorld),
         _abstractValueDomain.boolType));
@@ -261,7 +244,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
 
   /// The current block to add instructions to. Might be null, if we are
   /// visiting dead code, but see [_isReachable].
-  @override
   HBasicBlock? get current => _current;
 
   void set current(HBasicBlock? c) {
@@ -272,7 +254,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   /// The most recently opened block. Has the same value as [current] while
   /// the block is open, but unlike [current], it isn't cleared when the
   /// current block is closed.
-  @override
   late HBasicBlock lastOpenedBlock;
 
   /// Indicates whether the current block is dead (because it has a throw or a
@@ -282,14 +263,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   /// [isAborted].
   bool _isReachable = true;
 
-  @override
   HLocalValue? lastAddedParameter;
 
-  @override
   Map<Local, HInstruction> parameters = {};
   late Set<Local> elidedParameters;
 
-  @override
   HBasicBlock addNewBlock() {
     HBasicBlock block = graph.addNewBlock();
     // If adding a new block during building of an expression, it is due to
@@ -297,14 +275,12 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
     return block;
   }
 
-  @override
   void open(HBasicBlock block) {
     block.open();
     current = block;
     lastOpenedBlock = block;
   }
 
-  @override
   HBasicBlock close(HControlFlow end) {
     HBasicBlock result = current!;
     current!.close(end);
@@ -320,20 +296,17 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
     return result;
   }
 
-  @override
   void goto(HBasicBlock from, HBasicBlock to) {
     from.close(HGoto(_abstractValueDomain));
     from.addSuccessor(to);
   }
 
-  @override
   bool isAborted() {
     return current == null;
   }
 
   /// Creates a new block, transitions to it from any current block, and
   /// opens the new block.
-  @override
   HBasicBlock openNewBlock() {
     HBasicBlock newBlock = addNewBlock();
     if (!isAborted()) goto(current!, newBlock);
@@ -341,12 +314,10 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
     return newBlock;
   }
 
-  @override
   void add(HInstruction instruction) {
     current!.add(instruction);
   }
 
-  @override
   HLocalValue addParameter(Entity? parameter, AbstractValue type,
       {bool isElided = false}) {
     HLocalValue result = isElided
@@ -361,13 +332,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
     return result;
   }
 
-  @override
   HSubGraphBlockInformation? wrapStatementGraph(SubGraph? statements) {
     if (statements == null) return null;
     return HSubGraphBlockInformation(statements);
   }
 
-  @override
   HExpressionInformation? wrapExpressionGraph(SubExpression? expression) {
     if (expression == null) return null;
     return HSubExpressionBlockInformation(expression);
@@ -674,7 +643,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
 
   /// Pops the most recent instruction from the stack and ensures that it is a
   /// non-null bool.
-  @override
   HInstruction popBoolified() {
     HInstruction value = pop();
     return _typeBuilder.potentiallyCheckOrTrustTypeOfCondition(
@@ -1772,7 +1740,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   // TODO(efortuna): Update this when we implement inlining.
   // TODO(sra): Re-implement type builder using Kernel types and the
   // `target` for context.
-  @override
   MemberEntity get sourceElement => _currentFrame!.member;
 
   @override
@@ -2665,7 +2632,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void>
   /// [isLoopJump] is true when the jump handler is for a loop. This is used
   /// to distinguish the synthesized loop created for a switch statement with
   /// continue statements from simple switch statements.
-  @override
   JumpHandler createJumpHandler(ir.TreeNode node, JumpTarget? target,
       {bool isLoopJump = false}) {
     if (target == null) {

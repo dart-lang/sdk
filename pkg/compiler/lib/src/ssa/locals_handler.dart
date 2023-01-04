@@ -17,7 +17,7 @@ import '../js_model/closure.dart' show JContextField, JClosureField;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/locals.dart' show GlobalLocalsMap, JLocal;
 
-import 'builder_interfaces.dart' as interfaces;
+import 'builder.dart';
 import 'nodes.dart';
 import 'types.dart';
 
@@ -34,7 +34,7 @@ class LocalsHandler {
   /// don't have source locations for [Elements.compareByPosition].
   Map<Local, HInstruction> directLocals = {};
   Map<Local, FieldEntity> redirectionMapping = {};
-  final interfaces.KernelSsaGraphBuilder builder;
+  final KernelSsaGraphBuilder builder;
 
   MemberEntity? _scopeInfoMember;
   ScopeInfo? _scopeInfo;

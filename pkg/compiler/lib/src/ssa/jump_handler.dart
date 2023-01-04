@@ -7,7 +7,7 @@ import '../elements/jumps.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 
-import 'builder_interfaces.dart' as interfaces;
+import 'builder.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
 
@@ -21,8 +21,7 @@ class _JumpHandlerEntry {
 }
 
 abstract class JumpHandler {
-  factory JumpHandler(
-      interfaces.KernelSsaGraphBuilder builder, JumpTarget target) {
+  factory JumpHandler(KernelSsaGraphBuilder builder, JumpTarget target) {
     return TargetJumpHandler(builder, target);
   }
 
@@ -84,7 +83,7 @@ class NullJumpHandler implements JumpHandler {
 /// Breaks are always forward jumps. Continues in loops are implemented as
 /// breaks of the body. Continues in switches is currently not handled.
 class TargetJumpHandler implements JumpHandler {
-  final interfaces.KernelSsaGraphBuilder builder;
+  final KernelSsaGraphBuilder builder;
   @override
   final JumpTarget target;
   final List<_JumpHandlerEntry> jumps = [];
