@@ -65,7 +65,7 @@ class UseLateForPrivateFieldsAndVariables extends LintRule {
           name: 'use_late_for_private_fields_and_variables',
           description: _desc,
           details: _details,
-          maturity: Maturity.experimental,
+          state: State.experimental(),
           group: Group.style,
         );
 

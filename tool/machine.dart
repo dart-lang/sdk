@@ -43,7 +43,9 @@ String getMachineListing(Iterable<LintRule> ruleRegistry,
         'name': rule.name,
         'description': rule.description,
         'group': rule.group.name,
-        'maturity': rule.maturity.name,
+        // todo(pq): here for backwards compatibility -- should be removed.
+        'maturity': rule.state.label,
+        'state': rule.state.label,
         'incompatible': rule.incompatibleRules,
         'sets': [
           if (coreRules.contains(rule.name)) 'core',

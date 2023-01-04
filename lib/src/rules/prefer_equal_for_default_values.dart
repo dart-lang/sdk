@@ -39,7 +39,7 @@ class PreferEqualForDefaultValues extends LintRule {
             description: _desc,
             details: _details,
             // todo(pq): deprecate for 3.0 (https://github.com/dart-lang/linter/issues/3879)
-            maturity: Maturity.stable,
+            state: State.stable(), //State.deprecated(since: dart3),
             group: Group.style);
 
   @override

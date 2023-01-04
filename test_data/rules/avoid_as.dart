@@ -5,7 +5,7 @@
 // test w/ `dart test -N avoid_as`
 
 void main() {
-  var pm;
+  var pm = Person();
   try {
     (pm as Person).firstName = 'Seth'; //LINT [12:6]
   } on Error {} // ignore: avoid_catching_errors, empty_catches

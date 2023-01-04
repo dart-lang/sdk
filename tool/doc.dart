@@ -7,6 +7,7 @@ import 'dart:io';
 
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/state.dart';
 import 'package:args/args.dart';
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
@@ -95,8 +96,7 @@ late Map<String, SinceInfo> sinceInfo;
 
 final Map<String, String> _fixStatusMap = <String, String>{};
 
-String describeMaturity(LintRule r) =>
-    r.maturity == Maturity.stable ? '' : ' (${r.maturity.name})';
+String describeState(LintRule r) => r.state.isStable ? '' : r.state.label;
 
 Future<void> fetchBadgeInfo() async {
   var core = await fetchConfig(
@@ -269,7 +269,7 @@ ${parser.usage}
 ''');
 }
 
-String qualify(LintRule r) => r.name + describeMaturity(r);
+String qualify(LintRule r) => r.name + describeState(r);
 
 class CountBadger {
   Iterable<LintRule> rules;
@@ -510,7 +510,7 @@ linter:
 ''');
 
     var sortedRules = rules
-        .where((r) => r.maturity != Maturity.deprecated)
+        .where((r) => !r.state.isDeprecated)
         .map((r) => r.name)
         .toList()
       ..sort();
@@ -602,17 +602,16 @@ class RuleHtmlGenerator {
     return sb.toString();
   }
 
-  String get maturity => rule.maturity.name;
+  State get state => rule.state;
 
-  String get maturityString {
-    switch (rule.maturity) {
-      case Maturity.deprecated:
-        return '<span style="color:orangered;font-weight:bold;" >$maturity</span>';
-      case Maturity.experimental:
-        return '<span style="color:hotpink;font-weight:bold;" >$maturity</span>';
-      default:
-        return maturity;
+  String get stateString {
+    if (state.isDeprecated) {
+      return '<span style="color:orangered;font-weight:bold;" >${state.label}</span>';
     }
+    if (state.isExperimental) {
+      return '<span style="color:hotpink;font-weight:bold;" >${state.label}</span>';
+    }
+    return state.label;
   }
 
   String get name => rule.name;
@@ -656,7 +655,7 @@ class RuleHtmlGenerator {
          <header>
             <h1>$humanReadableName</h1>
             <p>Group: $group</p>
-            <p>Maturity: $maturityString</p>
+            <p>Maturity: $stateString</p>
             <div class="tooltip">
                <p>$since</p>
                <span class="tooltip-content">Since info is static, may be stale</span>
@@ -693,7 +692,7 @@ class RuleMarkdownGenerator {
 
   String get group => rule.group.name;
 
-  String get maturity => rule.maturity.name;
+  String get maturity => describeState(rule);
 
   String get name => rule.name;
 

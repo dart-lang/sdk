@@ -57,7 +57,7 @@ class SuperGoesLast extends LintRule {
             name: 'super_goes_last',
             description: _desc,
             details: _details,
-            maturity: Maturity.deprecated,
+            state: State.deprecated(),
             group: Group.style);
 
   @override

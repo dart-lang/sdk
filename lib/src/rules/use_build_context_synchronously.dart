@@ -60,11 +60,12 @@ class UseBuildContextSynchronously extends LintRule {
 
   UseBuildContextSynchronously({this.inTestMode = false})
       : super(
-            name: 'use_build_context_synchronously',
-            description: _desc,
-            details: _details,
-            group: Group.errors,
-            maturity: Maturity.experimental);
+          name: 'use_build_context_synchronously',
+          description: _desc,
+          details: _details,
+          group: Group.errors,
+          state: State.experimental(),
+        );
 
   @override
   LintCode get lintCode => code;

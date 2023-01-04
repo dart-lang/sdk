@@ -62,7 +62,7 @@ class UseSuperParameters extends LintRule {
             name: 'use_super_parameters',
             description: _desc,
             details: _details,
-            maturity: Maturity.experimental,
+            state: State.experimental(),
             group: Group.style);
 
   @override

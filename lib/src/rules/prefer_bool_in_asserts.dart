@@ -45,7 +45,7 @@ class PreferBoolInAsserts extends LintRule {
             name: 'prefer_bool_in_asserts',
             description: _desc,
             details: _details,
-            maturity: Maturity.deprecated,
+            state: State.deprecated(),
             group: Group.style);
 
   @override

@@ -56,11 +56,12 @@ class NoDefaultCases extends LintRule {
 
   NoDefaultCases()
       : super(
-            name: 'no_default_cases',
-            description: _desc,
-            details: _details,
-            group: Group.style,
-            maturity: Maturity.experimental);
+          name: 'no_default_cases',
+          description: _desc,
+          details: _details,
+          group: Group.style,
+          state: State.experimental(),
+        );
 
   @override
   LintCode get lintCode => code;

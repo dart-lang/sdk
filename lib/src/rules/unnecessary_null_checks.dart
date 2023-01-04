@@ -144,7 +144,7 @@ class UnnecessaryNullChecks extends LintRule {
             name: 'unnecessary_null_checks',
             description: _desc,
             details: _details,
-            maturity: Maturity.experimental,
+            state: State.experimental(),
             group: Group.style);
 
   @override

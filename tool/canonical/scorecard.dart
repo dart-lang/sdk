@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/lint/config.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/lint/state.dart'; // ignore: implementation_imports
 import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
@@ -168,7 +169,7 @@ class LintScore {
   bool hasAssist;
   bool hasBulkFix;
   bool hasFix;
-  String maturity;
+  State state;
 
   List<String> ruleSets;
   List<String> bugReferences;
@@ -178,7 +179,7 @@ class LintScore {
     required this.hasAssist,
     required this.hasFix,
     required this.hasBulkFix,
-    required this.maturity,
+    required this.state,
     required this.ruleSets,
     required this.bugReferences,
   });
@@ -210,7 +211,7 @@ class LintScore {
           sb.write(' $status |');
           break;
         case Detail.status:
-          sb.write('${maturity != 'stable' ? ' **$maturity** ' : ""} |');
+          sb.write('${!state.isStable ? ' **${state.label}** ' : ""} |');
           break;
         case Detail.bugs:
           sb.write(' ${bugReferences.join(", ")} |');
@@ -321,7 +322,7 @@ class ScoreCard {
         hasAssist: lintsWithAssists.contains(lintName),
         hasFix: lintsWithFixes.contains(lintName),
         hasBulkFix: lintsWithBulkFixes.contains(lintName),
-        maturity: lint.maturity.name,
+        state: lint.state,
         ruleSets: ruleSets,
         bugReferences: bugReferences,
       ));

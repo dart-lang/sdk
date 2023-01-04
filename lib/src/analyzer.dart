@@ -28,6 +28,7 @@ export 'package:analyzer/src/generated/engine.dart' show AnalysisErrorInfo;
 export 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 export 'package:analyzer/src/lint/linter.dart'
     show
+        dart3,
         DartLinter,
         Group,
         LintFilter,
@@ -36,7 +37,8 @@ export 'package:analyzer/src/lint/linter.dart'
         LinterOptions,
         Maturity,
         NodeLintRegistry,
-        NodeLintRule;
+        NodeLintRule,
+        State;
 export 'package:analyzer/src/lint/pub.dart' show PSEntry, PubspecVisitor;
 export 'package:analyzer/src/lint/util.dart' show FileSpelunker;
 export 'package:analyzer/src/services/lint.dart' show lintRegistry;

@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/state.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
@@ -57,7 +58,7 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
   var fixCount = 0;
 
   for (var score in scorecard.scores) {
-    for (var ruleSet in score.ruleSets!) {
+    for (var ruleSet in score.ruleSets) {
       if (ruleSet == 'flutter') {
         ++flutterUserLintCount;
       }
@@ -65,7 +66,7 @@ StringBuffer buildFooter(ScoreCard scorecard, List<Detail> details) {
         ++flutterRepoLintCount;
       }
     }
-    if (score.hasFix!) {
+    if (score.hasFix) {
       ++fixCount;
     }
   }
@@ -125,23 +126,23 @@ class Header {
 }
 
 class LintScore {
-  String? name;
-  bool? hasFix;
-  String? maturity;
+  String name;
+  bool hasFix;
+  State state;
   SinceInfo? since;
 
-  List<String>? ruleSets;
-  List<String>? bugReferences;
+  List<String> ruleSets;
+  List<String> bugReferences;
 
   LintScore(
-      {this.name,
-      this.hasFix,
-      this.maturity,
-      this.ruleSets,
-      this.bugReferences,
+      {required this.name,
+      required this.hasFix,
+      required this.state,
+      required this.ruleSets,
+      required this.bugReferences,
       this.since});
 
-  String get _ruleSets => ruleSets!.isNotEmpty ? ' $ruleSets' : '';
+  String get _ruleSets => ruleSets.isNotEmpty ? ' $ruleSets' : '';
 
   String toMarkdown(List<Detail> details) {
     var sb = StringBuffer('| ');
@@ -158,20 +159,20 @@ class LintScore {
           sb.write(' ${since!.sinceDartSdk} |');
           break;
         case Detail.fix:
-          sb.write('${hasFix! ? " $bulb" : ""} |');
+          sb.write('${hasFix ? " $bulb" : ""} |');
           break;
         case Detail.flutterUser:
-          sb.write('${ruleSets!.contains('flutter') ? " $checkMark" : ""} |');
+          sb.write('${ruleSets.contains('flutter') ? " $checkMark" : ""} |');
           break;
         case Detail.flutterRepo:
           sb.write(
-              '${ruleSets!.contains('flutter_repo') ? " $checkMark" : ""} |');
+              '${ruleSets.contains('flutter_repo') ? " $checkMark" : ""} |');
           break;
         case Detail.status:
-          sb.write('${maturity != 'stable' ? ' **$maturity** ' : ""} |');
+          sb.write('${!state.isStable ? ' **${state.label}** ' : ""} |');
           break;
         case Detail.bugs:
-          sb.write(' ${bugReferences!.join(", ")} |');
+          sb.write(' ${bugReferences.join(", ")} |');
           break;
       }
     }
@@ -179,7 +180,7 @@ class LintScore {
   }
 
   @override
-  String toString() => '$name$_ruleSets${hasFix! ? " $bulb" : ""}';
+  String toString() => '$name$_ruleSets${hasFix ? " $bulb" : ""}';
 }
 
 class ScoreCard {
@@ -248,7 +249,7 @@ class ScoreCard {
           name: lint.name,
           hasFix: lintsWithFixes.contains(lint.name) ||
               lintsWithAssists.contains(lint.name),
-          maturity: lint.maturity.name,
+          state: lint.state,
           ruleSets: ruleSets,
           since: sinceInfo[lint.name],
           bugReferences: bugReferences));

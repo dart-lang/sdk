@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:analyzer/src/lint/io.dart';
+import 'package:analyzer/src/lint/state.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/cli.dart' as cli;
 import 'package:linter/src/rules.dart';
@@ -152,7 +153,9 @@ void coreTests() {
 
         var registered = Analyzer.facade.registeredRules
             .where((r) =>
-                r.maturity != Maturity.deprecated && !experiments.contains(r))
+                !r.state.isDeprecated &&
+                !r.state.isRemoved &&
+                !experiments.contains(r))
             .map((r) => r.name);
 
         for (var l in configuredLints) {
@@ -161,13 +164,7 @@ void coreTests() {
           }
         }
 
-        expect(
-            configuredLints,
-            unorderedEquals(Analyzer.facade.registeredRules
-                .where((r) =>
-                    r.maturity != Maturity.deprecated &&
-                    !experiments.contains(r))
-                .map((r) => r.name)));
+        expect(configuredLints, unorderedEquals(registered));
       });
     });
   });

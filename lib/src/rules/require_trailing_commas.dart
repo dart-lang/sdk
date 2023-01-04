@@ -54,7 +54,7 @@ class RequireTrailingCommas extends LintRule {
           description: _desc,
           details: _details,
           group: Group.style,
-          maturity: Maturity.experimental,
+          state: State.experimental(),
         );
 
   @override
