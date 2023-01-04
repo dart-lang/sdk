@@ -875,16 +875,12 @@ Dart_CObject* CObject::NewDouble(double value) {
   return cobject;
 }
 
-Dart_CObject* CObject::NewString(intptr_t length) {
-  Dart_CObject* cobject = New(Dart_CObject_kString, length + 1);
-  cobject->value.as_string = reinterpret_cast<char*>(cobject + 1);
-  return cobject;
-}
-
 Dart_CObject* CObject::NewString(const char* str) {
   intptr_t length = strlen(str);
-  Dart_CObject* cobject = NewString(length);
-  memmove(cobject->value.as_string, str, length + 1);
+  Dart_CObject* cobject = New(Dart_CObject_kString, length + 1);
+  char* payload = reinterpret_cast<char*>(cobject + 1);
+  memmove(payload, str, length + 1);
+  cobject->value.as_string = payload;
   return cobject;
 }
 

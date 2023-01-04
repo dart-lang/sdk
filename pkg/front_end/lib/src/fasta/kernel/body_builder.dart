@@ -8321,7 +8321,14 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
-  void handleConstantPattern(Token? constKeyword) {
+  void beginConstantPattern(Token? constKeyword) {
+    debugEvent("ConstantPattern");
+    push(constantContext);
+    constantContext = ConstantContext.inferred;
+  }
+
+  @override
+  void endConstantPattern(Token? constKeyword) {
     debugEvent("ConstantPattern");
     assert(checkState(constKeyword, [
       unionOfKinds([
@@ -8329,8 +8336,10 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
       ]),
+      ValueKinds.ConstantContext,
     ]));
     Expression expression = toValue(pop());
+    constantContext = pop() as ConstantContext;
     push(expression);
   }
 

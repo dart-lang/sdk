@@ -2787,9 +2787,17 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleConstantPattern(Token? constKeyword) {
+  void beginConstantPattern(Token? constKeyword) {
     seen(constKeyword);
-    doPrint('handleConstantPattern(' '$constKeyword)');
+    doPrint('beginConstantPattern(' '$constKeyword)');
+    indent++;
+  }
+
+  @override
+  void endConstantPattern(Token? constKeyword) {
+    indent--;
+    seen(constKeyword);
+    doPrint('endConstantPattern(' '$constKeyword)');
   }
 
   @override

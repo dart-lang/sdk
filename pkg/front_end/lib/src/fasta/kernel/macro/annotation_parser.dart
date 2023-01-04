@@ -2090,7 +2090,12 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleConstantPattern(Token? constKeyword) {
+  void beginConstantPattern(Token? constKeyword) {
+    _unsupported();
+  }
+
+  @override
+  void endConstantPattern(Token? constKeyword) {
     _unsupported();
   }
 

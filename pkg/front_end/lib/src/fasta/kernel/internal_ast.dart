@@ -4615,6 +4615,7 @@ class ObjectPattern extends Pattern {
   final Reference classReference;
   final List<NamedPattern> fields;
   final List<DartType>? typeArguments;
+
   Class get classNode => classReference.asClass;
 
   ObjectPattern(
