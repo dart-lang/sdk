@@ -26,7 +26,7 @@ import '../js_emitter/code_emitter_task.dart' show ModularEmitter;
 import '../js_emitter/startup_emitter/emitter.dart' show ModularEmitterImpl;
 import '../js_model/elements.dart';
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
-import '../js_model/js_strategy_interfaces.dart';
+import '../js_model/js_strategy.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../options.dart';
 import '../universe/call_structure.dart' show CallStructure;
@@ -35,10 +35,8 @@ import '../universe/use.dart' show StaticUse;
 import 'codegen.dart';
 import 'nodes.dart';
 import 'optimize.dart';
-import 'ssa_interfaces.dart' as interfaces;
 
-class SsaFunctionCompiler
-    implements FunctionCompiler, interfaces.SsaFunctionCompiler {
+class SsaFunctionCompiler implements FunctionCompiler {
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
   final SsaMetrics _metrics;

@@ -545,7 +545,7 @@ class Compiler
     if (retainDataForTesting) {
       codegenEnqueuerForTesting = codegenEnqueuer;
     }
-    _codegenWorldBuilder = codegenEnqueuer.worldBuilder as CodegenWorldBuilder;
+    _codegenWorldBuilder = codegenEnqueuer.worldBuilder;
 
     reporter.log('Compiling methods');
     FunctionEntity mainFunction = closedWorld.elementEnvironment.mainFunction!;

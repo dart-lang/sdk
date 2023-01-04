@@ -19,7 +19,7 @@ import '../inferrer/types.dart';
 import '../ir/modular.dart';
 import '../js_backend/codegen_inputs.dart';
 import '../js_model/js_world.dart';
-import '../js_model/js_strategy_interfaces.dart';
+import '../js_model/js_strategy.dart';
 import '../options.dart';
 import '../util/sink_adapter.dart';
 import 'serialization.dart';

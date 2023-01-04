@@ -19,7 +19,7 @@ import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import 'diagnostics/source_span.dart';
 import 'diagnostics/spannable.dart';
 import 'elements/entities.dart' show Entity;
-import 'js_model/js_strategy_interfaces.dart';
+import 'js_model/js_strategy.dart';
 import 'kernel/kernel_strategy.dart' show KernelFrontendStrategy;
 import 'options.dart' show CompilerOptions;
 import 'universe/world_impact.dart' show WorldImpact;

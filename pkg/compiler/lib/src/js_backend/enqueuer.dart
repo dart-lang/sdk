@@ -14,7 +14,7 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart';
 import '../js_backend/annotations.dart';
-import '../universe/codegen_world_builder_interfaces.dart';
+import '../universe/codegen_world_builder.dart';
 import '../universe/member_usage.dart';
 import '../universe/use.dart'
     show
@@ -32,7 +32,7 @@ class CodegenEnqueuer extends Enqueuer {
   final String name;
   final Set<ClassEntity> _recentClasses = Setlet();
   bool _recentConstants = false;
-  final CodegenWorldBuilderImplForEnqueuer worldBuilder;
+  final CodegenWorldBuilderImpl worldBuilder;
   final WorkItemBuilder _workItemBuilder;
 
   @override

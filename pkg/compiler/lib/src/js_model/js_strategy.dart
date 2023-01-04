@@ -67,11 +67,10 @@ import 'element_map_impl.dart';
 import 'js_world.dart';
 import 'js_world_builder.dart' show JClosedWorldBuilder;
 import 'locals.dart';
-import 'js_strategy_interfaces.dart' as interfaces;
 
 /// JS Strategy pattern that defines the element model used in type inference
 /// and code generation.
-class JsBackendStrategy implements interfaces.JsBackendStrategy {
+class JsBackendStrategy {
   final CompilerJsBackendStrategyFacade _compiler;
   late JsKernelToElementMap _elementMap;
 
@@ -91,13 +90,11 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
 
   late final FunctionCompiler _functionCompiler;
 
-  @override
   late SourceInformationStrategy sourceInformationStrategy;
 
   final SsaMetrics _ssaMetrics = SsaMetrics();
 
   /// The generated code as a js AST for compiled methods.
-  @override
   final Map<MemberEntity, js.Expression> generatedCode = {};
 
   JsBackendStrategy(this._compiler) {
@@ -125,12 +122,10 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
 
   FunctionCompiler get functionCompiler => _functionCompiler;
 
-  @override
   CodeEmitterTask get emitterTask => _emitterTask;
 
   Namer get namerForTesting => _namer;
 
-  @override
   NativeCodegenEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
   RuntimeTypesChecksBuilder get rtiChecksBuilderForTesting => _rtiChecksBuilder;
@@ -145,11 +140,9 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
 
   /// Codegen support for generating table of interceptors and
   /// constructors for custom elements.
-  @override
   CustomElementsCodegenAnalysis get customElementsCodegenAnalysis =>
       _customElementsCodegenAnalysis;
 
-  @override
   RuntimeTypesChecksBuilder get rtiChecksBuilder {
     assert(
         !_rtiChecksBuilder.rtiChecksBuilderClosed,
@@ -372,7 +365,6 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   }
 
   /// Creates the [SsaBuilder] used for the element model.
-  @override
   SsaBuilder createSsaBuilder(
       CompilerTask task, SourceInformationStrategy sourceInformationStrategy) {
     return KernelSsaBuilder(
@@ -392,7 +384,6 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   }
 
   /// Creates the [TypesInferrer] used by this strategy.
-  @override
   TypesInferrer createTypesInferrer(
       covariant JClosedWorld closedWorld,
       GlobalLocalsMap globalLocalsMap,
@@ -402,7 +393,6 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   }
 
   /// Creates the [TypesInferrer] used by this strategy.
-  @override
   experimentalInferrer.TypesInferrer createExperimentalTypesInferrer(
       covariant JClosedWorld closedWorld,
       GlobalLocalsMap globalLocalsMap,
@@ -412,7 +402,6 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   }
 
   /// Prepare [source] to deserialize modular code generation data.
-  @override
   void prepareCodegenReader(DataSourceReader source) {
     source.registerEntityReader(ClosedEntityReader(_elementMap));
     source.registerEntityLookup(ClosedEntityLookup(_elementMap));
@@ -426,7 +415,6 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   ///
   /// The needed members include members computed on demand during non-modular
   /// code generation, such as constructor bodies and and generator bodies.
-  @override
   EntityWriter forEachCodegenMember(void Function(MemberEntity member) f) {
     int earlyMemberIndexLimit = _elementMap.prepareForCodegenSerialization();
     ClosedEntityWriter entityWriter = ClosedEntityWriter(earlyMemberIndexLimit);
