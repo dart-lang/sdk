@@ -40,8 +40,8 @@ class SharedTypeAnalyzerErrors
   void caseExpressionTypeMismatch(
       {required Expression scrutinee,
       required Expression caseExpression,
-      required caseExpressionType,
-      required scrutineeType,
+      required DartType caseExpressionType,
+      required DartType scrutineeType,
       required bool nullSafetyEnabled}) {
     helper.addProblem(
         nullSafetyEnabled
