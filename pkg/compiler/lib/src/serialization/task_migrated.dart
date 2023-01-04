@@ -17,8 +17,8 @@ import 'serialization.dart';
 
 /// A data class holding some data [T] and the associated [DataSourceIndices].
 class DataAndIndices<T> {
-  final T data;
-  final DataSourceIndices indices;
+  final T? data;
+  final DataSourceIndices? indices;
 
   DataAndIndices(this.data, this.indices);
 }

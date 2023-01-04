@@ -246,7 +246,7 @@ class SerializationTask extends CompilerTask {
               environment,
               abstractValueStrategy,
               component,
-              closedWorldAndIndices.data,
+              closedWorldAndIndices.data!,
               source),
           source.enableDeferredStrategy
               ? source.exportIndices()

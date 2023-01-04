@@ -57,7 +57,7 @@ abstract class CompilerDiagnosticsFacade {
 
   bool inUserCode(Entity element);
 
-  Uri getCanonicalUri(Entity element);
+  Uri? getCanonicalUri(Entity element);
 
   void reportDiagnostic(DiagnosticMessage message,
       List<DiagnosticMessage> infos, Diagnostic kind);

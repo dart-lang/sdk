@@ -32,7 +32,7 @@ class Input {
   final DiagnosticReporter reporter;
 
   /// Shared state between compilations. Only used when loading from source.
-  final fe.InitializedCompilerState initializedCompilerState;
+  final fe.InitializedCompilerState? initializedCompilerState;
 
   // TODO(johnniwinther): Remove this when #34942 is fixed.
   /// Force in-memory serialization/deserialization of the loaded component.
@@ -57,7 +57,7 @@ class Output {
   /// reachable from the [rootLibraryUri].
   ///
   /// Note that [component] may contain some libraries that are excluded here.
-  final List<Uri> libraries;
+  final List<Uri>? libraries;
 
   /// When running only dart2js modular analysis, returns the [Uri]s for
   /// libraries loaded in the input module.
@@ -65,9 +65,9 @@ class Output {
   /// This excludes other libraries reachable from them that were loaded as
   /// dependencies. The result of [moduleLibraries] is always a subset of
   /// [libraries].
-  final List<Uri> moduleLibraries;
+  final List<Uri>? moduleLibraries;
 
-  final fe.InitializedCompilerState initializedCompilerState;
+  final fe.InitializedCompilerState? initializedCompilerState;
 
   Output withNewComponent(ir.Component component) => Output(component,
       rootLibraryUri, libraries, moduleLibraries, initializedCompilerState);
@@ -217,7 +217,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
     CompilerOptions options,
     api.CompilerInput compilerInput,
     DiagnosticReporter reporter,
-    fe.InitializedCompilerState initializedCompilerState,
+    fe.InitializedCompilerState? initializedCompilerState,
     String targetName) async {
   bool verbose = false;
   bool cfeConstants = options.features.cfeConstants.isEnabled;
@@ -313,7 +313,7 @@ Output _createOutput(
     Library? entryLibrary,
     ir.Component component,
     List<Uri> moduleLibraries,
-    fe.InitializedCompilerState initializedCompilerState) {
+    fe.InitializedCompilerState? initializedCompilerState) {
   Uri? rootLibraryUri = null;
   Iterable<ir.Library> libraries = component.libraries;
   if (!options.modularMode) {
@@ -385,7 +385,7 @@ Future<Output?> run(Input input) async {
   Library? entryLibrary;
   ir.Component? component;
   List<Uri> moduleLibraries = const [];
-  fe.InitializedCompilerState initializedCompilerState =
+  fe.InitializedCompilerState? initializedCompilerState =
       input.initializedCompilerState;
   if (options.fromDill) {
     _LoadFromKernelResult result =
