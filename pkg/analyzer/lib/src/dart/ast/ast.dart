@@ -1601,6 +1601,9 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
   Token get endToken => type.endToken;
 
   @override
+  DeclaredVariablePatternImpl? get variablePattern => pattern.variablePattern;
+
+  @override
   ChildEntities get _childEntities => super._childEntities
     ..addNode('pattern', pattern)
     ..addToken('asToken', asToken)

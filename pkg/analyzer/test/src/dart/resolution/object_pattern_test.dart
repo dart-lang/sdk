@@ -348,6 +348,90 @@ ObjectPattern
 ''');
   }
 
+  test_class_notGeneric_noName_variable_cast() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  int? get foo;
+}
+
+void f(x) {
+  switch (x) {
+    case A(: var foo as int):
+      break;
+  }
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: CastPattern
+        pattern: DeclaredVariablePattern
+          keyword: var
+          name: foo
+          declaredElement: hasImplicitType foo@82
+            type: int
+        asToken: as
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      fieldElement: self::@class::A::@getter::foo
+  rightParenthesis: )
+''');
+  }
+
+  test_class_notGeneric_noName_variable_nullAssert() async {
+    await assertNoErrorsInCode(r'''
+abstract class A {
+  int? get foo;
+}
+
+void f(x) {
+  switch (x) {
+    case A(: var foo!):
+      break;
+  }
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: PostfixPattern
+        operand: DeclaredVariablePattern
+          keyword: var
+          name: foo
+          declaredElement: hasImplicitType foo@82
+            type: int
+        operator: !
+      fieldElement: self::@class::A::@getter::foo
+  rightParenthesis: )
+''');
+  }
+
   test_class_notGeneric_noName_variable_nullCheck() async {
     await assertNoErrorsInCode(r'''
 abstract class A {
