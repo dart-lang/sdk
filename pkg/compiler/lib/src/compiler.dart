@@ -93,8 +93,8 @@ class Compiler {
   api.CompilerOutput get outputProvider => _outputProvider;
 
   late ir.Component componentForTesting;
-  late JClosedWorld backendClosedWorldForTesting;
-  late DataSourceIndices closedWorldIndicesForTesting;
+  late JClosedWorld? backendClosedWorldForTesting;
+  late DataSourceIndices? closedWorldIndicesForTesting;
   late ResolutionEnqueuer resolutionEnqueuerForTesting;
   late CodegenEnqueuer codegenEnqueuerForTesting;
   late DumpInfoStateData dumpInfoStateForTesting;
@@ -584,8 +584,8 @@ class Compiler {
           useDeferredSourceReads);
     }
     if (retainDataForTesting) {
-      backendClosedWorldForTesting = closedWorldAndIndices.data!;
-      closedWorldIndicesForTesting = closedWorldAndIndices.indices!;
+      backendClosedWorldForTesting = closedWorldAndIndices.data;
+      closedWorldIndicesForTesting = closedWorldAndIndices.indices;
     }
     return closedWorldAndIndices;
   }

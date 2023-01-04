@@ -593,19 +593,19 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
 
   String run(TypeRecipe recipe) {
     if (recipe is TypeExpressionRecipe) {
-      _visit(recipe.type, null);
+      _visit(recipe.type);
     } else if (recipe is SingletonTypeEnvironmentRecipe) {
       _add(r'$env');
-      _visit(recipe.type, null);
+      _visit(recipe.type);
     } else if (recipe is FullTypeEnvironmentRecipe) {
       _add(r'$env');
-      if (recipe.classType != null) _visit(recipe.classType!, null);
+      if (recipe.classType != null) _visit(recipe.classType!);
       _add('${recipe.types.length}');
       int index = 0;
       for (DartType type in recipe.types) {
         ++index;
         _add('${index}');
-        _visit(type, null);
+        _visit(type);
       }
     } else {
       throw StateError('Unexpected recipe: $recipe');
@@ -628,20 +628,20 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
     return true;
   }
 
-  void _visit(DartType type, _) {
-    type.accept(this, _);
+  void _visit(DartType type) {
+    type.accept(this, null);
   }
 
   @override
   void visitLegacyType(covariant LegacyType type, _) {
     _add('legacy');
-    _visit(type.baseType, type);
+    _visit(type.baseType);
   }
 
   @override
   void visitNullableType(covariant NullableType type, _) {
     _add('nullable');
-    _visit(type.baseType, type);
+    _visit(type.baseType);
   }
 
   @override
@@ -686,18 +686,18 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
   void visitFunctionType(covariant FunctionType type, _) {
     if (_dagCheck(type)) return;
 
-    _visit(type.returnType, type);
+    _visit(type.returnType);
     _add('Function');
     var typeVariables = type.typeVariables;
     if (typeVariables.isNotEmpty) {
       bool needsComma = false;
       for (FunctionTypeVariable typeVariable in typeVariables) {
         needsComma = _comma(needsComma);
-        _visit(typeVariable, type);
+        _visit(typeVariable);
         DartType bound = typeVariable.bound;
         if (!bound.isObject) {
           _add('extends');
-          _visit(typeVariable.bound, typeVariable);
+          _visit(typeVariable.bound);
         }
       }
     }
@@ -711,7 +711,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
         parameterTypes.every(_isSimple)) {
       // e.g.  "void_Function_int_int"
       for (DartType parameterType in parameterTypes) {
-        _visit(parameterType, type);
+        _visit(parameterType);
       }
       return;
     }
@@ -721,14 +721,14 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
     bool needsComma = false;
     for (DartType parameterType in parameterTypes) {
       needsComma = _comma(needsComma);
-      _visit(parameterType, type);
+      _visit(parameterType);
     }
     if (optionalParameterTypes.isNotEmpty) {
       _add(r'$opt');
       bool needsOptionalComma = false;
       for (DartType typeArgument in optionalParameterTypes) {
         needsOptionalComma = _comma(needsOptionalComma);
-        _visit(typeArgument, type);
+        _visit(typeArgument);
       }
     }
     if (namedParameters.isNotEmpty) {
@@ -740,7 +740,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
           _add(r'$req');
         }
         _identifier(namedParameters[index]);
-        _visit(type.namedParameterTypes[index], type);
+        _visit(type.namedParameterTypes[index]);
       }
     }
   }
@@ -762,13 +762,13 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
         _add('of');
       }
       // e.g. "List_int"
-      _visit(arguments.first, type);
+      _visit(arguments.first);
       return;
     }
     if (arguments.every(_isSimple)) {
       // e.g. "Map_String_String"
       for (DartType argument in arguments) {
-        _visit(argument, type);
+        _visit(argument);
       }
       return;
     }
@@ -777,7 +777,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
     bool needsComma = false;
     for (DartType argument in arguments) {
       needsComma = _comma(needsComma);
-      _visit(argument, type);
+      _visit(argument);
     }
   }
 
@@ -792,7 +792,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
     bool needsComma = false;
     for (int i = 0; i < fieldCount; i++) {
       needsComma = _comma(needsComma);
-      _visit(type.fields[i], type);
+      _visit(type.fields[i]);
       if (i >= shape.positionalFieldCount) {
         _identifier(shape.fieldNames[i - shape.positionalFieldCount]);
       }
@@ -820,6 +820,6 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
   @override
   void visitFutureOrType(covariant FutureOrType type, _) {
     _identifier('FutureOr');
-    _visit(type.typeArgument, type);
+    _visit(type.typeArgument);
   }
 }
