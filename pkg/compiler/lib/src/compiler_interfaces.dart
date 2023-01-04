@@ -6,6 +6,9 @@
 // TODO(48820): delete after the migration is complete.
 library compiler.src.compiler_interfaces;
 
+import 'package:compiler/src/environment.dart';
+import 'package:compiler/src/inferrer/abstract_value_strategy.dart';
+
 import '../compiler_api.dart' show CompilerOutput, Diagnostic;
 
 import 'common/tasks.dart' show Measurer;
@@ -110,4 +113,16 @@ abstract class CompilerEmitterFacade {
   DiagnosticReporter get reporter;
   CompilerOutput get outputProvider;
   DumpInfoJavaScriptMonitor get dumpInfoTask;
+}
+
+// Subset of [Compiler] needed by JsBackendStrategy
+///
+/// See definitions on [Compiler] for documentation.
+abstract class CompilerJsBackendStrategyFacade
+    implements CompilerEmitterFacade, CompilerInferrerFacade {
+  KernelFrontendStrategy get frontendStrategy;
+
+  Environment get environment;
+
+  AbstractValueStrategy get abstractValueStrategy;
 }

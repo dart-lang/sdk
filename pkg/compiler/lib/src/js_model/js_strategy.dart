@@ -11,7 +11,7 @@ import '../common/codegen.dart';
 import '../common/elements.dart' show CommonElements, ElementEnvironment;
 import '../common/tasks.dart';
 import '../common/work.dart';
-import '../compiler.dart';
+import '../compiler_interfaces.dart';
 import '../deferred_load/output_unit.dart'
     show LateOutputUnitDataBuilder, OutputUnitData;
 import '../dump_info.dart';
@@ -74,7 +74,7 @@ import 'js_strategy_interfaces.dart' as interfaces;
 /// JS Strategy pattern that defines the element model used in type inference
 /// and code generation.
 class JsBackendStrategy implements interfaces.JsBackendStrategy {
-  final Compiler _compiler;
+  final CompilerJsBackendStrategyFacade _compiler;
   JsKernelToElementMap _elementMap;
 
   /// Codegen support for generating table of interceptors and

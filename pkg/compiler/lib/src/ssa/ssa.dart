@@ -311,7 +311,7 @@ class SsaFunctionCompiler
   }
 
   @override
-  Iterable<CompilerTask> get tasks {
+  List<CompilerTask> get tasks {
     return [_builder, optimizer, generator];
   }
 }

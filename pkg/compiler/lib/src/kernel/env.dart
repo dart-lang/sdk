@@ -246,7 +246,7 @@ abstract class KClassEnv {
   JClassEnv convert(
       IrToElementMap kElementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
-      Set<MemberEntity> liveAbstractMembers,
+      Iterable<MemberEntity> liveAbstractMembers,
       LibraryEntity Function(ir.Library library) getJLibrary);
 
   /// Returns `true` if [node] is a known member of this class.
@@ -436,7 +436,7 @@ class KClassEnvImpl implements KClassEnv {
   JClassEnv convert(
       IrToElementMap kElementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
-      Set<MemberEntity> liveAbstractMembers,
+      Iterable<MemberEntity> liveAbstractMembers,
       LibraryEntity Function(ir.Library library) getJLibrary) {
     Map<String, ir.Member> constructorMap;
     Map<Name, ir.Member> memberMap;

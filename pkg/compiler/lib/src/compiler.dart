@@ -27,6 +27,7 @@ import 'compiler_interfaces.dart'
         CompilerDumpInfoFacade,
         CompilerEmitterFacade,
         CompilerInferrerFacade,
+        CompilerJsBackendStrategyFacade,
         CompilerKernelStrategyFacade,
         CompilerTypeInferenceFacade;
 import 'deferred_load/deferred_load.dart' show DeferredLoadTask;
@@ -86,6 +87,7 @@ class Compiler
         CompilerDumpInfoFacade,
         CompilerEmitterFacade,
         CompilerInferrerFacade,
+        CompilerJsBackendStrategyFacade,
         CompilerKernelStrategyFacade,
         CompilerTypeInferenceFacade {
   @override
@@ -131,6 +133,7 @@ class Compiler
   @override
   Map<Entity, WorldImpact> get impactCache => _impactCache;
 
+  @override
   final Environment environment;
 
   List<CompilerTask> tasks;
@@ -141,6 +144,7 @@ class Compiler
   experimentalInferrer.GlobalTypeInferenceTask experimentalGlobalInference;
   CodegenWorldBuilder _codegenWorldBuilder;
 
+  @override
   AbstractValueStrategy abstractValueStrategy;
 
   GenericTask selfTask;

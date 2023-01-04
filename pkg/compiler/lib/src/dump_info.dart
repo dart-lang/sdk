@@ -1185,6 +1185,7 @@ class DumpInfoTask extends CompilerTask
     inlineMap[inlinedFrom]!.add(element);
   }
 
+  @override
   void registerImpact(MemberEntity member, WorldImpact impact) {
     if (compiler.options.dumpInfo) {
       impacts[member] = impact;

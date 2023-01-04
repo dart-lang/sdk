@@ -128,7 +128,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       this._environment,
       KernelToElementMap _elementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
-      Set<MemberEntity> liveAbstractMembers,
+      Iterable<MemberEntity> liveAbstractMembers,
       AnnotationsData annotations)
       : this.options = _elementMap.options {
     _elementEnvironment = JsElementEnvironment(this);

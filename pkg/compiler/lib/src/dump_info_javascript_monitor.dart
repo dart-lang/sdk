@@ -6,6 +6,9 @@ library dump_info.javascript_monitor;
 
 import 'package:js_ast/js_ast.dart' as jsAst show Node;
 
+import 'elements/entities.dart';
+import 'universe/world_impact.dart';
+
 /// Interface implemented by `DumpInfoTask` used to monitor the generated
 /// JavaScript as it is written.
 // TODO(48820): Remove this interface when `DumpInfoTask` is migrated.
@@ -15,4 +18,5 @@ abstract class DumpInfoJavaScriptMonitor {
   void enterNode(jsAst.Node node, int start);
   void emit(String string);
   void exitNode(jsAst.Node node, int start, int end, int? closing);
+  void registerImpact(MemberEntity member, WorldImpact worldImpact);
 }
