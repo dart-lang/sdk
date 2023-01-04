@@ -657,6 +657,18 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
     computer._addRegion_token(node.onKeyword, HighlightRegionType.BUILT_IN,
         semanticTokenModifiers: {CustomSemanticTokenModifiers.control});
+
+    var exceptionParameter = node.exceptionParameter;
+    if (exceptionParameter != null) {
+      computer._addRegion_token(exceptionParameter.name,
+          HighlightRegionType.LOCAL_VARIABLE_DECLARATION);
+    }
+    var stackTraceParameter = node.stackTraceParameter;
+    if (stackTraceParameter != null) {
+      computer._addRegion_token(stackTraceParameter.name,
+          HighlightRegionType.LOCAL_VARIABLE_DECLARATION);
+    }
+
     super.visitCatchClause(node);
   }
 
