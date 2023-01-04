@@ -947,7 +947,8 @@ bool CompileType::CanBeFuture() {
   ObjectStore* object_store = isolate_group->object_store();
 
   if (cid_ != kIllegalCid && cid_ != kDynamicCid) {
-    if ((cid_ == kNullCid) || (cid_ == kNeverCid)) {
+    if ((cid_ == kNullCid) || (cid_ == kNeverCid) ||
+        IsInternalOnlyClassId(cid_) || cid_ == kTypeArgumentsCid) {
       return false;
     }
     const Class& cls = Class::Handle(isolate_group->class_table()->At(cid_));

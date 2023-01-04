@@ -615,6 +615,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.nullableRecordNamed:
         case ObjectAccessTargetKind.recordNamed:
         case ObjectAccessTargetKind.nullableInlineClassMember:
+        case ObjectAccessTargetKind.inlineClassRepresentation:
+        case ObjectAccessTargetKind.nullableInlineClassRepresentation:
           break;
       }
     }
@@ -5647,6 +5649,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
+      case ObjectAccessTargetKind.inlineClassRepresentation:
+      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
         throw new UnsupportedError('Unexpected binary target ${binaryTarget}');
     }
 
@@ -5765,6 +5769,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
+      case ObjectAccessTargetKind.inlineClassRepresentation:
+      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
         throw new UnsupportedError('Unexpected unary target ${unaryTarget}');
     }
 
@@ -5910,6 +5916,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
+      case ObjectAccessTargetKind.inlineClassRepresentation:
+      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
         throw new UnsupportedError('Unexpected index get target ${readTarget}');
     }
 
@@ -6024,6 +6032,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
+      case ObjectAccessTargetKind.inlineClassRepresentation:
+      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
         throw new UnsupportedError(
             'Unexpected index set target ${writeTarget}');
     }
@@ -6207,6 +6217,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             readTarget.receiverType as RecordType, readTarget.recordFieldName!)
           ..fileOffset = fileOffset;
         break;
+      case ObjectAccessTargetKind.inlineClassRepresentation:
+      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+        read = new AsExpression(receiver, readType)
+          ..isForNonNullableByDefault = isNonNullableByDefault
+          ..isUnchecked = true
+          ..fileOffset = fileOffset;
+        break;
     }
 
     if (!isNonNullableByDefault) {
@@ -6338,8 +6355,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.recordIndexed:
       case ObjectAccessTargetKind.recordNamed:
+      case ObjectAccessTargetKind.inlineClassRepresentation:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
+      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
         throw new UnsupportedError('Unexpected write target ${writeTarget}');
     }
     Expression result;

@@ -1984,6 +1984,21 @@ class InlineClass extends NamedNode implements Annotatable, FileUriNode {
   ///
   late DartType declaredRepresentationType;
 
+  /// The name of the representation field.
+  ///
+  /// For instance 'it' in the inline class B:
+  ///
+  ///   class A {}
+  ///   inline class B {
+  ///     final A it;
+  ///     B(this.it)
+  ///   }
+  ///
+  /// This name is used for accessing underlying representation from an inline
+  /// type. If the name starts with '_' is private wrt. the enclosing library
+  /// of the inline class.
+  late String representationName;
+
   /// The members declared by the inline class.
   ///
   /// The members are converted into top-level members and only accessible
@@ -8010,6 +8025,7 @@ class AsExpression extends Expression {
   static const int FlagCovarianceCheck = 1 << 1;
   static const int FlagForDynamic = 1 << 2;
   static const int FlagForNonNullableByDefault = 1 << 3;
+  static const int FlagUnchecked = 1 << 4;
 
   /// If `true`, this test is an implicit down cast.
   ///
@@ -8065,6 +8081,18 @@ class AsExpression extends Expression {
     flags = value
         ? (flags | FlagForNonNullableByDefault)
         : (flags & ~FlagForNonNullableByDefault);
+  }
+
+  /// If `true`, this test is added to show the known static type of the
+  /// expression and should not be performed at runtime.
+  ///
+  /// This is the case for instance for access to inline class representation
+  /// fields on an inline type, where this node shows that the static type
+  /// changes from the inline type of the declared representation type.
+  bool get isUnchecked => flags & FlagUnchecked != 0;
+
+  void set isUnchecked(bool value) {
+    flags = value ? (flags | FlagUnchecked) : (flags & ~FlagUnchecked);
   }
 
   @override

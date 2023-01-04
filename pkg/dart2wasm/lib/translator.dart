@@ -140,9 +140,9 @@ class Translator with KernelNodes {
     w.NumType.f64: boxedDoubleClass,
   };
 
-  // For now all dynamic forwarders use the same type, but getters and setters
-  // can have a simpler type.
-  late final w.FunctionType dynamicForwarderFunctionType = m.addFunctionType([
+  /// Type of a dynamic invocation forwarder function.
+  late final w.FunctionType dynamicInvocationForwarderFunctionType =
+      m.addFunctionType([
     // Receiver
     topInfo.nonNullableType,
 
@@ -154,6 +154,27 @@ class Translator with KernelNodes {
 
     // Named arguments, represented as array of symbol and object pairs
     classInfo[fixedLengthListClass]!.nonNullableType,
+  ], [
+    topInfo.nullableType
+  ]);
+
+  /// Type of a dynamic get forwarder function.
+  late final w.FunctionType dynamicGetForwarderFunctionType =
+      m.addFunctionType([
+    // Receiver
+    topInfo.nonNullableType,
+  ], [
+    topInfo.nullableType
+  ]);
+
+  /// Type of a dynamic set forwarder function.
+  late final w.FunctionType dynamicSetForwarderFunctionType =
+      m.addFunctionType([
+    // Receiver
+    topInfo.nonNullableType,
+
+    // Positional argument
+    topInfo.nullableType,
   ], [
     topInfo.nullableType
   ]);

@@ -148,7 +148,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
 
     if (reference.isTypeCheckerReference) {
-      if (member is Field) {
+      if (member is Field || (member is Procedure && member.isSetter)) {
         return _generateFieldSetterTypeCheckerMethod();
       } else {
         return _generateProcedureTypeCheckerMethod();
@@ -1538,13 +1538,81 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (node.name.text == "call") {
       return _functionCall(node.receiver, node.arguments);
     }
-    _callForwarder(
-        node.name.text,
-        translator.dynamicForwarders.getMethodForwarder(node),
-        node.receiver,
-        node.arguments.types,
-        node.arguments.positional,
-        node.arguments.named);
+
+    // Call dynamic invocation forwarder
+    final receiver = node.receiver;
+    final typeArguments = node.arguments.types;
+    final positionalArguments = node.arguments.positional;
+    final namedArguments = node.arguments.named;
+    final forwarder = translator.dynamicForwarders.getMethodForwarder(node);
+
+    final forwarderCallBlock = b.block([], [translator.topInfo.nullableType]);
+
+    // Evaluate receiver
+    wrap(receiver, translator.topInfo.nullableType);
+    final nullableReceiverLocal =
+        function.addLocal(translator.topInfo.nullableType);
+    b.local_set(nullableReceiverLocal);
+
+    // Evaluate type arguments
+    makeList(InterfaceType(translator.typeClass, Nullability.nonNullable),
+        typeArguments.length, (elementType, elementIdx) {
+      translator.types.makeType(this, typeArguments[elementIdx]);
+    }, isGrowable: false);
+    final typeArgsLocal = function.addLocal(
+        translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
+    b.local_set(typeArgsLocal);
+
+    // Evaluate positional arguments
+    makeList(DynamicType(), positionalArguments.length,
+        (elementType, elementIdx) {
+      wrap(positionalArguments[elementIdx], elementType);
+    }, isGrowable: false);
+    final positionalArgsLocal = function.addLocal(
+        translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
+    b.local_set(positionalArgsLocal);
+
+    // Evaluate named arguments
+    makeList(DynamicType(), namedArguments.length * 2,
+        (elementType, elementIdx) {
+      if (elementIdx % 2 == 0) {
+        final name = namedArguments[elementIdx ~/ 2].name;
+        final w.ValueType symbolValueType =
+            translator.classInfo[translator.symbolClass]!.nonNullableType;
+        translator.constants.instantiateConstant(
+            function, b, SymbolConstant(name, null), symbolValueType);
+      } else {
+        final value = namedArguments[elementIdx ~/ 2].value;
+        wrap(value, elementType);
+      }
+    }, isGrowable: false);
+    final namedArgsLocal = function.addLocal(
+        translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
+    b.local_set(namedArgsLocal);
+
+    final nullBlock = b.block([], [translator.topInfo.nonNullableType]);
+    b.local_get(nullableReceiverLocal);
+    b.br_on_non_null(nullBlock);
+    // Throw `NoSuchMethodError`. Normally this needs to happen via instance
+    // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
+    // have a `Null` class in dart2wasm so we throw directly.
+    b.local_get(nullableReceiverLocal);
+    createInvocationObject(translator, function, forwarder.memberName,
+        typeArgsLocal, positionalArgsLocal, namedArgsLocal);
+
+    w.BaseFunction f = translator.functions
+        .getFunction(translator.noSuchMethodErrorThrowWithInvocation.reference);
+    b.call(f);
+    b.br(forwarderCallBlock);
+    b.end(); // nullBlock
+
+    b.local_get(typeArgsLocal);
+    b.local_get(positionalArgsLocal);
+    b.local_get(namedArgsLocal);
+    b.call(forwarder.function);
+
+    b.end(); // forwarderCallBlock
+
     return translator.topInfo.nullableType;
   }
 
@@ -1937,22 +2005,82 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitDynamicGet(DynamicGet node, w.ValueType expectedType) {
-    _callForwarder(
-        node.name.text,
-        translator.dynamicForwarders.getGetterForwarder(node),
-        node.receiver, [], [], []);
+    final receiver = node.receiver;
+    final forwarder = translator.dynamicForwarders.getGetterForwarder(node);
+
+    // Call get forwarder
+    final forwarderCallBlock = b.block([], [translator.topInfo.nullableType]);
+
+    // Evaluate receiver
+    wrap(receiver, translator.topInfo.nullableType);
+    final nullableReceiverLocal =
+        function.addLocal(translator.topInfo.nullableType);
+    b.local_set(nullableReceiverLocal);
+
+    final nullBlock = b.block([], [translator.topInfo.nonNullableType]);
+    b.local_get(nullableReceiverLocal);
+    b.br_on_non_null(nullBlock);
+    // Throw `NoSuchMethodError`. Normally this needs to happen via instance
+    // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
+    // have a `Null` class in dart2wasm so we throw directly.
+    b.local_get(nullableReceiverLocal);
+    createGetterInvocationObject(translator, function, forwarder.memberName);
+
+    w.BaseFunction f = translator.functions
+        .getFunction(translator.noSuchMethodErrorThrowWithInvocation.reference);
+    b.call(f);
+    b.br(forwarderCallBlock);
+    b.end(); // nullBlock
+
+    b.call(forwarder.function);
+
+    b.end(); // forwarderCallBlock
+
     return translator.topInfo.nullableType;
   }
 
   @override
   w.ValueType visitDynamicSet(DynamicSet node, w.ValueType expectedType) {
-    _callForwarder(
-        node.name.text,
-        translator.dynamicForwarders.getSetterForwarder(node),
-        node.receiver,
-        [],
-        [node.value],
-        []);
+    final receiver = node.receiver;
+    final value = node.value;
+    final forwarder = translator.dynamicForwarders.getSetterForwarder(node);
+
+    // Call set forwarder
+    final forwarderCallBlock = b.block([], [translator.topInfo.nullableType]);
+
+    // Evaluate receiver
+    wrap(receiver, translator.topInfo.nullableType);
+    final nullableReceiverLocal =
+        function.addLocal(translator.topInfo.nullableType);
+    b.local_set(nullableReceiverLocal);
+
+    // Evaluate positional arg
+    wrap(value, translator.topInfo.nullableType);
+    final positionalArgLocal =
+        function.addLocal(translator.topInfo.nullableType);
+    b.local_set(positionalArgLocal);
+
+    final nullBlock = b.block([], [translator.topInfo.nonNullableType]);
+    b.local_get(nullableReceiverLocal);
+    b.br_on_non_null(nullBlock);
+    // Throw `NoSuchMethodError`. Normally this needs to happen via instance
+    // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
+    // have a `Null` class in dart2wasm so we throw directly.
+    b.local_get(nullableReceiverLocal);
+    createSetterInvocationObject(
+        translator, function, forwarder.memberName, positionalArgLocal);
+
+    w.BaseFunction f = translator.functions
+        .getFunction(translator.noSuchMethodErrorThrowWithInvocation.reference);
+    b.call(f);
+    b.br(forwarderCallBlock);
+    b.end(); // nullBlock
+
+    b.local_get(positionalArgLocal);
+    b.call(forwarder.function);
+
+    b.end(); // forwarderCallBlock
+
     return translator.topInfo.nullableType;
   }
 
@@ -2643,7 +2771,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   /// type check the setter argument before calling the actual setter.
   void _generateFieldSetterTypeCheckerMethod() {
     final receiverLocal = function.locals[0];
-    final positionalArgsLocal = function.locals[2];
+    final positionalArgLocal = function.locals[1];
 
     _initializeThis(member);
 
@@ -2655,32 +2783,46 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         translator.classInfo[translator.typeClass]!.nonNullableType;
     final argTypeLocal = addLocal(typeType);
 
-    final field = member as Field;
-    final paramType = field.type;
+    final member_ = member;
+    DartType paramType;
+    if (member_ is Field) {
+      paramType = member_.type;
+    } else {
+      paramType = (member_ as Procedure).setterType;
+    }
 
     _generateArgumentTypeCheck(
-      field.name.text,
-      () {
-        b.local_get(positionalArgsLocal);
-        translator.indexList(b, (b) => b.i32_const(0));
-      },
-      () {
-        types.makeType(this, paramType);
-      },
+      member.name.text,
+      () => b.local_get(positionalArgLocal),
+      () => types.makeType(this, paramType),
       argLocal,
       argTypeLocal,
     );
 
-    ClassInfo info = translator.classInfo[field.enclosingClass]!;
-    int fieldIndex = translator.fieldIndex[field]!;
-    b.local_get(receiverLocal);
-    translator.convertType(function, receiverLocal.type, info.nullableType);
+    ClassInfo info = translator.classInfo[member_.enclosingClass]!;
+    if (member_ is Field) {
+      int fieldIndex = translator.fieldIndex[member_]!;
+      b.local_get(receiverLocal);
+      translator.convertType(function, receiverLocal.type, info.nullableType);
+      b.local_get(argLocal);
+      translator.convertType(function, argLocal.type,
+          info.struct.fields[fieldIndex].type.unpacked);
+      b.struct_set(info.struct, fieldIndex);
+    } else {
+      final setterProcedure = member_ as Procedure;
+      final setterProcedureWasm =
+          translator.functions.getFunction(setterProcedure.reference);
+      final setterWasmInputs = setterProcedureWasm.type.inputs;
+      assert(setterWasmInputs.length == 2);
+      b.local_get(receiverLocal);
+      translator.convertType(function, receiverLocal.type, setterWasmInputs[0]);
+      b.local_get(argLocal);
+      translator.convertType(function, argLocal.type, setterWasmInputs[1]);
+      call(setterProcedure.reference);
+    }
+
     b.local_get(argLocal);
-    translator.convertType(
-        function, argLocal.type, info.struct.fields[fieldIndex].type.unpacked);
-    b.struct_set(info.struct, fieldIndex);
-    b.local_get(argLocal);
-    b.end();
+    b.end(); // end function
   }
 
   /// Generate type checker method for a method.
@@ -2895,81 +3037,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     call(translator.throwArgumentTypeCheckError.reference);
     b.unreachable();
     b.end();
-  }
-
-  void _callForwarder(
-      String memberName,
-      Forwarder forwarder,
-      Expression receiver,
-      List<DartType> typeArguments,
-      List<Expression> positionalArguments,
-      List<NamedExpression> namedArguments) {
-    final forwarderCallBlock = b.block([], [translator.topInfo.nullableType]);
-
-    // Evaluate receiver
-    wrap(receiver, translator.topInfo.nullableType);
-    final nullableReceiverLocal =
-        function.addLocal(translator.topInfo.nullableType);
-    b.local_set(nullableReceiverLocal);
-
-    // Evaluate type arguments
-    makeList(InterfaceType(translator.typeClass, Nullability.nonNullable),
-        typeArguments.length, (elementType, elementIdx) {
-      translator.types.makeType(this, typeArguments[elementIdx]);
-    }, isGrowable: false);
-    final typeArgsLocal = function.addLocal(
-        translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
-    b.local_set(typeArgsLocal);
-
-    // Evaluate positional arguments
-    makeList(DynamicType(), positionalArguments.length,
-        (elementType, elementIdx) {
-      wrap(positionalArguments[elementIdx], elementType);
-    }, isGrowable: false);
-    final positionalArgsLocal = function.addLocal(
-        translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
-    b.local_set(positionalArgsLocal);
-
-    // Evaluate named arguments
-    makeList(DynamicType(), namedArguments.length * 2,
-        (elementType, elementIdx) {
-      if (elementIdx % 2 == 0) {
-        final name = namedArguments[elementIdx ~/ 2].name;
-        final w.ValueType symbolValueType =
-            translator.classInfo[translator.symbolClass]!.nonNullableType;
-        translator.constants.instantiateConstant(
-            function, b, SymbolConstant(name, null), symbolValueType);
-      } else {
-        final value = namedArguments[elementIdx ~/ 2].value;
-        wrap(value, elementType);
-      }
-    }, isGrowable: false);
-    final namedArgsLocal = function.addLocal(
-        translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
-    b.local_set(namedArgsLocal);
-
-    final nullBlock = b.block([], [translator.topInfo.nonNullableType]);
-    b.local_get(nullableReceiverLocal);
-    b.br_on_non_null(nullBlock);
-    // Throw `NoSuchMethodError`. Normally this needs to happen via instance
-    // invocation of `noSuchMethod` (done in [_callNoSuchMethod]), but we don't
-    // have a `Null` class in dart2wasm so we throw directly.
-    b.local_get(nullableReceiverLocal);
-    createInvocationObject(translator, function, forwarder, typeArgsLocal,
-        positionalArgsLocal, namedArgsLocal);
-
-    w.BaseFunction f = translator.functions
-        .getFunction(translator.noSuchMethodErrorThrowWithInvocation.reference);
-    b.call(f);
-    b.br(forwarderCallBlock);
-    b.end(); // nullBlock
-
-    b.local_get(typeArgsLocal);
-    b.local_get(positionalArgsLocal);
-    b.local_get(namedArgsLocal);
-    b.call(forwarder.function);
-
-    b.end(); // forwarderCallBlock
   }
 }
 

@@ -41,8 +41,9 @@ class StableState extends State {
 
 /// Describes the state of a lint.
 abstract class State {
-  /// A sentinel for a state that is 'unknown'.
-  static const State unknown = UnknownState();
+  static const _undatedStable = StableState();
+  static const _undatedDeprecated = DeprecatedState();
+  static const _undatedExperimental = ExperimentalState();
 
   /// An Optional Dart SDK version that identifies the start of this state.
   final Version? since;
@@ -56,28 +57,25 @@ abstract class State {
 
   /// Initialize a newly created deprecated state with given values.
   factory State.deprecated({Version? since, String? replacedBy}) =>
-      DeprecatedState(since: since, replacedBy: replacedBy);
+      since == null && replacedBy == null
+          ? _undatedDeprecated
+          : DeprecatedState(since: since, replacedBy: replacedBy);
 
   /// Initialize a newly created experimental state with given values.
   factory State.experimental({Version? since}) =>
-      ExperimentalState(since: since);
+      since == null ? _undatedExperimental : ExperimentalState(since: since);
 
   /// Initialize a newly created removed state with given values.
   factory State.removed({required Version since, String? replacedBy}) =>
       RemovedState(since: since, replacedBy: replacedBy);
 
   /// Initialize a newly created stable state with given values.
-  factory State.stable({Version? since}) => StableState(since: since);
+  factory State.stable({Version? since}) =>
+      since == null ? _undatedStable : StableState(since: since);
 
   /// An optional description that can be used in documentation or diagnostic
   /// reporting.
   String? getDescription() => null;
-}
-
-/// A state that is unknown.
-class UnknownState extends State {
-  /// Initialize a newly created unknown state.
-  const UnknownState() : super(label: 'unknown');
 }
 
 extension StateExtension on State {

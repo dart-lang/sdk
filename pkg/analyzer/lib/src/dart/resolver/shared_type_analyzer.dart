@@ -46,8 +46,8 @@ class SharedTypeAnalyzerErrors
   void caseExpressionTypeMismatch(
       {required Expression scrutinee,
       required Expression caseExpression,
-      required scrutineeType,
-      required caseExpressionType,
+      required DartType scrutineeType,
+      required DartType caseExpressionType,
       required bool nullSafetyEnabled}) {
     if (nullSafetyEnabled) {
       _errorReporter.reportErrorForNode(

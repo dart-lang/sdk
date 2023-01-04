@@ -1899,8 +1899,8 @@ abstract class TypeAnalyzerErrors<
   void caseExpressionTypeMismatch(
       {required Expression scrutinee,
       required Expression caseExpression,
-      required scrutineeType,
-      required caseExpressionType,
+      required Type scrutineeType,
+      required Type caseExpressionType,
       required bool nullSafetyEnabled});
 
   /// Called for a pair of named fields have the same name.

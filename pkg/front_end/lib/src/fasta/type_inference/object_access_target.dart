@@ -81,6 +81,14 @@ enum ObjectAccessTargetKind {
   /// A potentially nullable access to a statically known inline class instance
   /// member. This is an erroneous case and a compile-time error is reported.
   nullableInlineClassMember,
+
+  /// A valid access to the inline class representation field on a non-nullable
+  /// receiver.
+  inlineClassRepresentation,
+
+  /// A potentially nullable access to the inline class instance representation
+  /// field. This is an erroneous case and a compile-time error is reported.
+  nullableInlineClassRepresentation,
 }
 
 /// Result for performing an access on an object, like `o.foo`, `o.foo()` and
@@ -128,6 +136,12 @@ abstract class ObjectAccessTarget {
       ProcedureKind kind,
       List<DartType> inlineTypeArguments,
       {bool isPotentiallyNullable}) = InlineClassAccessTarget;
+
+  /// Creates an access to the representation field of the [inlineType].
+  factory ObjectAccessTarget.inlineClassRepresentation(
+          DartType receiverType, InlineType inlineType,
+          {required bool isPotentiallyNullable}) =
+      InlineClassRepresentationAccessTarget;
 
   /// Creates an access to a 'call' method on a function, i.e. a function
   /// invocation.
@@ -183,6 +197,11 @@ abstract class ObjectAccessTarget {
   bool get isInlineClassMember =>
       kind == ObjectAccessTargetKind.inlineClassMember;
 
+  /// Returns `true` if this is an access to the representation field of an
+  /// inline class.
+  bool get isInlineClassRepresentation =>
+      kind == ObjectAccessTargetKind.inlineClassRepresentation;
+
   /// Returns `true` if this is an access to the 'call' method on a function.
   bool get isCallFunction => kind == ObjectAccessTargetKind.callFunction;
 
@@ -232,6 +251,11 @@ abstract class ObjectAccessTarget {
   bool get isNullableInlineClassMember =>
       kind == ObjectAccessTargetKind.nullableInlineClassMember;
 
+  /// Returns `true` if this is an access to the representation field of an
+  /// inline on a potentially nullable receiver.
+  bool get isNullableInlineClassRepresentation =>
+      kind == ObjectAccessTargetKind.nullableInlineClassRepresentation;
+
   /// Returns `true` if this is an access to an instance member on a potentially
   /// nullable receiver.
   bool get isNullable =>
@@ -239,7 +263,9 @@ abstract class ObjectAccessTarget {
       isNullableCallFunction ||
       isNullableExtensionMember ||
       isNullableRecordIndexedAccess ||
-      isNullableRecordNamedAccess;
+      isNullableRecordNamedAccess ||
+      isNullableInlineClassMember ||
+      isNullableInlineClassRepresentation;
 
   /// Returns the candidates for an ambiguous extension access.
   List<ExtensionAccessCandidate> get candidates =>
@@ -1302,6 +1328,66 @@ class InlineClassAccessTarget extends ObjectAccessTarget {
 
   @override
   String toString() =>
-      'ExtensionAccessTarget($kind,$member,$declarationMethodKind,'
+      'InlineClassAccessTarget($kind,$member,$declarationMethodKind,'
       '$receiverTypeArguments)';
+}
+
+class InlineClassRepresentationAccessTarget extends ObjectAccessTarget {
+  @override
+  final DartType receiverType;
+  final InlineType inlineType;
+
+  InlineClassRepresentationAccessTarget(this.receiverType, this.inlineType,
+      {required bool isPotentiallyNullable})
+      : super.internal(isPotentiallyNullable
+            ? ObjectAccessTargetKind.nullableInlineClassRepresentation
+            : ObjectAccessTargetKind.inlineClassRepresentation);
+
+  @override
+  DartType getBinaryOperandType(InferenceVisitorBase base) {
+    throw unexpected('$this', 'getBinaryOperandType', -1, null);
+  }
+
+  @override
+  FunctionType getFunctionType(InferenceVisitorBase base) {
+    return _getFunctionType(base, getGetterType(base));
+  }
+
+  @override
+  DartType getGetterType(InferenceVisitorBase base) {
+    InlineClass inlineClass = inlineType.inlineClass;
+    DartType representationType = inlineClass.declaredRepresentationType;
+    if (inlineClass.typeParameters.isNotEmpty) {
+      representationType = Substitution.fromInlineType(inlineType)
+          .substituteType(representationType);
+    }
+    return representationType;
+  }
+
+  @override
+  DartType getIndexKeyType(InferenceVisitorBase base) {
+    throw unexpected('$this', 'getIndexKeyType', -1, null);
+  }
+
+  @override
+  DartType getIndexSetValueType(InferenceVisitorBase base) {
+    throw unexpected('$this', 'getIndexSetValueType', -1, null);
+  }
+
+  @override
+  DartType getReturnType(InferenceVisitorBase base) {
+    throw unexpected('$this', 'getReturnType', -1, null);
+  }
+
+  @override
+  DartType getSetterType(InferenceVisitorBase base) {
+    throw unexpected('$this', 'getSetterType', -1, null);
+  }
+
+  @override
+  Member? get member => null;
+
+  @override
+  String toString() =>
+      'InlineClassRepresentationAccessTarget($kind,$receiverType,$inlineType)';
 }

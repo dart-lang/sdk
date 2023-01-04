@@ -3039,8 +3039,8 @@ class _MiniAstErrors
   void caseExpressionTypeMismatch(
       {required Expression scrutinee,
       required Expression caseExpression,
-      required scrutineeType,
-      required caseExpressionType,
+      required Type scrutineeType,
+      required Type caseExpressionType,
       required bool nullSafetyEnabled}) {
     _recordError('caseExpressionTypeMismatch(scrutinee: ${scrutinee.errorId}, '
         'caseExpression: ${caseExpression.errorId}, '

@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 91;
+  UInt32 formatVersion = 92;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -385,7 +385,8 @@ type InlineClass extends Node {
   FileOffset fileOffset;
   Byte flags ();
   List<TypeParameter> typeParameters;
-  DartType representationType;
+  DartType declaredRepresentationType;
+  StringReference representationName;
   List<InlineClassMemberDescriptor> members;
 }
 
@@ -1620,7 +1621,7 @@ type InlineType extends DartType {
   Byte nullability; // Index into the Nullability enum above.
   InlineClassReference inlineClassReference;
   List<DartType> typeArguments;
-  DartType representationType;
+  DartType instantiatedRepresentationType;
 }
 
 type TypedefType {

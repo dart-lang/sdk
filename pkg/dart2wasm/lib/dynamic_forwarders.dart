@@ -68,8 +68,7 @@ class Forwarder {
   final w.DefinedFunction function;
 
   Forwarder(Translator translator, this.kind, this.memberName)
-      : function = translator.m.addFunction(
-            translator.dynamicForwarderFunctionType,
+      : function = translator.m.addFunction(kind.functionType(translator),
             "$kind forwarder for '$memberName'") {
     _generateCode(translator, function);
   }
@@ -134,18 +133,18 @@ class Forwarder {
         b.call(targetFunction);
         // Box return value if needed
         translator.convertType(function, targetFunction.type.outputs.single,
-            translator.dynamicForwarderFunctionType.outputs.single);
+            kind.functionType(translator).outputs.single);
         b.return_();
 
         b.end();
       }
     }
 
-    final typeArgsLocal = function.locals[1];
-    final positionalArgsLocal = function.locals[2];
-    final namedArgsLocal = function.locals[3];
-    _generateNoSuchMethodCall(translator, function, this, receiverLocal,
-        typeArgsLocal, positionalArgsLocal, namedArgsLocal);
+    _generateNoSuchMethodCall(
+        translator,
+        function,
+        () => b.local_get(receiverLocal),
+        () => createGetterInvocationObject(translator, function, memberName));
 
     b.end();
   }
@@ -154,9 +153,7 @@ class Forwarder {
     final w.Instructions b = function.body;
 
     final receiverLocal = function.locals[0];
-    final typeArgsLocal = function.locals[1];
-    final positionalArgsLocal = function.locals[2];
-    final namedArgsLocal = function.locals[3];
+    final positionalArgLocal = function.locals[1];
 
     final selectors =
         translator.dispatchTable.selectorsForDynamicSet(memberName)?.toList() ??
@@ -177,9 +174,7 @@ class Forwarder {
         b.if_();
 
         b.local_get(receiverLocal);
-        b.local_get(typeArgsLocal);
-        b.local_get(positionalArgsLocal);
-        b.local_get(namedArgsLocal);
+        b.local_get(positionalArgLocal);
         b.call(translator.functions
             .getFunction(targetMember.typeCheckerReference));
         b.return_();
@@ -188,12 +183,15 @@ class Forwarder {
       }
     }
 
-    _generateNoSuchMethodCall(translator, function, this, receiverLocal,
-        typeArgsLocal, positionalArgsLocal, namedArgsLocal);
+    _generateNoSuchMethodCall(
+        translator,
+        function,
+        () => b.local_get(receiverLocal),
+        () => createSetterInvocationObject(
+            translator, function, memberName, positionalArgLocal));
 
     b.drop(); // drop noSuchMethod return value
-    b.local_get(positionalArgsLocal);
-    translator.indexList(b, (b) => b.i32_const(0));
+    b.local_get(positionalArgLocal);
 
     b.end();
   }
@@ -450,8 +448,12 @@ class Forwarder {
     }
 
     // Unable to find a matching member, call `noSuchMethod`
-    _generateNoSuchMethodCall(translator, function, this, receiverLocal,
-        typeArgsLocal, positionalArgsLocal, namedArgsLocal);
+    _generateNoSuchMethodCall(
+        translator,
+        function,
+        () => b.local_get(receiverLocal),
+        () => createInvocationObject(translator, function, memberName,
+            typeArgsLocal, positionalArgsLocal, namedArgsLocal));
 
     b.end();
   }
@@ -472,23 +474,27 @@ enum _ForwarderKind {
         return "method";
     }
   }
+
+  w.FunctionType functionType(Translator translator) {
+    switch (this) {
+      case _ForwarderKind.Getter:
+        return translator.dynamicGetForwarderFunctionType;
+      case _ForwarderKind.Setter:
+        return translator.dynamicSetForwarderFunctionType;
+      case _ForwarderKind.Method:
+        return translator.dynamicInvocationForwarderFunctionType;
+    }
+  }
 }
 
-// NOTE: Forwarder argument is to get forwarder kind (getter, setter, method)
-// and member name. Maybe only pass those?
 void createInvocationObject(
     Translator translator,
     w.DefinedFunction function,
-    Forwarder forwarder,
+    String memberName,
     w.Local typeArgsLocal,
     w.Local positionalArgsLocal,
     w.Local namedArgsLocal) {
   final b = function.body;
-
-  var memberName = forwarder.memberName;
-  if (forwarder.kind == _ForwarderKind.Setter) {
-    memberName = '$memberName=';
-  }
 
   translator.constants.instantiateConstant(
       function,
@@ -496,60 +502,75 @@ void createInvocationObject(
       SymbolConstant(memberName, null),
       translator.classInfo[translator.symbolClass]!.nonNullableType);
 
-  switch (forwarder.kind) {
-    case _ForwarderKind.Getter:
-      b.call(translator.functions
-          .getFunction(translator.invocationGetterFactory.reference));
-      break;
+  b.local_get(typeArgsLocal);
+  b.local_get(positionalArgsLocal);
+  b.local_get(namedArgsLocal);
+  b.call(translator.functions
+      .getFunction(translator.namedParameterListToMap.reference));
+  b.call(translator.functions
+      .getFunction(translator.invocationGenericMethodFactory.reference));
+}
 
-    case _ForwarderKind.Setter:
-      b.local_get(positionalArgsLocal);
-      translator.indexList(b, (b) => b.i32_const(0));
-      b.call(translator.functions
-          .getFunction(translator.invocationSetterFactory.reference));
-      break;
+void createGetterInvocationObject(
+  Translator translator,
+  w.DefinedFunction function,
+  String memberName,
+) {
+  final b = function.body;
 
-    case _ForwarderKind.Method:
-      b.local_get(typeArgsLocal);
-      b.local_get(positionalArgsLocal);
-      b.local_get(namedArgsLocal);
-      b.call(translator.functions
-          .getFunction(translator.namedParameterListToMap.reference));
-      b.call(translator.functions
-          .getFunction(translator.invocationGenericMethodFactory.reference));
-      break;
-  }
+  translator.constants.instantiateConstant(
+      function,
+      b,
+      SymbolConstant(memberName, null),
+      translator.classInfo[translator.symbolClass]!.nonNullableType);
+
+  b.call(translator.functions
+      .getFunction(translator.invocationGetterFactory.reference));
+}
+
+void createSetterInvocationObject(
+  Translator translator,
+  w.DefinedFunction function,
+  String memberName,
+  w.Local positionalArgLocal,
+) {
+  final b = function.body;
+
+  memberName = '$memberName=';
+
+  translator.constants.instantiateConstant(
+      function,
+      b,
+      SymbolConstant(memberName, null),
+      translator.classInfo[translator.symbolClass]!.nonNullableType);
+
+  b.local_get(positionalArgLocal);
+  b.call(translator.functions
+      .getFunction(translator.invocationSetterFactory.reference));
 }
 
 void _generateNoSuchMethodCall(
-    Translator translator,
-    w.DefinedFunction function,
-    Forwarder forwarder,
-    w.Local receiverLocal,
-    w.Local typeArgsLocal,
-    w.Local positionalArgsLocal,
-    w.Local namedArgsLocal) {
+  Translator translator,
+  w.DefinedFunction function,
+  void Function() pushReceiver,
+  void Function() pushInvocationObject,
+) {
   final b = function.body;
 
   SelectorInfo noSuchMethodSelector = translator.dispatchTable
       .selectorForTarget(translator.objectNoSuchMethod.reference);
   translator.functions.activateSelector(noSuchMethodSelector);
 
-  b.local_get(receiverLocal);
-  translator.convertType(
-      function, receiverLocal.type, noSuchMethodSelector.signature.inputs[0]);
-
-  createInvocationObject(translator, function, forwarder, typeArgsLocal,
-      positionalArgsLocal, namedArgsLocal);
+  pushReceiver();
+  pushInvocationObject();
 
   final invocationFactory = translator.functions
       .getFunction(translator.invocationGenericMethodFactory.reference);
-
   translator.convertType(function, invocationFactory.type.outputs[0],
       noSuchMethodSelector.signature.inputs[1]);
 
   // Get class id for virtual call
-  b.local_get(receiverLocal);
+  pushReceiver();
   b.struct_get(translator.topInfo.struct, FieldIndex.classId);
 
   // Virtual call to noSuchMethod
