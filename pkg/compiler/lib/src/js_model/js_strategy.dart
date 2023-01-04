@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library dart2js.js_model.strategy;
 
 import '../common.dart';
@@ -75,26 +73,26 @@ import 'js_strategy_interfaces.dart' as interfaces;
 /// and code generation.
 class JsBackendStrategy implements interfaces.JsBackendStrategy {
   final CompilerJsBackendStrategyFacade _compiler;
-  JsKernelToElementMap _elementMap;
+  late JsKernelToElementMap _elementMap;
 
   /// Codegen support for generating table of interceptors and
   /// constructors for custom elements.
-  CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
+  late final CustomElementsCodegenAnalysis _customElementsCodegenAnalysis;
 
-  NativeCodegenEnqueuer _nativeCodegenEnqueuer;
+  late final NativeCodegenEnqueuer _nativeCodegenEnqueuer;
 
-  Namer _namer;
+  late final Namer _namer;
 
-  CodegenImpactTransformer _codegenImpactTransformer;
+  late final CodegenImpactTransformer _codegenImpactTransformer;
 
-  CodeEmitterTask _emitterTask;
+  late final CodeEmitterTask _emitterTask;
 
-  RuntimeTypesChecksBuilder _rtiChecksBuilder;
+  late final RuntimeTypesChecksBuilder _rtiChecksBuilder;
 
-  FunctionCompiler _functionCompiler;
+  late final FunctionCompiler _functionCompiler;
 
   @override
-  SourceInformationStrategy sourceInformationStrategy;
+  late SourceInformationStrategy sourceInformationStrategy;
 
   final SsaMetrics _ssaMetrics = SsaMetrics();
 
@@ -133,35 +131,26 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
   Namer get namerForTesting => _namer;
 
   @override
-  NativeEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
+  NativeCodegenEnqueuer get nativeCodegenEnqueuer => _nativeCodegenEnqueuer;
 
   RuntimeTypesChecksBuilder get rtiChecksBuilderForTesting => _rtiChecksBuilder;
 
-  Map<MemberEntity, WorldImpact> codegenImpactsForTesting;
+  Map<MemberEntity, WorldImpact>? codegenImpactsForTesting;
 
-  String getGeneratedCodeForTesting(MemberEntity element) {
+  String? getGeneratedCodeForTesting(MemberEntity element) {
     if (generatedCode[element] == null) return null;
-    return js.prettyPrint(generatedCode[element],
+    return js.prettyPrint(generatedCode[element]!,
         enableMinification: _compiler.options.enableMinification);
   }
 
   /// Codegen support for generating table of interceptors and
   /// constructors for custom elements.
   @override
-  CustomElementsCodegenAnalysis get customElementsCodegenAnalysis {
-    assert(
-        _customElementsCodegenAnalysis != null,
-        failedAt(NO_LOCATION_SPANNABLE,
-            "CustomElementsCodegenAnalysis has not been created yet."));
-    return _customElementsCodegenAnalysis;
-  }
+  CustomElementsCodegenAnalysis get customElementsCodegenAnalysis =>
+      _customElementsCodegenAnalysis;
 
   @override
   RuntimeTypesChecksBuilder get rtiChecksBuilder {
-    assert(
-        _rtiChecksBuilder != null,
-        failedAt(NO_LOCATION_SPANNABLE,
-            "RuntimeTypesChecksBuilder has not been created yet."));
     assert(
         !_rtiChecksBuilder.rtiChecksBuilderClosed,
         failedAt(NO_LOCATION_SPANNABLE,
@@ -219,9 +208,10 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
 
     RuntimeTypesSubstitutions rtiSubstitutions;
     if (_compiler.options.disableRtiOptimization) {
-      rtiSubstitutions = TrivialRuntimeTypesSubstitutions(closedWorld);
+      final trivialSubs =
+          rtiSubstitutions = TrivialRuntimeTypesSubstitutions(closedWorld);
       _rtiChecksBuilder =
-          TrivialRuntimeTypesChecksBuilder(closedWorld, rtiSubstitutions);
+          TrivialRuntimeTypesChecksBuilder(closedWorld, trivialSubs);
     } else {
       RuntimeTypesImpl runtimeTypesImpl = RuntimeTypesImpl(closedWorld);
       _rtiChecksBuilder = runtimeTypesImpl;
@@ -245,8 +235,6 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
       GlobalTypeInferenceResults globalInferenceResults,
       CodegenInputs codegen,
       CodegenResults codegenResults) {
-    assert(_elementMap != null,
-        "JsBackendStrategy.elementMap has not been created yet.");
     OneShotInterceptorData oneShotInterceptorData = OneShotInterceptorData(
         closedWorld.interceptorData,
         closedWorld.commonElements,
@@ -355,11 +343,11 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
           source, modularNames, modularExpression);
     }
     if (result.code != null) {
-      generatedCode[member] = result.code;
+      generatedCode[member] = result.code!;
     }
     if (retainDataForTesting) {
       codegenImpactsForTesting ??= {};
-      codegenImpactsForTesting[member] = result.impact;
+      codegenImpactsForTesting![member] = result.impact;
     }
     WorldImpact worldImpact =
         _codegenImpactTransformer.transformCodegenImpact(result.impact);
@@ -391,14 +379,15 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
         task,
         _compiler.options,
         _compiler.reporter,
-        _compiler.dumpInfoTask,
+        // TODO(48820): Remove cast when interface is removed.
+        _compiler.dumpInfoTask as DumpInfoTask,
         _ssaMetrics,
-        _elementMap /*!*/,
+        _elementMap,
         sourceInformationStrategy);
   }
 
   /// Creates a [SourceSpan] from [spannable] in context of [currentElement].
-  SourceSpan spanFromSpannable(Spannable spannable, Entity currentElement) {
+  SourceSpan spanFromSpannable(Spannable spannable, Entity? currentElement) {
     return _elementMap.getSourceSpan(spannable, currentElement);
   }
 
@@ -444,7 +433,7 @@ class JsBackendStrategy implements interfaces.JsBackendStrategy {
     for (int memberIndex = 0;
         memberIndex < _elementMap.members.length;
         memberIndex++) {
-      MemberEntity member = _elementMap.members.getEntity(memberIndex);
+      final member = _elementMap.members.getEntity(memberIndex);
       if (member == null || member.isAbstract) continue;
       f(member);
     }
@@ -463,7 +452,7 @@ class KernelCodegenWorkItemBuilder implements WorkItemBuilder {
       this._codegenResults, this._entityLookup, this._componentLookup);
 
   @override
-  WorkItem createWorkItem(MemberEntity entity) {
+  WorkItem? createWorkItem(MemberEntity entity) {
     if (entity.isAbstract) return null;
     return KernelCodegenWorkItem(_backendStrategy, _closedWorld,
         _codegenResults, _entityLookup, _componentLookup, entity);
@@ -504,8 +493,9 @@ class KernelSsaBuilder implements SsaBuilder {
   final JsToElementMap _elementMap;
   final SourceInformationStrategy _sourceInformationStrategy;
 
-  FunctionInlineCache _inlineCache;
-  InlineDataCache _inlineDataCache;
+  // TODO(48820): Make this final by passing in closed world to constructor.
+  FunctionInlineCache? _inlineCache;
+  final InlineDataCache _inlineDataCache;
 
   KernelSsaBuilder(
       this._task,
@@ -514,10 +504,13 @@ class KernelSsaBuilder implements SsaBuilder {
       this._dumpInfoTask,
       this._metrics,
       this._elementMap,
-      this._sourceInformationStrategy);
+      this._sourceInformationStrategy)
+      : _inlineDataCache = InlineDataCache(
+            enableUserAssertions: _options.enableUserAssertions,
+            omitImplicitCasts: _options.omitImplicitChecks);
 
   @override
-  HGraph /*?*/ build(
+  HGraph? build(
       MemberEntity member,
       JClosedWorld closedWorld,
       GlobalTypeInferenceResults results,
@@ -526,9 +519,6 @@ class KernelSsaBuilder implements SsaBuilder {
       ModularNamer namer,
       ModularEmitter emitter) {
     _inlineCache ??= FunctionInlineCache(closedWorld.annotationsData);
-    _inlineDataCache ??= InlineDataCache(
-        enableUserAssertions: _options.enableUserAssertions,
-        omitImplicitCasts: _options.omitImplicitChecks);
     return _task.measure(() {
       KernelSsaGraphBuilder builder = KernelSsaGraphBuilder(
           _options,
@@ -545,7 +535,7 @@ class KernelSsaBuilder implements SsaBuilder {
           emitter,
           codegen.tracer,
           _sourceInformationStrategy,
-          _inlineCache,
+          _inlineCache!,
           _inlineDataCache);
       return builder.build();
     });
