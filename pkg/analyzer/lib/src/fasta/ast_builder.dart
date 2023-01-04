@@ -284,6 +284,9 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void beginConstantPattern(Token? constKeyword) {}
+
+  @override
   void beginEnum(Token enumKeyword) {}
 
   @override
@@ -1461,6 +1464,12 @@ class AstBuilder extends StackListener {
     debugEvent("ConditionalUris");
 
     push(popTypedList<ConfigurationImpl>(count) ?? NullValue.ConditionalUris);
+  }
+
+  @override
+  void endConstantPattern(Token? constKeyword) {
+    push(ConstantPatternImpl(
+        constKeyword: constKeyword, expression: pop() as ExpressionImpl));
   }
 
   @override
@@ -3781,12 +3790,6 @@ class AstBuilder extends StackListener {
   void handleCommentReferenceText(String referenceSource, int referenceOffset) {
     push(referenceSource);
     push(referenceOffset);
-  }
-
-  @override
-  void handleConstantPattern(Token? constKeyword) {
-    push(ConstantPatternImpl(
-        constKeyword: constKeyword, expression: pop() as ExpressionImpl));
   }
 
   @override

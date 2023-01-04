@@ -9418,9 +9418,10 @@ class Parser {
         // the grammar.  Pay careful attention to making sure that constructs
         // like `const const Foo()`, `const const []`, and `const const {}`
         // lead to errors.
+        listener.beginConstantPattern(const_);
         token = parsePrecedenceExpression(
             const_, SELECTOR_PRECEDENCE, /* allowCascades = */ false);
-        listener.handleConstantPattern(const_);
+        listener.endConstantPattern(const_);
         return token;
     }
     TokenType type = next.type;
@@ -9490,9 +9491,10 @@ class Parser {
     }
     // TODO(paulberry): report error if this constant is not permitted by the
     // grammar
+    listener.beginConstantPattern(/* constKeyword = */ null);
     token = parsePrecedenceExpression(
         token, SELECTOR_PRECEDENCE, /* allowCascades = */ false);
-    listener.handleConstantPattern(/* constKeyword = */ null);
+    listener.endConstantPattern(/* constKeyword = */ null);
     return token;
   }
 

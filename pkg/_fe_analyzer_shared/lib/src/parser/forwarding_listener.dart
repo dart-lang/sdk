@@ -1862,8 +1862,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleConstantPattern(Token? constKeyword) {
-    listener?.handleConstantPattern(constKeyword);
+  void beginConstantPattern(Token? constKeyword) {
+    listener?.beginConstantPattern(constKeyword);
+  }
+
+  @override
+  void endConstantPattern(Token? constKeyword) {
+    listener?.endConstantPattern(constKeyword);
   }
 
   @override

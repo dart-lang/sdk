@@ -2638,9 +2638,16 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleConstantPattern(Token? constKeyword) {
-    ConstantPatternHandle data = new ConstantPatternHandle(ParserAstType.HANDLE,
+  void beginConstantPattern(Token? constKeyword) {
+    ConstantPatternBegin data = new ConstantPatternBegin(ParserAstType.BEGIN,
         constKeyword: constKeyword);
+    seen(data);
+  }
+
+  @override
+  void endConstantPattern(Token? constKeyword) {
+    ConstantPatternEnd data =
+        new ConstantPatternEnd(ParserAstType.END, constKeyword: constKeyword);
     seen(data);
   }
 
@@ -7652,10 +7659,22 @@ class ParenthesizedPatternHandle extends ParserAstNode {
       };
 }
 
-class ConstantPatternHandle extends ParserAstNode {
+class ConstantPatternBegin extends ParserAstNode {
   final Token? constKeyword;
 
-  ConstantPatternHandle(ParserAstType type, {this.constKeyword})
+  ConstantPatternBegin(ParserAstType type, {this.constKeyword})
+      : super("ConstantPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "constKeyword": constKeyword,
+      };
+}
+
+class ConstantPatternEnd extends ParserAstNode {
+  final Token? constKeyword;
+
+  ConstantPatternEnd(ParserAstType type, {this.constKeyword})
       : super("ConstantPattern", type);
 
   @override
