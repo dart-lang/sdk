@@ -1336,7 +1336,7 @@ abstract class ElementEnvironment {
   /// Create the instantiation of [cls] with the given [typeArguments] and
   /// [nullability].
   InterfaceType createInterfaceType(
-      ClassEntity /*!*/ cls, List<DartType /*!*/ > typeArguments);
+      ClassEntity cls, List<DartType> typeArguments);
 
   /// Returns the `dynamic` type.
   DartType get dynamicType;
@@ -1382,7 +1382,7 @@ abstract class ElementEnvironment {
   FunctionType getLocalFunctionType(Local local);
 
   /// Returns the type of [field].
-  DartType /*!*/ getFieldType(FieldEntity field);
+  DartType getFieldType(FieldEntity field);
 
   /// Returns `true` if [cls] is a Dart enum class.
   bool isEnumClass(ClassEntity cls);

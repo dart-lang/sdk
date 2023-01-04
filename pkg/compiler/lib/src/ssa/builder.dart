@@ -1196,7 +1196,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   }
 
   /// Constructs a special signature function for a closure.
-  void _buildMethodSignatureNewRti(ir.FunctionNode /*!*/ originalClosureNode) {
+  void _buildMethodSignatureNewRti(ir.FunctionNode originalClosureNode) {
     // The signature function has no corresponding ir.Node, so we just use the
     // targetElement to set up the type environment.
     _openFunction(targetElement, checks: TargetChecks.none);

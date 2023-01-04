@@ -801,7 +801,7 @@ class FragmentEmitter {
         resourceName,
         fragment.fragments,
         holderCode);
-    js.Expression /*!*/ code = js.js(_deferredBoilerplate, {
+    js.Expression code = js.js(_deferredBoilerplate, {
       // TODO(floitsch): don't just reference 'init'.
       'embeddedGlobalsObject': js.Parameter('init'),
       'isCollectingRuntimeMetrics': _options.experimentalTrackAllocations,
