@@ -176,13 +176,13 @@ Future testExitCode(
       checkedResults++;
     }
 
-    void exit(exitCode) {
+    // TODO(48220): Make return type `Never` when this test is migrated.
+    /* Never */ exit(exitCode) {
       if (foundExitCode == null) {
         foundExitCode = exitCode;
       }
+      throw 'Exit';
     }
-
-    ;
 
     entry.exitFunc = exit;
     entry.compileFunc = compile;

@@ -587,7 +587,7 @@ class _TypeReferenceCollectorVisitor extends js.BaseVisitorVoid {
 /// ambiguity in the generated names in the interest of keeping most names
 /// short, e.g. "FutureOr_int_Function" could be "FutureOr<int> Function()" or
 /// "FutureOr<int Function()>".
-class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
+class _RecipeToIdentifier extends DartTypeVisitor<void, Null> {
   final Map<DartType, int> _backrefs = Map.identity();
   final List<String> _fragments = [];
 
@@ -628,8 +628,8 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
     return true;
   }
 
-  void _visit(DartType type, DartType? parent) {
-    type.accept(this, parent);
+  void _visit(DartType type, _) {
+    type.accept(this, _);
   }
 
   @override
@@ -670,7 +670,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
   }
 
   @override
-  void visitTypeVariableType(covariant TypeVariableType type, DartType parent) {
+  void visitTypeVariableType(covariant TypeVariableType type, _) {
     _identifier(type.element.typeDeclaration!.name!);
     _identifier(type.element.name!);
   }
@@ -683,7 +683,7 @@ class _RecipeToIdentifier extends DartTypeVisitor<void, DartType> {
   }
 
   @override
-  void visitFunctionType(covariant FunctionType type, DartType parent) {
+  void visitFunctionType(covariant FunctionType type, _) {
     if (_dagCheck(type)) return;
 
     _visit(type.returnType, type);
