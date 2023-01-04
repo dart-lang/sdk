@@ -10,7 +10,7 @@ import '../common.dart';
 import '../common/elements.dart';
 import '../common/metrics.dart';
 import '../common/names.dart';
-import '../compiler_migrated.dart';
+import '../compiler.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
