@@ -96,7 +96,8 @@ late Map<String, SinceInfo> sinceInfo;
 
 final Map<String, String> _fixStatusMap = <String, String>{};
 
-String describeState(LintRule r) => r.state.isStable ? '' : r.state.label;
+String describeState(LintRule r) =>
+    r.state.isStable ? '' : ' (${r.state.label})';
 
 Future<void> fetchBadgeInfo() async {
   var core = await fetchConfig(
