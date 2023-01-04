@@ -175,6 +175,22 @@ class DiagnosticFactory {
     ]);
   }
 
+  /// Return a diagnostic indicating that the [duplicateKey] (in a map pattern)
+  /// is a duplicate of the [originalKey].
+  AnalysisError equalKeysInMapPattern(
+      Source source, Expression duplicateKey, Expression originalKey) {
+    return AnalysisError(source, duplicateKey.offset, duplicateKey.length,
+        CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN, [], [
+      DiagnosticMessageImpl(
+        filePath: source.fullName,
+        message: "The first key with this value.",
+        offset: originalKey.offset,
+        length: originalKey.length,
+        url: null,
+      )
+    ]);
+  }
+
   /// Return a diagnostic indicating that the [duplicateKey] (in a constant map)
   /// is a duplicate of the [originalKey].
   AnalysisError invalidNullAwareAfterShortCircuit(Source source, int offset,

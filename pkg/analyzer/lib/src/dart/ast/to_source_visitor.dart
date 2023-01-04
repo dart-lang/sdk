@@ -106,15 +106,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitBinaryPattern(BinaryPattern node) {
-    _visitNode(node.leftOperand);
-    sink.write(' ');
-    sink.write(node.operator.lexeme);
-    sink.write(' ');
-    _visitNode(node.rightOperand);
-  }
-
-  @override
   void visitBlock(Block node) {
     sink.write('{');
     _visitNodeList(node.statements, separator: ' ');
@@ -822,6 +813,24 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write('[');
     _visitNodeList(node.elements, separator: ', ');
     sink.write(']');
+  }
+
+  @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    _visitNode(node.leftOperand);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    _visitNode(node.rightOperand);
+  }
+
+  @override
+  void visitLogicalOrPattern(LogicalOrPattern node) {
+    _visitNode(node.leftOperand);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    _visitNode(node.rightOperand);
   }
 
   @override

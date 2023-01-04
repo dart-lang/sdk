@@ -17,7 +17,7 @@ import '../js_model/closure.dart' show JContextField, JClosureField;
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/locals.dart' show GlobalLocalsMap, JLocal;
 
-import 'builder_interfaces.dart' as interfaces;
+import 'builder.dart';
 import 'nodes.dart';
 import 'types.dart';
 
@@ -34,7 +34,7 @@ class LocalsHandler {
   /// don't have source locations for [Elements.compareByPosition].
   Map<Local, HInstruction> directLocals = {};
   Map<Local, FieldEntity> redirectionMapping = {};
-  final interfaces.KernelSsaGraphBuilder builder;
+  final KernelSsaGraphBuilder builder;
 
   MemberEntity? _scopeInfoMember;
   ScopeInfo? _scopeInfo;
@@ -147,7 +147,7 @@ class LocalsHandler {
     assert(isStoredInClosureField(from) || isBoxed(from));
   }
 
-  HInstruction createBox(SourceInformation sourceInformation) {
+  HInstruction createBox(SourceInformation? sourceInformation) {
     HInstruction box = HCreateBox(_abstractValueDomain.nonNullType)
       ..sourceInformation = sourceInformation;
     builder.add(box);
@@ -157,7 +157,7 @@ class LocalsHandler {
   /// If the scope (function or loop) [node] has captured variables then this
   /// method creates a box and sets up the redirections.
   void enterScope(
-      CapturedScope closureInfo, SourceInformation sourceInformation,
+      CapturedScope closureInfo, SourceInformation? sourceInformation,
       {bool forGenerativeConstructorBody = false, HInstruction? inlinedBox}) {
     // See if any variable in the top-scope of the function is captured. If yes
     // we need to create a box-object.
@@ -200,7 +200,7 @@ class LocalsHandler {
   /// Replaces the current box with a new box and copies over the given list
   /// of elements from the old box into the new box.
   void updateCaptureBox(Local currentBox, List<Local> toBeCopiedElements,
-      SourceInformation sourceInformation) {
+      SourceInformation? sourceInformation) {
     // Create a new box and copy over the values from the old box into the
     // new one.
     HInstruction oldBox = readLocal(currentBox);
@@ -220,7 +220,7 @@ class LocalsHandler {
   ///
   /// Invariant: [function] must be an implementation element.
   void startFunction(MemberEntity element, Map<Local, AbstractValue> parameters,
-      Set<Local> elidedParameters, SourceInformation sourceInformation,
+      Set<Local> elidedParameters, SourceInformation? sourceInformation,
       {required bool isGenerativeConstructorBody}) {
     setupScope(element);
 
@@ -503,7 +503,7 @@ class LocalsHandler {
   ///    goto loop-entry;
   ///  loop-exit:
   void startLoop(
-      CapturedLoopScope loopInfo, SourceInformation sourceInformation) {
+      CapturedLoopScope loopInfo, SourceInformation? sourceInformation) {
     if (loopInfo.hasBoxedLoopVariables) {
       // If there are boxed loop variables then we set up the box and
       // redirections already now. This way the initializer can write its
@@ -537,7 +537,7 @@ class LocalsHandler {
   }
 
   void enterLoopBody(
-      CapturedLoopScope loopInfo, SourceInformation sourceInformation) {
+      CapturedLoopScope loopInfo, SourceInformation? sourceInformation) {
     // If there are no declared boxed loop variables then we did not create the
     // box before the initializer and we have to create the box now.
     if (!loopInfo.hasBoxedLoopVariables) {
@@ -546,7 +546,7 @@ class LocalsHandler {
   }
 
   void enterLoopUpdates(
-      CapturedLoopScope loopInfo, SourceInformation sourceInformation) {
+      CapturedLoopScope loopInfo, SourceInformation? sourceInformation) {
     // If there are declared boxed loop variables then the updates might have
     // access to the box and we must switch to a new box before executing the
     // updates.

@@ -5,7 +5,7 @@
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 import '../common/names.dart';
-import 'modular_migrated.dart';
+import 'modular.dart';
 
 class IrAnnotationData {
   final Map<ir.Class, String> _nativeClassNames = {};

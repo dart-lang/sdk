@@ -60,7 +60,7 @@ PatternVariableDeclaration
   keyword: var
   pattern: ParenthesizedPattern
     leftParenthesis: (
-    pattern: BinaryPattern
+    pattern: LogicalOrPattern
       leftOperand: DeclaredVariablePattern
         name: _
       operator: ||

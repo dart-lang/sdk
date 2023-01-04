@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library dart2js.test.memory_compiler;
 
 import 'dart:async';
@@ -46,7 +44,7 @@ class MultiDiagnostics implements api.CompilerDiagnostics {
   const MultiDiagnostics([this.diagnosticsList = const []]);
 
   @override
-  void report(covariant Message message, Uri uri, int begin, int end,
+  void report(covariant Message? message, Uri? uri, int? begin, int? end,
       String text, api.Diagnostic kind) {
     for (api.CompilerDiagnostics diagnostics in diagnosticsList) {
       diagnostics.report(message, uri, begin, end, text, kind);
@@ -55,42 +53,41 @@ class MultiDiagnostics implements api.CompilerDiagnostics {
 }
 
 api.CompilerDiagnostics createCompilerDiagnostics(
-    api.CompilerDiagnostics diagnostics, SourceFileProvider provider,
+    api.CompilerDiagnostics? diagnostics, SourceFileProvider provider,
     {bool showDiagnostics = true, bool verbose = false}) {
-  api.CompilerDiagnostics handler = diagnostics;
   if (showDiagnostics) {
     if (diagnostics == null) {
-      handler = new FormattingDiagnosticHandler()
+      diagnostics = new FormattingDiagnosticHandler()
         ..verbose = verbose
         ..registerFileProvider(provider);
     } else {
       var formattingHandler = new FormattingDiagnosticHandler()
         ..verbose = verbose
         ..registerFileProvider(provider);
-      handler = new MultiDiagnostics([diagnostics, formattingHandler]);
+      diagnostics = new MultiDiagnostics([diagnostics, formattingHandler]);
     }
   } else if (diagnostics == null) {
-    handler = new MultiDiagnostics();
+    diagnostics = new MultiDiagnostics();
   }
-  return handler;
+  return diagnostics;
 }
 
 // Cached kernel state.
-fe.InitializedCompilerState kernelInitializedCompilerState;
+fe.InitializedCompilerState? kernelInitializedCompilerState;
 
 /// memorySourceFiles can contain a map of string filename to string file
 /// contents or string file name to binary file contents (hence the `dynamic`
 /// type for the second parameter).
 Future<api.CompilationResult> runCompiler(
     {Map<String, dynamic> memorySourceFiles = const <String, dynamic>{},
-    Uri entryPoint,
-    api.CompilerDiagnostics diagnosticHandler,
-    api.CompilerOutput outputProvider,
+    Uri? entryPoint,
+    api.CompilerDiagnostics? diagnosticHandler,
+    api.CompilerOutput? outputProvider,
     List<String> options = const <String>[],
     bool showDiagnostics = true,
-    Uri librariesSpecificationUri,
-    Uri packageConfig,
-    void beforeRun(Compiler compiler),
+    Uri? librariesSpecificationUri,
+    Uri? packageConfig,
+    void beforeRun(Compiler compiler)?,
     bool unsafeToTouchSourceFiles = false}) async {
   if (entryPoint == null) {
     entryPoint = Uri.parse('memory:main.dart');
@@ -109,28 +106,28 @@ Future<api.CompilationResult> runCompiler(
     beforeRun(compiler);
   }
   bool isSuccess = await compiler.run();
-  fe.InitializedCompilerState compilerState =
+  fe.InitializedCompilerState? compilerState =
       kernelInitializedCompilerState = compiler.initializedCompilerState;
   return api.CompilationResult(compiler,
       isSuccess: isSuccess, kernelInitializedCompilerState: compilerState);
 }
 
 Compiler compilerFor(
-    {Uri entryPoint,
+    {Uri? entryPoint,
     Map<String, dynamic> memorySourceFiles = const <String, dynamic>{},
-    api.CompilerDiagnostics diagnosticHandler,
-    api.CompilerOutput outputProvider,
+    api.CompilerDiagnostics? diagnosticHandler,
+    api.CompilerOutput? outputProvider,
     List<String> options = const <String>[],
     bool showDiagnostics = true,
-    Uri librariesSpecificationUri,
-    Uri packageConfig,
+    Uri? librariesSpecificationUri,
+    Uri? packageConfig,
     bool unsafeToTouchSourceFiles = false}) {
   retainDataForTesting = true;
   librariesSpecificationUri ??= sdkLibrariesSpecificationUri;
 
   if (packageConfig == null) {
     if (Platform.packageConfig != null) {
-      packageConfig = Uri.base.resolve(Platform.packageConfig);
+      packageConfig = Uri.base.resolve(Platform.packageConfig!);
     } else {
       // The tests are run with the base directory as the SDK root
       // so just use the package config there.
@@ -165,7 +162,7 @@ Compiler compilerFor(
           }
         } else {
           // If the file version is prior to 2.12, we treat it as unsound
-          if (int.parse(match.group(1)) < 12) {
+          if (int.parse(match.group(1)!) < 12) {
             addUnsoundFlag = true;
           }
         }

@@ -1,4 +1,4 @@
-// Copyright (c) 2022, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -8,13 +8,13 @@ import 'context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(BinaryPatternResolutionTest);
+    defineReflectiveTests(LogicalAndPatternResolutionTest);
   });
 }
 
 @reflectiveTest
-class BinaryPatternResolutionTest extends PubPackageResolutionTest {
-  test_logicalAnd_ifCase() async {
+class LogicalAndPatternResolutionTest extends PubPackageResolutionTest {
+  test_ifCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
   if (x case int _ && double _) {}
@@ -22,7 +22,7 @@ void f(x) {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalAndPattern
   leftOperand: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
@@ -43,7 +43,7 @@ BinaryPattern
 ''');
   }
 
-  test_logicalAnd_switchCase() async {
+  test_switchCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
   switch (x) {
@@ -54,7 +54,7 @@ void f(x) {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalAndPattern
   leftOperand: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
@@ -75,7 +75,7 @@ BinaryPattern
 ''');
   }
 
-  test_logicalAnd_variableDeclaration() async {
+  test_variableDeclaration() async {
     await assertNoErrorsInCode(r'''
 void f() {
   var (a && b) = 0;
@@ -88,7 +88,7 @@ PatternVariableDeclarationStatement
     keyword: var
     pattern: ParenthesizedPattern
       leftParenthesis: (
-      pattern: BinaryPattern
+      pattern: LogicalAndPattern
         leftOperand: DeclaredVariablePattern
           name: a
           declaredElement: hasImplicitType a@18
@@ -104,67 +104,6 @@ PatternVariableDeclarationStatement
       literal: 0
       staticType: int
   semicolon: ;
-''');
-  }
-
-  test_logicalOr_ifCase() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  if (x case int _ || double _) {}
-}
-''');
-    final node = findNode.singleGuardedPattern.pattern;
-    assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: DeclaredVariablePattern
-    type: NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
-      type: int
-    name: _
-  operator: ||
-  rightOperand: DeclaredVariablePattern
-    type: NamedType
-      name: SimpleIdentifier
-        token: double
-        staticElement: dart:core::@class::double
-        staticType: null
-      type: double
-    name: _
-''');
-  }
-
-  test_logicalOr_switchCase() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case int _ || double _:
-      break;
-  }
-}
-''');
-    final node = findNode.singleGuardedPattern.pattern;
-    assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: DeclaredVariablePattern
-    type: NamedType
-      name: SimpleIdentifier
-        token: int
-        staticElement: dart:core::@class::int
-        staticType: null
-      type: int
-    name: _
-  operator: ||
-  rightOperand: DeclaredVariablePattern
-    type: NamedType
-      name: SimpleIdentifier
-        token: double
-        staticElement: dart:core::@class::double
-        staticType: null
-      type: double
-    name: _
 ''');
   }
 }

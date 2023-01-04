@@ -15,6 +15,7 @@ import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/types.dart';
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
+import '../js_backend/backend.dart';
 import '../js_backend/codegen_inputs.dart';
 import '../js_backend/namer.dart'
     show AsyncName, Namer, operatorNameToIdentifier, StringBackedName;
@@ -28,7 +29,6 @@ import '../js_model/js_world.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
 import '../native/behavior.dart';
 import '../serialization/serialization.dart';
-import '../ssa/ssa_interfaces.dart' show SsaFunctionCompiler;
 import '../universe/feature.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart' show ConstantUse, DynamicUse, StaticUse, TypeUse;
@@ -396,7 +396,7 @@ class CodegenRegistry {
     _expressions.add(expression);
   }
 
-  CodegenResult close(js.Fun code) {
+  CodegenResult close(js.Fun? code) {
     return CodegenResult(code, _worldImpact, _names.isEmpty ? const [] : _names,
         _expressions.isEmpty ? const [] : _expressions);
   }
@@ -410,7 +410,7 @@ class OnDemandCodegenResults extends CodegenResults {
   final GlobalTypeInferenceResults globalTypeInferenceResults;
   @override
   final CodegenInputs codegenInputs;
-  final SsaFunctionCompiler _functionCompiler;
+  final FunctionCompiler _functionCompiler;
 
   OnDemandCodegenResults(this.globalTypeInferenceResults, this.codegenInputs,
       this._functionCompiler);

@@ -178,7 +178,7 @@ class Namer extends ModularNamer {
   }
 
   Map<String, String> createMinifiedGlobalNameMap() {
-    var map = <String, String /*!*/ >{};
+    var map = <String, String>{};
     userGlobals.forEach((entity, jsName) {
       _registerName(map, jsName, entity.name!);
     });

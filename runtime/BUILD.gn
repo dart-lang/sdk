@@ -83,6 +83,9 @@ config("add_empty_macho_section_config") {
 config("dart_precompiler_config") {
   defines = []
   defines += [ "DART_PRECOMPILER" ]
+  if (is_clang) {
+    cflags = [ "-fno-omit-frame-pointer" ]
+  }
 }
 
 config("dart_os_config") {

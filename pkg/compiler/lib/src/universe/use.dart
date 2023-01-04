@@ -645,7 +645,7 @@ class StaticUse {
 
   /// Inlining of [element].
   factory StaticUse.constructorInlining(
-      ConstructorEntity element, InterfaceType instanceType) {
+      ConstructorEntity element, InterfaceType? instanceType) {
     return StaticUse.internal(element, StaticUseKind.INLINING,
         type: instanceType);
   }
@@ -885,7 +885,7 @@ class TypeUse {
 class ConstantUse {
   static const String tag = 'constant-use';
 
-  final ConstantValue /*!*/ value;
+  final ConstantValue value;
 
   ConstantUse._(this.value);
 
@@ -908,7 +908,7 @@ class ConstantUse {
   }
 
   /// Constant used as the initial value of a field.
-  ConstantUse.init(ConstantValue /*!*/ value) : this._(value);
+  ConstantUse.init(ConstantValue value) : this._(value);
 
   /// Type constant used for registration of custom elements.
   ConstantUse.customElements(TypeConstantValue value) : this._(value);

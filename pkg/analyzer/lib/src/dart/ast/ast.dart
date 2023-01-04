@@ -1135,79 +1135,6 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   }
 }
 
-/// A binary (infix) pattern.
-///
-///    binaryPattern ::=
-///        [DartPattern] ('|' | '&') [DartPattern]
-@experimental
-class BinaryPatternImpl extends DartPatternImpl implements BinaryPattern {
-  @override
-  final DartPatternImpl leftOperand;
-
-  @override
-  final Token operator;
-
-  @override
-  final DartPatternImpl rightOperand;
-
-  BinaryPatternImpl({
-    required this.leftOperand,
-    required this.operator,
-    required this.rightOperand,
-  }) {
-    _becomeParentOf(leftOperand);
-    _becomeParentOf(rightOperand);
-  }
-
-  @override
-  Token get beginToken => leftOperand.beginToken;
-
-  @override
-  Token get endToken => rightOperand.endToken;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('leftOperand', leftOperand)
-    ..addToken('operator', operator)
-    ..addNode('rightOperand', rightOperand);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitBinaryPattern(this);
-
-  @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    if (operator.type == TokenType.AMPERSAND_AMPERSAND) {
-      return resolverVisitor.analyzeLogicalAndPatternSchema(
-          leftOperand, rightOperand);
-    } else {
-      return resolverVisitor.analyzeLogicalOrPatternSchema(
-          leftOperand, rightOperand);
-    }
-  }
-
-  @override
-  void resolvePattern(
-    ResolverVisitor resolverVisitor,
-    SharedMatchContext context,
-  ) {
-    assert(operator.type == TokenType.AMPERSAND_AMPERSAND ||
-        operator.type == TokenType.BAR_BAR);
-    if (operator.type == TokenType.AMPERSAND_AMPERSAND) {
-      resolverVisitor.analyzeLogicalAndPattern(
-          context, this, leftOperand, rightOperand);
-    } else {
-      resolverVisitor.analyzeLogicalOrPattern(
-          context, this, leftOperand, rightOperand);
-    }
-  }
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    leftOperand.accept(visitor);
-    rightOperand.accept(visitor);
-  }
-}
-
 /// A function body that consists of a block of statements.
 ///
 ///    blockFunctionBody ::=
@@ -3431,11 +3358,12 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
 ///
 ///    pattern ::=
 ///        [AssignedVariablePattern]
-///      | [BinaryPattern]
 ///      | [DeclaredVariablePattern]
 ///      | [CastPattern]
 ///      | [ConstantPattern]
 ///      | [ListPattern]
+///      | [LogicalAndPattern]
+///      | [LogicalOrPattern]
 ///      | [MapPattern]
 ///      | [ObjectPattern]
 ///      | [ParenthesizedPattern]
@@ -8373,6 +8301,129 @@ class LocalVariableInfo {
   /// The set of local variables and parameters that are potentially mutated
   /// within the scope of their declarations.
   final Set<VariableElement> potentiallyMutatedInScope = <VariableElement>{};
+}
+
+/// A logical-and pattern.
+///
+///    logicalAndPattern ::=
+///        [DartPattern] '&&' [DartPattern]
+@experimental
+class LogicalAndPatternImpl extends DartPatternImpl
+    implements LogicalAndPattern {
+  @override
+  final DartPatternImpl leftOperand;
+
+  @override
+  final Token operator;
+
+  @override
+  final DartPatternImpl rightOperand;
+
+  LogicalAndPatternImpl({
+    required this.leftOperand,
+    required this.operator,
+    required this.rightOperand,
+  }) {
+    _becomeParentOf(leftOperand);
+    _becomeParentOf(rightOperand);
+  }
+
+  @override
+  Token get beginToken => leftOperand.beginToken;
+
+  @override
+  Token get endToken => rightOperand.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('leftOperand', leftOperand)
+    ..addToken('operator', operator)
+    ..addNode('rightOperand', rightOperand);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitLogicalAndPattern(this);
+
+  @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeLogicalAndPatternSchema(
+        leftOperand, rightOperand);
+  }
+
+  @override
+  void resolvePattern(
+    ResolverVisitor resolverVisitor,
+    SharedMatchContext context,
+  ) {
+    resolverVisitor.analyzeLogicalAndPattern(
+        context, this, leftOperand, rightOperand);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    leftOperand.accept(visitor);
+    rightOperand.accept(visitor);
+  }
+}
+
+/// A logical-or pattern.
+///
+///    logicalOrPattern ::=
+///        [DartPattern] '||' [DartPattern]
+@experimental
+class LogicalOrPatternImpl extends DartPatternImpl implements LogicalOrPattern {
+  @override
+  final DartPatternImpl leftOperand;
+
+  @override
+  final Token operator;
+
+  @override
+  final DartPatternImpl rightOperand;
+
+  LogicalOrPatternImpl({
+    required this.leftOperand,
+    required this.operator,
+    required this.rightOperand,
+  }) {
+    _becomeParentOf(leftOperand);
+    _becomeParentOf(rightOperand);
+  }
+
+  @override
+  Token get beginToken => leftOperand.beginToken;
+
+  @override
+  Token get endToken => rightOperand.endToken;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('leftOperand', leftOperand)
+    ..addToken('operator', operator)
+    ..addNode('rightOperand', rightOperand);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitLogicalOrPattern(this);
+
+  @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeLogicalOrPatternSchema(
+        leftOperand, rightOperand);
+  }
+
+  @override
+  void resolvePattern(
+    ResolverVisitor resolverVisitor,
+    SharedMatchContext context,
+  ) {
+    resolverVisitor.analyzeLogicalOrPattern(
+        context, this, leftOperand, rightOperand);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    leftOperand.accept(visitor);
+    rightOperand.accept(visitor);
+  }
 }
 
 /// A single key/value pair in a map literal.

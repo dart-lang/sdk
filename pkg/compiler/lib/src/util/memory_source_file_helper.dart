@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 library dart2js.test.memory_source_file_helper;
 
 import 'dart:async' show Future;
@@ -42,14 +40,14 @@ class MemorySourceFileProvider extends CompilerSourceFileProvider {
           'No such memory file $resourceUri in ${memorySourceFiles.keys}'));
     }
     api.Input<List<int>> input;
-    StringSourceFile stringFile;
+    StringSourceFile? stringFile;
     if (source is String) {
       stringFile = new StringSourceFile.fromUri(resourceUri, source);
     }
     switch (inputKind) {
       case api.InputKind.UTF8:
-        input = stringFile ?? new Utf8BytesSourceFile(resourceUri, source);
-        utf8SourceFiles[resourceUri] = input;
+        utf8SourceFiles[resourceUri] =
+            input = stringFile ?? new Utf8BytesSourceFile(resourceUri, source);
         break;
       case api.InputKind.binary:
         if (stringFile != null) {

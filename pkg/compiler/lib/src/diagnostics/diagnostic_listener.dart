@@ -5,7 +5,7 @@
 library dart2js.diagnostic_listener;
 
 import '../../compiler_api.dart' as api;
-import '../compiler_interfaces.dart' show CompilerDiagnosticsFacade;
+import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
 import '../options.dart';
 import 'messages.dart';
@@ -14,7 +14,7 @@ import 'spannable.dart';
 import 'spannable_with_entity.dart';
 
 class DiagnosticReporter {
-  final CompilerDiagnosticsFacade _compiler;
+  final Compiler _compiler;
 
   CompilerOptions get options => _compiler.options;
 
@@ -90,7 +90,7 @@ class DiagnosticReporter {
         case api.Diagnostic.HINT:
           Entity? element = _elementFromSpannable(message.spannable);
           if (element != null && !_compiler.inUserCode(element)) {
-            Uri uri = _compiler.getCanonicalUri(element);
+            Uri uri = _compiler.getCanonicalUri(element)!;
             if (options.showPackageWarningsFor(uri)) {
               _reportDiagnostic(message, infos, kind);
               return;

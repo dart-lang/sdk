@@ -647,7 +647,7 @@ class DataSinkWriter {
   }
 
   /// Writes the kernel type node [value] to this data sink.
-  void writeDartTypeNode(ir.DartType /*!*/ value) {
+  void writeDartTypeNode(ir.DartType value) {
     _writeDataKind(DataKind.dartTypeNode);
     _writeDartTypeNode(value, [], allowNull: false);
   }

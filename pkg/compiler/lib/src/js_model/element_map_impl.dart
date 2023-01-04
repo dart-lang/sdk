@@ -128,7 +128,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       this._environment,
       KernelToElementMap _elementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
-      Set<MemberEntity> liveAbstractMembers,
+      Iterable<MemberEntity> liveAbstractMembers,
       AnnotationsData annotations)
       : this.options = _elementMap.options {
     _elementEnvironment = JsElementEnvironment(this);
@@ -1135,7 +1135,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
-    return data.interfaces /*!*/;
+    return data.interfaces;
   }
 
   MemberDefinition getMemberDefinitionInternal(covariant IndexedMember member) {
@@ -1478,7 +1478,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   @override
-  ConstantValue? getConstantValue(ir.Member memberContext, ir.Expression? node,
+  ConstantValue? getConstantValue(ir.Member? memberContext, ir.Expression? node,
       {bool requireConstant = true, bool implicitNull = false}) {
     if (node == null) {
       if (!implicitNull) {
@@ -1493,7 +1493,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       // be replaced in the scope visitor as part of the initializer complexity
       // computation.
       ir.StaticTypeContext staticTypeContext =
-          getStaticTypeContext(memberContext);
+          getStaticTypeContext(memberContext!);
       ir.Constant? constant = constantEvaluator.evaluateOrNull(
           staticTypeContext, node,
           requireConstant: requireConstant);

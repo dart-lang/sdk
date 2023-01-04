@@ -192,14 +192,6 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitBinaryPattern(BinaryPattern node) {
-    var other = _other as BinaryPattern;
-    return isEqualNodes(node.leftOperand, other.leftOperand) &&
-        isEqualTokens(node.operator, other.operator) &&
-        isEqualNodes(node.rightOperand, other.rightOperand);
-  }
-
-  @override
   bool visitBlock(Block node) {
     Block other = _other as Block;
     return isEqualTokens(node.leftBracket, other.leftBracket) &&
@@ -946,6 +938,22 @@ class AstComparator implements AstVisitor<bool> {
         isEqualTokens(node.leftBracket, other.leftBracket) &&
         _isEqualNodeLists(node.elements, other.elements) &&
         isEqualTokens(node.rightBracket, other.rightBracket);
+  }
+
+  @override
+  bool visitLogicalAndPattern(LogicalAndPattern node) {
+    var other = _other as LogicalAndPattern;
+    return isEqualNodes(node.leftOperand, other.leftOperand) &&
+        isEqualTokens(node.operator, other.operator) &&
+        isEqualNodes(node.rightOperand, other.rightOperand);
+  }
+
+  @override
+  bool visitLogicalOrPattern(LogicalOrPattern node) {
+    var other = _other as LogicalOrPattern;
+    return isEqualNodes(node.leftOperand, other.leftOperand) &&
+        isEqualTokens(node.operator, other.operator) &&
+        isEqualNodes(node.rightOperand, other.rightOperand);
   }
 
   @override

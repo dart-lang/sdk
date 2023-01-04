@@ -17,7 +17,7 @@ class CachedStaticType extends StaticTypeBase implements StaticTypeProvider {
   final ir.StaticTypeContext staticTypeContext;
 
   @override
-  final ThisInterfaceType thisType;
+  final ThisInterfaceType? thisType;
 
   CachedStaticType(this.staticTypeContext, this._cache, this.thisType)
       : super(staticTypeContext.typeEnvironment);

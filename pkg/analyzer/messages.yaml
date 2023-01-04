@@ -3831,6 +3831,10 @@ CompileTimeErrorCode:
       Note that literal maps preserve the order of their entries, so the choice
       of which entry to remove might affect the order in which keys and values
       are returned by an iterator.
+  EQUAL_KEYS_IN_MAP_PATTERN:
+    problemMessage: Two keys in a map pattern can't be equal.
+    correctionMessage: Change or remove the duplicate key.
+    comment: No parameters.
   EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS:
     problemMessage: List patterns require one type argument or none, but {0} found.
     correctionMessage: Try adjusting the number of type arguments.
@@ -9744,6 +9748,10 @@ CompileTimeErrorCode:
       var a = 'a';
       var m = {a: 0};
       ```
+  NON_CONSTANT_MAP_PATTERN_KEY:
+    problemMessage: Key expressions in map patterns must be constants.
+    correctionMessage: Try using constants instead.
+    comment: No parameters.
   NON_CONSTANT_MAP_VALUE:
     problemMessage: The values in a const map literal must be constant.
     correctionMessage: "Try removing the keyword 'const' from the map literal."

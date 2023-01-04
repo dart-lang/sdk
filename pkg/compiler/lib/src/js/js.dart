@@ -8,7 +8,7 @@ import 'package:js_ast/js_ast.dart';
 
 import '../common.dart';
 import '../options.dart';
-import '../dump_info_javascript_monitor.dart' show DumpInfoJavaScriptMonitor;
+import '../dump_info.dart' show DumpInfoTask;
 import '../io/code_output.dart' show CodeBuffer, CodeOutputListener;
 import 'js_source_mapping.dart';
 
@@ -33,7 +33,7 @@ String prettyPrint(Node node,
 
 CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
     JavaScriptSourceInformationStrategy sourceInformationStrategy,
-    {DumpInfoJavaScriptMonitor? monitor,
+    {DumpInfoTask? monitor,
     bool allowVariableMinification = true,
     List<CodeOutputListener> listeners = const []}) {
   JavaScriptPrintingOptions options = JavaScriptPrintingOptions(
@@ -53,7 +53,7 @@ CodeBuffer createCodeBuffer(Node node, CompilerOptions compilerOptions,
 }
 
 class Dart2JSJavaScriptPrintingContext implements JavaScriptPrintingContext {
-  final DumpInfoJavaScriptMonitor? monitor;
+  final DumpInfoTask? monitor;
   final CodeBuffer outBuffer;
   final CodePositionListener codePositionListener;
 

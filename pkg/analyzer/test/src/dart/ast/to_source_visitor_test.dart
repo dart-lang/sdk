@@ -159,21 +159,6 @@ var v = a * (b + c);
     );
   }
 
-  void test_visitBinaryPattern() {
-    var findNode = _parseStringToFindNode('''
-void f(x) {
-  switch (x) {
-    case int? _ && double? _ && Object? _:
-      break;
-  }
-}
-''');
-    _assertSource(
-      'int? _ && double? _ && Object? _',
-      findNode.binaryPattern('Object?'),
-    );
-  }
-
   void test_visitBlock_empty() {
     final code = '{}';
     final findNode = _parseStringToFindNode('''
@@ -2330,6 +2315,36 @@ void f(x) {
     _assertSource(
       '<int>[]',
       findNode.listPattern('[]'),
+    );
+  }
+
+  void test_visitLogicalAndPattern() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case int? _ && double? _ && Object? _:
+      break;
+  }
+}
+''');
+    _assertSource(
+      'int? _ && double? _ && Object? _',
+      findNode.logicalAndPattern('Object?'),
+    );
+  }
+
+  void test_visitLogicalOrPattern() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case int? _ || double? _ || Object? _:
+      break;
+  }
+}
+''');
+    _assertSource(
+      'int? _ || double? _ || Object? _',
+      findNode.logicalOrPattern('Object?'),
     );
   }
 

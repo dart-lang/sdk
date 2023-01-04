@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.10
-
 library ssa;
 
 import 'package:compiler/src/ssa/metrics.dart';
@@ -37,10 +35,8 @@ import '../universe/use.dart' show StaticUse;
 import 'codegen.dart';
 import 'nodes.dart';
 import 'optimize.dart';
-import 'ssa_interfaces.dart' as interfaces;
 
-class SsaFunctionCompiler
-    implements FunctionCompiler, interfaces.SsaFunctionCompiler {
+class SsaFunctionCompiler implements FunctionCompiler {
   final CompilerOptions _options;
   final DiagnosticReporter _reporter;
   final SsaMetrics _metrics;
@@ -48,8 +44,8 @@ class SsaFunctionCompiler
   final SsaBuilderTask _builder;
   final SsaOptimizerTask optimizer;
   final SourceInformationStrategy sourceInformationStrategy;
-  /*late*/ GlobalTypeInferenceResults _globalInferenceResults;
-  CodegenInputs _codegen;
+  late final GlobalTypeInferenceResults _globalInferenceResults;
+  late final CodegenInputs _codegen;
 
   SsaFunctionCompiler(
       this._options,
@@ -88,11 +84,12 @@ class SsaFunctionCompiler
       return registry.close(null);
     }
 
-    HGraph graph = _builder.build(member, closedWorld, _globalInferenceResults,
+    final graph = _builder.build(member, closedWorld, _globalInferenceResults,
         _codegen, registry, namer, emitter);
     if (graph == null) {
       return registry.close(null);
     }
+
     optimizer.optimize(member, graph, _codegen, closedWorld,
         _globalInferenceResults, registry, _metrics);
     js.Expression result = generator.generateCode(
@@ -107,7 +104,7 @@ class SsaFunctionCompiler
           registry,
           namer,
           emitter,
-          member,
+          member as FunctionEntity,
           result,
           graph.asyncElementType,
           sourceInformationBuilder.buildAsyncBody(),
@@ -120,7 +117,7 @@ class SsaFunctionCompiler
           sourceInformationStrategy.buildSourceMappedMarker());
     }
 
-    return registry.close(result);
+    return registry.close(result as js.Fun);
   }
 
   js.Expression _rewriteAsync(
@@ -132,12 +129,12 @@ class SsaFunctionCompiler
       ModularEmitter emitter,
       FunctionEntity element,
       js.Expression code,
-      DartType asyncTypeParameter,
-      SourceInformation bodySourceInformation,
-      SourceInformation exitSourceInformation) {
+      DartType? asyncTypeParameter,
+      SourceInformation? bodySourceInformation,
+      SourceInformation? exitSourceInformation) {
     if (element.asyncMarker == AsyncMarker.SYNC) return code;
 
-    AsyncRewriterBase rewriter = null;
+    late final AsyncRewriterBase rewriter;
     js.Name name = namer.methodPropertyName(
         element is JGeneratorBody ? element.function : element);
 
@@ -182,7 +179,8 @@ class SsaFunctionCompiler
             name);
         break;
     }
-    return rewriter.rewrite(code, bodySourceInformation, exitSourceInformation);
+    return rewriter.rewrite(
+        code as js.Fun, bodySourceInformation, exitSourceInformation);
   }
 
   /// Returns an optional expression that evaluates [type].  Returns `null` if
@@ -190,8 +188,8 @@ class SsaFunctionCompiler
   /// added as a function parameter to the rewritten code.
   // TODO(sra): We could also return an empty list if the generator takes no
   // type (e.g. due to rtiNeed optimization).
-  List<js.Expression> _fetchItemTypeNewRti(
-      CommonElements commonElements, CodegenRegistry registry, DartType type) {
+  List<js.Expression>? _fetchItemTypeNewRti(
+      CommonElements commonElements, CodegenRegistry registry, DartType? type) {
     if (type == null) return null;
     registry.registerStaticUse(
         StaticUse.staticInvoke(commonElements.findType, CallStructure.ONE_ARG));
@@ -207,12 +205,12 @@ class SsaFunctionCompiler
       ModularEmitter emitter,
       FunctionEntity element,
       js.Expression code,
-      DartType elementType,
+      DartType? elementType,
       js.Name name) {
     FunctionEntity startFunction = commonElements.asyncHelperStartSync;
     FunctionEntity completerFactory = commonElements.asyncAwaitCompleterFactory;
 
-    List<js.Expression> itemTypeExpression =
+    final itemTypeExpression =
         _fetchItemTypeNewRti(commonElements, registry, elementType);
 
     AsyncRewriter rewriter = AsyncRewriter(_reporter, element,
@@ -246,9 +244,9 @@ class SsaFunctionCompiler
       ModularEmitter emitter,
       FunctionEntity element,
       js.Expression code,
-      DartType asyncTypeParameter,
+      DartType? asyncTypeParameter,
       js.Name name) {
-    List<js.Expression> itemTypeExpression =
+    final itemTypeExpression =
         _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter);
 
     SyncStarRewriter rewriter = SyncStarRewriter(_reporter, element,
@@ -281,9 +279,9 @@ class SsaFunctionCompiler
       ModularEmitter emitter,
       FunctionEntity element,
       js.Expression code,
-      DartType asyncTypeParameter,
+      DartType? asyncTypeParameter,
       js.Name name) {
-    List<js.Expression> itemTypeExpression =
+    final itemTypeExpression =
         _fetchItemTypeNewRti(commonElements, registry, asyncTypeParameter);
 
     AsyncStarRewriter rewriter = AsyncStarRewriter(_reporter, element,
@@ -311,7 +309,7 @@ class SsaFunctionCompiler
   }
 
   @override
-  Iterable<CompilerTask> get tasks {
+  List<CompilerTask> get tasks {
     return [_builder, optimizer, generator];
   }
 }
@@ -319,7 +317,7 @@ class SsaFunctionCompiler
 abstract class SsaBuilder {
   /// Creates the [HGraph] for [member] or returns `null` if no code is needed
   /// for [member].
-  HGraph build(
+  HGraph? build(
       MemberEntity member,
       JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults,
@@ -332,16 +330,15 @@ abstract class SsaBuilder {
 class SsaBuilderTask extends CompilerTask {
   final JsBackendStrategy _backendStrategy;
   final SourceInformationStrategy _sourceInformationFactory;
-  SsaBuilder _builder;
+  late SsaBuilder _builder;
 
   final SsaMetrics _metrics;
 
   @override
   Metrics get metrics => _metrics;
 
-  SsaBuilderTask(Measurer measurer, this._backendStrategy,
-      this._sourceInformationFactory, this._metrics)
-      : super(measurer);
+  SsaBuilderTask(super.measurer, this._backendStrategy,
+      this._sourceInformationFactory, this._metrics);
 
   @override
   String get name => 'SSA builder';
@@ -353,7 +350,7 @@ class SsaBuilderTask extends CompilerTask {
 
   /// Creates the [HGraph] for [member] or returns `null` if no code is needed
   /// for [member].
-  HGraph build(
+  HGraph? build(
       MemberEntity member,
       JClosedWorld closedWorld,
       GlobalTypeInferenceResults globalInferenceResults,

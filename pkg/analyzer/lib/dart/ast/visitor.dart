@@ -168,9 +168,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitBinaryExpression(BinaryExpression node) => visitExpression(node);
 
   @override
-  R? visitBinaryPattern(BinaryPattern node) => visitDartPattern(node);
-
-  @override
   R? visitBlock(Block node) => visitStatement(node);
 
   @override
@@ -479,6 +476,12 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitListPattern(ListPattern node) => visitDartPattern(node);
 
   R? visitLiteral(Literal node) => visitExpression(node);
+
+  @override
+  R? visitLogicalAndPattern(LogicalAndPattern node) => visitDartPattern(node);
+
+  @override
+  R? visitLogicalOrPattern(LogicalOrPattern node) => visitDartPattern(node);
 
   @override
   R? visitMapLiteralEntry(MapLiteralEntry node) => visitCollectionElement(node);
@@ -830,12 +833,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitBinaryExpression(BinaryExpression node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitBinaryPattern(BinaryPattern node) {
     node.visitChildren(this);
     return null;
   }
@@ -1321,6 +1318,18 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitLogicalAndPattern(LogicalAndPattern node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitLogicalOrPattern(LogicalOrPattern node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitMapLiteralEntry(MapLiteralEntry node) {
     node.visitChildren(this);
     return null;
@@ -1795,9 +1804,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitBinaryExpression(BinaryExpression node) => null;
 
   @override
-  R? visitBinaryPattern(BinaryPattern node) => null;
-
-  @override
   R? visitBlock(Block node) => null;
 
   @override
@@ -2041,6 +2047,12 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitListPattern(ListPattern node) => null;
+
+  @override
+  R? visitLogicalAndPattern(LogicalAndPattern node) => null;
+
+  @override
+  R? visitLogicalOrPattern(LogicalOrPattern node) => null;
 
   @override
   R? visitMapLiteralEntry(MapLiteralEntry node) => null;
@@ -2312,9 +2324,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitBinaryExpression(BinaryExpression node) => _throw(node);
 
   @override
-  R? visitBinaryPattern(BinaryPattern node) => _throw(node);
-
-  @override
   R? visitBlock(Block node) => _throw(node);
 
   @override
@@ -2563,6 +2572,12 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitListPattern(ListPattern node) => _throw(node);
+
+  @override
+  R? visitLogicalAndPattern(LogicalAndPattern node) => _throw(node);
+
+  @override
+  R? visitLogicalOrPattern(LogicalOrPattern node) => _throw(node);
 
   @override
   R? visitMapLiteralEntry(MapLiteralEntry node) => _throw(node);
@@ -2898,14 +2913,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitBinaryExpression(BinaryExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitBinaryExpression(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitBinaryPattern(BinaryPattern node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitBinaryPattern(node);
     stopwatch.stop();
     return result;
   }
@@ -3551,6 +3558,22 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitLogicalAndPattern(LogicalAndPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLogicalAndPattern(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitLogicalOrPattern(LogicalOrPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLogicalOrPattern(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitMapLiteralEntry(MapLiteralEntry node) {
     stopwatch.start();
     T? result = _baseVisitor.visitMapLiteralEntry(node);
@@ -4174,9 +4197,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitBinaryExpression(BinaryExpression node) => visitNode(node);
 
   @override
-  R? visitBinaryPattern(BinaryPattern node) => visitNode(node);
-
-  @override
   R? visitBlock(Block node) => visitNode(node);
 
   @override
@@ -4433,6 +4453,12 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitListPattern(ListPattern node) => visitNode(node);
+
+  @override
+  R? visitLogicalAndPattern(LogicalAndPattern node) => visitNode(node);
+
+  @override
+  R? visitLogicalOrPattern(LogicalOrPattern node) => visitNode(node);
 
   @override
   R? visitMapLiteralEntry(MapLiteralEntry node) => visitNode(node);

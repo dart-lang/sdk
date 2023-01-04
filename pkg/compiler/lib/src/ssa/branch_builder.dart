@@ -6,7 +6,7 @@ import '../common.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../io/source_information.dart';
 
-import 'builder_interfaces.dart';
+import 'builder.dart';
 import 'locals_handler.dart';
 import 'nodes.dart';
 
@@ -152,7 +152,7 @@ class SsaBranchBuilder {
   ///     }
   ///     result = phi(t1, true);
   void handleLogicalBinary(
-      void left(), void right(), SourceInformation sourceInformation,
+      void left(), void right(), SourceInformation? sourceInformation,
       {required bool isAnd}) {
     late HInstruction boolifiedLeft;
     late HInstruction boolifiedRight;

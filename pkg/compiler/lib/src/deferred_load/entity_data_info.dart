@@ -9,7 +9,7 @@ import 'entity_data.dart';
 
 import '../common.dart';
 import '../common/elements.dart' show CommonElements, KElementEnvironment;
-import '../compiler_interfaces.dart' show CompilerDeferredLoadingFacade;
+import '../compiler.dart' show Compiler;
 import '../constants/values.dart'
     show ConstantValue, ConstructedConstantValue, InstantiationConstantValue;
 import '../elements/entities.dart';
@@ -20,9 +20,6 @@ import '../kernel/kelements.dart' show KLocalFunction;
 import '../kernel/kernel_world.dart' show KClosedWorld;
 import '../universe/use.dart';
 import '../universe/world_impact.dart' show WorldImpact;
-
-// TODO(48820): delete typedef after the migration is complete.
-typedef Compiler = CompilerDeferredLoadingFacade;
 
 /// [EntityDataInfo] is meta data about [EntityData] for a given compilation
 /// [Entity].

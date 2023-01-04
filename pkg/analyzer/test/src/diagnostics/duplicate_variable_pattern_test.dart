@@ -26,7 +26,7 @@ void f(int x) {
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalAndPattern
   leftOperand: DeclaredVariablePattern
     keyword: var
     name: a
@@ -55,7 +55,7 @@ void f(int x) {
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalAndPattern
   leftOperand: DeclaredVariablePattern
     keyword: var
     name: a
