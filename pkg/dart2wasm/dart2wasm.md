@@ -1,6 +1,6 @@
 ## Running dart2wasm
 
-You don't need to build the Dart SDK to run dart2wasm, as long as you have a Dart SDK installed and have the [Dart SDK repository checked out](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source).
+You don't need to build the Dart SDK to run dart2wasm, as long as you have a Dart SDK installed and have the [Dart SDK repository checked out](https://github.com/dart-lang/sdk/wiki/Building#getting-the-source). NB: the SDK must be checked out using depot tools and not just cloned from this repo.
 
 To compile a Dart file to Wasm, in a checkout of the Dart SDK repository, run:
 
@@ -27,6 +27,8 @@ where *options* include:
 The resulting `.wasm` file can be run with:
 
 `d8 --experimental-wasm-gc --experimental-wasm-stack-switching --experimental-wasm-type-reflection pkg/dart2wasm/bin/run_wasm.js -- `*outfile*`.wasm`
+
+Where `d8` is the [V8 developer shell](https://v8.dev/docs/d8).
 
 ## Imports and exports
 
