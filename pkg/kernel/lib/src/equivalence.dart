@@ -1743,6 +1743,9 @@ class EquivalenceStrategy {
     if (!checkInlineClass_declaredRepresentationType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkInlineClass_representationName(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkInlineClass_members(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -5268,6 +5271,12 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, InlineClass node, InlineClass other) {
     return visitor.checkNodes(node.declaredRepresentationType,
         other.declaredRepresentationType, 'declaredRepresentationType');
+  }
+
+  bool checkInlineClass_representationName(
+      EquivalenceVisitor visitor, InlineClass node, InlineClass other) {
+    return visitor.checkValues(node.representationName,
+        other.representationName, 'representationName');
   }
 
   bool checkInlineClassMemberDescriptor_name(EquivalenceVisitor visitor,

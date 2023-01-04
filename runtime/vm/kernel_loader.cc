@@ -1110,7 +1110,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     helper_.ReadPosition();                // read file offset.
     helper_.ReadByte();                    // skip flags.
     helper_.SkipTypeParametersList();      // skip type parameter list.
-    helper_.SkipDartType();                // skip representation-type.
+    helper_.SkipDartType();                // skip declared representation type.
+    helper_.SkipStringReference();         // skip representation name.
 
     const intptr_t inline_class_member_count = helper_.ReadListLength();
     for (intptr_t j = 0; j < inline_class_member_count; ++j) {

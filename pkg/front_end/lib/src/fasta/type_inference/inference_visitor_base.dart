@@ -872,6 +872,17 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       {required ObjectAccessTarget defaultTarget,
       required bool isSetter,
       required bool isReceiverTypePotentiallyNullable}) {
+    if (name.text == inlineType.inlineClass.representationName) {
+      if (isSetter ||
+          name.isPrivate &&
+              name.library != inlineType.inlineClass.enclosingLibrary) {
+        return defaultTarget;
+      }
+      return new ObjectAccessTarget.inlineClassRepresentation(
+          receiverType, inlineType,
+          isPotentiallyNullable: isReceiverTypePotentiallyNullable);
+    }
+
     // TODO(johnniwinther): Cache this to speed up the lookup.
     Member? targetMember;
     Member? targetTearoff;
@@ -3341,6 +3352,48 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             isExpressionInvocation: false,
             isImplicitCall: true,
             hoistedExpressions: hoistedExpressions);
+      case ObjectAccessTargetKind.inlineClassRepresentation:
+      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+        DartType type = target.getGetterType(this);
+        Expression read = new AsExpression(receiver, type)
+          ..isForNonNullableByDefault = true
+          ..isUnchecked = true
+          ..fileOffset = fileOffset;
+        ExpressionInferenceResult readResult =
+            new ExpressionInferenceResult(type, read);
+        if (target.isNullable) {
+          // Handles cases like:
+          //
+          //  inline class Foo {
+          //    void Function() bar;
+          //    Foo(this.bar);
+          //  }
+          //   Foo? r;
+          //   r.bar();
+          List<LocatedMessage>? context = getWhyNotPromotedContext(
+              flowAnalysis.whyNotPromoted(receiver)(),
+              receiver,
+              (type) => !type.isPotentiallyNullable);
+          readResult = wrapExpressionInferenceResultInProblem(
+              readResult,
+              templateNullableExpressionCallError.withArguments(
+                  receiverType, isNonNullableByDefault),
+              fileOffset,
+              noLength,
+              context: context);
+        }
+        return inferMethodInvocation(
+            visitor,
+            arguments.fileOffset,
+            nullAwareGuards,
+            readResult.expression,
+            readResult.inferredType,
+            callName,
+            arguments,
+            typeContext,
+            isExpressionInvocation: false,
+            isImplicitCall: true,
+            hoistedExpressions: hoistedExpressions);
     }
   }
 
@@ -4487,6 +4540,7 @@ class _ObjectAccessDescriptor {
       case ObjectAccessTargetKind.recordIndexed:
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.inlineClassMember:
+      case ObjectAccessTargetKind.inlineClassRepresentation:
         return true;
       case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.nullableCallFunction:
@@ -4496,6 +4550,7 @@ class _ObjectAccessDescriptor {
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
       case ObjectAccessTargetKind.nullableInlineClassMember:
+      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
         return false;
     }
   }

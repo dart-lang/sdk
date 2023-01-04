@@ -119,6 +119,7 @@ general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash
 inline_class/constructors: FormatterCrash
 inline_class/constructor_bodies: FormatterCrash
+inline_class/field_access: FormatterCrash
 inline_class/initializers: FormatterCrash
 inline_class/inline_class_declaration: FormatterCrash
 inline_class/method_access: FormatterCrash

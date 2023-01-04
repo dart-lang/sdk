@@ -2228,7 +2228,7 @@ void KernelReaderHelper::SkipDartType() {
       ReadNullability();
       SkipCanonicalNameReference();  // read index for canonical name.
       SkipListOfDartTypes();         // read type arguments
-      SkipDartType();                // read representation type.
+      SkipDartType();                // read instantiated representation type.
       break;
     }
     case kTypedefType:
@@ -3514,7 +3514,7 @@ void TypeTranslator::BuildInlineType() {
   helper_->ReadNullability();
   helper_->SkipCanonicalNameReference();  // read index for canonical name.
   helper_->SkipListOfDartTypes();         // read type arguments
-  BuildTypeInternal();                    // read representation type.
+  BuildTypeInternal();  // read instantiated representation type.
 }
 
 const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {

@@ -1510,7 +1510,7 @@ void ScopeBuilder::VisitInlineType() {
   helper_.ReadNullability();
   helper_.SkipCanonicalNameReference();  // read index for canonical name.
   helper_.SkipListOfDartTypes();         // read type arguments
-  VisitDartType();                       // read representation type.
+  VisitDartType();  // read instantiated representation type.
 }
 
 void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {
