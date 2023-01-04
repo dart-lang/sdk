@@ -546,6 +546,8 @@ import 'non_constant_map_pattern_key_test.dart' as non_constant_map_pattern_key;
 import 'non_constant_map_value_from_deferred_library_test.dart'
     as non_constant_map_value_from_deferred_library;
 import 'non_constant_map_value_test.dart' as non_constant_map_value;
+import 'non_constant_relational_pattern_expression_test.dart'
+    as non_constant_relational_pattern_expression;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
 import 'non_constant_type_argument_test.dart' as non_constant_type_argument;
 import 'non_final_field_in_enum_test.dart' as non_final_field_in_enum;
@@ -1186,6 +1188,7 @@ main() {
     non_constant_map_key_from_deferred_library.main();
     non_constant_map_element.main();
     non_constant_map_value.main();
+    non_constant_relational_pattern_expression.main();
     non_constant_map_value_from_deferred_library.main();
     non_constant_set_element.main();
     non_constant_type_argument.main();

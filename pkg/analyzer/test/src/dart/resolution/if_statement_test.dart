@@ -849,6 +849,8 @@ void f(Object? x) {
   }
 }
 ''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 57,
+          1),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 57, 1,
           contextMessages: [message('/home/test/lib/test.dart', 51, 1)]),
     ]);

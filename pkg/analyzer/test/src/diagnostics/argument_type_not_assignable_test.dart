@@ -248,7 +248,9 @@ void f(A x) {
     await assertNoErrorsInCode(r'''
 class A {}
 
-void f(A x, int? y) {
+const int? y = 0;
+
+void f(A x) {
   switch (x) {
     case != y:
       break;
@@ -317,7 +319,9 @@ void f(A x) {
     await assertNoErrorsInCode(r'''
 class A {}
 
-void f(A x, int? y) {
+const int? y = 0;
+
+void f(A x) {
   switch (x) {
     case == y:
       break;
