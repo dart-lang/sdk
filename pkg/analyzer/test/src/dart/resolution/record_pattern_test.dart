@@ -595,6 +595,70 @@ RecordPattern
 ''');
   }
 
+  test_recordType_sameShape_named_noName_variable_cast() async {
+    await assertNoErrorsInCode(r'''
+void f(({int? foo}) x) {
+  switch (x) {
+    case (: var foo as int):
+      break;
+  }
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: CastPattern
+        pattern: DeclaredVariablePattern
+          keyword: var
+          name: foo
+          declaredElement: hasImplicitType foo@56
+            type: int
+        asToken: as
+        type: NamedType
+          name: SimpleIdentifier
+            token: int
+            staticElement: dart:core::@class::int
+            staticType: null
+          type: int
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
+  test_recordType_sameShape_named_noName_variable_nullAssert() async {
+    await assertNoErrorsInCode(r'''
+void f(({int? foo}) x) {
+  switch (x) {
+    case (: var foo!):
+      break;
+  }
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        colon: :
+      pattern: PostfixPattern
+        operand: DeclaredVariablePattern
+          keyword: var
+          name: foo
+          declaredElement: hasImplicitType foo@56
+            type: int
+        operator: !
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
   test_recordType_sameShape_named_noName_variable_nullCheck() async {
     await assertNoErrorsInCode(r'''
 void f(({int? foo}) x) {
