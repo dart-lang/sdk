@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -230,6 +232,54 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitMapPattern(MapPattern node) {
+    node.typeArguments?.accept(this);
+
+    var uniqueKeys = HashMap<DartObjectImpl, Expression>(
+      hashCode: (_) => 0,
+      equals: (a, b) {
+        if (a.isIdentical2(_typeSystem, b).toBoolValue() == true) {
+          return true;
+        }
+        if (_isRecordTypeWithPrimitiveEqual(a.type) &&
+            _isRecordTypeWithPrimitiveEqual(b.type)) {
+          return a == b;
+        }
+        return false;
+      },
+    );
+    var duplicateKeys = <Expression, Expression>{};
+    for (var element in node.elements) {
+      element.accept(this);
+      if (element is MapPatternEntry) {
+        var key = element.key;
+        var keyValue = _validate(
+          key,
+          CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY,
+        );
+        if (keyValue != null) {
+          var existingKey = uniqueKeys[keyValue];
+          if (existingKey != null) {
+            duplicateKeys[key] = existingKey;
+          } else {
+            uniqueKeys[keyValue] = key;
+          }
+        }
+      }
+    }
+
+    for (var duplicateEntry in duplicateKeys.entries) {
+      _errorReporter.reportError(
+        _diagnosticFactory.equalKeysInMapPattern(
+          _errorReporter.source,
+          duplicateEntry.key,
+          duplicateEntry.value,
+        ),
+      );
+    }
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
     _validateDefaultValues(node.parameters);
@@ -392,6 +442,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           .any(_implementsEqualsWhenNotAllowed);
     }
     return false;
+  }
+
+  bool _isRecordTypeWithPrimitiveEqual(DartType type) {
+    return type is RecordType && !_implementsEqualsWhenNotAllowed(type);
   }
 
   /// Report any errors in the given list. Except for special cases, use the

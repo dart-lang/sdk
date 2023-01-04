@@ -1264,6 +1264,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode EQUAL_KEYS_IN_MAP_PATTERN =
+      CompileTimeErrorCode(
+    'EQUAL_KEYS_IN_MAP_PATTERN',
+    "Two keys in a map pattern can't be equal.",
+    correctionMessage: "Change or remove the duplicate key.",
+  );
+
   ///  Parameters:
   ///  0: the number of provided type arguments
   static const CompileTimeErrorCode EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS =
@@ -3215,6 +3223,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "keyword 'deferred' from the import.",
     hasPublishedDocs: true,
     uniqueName: 'NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY',
+  );
+
+  ///  No parameters.
+  static const CompileTimeErrorCode NON_CONSTANT_MAP_PATTERN_KEY =
+      CompileTimeErrorCode(
+    'NON_CONSTANT_MAP_PATTERN_KEY',
+    "Key expressions in map patterns must be constants.",
+    correctionMessage: "Try using constants instead.",
   );
 
   ///  No parameters.

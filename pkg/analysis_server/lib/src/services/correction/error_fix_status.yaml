@@ -413,6 +413,8 @@ CompileTimeErrorCode.EQUAL_ELEMENTS_IN_CONST_SET:
   status: needsEvaluation
 CompileTimeErrorCode.EQUAL_KEYS_IN_CONST_MAP:
   status: needsEvaluation
+CompileTimeErrorCode.EQUAL_KEYS_IN_MAP_PATTERN:
+  status: needsEvaluation
 CompileTimeErrorCode.EXPECTED_ONE_LIST_PATTERN_TYPE_ARGUMENTS:
   status: needsEvaluation
 CompileTimeErrorCode.EXPECTED_ONE_LIST_TYPE_ARGUMENTS:
@@ -810,6 +812,8 @@ CompileTimeErrorCode.NON_CONSTANT_MAP_ELEMENT:
 CompileTimeErrorCode.NON_CONSTANT_MAP_KEY:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_MAP_KEY_FROM_DEFERRED_LIBRARY:
+  status: needsEvaluation
+CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY:
   status: needsEvaluation
 CompileTimeErrorCode.NON_CONSTANT_MAP_VALUE:
   status: needsEvaluation

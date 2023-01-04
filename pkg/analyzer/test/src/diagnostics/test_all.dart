@@ -181,6 +181,7 @@ import 'enum_with_name_values_test.dart' as enum_with_name_values;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
+import 'equal_keys_in_map_pattern_test.dart' as equal_keys_in_map_pattern;
 import 'equal_keys_in_map_test.dart' as equal_keys_in_map;
 import 'expected_one_list_pattern_type_arguments_test.dart'
     as expected_one_list_pattern_type_arguments;
@@ -541,6 +542,7 @@ import 'non_constant_map_element_test.dart' as non_constant_map_element;
 import 'non_constant_map_key_from_deferred_library_test.dart'
     as non_constant_map_key_from_deferred_library;
 import 'non_constant_map_key_test.dart' as non_constant_map_key;
+import 'non_constant_map_pattern_key_test.dart' as non_constant_map_pattern_key;
 import 'non_constant_map_value_from_deferred_library_test.dart'
     as non_constant_map_value_from_deferred_library;
 import 'non_constant_map_value_test.dart' as non_constant_map_value;
@@ -952,6 +954,7 @@ main() {
     equal_elements_in_const_set.main();
     equal_elements_in_set.main();
     equal_keys_in_const_map.main();
+    equal_keys_in_map_pattern.main();
     equal_keys_in_map.main();
     expected_one_list_pattern_type_arguments.main();
     expected_one_list_type_arguments.main();
@@ -1179,6 +1182,7 @@ main() {
     non_constant_default_value.main();
     non_constant_list_element_from_deferred_library.main();
     non_constant_map_key.main();
+    non_constant_map_pattern_key.main();
     non_constant_map_key_from_deferred_library.main();
     non_constant_map_element.main();
     non_constant_map_value.main();

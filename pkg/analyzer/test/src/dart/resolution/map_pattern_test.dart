@@ -432,11 +432,13 @@ MapPattern
   }
 
   test_rewrite_key() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(x, bool Function() a) {
   if (x case {a(): 0}) {}
 }
-''');
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY, 45, 3),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 MapPattern
