@@ -172,7 +172,8 @@ class _Visitor extends SimpleAstVisitor {
           return;
         }
       } else if (parent is IfStatement) {
-        if (parent.hasAsyncInCondition) {
+        // Only check the actual statement(s), not the IF condition
+        if (child is Statement && parent.hasAsyncInCondition) {
           rule.reportLint(node);
         }
 
