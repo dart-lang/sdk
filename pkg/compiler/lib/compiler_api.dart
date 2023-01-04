@@ -8,6 +8,9 @@ import 'dart:async';
 
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
+import 'src/compiler.dart';
+import 'src/options.dart';
+
 /// Kind of diagnostics that the compiler can report.
 class Diagnostic {
   /// An error as identified by the "Dart Programming Language
@@ -216,4 +219,30 @@ class CompilationResult {
 
   CompilationResult(this.compiler,
       {this.isSuccess = true, this.kernelInitializedCompilerState});
+}
+
+// Unless explicitly allowed, passing [:null:] for any argument to the
+// methods of library will result in an Error being thrown.
+
+/// Returns a future that completes to a [CompilationResult] when the Dart
+/// sources in [options] have been compiled.
+///
+/// The generated compiler output is obtained by providing a [compilerOutput].
+///
+/// If the compilation fails, the future's `CompilationResult.isSuccess` is
+/// `false` and [CompilerDiagnostics.report] on [compilerDiagnostics]
+/// is invoked at least once with `kind == Diagnostic.ERROR` or
+/// `kind == Diagnostic.CRASH`.
+Future<CompilationResult> compile(
+    CompilerOptions compilerOptions,
+    CompilerInput compilerInput,
+    CompilerDiagnostics compilerDiagnostics,
+    CompilerOutput compilerOutput) {
+  var compiler = Compiler(
+      compilerInput, compilerOutput, compilerDiagnostics, compilerOptions);
+  return compiler.run().then((bool success) {
+    return new CompilationResult(compiler,
+        isSuccess: success,
+        kernelInitializedCompilerState: compiler.initializedCompilerState);
+  });
 }

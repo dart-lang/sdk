@@ -14,7 +14,6 @@ import 'dart:isolate' show Isolate;
 import 'package:front_end/src/api_unstable/dart2js.dart' as fe;
 
 import '../compiler_api.dart' as api;
-import '../compiler_api_unmigrated.dart' as api_unmigrated;
 import 'commandline_options.dart';
 import 'common/ram_usage.dart';
 import 'io/mapped_file.dart';
@@ -1448,7 +1447,7 @@ typedef CompileFunc = Future<api.CompilationResult> Function(
     api.CompilerOutput compilerOutput);
 
 ExitFunc exitFunc = exit;
-CompileFunc compileFunc = api_unmigrated.compile;
+CompileFunc compileFunc = api.compile;
 
 /// If `true` a '.deps' file will be generated after compilation.
 ///
