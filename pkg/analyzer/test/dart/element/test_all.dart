@@ -5,10 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'element_test.dart' as element;
+import 'type_test.dart' as type;
 
 /// Utility for manually running all tests.
 main() {
   defineReflectiveSuite(() {
     element.main();
+    type.main();
   }, name: 'element');
 }
