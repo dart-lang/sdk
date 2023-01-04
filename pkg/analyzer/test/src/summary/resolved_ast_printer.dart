@@ -170,14 +170,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitBinaryPattern(BinaryPattern node) {
-    _writeln('BinaryPattern');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
-    });
-  }
-
-  @override
   void visitBlock(Block node) {
     _writeln('Block');
     _withIndent(() {
@@ -917,6 +909,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       _writeType('requiredType', node.requiredType);
+    });
+  }
+
+  @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    _writeln('LogicalAndPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitLogicalOrPattern(LogicalOrPattern node) {
+    _writeln('LogicalOrPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
     });
   }
 

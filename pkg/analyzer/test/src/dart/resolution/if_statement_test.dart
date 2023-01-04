@@ -66,7 +66,7 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
+      pattern: LogicalOrPattern
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
@@ -156,7 +156,7 @@ IfStatement
           rightBracket: >
         leftBracket: [
         elements
-          BinaryPattern
+          LogicalOrPattern
             leftOperand: DeclaredVariablePattern
               keyword: var
               name: a
@@ -222,7 +222,7 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
+      pattern: LogicalOrPattern
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
@@ -302,7 +302,7 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
+      pattern: LogicalOrPattern
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
@@ -382,8 +382,8 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
-        leftOperand: BinaryPattern
+      pattern: LogicalOrPattern
+        leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
@@ -456,8 +456,8 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
-        leftOperand: BinaryPattern
+      pattern: LogicalOrPattern
+        leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
@@ -534,8 +534,8 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
-        leftOperand: BinaryPattern
+      pattern: LogicalOrPattern
+        leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
@@ -620,8 +620,8 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
-        leftOperand: BinaryPattern
+      pattern: LogicalOrPattern
+        leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
@@ -701,8 +701,8 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
-        leftOperand: BinaryPattern
+      pattern: LogicalOrPattern
+        leftOperand: LogicalOrPattern
           leftOperand: ConstantPattern
             expression: IntegerLiteral
               literal: 1
@@ -775,8 +775,8 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
-        leftOperand: BinaryPattern
+      pattern: LogicalOrPattern
+        leftOperand: LogicalOrPattern
           leftOperand: ConstantPattern
             expression: IntegerLiteral
               literal: 1

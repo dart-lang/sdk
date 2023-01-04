@@ -90,12 +90,6 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitBinaryPattern(BinaryPattern node) {
-    _runSubscriptions(node, registry._forBinaryPattern);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitBlock(Block node) {
     _runSubscriptions(node, registry._forBlock);
     node.visitChildren(this);
@@ -576,6 +570,18 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    _runSubscriptions(node, registry._forLogicalAndPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitLogicalOrPattern(LogicalOrPattern node) {
+    _runSubscriptions(node, registry._forLogicalOrPattern);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     _runSubscriptions(node, registry._forMapLiteralEntry);
     node.visitChildren(this);
@@ -1041,7 +1047,6 @@ class NodeLintRegistry {
       _forAugmentationImportDirective = [];
   final List<_Subscription<AwaitExpression>> _forAwaitExpression = [];
   final List<_Subscription<BinaryExpression>> _forBinaryExpression = [];
-  final List<_Subscription<BinaryPattern>> _forBinaryPattern = [];
   final List<_Subscription<Block>> _forBlock = [];
   final List<_Subscription<BlockFunctionBody>> _forBlockFunctionBody = [];
   final List<_Subscription<BooleanLiteral>> _forBooleanLiteral = [];
@@ -1143,6 +1148,8 @@ class NodeLintRegistry {
   final List<_Subscription<LibraryIdentifier>> _forLibraryIdentifier = [];
   final List<_Subscription<ListLiteral>> _forListLiteral = [];
   final List<_Subscription<ListPattern>> _forListPattern = [];
+  final List<_Subscription<LogicalAndPattern>> _forLogicalAndPattern = [];
+  final List<_Subscription<LogicalOrPattern>> _forLogicalOrPattern = [];
   final List<_Subscription<MapLiteralEntry>> _forMapLiteralEntry = [];
   final List<_Subscription<MapPatternEntry>> _forMapPatternEntry = [];
   final List<_Subscription<MapPattern>> _forMapPattern = [];
@@ -1275,10 +1282,6 @@ class NodeLintRegistry {
 
   void addBinaryExpression(LintRule linter, AstVisitor visitor) {
     _forBinaryExpression.add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addBinaryPattern(LintRule linter, AstVisitor visitor) {
-    _forBinaryPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addBlock(LintRule linter, AstVisitor visitor) {
@@ -1640,6 +1643,15 @@ class NodeLintRegistry {
 
   void addListPattern(LintRule linter, AstVisitor visitor) {
     _forListPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addLogicalAndPattern(LintRule linter, AstVisitor visitor) {
+    _forLogicalAndPattern
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addLogicalOrPattern(LintRule linter, AstVisitor visitor) {
+    _forLogicalOrPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addMapLiteralEntry(LintRule linter, AstVisitor visitor) {

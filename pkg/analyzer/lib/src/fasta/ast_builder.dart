@@ -930,10 +930,25 @@ class AstBuilder extends StackListener {
 
     var right = pop() as DartPatternImpl;
     var left = pop() as DartPatternImpl;
-    push(
-      BinaryPatternImpl(
-          leftOperand: left, operator: operatorToken, rightOperand: right),
-    );
+    if (operatorToken.lexeme == '&&') {
+      push(
+        LogicalAndPatternImpl(
+          leftOperand: left,
+          operator: operatorToken,
+          rightOperand: right,
+        ),
+      );
+    } else if (operatorToken.lexeme == '||') {
+      push(
+        LogicalOrPatternImpl(
+          leftOperand: left,
+          operator: operatorToken,
+          rightOperand: right,
+        ),
+      );
+    } else {
+      throw UnimplementedError('operatorToken: $operatorToken');
+    }
   }
 
   @override

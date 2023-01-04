@@ -925,7 +925,7 @@ SwitchStatement
             rightBracket: >
           leftBracket: [
           elements
-            BinaryPattern
+            LogicalOrPattern
               leftOperand: DeclaredVariablePattern
                 keyword: var
                 name: a

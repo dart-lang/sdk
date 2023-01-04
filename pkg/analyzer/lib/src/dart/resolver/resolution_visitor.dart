@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -199,23 +198,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _withElementWalker(null, () {
       super.visitAugmentationImportDirective(node);
     });
-  }
-
-  @override
-  void visitBinaryPattern(covariant BinaryPatternImpl node) {
-    assert(node.operator.type == TokenType.AMPERSAND_AMPERSAND ||
-        node.operator.type == TokenType.BAR_BAR);
-    final isOr = node.operator.type == TokenType.BAR_BAR;
-    if (isOr) {
-      _patternVariables.logicalOrPatternStart();
-      node.leftOperand.accept(this);
-      _patternVariables.logicalOrPatternFinishLeft();
-      node.rightOperand.accept(this);
-      _patternVariables.logicalOrPatternFinish(node);
-    } else {
-      node.leftOperand.accept(this);
-      node.rightOperand.accept(this);
-    }
   }
 
   @override
@@ -955,6 +937,21 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     _withElementWalker(null, () {
       super.visitLibraryDirective(node);
     });
+  }
+
+  @override
+  void visitLogicalAndPattern(covariant LogicalAndPatternImpl node) {
+    node.leftOperand.accept(this);
+    node.rightOperand.accept(this);
+  }
+
+  @override
+  void visitLogicalOrPattern(covariant LogicalOrPatternImpl node) {
+    _patternVariables.logicalOrPatternStart();
+    node.leftOperand.accept(this);
+    _patternVariables.logicalOrPatternFinishLeft();
+    node.rightOperand.accept(this);
+    _patternVariables.logicalOrPatternFinish(node);
   }
 
   @override
@@ -1732,7 +1729,7 @@ class _VariableBinderErrors
 
   @override
   void logicalOrPatternBranchMissingVariable({
-    required covariant BinaryPatternImpl node,
+    required covariant LogicalOrPatternImpl node,
     required bool hasInLeft,
     required String name,
     required PromotableElement variable,

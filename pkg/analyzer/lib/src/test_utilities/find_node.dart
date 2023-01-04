@@ -131,10 +131,6 @@ class FindNode {
     return _node(search, (n) => n is BinaryExpression);
   }
 
-  BinaryPattern binaryPattern(String search) {
-    return _node(search, (n) => n is BinaryPattern);
-  }
-
   Block block(String search) {
     return _node(search, (n) => n is Block);
   }
@@ -453,6 +449,14 @@ class FindNode {
 
   ListPattern listPattern(String search) {
     return _node(search, (n) => n is ListPattern);
+  }
+
+  LogicalAndPattern logicalAndPattern(String search) {
+    return _node(search, (n) => n is LogicalAndPattern);
+  }
+
+  LogicalOrPattern logicalOrPattern(String search) {
+    return _node(search, (n) => n is LogicalOrPattern);
   }
 
   MapLiteralEntry mapLiteralEntry(String search) {

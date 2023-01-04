@@ -390,8 +390,6 @@ abstract class AstVisitor<R> {
 
   R? visitBinaryExpression(BinaryExpression node);
 
-  R? visitBinaryPattern(BinaryPattern node);
-
   R? visitBlock(Block node);
 
   R? visitBlockFunctionBody(BlockFunctionBody node);
@@ -551,6 +549,10 @@ abstract class AstVisitor<R> {
   R? visitListLiteral(ListLiteral node);
 
   R? visitListPattern(ListPattern node);
+
+  R? visitLogicalAndPattern(LogicalAndPattern node);
+
+  R? visitLogicalOrPattern(LogicalOrPattern node);
 
   R? visitMapLiteralEntry(MapLiteralEntry node);
 
@@ -757,24 +759,6 @@ abstract class BinaryExpression
   /// The function type of the invocation, or `null` if the AST structure has
   /// not been resolved, or if the invocation could not be resolved.
   FunctionType? get staticInvokeType;
-}
-
-/// A binary (infix) pattern.
-///
-///    binaryPattern ::=
-///        [DartPattern] ('|' | '&') [DartPattern]
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class BinaryPattern implements DartPattern {
-  /// Return the pattern used to compute the left operand.
-  DartPattern get leftOperand;
-
-  /// Return the binary operator being applied.
-  Token get operator;
-
-  /// Return the pattern used to compute the right operand.
-  DartPattern get rightOperand;
 }
 
 /// A sequence of statements.
@@ -1675,11 +1659,12 @@ abstract class ContinueStatement implements Statement {
 ///
 ///    pattern ::=
 ///        [AssignedVariablePattern]
-///      | [BinaryPattern]
 ///      | [DeclaredVariablePattern]
 ///      | [CastPattern]
 ///      | [ConstantPattern]
 ///      | [ListPattern]
+///      | [LogicalAndPattern]
+///      | [LogicalOrPattern]
 ///      | [MapPattern]
 ///      | [ObjectPattern]
 ///      | [ParenthesizedPattern]
@@ -3528,6 +3513,42 @@ abstract class ListPatternElement implements AstNode {}
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class Literal implements Expression {}
+
+/// A logical-and pattern.
+///
+///    logicalAndPattern ::=
+///        [DartPattern] '&&' [DartPattern]
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class LogicalAndPattern implements DartPattern {
+  /// The left sub-pattern.
+  DartPattern get leftOperand;
+
+  /// The `&&` operator.
+  Token get operator;
+
+  /// The right sub-pattern.
+  DartPattern get rightOperand;
+}
+
+/// A logical-or pattern.
+///
+///    logicalOrPattern ::=
+///        [DartPattern] '||' [DartPattern]
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class LogicalOrPattern implements DartPattern {
+  /// The left sub-pattern.
+  DartPattern get leftOperand;
+
+  /// The `||` operator.
+  Token get operator;
+
+  /// The right sub-pattern.
+  DartPattern get rightOperand;
+}
 
 /// A single key/value pair in a map literal.
 ///

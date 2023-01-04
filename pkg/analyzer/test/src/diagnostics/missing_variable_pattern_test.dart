@@ -82,7 +82,7 @@ void f(int x) {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: DeclaredVariablePattern
     keyword: final
     name: a
@@ -105,8 +105,8 @@ void f(int x) {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalAndPattern
     leftOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 0
@@ -136,7 +136,7 @@ void f(num x) {
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: DeclaredVariablePattern
     keyword: final
     type: NamedType
@@ -166,7 +166,7 @@ void f(int x) {
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
@@ -191,8 +191,8 @@ void f(num x) {
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
       type: NamedType
@@ -227,8 +227,8 @@ void f(num x) {
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
       type: NamedType
@@ -268,8 +268,8 @@ void f(int x) {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
       name: a
@@ -300,8 +300,8 @@ void f(num x) {
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
       type: NamedType
@@ -344,8 +344,8 @@ void f(num x) {
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 1
@@ -380,8 +380,8 @@ void f(int x) {
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 1
@@ -411,8 +411,8 @@ void f(int x) {
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 1
@@ -442,7 +442,7 @@ void f(int x) {
 ''');
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: DeclaredVariablePattern
     keyword: final
     name: a
@@ -470,7 +470,7 @@ void f(num x) {
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: DeclaredVariablePattern
     keyword: final
     type: NamedType
@@ -503,7 +503,7 @@ void f(int x) {
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
