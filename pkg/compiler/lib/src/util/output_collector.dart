@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Output provider that collects the output in string buffers.
 
 library output_collector;
@@ -11,12 +9,12 @@ library output_collector;
 import 'package:compiler/compiler_api.dart' as api;
 
 class BufferedOutputSink implements api.OutputSink {
-  StringBuffer sb = new StringBuffer();
-  String text;
+  StringBuffer? sb = new StringBuffer();
+  String? text;
 
   @override
   void add(String event) {
-    sb.write(event);
+    sb!.write(event);
   }
 
   @override
@@ -39,7 +37,7 @@ class BufferedBinaryOutputSink implements api.BinaryOutputSink {
   BufferedBinaryOutputSink(this.uri);
 
   @override
-  void write(List<int> buffer, [int start = 0, int end]) {
+  void write(List<int> buffer, [int start = 0, int? end]) {
     list.addAll(buffer.sublist(start, end));
   }
 
@@ -72,13 +70,13 @@ class OutputCollector implements api.CompilerOutput {
   Map<api.OutputType, Map<String, BufferedOutputSink>> outputMap = {};
   Map<Uri, BufferedBinaryOutputSink> binaryOutputMap = {};
 
-  String getOutput(String name, api.OutputType type) {
-    Map<String, BufferedOutputSink> sinkMap = outputMap[type];
+  String? getOutput(String name, api.OutputType type) {
+    Map<String, BufferedOutputSink>? sinkMap = outputMap[type];
     if (sinkMap == null) {
       print("No output available for $type.");
       return null;
     }
-    BufferedOutputSink sink = sinkMap[name];
+    BufferedOutputSink? sink = sinkMap[name];
     if (sink == null) {
       print("Output '$name' not found for $type. Available: ${sinkMap.keys}");
       return null;
@@ -98,8 +96,8 @@ class OutputCollector implements api.CompilerOutput {
 
   /// `true` if any output other than main output has been collected.
   bool get hasExtraOutput {
-    for (api.OutputType type in outputMap.keys) {
-      for (String name in outputMap[type].keys) {
+    for (Map<String, BufferedOutputSink> output in outputMap.values) {
+      for (String name in output.keys) {
         if (name != '') return true;
       }
     }
