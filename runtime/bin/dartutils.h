@@ -345,7 +345,6 @@ class CObject {
   static Dart_CObject* NewInt64(int64_t value);
   static Dart_CObject* NewIntptr(intptr_t value);
   static Dart_CObject* NewDouble(double value);
-  static Dart_CObject* NewString(intptr_t length);
   static Dart_CObject* NewString(const char* str);
   static Dart_CObject* NewArray(intptr_t length);
   static Dart_CObject* NewUint8Array(const void* data, intptr_t length);
