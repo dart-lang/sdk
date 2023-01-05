@@ -14,8 +14,10 @@ const _details = r'''
 **DO** apply `@Deprecated()` consistently:
 
 - if a class is deprecated, its constructors should also be deprecated.
-- if a field is deprecated, the constructor parameter pointing to it should also be deprecated.
-- if a constructor parameter pointing to a field is deprecated, the field should also be deprecated.
+- if a field is deprecated, the constructor parameter pointing to it should also
+  be deprecated.
+- if a constructor parameter pointing to a field is deprecated, the field should
+  also be deprecated.
 
 **BAD:**
 ```dart
@@ -44,8 +46,11 @@ class B {
   @deprecated
   Object field;
 }
-```
 
+class C extends B {
+  C({@deprecated super.field});
+}
+```
 ''';
 
 class DeprecatedConsistency extends LintRule {
