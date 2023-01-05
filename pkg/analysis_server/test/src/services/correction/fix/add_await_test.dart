@@ -23,8 +23,8 @@ class AddAwaitBulkTest extends BulkFixProcessorTest {
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
-Future doSomething() => new Future.value('');
-Future doSomethingElse() => new Future.value('');
+Future doSomething() => Future.value('');
+Future doSomethingElse() => Future.value('');
 
 void f() async {
   doSomething();
@@ -32,8 +32,8 @@ void f() async {
 }
 ''');
     await assertHasFix('''
-Future doSomething() => new Future.value('');
-Future doSomethingElse() => new Future.value('');
+Future doSomething() => Future.value('');
+Future doSomethingElse() => Future.value('');
 
 void f() async {
   await doSomething();
@@ -53,14 +53,14 @@ class AddAwaitTest extends FixProcessorLintTest {
 
   Future<void> test_methodInvocation() async {
     await resolveTestCode('''
-Future doSomething() => new Future.value('');
+Future doSomething() => Future.value('');
 
 void f() async {
   doSomething();
 }
 ''');
     await assertHasFix('''
-Future doSomething() => new Future.value('');
+Future doSomething() => Future.value('');
 
 void f() async {
   await doSomething();

@@ -46,11 +46,11 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Text('AAA');
+    return Text('AAA');
   }
 }
 ''');
-    _createRefactoringForStringOffset('new Text');
+    _createRefactoringForStringOffset('Text');
 
     // empty
     refactoring.name = '';
@@ -70,13 +70,13 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Container();
+    return Container();
   }
 }
 
 class Test {}
 ''');
-    _createRefactoringForStringOffset('new Container');
+    _createRefactoringForStringOffset('Container');
 
     refactoring.name = 'Test';
     assertRefactoringStatus(
@@ -91,22 +91,22 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Row(
+    return Row(
       children: <Widget>[
-        new Column(
+        Column(
           children: <Widget>[
-            new Text('AAA'),
-            new Text('BBB'),
+            Text('AAA'),
+            Text('BBB'),
           ],
         ),
-        new Text('CCC'),
-        new Text('DDD'),
+        Text('CCC'),
+        Text('DDD'),
       ],
     );
   }
 }
 ''');
-    _createRefactoringForStringOffset('new Column');
+    _createRefactoringForStringOffset('Column');
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -114,11 +114,11 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Row(
+    return Row(
       children: <Widget>[
         Test(),
-        new Text('CCC'),
-        new Text('DDD'),
+        Text('CCC'),
+        Text('DDD'),
       ],
     );
   }
@@ -131,10 +131,10 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Column(
+    return Column(
       children: <Widget>[
-        new Text('AAA'),
-        new Text('BBB'),
+        Text('AAA'),
+        Text('BBB'),
       ],
     );
   }
@@ -148,27 +148,27 @@ import 'package:flutter/material.dart';
 
 Widget f() {
   Widget foo() {
-    return new Row(
+    return Row(
       children: <Widget>[
-        new Text('AAA'),
-        new Text('BBB'),
+        Text('AAA'),
+        Text('BBB'),
       ],
     );
   }
   return foo();
 }
 ''');
-    _createRefactoringForStringOffset('new Text');
+    _createRefactoringForStringOffset('Text');
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
 
 Widget f() {
   Widget foo() {
-    return new Row(
+    return Row(
       children: <Widget>[
         Test(),
-        new Text('BBB'),
+        Text('BBB'),
       ],
     );
   }
@@ -182,7 +182,7 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Text('AAA');
+    return Text('AAA');
   }
 }
 ''');
@@ -195,7 +195,7 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Container();
+    return Container();
   }
 }
 ''');
@@ -218,7 +218,7 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Container();
+    return Container();
   }
 }
 ''');
@@ -229,7 +229,7 @@ class Test extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 Widget f() {
-  return new Container();
+  return Container();
 }
 ''');
 
@@ -251,24 +251,23 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Container();
+    return Container();
   }
 }
 ''');
     }
 
     await assertResult('Container');
-    await assertResult('new Container');
-    await assertResult('new Container(');
-    await assertResult('new Container()');
-    await assertResult('new Container();');
+    await assertResult('Container(');
+    await assertResult('Container()');
+    await assertResult('Container();');
     await assertResult('taine');
     await assertResult('tainer');
     await assertResult('tainer(');
     await assertResult('tainer()');
-    await assertResult('turn new Container');
-    await assertResult('return new Container()');
-    await assertResult('return new Container();');
+    await assertResult('turn Container');
+    await assertResult('return Container()');
+    await assertResult('return Container();');
   }
 
   Future<void> test_expression_topFunction() async {
@@ -276,24 +275,24 @@ class Test extends StatelessWidget {
 import 'package:flutter/material.dart';
 
 Widget f() {
-  return new Row(
+  return Row(
     children: <Widget>[
-      new Text('AAA'),
-      new Text('BBB'),
+      Text('AAA'),
+      Text('BBB'),
     ],
   );
 }
 ''');
-    _createRefactoringForStringOffset('new Text');
+    _createRefactoringForStringOffset('Text');
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
 
 Widget f() {
-  return new Row(
+  return Row(
     children: <Widget>[
       Test(),
-      new Text('BBB'),
+      Text('BBB'),
     ],
   );
 }
@@ -305,7 +304,7 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Text('AAA');
+    return Text('AAA');
   }
 }
 ''');
@@ -318,8 +317,8 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new GestureDetector(
-      child: new Text(''),
+    return GestureDetector(
+      child: Text(''),
       onTap: () {
         foo();
       },
@@ -329,7 +328,7 @@ class MyWidget extends StatelessWidget {
   void foo() {}
 }
 ''');
-    _createRefactoringForStringOffset('new GestureDetector');
+    _createRefactoringForStringOffset('GestureDetector');
 
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
@@ -346,8 +345,8 @@ abstract class MyInterface {
 abstract class MyWidget extends StatelessWidget implements MyInterface {
   @override
   Widget build(BuildContext context) {
-    return new GestureDetector(
-      child: new Text(''),
+    return GestureDetector(
+      child: Text(''),
       onTap: () {
         foo();
       },
@@ -355,7 +354,7 @@ abstract class MyWidget extends StatelessWidget implements MyInterface {
   }
 }
 ''');
-    _createRefactoringForStringOffset('new GestureDetector');
+    _createRefactoringForStringOffset('GestureDetector');
 
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
@@ -370,12 +369,12 @@ class C {
 }
 
 class MyWidget extends StatelessWidget {
-  C c = new C();
+  C c = C();
 
   @override
   Widget build(BuildContext context) {
-    return new GestureDetector(
-      child: new Text(''),
+    return GestureDetector(
+      child: Text(''),
       onTap: () {
         c.foo();
       },
@@ -383,7 +382,7 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('new GestureDetector');
+    _createRefactoringForStringOffset('GestureDetector');
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -393,7 +392,7 @@ class C {
 }
 
 class MyWidget extends StatelessWidget {
-  C c = new C();
+  C c = C();
 
   @override
   Widget build(BuildContext context) {
@@ -411,8 +410,8 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new GestureDetector(
-      child: new Text(''),
+    return GestureDetector(
+      child: Text(''),
       onTap: () {
         c.foo();
       },
@@ -433,9 +432,9 @@ class MyWidget extends StatelessWidget {
   }
 
   Widget createColumn() {
-    var a = new Text('AAA');
-    var b = new Text('BBB');
-    return new Column(
+    var a = Text('AAA');
+    var b = Text('BBB');
+    return Column(
       children: <Widget>[a, b],
     );
   }
@@ -460,9 +459,9 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var a = new Text('AAA');
-    var b = new Text('BBB');
-    return new Column(
+    var a = Text('AAA');
+    var b = Text('BBB');
+    return Column(
       children: <Widget>[a, b],
     );
   }
@@ -480,7 +479,7 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     int bar = 1;
-    return new Row(
+    return Row(
       children: <Widget>[
         createColumn('aaa', bar),
         createColumn('bbb', 2),
@@ -489,9 +488,9 @@ class MyWidget extends StatelessWidget {
   }
 
   Widget createColumn(String p1, int p2) {
-    var a = new Text('$foo $p1');
-    var b = new Text('$p2');
-    return new Column(
+    var a = Text('$foo $p1');
+    var b = Text('$p2');
+    return Column(
       children: <Widget>[a, b],
     );
   }
@@ -508,7 +507,7 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     int bar = 1;
-    return new Row(
+    return Row(
       children: <Widget>[
         Test(foo: foo, p1: 'aaa', p2: bar),
         Test(foo: foo, p1: 'bbb', p2: 2),
@@ -531,9 +530,9 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var a = new Text('$foo $p1');
-    var b = new Text('$p2');
-    return new Column(
+    var a = Text('$foo $p1');
+    var b = Text('$p2');
+    return Column(
       children: <Widget>[a, b],
     );
   }
@@ -553,7 +552,7 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     int bar = 1;
-    return new Row(
+    return Row(
       children: <Widget>[
         createColumn(p1: 'aaa', p2: bar),
         createColumn(p1: 'bbb', p2: 2),
@@ -562,9 +561,9 @@ class MyWidget extends StatelessWidget {
   }
 
   Widget createColumn({required String p1, required int p2}) {
-    var a = new Text('$foo $p1');
-    var b = new Text('$p2');
-    return new Column(
+    var a = Text('$foo $p1');
+    var b = Text('$p2');
+    return Column(
       children: <Widget>[a, b],
     );
   }
@@ -583,7 +582,7 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     int bar = 1;
-    return new Row(
+    return Row(
       children: <Widget>[
         Test(foo: foo, p1: 'aaa', p2: bar),
         Test(foo: foo, p1: 'bbb', p2: 2),
@@ -606,9 +605,9 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var a = new Text('$foo $p1');
-    var b = new Text('$p2');
-    return new Column(
+    var a = Text('$foo $p1');
+    var b = Text('$p2');
+    return Column(
       children: <Widget>[a, b],
     );
   }
@@ -627,11 +626,11 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Text(field);
+    return Text(field);
   }
 }
 ''');
-    _createRefactoringForStringOffset('new Text');
+    _createRefactoringForStringOffset('Text');
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -657,7 +656,7 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Text(field);
+    return Text(field);
   }
 }
 ''');
@@ -672,15 +671,15 @@ class C {
 }
 
 class MyWidget extends StatelessWidget {
-  C c = new C();
+  C c = C();
 
   @override
   Widget build(BuildContext context) {
-    return new Text(c.field);
+    return Text(c.field);
   }
 }
 ''');
-    _createRefactoringForStringOffset('new Text');
+    _createRefactoringForStringOffset('Text');
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -690,7 +689,7 @@ class C {
 }
 
 class MyWidget extends StatelessWidget {
-  C c = new C();
+  C c = C();
 
   @override
   Widget build(BuildContext context) {
@@ -708,7 +707,7 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Text(c.field);
+    return Text(c.field);
   }
 }
 ''');
@@ -723,11 +722,11 @@ String field = '';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Text(field);
+    return Text(field);
   }
 }
 ''');
-    _createRefactoringForStringOffset('new Text');
+    _createRefactoringForStringOffset('Text');
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -748,7 +747,7 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Text(field);
+    return Text(field);
   }
 }
 ''');
@@ -765,8 +764,8 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new GestureDetector(
-      child: new Text(''),
+    return GestureDetector(
+      child: Text(''),
       onTap: () {
         field = '';
       },
@@ -774,7 +773,7 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('new GestureDetector');
+    _createRefactoringForStringOffset('GestureDetector');
 
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
@@ -791,8 +790,8 @@ abstract class MySuperWidget extends StatelessWidget {
 class MyWidget extends MySuperWidget {
   @override
   Widget build(BuildContext context) {
-    return new GestureDetector(
-      child: new Text(''),
+    return GestureDetector(
+      child: Text(''),
       onTap: () {
         field = '';
       },
@@ -800,7 +799,7 @@ class MyWidget extends MySuperWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('new GestureDetector');
+    _createRefactoringForStringOffset('GestureDetector');
 
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
@@ -815,12 +814,12 @@ class C {
 }
 
 class MyWidget extends StatelessWidget {
-  C c = new C();
+  C c = C();
 
   @override
   Widget build(BuildContext context) {
-    return new GestureDetector(
-      child: new Text(''),
+    return GestureDetector(
+      child: Text(''),
       onTap: () {
         c.field = '';
       },
@@ -828,7 +827,7 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('new GestureDetector');
+    _createRefactoringForStringOffset('GestureDetector');
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -838,7 +837,7 @@ class C {
 }
 
 class MyWidget extends StatelessWidget {
-  C c = new C();
+  C c = C();
 
   @override
   Widget build(BuildContext context) {
@@ -856,8 +855,8 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new GestureDetector(
-      child: new Text(''),
+    return GestureDetector(
+      child: Text(''),
       onTap: () {
         c.field = '';
       },
@@ -875,11 +874,11 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String key = '';
-    return new Text('$key $key');
+    return Text('$key $key');
   }
 }
 ''');
-    _createRefactoringForStringOffset('new Text');
+    _createRefactoringForStringOffset('Text');
 
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
@@ -893,11 +892,11 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String local = '';
-    return new Text('$local $local');
+    return Text('$local $local');
   }
 }
 ''');
-    _createRefactoringForStringOffset('new Text');
+    _createRefactoringForStringOffset('Text');
 
     await _assertSuccessfulRefactoring(r'''
 import 'package:flutter/material.dart';
@@ -920,7 +919,7 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Text('$local $local');
+    return Text('$local $local');
   }
 }
 ''');
@@ -934,8 +933,8 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String local;
-    return new GestureDetector(
-      child: new Text(''),
+    return GestureDetector(
+      child: Text(''),
       onTap: () {
         local = '';
       },
@@ -943,7 +942,7 @@ class MyWidget extends StatelessWidget {
   }
 }
 ''');
-    _createRefactoringForStringOffset('new GestureDetector');
+    _createRefactoringForStringOffset('GestureDetector');
 
     var status = await refactoring.checkAllConditions();
     assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR);
@@ -960,11 +959,11 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Text(_field);
+    return Text(_field);
   }
 }
 ''');
-    _createRefactoringForStringOffset('new Text');
+    _createRefactoringForStringOffset('Text');
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -990,7 +989,7 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Text(_field);
+    return Text(_field);
   }
 }
 ''');
@@ -1008,11 +1007,11 @@ class MyWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Text('$field $_field');
+    return Text('$field $_field');
   }
 }
 ''');
-    _createRefactoringForStringOffset('new Text');
+    _createRefactoringForStringOffset('Text');
 
     await _assertSuccessfulRefactoring(r'''
 import 'package:flutter/material.dart';
@@ -1041,7 +1040,7 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Text('$field $_field');
+    return Text('$field $_field');
   }
 }
 ''');
@@ -1059,16 +1058,16 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     String local = '';
-    return new Column(
+    return Column(
       children: <Widget>[
-        new Text(field),
-        new Text(local),
+        Text(field),
+        Text(local),
       ],
     );
   }
 }
 ''');
-    _createRefactoringForStringOffset('new Column');
+    _createRefactoringForStringOffset('Column');
 
     await _assertSuccessfulRefactoring('''
 import 'package:flutter/material.dart';
@@ -1097,10 +1096,10 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Column(
+    return Column(
       children: <Widget>[
-        new Text(field),
-        new Text(local),
+        Text(field),
+        Text(local),
       ],
     );
   }
@@ -1115,11 +1114,11 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Text('AAA');
+    return Text('AAA');
   }
 }
 ''');
-    _createRefactoringForStringOffset('new Text');
+    _createRefactoringForStringOffset('Text');
     expect(refactoring.refactoringName, 'Extract Widget');
   }
 
@@ -1132,10 +1131,10 @@ Widget f() {
   var a = 'a $index';
 // start
   var b = 'b $index';
-  return new Row(
+  return Row(
     children: <Widget>[
-      new Text(a),
-      new Text(b),
+      Text(a),
+      Text(b),
     ],
   );
 // end
@@ -1167,10 +1166,10 @@ class Test extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var b = 'b $index';
-    return new Row(
+    return Row(
       children: <Widget>[
-        new Text(a),
-        new Text(b),
+        Text(a),
+        Text(b),
       ],
     );
   }
@@ -1199,7 +1198,7 @@ import 'package:flutter/material.dart';
 
 void f() {
 // start
-  new Text('text');
+  Text('text');
 // end
 }
 ''');
@@ -1218,22 +1217,22 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Row(
+    return Row(
       children: <Widget>[
-        new Column(
+        Column(
           children: <Widget>[
-            new Text('AAA'),
-            new Text('BBB'),
+            Text('AAA'),
+            Text('BBB'),
           ],
         ),
-        new Text('CCC'),
-        new Text('DDD'),
+        Text('CCC'),
+        Text('DDD'),
       ],
     );
   }
 }
 ''');
-    _createRefactoringForStringOffset('new Column');
+    _createRefactoringForStringOffset('Column');
 
     await _assertSuccessfulRefactoring('''
 // No super params.    
@@ -1243,11 +1242,11 @@ import 'package:flutter/material.dart';
 class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return new Row(
+    return Row(
       children: <Widget>[
         Test(),
-        new Text('CCC'),
-        new Text('DDD'),
+        Text('CCC'),
+        Text('DDD'),
       ],
     );
   }
@@ -1260,10 +1259,10 @@ class Test extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return new Column(
+    return Column(
       children: <Widget>[
-        new Text('AAA'),
-        new Text('BBB'),
+        Text('AAA'),
+        Text('BBB'),
       ],
     );
   }
@@ -1296,7 +1295,7 @@ class Test extends StatelessWidget {
     _createRefactoring(offset, length);
   }
 
-  /// Creates a new refactoring in [refactoring] at the offset of the given
+  /// Creates a refactoring in [refactoring] at the offset of the given
   /// [search] pattern.
   void _createRefactoringForStringOffset(String search) {
     var offset = findOffset(search);

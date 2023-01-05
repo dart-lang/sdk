@@ -49,7 +49,7 @@ var w = const Icon();
   Future<void> test_getWidgetPresentationText_notWidget() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';
-var w = new Object();
+var w = Object();
 ''');
     var w = _getTopVariableCreation('w');
     expect(_flutter.getWidgetPresentationText(w), isNull);
@@ -101,8 +101,8 @@ var w = new Foo();
 import 'package:flutter/widgets.dart';
 
 void f() {
-  new MyWidget(1234);
-  new MyWidget.named(5678);
+  MyWidget(1234);
+  MyWidget.named(5678);
 }
 
 class MyWidget extends StatelessWidget {
@@ -115,7 +115,7 @@ class MyWidget extends StatelessWidget {
     var body = f.functionExpression.body as BlockFunctionBody;
     var statements = body.block.statements;
 
-    // new MyWidget(1234);
+    // MyWidget(1234);
     {
       var statement = statements[0] as ExpressionStatement;
       var creation = statement.expression as InstanceCreationExpression;
@@ -132,7 +132,7 @@ class MyWidget extends StatelessWidget {
       );
     }
 
-    // new MyWidget.named(5678);
+    // MyWidget.named(5678);
     {
       var statement = statements[1] as ExpressionStatement;
       var creation = statement.expression as InstanceCreationExpression;
@@ -161,8 +161,8 @@ void f() {
   createText('xyz');
 }
 
-Text createEmptyText() => new Text('');
-Text createText(String txt) => new Text(txt);
+Text createEmptyText() => Text('');
+Text createText(String txt) => Text(txt);
 ''');
     {
       var invocation = findNode.methodInvocation('createEmptyText();');
@@ -188,10 +188,10 @@ Text createText(String txt) => new Text(txt);
 import 'package:flutter/widgets.dart';
 
 void f() {
-  new Container(child: new Text(''));
+  Container(child: Text(''));
 }
 
-Text createEmptyText() => new Text('');
+Text createEmptyText() => Text('');
 ''');
     var childExpression = findNode.namedExpression('child: ');
     expect(_flutter.identifyWidgetExpression(childExpression), isNull);
@@ -256,7 +256,7 @@ void f() {
   intVariable;
 }
 
-Text createEmptyText() => new Text('');
+Text createEmptyText() => Text('');
 ''');
     expect(_flutter.identifyWidgetExpression(null), isNull);
     {
@@ -275,7 +275,7 @@ Text createEmptyText() => new Text('');
 import 'package:flutter/widgets.dart';
 
 void f() {
-  var text = new Text('abc');
+  var text = Text('abc');
   useWidget(text); // ref
 }
 
@@ -411,7 +411,7 @@ List<Widget> f(Widget widget) {
 import 'package:flutter/widgets.dart';
 
 void f() {
-  var text = new Text('abc');
+  var text = Text('abc');
   useWidget(child: text); // ref
 }
 
@@ -463,8 +463,8 @@ class NotWidget extends State {}
     await resolveTestCode('''
 import 'package:flutter/widgets.dart';
 
-var a = new Object();
-var b = new Text('bbb');
+var a = Object();
+var b = Text('bbb');
 ''');
     expect(_flutter.isWidgetCreation(null), isFalse);
 
@@ -481,10 +481,10 @@ import 'package:flutter/widgets.dart';
 
 void f() {
   MyWidget.named(); // use
-  var text = new Text('abc');
+  var text = Text('abc');
   text;
   createEmptyText();
-  new Container(child: text);
+  Container(child: text);
   var intVariable = 42;
   intVariable;
 }
@@ -503,7 +503,7 @@ Text createEmptyText() => new Text('');
     }
 
     {
-      var expression = findNode.instanceCreation("new Text('abc')");
+      var expression = findNode.instanceCreation("Text('abc')");
       expect(_flutter.isWidgetExpression(expression), isTrue);
     }
 
