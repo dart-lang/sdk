@@ -1990,19 +1990,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   StatementInferenceResult visitLabeledStatement(LabeledStatement node) {
-    bool isSimpleBody = node.body is Block ||
-        node.body is IfStatement ||
-        node.body is TryStatement;
-    if (isSimpleBody) {
-      flowAnalysis.labeledStatement_begin(node);
-    }
-
+    flowAnalysis.labeledStatement_begin(node);
     StatementInferenceResult bodyResult = inferStatement(node.body);
-
-    if (isSimpleBody) {
-      flowAnalysis.labeledStatement_end();
-    }
-
+    flowAnalysis.labeledStatement_end();
     if (bodyResult.hasChanged) {
       node.body = bodyResult.statement..parent = node;
     }

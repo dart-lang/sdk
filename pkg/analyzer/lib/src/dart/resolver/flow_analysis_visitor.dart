@@ -325,7 +325,12 @@ class FlowAnalysisHelper {
         if (node is LabeledStatement) {
           if (_hasLabel(node.labels, element)) {
             var statement = node.statement;
+            // The inner statement is returned for labeled loops and
+            // switch statements, while the LabeledStatement is returned
+            // for the other known targets. This could be possibly changed
+            // so that the inner statement is always returned.
             if (statement is Block ||
+                statement is BreakStatement ||
                 statement is IfStatement ||
                 statement is TryStatement) {
               return node;
