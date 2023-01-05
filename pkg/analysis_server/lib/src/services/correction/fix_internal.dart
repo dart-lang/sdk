@@ -1354,13 +1354,22 @@ class FixProcessor extends BaseProcessor {
     ],
     // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
 //    HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE: [],
+    HintCode.INVALID_ANNOTATION_TARGET: [
+      RemoveAnnotation.new,
+    ],
     HintCode.INVALID_FACTORY_ANNOTATION: [
       RemoveAnnotation.new,
     ],
     HintCode.INVALID_IMMUTABLE_ANNOTATION: [
       RemoveAnnotation.new,
     ],
+    HintCode.INVALID_INTERNAL_ANNOTATION: [
+      RemoveAnnotation.new,
+    ],
     HintCode.INVALID_LITERAL_ANNOTATION: [
+      RemoveAnnotation.new,
+    ],
+    HintCode.INVALID_NON_VIRTUAL_ANNOTATION: [
       RemoveAnnotation.new,
     ],
     HintCode.INVALID_REQUIRED_NAMED_PARAM: [
@@ -1373,6 +1382,12 @@ class FixProcessor extends BaseProcessor {
       RemoveAnnotation.new,
     ],
     HintCode.INVALID_SEALED_ANNOTATION: [
+      RemoveAnnotation.new,
+    ],
+    HintCode.INVALID_VISIBILITY_ANNOTATION: [
+      RemoveAnnotation.new,
+    ],
+    HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION: [
       RemoveAnnotation.new,
     ],
     HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE: [
