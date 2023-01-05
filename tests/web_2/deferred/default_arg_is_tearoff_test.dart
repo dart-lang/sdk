@@ -8,7 +8,7 @@
 ///
 /// The compiler used to keep all metadata (other than type information) in one
 /// global table that was shipped with the main output unit.  For most metadata
-/// this was OK because it was refering to strings and other simple constants.
+/// this was OK because it was referring to strings and other simple constants.
 /// However, we also allow to refer to tear-offs of top-level functions. When
 /// that top-level function was assigned to a deferred fragment, the metadata
 /// initialization would simply fail.

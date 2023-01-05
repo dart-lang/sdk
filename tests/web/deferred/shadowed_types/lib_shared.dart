@@ -12,7 +12,7 @@ class B {}
 // unit.
 class C_Parent {}
 
-// Classes D through F represent a simple heirarchy.
+// Classes D through F represent a simple hierarchy.
 // D's type is used in liba.
 // F is instantiated, but unused in libb.
 class D {}

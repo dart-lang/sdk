@@ -5468,7 +5468,7 @@ class MakeTempInstr : public TemplateDefinition<0, NoThrow, Pure> {
   explicit MakeTempInstr(Zone* zone)
       : null_(new (zone) ConstantInstr(Object::ZoneHandle())) {
     // Note: We put ConstantInstr inside MakeTemp to simplify code generation:
-    // having ConstantInstr allows us to use Location::Contant(null_) as an
+    // having ConstantInstr allows us to use Location::Constant(null_) as an
     // output location for this instruction.
   }
 
