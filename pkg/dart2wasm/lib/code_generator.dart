@@ -701,7 +701,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void visitInvalidInitializer(InvalidInitializer node) {}
 
   @override
-  void visitAssertInitializer(AssertInitializer node) {}
+  void visitAssertInitializer(AssertInitializer node) {
+    visitStatement(node.statement);
+  }
 
   @override
   void visitLocalInitializer(LocalInitializer node) {

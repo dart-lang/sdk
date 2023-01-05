@@ -322,7 +322,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
         failedAt(
             member,
             "unexpected input: ConstructorBodyElements are created"
-            " after global type inference, no data is avaiable for them."));
+            " after global type inference, no data is available for them."));
     // TODO(sigmund,johnniwinther): Make it an error to query for results that
     // don't exist..
     /*assert(memberResults.containsKey(member) || member is JSignatureMethod,

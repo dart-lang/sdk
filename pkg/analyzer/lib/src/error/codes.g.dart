@@ -3256,6 +3256,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const CompileTimeErrorCode NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION =
+      CompileTimeErrorCode(
+    'NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION',
+    "The relational pattern expression must be a constant.",
+    correctionMessage: "Try using a constant instead.",
+  );
+
+  ///  No parameters.
   static const CompileTimeErrorCode NON_CONSTANT_SET_ELEMENT =
       CompileTimeErrorCode(
     'NON_CONSTANT_SET_ELEMENT',

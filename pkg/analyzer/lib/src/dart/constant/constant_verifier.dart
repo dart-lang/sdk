@@ -286,6 +286,16 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRelationalPattern(RelationalPattern node) {
+    super.visitRelationalPattern(node);
+
+    _validate(
+      node.operand,
+      CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+    );
+  }
+
+  @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     super.visitSetOrMapLiteral(node);
     if (node.isSet) {

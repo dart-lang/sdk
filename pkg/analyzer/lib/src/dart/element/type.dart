@@ -1008,6 +1008,24 @@ class RecordTypeImpl extends TypeImpl implements RecordType {
     super.alias,
   }) : namedFields = _sortNamedFields(namedFields);
 
+  factory RecordTypeImpl.fromApi({
+    required List<DartType> positional,
+    required Map<String, DartType> named,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return RecordTypeImpl(
+      positionalFields: [
+        for (final type in positional)
+          RecordTypePositionalFieldImpl(type: type),
+      ],
+      namedFields: [
+        for (final entry in named.entries)
+          RecordTypeNamedFieldImpl(name: entry.key, type: entry.value),
+      ],
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
   @override
   Null get element => null;
 

@@ -9788,6 +9788,10 @@ CompileTimeErrorCode:
       var a = 'a';
       var m = {0: a};
       ```
+  NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION:
+    problemMessage: The relational pattern expression must be a constant.
+    correctionMessage: Try using a constant instead.
+    comment: No parameters.
   NON_CONSTANT_SET_ELEMENT:
     problemMessage: The values in a const set literal must be constants.
     correctionMessage: "Try removing the keyword 'const' from the set literal."
