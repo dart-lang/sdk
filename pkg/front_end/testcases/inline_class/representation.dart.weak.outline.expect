@@ -25,9 +25,9 @@ inline class Duplicate /* declaredRepresentationType = core::bool */ {
   constructor • = self::Duplicate|;
 }
 static field core::int Static|staticField;
-method Static|(core::bool instanceField) → self::Static
+static method Static|(core::bool instanceField) → self::Static
   ;
-method Multiple|(core::bool instanceField1) → self::Multiple
+static method Multiple|(core::bool instanceField1) → self::Multiple
   ;
-method Duplicate|(core::int instanceField) → self::Duplicate
+static method Duplicate|(core::int instanceField) → self::Duplicate
   ;
