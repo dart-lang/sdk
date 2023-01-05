@@ -7510,6 +7510,28 @@ class BodyBuilder extends StackListenerImpl
   }
 
   @override
+  void handleSwitchExpressionCasePattern(Token token) {
+    debugEvent("SwitchExpressionCasePattern");
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Pattern
+      ])
+    ]));
+    Object? pattern = pop();
+    enterLocalScope("switch-expression-case");
+    if (pattern is Pattern) {
+      for (VariableDeclaration variable in pattern.declaredVariables) {
+        declareVariable(variable, scope);
+        typeInferrer.assignedVariables.declare(variable);
+      }
+    }
+    push(pattern);
+  }
+
+  @override
   void endSwitchExpressionCase(Token? when, Token arrow, Token endToken) {
     debugEvent("endSwitchExpressionCase");
     assert(checkState(arrow, [
@@ -7530,6 +7552,7 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.ProblemBuilder,
         ValueKinds.Pattern,
       ]),
+      ValueKinds.Scope,
     ]));
 
     Expression expression = popForValue();
@@ -7538,6 +7561,7 @@ class BodyBuilder extends StackListenerImpl
       guard = popForValue();
     }
     Object? value = pop();
+    exitLocalScope();
     PatternGuard patternGuard = new PatternGuard(toPattern(value), guard);
     push(new SwitchExpressionCase(arrow.charOffset, patternGuard, expression));
     assert(checkState(arrow, [

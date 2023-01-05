@@ -5211,6 +5211,11 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void handleSwitchExpressionCasePattern(Token token) {
+    debugEvent("SwitchExpressionCasePattern");
+  }
+
+  @override
   void handleSymbolVoid(Token voidKeyword) {
     assert(optional('void', voidKeyword));
     debugEvent("SymbolVoid");

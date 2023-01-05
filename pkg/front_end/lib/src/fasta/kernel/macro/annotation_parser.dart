@@ -2173,6 +2173,11 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void handleSwitchExpressionCasePattern(Token token) {
+    _unhandled();
+  }
+
+  @override
   void handleSymbolVoid(Token token) {
     _unhandled();
   }

@@ -2556,6 +2556,14 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleSwitchExpressionCasePattern(Token token) {
+    SwitchExpressionCasePatternHandle data =
+        new SwitchExpressionCasePatternHandle(ParserAstType.HANDLE,
+            token: token);
+    seen(data);
+  }
+
+  @override
   void handleSymbolVoid(Token token) {
     SymbolVoidHandle data =
         new SymbolVoidHandle(ParserAstType.HANDLE, token: token);
@@ -7514,6 +7522,18 @@ class OperatorHandle extends ParserAstNode {
 
   OperatorHandle(ParserAstType type, {required this.token})
       : super("Operator", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
+class SwitchExpressionCasePatternHandle extends ParserAstNode {
+  final Token token;
+
+  SwitchExpressionCasePatternHandle(ParserAstType type, {required this.token})
+      : super("SwitchExpressionCasePattern", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {

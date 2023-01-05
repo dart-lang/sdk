@@ -577,7 +577,7 @@ class OperationsCfe
 
   @override
   bool areStructurallyEqual(DartType type1, DartType type2) {
-    // TODO(cstefantsova): Use the actual structural equality here.
+    // TODO(cstefantsova): Use the actual algorithm for structural equality.
     return type1 == type2;
   }
 

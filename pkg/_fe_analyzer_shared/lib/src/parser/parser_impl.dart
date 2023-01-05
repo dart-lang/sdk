@@ -9942,6 +9942,7 @@ class Parser {
       while (true) {
         listener.beginSwitchExpressionCase();
         token = parsePattern(token, PatternContext.matching);
+        listener.handleSwitchExpressionCasePattern(token);
         Token? when;
         next = token.next!;
         if (optional('when', next)) {

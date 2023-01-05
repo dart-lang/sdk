@@ -2711,6 +2711,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleSwitchExpressionCasePattern(Token token) {
+    seen(token);
+    doPrint('handleSwitchExpressionCasePattern(' '$token)');
+  }
+
+  @override
   void handleSymbolVoid(Token token) {
     seen(token);
     doPrint('handleSymbolVoid(' '$token)');

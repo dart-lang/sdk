@@ -1957,6 +1957,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleSwitchExpressionCasePattern(Token token) {
+    listener?.handleSwitchExpressionCasePattern(token);
+  }
+
+  @override
   void handleSymbolVoid(Token token) {
     listener?.handleSymbolVoid(token);
   }

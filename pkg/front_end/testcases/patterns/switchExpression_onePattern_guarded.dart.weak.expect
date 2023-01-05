@@ -9,8 +9,10 @@ static method f(dynamic x) → dynamic
     final core::int #t3 = -1;
     final core::bool #t4 = false;
     if(!#t4) {
-      #t3 = 0;
-      #t4 = true;
+      if(true) {
+        #t3 = 0;
+        #t4 = true;
+      }
     }
     #L1:
     switch(#t3) {
