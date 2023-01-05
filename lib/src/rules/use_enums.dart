@@ -67,7 +67,6 @@ class UseEnums extends LintRule {
             name: 'use_enums',
             description: _desc,
             details: _details,
-            state: State.experimental(),
             group: Group.style);
 
   @override
