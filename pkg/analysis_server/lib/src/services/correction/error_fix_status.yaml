@@ -377,6 +377,8 @@ CompileTimeErrorCode.DUPLICATE_PART:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD:
   status: needsEvaluation
+CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN:
+  status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN:
   status: needsEvaluation
 CompileTimeErrorCode.ENUM_CONSTANT_SAME_NAME_AS_ENCLOSING:
@@ -955,6 +957,8 @@ CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT:
   status: needsEvaluation
 CompileTimeErrorCode.RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL:
   status: noFix
+CompileTimeErrorCode.REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN:
+  status: needsEvaluation
 CompileTimeErrorCode.REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN:
   status: needsEvaluation
 CompileTimeErrorCode.RETHROW_OUTSIDE_CATCH:

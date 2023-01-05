@@ -142,6 +142,31 @@ class DiagnosticFactory {
     );
   }
 
+  /// Return a diagnostic indicating that [duplicateElement] reuses a name
+  /// already used by [originalElement].
+  AnalysisError duplicateRestElementInPattern({
+    required Source source,
+    required RestPatternElement originalElement,
+    required RestPatternElement duplicateElement,
+  }) {
+    return AnalysisError(
+      source,
+      duplicateElement.offset,
+      duplicateElement.length,
+      CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN,
+      [],
+      [
+        DiagnosticMessageImpl(
+          filePath: source.fullName,
+          length: originalElement.length,
+          message: 'The first rest element.',
+          offset: originalElement.offset,
+          url: source.uri.toString(),
+        ),
+      ],
+    );
+  }
+
   /// Return a diagnostic indicating that the [duplicateElement] (in a constant
   /// set) is a duplicate of the [originalElement].
   AnalysisError equalElementsInConstSet(

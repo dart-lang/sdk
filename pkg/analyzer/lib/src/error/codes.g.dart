@@ -1187,6 +1187,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try removing the duplicate field.",
   );
 
+  static const CompileTimeErrorCode DUPLICATE_REST_ELEMENT_IN_PATTERN =
+      CompileTimeErrorCode(
+    'DUPLICATE_REST_ELEMENT_IN_PATTERN',
+    "At most one rest element is allowed in a list or map pattern.",
+    correctionMessage: "Try removing the duplicate rest element.",
+  );
+
   ///  Parameters:
   ///  0: the name of the variable
   static const CompileTimeErrorCode DUPLICATE_VARIABLE_PATTERN =
@@ -4069,6 +4076,13 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "assignable to 'bool'.",
     correctionMessage:
         "Try updating the operator declaration to return 'bool'.",
+  );
+
+  static const CompileTimeErrorCode REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN =
+      CompileTimeErrorCode(
+    'REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN',
+    "A rest element in a map pattern must be the last element.",
+    correctionMessage: "Try moving the rest element to be the last element.",
   );
 
   static const CompileTimeErrorCode
