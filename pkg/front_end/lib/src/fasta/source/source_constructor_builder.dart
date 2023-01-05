@@ -1176,6 +1176,8 @@ class SourceInlineClassConstructorBuilder
       _constructor.function.fileEndOffset = _constructor.fileEndOffset;
       _constructor.isConst = isConst;
       _constructor.isExternal = isExternal;
+      _constructor.isStatic = true;
+      _constructor.isInlineClassMember = true;
 
       if (_constructorTearOff != null) {
         buildConstructorTearOffProcedure(

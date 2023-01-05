@@ -51,6 +51,7 @@ import '../builder/extension_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
+import '../builder/inline_class_builder.dart';
 import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
@@ -5645,7 +5646,8 @@ class BodyBuilder extends StackListenerImpl
         }
         return node;
       } else {
-        assert(constness == Constness.implicit);
+        assert(
+            constness == Constness.implicit || procedure.isInlineClassMember);
         return new StaticInvocation(target, arguments, isConst: false)
           ..fileOffset = charOffset;
       }
@@ -6239,6 +6241,22 @@ class BodyBuilder extends StackListenerImpl
       } else {
         errorName ??= debugName(type.name, name);
       }
+    } else if (type is InlineClassBuilder) {
+      MemberBuilder? b =
+          type.findConstructorOrFactory(name, charOffset, uri, libraryBuilder);
+      Member? target;
+      if (b == null) {
+        // Not found. Reported below.
+      } else if (b is AmbiguousMemberBuilder) {
+        message = b.message.withLocation(uri, charOffset, noLength);
+      } else {
+        target = b.member;
+      }
+      return buildStaticInvocation(target!, arguments,
+          constness: constness,
+          charOffset: nameToken.charOffset,
+          charLength: nameToken.length,
+          typeAliasBuilder: typeAliasBuilder as TypeAliasBuilder?);
     } else if (type is InvalidTypeDeclarationBuilder) {
       LocatedMessage message = type.message;
       return evaluateArgumentsBefore(

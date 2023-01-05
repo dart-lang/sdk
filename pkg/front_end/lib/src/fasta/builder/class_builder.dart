@@ -109,9 +109,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   abstract TypeBuilder? mixedInTypeBuilder;
 
-  MemberBuilder? findConstructorOrFactory(
-      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
-
   /// The [Class] built by this builder.
   ///
   /// For a patch class the origin class is returned.
@@ -235,23 +232,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       return origin.findStaticBuilder(
           name, charOffset, fileUri, accessingLibrary,
           isSetter: isSetter);
-    }
-    return declaration;
-  }
-
-  @override
-  MemberBuilder? findConstructorOrFactory(
-      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
-    if (accessingLibrary.nameOriginBuilder.origin !=
-            libraryBuilder.nameOriginBuilder.origin &&
-        name.startsWith("_")) {
-      return null;
-    }
-    MemberBuilder? declaration =
-        constructorScope.lookup(name == 'new' ? '' : name, charOffset, uri);
-    if (declaration == null && isPatch) {
-      return origin.findConstructorOrFactory(
-          name, charOffset, uri, accessingLibrary);
     }
     return declaration;
   }

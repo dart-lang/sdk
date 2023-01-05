@@ -39,29 +39,29 @@ inline class Class5 /* declaredRepresentationType = core::int */ {
 inline class Class6 /* declaredRepresentationType = core::int */ {
   constructor • = self::Class6|;
 }
-method Class1|(core::int field) → self::Class1 {
+static method Class1|(core::int field) → self::Class1 {
   final self::Class1 #this = field;
   return #this;
 }
-method Class2|(core::int field) → self::Class2 {
+static method Class2|(core::int field) → self::Class2 {
   final self::Class2 #this = field;
   return #this;
 }
-method Class4|(core::int field, dynamic nonexisting) → self::Class4 {
+static method Class4|(core::int field, dynamic nonexisting) → self::Class4 {
   final self::Class4 #this = field;
   final dynamic #t1 = invalid-expression "pkg/front_end/testcases/inline_class/initializers.dart:24:27: Error: 'nonexisting' isn't an instance field of this class.
   Class4(this.field, this.nonexisting);
                           ^^^^^^^^^^^";
   return #this;
 }
-method Class5|(core::int field) → self::Class5 {
+static method Class5|(core::int field) → self::Class5 {
   final self::Class5 #this = field;
   final dynamic #t2 = invalid-expression "pkg/front_end/testcases/inline_class/initializers.dart:30:35: Error: 'field' was already initialized by this constructor.
   Class5(this.field) : this.field = 42;
                                   ^";
   return #this;
 }
-method Class6|(core::int field) → self::Class6 {
+static method Class6|(core::int field) → self::Class6 {
   final self::Class6 #this = field;
   final dynamic #t3 = invalid-expression "pkg/front_end/testcases/inline_class/initializers.dart:36:29: Error: 'nonexisting' isn't an instance field of this class.
   Class6(this.field) : this.nonexisting = 42;
