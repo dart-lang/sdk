@@ -293,7 +293,7 @@ void f() {
     await assertNoAssistAt('var ');
   }
 
-  Future<void> test_local_Function() async {
+  Future<void> test_local_function() async {
     await resolveTestCode('''
 void f() {
   var v = () => 1;
@@ -303,6 +303,32 @@ void f() {
 void f() {
   int Function() v = () => 1;
 }
+''');
+  }
+
+  Future<void> test_local_function_optionalNamed() async {
+    await resolveTestCode('''
+void f({int arg = 0}) {}
+
+var v = f;
+''');
+    await assertHasAssistAt('v =', '''
+void f({int arg = 0}) {}
+
+void Function({int arg}) v = f;
+''');
+  }
+
+  Future<void> test_local_function_optionalPositional() async {
+    await resolveTestCode('''
+void f([int arg = 0]) {}
+
+var v = f;
+''');
+    await assertHasAssistAt('v =', '''
+void f([int arg = 0]) {}
+
+void Function([int arg]) v = f;
 ''');
   }
 
