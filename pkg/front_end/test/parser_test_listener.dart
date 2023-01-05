@@ -2753,6 +2753,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void beginSwitchCaseWhenClause(Token when) {
+    seen(when);
+    doPrint('beginSwitchCaseWhenClause(' '$when)');
+    indent++;
+  }
+
+  @override
   void endRecordLiteral(Token token, int count, Token? constKeyword) {
     indent--;
     seen(token);
@@ -2778,6 +2785,13 @@ class ParserTestListener implements Listener {
     indent--;
     seen(token);
     doPrint('endParenthesizedExpression(' '$token)');
+  }
+
+  @override
+  void endSwitchCaseWhenClause(Token token) {
+    indent--;
+    seen(token);
+    doPrint('endSwitchCaseWhenClause(' '$token)');
   }
 
   @override

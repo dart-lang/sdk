@@ -1837,6 +1837,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginSwitchCaseWhenClause(Token when) {
+    listener?.beginSwitchCaseWhenClause(when);
+  }
+
+  @override
   void endRecordLiteral(Token token, int count, Token? constKeyword) {
     listener?.endRecordLiteral(token, count, constKeyword);
   }
@@ -1854,6 +1859,11 @@ class ForwardingListener implements Listener {
   @override
   void endParenthesizedExpression(Token token) {
     listener?.endParenthesizedExpression(token);
+  }
+
+  @override
+  void endSwitchCaseWhenClause(Token token) {
+    listener?.endSwitchCaseWhenClause(token);
   }
 
   @override

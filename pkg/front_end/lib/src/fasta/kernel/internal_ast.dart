@@ -376,8 +376,13 @@ class PatternSwitchCase extends TreeNode
 
   final bool hasLabel;
 
+  final List<VariableDeclaration> jointVariables;
+
   PatternSwitchCase(int fileOffset, this.patternGuards, this.body,
-      {required this.isDefault, required this.hasLabel}) {
+      {required this.isDefault,
+      required this.hasLabel,
+      required this.jointVariables}) {
+    setParents(jointVariables, this);
     this.fileOffset = fileOffset;
   }
 

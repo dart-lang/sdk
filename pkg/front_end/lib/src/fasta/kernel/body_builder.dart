@@ -7285,11 +7285,6 @@ class BodyBuilder extends StackListenerImpl
         } else if (labelExpressionOrPattern is PatternGuard) {
           expressionOrPatterns[expressionOrPatternIndex++] =
               labelExpressionOrPattern;
-          for (VariableDeclaration variable
-              in labelExpressionOrPattern.pattern.declaredVariables) {
-            declareVariable(variable, scope);
-            typeInferrer.assignedVariables.declare(variable);
-          }
           containsPatterns = true;
         } else {
           expressionOrPatterns[expressionOrPatternIndex++] =
@@ -7320,12 +7315,97 @@ class BodyBuilder extends StackListenerImpl
     push(containsPatterns);
     push(labels ?? NullValue.Labels);
     enterLocalScope("switch case");
+
+    List<VariableDeclaration>? jointPatternVariables;
+    for (Object patternGuard in expressionOrPatterns) {
+      if (patternGuard is PatternGuard) {
+        if (jointPatternVariables == null) {
+          jointPatternVariables = [
+            for (VariableDeclaration variable
+                in patternGuard.pattern.declaredVariables)
+              forest.createVariableDeclaration(
+                  variable.fileOffset, variable.name!)
+                ..isFinal = variable.isFinal
+          ];
+        } else {
+          Map<String, VariableDeclaration> patternVariablesByName = {
+            for (VariableDeclaration variable
+                in patternGuard.pattern.declaredVariables)
+              variable.name!: variable
+          };
+          List<VariableDeclaration> sharedVariables = [];
+          for (VariableDeclaration jointVariable in jointPatternVariables) {
+            VariableDeclaration? patternVariable =
+                patternVariablesByName[jointVariable.name!];
+            if (patternVariable != null &&
+                patternVariable.isFinal == jointVariable.isFinal) {
+              sharedVariables.add(jointVariable);
+            }
+          }
+          jointPatternVariables = sharedVariables;
+        }
+      }
+    }
+    if (jointPatternVariables != null) {
+      if (jointPatternVariables.isEmpty) {
+        jointPatternVariables = null;
+      } else {
+        for (VariableDeclaration jointVariable in jointPatternVariables) {
+          declareVariable(jointVariable, scope);
+          typeInferrer.assignedVariables.declare(jointVariable);
+        }
+      }
+    }
+    push(jointPatternVariables ?? NullValue.VariableDeclarationList);
+
     assert(checkState(firstToken, [
+      ValueKinds.VariableDeclarationListOrNull,
       ValueKinds.Scope,
       ValueKinds.LabelListOrNull,
       ValueKinds.Bool,
       ValueKinds.ExpressionOrPatternGuardList,
     ]));
+  }
+
+  @override
+  void beginSwitchCaseWhenClause(Token when) {
+    debugEvent("SwitchCaseWhenClause");
+    assert(checkState(when, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Pattern,
+      ]),
+    ]));
+    Object? pattern = peek();
+    enterLocalScope("case-guard");
+    if (pattern is Pattern) {
+      for (VariableDeclaration variable in pattern.declaredVariables) {
+        declareVariable(variable, scope);
+        typeInferrer.assignedVariables.declare(variable);
+      }
+    }
+    push(constantContext);
+    constantContext = ConstantContext.none;
+  }
+
+  @override
+  void endSwitchCaseWhenClause(Token token) {
+    debugEvent("SwitchCaseWhenClause");
+    assert(checkState(token, [
+      unionOfKinds([
+        ValueKinds.Expression,
+        ValueKinds.ProblemBuilder,
+        ValueKinds.Generator
+      ]),
+      ValueKinds.ConstantContext,
+      ValueKinds.Scope,
+    ]));
+    Object? guard = pop();
+    constantContext = pop() as ConstantContext;
+    exitLocalScope();
+    push(guard);
   }
 
   @override
@@ -7340,6 +7420,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("SwitchCase");
     assert(checkState(firstToken, [
       ...repeatedKind(ValueKinds.Statement, statementCount),
+      ValueKinds.VariableDeclarationListOrNull,
       ValueKinds.Scope,
       ValueKinds.LabelListOrNull,
       ValueKinds.Bool,
@@ -7349,6 +7430,8 @@ class BodyBuilder extends StackListenerImpl
     // one synthetic block when we finish compiling the switch statement and
     // check this switch case to see if it falls through to the next case.
     Statement block = popBlock(statementCount, firstToken, null);
+    List<VariableDeclaration>? jointPatternVariables =
+        pop() as List<VariableDeclaration>?;
     exitLocalScope();
     List<Label>? labels = pop() as List<Label>?;
     assert(labels == null || labels.isNotEmpty);
@@ -7365,7 +7448,9 @@ class BodyBuilder extends StackListenerImpl
         }
       }
       push(new PatternSwitchCase(firstToken.charOffset, patternGuards, block,
-          isDefault: defaultKeyword != null, hasLabel: labels != null));
+          isDefault: defaultKeyword != null,
+          hasLabel: labels != null,
+          jointVariables: jointPatternVariables ?? []));
     } else {
       List<Expression> expressions = <Expression>[];
       List<int> expressionOffsets = <int>[];
@@ -8593,14 +8678,13 @@ class BodyBuilder extends StackListenerImpl
         pattern = new WildcardPattern(patternType, variable.charOffset);
       }
     } else {
+      VariableDeclaration declaredVariable = forest.createVariableDeclaration(
+          variable.charOffset, variable.lexeme,
+          type: patternType,
+          isFinal:
+              Modifier.validateVarFinalOrConst(keyword?.lexeme) == finalMask);
       pattern = new VariablePattern(
-          patternType,
-          variable.lexeme,
-          forest.createVariableDeclaration(variable.charOffset, variable.lexeme,
-              type: patternType,
-              isFinal: Modifier.validateVarFinalOrConst(keyword?.lexeme) ==
-                  finalMask),
-          variable.charOffset);
+          patternType, variable.lexeme, declaredVariable, variable.charOffset);
     }
     push(pattern);
   }

@@ -2065,6 +2065,11 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void beginSwitchCaseWhenClause(Token when) {
+    _unhandled();
+  }
+
+  @override
   void endRecordLiteral(Token token, int count, Token? constKeyword) {
     _unhandled();
   }
@@ -2081,6 +2086,11 @@ class _MacroListener implements Listener {
 
   @override
   void endParenthesizedExpression(Token token) {
+    _unhandled();
+  }
+
+  @override
+  void endSwitchCaseWhenClause(Token token) {
     _unhandled();
   }
 

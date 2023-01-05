@@ -178,4 +178,7 @@ class ValueKinds {
   static const ValueKind TypeVariableListOrNull =
       const SingleValueKind<List<type.TypeVariableBuilder>>(
           NullValue.TypeVariables);
+  static const ValueKind VariableDeclarationListOrNull =
+      const SingleValueKind<List<type.VariableDeclaration>>(
+          NullValue.VariableDeclarationList);
 }

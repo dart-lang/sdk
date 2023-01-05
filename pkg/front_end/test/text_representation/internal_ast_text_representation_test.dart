@@ -315,7 +315,7 @@ void _testPatternSwitchStatement() {
   testStatement(
       new PatternSwitchStatement(TreeNode.noOffset, expression, [
         new PatternSwitchCase(TreeNode.noOffset, [case0], emptyBlock,
-            isDefault: false, hasLabel: false)
+            isDefault: false, hasLabel: false, jointVariables: [])
       ]),
       '''
 switch (null) {
@@ -327,7 +327,7 @@ switch (null) { case 0: }''');
   testStatement(
       new PatternSwitchStatement(TreeNode.noOffset, expression, [
         new PatternSwitchCase(TreeNode.noOffset, [], emptyBlock,
-            hasLabel: false, isDefault: true)
+            hasLabel: false, isDefault: true, jointVariables: [])
       ]),
       '''
 switch (null) {
@@ -339,9 +339,9 @@ switch (null) { default: }''');
   testStatement(
       new PatternSwitchStatement(TreeNode.noOffset, expression, [
         new PatternSwitchCase(TreeNode.noOffset, [case0, case1], returnBlock1,
-            hasLabel: false, isDefault: false),
+            hasLabel: false, isDefault: false, jointVariables: []),
         new PatternSwitchCase(TreeNode.noOffset, [case2], returnBlock2,
-            hasLabel: true, isDefault: true)
+            hasLabel: true, isDefault: true, jointVariables: [])
       ]),
       '''
 switch (null) {

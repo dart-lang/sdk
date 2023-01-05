@@ -14,9 +14,10 @@ static method test(dynamic x) → dynamic {
       if(#t5 =={core::Object::==}{(core::Object) → core::bool} 1) {
         final dynamic #t6 = #t5;
         if(#t6 is core::int) {
+          core::int as = #t6{core::int};
           #t3 = 0;
           #t4 = true;
-          #t1 = #t6{core::int};
+          #t1 = as;
         }
       }
     }
