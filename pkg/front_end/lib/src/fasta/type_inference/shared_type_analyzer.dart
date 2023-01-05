@@ -71,8 +71,8 @@ class SharedTypeAnalyzerErrors
     required VariableDeclaration variable,
     required VariableDeclaration component,
   }) {
-    // TODO(scheglov): implement logicalOrPatternInconsistentVariablePair
-    throw new UnimplementedError('TODO(scheglov)');
+    // TODO(cstefantsova): Currently this error is reported elsewhere due to
+    // the order the types are inferred.
   }
 
   @override

@@ -1907,6 +1907,11 @@ class Listener implements UnescapeErrorListener {
   /// either [endParenthesizedExpression] or [endRecordLiteral].
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {}
 
+  /// Starts a guard expression in a switch case, after the 'when' keyword
+  void beginSwitchCaseWhenClause(Token when) {
+    logEvent("SwitchCaseWhenClause");
+  }
+
   /// Ends a record literal with [count] entries.
   void endRecordLiteral(Token token, int count, Token? constKeyword) {
     logEvent("RecordLiteral");
@@ -1928,6 +1933,11 @@ class Listener implements UnescapeErrorListener {
   /// but will not be the condition of a control structure.
   void endParenthesizedExpression(Token token) {
     logEvent("ParenthesizedExpression");
+  }
+
+  /// Starts a guard expression in a switch case, after the 'when' keyword
+  void endSwitchCaseWhenClause(Token token) {
+    logEvent("SwitchCaseWhenClause");
   }
 
   /// Called after the parser has consumed a parenthesized pattern, consisting

@@ -2604,6 +2604,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void beginSwitchCaseWhenClause(Token when) {
+    SwitchCaseWhenClauseBegin data =
+        new SwitchCaseWhenClauseBegin(ParserAstType.BEGIN, when: when);
+    seen(data);
+  }
+
+  @override
   void endRecordLiteral(Token token, int count, Token? constKeyword) {
     RecordLiteralEnd data = new RecordLiteralEnd(ParserAstType.END,
         token: token, count: count, constKeyword: constKeyword);
@@ -2627,6 +2634,13 @@ abstract class AbstractParserAstListener implements Listener {
   void endParenthesizedExpression(Token token) {
     ParenthesizedExpressionEnd data =
         new ParenthesizedExpressionEnd(ParserAstType.END, token: token);
+    seen(data);
+  }
+
+  @override
+  void endSwitchCaseWhenClause(Token token) {
+    SwitchCaseWhenClauseEnd data =
+        new SwitchCaseWhenClauseEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
@@ -7591,6 +7605,18 @@ class ParenthesizedExpressionOrRecordLiteralBegin extends ParserAstNode {
       };
 }
 
+class SwitchCaseWhenClauseBegin extends ParserAstNode {
+  final Token when;
+
+  SwitchCaseWhenClauseBegin(ParserAstType type, {required this.when})
+      : super("SwitchCaseWhenClause", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "when": when,
+      };
+}
+
 class RecordLiteralEnd extends ParserAstNode {
   final Token token;
   final int count;
@@ -7640,6 +7666,18 @@ class ParenthesizedExpressionEnd extends ParserAstNode {
 
   ParenthesizedExpressionEnd(ParserAstType type, {required this.token})
       : super("ParenthesizedExpression", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
+class SwitchCaseWhenClauseEnd extends ParserAstNode {
+  final Token token;
+
+  SwitchCaseWhenClauseEnd(ParserAstType type, {required this.token})
+      : super("SwitchCaseWhenClause", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {

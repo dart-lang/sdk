@@ -12281,6 +12281,31 @@ Message _withArgumentsVariableCouldBeNullDueToWrite(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateVariablePatternTypeMismatchInSwitchHeads =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""Variable pattern '#name' doesn't have the same type in all cases.""",
+        withArguments: _withArgumentsVariablePatternTypeMismatchInSwitchHeads);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)>
+    codeVariablePatternTypeMismatchInSwitchHeads =
+    const Code<Message Function(String name)>(
+  "VariablePatternTypeMismatchInSwitchHeads",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsVariablePatternTypeMismatchInSwitchHeads(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeVariablePatternTypeMismatchInSwitchHeads,
+      problemMessage:
+          """Variable pattern '${name}' doesn't have the same type in all cases.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeVerificationErrorOriginContext =
     messageVerificationErrorOriginContext;
 

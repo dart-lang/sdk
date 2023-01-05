@@ -29,9 +29,10 @@ static method test(dynamic x) → dynamic {
         }
       }
       if(#t6 || #t7) {
+        dynamic as = #t6 ?{dynamic} #t8{core::int} : #t9{dynamic};
         #t3 = 0;
         #t4 = true;
-        #t1 = #t6 ?{dynamic} #t8{core::int} : #t9{dynamic};
+        #t1 = as;
       }
     }
     switch(#t3) {

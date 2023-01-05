@@ -29,9 +29,10 @@ static method test(dynamic x) → dynamic {
     case C(: var f as int):
          ^";
         final core::int #t7 = #t6;
+        core::int f = #t7;
         #t3 = 0;
         #t4 = true;
-        #t1 = #t7;
+        #t1 = f;
       }
     }
     switch(#t3) {

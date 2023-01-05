@@ -480,6 +480,11 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void beginSwitchCaseWhenClause(Token when) {
+    debugEvent("PatternSwitchCaseGuard");
+  }
+
+  @override
   void beginTopLevelMethod(
       Token lastConsumed, Token? augmentToken, Token? externalToken) {
     push(_Modifiers()
@@ -3114,6 +3119,11 @@ class AstBuilder extends StackListener {
       );
     }
     push(members2);
+  }
+
+  @override
+  void endSwitchCaseWhenClause(Token token) {
+    debugEvent("SwitchCaseWhenClause");
   }
 
   @override

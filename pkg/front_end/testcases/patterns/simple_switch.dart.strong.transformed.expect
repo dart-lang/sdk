@@ -11,9 +11,10 @@ static method test(dynamic x) → dynamic {
   if(!#t5) {
     final dynamic #t6 = #t3;
     if(#t6 is core::int) {
+      core::int y = #t6{core::int};
       #t4 = 0;
       #t5 = true;
-      #t1 = #t6{core::int};
+      #t1 = y;
     }
   }
   if(!#t5) {
@@ -22,9 +23,10 @@ static method test(dynamic x) → dynamic {
       final dynamic #t8 = #t7{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
       final dynamic #t9 = #t8;
       if(#t9 is core::double) {
+        core::double z = #t9{core::double};
         #t4 = 1;
         #t5 = true;
-        #t2 = #t9{core::double};
+        #t2 = z;
       }
     }
   }

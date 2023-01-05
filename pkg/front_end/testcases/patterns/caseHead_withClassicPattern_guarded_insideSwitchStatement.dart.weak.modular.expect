@@ -9,8 +9,10 @@ static method f(dynamic x) → void {
     final core::int #t2 = -1;
     final core::bool #t3 = false;
     if(!#t3 && #t1 =={core::Object::==}{(core::Object) → core::bool} 0) {
-      #t2 = 0;
-      #t3 = true;
+      if(true) {
+        #t2 = 0;
+        #t3 = true;
+      }
     }
     switch(#t2) {
       #L2:

@@ -6042,3 +6042,9 @@ SwitchExpressionEmpty:
   experiments: patterns
   script: |
     test(dynamic x) => switch (x) {};
+
+VariablePatternTypeMismatchInSwitchHeads:
+  problemMessage: "Variable pattern '#name' doesn't have the same type in all cases."
+  experiments: patterns
+  script: |
+    test(dynamic x) { switch (x) { case [int a]: case [double a] : return a; default: return null; } }

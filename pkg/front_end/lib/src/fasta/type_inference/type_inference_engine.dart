@@ -9,6 +9,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
+import 'package:kernel/src/norm.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
@@ -576,14 +577,13 @@ class OperationsCfe
 
   @override
   bool areStructurallyEqual(DartType type1, DartType type2) {
-    // TODO(scheglov): implement areStructurallyEqual
-    throw new UnimplementedError('TODO(scheglov)');
+    // TODO(cstefantsova): Use the actual structural equality here.
+    return type1 == type2;
   }
 
   @override
   DartType normalize(DartType type) {
-    // TODO(scheglov): implement normalize
-    throw new UnimplementedError('TODO(scheglov)');
+    return norm(typeEnvironment.coreTypes, type);
   }
 
   @override

@@ -10,9 +10,10 @@ static method test(dynamic x) → dynamic {
     final core::int #t3 = -1;
     final core::bool #t4 = false;
     if(!#t4) {
+      final dynamic y = #t2;
       #t3 = 0;
       #t4 = true;
-      #t1 = #t2;
+      #t1 = y;
     }
     switch(#t3) {
       #L2:

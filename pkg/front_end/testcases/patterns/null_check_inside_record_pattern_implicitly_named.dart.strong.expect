@@ -16,9 +16,10 @@ static method test(dynamic x) → dynamic {
         final core::Object? #t7 = #t5{(core::Object?, {: core::Object?})}.$0{core::Object?};
         final core::Object? #t8 = #t6;
         if(!(#t8 == null) && #t7 =={core::Object::==}{(core::Object) → core::bool} 2) {
+          dynamic n = #t8{core::Object};
           #t3 = 0;
           #t4 = true;
-          #t1 = #t8{core::Object};
+          #t1 = n;
         }
       }
     }
