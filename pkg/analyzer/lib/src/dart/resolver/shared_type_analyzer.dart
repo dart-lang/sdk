@@ -90,6 +90,16 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void duplicateRestPattern({
+    required AstNode node,
+    required AstNode original,
+    required AstNode duplicate,
+  }) {
+    // TODO(scheglov): implement duplicateRestPattern
+    throw UnimplementedError();
+  }
+
+  @override
   void inconsistentJoinedPatternVariable({
     required PromotableElement variable,
     required PromotableElement component,
@@ -143,6 +153,12 @@ class SharedTypeAnalyzerErrors
           .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
       node.operator,
     );
+  }
+
+  @override
+  void restPatternNotLastInMap(DartPattern node, AstNode element) {
+    // TODO(scheglov): implement restPatternNotLastInMap
+    throw UnimplementedError();
   }
 
   @override

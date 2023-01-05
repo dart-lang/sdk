@@ -1,0 +1,14 @@
+import 'dart:math' as math;
+class Circle {
+  final double radius;
+  Circle(this.radius);
+}
+test1(dynamic x) => 
+switch (x) {}
+;
+dynamic Function(dynamic)? captured;
+test2(dynamic x) => 
+switch (x) {}
+;
+main() {}
+expectEquals(x, y) {}

@@ -7755,14 +7755,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     List<SwitchCase> replacementCases = [];
 
-    List<VariableDeclaration> declaredVariableHelpers = [];
-
     LabeledStatement switchLabel =
         engine.forest.createLabeledStatement(dummyStatement);
     for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
       SwitchExpressionCase switchExpressionCase = node.cases[caseIndex];
       Pattern pattern = switchExpressionCase.patternGuard.pattern;
       Expression body = switchExpressionCase.expression;
+      Expression? guard = switchExpressionCase.patternGuard.guard;
 
       // setMatchResult: `matchResultVariable` = `caseIndex`;
       //   ==> RVAR = `caseIndex`;
@@ -7785,6 +7784,28 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           variableInitializingContext: engine.forest
               .createVariableGet(node.fileOffset, matchedExpressionVariable));
 
+      List<Statement> variableInitializers = [];
+      for (VariableDeclaration variable in pattern.declaredVariables) {
+        variableInitializers.add(engine.forest.createExpressionStatement(
+            node.fileOffset,
+            engine.forest.createVariableSet(
+                node.fileOffset, variable, variable.initializer!)));
+        variable.initializer = null;
+      }
+
+      transformationResult = transformationResult.combine(
+          new PatternTransformationResult([
+            new PatternTransformationElement(
+                kind: PatternTransformationElementKind.regular,
+                condition: null,
+                variableInitializers: variableInitializers),
+            new PatternTransformationElement(
+                kind: PatternTransformationElementKind.regular,
+                condition: guard,
+                variableInitializers: [])
+          ]),
+          this);
+
       // condition: `matchSucceeded`!
       //   ==> SVAR!
       transformationResult = transformationResult.prependElement(
@@ -7797,42 +7818,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
               kind: PatternTransformationElementKind.regular),
           this);
 
-      List<VariableDeclaration> caseDeclaredVariableHelpers = [];
-      List<Statement> caseDeclaredVariableHelperInitializers = [];
-      for (VariableDeclaration declaredVariable in pattern.declaredVariables) {
-        // declaredVariableHelper: dynamic HVAR;
-        VariableDeclaration declaredVariableHelper = engine.forest
-            .createVariableDeclaration(node.fileOffset, null,
-                type: const DynamicType());
-
-        caseDeclaredVariableHelpers.add(declaredVariableHelper);
-
-        // initializer:
-        //     `declaredVariableHelper` = `declaredVariable.initializer`;
-        //   ==> HVAR = `declaredVariable.initializer`;
-        caseDeclaredVariableHelperInitializers.add(engine.forest
-            .createExpressionStatement(
-                node.fileOffset,
-                engine.forest.createVariableSet(node.fileOffset,
-                    declaredVariableHelper, declaredVariable.initializer!)));
-
-        // `declaredVariable`:
-        //     declaredVariable` =
-        //         `declaredVariableHelper`{`declaredVariable.type`}
-        //   ==> `declaredVariable` = HVAR{`declaredVariable.type`}
-        declaredVariable.initializer = engine.forest
-            .createVariableGet(node.fileOffset, declaredVariableHelper)
-          ..promotedType = declaredVariable.type
-          ..parent = declaredVariable;
-      }
-
       List<Statement> caseReplacementStatements = [
         setMatchResult,
-        setMatchSucceeded,
-        ...caseDeclaredVariableHelperInitializers
+        setMatchSucceeded
       ];
-
-      declaredVariableHelpers.addAll(caseDeclaredVariableHelpers);
 
       caseReplacementStatements = _transformationResultToStatements(
           node.fileOffset, transformationResult, caseReplacementStatements);
@@ -7853,8 +7842,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     replacementStatements = [
-      valueVariable,
-      ...declaredVariableHelpers,
       ...replacementStatements,
       switchLabel
         ..body = (engine.forest.createSwitchStatement(
@@ -7865,6 +7852,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ..parent = switchLabel)
         ..fileOffset = node.fileOffset
     ];
+
+    // Wrapping variable declarations into block is a workaround for the VM
+    // scope lookups.
+    // TODO(cstefantsova): Is there a better solution?
+    for (SwitchExpressionCase switchExpressionCase in node.cases) {
+      List<VariableDeclaration> patternVariables =
+          switchExpressionCase.patternGuard.pattern.declaredVariables;
+      if (patternVariables.isNotEmpty) {
+        replacementStatements = [
+          engine.forest.createBlock(node.fileOffset, node.fileOffset,
+              [...patternVariables, ...replacementStatements])
+        ];
+      }
+    }
+
+    replacementStatements = [valueVariable, ...replacementStatements];
 
     Expression replacement = engine.forest.createBlockExpression(
         node.fileOffset,

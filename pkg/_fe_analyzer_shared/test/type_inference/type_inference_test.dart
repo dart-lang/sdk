@@ -1779,6 +1779,55 @@ main() {
       });
 
       group('Errors:', () {
+        test('Rest pattern not last element', () {
+          var x = Var('x');
+          h.run([
+            match(
+              mapPattern([
+                mapPatternRestElement()..errorId = 'REST_ELEMENT',
+                mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
+              ])
+                ..errorId = 'MAP_PATTERN',
+              expr('dynamic'),
+            ),
+          ], expectedErrors: {
+            'restPatternNotLastInMap(MAP_PATTERN, REST_ELEMENT)'
+          });
+        });
+        test('Two rest elements at the end', () {
+          var x = Var('x');
+          h.run([
+            match(
+              mapPattern([
+                mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
+                mapPatternRestElement()..errorId = 'REST_ELEMENT1',
+                mapPatternRestElement()..errorId = 'REST_ELEMENT2',
+              ])
+                ..errorId = 'MAP_PATTERN',
+              expr('dynamic'),
+            ),
+          ], expectedErrors: {
+            'duplicateRestPattern(node: MAP_PATTERN, original: REST_ELEMENT1, '
+                'duplicate: REST_ELEMENT2)'
+          });
+        });
+        test('Two rest elements not at the end', () {
+          var x = Var('x');
+          h.run([
+            match(
+              mapPattern([
+                mapPatternRestElement()..errorId = 'REST_ELEMENT1',
+                mapPatternRestElement()..errorId = 'REST_ELEMENT2',
+                mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
+              ])
+                ..errorId = 'MAP_PATTERN',
+              expr('dynamic'),
+            ),
+          ], expectedErrors: {
+            'duplicateRestPattern(node: MAP_PATTERN, original: REST_ELEMENT1, '
+                'duplicate: REST_ELEMENT2)'
+          });
+        });
         test('Rest pattern with subpattern', () {
           var x = Var('x');
           h.run([
@@ -2028,6 +2077,76 @@ main() {
             'patternTypeMismatchInIrrefutableContext(pattern: DOUBLE, '
                 'context: CONTEXT, matchedType: num, requiredType: double)'
           });
+        });
+      });
+
+      group('Rest pattern:', () {
+        group('Duplicate:', () {
+          test('With pattern', () {
+            var x = Var('x');
+            var y = Var('y');
+            h.run([
+              match(
+                listPattern([
+                  listPatternRestElement(x.pattern())..errorId = 'ORI',
+                  listPatternRestElement(y.pattern())..errorId = 'DUP',
+                ])
+                  ..errorId = 'LIST_PATTERN',
+                expr('List<int>'),
+              ).checkIr('match(expr(List<int>), listPattern(...(varPattern(x, '
+                  'matchedType: List<int>, staticType: List<int>)), '
+                  '...(varPattern(y, matchedType: List<int>, staticType: '
+                  'List<int>)), matchedType: List<int>, '
+                  'requiredType: List<int>))'),
+            ], expectedErrors: {
+              'duplicateRestPattern(node: LIST_PATTERN, original: ORI, '
+                  'duplicate: DUP)',
+            });
+          });
+          test('Without pattern', () {
+            h.run([
+              match(
+                listPattern([
+                  listPatternRestElement()..errorId = 'ORI',
+                  listPatternRestElement()..errorId = 'DUP',
+                ])
+                  ..errorId = 'LIST_PATTERN',
+                expr('List<int>'),
+              ).checkIr('match(expr(List<int>), listPattern(..., ..., '
+                  'matchedType: List<int>, requiredType: List<int>))'),
+            ], expectedErrors: {
+              'duplicateRestPattern(node: LIST_PATTERN, original: ORI, '
+                  'duplicate: DUP)',
+            });
+          });
+        });
+        test('First', () {
+          var x = Var('x');
+          h.run([
+            match(
+              listPattern([
+                listPatternRestElement(),
+                x.pattern(),
+              ]),
+              expr('List<int>'),
+            ).checkIr('match(expr(List<int>), listPattern(..., '
+                'varPattern(x, matchedType: int, staticType: int), '
+                'matchedType: List<int>, requiredType: List<int>))'),
+          ]);
+        });
+        test('Last', () {
+          var x = Var('x');
+          h.run([
+            match(
+              listPattern([
+                x.pattern(),
+                listPatternRestElement(),
+              ]),
+              expr('List<int>'),
+            ).checkIr('match(expr(List<int>), listPattern(varPattern(x, '
+                'matchedType: int, staticType: int), ..., '
+                'matchedType: List<int>, requiredType: List<int>))'),
+          ]);
         });
       });
 

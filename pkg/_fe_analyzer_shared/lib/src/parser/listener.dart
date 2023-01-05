@@ -1874,6 +1874,10 @@ class Listener implements UnescapeErrorListener {
     logEvent("Operator");
   }
 
+  void handleSwitchExpressionCasePattern(Token token) {
+    logEvent("SwitchExpressionCasePattern");
+  }
+
   void handleSymbolVoid(Token token) {
     logEvent("SymbolVoid");
   }

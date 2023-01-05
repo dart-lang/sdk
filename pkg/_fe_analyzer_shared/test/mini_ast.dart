@@ -3062,6 +3062,20 @@ class _MiniAstErrors
   }
 
   @override
+  void duplicateRestPattern({
+    required Node node,
+    required Node original,
+    required Node duplicate,
+  }) {
+    _recordError(
+      'duplicateRestPattern('
+      'node: ${node.errorId}, '
+      'original: ${original.errorId}, '
+      'duplicate: ${duplicate.errorId})',
+    );
+  }
+
+  @override
   void duplicateVariablePattern({
     required String name,
     required Var original,
@@ -3135,6 +3149,12 @@ class _MiniAstErrors
       'node: ${node.errorId}, '
       'returnType: ${returnType.type})',
     );
+  }
+
+  @override
+  void restPatternNotLastInMap(Pattern node, Node element) {
+    _recordError(
+        'restPatternNotLastInMap(${node.errorId}, ${element.errorId})');
   }
 
   @override

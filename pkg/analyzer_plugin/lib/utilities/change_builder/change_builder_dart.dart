@@ -267,6 +267,9 @@ abstract class DartEditBuilder implements EditBuilder {
   /// [addSupertypeProposals] is `true`, then all of the supertypes of the
   /// [type] will be added as suggestions for alternatives to the type name.
   ///
+  /// If [includeDefaultValuesInFunctionTypes] is `true`, function types will be
+  /// written including their default values.
+  ///
   /// If a [methodBeingCopied] is provided, then type parameters defined by that
   /// method are assumed to be part of what is being written and hence valid
   /// types.
@@ -276,6 +279,7 @@ abstract class DartEditBuilder implements EditBuilder {
       {bool addSupertypeProposals = false,
       String? groupName,
       ExecutableElement? methodBeingCopied,
+      bool includeDefaultValuesInFunctionTypes = true,
       bool required = false});
 
   /// Write the code to declare the given [typeParameter]. The enclosing angle

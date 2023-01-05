@@ -524,6 +524,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       {bool isCovariant = false,
       bool isRequiredNamed = false,
       ExecutableElement? methodBeingCopied,
+      bool includeDefaultValuesInFunctionTypes = true,
       String? nameGroupName,
       DartType? type,
       String? typeGroupName,
@@ -533,12 +534,18 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         late bool hasType;
         addLinkedEdit(typeGroupName, (DartLinkedEditBuilder builder) {
           hasType = _writeType(type,
-              methodBeingCopied: methodBeingCopied, required: isRequiredType);
+              methodBeingCopied: methodBeingCopied,
+              includeDefaultValuesInFunctionTypes:
+                  includeDefaultValuesInFunctionTypes,
+              required: isRequiredType);
           builder.addSuperTypesAsSuggestions(type);
         });
         return hasType;
       }
-      return _writeType(type, methodBeingCopied: methodBeingCopied);
+      return _writeType(type,
+          methodBeingCopied: methodBeingCopied,
+          includeDefaultValuesInFunctionTypes:
+              includeDefaultValuesInFunctionTypes);
     }
 
     void writeName() {
@@ -613,7 +620,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameters(Iterable<ParameterElement> parameters,
-      {ExecutableElement? methodBeingCopied, bool requiredTypes = false}) {
+      {ExecutableElement? methodBeingCopied,
+      bool includeDefaultValuesInFunctionTypes = true,
+      bool requiredTypes = false}) {
     var parameterNames = <String>{};
     for (var i = 0; i < parameters.length; i++) {
       var name = parameters.elementAt(i).name;
@@ -654,15 +663,19 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           isCovariant: parameter.isCovariant,
           isRequiredNamed: parameter.isRequiredNamed,
           methodBeingCopied: methodBeingCopied,
+          includeDefaultValuesInFunctionTypes:
+              includeDefaultValuesInFunctionTypes,
           nameGroupName: parameter.isNamed ? null : '${groupPrefix}PARAM$i',
           type: parameter.type,
           typeGroupName: '${groupPrefix}TYPE$i',
           isRequiredType: requiredTypes);
       // default value
-      var defaultCode = parameter.defaultValueCode;
-      if (defaultCode != null) {
-        write(' = ');
-        write(defaultCode);
+      if (includeDefaultValuesInFunctionTypes) {
+        var defaultCode = parameter.defaultValueCode;
+        if (defaultCode != null) {
+          write(' = ');
+          write(defaultCode);
+        }
       }
     }
     // close parameters
@@ -746,6 +759,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       {bool addSupertypeProposals = false,
       String? groupName,
       ExecutableElement? methodBeingCopied,
+      bool includeDefaultValuesInFunctionTypes = true,
       bool required = false}) {
     var wroteType = false;
     if (type != null && !type.isDynamic) {
@@ -757,7 +771,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           }
         });
       } else {
-        wroteType = _writeType(type, methodBeingCopied: methodBeingCopied);
+        wroteType = _writeType(
+          type,
+          methodBeingCopied: methodBeingCopied,
+          includeDefaultValuesInFunctionTypes:
+              includeDefaultValuesInFunctionTypes,
+        );
       }
     }
     if (!wroteType && required) {
@@ -1215,7 +1234,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// Causes any libraries whose elements are used by the generated code, to be
   /// imported.
   bool _writeType(DartType? type,
-      {ExecutableElement? methodBeingCopied, bool required = false}) {
+      {ExecutableElement? methodBeingCopied,
+      bool includeDefaultValuesInFunctionTypes = true,
+      bool required = false}) {
     type = _getVisibleType(type, methodBeingCopied: methodBeingCopied);
 
     // If not a useful type, don't write it.
@@ -1255,8 +1276,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write('Function');
       writeTypeParameters(type.typeFormals,
           methodBeingCopied: methodBeingCopied);
-      writeParameters(type.parameters,
-          methodBeingCopied: methodBeingCopied, requiredTypes: true);
+      writeParameters(
+        type.parameters,
+        methodBeingCopied: methodBeingCopied,
+        includeDefaultValuesInFunctionTypes:
+            includeDefaultValuesInFunctionTypes,
+        requiredTypes: true,
+      );
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
         write('?');
       }
