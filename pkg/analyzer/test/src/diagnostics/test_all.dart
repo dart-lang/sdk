@@ -166,6 +166,8 @@ import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
 import 'duplicate_part_test.dart' as duplicate_part;
 import 'duplicate_record_pattern_field_test.dart'
     as duplicate_record_pattern_field;
+import 'duplicate_rest_element_in_pattern_test.dart'
+    as duplicate_rest_element_in_pattern;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
 import 'duplicate_variable_pattern_test.dart' as duplicate_variable_pattern;
 import 'enum_constant_same_name_as_enclosing_test.dart'
@@ -667,6 +669,8 @@ import 'relational_pattern_operator_return_type_not_assignable_to_bool_test.dart
     as relational_pattern_operator_return_type_not_assignable_to_bool;
 import 'removed_lint_use_test.dart' as removed_lint_in_ignore;
 import 'replaced_lint_use_test.dart' as replaced_lint_in_ignore;
+import 'rest_element_not_last_in_map_pattern_test.dart'
+    as rest_element_not_last_in_map_pattern;
 import 'rethrow_outside_catch_test.dart' as rethrow_outside_catch;
 import 'return_in_generative_constructor_test.dart'
     as return_in_generative_constructor;
@@ -945,6 +949,7 @@ main() {
     duplicate_named_argument.main();
     duplicate_part.main();
     duplicate_record_pattern_field.main();
+    duplicate_rest_element_in_pattern.main();
     duplicate_shown_name.main();
     duplicate_variable_pattern.main();
     enum_constant_same_name_as_enclosing.main();
@@ -1267,6 +1272,7 @@ main() {
     relational_pattern_operator_return_type_not_assignable_to_bool.main();
     removed_lint_in_ignore.main();
     replaced_lint_in_ignore.main();
+    rest_element_not_last_in_map_pattern.main();
     rethrow_outside_catch.main();
     return_in_generative_constructor.main();
     return_in_generator.main();

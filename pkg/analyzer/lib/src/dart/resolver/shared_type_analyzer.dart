@@ -92,11 +92,16 @@ class SharedTypeAnalyzerErrors
   @override
   void duplicateRestPattern({
     required AstNode node,
-    required AstNode original,
-    required AstNode duplicate,
+    required covariant RestPatternElementImpl original,
+    required covariant RestPatternElementImpl duplicate,
   }) {
-    // TODO(scheglov): implement duplicateRestPattern
-    throw UnimplementedError();
+    _errorReporter.reportError(
+      DiagnosticFactory().duplicateRestElementInPattern(
+        source: _errorReporter.source,
+        originalElement: original,
+        duplicateElement: duplicate,
+      ),
+    );
   }
 
   @override
@@ -156,9 +161,14 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
-  void restPatternNotLastInMap(DartPattern node, AstNode element) {
-    // TODO(scheglov): implement restPatternNotLastInMap
-    throw UnimplementedError();
+  void restPatternNotLastInMap(
+    covariant MapPatternImpl node,
+    covariant RestPatternElementImpl element,
+  ) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN,
+      element,
+    );
   }
 
   @override

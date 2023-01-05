@@ -3561,6 +3561,9 @@ CompileTimeErrorCode:
     comment: |-
       Parameters:
       0: the name of the field
+  DUPLICATE_REST_ELEMENT_IN_PATTERN:
+    problemMessage: At most one rest element is allowed in a list or map pattern.
+    correctionMessage: Try removing the duplicate rest element.
   DUPLICATE_VARIABLE_PATTERN:
     problemMessage: The variable '{0}' is already defined in this pattern.
     correctionMessage: Try renaming the variable.
@@ -12325,6 +12328,9 @@ CompileTimeErrorCode:
   REST_ELEMENT_WITH_SUBPATTERN_IN_MAP_PATTERN:
     problemMessage: A rest element in a map pattern can't have a subpattern.
     correctionMessage: Try removing the subpattern.
+  REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN:
+    problemMessage: A rest element in a map pattern must be the last element.
+    correctionMessage: Try moving the rest element to be the last element.
   RETHROW_OUTSIDE_CATCH:
     problemMessage: A rethrow must be inside of a catch clause.
     correctionMessage: "Try moving the expression into a catch clause, or using a 'throw' expression."
