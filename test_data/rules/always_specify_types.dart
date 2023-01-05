@@ -39,13 +39,16 @@ List? list; //LINT
 List<List>? lists; //LINT
 List<int> ints = <int>[1]; //OK
 
-final x = 1; //LINT [1:5]
+final x = 1; //LINT [1:5] Missing type annotation.
+final x1 = 1, x2 = '', x3 = 1.2; //LINT [1:5]
 final int xx = 3;
-const y = 2; //LINT
+const y = 2; //LINT Missing type annotation.
 const int yy = 3;
+String? s1 = '';
+var s2 = '', s3 = s1; //LINT Missing type annotation.
 
-a(var x) {} //LINT
-b(s) {} //LINT [3:1]
+a(var x) {} //LINT Missing type annotation.
+b(s) {} //LINT [3:1] Missing type annotation.
 c(int x) {}
 d(final x) {} //LINT
 e(final int x) {}
@@ -63,18 +66,20 @@ void test() {
 }
 
 main() {
-  var x = ''; //LINT [3:3]
-  for (var i = 0; i < 10; ++i) {  //LINT [8:3]
+  var x = ''; //LINT [3:3] Missing type annotation.
+  var x1 = '', x2 = 1.2; //LINT [3:3]
+  for (var i = 0; i < 10; ++i) {  //LINT [8:3] Missing type annotation.
     print(i);
   }
   List<String> ls = <String>[];
   // ignore: avoid_function_literals_in_foreach_calls
-  ls.forEach((s) => print(s)); //LINT [15:1]
-  for (var l in ls) { //LINT [8:3]
+  ls.forEach((s) => print(s)); //LINT [15:1] Missing type annotation.
+  ls.forEach((var s) => print(s)); //LINT [15:3] Missing type annotation.
+  for (var l in ls) { //LINT [8:3] Missing type annotation.
     print(l);
   }
   try {
-    for (final l in ls) { // LINT [10:5]
+    for (final l in ls) { // LINT [10:5] Missing type annotation.
       print(l);
     }
   } on Exception catch (ex) {
@@ -104,10 +109,10 @@ var z; //LINT
 
 class Foo {
   static var bar; //LINT
-  static final baz  = 1; //LINT
+  static final baz = 1; //LINT Missing type annotation.
   static final int bazz = 42;
-  var foo; //LINT
-  Foo(var bar); //LINT [7:3]
+  var foo; //LINT Missing type annotation.
+  Foo(var bar); //LINT [7:3] Missing type annotation.
   void f(List l) { } //LINT
 }
 

@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../util/ascii_utils.dart';
@@ -91,6 +93,21 @@ class AlwaysSpecifyTypes extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
+  static const LintCode keywordCouldBeTypeCode = LintCode(
+      'always_specify_types',
+      "Missing type annotation.", // ignore: prefer_single_quotes
+      correctionMessage: "Try replacing '{0}' with '{1}'.");
+
+  static const LintCode keywordCouldBeSplitToTypesCode = LintCode(
+      'always_specify_types',
+      "Missing type annotation.", // ignore: prefer_single_quotes
+      correctionMessage:
+          "Try splitting the declaration and specify the different type annotations."); // ignore: prefer_single_quotes
+
+  static const LintCode specifyTypeCode = LintCode('always_specify_types',
+      "Missing type annotation.", // ignore: prefer_single_quotes
+      correctionMessage: "Try specifying the type '{0}'.");
+
   final LintRule rule;
 
   _Visitor(this.rule);
@@ -103,8 +120,19 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
-    if (node.type == null) {
-      rule.reportLintForToken(node.keyword);
+    var keyword = node.keyword;
+    if (node.type == null && keyword != null) {
+      var element = node.declaredElement;
+      if (element is VariableElement) {
+        if (keyword.keyword == Keyword.VAR) {
+          rule.reportLintForToken(keyword,
+              arguments: [keyword.lexeme, element!.type],
+              errorCode: keywordCouldBeTypeCode);
+        } else {
+          rule.reportLintForToken(keyword,
+              arguments: [element!.type], errorCode: specifyTypeCode);
+        }
+      }
     }
   }
 
@@ -137,18 +165,96 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitSimpleFormalParameter(SimpleFormalParameter param) {
     var name = param.name;
     if (name != null && param.type == null && !name.lexeme.isJustUnderscores) {
-      if (param.keyword != null) {
-        rule.reportLintForToken(param.keyword);
-      } else {
-        rule.reportLint(param);
+      var keyword = param.keyword;
+      if (keyword != null) {
+        var type = param.declaredElement?.type;
+
+        if (keyword.type == Keyword.VAR &&
+            type != null &&
+            type is! DynamicType) {
+          rule.reportLintForToken(keyword,
+              arguments: [keyword.lexeme, type],
+              errorCode: keywordCouldBeTypeCode);
+        } else {
+          rule.reportLintForToken(keyword);
+        }
+      } else if (param.declaredElement != null) {
+        var type = param.declaredElement!.type;
+
+        if (type is DynamicType) {
+          rule.reportLint(param);
+        } else {
+          rule.reportLint(param, arguments: [type], errorCode: specifyTypeCode);
+        }
       }
     }
   }
 
   @override
   void visitVariableDeclarationList(VariableDeclarationList list) {
-    if (list.type == null) {
-      rule.reportLintForToken(list.keyword);
+    var keyword = list.keyword;
+    if (list.type == null && keyword != null) {
+      Set<String> types;
+      var parent = list.parent;
+      if (parent is TopLevelVariableDeclaration) {
+        types = _getTypes(parent.variables);
+      } else if (parent is ForPartsWithDeclarations) {
+        types = _getTypes(parent.variables);
+      } else if (parent is FieldDeclaration) {
+        types = _getTypes(parent.fields);
+      } else if (parent is VariableDeclarationStatement) {
+        types = _getTypes(parent.variables);
+      } else {
+        return;
+      }
+
+      var singleType = types.length == 1;
+
+      List<Object> arguments;
+      ErrorCode? errorCode;
+      if (types.isEmpty) {
+        arguments = [];
+      } else if (keyword.type == Keyword.VAR) {
+        if (singleType) {
+          arguments = [keyword.lexeme, types.first];
+          errorCode = keywordCouldBeTypeCode;
+        } else {
+          arguments = [];
+          errorCode = keywordCouldBeSplitToTypesCode;
+        }
+      } else {
+        if (singleType) {
+          arguments = [types.first];
+          errorCode = specifyTypeCode;
+        } else {
+          arguments = [];
+        }
+      }
+      rule.reportLintForToken(keyword,
+          arguments: arguments, errorCode: errorCode);
     }
+  }
+
+  Set<String> _getTypes(VariableDeclarationList list) {
+    var types = <String>{};
+    for (var variable in list.variables) {
+      var initializer = variable.initializer;
+      if (initializer != null) {
+        DartType? type;
+        if (initializer is Identifier) {
+          var staticElement = initializer.staticElement;
+          if (staticElement is VariableElement) {
+            type = staticElement.type;
+          }
+        }
+
+        type ??= variable.initializer?.staticType;
+
+        if (type != null) {
+          types.add(type.getDisplayString(withNullability: true));
+        }
+      }
+    }
+    return types;
   }
 }
