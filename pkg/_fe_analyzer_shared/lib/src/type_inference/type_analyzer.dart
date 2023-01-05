@@ -626,8 +626,17 @@ mixin TypeAnalyzer<
       }
     }
     // Stack: ()
+    Node? previousRestPattern;
     for (Node element in elements) {
       if (isRestPatternElement(element)) {
+        if (previousRestPattern != null) {
+          errors?.duplicateRestPattern(
+            node: node,
+            original: previousRestPattern,
+            duplicate: element,
+          );
+        }
+        previousRestPattern = element;
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
           Type subPatternMatchedType = listType(valueType);
@@ -801,7 +810,25 @@ mixin TypeAnalyzer<
       }
     }
     // Stack: ()
+
+    bool hasDuplicateRestPatternReported = false;
+    Node? previousRestPattern;
     for (Node element in elements) {
+      if (isRestPatternElement(element)) {
+        if (previousRestPattern != null) {
+          errors?.duplicateRestPattern(
+            node: node,
+            original: previousRestPattern,
+            duplicate: element,
+          );
+          hasDuplicateRestPatternReported = true;
+        }
+        previousRestPattern = element;
+      }
+    }
+
+    for (int i = 0; i < elements.length; i++) {
+      Node element = elements[i];
       MapPatternEntry<Expression, Pattern>? entry = getMapPatternEntry(element);
       if (entry != null) {
         analyzeExpression(entry.key, keyContext);
@@ -811,6 +838,11 @@ mixin TypeAnalyzer<
         flow.popSubpattern();
       } else {
         assert(isRestPatternElement(element));
+        if (!hasDuplicateRestPatternReported) {
+          if (i != elements.length - 1) {
+            errors?.restPatternNotLastInMap(node, element);
+          }
+        }
         Pattern? subPattern = getRestPatternElementPattern(element);
         if (subPattern != null) {
           errors?.restPatternWithSubPatternInMap(node, element);
@@ -1910,6 +1942,13 @@ abstract class TypeAnalyzerErrors<
     required RecordPatternField<Node, Pattern> duplicate,
   });
 
+  /// Called for a duplicate rest pattern found in a list or map pattern.
+  void duplicateRestPattern({
+    required Node node,
+    required Node original,
+    required Node duplicate,
+  });
+
   /// Called when both branches have variables with the same name, but these
   /// variables either don't have the same finality, or their `NORM` types
   /// are not structurally equal.
@@ -1956,6 +1995,11 @@ abstract class TypeAnalyzerErrors<
     required Node node,
     required Type returnType,
   });
+
+  /// Called if a rest pattern inside a map pattern is not the last element.
+  ///
+  /// [node] is the map pattern.  [element] is the rest pattern.
+  void restPatternNotLastInMap(Pattern node, Node element);
 
   /// Called if a rest pattern inside a map pattern has a subpattern.
   ///

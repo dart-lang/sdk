@@ -67,6 +67,15 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void duplicateRestPattern({
+    required Node node,
+    required Node original,
+    required Node duplicate,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
   void inconsistentJoinedPatternVariable({
     required VariableDeclaration variable,
     required VariableDeclaration component,
@@ -104,6 +113,11 @@ class SharedTypeAnalyzerErrors
     required Node node,
     required DartType returnType,
   }) {
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  void restPatternNotLastInMap(Pattern node, Node element) {
     throw new UnimplementedError('TODO(scheglov)');
   }
 
