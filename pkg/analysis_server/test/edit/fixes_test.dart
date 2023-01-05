@@ -176,7 +176,7 @@ dependencies:
 
     // Configure the test file.
     final file =
-        newFile('$workspaceRootPath/aaa/main.dart', 'void f() { new Foo(); }');
+        newFile('$workspaceRootPath/aaa/main.dart', 'void f() { Foo(); }');
 
     await waitForTasksFinished();
 

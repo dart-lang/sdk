@@ -25,16 +25,16 @@ class AnalysisNotificationClosingLabelsTest
 Widget build(BuildContext context) {
   return /*1*/new Row(
     children: /*2*/<Widget>[
-      new Text('a'),
-      new Text('b'),
+      Text('a'),
+      Text('b'),
     ]/*/2*/,
   )/*/1*/;
 }
 ''';
 
   static final expectedResults = [
-    ClosingLabel(51, 96, 'Row'),
-    ClosingLabel(79, 57, '<Widget>[]')
+    ClosingLabel(51, 88, 'Row'),
+    ClosingLabel(79, 49, '<Widget>[]')
   ];
 
   List<ClosingLabel>? lastLabels;
