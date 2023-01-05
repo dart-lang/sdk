@@ -49,7 +49,6 @@ class ImplicitCallTearoffs extends LintRule {
           description: _desc,
           details: _details,
           group: Group.style,
-          state: State.experimental(),
         );
 
   @override
