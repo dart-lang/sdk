@@ -105,6 +105,20 @@ const _Factory factory = const _Factory();
 ///   class that has this annotation is not immutable.
 const Immutable immutable = const Immutable();
 
+/// Used to annotate a declaration which should only be used from within the
+/// package in which it is declared, and which should not be exposed from said
+/// package's public API.
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * the declaration is declared in a package's public API, or is exposed from
+///   a package's public API, or
+/// * the declaration is private, an unnamed extension, a static member of a
+///   private class, mixin, or extension, a value of a private enum, or a
+///   constructor of a private class, or
+/// * the declaration is referenced outside the package in which it is declared.
+const _Internal internal = _Internal();
+
 /// Used to annotate a test framework function that runs a single test.
 ///
 /// Tools, such as IDEs, can show invocations of such function in a file
@@ -168,6 +182,21 @@ const _MustBeOverridden mustBeOverridden = _MustBeOverridden();
 /// * a method that overrides a method that has this annotation can return
 ///   without invoking the overridden method.
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
+
+/// Used to annotate an instance member (method, getter, setter, operator, or
+/// field) `m` in a class `C` or mixin `M`. Indicates that `m` should not be
+/// overridden in any classes that extend or mixin `C` or `M`.
+///
+/// Tools, such as the analyzer, can provide feedback if
+///
+/// * the annotation is associated with anything other than an instance member,
+/// * the annotation is associated with an abstract member (because subclasses
+///   are required to override the member),
+/// * the annotation is associated with an extension method,
+/// * the annotation is associated with a member `m` in class `C`, and there is
+///   a class `D` or mixin `M`, that extends or mixes in `C`, that declares an
+///   overriding member `m`.
+const _NonVirtual nonVirtual = _NonVirtual();
 
 /// Used to annotate a class declaration `C`. Indicates that any type arguments
 /// declared on `C` are to be treated as optional.  Tools such as the analyzer
@@ -298,6 +327,10 @@ class _Factory {
   const _Factory();
 }
 
+class _Internal {
+  const _Internal();
+}
+
 class _IsTest {
   const _IsTest();
 }
@@ -316,6 +349,10 @@ class _MustBeOverridden {
 
 class _MustCallSuper {
   const _MustCallSuper();
+}
+
+class _NonVirtual {
+  const _NonVirtual();
 }
 
 class _OptionalTypeArgs {

@@ -103,6 +103,7 @@ import 'package:analysis_server/src/services/correction/dart/make_field_not_fina
 import 'package:analysis_server/src/services/correction/dart/make_field_public.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_return_type_nullable.dart';
+import 'package:analysis_server/src/services/correction/dart/make_super_invocation_last.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_nullable.dart';
 import 'package:analysis_server/src/services/correction/dart/move_annotation_to_library_directive.dart';
@@ -1157,6 +1158,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED: [
       ChangeTo.superFormalParameter,
     ],
+    CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST: [
+      MakeSuperInvocationLast.new,
+    ],
     CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY: [
       AddSwitchCaseBreak.new,
     ],
@@ -1354,13 +1358,22 @@ class FixProcessor extends BaseProcessor {
     ],
     // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
 //    HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE: [],
+    HintCode.INVALID_ANNOTATION_TARGET: [
+      RemoveAnnotation.new,
+    ],
     HintCode.INVALID_FACTORY_ANNOTATION: [
       RemoveAnnotation.new,
     ],
     HintCode.INVALID_IMMUTABLE_ANNOTATION: [
       RemoveAnnotation.new,
     ],
+    HintCode.INVALID_INTERNAL_ANNOTATION: [
+      RemoveAnnotation.new,
+    ],
     HintCode.INVALID_LITERAL_ANNOTATION: [
+      RemoveAnnotation.new,
+    ],
+    HintCode.INVALID_NON_VIRTUAL_ANNOTATION: [
       RemoveAnnotation.new,
     ],
     HintCode.INVALID_REQUIRED_NAMED_PARAM: [
@@ -1373,6 +1386,12 @@ class FixProcessor extends BaseProcessor {
       RemoveAnnotation.new,
     ],
     HintCode.INVALID_SEALED_ANNOTATION: [
+      RemoveAnnotation.new,
+    ],
+    HintCode.INVALID_VISIBILITY_ANNOTATION: [
+      RemoveAnnotation.new,
+    ],
+    HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION: [
       RemoveAnnotation.new,
     ],
     HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE: [

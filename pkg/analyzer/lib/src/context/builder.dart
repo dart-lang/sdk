@@ -49,7 +49,7 @@ class EmbedderYamlLocator {
   /// setup the uri mapping.
   void _processEmbedderYaml(Folder libDir, String embedderYaml) {
     try {
-      YamlNode yaml = loadYaml(embedderYaml);
+      var yaml = loadYaml(embedderYaml);
       if (yaml is YamlMap) {
         embedderYamls[libDir] = yaml;
       }

@@ -93,7 +93,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       var value = node.value;
       if (value == null) return;
 
-      final rule = getRegisteredLint(value);
+      final rule = getRegisteredLint(value as Object);
       if (rule == null) {
         reporter.reportErrorForSpan(UNDEFINED_LINT_WARNING, node.span, [value]);
         return;
@@ -130,7 +130,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
       }
     } else if (rules is YamlMap) {
       for (var ruleEntry in rules.nodeMap.entries) {
-        validateRule(ruleEntry.key, ruleEntry.value.value);
+        validateRule(ruleEntry.key, ruleEntry.value.value as bool);
       }
     }
   }

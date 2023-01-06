@@ -1025,9 +1025,7 @@ CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT:
   notes: |-
     Object is only declared in SDK code; those developers do OK without fixes.
 CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST:
-  status: needsFix
-  notes: |-
-    Fixes could include moving super invocation to be last.
+  status: hasFix
 CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY:
   status: hasFix
 CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE:
@@ -1426,9 +1424,7 @@ HintCode.INFERENCE_FAILURE_ON_UNINITIALIZED_VARIABLE:
 HintCode.INFERENCE_FAILURE_ON_UNTYPED_PARAMETER:
   status: noFix
 HintCode.INVALID_ANNOTATION_TARGET:
-  status: needsFix
-  notes: |-
-    The fix is to remove the annotation.
+  status: hasFix
 HintCode.INVALID_EXPORT_OF_INTERNAL_ELEMENT:
   status: needsFix
   notes: |-
@@ -1453,9 +1449,7 @@ HintCode.INVALID_FACTORY_METHOD_IMPL:
 HintCode.INVALID_IMMUTABLE_ANNOTATION:
   status: hasFix
 HintCode.INVALID_INTERNAL_ANNOTATION:
-  status: needsFix
-  notes: |-
-    The fix is to remove the annotation.
+  status: hasFix
 HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_AT_SIGN:
   status: needsFix
   notes: |-
@@ -1504,9 +1498,7 @@ HintCode.INVALID_LANGUAGE_VERSION_OVERRIDE_TWO_SLASHES:
 HintCode.INVALID_LITERAL_ANNOTATION:
   status: hasFix
 HintCode.INVALID_NON_VIRTUAL_ANNOTATION:
-  status: needsFix
-  notes: |-
-    The fix is to remove the annotation.
+  status: hasFix
 HintCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER:
   status: noFix
 HintCode.INVALID_REQUIRED_NAMED_PARAM:
@@ -1529,14 +1521,9 @@ HintCode.INVALID_USE_OF_VISIBLE_FOR_TEMPLATE_MEMBER:
 HintCode.INVALID_USE_OF_VISIBLE_FOR_TESTING_MEMBER:
   status: noFix
 HintCode.INVALID_VISIBILITY_ANNOTATION:
-  status: needsFix
-  notes: |-
-    The fix is to remove the annotation.
+  status: hasFix
 HintCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
-  status: needsFix
-  since: ~2.15
-  notes: |-
-    The fix is to remove the annotation.
+  status: hasFix
 HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
   status: hasFix
 HintCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:
