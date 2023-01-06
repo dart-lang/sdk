@@ -4334,6 +4334,12 @@ class ParserErrorGenerator extends Generator {
         message.withLocation(_uri, fileOffset, noLength));
   }
 
+  TypeBuilder buildTypeWithResolvedArgumentsDoNotAddProblem(
+      NullabilityBuilder nullabilityBuilder) {
+    return new NamedTypeBuilder.forInvalidType(token.lexeme, nullabilityBuilder,
+        message.withLocation(_uri, fileOffset, noLength));
+  }
+
   @override
   Expression qualifiedLookup(Token name) {
     return buildProblem();

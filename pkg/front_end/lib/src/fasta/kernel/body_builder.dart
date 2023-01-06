@@ -4639,7 +4639,12 @@ class BodyBuilder extends StackListenerImpl
       QualifiedName qualified = name;
       Object prefix = qualified.qualifier;
       Token suffix = qualified.suffix;
-      if (prefix is Generator) {
+      if (prefix is ParserErrorGenerator) {
+        // An error have already been issued.
+        push(prefix.buildTypeWithResolvedArgumentsDoNotAddProblem(
+            libraryBuilder.nullableBuilderIfTrue(isMarkedAsNullable)));
+        return;
+      } else if (prefix is Generator) {
         name = prefix.qualifiedLookup(suffix);
       } else {
         String name = getNodeName(prefix);
