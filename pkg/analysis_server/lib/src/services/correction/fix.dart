@@ -842,6 +842,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     "Make conditional on 'kDebugMode'",
   );
+  static const MAKE_SUPER_INVOCATION_LAST = FixKind(
+    'dart.fix.makeSuperInvocationLast',
+    DartFixKindPriority.DEFAULT,
+    "Move the invocation to the end of the initializer list",
+  );
   static const MAKE_VARIABLE_NOT_FINAL = FixKind(
     'dart.fix.makeVariableNotFinal',
     DartFixKindPriority.DEFAULT,

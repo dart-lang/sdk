@@ -1025,9 +1025,7 @@ CompileTimeErrorCode.SUPER_INITIALIZER_IN_OBJECT:
   notes: |-
     Object is only declared in SDK code; those developers do OK without fixes.
 CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST:
-  status: needsFix
-  notes: |-
-    Fixes could include moving super invocation to be last.
+  status: hasFix
 CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY:
   status: hasFix
 CompileTimeErrorCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE:

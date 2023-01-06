@@ -103,6 +103,7 @@ import 'package:analysis_server/src/services/correction/dart/make_field_not_fina
 import 'package:analysis_server/src/services/correction/dart/make_field_public.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_return_type_nullable.dart';
+import 'package:analysis_server/src/services/correction/dart/make_super_invocation_last.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_nullable.dart';
 import 'package:analysis_server/src/services/correction/dart/move_annotation_to_library_directive.dart';
@@ -1156,6 +1157,9 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.SUPER_FORMAL_PARAMETER_WITHOUT_ASSOCIATED_NAMED: [
       ChangeTo.superFormalParameter,
+    ],
+    CompileTimeErrorCode.SUPER_INVOCATION_NOT_LAST: [
+      MakeSuperInvocationLast.new,
     ],
     CompileTimeErrorCode.SWITCH_CASE_COMPLETES_NORMALLY: [
       AddSwitchCaseBreak.new,

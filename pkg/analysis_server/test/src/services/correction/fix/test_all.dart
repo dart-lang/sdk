@@ -128,6 +128,7 @@ import 'make_field_not_final_test.dart' as make_field_not_final;
 import 'make_field_public_test.dart' as make_field_public;
 import 'make_final_test.dart' as make_final;
 import 'make_return_type_nullable_test.dart' as make_return_type_nullable;
+import 'make_super_invocation_last_test.dart' as make_super_invocation_last;
 import 'make_variable_not_final_test.dart' as make_variable_not_final;
 import 'make_variable_nullable_test.dart' as make_variable_nullable;
 import 'move_annotation_to_library_directive_test.dart'
@@ -362,6 +363,7 @@ void main() {
     make_field_public.main();
     make_final.main();
     make_return_type_nullable.main();
+    make_super_invocation_last.main();
     make_variable_not_final.main();
     make_variable_nullable.main();
     move_annotation_to_library_directive.main();
