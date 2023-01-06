@@ -1637,6 +1637,14 @@ HintCode.UNNECESSARY_IGNORE:
     Remove the ignore comment (or one code in the comment).
 HintCode.UNNECESSARY_IMPORT:
   status: hasFix
+HintCode.UNNECESSARY_NAN_COMPARISON_FALSE:
+  status: needsFix
+  notes: |-
+    Use 'isNaN', or remove the comparison.
+HintCode.UNNECESSARY_NAN_COMPARISON_TRUE:
+  status: needsFix
+  notes: |-
+    Use 'isNaN', or remove the comparison.
 HintCode.UNNECESSARY_NO_SUCH_METHOD:
   status: needsFix
   notes: |-

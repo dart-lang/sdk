@@ -19429,9 +19429,9 @@ class B extends A {}
 
 ### unnecessary_null_comparison
 
-_The operand can't be null, so the condition is always false._
+_The operand can't be null, so the condition is always 'false'._
 
-_The operand can't be null, so the condition is always true._
+_The operand can't be null, so the condition is always 'true'._
 
 #### Description
 
