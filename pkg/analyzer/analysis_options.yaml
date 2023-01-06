@@ -31,6 +31,7 @@ analyzer:
     provide_deprecation_message: ignore
 
   language:
+    strict-casts: true
     strict-inference: true
 
 linter:

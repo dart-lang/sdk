@@ -80,7 +80,7 @@ class SdkConstraintExtractor {
           if (environment is YamlMap) {
             YamlNode? sdk = environment.nodes['sdk'];
             if (sdk is YamlScalar) {
-              _constraintText = sdk.value;
+              _constraintText = sdk.value as String?;
               _constraintOffset = sdk.span.start.offset;
               if (sdk.style == ScalarStyle.SINGLE_QUOTED ||
                   sdk.style == ScalarStyle.DOUBLE_QUOTED) {

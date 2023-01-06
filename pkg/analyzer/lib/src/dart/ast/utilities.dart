@@ -1631,7 +1631,7 @@ class LinterExceptionHandler {
   /// Returns `true` if the exception was fully handled, and `false` if the
   /// exception should be rethrown.
   bool logException(
-      AstNode node, Object visitor, dynamic exception, StackTrace stackTrace) {
+      AstNode node, Object visitor, Object exception, StackTrace stackTrace) {
     StringBuffer buffer = StringBuffer();
     buffer.write('Exception while using a ${visitor.runtimeType} to visit a ');
     AstNode? currentNode = node;

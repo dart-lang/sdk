@@ -5424,8 +5424,8 @@ class AstBuilder extends StackListener {
     count = 0;
     int index = 0;
     while (index < sourcesAndOffsets.length) {
-      String referenceSource = sourcesAndOffsets[index++];
-      int referenceOffset = sourcesAndOffsets[index++];
+      var referenceSource = sourcesAndOffsets[index++] as String;
+      var referenceOffset = sourcesAndOffsets[index++] as int;
       ScannerResult result = scanString(referenceSource);
       if (!result.hasErrors) {
         Token token = result.tokens;

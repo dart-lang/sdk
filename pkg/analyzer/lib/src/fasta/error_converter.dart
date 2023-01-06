@@ -56,7 +56,7 @@ class FastaErrorReporter {
             ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, offset, length);
         return;
       case "CONST_NOT_INITIALIZED":
-        String name = arguments['name'];
+        var name = arguments['name'] as String;
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.CONST_NOT_INITIALIZED, offset, length, [name]);
         return;
@@ -69,7 +69,7 @@ class FastaErrorReporter {
             CompileTimeErrorCode.LABEL_UNDEFINED,
             offset,
             length,
-            [arguments['name']]);
+            [arguments['name'] as Object]);
         return;
       case "EMPTY_ENUM_BODY":
         errorReporter?.reportErrorForOffset(
@@ -89,7 +89,7 @@ class FastaErrorReporter {
         return;
       case "EXPECTED_TOKEN":
         errorReporter?.reportErrorForOffset(ParserErrorCode.EXPECTED_TOKEN,
-            offset, length, [arguments['string']]);
+            offset, length, [arguments['string'] as Object]);
         return;
       case "EXPECTED_TYPE_NAME":
         errorReporter?.reportErrorForOffset(
@@ -102,12 +102,12 @@ class FastaErrorReporter {
             length);
         return;
       case "FINAL_NOT_INITIALIZED":
-        String name = arguments['name'];
+        var name = arguments['name'] as String;
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.FINAL_NOT_INITIALIZED, offset, length, [name]);
         return;
       case "FINAL_NOT_INITIALIZED_CONSTRUCTOR_1":
-        String name = arguments['name'];
+        var name = arguments['name'] as String;
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
             offset,
@@ -123,8 +123,8 @@ class FastaErrorReporter {
             ScannerErrorCode.ILLEGAL_CHARACTER, offset, length);
         return;
       case "INVALID_ASSIGNMENT":
-        var type1 = arguments['type'];
-        var type2 = arguments['type2'];
+        var type1 = arguments['type'] as Object;
+        var type2 = arguments['type2'] as Object;
         errorReporter?.reportErrorForOffset(
             CompileTimeErrorCode.INVALID_ASSIGNMENT,
             offset,

@@ -93,7 +93,7 @@ analyzer:
   });
 }
 
-bool containsKey(Map<dynamic, YamlNode> map, dynamic key) =>
+bool containsKey(Map<Object, YamlNode> map, Object key) =>
     _getValue(map, key) != null;
 
 void expectEquals(YamlNode? actual, YamlNode? expected) {
@@ -115,8 +115,8 @@ void expectEquals(YamlNode? actual, YamlNode? expected) {
   } else if (expected is YamlMap) {
     if (actual is YamlMap) {
       expect(actual.length, expected.length);
-      Map<dynamic, YamlNode> expectedNodes = expected.nodes;
-      Map<dynamic, YamlNode> actualNodes = actual.nodes;
+      var expectedNodes = expected.nodes.cast<Object, YamlNode>();
+      var actualNodes = actual.nodes.cast<Object, YamlNode>();
       for (var expectedKey in expectedNodes.keys) {
         if (!containsKey(actualNodes, expectedKey)) {
           fail('Missing key $expectedKey');
@@ -139,9 +139,10 @@ void expectEquals(YamlNode? actual, YamlNode? expected) {
   }
 }
 
-Object valueOf(Object object) => object is YamlNode ? object.value : object;
+Object valueOf(Object object) =>
+    object is YamlNode ? object.valueOrThrow : object;
 
-YamlNode? _getValue(Map map, Object key) {
+YamlNode? _getValue(Map<Object, YamlNode?> map, Object key) {
   Object keyValue = valueOf(key);
   for (var existingKey in map.keys) {
     if (valueOf(existingKey) == keyValue) {

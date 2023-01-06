@@ -689,7 +689,7 @@ class StrongModeOptionValueValidator extends OptionsValidator {
       reporter.reportErrorForSpan(
           AnalysisOptionsWarningCode.UNSUPPORTED_VALUE, strongModeNode.span, [
         AnalyzerOptions.strongMode,
-        strongModeNode.value,
+        strongModeNode.valueOrThrow,
         AnalyzerOptions.trueOrFalseProposal
       ]);
     } else if (stringValue == 'false') {

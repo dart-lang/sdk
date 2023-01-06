@@ -320,9 +320,10 @@ class EmbedderSdk extends AbstractDartSdk {
   ///
   /// If a key doesn't begin with `dart:` it is ignored.
   void _processEmbedderYaml(Folder libDir, YamlMap map) {
-    YamlNode embeddedLibs = map[_embeddedLibMapKey];
+    var embeddedLibs = map[_embeddedLibMapKey] as YamlNode;
     if (embeddedLibs is YamlMap) {
-      embeddedLibs.forEach((k, v) => _processEmbeddedLibs(k, v, libDir));
+      embeddedLibs.forEach(
+          (k, v) => _processEmbeddedLibs(k as String, v as String, libDir));
     }
   }
 }

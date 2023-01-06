@@ -12,7 +12,7 @@ import 'package:analyzer/src/services/lint.dart';
 /// Returns `true` if the exception was fully handled, or `false` if
 /// the exception should be rethrown.
 typedef LintRuleExceptionHandler = bool Function(
-    AstNode node, LintRule linter, dynamic exception, StackTrace stackTrace);
+    AstNode node, LintRule linter, Object exception, StackTrace stackTrace);
 
 /// The AST visitor that runs handlers for nodes from the [registry].
 class LinterVisitor implements AstVisitor<void> {
