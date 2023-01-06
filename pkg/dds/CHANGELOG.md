@@ -1,4 +1,5 @@
-# 2.5.1
+# 2.6.0
+- Add support for registering and subscribing to custom service streams.
 - [DAP] Supplying incorrect types of arguments in `launch`/`attach` requests will now result in a clear error message in an error response instead of terminating the adapter.
 
 # 2.5.0
