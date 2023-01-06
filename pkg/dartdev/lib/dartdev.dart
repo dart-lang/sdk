@@ -26,7 +26,6 @@ import 'src/commands/doc.dart';
 import 'src/commands/fix.dart';
 import 'src/commands/info.dart';
 import 'src/commands/language_server.dart';
-import 'src/commands/migrate.dart';
 import 'src/commands/run.dart';
 import 'src/commands/test.dart';
 import 'src/core.dart';
@@ -131,7 +130,6 @@ class DartdevRunner extends CommandRunner<int> {
     addCommand(FormatCommand(verbose: verbose));
     addCommand(InfoCommand(verbose: verbose));
     addCommand(LanguageServerCommand(verbose: verbose));
-    addCommand(MigrateCommand(verbose: verbose));
     addCommand(
       pubCommand(
         analytics: PubAnalytics(

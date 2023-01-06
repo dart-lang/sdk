@@ -1234,6 +1234,22 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const HintCode UNNECESSARY_NAN_COMPARISON_FALSE = HintCode(
+    'UNNECESSARY_NAN_COMPARISON',
+    "A double can't equal NaN, so the condition is always 'false'.",
+    correctionMessage: "Try using 'isNan', or removing the condition.",
+    uniqueName: 'UNNECESSARY_NAN_COMPARISON_FALSE',
+  );
+
+  ///  No parameters.
+  static const HintCode UNNECESSARY_NAN_COMPARISON_TRUE = HintCode(
+    'UNNECESSARY_NAN_COMPARISON',
+    "A double can't equal NaN, so the condition is always 'true'.",
+    correctionMessage: "Try using 'isNan', or removing the condition.",
+    uniqueName: 'UNNECESSARY_NAN_COMPARISON_TRUE',
+  );
+
+  ///  No parameters.
   static const HintCode UNNECESSARY_NO_SUCH_METHOD = HintCode(
     'UNNECESSARY_NO_SUCH_METHOD',
     "Unnecessary 'noSuchMethod' declaration.",
@@ -1244,7 +1260,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  No parameters.
   static const HintCode UNNECESSARY_NULL_COMPARISON_FALSE = HintCode(
     'UNNECESSARY_NULL_COMPARISON',
-    "The operand can't be null, so the condition is always false.",
+    "The operand can't be null, so the condition is always 'false'.",
     correctionMessage:
         "Try removing the condition, an enclosing condition, or the whole "
         "conditional statement.",
@@ -1255,7 +1271,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  No parameters.
   static const HintCode UNNECESSARY_NULL_COMPARISON_TRUE = HintCode(
     'UNNECESSARY_NULL_COMPARISON',
-    "The operand can't be null, so the condition is always true.",
+    "The operand can't be null, so the condition is always 'true'.",
     correctionMessage: "Remove the condition.",
     hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_NULL_COMPARISON_TRUE',

@@ -467,7 +467,6 @@ class Driver implements CommandLineStarter {
         newOptions.defaultPackagesPath == previous.defaultPackagesPath &&
         _equalMaps(newOptions.declaredVariables, previous.declaredVariables) &&
         newOptions.log == previous.log &&
-        newOptions.disableHints == previous.disableHints &&
         newOptions.defaultLanguageVersion == previous.defaultLanguageVersion &&
         newOptions.disableCacheFlushing == previous.disableCacheFlushing &&
         _equalLists(

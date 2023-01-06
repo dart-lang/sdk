@@ -70,9 +70,6 @@ class CommandLineOptions {
   /// around bugs.
   final bool disableCacheFlushing;
 
-  /// Whether to report hints
-  final bool disableHints;
-
   /// Whether to display version information
   final bool displayVersion;
 
@@ -115,7 +112,6 @@ class CommandLineOptions {
   )   : _argResults = args,
         dartSdkPath = castNullable(args[_sdkPathOption]),
         disableCacheFlushing = cast(args['disable-cache-flushing']),
-        disableHints = cast(args['no-hints']),
         displayVersion = cast(args['version']),
         ignoreUnrecognizedFlags = cast(args[_ignoreUnrecognizedFlagsFlag]),
         log = cast(args['log']),
@@ -375,10 +371,6 @@ class CommandLineOptions {
               'currently recognized values are \'json\' and \'machine\'.')
       ..addFlag('version',
           help: 'Print the analyzer version.',
-          defaultsTo: false,
-          negatable: false)
-      ..addFlag('no-hints',
-          help: 'Do not show hint results.',
           defaultsTo: false,
           negatable: false)
       ..addFlag('help',

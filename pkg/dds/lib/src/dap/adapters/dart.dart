@@ -1610,16 +1610,6 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     sendResponse(ThreadsResponseBody(threads: threads));
   }
 
-  /// Sets the package config file to use for `package: URI` resolution.
-  ///
-  /// It is no longer necessary to call this method as the package config file
-  /// is no longer used. URI lookups are done via the VM Service.
-  @Deprecated('No longer necessary, URI lookups are done via VM Service')
-  void usePackageConfigFile(File packageConfig) {
-    // TODO(dantup): Remove this method after Flutter DA is updated not to use
-    // it.
-  }
-
   /// [variablesRequest] is called by the client to request child variables for
   /// a given variables variablesReference.
   ///
@@ -1977,15 +1967,17 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       allowTruncatedValue: false,
       includeQuotesAroundString: false,
     )
-        // TODO: Fix this static error.
-        // ignore: body_might_complete_normally_catch_error
-        .catchError((e) {
-      // Fetching strings from the server may throw if they have been
-      // collected since (for example if a Hot Restart occurs while
-      // we're running this). Log the error and just return null so
-      // nothing is shown.
-      logger?.call('$e');
-    });
+        // Fetching strings from the server may throw if they have been
+        // collected since (for example if a Hot Restart occurs while
+        // we're running this) or if the app is terminating. Log the error and
+        // just return null so nothing is shown.
+        .then<String?>(
+      (s) => s,
+      onError: (Object e) {
+        logger?.call('$e');
+        return null;
+      },
+    );
   }
 
   /// Handles a dart:developer log() event, sending output to the client.

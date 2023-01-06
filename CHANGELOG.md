@@ -77,9 +77,18 @@
 - Callbacks passed to `registerExtension` will be run in the zone from which
   they are registered.
 
+- **Breaking change** [#50231][]:
+  - Removed the deprecated [`Metrics`][], [`Metric`][], [`Counter`][],
+    and [`Gauge`][] classes as they have been broken since Dart 2.0.
+
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
+[#50231]: https://github.com/dart-lang/sdk/issues/50231
 [`MAX_USER_TAGS`]: https://api.dart.dev/stable/dart-developer/UserTag/MAX_USER_TAGS-constant.html
 [`maxUserTags`]: https://api.dart.dev/beta/2.19.0-255.2.beta/dart-developer/UserTag/maxUserTags-constant.html
+[`Metrics`]: https://api.dart.dev/stable/2.18.2/dart-developer/Metrics-class.html
+[`Metric`]: https://api.dart.dev/stable/2.18.2/dart-developer/Metric-class.html
+[`Counter`]: https://api.dart.dev/stable/2.18.2/dart-developer/Counter-class.html
+[`Gauge`]: https://api.dart.dev/stable/2.18.2/dart-developer/Gauge-class.html
 
 #### `dart:html`
 
