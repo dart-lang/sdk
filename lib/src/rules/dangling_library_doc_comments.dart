@@ -77,7 +77,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       // other directives do not have the appearance of documenting the library.
       var firstDirective = node.directives.first;
       if (firstDirective is LibraryDirective) {
-        // Given the presense of library directive, don't worry about later doc
+        // Given the presence of library directive, don't worry about later doc
         // comments in the library.
         return;
       }
