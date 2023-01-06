@@ -92,6 +92,33 @@ void main(List<String> args) async {
       ]);
       await dap.client.terminate();
     });
+
+    test('does not crash if app exits while expanding long log messages',
+        () async {
+      // Make a long message that's more than 255 chars (where the VM truncates
+      // log strings by default).
+      //
+      // Logging the message will cause the DA to try to fetch the full string
+      // but the app will have exited. Without the fix for
+      // https://github.com/dart-lang/sdk/issues/50802
+      // this test will fail with an unhandled error:
+      //
+      //     The error handler of Future.catchError must return a
+      //     value of the future's type
+      final longMessage = 'this is a test' * 20;
+      final testFile = dap.createTestFile('''
+import 'dart:developer';
+
+void main(List<String> args) async {
+  log('$longMessage');
+}
+    ''');
+
+      await Future.wait([
+        dap.client.event('terminated'),
+        dap.client.start(file: testFile),
+      ]);
+    });
     // These tests can be slow due to starting up the external server process.
   }, timeout: Timeout.none);
 }
