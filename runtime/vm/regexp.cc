@@ -565,7 +565,7 @@ void Trace::PerformDeferredActions(RegExpMacroAssembler* assembler,
             }
             // SET_REGISTER is currently only used for newly introduced loop
             // counters. They can have a significant previous value if they
-            // occour in a loop. TODO(lrn): Propagate this information, so we
+            // occur in a loop. TODO(lrn): Propagate this information, so we
             // can set undo_action to ACTION_IGNORE if we know there is no
             // value to restore.
             undo_action = ACTION_RESTORE;

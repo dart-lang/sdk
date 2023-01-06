@@ -183,7 +183,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
             // A symbolic link can potentially point to an anon_inode. For
             // example, an epoll file descriptor will have a symbolic link whose
             // content is the string anon_inode:[eventpoll]. In this case, the
-            // target doesn't belong to any regular file catogory.
+            // target doesn't belong to any regular file category.
             return kListLink;
           }
           if (S_ISDIR(entry_info.st_mode)) {
@@ -207,7 +207,7 @@ ListType DirectoryListingEntry::Next(DirectoryListing* listing) {
           return kListLink;
         } else {
           // Regular files, character devices, block devices, fifos, sockets and
-          // unknown types are all considerred as files.
+          // unknown types are all considered as files.
           return kListFile;
         }
       }

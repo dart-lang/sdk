@@ -15,5 +15,5 @@ See https://developers.google.com/web/tools/chrome-devtools/memory-problems/heap
 
 ## Examining a profile programmatically
 
-A Dart library to parse the snapshot profile format is provided in `pkg/vm/lib/v8_snaphsot_profile.dart`.
+A Dart library to parse the snapshot profile format is provided in `pkg/vm/lib/v8_snapshot_profile.dart`.
 The `dart2js_info` package has some useful code for calculating retainers and other graph statistics.

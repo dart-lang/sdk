@@ -57,7 +57,7 @@ RecordShape recordShapeOfRecordType(ir.RecordType node) {
 }
 
 /// Computes `recordShapeOfRecordType(node).indexOfName(name)` without creating
-/// an itermediate shape.
+/// an intermediate shape.
 int indexOfNameInRecordShapeOfRecordType(ir.RecordType node, String name) {
   final nameIndex = node.named.indexWhere((n) => n.name == name);
   if (nameIndex < 0) throw ArgumentError.value(name, 'name');

@@ -257,7 +257,7 @@ class BufferListBase {
     DEBUG_ASSERT(IsEmpty());
   }
 
-  // Returns the collected data as a Uint8List. If an error occours an
+  // Returns the collected data as a Uint8List. If an error occurs an
   // error handle is returned.
   Dart_Handle GetData() {
     uint8_t* buffer;

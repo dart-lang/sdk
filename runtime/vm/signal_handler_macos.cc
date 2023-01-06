@@ -22,7 +22,7 @@ uintptr_t SignalHandler::GetProgramCounter(const mcontext_t& mcontext) {
 #elif defined(HOST_ARCH_ARM64)
   pc = static_cast<uintptr_t>(mcontext->__ss.__pc);
 #else
-#error Unsuported architecture.
+#error Unsupported architecture.
 #endif  // HOST_ARCH_...
 
   return pc;
@@ -40,7 +40,7 @@ uintptr_t SignalHandler::GetFramePointer(const mcontext_t& mcontext) {
 #elif defined(HOST_ARCH_ARM64)
   fp = static_cast<uintptr_t>(mcontext->__ss.__fp);
 #else
-#error Unsuported architecture.
+#error Unsupported architecture.
 #endif  // HOST_ARCH_...
 
   return fp;

@@ -41,7 +41,7 @@ class SpeculativeInliningPolicy {
   }
 
   bool IsAllowedForInlining(intptr_t call_deopt_id) const {
-    // If we are not supressing, we always enable optimistic inlining.
+    // If we are not suppressing, we always enable optimistic inlining.
     if (!enable_suppression_) {
       return true;
     }
@@ -80,7 +80,7 @@ class SpeculativeInliningPolicy {
     return false;
   }
 
-  // Whether we enable supressing inlining at specific deopt-ids.
+  // Whether we enable suppressing inlining at specific deopt-ids.
   const bool enable_suppression_;
 
   // After we reach [remaining_] number of deopt-ids in [inlining_suppressions_]

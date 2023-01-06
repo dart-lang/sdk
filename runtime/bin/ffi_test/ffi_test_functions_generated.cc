@@ -5309,7 +5309,7 @@ DART_EXPORT Struct16BytesMixed2 ReturnStruct16BytesMixed2(float a0,
 }
 
 // Used for testing structs and unions by value.
-// Rerturn value returned in preallocated space passed by pointer on most ABIs.
+// Return value returned in preallocated space passed by pointer on most ABIs.
 // Is non word size on purpose, to test that structs are rounded up to word size
 // on all ABIs.
 DART_EXPORT Struct17BytesInt ReturnStruct17BytesInt(int64_t a0,
@@ -13521,7 +13521,7 @@ DART_EXPORT intptr_t TestReturnStruct16BytesMixed2(
 }
 
 // Used for testing structs and unions by value.
-// Rerturn value returned in preallocated space passed by pointer on most ABIs.
+// Return value returned in preallocated space passed by pointer on most ABIs.
 // Is non word size on purpose, to test that structs are rounded up to word size
 // on all ABIs.
 DART_EXPORT intptr_t TestReturnStruct17BytesInt(

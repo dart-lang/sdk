@@ -475,7 +475,7 @@ Return value split over FP and integer register in x64."""),
 Return value split over FP and integer register in x64.
 The integer register contains half float half int."""),
   FunctionType(struct17bytesInt.memberTypes, struct17bytesInt, """
-Rerturn value returned in preallocated space passed by pointer on most ABIs.
+Return value returned in preallocated space passed by pointer on most ABIs.
 Is non word size on purpose, to test that structs are rounded up to word size
 on all ABIs."""),
   FunctionType(struct19bytesInt.memberTypes, struct19bytesInt, """
