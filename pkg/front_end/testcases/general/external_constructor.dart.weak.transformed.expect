@@ -1,0 +1,92 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/external_constructor.dart:18:25: Error: 'as2' isn't an instance field of this class.
+//   C.named(this.a1, this.as2); // Ok
+//                         ^^^
+//
+// pkg/front_end/testcases/general/external_constructor.dart:41:19: Error: 'as2' isn't an instance field of this class.
+//   F(this.a1, this.as2); // Ok
+//                   ^^^
+//
+// pkg/front_end/testcases/general/external_constructor.dart:18:3: Error: Final field 'a2' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   C.named(this.a1, this.as2); // Ok
+//   ^^^^^
+// pkg/front_end/testcases/general/external_constructor.dart:15:11: Context: 'a2' is defined here.
+//   final A a2;
+//           ^^
+//
+// pkg/front_end/testcases/general/external_constructor.dart:26:3: Error: Final field 'a2' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   D.named(this.a1); // Error
+//   ^^^^^
+// pkg/front_end/testcases/general/external_constructor.dart:23:11: Context: 'a2' is defined here.
+//   final A a2;
+//           ^^
+//
+// pkg/front_end/testcases/general/external_constructor.dart:33:3: Error: Final field 'a1' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   E(this.a2); // Error
+//   ^
+// pkg/front_end/testcases/general/external_constructor.dart:30:11: Context: 'a1' is defined here.
+//   final A a1;
+//           ^^
+//
+// pkg/front_end/testcases/general/external_constructor.dart:41:3: Error: Final field 'a2' is not initialized by this constructor.
+// Try to initialize the field using an initializing formal or a field initializer.
+//   F(this.a1, this.as2); // Ok
+//   ^
+// pkg/front_end/testcases/general/external_constructor.dart:39:11: Context: 'a2' is defined here.
+//   final A a2;
+//           ^^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+class B extends core::Object {
+  final field self::A a;
+  external constructor •(self::A a) → self::B;
+}
+class C extends core::Object {
+  final field self::A a1;
+  final field self::A a2;
+  external constructor •() → self::C;
+  constructor named(self::A a1, dynamic as2) → self::C
+    : self::C::a2 = null, self::C::a1 = a1, final dynamic #t1 = invalid-expression "pkg/front_end/testcases/general/external_constructor.dart:18:25: Error: 'as2' isn't an instance field of this class.
+  C.named(this.a1, this.as2); // Ok
+                        ^^^"
+    ;
+}
+class D extends core::Object {
+  final field self::A a1;
+  final field self::A a2;
+  external constructor •() → self::D;
+  constructor named(self::A a1) → self::D
+    : self::D::a2 = null, self::D::a1 = a1, super core::Object::•()
+    ;
+}
+class E extends core::Object {
+  final field self::A a1;
+  final field self::A a2;
+  constructor •(self::A a2) → self::E
+    : self::E::a1 = null, self::E::a2 = a2, super core::Object::•()
+    ;
+  external constructor named() → self::E;
+}
+class F extends core::Object {
+  final field self::A a1;
+  final field self::A a2;
+  constructor •(self::A a1, dynamic as2) → self::F
+    : self::F::a2 = null, self::F::a1 = a1, final dynamic #t2 = invalid-expression "pkg/front_end/testcases/general/external_constructor.dart:41:19: Error: 'as2' isn't an instance field of this class.
+  F(this.a1, this.as2); // Ok
+                  ^^^"
+    ;
+  external constructor named() → self::F;
+}

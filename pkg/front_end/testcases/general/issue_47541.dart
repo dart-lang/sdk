@@ -1,4 +1,4 @@
-void main() {
+void notMain() {
   a();
   b();
   c(42);

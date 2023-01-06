@@ -8220,16 +8220,11 @@ class Parser {
       Token? onKeyword = null;
       if (identical(value, 'on')) {
         // 'on' type catchPart?
+        // Note https://github.com/dart-lang/language/blob/master/accepted/future-releases/records/records-feature-specification.md#ambiguity-with-on-clauses
+        // "Whenever on appears after a try block or after a preceding on clause
+        // on a try block, we unconditionally parse it as an on clause".
         onKeyword = token;
         TypeInfo typeInfo = computeType(token, /* required = */ true);
-        if (catchCount > 0 && (typeInfo == noType || typeInfo.recovered)) {
-          // Not a valid on-clause and we have enough catch counts to be a valid
-          // try block already.
-          // This could for instance be code like `on([...])` or `on = 42` after
-          // some actual catch/on as that could be a valid method call, local
-          // function, assignment etc.
-          break;
-        }
         listener.beginCatchClause(token);
         didBeginCatchClause = true;
         lastConsumed = typeInfo.ensureTypeNotVoid(token, this);

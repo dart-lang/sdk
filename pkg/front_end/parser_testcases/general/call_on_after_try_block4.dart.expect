@@ -1,3 +1,17 @@
+Problems reported:
+
+parser/general/call_on_after_try_block4:12:6: Expected a type, but got '='.
+  on = 42;
+     ^
+
+parser/general/call_on_after_try_block4:12:6: A catch clause must have a body, even if it is empty.
+  on = 42;
+     ^
+
+parser/general/call_on_after_try_block4:12:6: Expected an identifier, but got '='.
+  on = 42;
+     ^
+
 beginCompilationUnit(void)
   beginMetadataStar(void)
   endMetadataStar(0)
@@ -47,11 +61,22 @@ beginCompilationUnit(void)
             handleEmptyStatement(;)
           endBlock(1, {, }, BlockKind(catch clause))
           handleCatchBlock(on, null, null)
-        endTryStatement(2, try, null)
-        handleIdentifier(on, expression)
+          beginCatchClause(on)
+            handleRecoverableError(Message[ExpectedType, Expected a type, but got '='., null, {lexeme: =}], =, =)
+            handleIdentifier(, typeReference)
+            handleNoTypeArguments(=)
+            handleType(, null)
+          endCatchClause(=)
+          handleRecoverableError(Message[ExpectedClassOrMixinBody, A catch clause must have a body, even if it is empty., Try adding an empty body., {string: catch clause}], =, =)
+          beginBlock({, BlockKind(catch clause))
+          endBlock(0, {, }, BlockKind(catch clause))
+          handleCatchBlock(on, null, null)
+        endTryStatement(3, try, null)
+        handleRecoverableError(Message[ExpectedIdentifier, Expected an identifier, but got '='., Try inserting an identifier before '='., {lexeme: =}], =, =)
+        handleIdentifier(, expression)
         handleNoTypeArguments(=)
         handleNoArguments(=)
-        handleSend(on, =)
+        handleSend(, =)
         handleLiteralInt(42)
         handleAssignmentExpression(=)
         handleExpressionStatement(;)

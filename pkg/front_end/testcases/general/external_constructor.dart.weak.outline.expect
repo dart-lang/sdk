@@ -1,0 +1,40 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends core::Object {
+  final field self::A a;
+  external constructor •(self::A a) → self::B;
+}
+class C extends core::Object {
+  final field self::A a1;
+  final field self::A a2;
+  external constructor •() → self::C;
+  constructor named(self::A a1, dynamic as2) → self::C
+    ;
+}
+class D extends core::Object {
+  final field self::A a1;
+  final field self::A a2;
+  external constructor •() → self::D;
+  constructor named(self::A a1) → self::D
+    ;
+}
+class E extends core::Object {
+  final field self::A a1;
+  final field self::A a2;
+  constructor •(self::A a2) → self::E
+    ;
+  external constructor named() → self::E;
+}
+class F extends core::Object {
+  final field self::A a1;
+  final field self::A a2;
+  constructor •(self::A a1, dynamic as2) → self::F
+    ;
+  external constructor named() → self::F;
+}

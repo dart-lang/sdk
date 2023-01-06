@@ -1365,6 +1365,7 @@ class KernelTarget extends TargetImplementation {
     Map<ConstructorDeclaration, Set<SourceFieldBuilder>>
         constructorInitializedFields = new Map.identity();
     Set<SourceFieldBuilder>? initializedFieldBuilders = null;
+    Set<SourceFieldBuilder>? uninitializedInstanceFields;
 
     Iterator<ConstructorDeclaration> constructorIterator =
         classDeclaration.fullConstructorIterator<ConstructorDeclaration>();
@@ -1395,12 +1396,22 @@ class KernelTarget extends TargetImplementation {
           lateFinalFields.clear();
         }
       }
-      if (constructor.isEffectivelyExternal) continue;
-      Set<SourceFieldBuilder> fields =
-          constructor.takeInitializedFields() ?? const {};
-      constructorInitializedFields[constructor] = fields;
-      (initializedFieldBuilders ??= new Set<SourceFieldBuilder>.identity())
-          .addAll(fields);
+      if (constructor.isEffectivelyExternal) {
+        // Assume that an external constructor initializes all uninitialized
+        // instance fields.
+        uninitializedInstanceFields ??= uninitializedFields
+            .where((SourceFieldBuilder fieldBuilder) => !fieldBuilder.isStatic)
+            .toSet();
+        constructorInitializedFields[constructor] = uninitializedInstanceFields;
+        (initializedFieldBuilders ??= new Set<SourceFieldBuilder>.identity())
+            .addAll(uninitializedInstanceFields);
+      } else {
+        Set<SourceFieldBuilder> fields =
+            constructor.takeInitializedFields() ?? const {};
+        constructorInitializedFields[constructor] = fields;
+        (initializedFieldBuilders ??= new Set<SourceFieldBuilder>.identity())
+            .addAll(fields);
+      }
     }
 
     // Run through all fields that aren't initialized by any constructor, and

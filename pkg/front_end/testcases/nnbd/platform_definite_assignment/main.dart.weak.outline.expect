@@ -23,8 +23,7 @@ class Class<T extends core::num> extends core::Object /*hasConstConstructor*/  {
   constructor constructor(core::int a, self2::Class::T b) → self2::Class<self2::Class::T>
     ;
   @_in::patch
-  external constructor patchedConstructor(core::int a, self2::Class::T b) → self2::Class<self2::Class::T>
-    ;
+  external constructor patchedConstructor(core::int a, self2::Class::T b) → self2::Class<self2::Class::T>;
   method method(core::int a) → core::int
     ;
   @_in::patch
