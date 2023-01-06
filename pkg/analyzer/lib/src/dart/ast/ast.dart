@@ -661,16 +661,13 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
 ///
 ///    variablePattern ::= identifier
 @experimental
-class AssignedVariablePatternImpl extends DartPatternImpl
+class AssignedVariablePatternImpl extends VariablePatternImpl
     implements AssignedVariablePattern {
   @override
   Element? element;
 
-  @override
-  final Token name;
-
   AssignedVariablePatternImpl({
-    required this.name,
+    required super.name,
   });
 
   @override
@@ -680,8 +677,7 @@ class AssignedVariablePatternImpl extends DartPatternImpl
   Token get endToken => name;
 
   @override
-  ChildEntities get _childEntities =>
-      super._childEntities..addToken('name', name);
+  ChildEntities get _childEntities => ChildEntities()..addToken('name', name);
 
   @override
   E? accept<E>(AstVisitor<E> visitor) {
@@ -1528,7 +1524,7 @@ class CastPatternImpl extends DartPatternImpl implements CastPattern {
   Token get endToken => type.endToken;
 
   @override
-  DeclaredVariablePatternImpl? get variablePattern => pattern.variablePattern;
+  VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -3384,7 +3380,7 @@ abstract class DartPatternImpl extends AstNodeImpl
   DartPattern get unParenthesized => this;
 
   /// The variable pattern, itself, or wrapped in a unary pattern.
-  DeclaredVariablePatternImpl? get variablePattern => null;
+  VariablePatternImpl? get variablePattern => null;
 
   DartType computePatternSchema(ResolverVisitor resolverVisitor);
 
@@ -3504,7 +3500,7 @@ class DeclaredSimpleIdentifier extends SimpleIdentifierImpl {
 ///    variablePattern ::=
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? [Identifier]
 @experimental
-class DeclaredVariablePatternImpl extends DartPatternImpl
+class DeclaredVariablePatternImpl extends VariablePatternImpl
     implements DeclaredVariablePattern {
   @override
   VariablePatternBindElementImpl? declaredElement;
@@ -3513,15 +3509,12 @@ class DeclaredVariablePatternImpl extends DartPatternImpl
   final Token? keyword;
 
   @override
-  final Token name;
-
-  @override
   final TypeAnnotationImpl? type;
 
   DeclaredVariablePatternImpl({
-    required this.name,
     required this.keyword,
     required this.type,
+    required super.name,
   }) {
     _becomeParentOf(type);
   }
@@ -3563,10 +3556,7 @@ class DeclaredVariablePatternImpl extends DartPatternImpl
   }
 
   @override
-  DeclaredVariablePatternImpl? get variablePattern => this;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
+  ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
     ..addNode('type', type)
     ..addToken('name', name);
@@ -9941,7 +9931,7 @@ class ParenthesizedPatternImpl extends DartPatternImpl
   }
 
   @override
-  DeclaredVariablePatternImpl? get variablePattern => pattern.variablePattern;
+  VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -10390,7 +10380,7 @@ class PostfixPatternImpl extends DartPatternImpl implements PostfixPattern {
   Token get endToken => operator;
 
   @override
-  DeclaredVariablePatternImpl? get variablePattern => operand.variablePattern;
+  VariablePatternImpl? get variablePattern => operand.variablePattern;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -13894,6 +13884,20 @@ class VariableDeclarationStatementImpl extends StatementImpl
   void visitChildren(AstVisitor visitor) {
     _variableList.accept(visitor);
   }
+}
+
+@experimental
+abstract class VariablePatternImpl extends DartPatternImpl
+    implements VariablePattern {
+  @override
+  final Token name;
+
+  VariablePatternImpl({
+    required this.name,
+  });
+
+  @override
+  VariablePatternImpl? get variablePattern => this;
 }
 
 /// A guard in a pattern-based `case` in a `switch` statement or `switch`

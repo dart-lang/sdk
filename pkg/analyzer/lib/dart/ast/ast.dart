@@ -224,15 +224,12 @@ abstract class AssertStatement implements Assertion, Statement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class AssignedVariablePattern implements DartPattern {
+abstract class AssignedVariablePattern implements VariablePattern {
   /// Return the element referenced by this pattern, or `null` if either
   /// [name] does not resolve to an element, or the AST structure has not
   /// been resolved. In valid code this will be either [LocalVariableElement]
   /// or [ParameterElement].
   Element? get element;
-
-  /// The name of the variable being referenced.
-  Token get name;
 }
 
 /// An assignment expression.
@@ -1749,16 +1746,13 @@ abstract class DeclaredIdentifier implements Declaration {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class DeclaredVariablePattern implements DartPattern {
+abstract class DeclaredVariablePattern implements VariablePattern {
   /// Return the element associated with this declaration, or `null` if the AST
   /// structure has not been resolved.
   VariablePatternElement? get declaredElement;
 
   /// The 'var' or 'final' keyword.
   Token? get keyword;
-
-  /// The name of the variable being bound.
-  Token get name;
 
   /// The type that the variable is required to match, or `null` if any type is
   /// matched.
@@ -5469,6 +5463,16 @@ abstract class VariableDeclarationStatement implements Statement {
 
   /// Return the variables being declared.
   VariableDeclarationList get variables;
+}
+
+/// The shared interface of [AssignedVariablePattern] and
+/// [DeclaredVariablePattern].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class VariablePattern implements DartPattern {
+  /// The name of the variable declared or referenced by the pattern.
+  Token get name;
 }
 
 /// A guard in a pattern-based `case` in a `switch` statement, `switch`
