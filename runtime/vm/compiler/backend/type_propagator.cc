@@ -1669,6 +1669,17 @@ CompileType LoadClassIdInstr::ComputeType() const {
 }
 
 CompileType LoadFieldInstr::ComputeType() const {
+  if (slot().IsRecordField()) {
+    const AbstractType* instance_type = instance()->Type()->ToAbstractType();
+    if (instance_type->IsRecordType()) {
+      const intptr_t index = compiler::target::Record::field_index_at_offset(
+          slot().offset_in_bytes());
+      const auto& field_type = AbstractType::ZoneHandle(
+          RecordType::Cast(*instance_type).FieldTypeAt(index));
+      return CompileType::FromAbstractType(field_type, CompileType::kCanBeNull,
+                                           CompileType::kCannotBeSentinel);
+    }
+  }
   CompileType type = slot().ComputeCompileType();
   if (calls_initializer()) {
     type = type.CopyNonSentinel();
