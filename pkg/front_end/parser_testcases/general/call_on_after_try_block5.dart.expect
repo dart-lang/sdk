@@ -1,3 +1,13 @@
+Problems reported:
+
+parser/general/call_on_after_try_block5:12:5: Expected a type, but got ';'.
+  on;
+    ^
+
+parser/general/call_on_after_try_block5:12:5: A catch clause must have a body, even if it is empty.
+  on;
+    ^
+
 beginCompilationUnit(void)
   beginMetadataStar(void)
   endMetadataStar(0)
@@ -47,12 +57,18 @@ beginCompilationUnit(void)
             handleEmptyStatement(;)
           endBlock(1, {, }, BlockKind(catch clause))
           handleCatchBlock(on, null, null)
-        endTryStatement(2, try, null)
-        handleIdentifier(on, expression)
-        handleNoTypeArguments(;)
-        handleNoArguments(;)
-        handleSend(on, ;)
-        handleExpressionStatement(;)
+          beginCatchClause(on)
+            handleRecoverableError(Message[ExpectedType, Expected a type, but got ';'., null, {lexeme: ;}], ;, ;)
+            handleIdentifier(, typeReference)
+            handleNoTypeArguments(;)
+            handleType(, null)
+          endCatchClause(;)
+          handleRecoverableError(Message[ExpectedClassOrMixinBody, A catch clause must have a body, even if it is empty., Try adding an empty body., {string: catch clause}], ;, ;)
+          beginBlock({, BlockKind(catch clause))
+          endBlock(0, {, }, BlockKind(catch clause))
+          handleCatchBlock(on, null, null)
+        endTryStatement(3, try, null)
+        handleEmptyStatement(;)
       endBlockFunctionBody(2, {, })
     endTopLevelMethod(void, null, })
   endTopLevelDeclaration()
