@@ -5,14 +5,17 @@
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 import '../../../generated/test_support.dart';
 
-class AbstractAnalysisOptionsTest {
+abstract class AbstractAnalysisOptionsTest {
+  VersionConstraint? get sdkVersionConstraint => null;
+
   Future<void> assertErrorsInCode(
       String code, List<ExpectedError> expectedErrors) async {
-    var diagnostics =
-        analyzeAnalysisOptions(TestSource(), code, SourceFactory([]), '/');
+    var diagnostics = analyzeAnalysisOptions(
+        TestSource(), code, SourceFactory([]), '/', sdkVersionConstraint);
     var errorListener = GatheringErrorListener();
     errorListener.addAll(diagnostics);
     errorListener.assertErrors(expectedErrors);

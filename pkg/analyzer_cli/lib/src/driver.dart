@@ -249,6 +249,7 @@ class Driver implements CommandLineStarter {
             content,
             analysisDriver.sourceFactory,
             analysisDriver.currentSession.analysisContext.contextRoot.root.path,
+            analysisDriver.analysisOptions.sdkVersionConstraint,
           );
           await formatter.formatErrors([
             ErrorsResultImpl(

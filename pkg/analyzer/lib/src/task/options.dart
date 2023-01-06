@@ -21,6 +21,7 @@ import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/plugin/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:source_span/source_span.dart';
 import 'package:yaml/yaml.dart';
 
@@ -31,6 +32,7 @@ List<AnalysisError> analyzeAnalysisOptions(
   String content,
   SourceFactory sourceFactory,
   String contextRoot,
+  VersionConstraint? sdkVersionConstraint,
 ) {
   List<AnalysisError> errors = <AnalysisError>[];
   Source initialSource = source;
@@ -41,7 +43,8 @@ List<AnalysisError> analyzeAnalysisOptions(
   // Validate the specified options and any included option files
   void validate(Source source, YamlMap options) {
     List<AnalysisError> validationErrors =
-        OptionsFileValidator(source).validate(options);
+        OptionsFileValidator(source, sdkVersionConstraint: sdkVersionConstraint)
+            .validate(options);
     if (initialIncludeSpan != null && validationErrors.isNotEmpty) {
       for (AnalysisError error in validationErrors) {
         var args = [
@@ -597,14 +600,18 @@ class OptionsFileValidator {
   /// The source being validated.
   final Source source;
 
-  final List<OptionsValidator> _validators = [
-    AnalyzerOptionsValidator(),
-    CodeStyleOptionsValidator(),
-    LinterOptionsValidator(),
-    LinterRuleOptionsValidator()
-  ];
+  final List<OptionsValidator> _validators;
 
-  OptionsFileValidator(this.source);
+  OptionsFileValidator(this.source,
+      {required VersionConstraint? sdkVersionConstraint})
+      : _validators = [
+          AnalyzerOptionsValidator(),
+          CodeStyleOptionsValidator(),
+          LinterOptionsValidator(),
+          LinterRuleOptionsValidator(
+            sdkVersionConstraint: sdkVersionConstraint,
+          ),
+        ];
 
   List<AnalysisError> validate(YamlMap options) {
     RecordingErrorListener recorder = RecordingErrorListener();
