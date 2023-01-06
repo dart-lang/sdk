@@ -480,6 +480,16 @@ class AnalyzerError implements Comparable<AnalyzerError> {
       var diagnosticMap = diagnostic as Map<String, dynamic>;
 
       var type = diagnosticMap['type'] as String?;
+      if (type == 'HINT') {
+        // The analyzer can report hints which do not need to be expected in
+        // the test source. These can be ignored.
+        // TODO(srawlins): Hints will start to change to be warnings. There are
+        // some warnings produced now which must be expected. See
+        // [StaticError._analyzerWarningCodes]. When we change hints to
+        // warnings, we will need to ignore them here.
+        continue;
+      }
+
       var code = diagnosticMap['code'] as String;
       var errorCode = '$type.${code.toUpperCase()}';
 
