@@ -167,6 +167,7 @@ main() {
       'NativeClass.nativeGenerative': Kind.native,
       'NativeClass.nativeFact': Kind.native,
       'NativeClass.instanceField': Kind.native,
+      'NativeClass.instanceNamedField': Kind.native,
       'NativeClass.instanceGetter': Kind.regular,
       'NativeClass.instanceSetter': Kind.regular,
       'NativeClass.instanceMethod': Kind.regular,

@@ -309,9 +309,6 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  Statement? get body => bodyInternal ??= new EmptyStatement();
-
-  @override
   bool get isNative => nativeMethodName != null;
 
   void buildFunction() {
