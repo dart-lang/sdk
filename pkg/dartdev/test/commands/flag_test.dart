@@ -25,7 +25,6 @@ void expectUsage(String msg) {
   expect(msg, contains('create '));
   expect(msg, contains('compile '));
   expect(msg, contains('format '));
-  expect(msg, contains('migrate '));
 }
 
 void command() {
@@ -134,7 +133,6 @@ void help() {
     expect(result.exitCode, 0);
     expect(result.stdout,
         contains('Usage: dart [vm-options] <command|dart-file> [arguments]'));
-    expect(result.stdout, contains('migrate '));
   });
 
   test('help -v', () async {
@@ -144,7 +142,6 @@ void help() {
     expect(result.exitCode, 0);
     expect(result.stdout,
         contains('Usage: dart [vm-options] <command|dart-file> [arguments]'));
-    expect(result.stdout, contains('migrate '));
   });
 }
 
