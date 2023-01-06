@@ -82,28 +82,6 @@ DeclaredVariablePattern
 ''');
   }
 
-  test_typed_wildcard_switchCase() async {
-    await assertNoErrorsInCode(r'''
-void f(x) {
-  switch (x) {
-    case int _:
-      break;
-  }
-}
-''');
-    final node = findNode.singleGuardedPattern.pattern;
-    assertResolvedNodeText(node, r'''
-DeclaredVariablePattern
-  type: NamedType
-    name: SimpleIdentifier
-      token: int
-      staticElement: dart:core::@class::int
-      staticType: null
-    type: int
-  name: _
-''');
-  }
-
   test_var_demoteType() async {
     await assertNoErrorsInCode(r'''
 void f<T>(T x) {

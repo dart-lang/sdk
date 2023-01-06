@@ -1557,6 +1557,14 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitWildcardPattern(WildcardPattern node) {
+    var other = _other as WildcardPattern;
+    return isEqualTokens(node.keyword, other.keyword) &&
+        isEqualNodes(node.type, other.type) &&
+        isEqualTokens(node.name, other.name);
+  }
+
+  @override
   bool visitWithClause(WithClause node) {
     WithClause other = _other as WithClause;
     return isEqualTokens(node.withKeyword, other.withKeyword) &&

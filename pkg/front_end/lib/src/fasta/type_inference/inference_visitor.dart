@@ -9482,8 +9482,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     VariablePattern pattern, {
     required SharedMatchContext context,
   }) {
-    DartType inferredType = analyzeDeclaredVariablePattern(context, pattern,
-        pattern.variable, pattern.variable.name, pattern.type);
+    DartType inferredType = analyzeDeclaredVariablePattern(
+        context, pattern, pattern.variable, pattern.type);
     instrumentation?.record(uriForInstrumentation, pattern.variable.fileOffset,
         'type', new InstrumentationValueForType(inferredType));
     if (pattern.type == null) {

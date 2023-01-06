@@ -3586,8 +3586,8 @@ class DeclaredVariablePatternImpl extends DartPatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeDeclaredVariablePattern(context, this,
-        declaredElement, declaredElement?.name, type?.typeOrThrow);
+    resolverVisitor.analyzeDeclaredVariablePattern(
+        context, this, declaredElement!, type?.typeOrThrow);
   }
 
   @override
@@ -14013,6 +14013,77 @@ class WhileStatementImpl extends StatementImpl implements WhileStatement {
   void visitChildren(AstVisitor visitor) {
     _condition.accept(visitor);
     _body.accept(visitor);
+  }
+}
+
+/// A wildcard pattern.
+///
+///    variablePattern ::=
+///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? '_'
+@experimental
+class WildcardPatternImpl extends DartPatternImpl implements WildcardPattern {
+  @override
+  final Token? keyword;
+
+  @override
+  final Token name;
+
+  @override
+  final TypeAnnotationImpl? type;
+
+  WildcardPatternImpl({
+    required this.name,
+    required this.keyword,
+    required this.type,
+  }) {
+    _becomeParentOf(type);
+  }
+
+  @override
+  Token get beginToken => type?.beginToken ?? name;
+
+  @override
+  Token get endToken => name;
+
+  /// If [keyword] is `final`, returns it.
+  Token? get finalToken {
+    final keyword = this.keyword;
+    if (keyword != null && keyword.keyword == Keyword.FINAL) {
+      return keyword;
+    }
+    return null;
+  }
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('keyword', keyword)
+    ..addNode('type', type)
+    ..addToken('name', name);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitWildcardPattern(this);
+
+  @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor
+        .analyzeDeclaredVariablePatternSchema(type?.typeOrThrow);
+  }
+
+  @override
+  void resolvePattern(
+    ResolverVisitor resolverVisitor,
+    SharedMatchContext context,
+  ) {
+    resolverVisitor.analyzeWildcardPattern(
+      context: context,
+      node: this,
+      declaredType: type?.typeOrThrow,
+    );
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    type?.accept(visitor);
   }
 }
 

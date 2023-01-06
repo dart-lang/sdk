@@ -1001,6 +1001,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitWildcardPattern(WildcardPattern node) {
+    _runSubscriptions(node, registry._forWildcardPattern);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitWithClause(WithClause node) {
     _runSubscriptions(node, registry._forWithClause);
     node.visitChildren(this);
@@ -1231,6 +1237,7 @@ class NodeLintRegistry {
       _forVariableDeclarationStatement = [];
   final List<_Subscription<WhenClause>> _forWhenClause = [];
   final List<_Subscription<WhileStatement>> _forWhileStatement = [];
+  final List<_Subscription<WildcardPattern>> _forWildcardPattern = [];
   final List<_Subscription<WithClause>> _forWithClause = [];
   final List<_Subscription<YieldStatement>> _forYieldStatement = [];
 

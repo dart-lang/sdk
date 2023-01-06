@@ -92,6 +92,7 @@ import 'type_inference/test_all.dart' as type_inference;
 import 'type_literal_test.dart' as type_literal;
 import 'type_name_test.dart' as type_name;
 import 'variance_test.dart' as variance_test;
+import 'wildcard_pattern_test.dart' as wildcard_pattern;
 import 'yield_statement_test.dart' as yield_statement;
 
 main() {
@@ -179,6 +180,7 @@ main() {
     type_literal.main();
     type_name.main();
     variance_test.main();
+    wildcard_pattern.main();
     yield_statement.main();
     defineReflectiveTests(UpdateNodeTextExpectations);
   }, name: 'resolution');

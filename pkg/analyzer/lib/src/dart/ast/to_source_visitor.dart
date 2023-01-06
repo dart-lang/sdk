@@ -1379,6 +1379,13 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitWildcardPattern(WildcardPattern node) {
+    _visitToken(node.keyword, suffix: ' ');
+    _visitNode(node.type, suffix: ' ');
+    sink.write(node.name.lexeme);
+  }
+
+  @override
   void visitWithClause(WithClause node) {
     sink.write('with ');
     _visitNodeList(node.mixinTypes, separator: ', ');

@@ -372,9 +372,12 @@ Statement while_(Expression condition, List<Statement> body) {
       location: location);
 }
 
-Pattern wildcard({String? type, String? expectInferredType}) =>
-    _VariablePattern(type == null ? null : Type(type), null, expectInferredType,
-        location: computeLocation());
+Pattern wildcard({String? type, String? expectInferredType}) {
+  return _WildcardPattern(
+    declaredType: type == null ? null : Type(type),
+    location: computeLocation(),
+  );
+}
 
 typedef SharedMatchContext
     = shared.MatchContext<Node, Expression, Pattern, Type, Var>;
@@ -2171,7 +2174,7 @@ class _Declare extends Statement {
     if (initializer == null) {
       var pattern = this.pattern as _VariablePattern;
       var staticType = h.typeAnalyzer.analyzeUninitializedVariableDeclaration(
-          this, pattern.variable!, pattern.declaredType,
+          this, pattern.variable, pattern.declaredType,
           isFinal: isFinal, isLate: isLate);
       h.typeAnalyzer.handleDeclaredVariablePattern(pattern,
           matchedType: staticType, staticType: staticType);
@@ -3638,8 +3641,7 @@ class _MiniAstTypeAnalyzer
   }
 
   void handleAssignedVariablePattern(covariant _VariablePattern node) {
-    _irBuilder.atom(node.variable!.name, Kind.variable,
-        location: node.location);
+    _irBuilder.atom(node.variable.name, Kind.variable, location: node.location);
     _irBuilder.apply('assignedVarPattern', [Kind.variable], Kind.pattern,
         location: node.location);
     assert(node.expectInferredType == null,
@@ -3688,8 +3690,7 @@ class _MiniAstTypeAnalyzer
 
   void handleDeclaredVariablePattern(covariant _VariablePattern node,
       {required Type matchedType, required Type staticType}) {
-    _irBuilder.atom(node.variable?.name ?? '_', Kind.variable,
-        location: node.location);
+    _irBuilder.atom(node.variable.name, Kind.variable, location: node.location);
     _irBuilder.atom(matchedType.type, Kind.type, location: node.location);
     _irBuilder.atom(staticType.type, Kind.type, location: node.location);
     _irBuilder.apply(
@@ -4654,7 +4655,7 @@ class _VariableBinder extends VariableBinder<Node, Var> {
 class _VariablePattern extends Pattern {
   final Type? declaredType;
 
-  final Var? variable;
+  final Var variable;
 
   final String? expectInferredType;
 
@@ -4667,7 +4668,7 @@ class _VariablePattern extends Pattern {
   @override
   Type computeSchema(Harness h) {
     if (isAssignedVariable) {
-      return h.typeAnalyzer.analyzeAssignedVariablePatternSchema(variable!);
+      return h.typeAnalyzer.analyzeAssignedVariablePatternSchema(variable);
     } else {
       return h.typeAnalyzer.analyzeDeclaredVariablePatternSchema(declaredType);
     }
@@ -4677,10 +4678,8 @@ class _VariablePattern extends Pattern {
   void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
       {required bool isInAssignment}) {
     var variable = this.variable;
-    isAssignedVariable = isInAssignment && variable != null;
-    if (!isAssignedVariable &&
-        variable != null &&
-        variableBinder.add(variable.name, variable)) {
+    isAssignedVariable = isInAssignment;
+    if (!isAssignedVariable && variableBinder.add(variable.name, variable)) {
       visitor._assignedVariables.declare(variable);
     }
     if (isAssignedVariable) {
@@ -4692,12 +4691,12 @@ class _VariablePattern extends Pattern {
   @override
   void visit(Harness h, SharedMatchContext context) {
     if (isAssignedVariable) {
-      h.typeAnalyzer.analyzeAssignedVariablePattern(context, this, variable!);
+      h.typeAnalyzer.analyzeAssignedVariablePattern(context, this, variable);
       h.typeAnalyzer.handleAssignedVariablePattern(this);
     } else {
       var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
       var staticType = h.typeAnalyzer.analyzeDeclaredVariablePattern(
-          context, this, variable, variable?.name, declaredType);
+          context, this, variable, declaredType);
       h.typeAnalyzer.handleDeclaredVariablePattern(this,
           matchedType: matchedType, staticType: staticType);
     }
@@ -4709,7 +4708,7 @@ class _VariablePattern extends Pattern {
           declaredType!.type
         else if (needsKeywordOrType)
           'var',
-        variable?.name ?? '_',
+        variable.name,
         if (expectInferredType != null) '(expected type $expectInferredType)'
       ].join(' ');
 }
@@ -4774,6 +4773,43 @@ class _While extends Statement {
         'while', [Kind.expression, Kind.statement], Kind.statement,
         location: location);
   }
+}
+
+class _WildcardPattern extends Pattern {
+  final Type? declaredType;
+
+  _WildcardPattern({required this.declaredType, required super.location})
+      : super._();
+
+  @override
+  Type computeSchema(Harness h) {
+    return h.typeAnalyzer.analyzeWildcardPatternSchema(
+      declaredType: declaredType,
+    );
+  }
+
+  @override
+  void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
+      {required bool isInAssignment}) {}
+
+  @override
+  void visit(Harness h, SharedMatchContext context) {
+    var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
+    h.typeAnalyzer.analyzeWildcardPattern(
+      context: context,
+      node: this,
+      declaredType: declaredType,
+    );
+    h.irBuilder.atom(matchedType.type, Kind.type, location: location);
+    h.irBuilder.apply('wildcardPattern', [Kind.type], Kind.pattern,
+        names: ['matchedType'], location: location);
+  }
+
+  @override
+  _debugString({required bool needsKeywordOrType}) => [
+        if (declaredType != null) declaredType!.type,
+        '_',
+      ].join(' ');
 }
 
 class _WrappedExpression extends Expression {

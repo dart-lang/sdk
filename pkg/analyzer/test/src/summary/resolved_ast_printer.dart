@@ -1558,6 +1558,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitWildcardPattern(
+    covariant WildcardPatternImpl node,
+  ) {
+    _writeln('WildcardPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitWithClause(WithClause node) {
     _writeln('WithClause');
     _withIndent(() {

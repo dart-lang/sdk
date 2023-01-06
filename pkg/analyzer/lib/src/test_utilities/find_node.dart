@@ -763,6 +763,10 @@ class FindNode {
     return _node(search, (n) => n is WhileStatement);
   }
 
+  WildcardPattern wildcardPattern(String search) {
+    return _node(search, (n) => n is WildcardPattern);
+  }
+
   WithClause withClause(String search) {
     return _node(search, (n) => n is WithClause);
   }

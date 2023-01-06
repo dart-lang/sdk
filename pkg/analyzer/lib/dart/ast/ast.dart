@@ -695,6 +695,8 @@ abstract class AstVisitor<R> {
 
   R? visitWhileStatement(WhileStatement node);
 
+  R? visitWildcardPattern(WildcardPattern node);
+
   R? visitWithClause(WithClause node);
 
   R? visitYieldStatement(YieldStatement node);
@@ -1748,17 +1750,14 @@ abstract class DeclaredIdentifier implements Declaration {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class DeclaredVariablePattern implements DartPattern {
-  /// Return the element associated with this declaration, or `null` if either
-  /// the variable name is `_` (in which case no variable is defined) or the AST
+  /// Return the element associated with this declaration, or `null` if the AST
   /// structure has not been resolved.
   VariablePatternElement? get declaredElement;
 
-  /// The 'var' or 'final' keyword used when there is no [type], or `null` if a
-  /// type is given.
+  /// The 'var' or 'final' keyword.
   Token? get keyword;
 
-  /// The name of the variable being bound, if `_` then no variable is bound,
-  /// and [declaredElement] is `null`.
+  /// The name of the variable being bound.
   Token get name;
 
   /// The type that the variable is required to match, or `null` if any type is
@@ -5511,6 +5510,25 @@ abstract class WhileStatement implements Statement {
 
   /// Return the token representing the 'while' keyword.
   Token get whileKeyword;
+}
+
+/// A wildcard pattern.
+///
+///    wildcardPattern ::=
+///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? '_'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class WildcardPattern implements DartPattern {
+  /// The 'var' or 'final' keyword.
+  Token? get keyword;
+
+  /// The `_` token.
+  Token get name;
+
+  /// The type that the pattern is required to match, or `null` if any type is
+  /// matched.
+  TypeAnnotation? get type;
 }
 
 /// The with clause in a class declaration.

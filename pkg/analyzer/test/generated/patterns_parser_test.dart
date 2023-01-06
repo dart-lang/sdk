@@ -627,7 +627,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 LogicalAndPattern
   leftOperand: CastPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -639,7 +639,7 @@ LogicalAndPattern
         token: double
       question: ?
   operator: &&
-  rightOperand: DeclaredVariablePattern
+  rightOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: Object
@@ -660,7 +660,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 LogicalAndPattern
-  leftOperand: DeclaredVariablePattern
+  leftOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -668,7 +668,7 @@ LogicalAndPattern
     name: _
   operator: &&
   rightOperand: CastPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: double
@@ -695,7 +695,7 @@ void f(x) {
     assertParsedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: CastPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -707,7 +707,7 @@ LogicalOrPattern
         token: double
       question: ?
   operator: ||
-  rightOperand: DeclaredVariablePattern
+  rightOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: Object
@@ -728,7 +728,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 LogicalOrPattern
-  leftOperand: DeclaredVariablePattern
+  leftOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -736,7 +736,7 @@ LogicalOrPattern
     name: _
   operator: ||
   rightOperand: CastPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: double
@@ -2965,7 +2965,7 @@ IfElement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: DeclaredVariablePattern
+      pattern: WildcardPattern
         name: _
       whenClause: WhenClause
         whenKeyword: when
@@ -3003,7 +3003,7 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: DeclaredVariablePattern
+      pattern: WildcardPattern
         name: _
       whenClause: WhenClause
         whenKeyword: when
@@ -3158,7 +3158,7 @@ f(x) => switch(x) { _ when switch(x) { _ when true => () => 0 } => 0 };
     assertParsedNodeText(node, r'''
 SwitchExpressionCase
   guardedPattern: GuardedPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       name: _
     whenClause: WhenClause
       whenKeyword: when
@@ -3184,7 +3184,7 @@ f(x) => switch(x) { _ when switch(x) { _ => () => 0 } => 0 };
     assertParsedNodeText(node, r'''
 SwitchExpressionCase
   guardedPattern: GuardedPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       name: _
   arrow: =>
   expression: FunctionExpression
@@ -3235,7 +3235,7 @@ f(x, y) {
 SwitchPatternCase
   keyword: case
   guardedPattern: GuardedPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       name: _
     whenClause: WhenClause
       whenKeyword: when
@@ -3270,7 +3270,7 @@ SwitchExpressionCase
     pattern: ListPattern
       leftBracket: [
       elements
-        DeclaredVariablePattern
+        WildcardPattern
           name: _
       rightBracket: ]
     whenClause: WhenClause
@@ -3299,7 +3299,7 @@ SwitchExpressionCase
           key: SimpleStringLiteral
             literal: 'x'
           separator: :
-          value: DeclaredVariablePattern
+          value: WildcardPattern
             name: _
       rightBracket: }
     whenClause: WhenClause
@@ -3331,7 +3331,7 @@ SwitchExpressionCase
           fieldName: RecordPatternFieldName
             name: bar
             colon: :
-          pattern: DeclaredVariablePattern
+          pattern: WildcardPattern
             name: _
       rightParenthesis: )
     whenClause: WhenClause
@@ -3355,7 +3355,7 @@ SwitchExpressionCase
   guardedPattern: GuardedPattern
     pattern: ParenthesizedPattern
       leftParenthesis: (
-      pattern: DeclaredVariablePattern
+      pattern: WildcardPattern
         name: _
       rightParenthesis: )
     whenClause: WhenClause
@@ -3377,7 +3377,7 @@ f(x) => switch(x) { _ when switch(x) {} + () => 0 };
     assertParsedNodeText(node, r'''
 SwitchExpressionCase
   guardedPattern: GuardedPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       name: _
     whenClause: WhenClause
       whenKeyword: when
@@ -3408,7 +3408,7 @@ f(x, y) => switch(x) { _ when y + () => 0 };
     assertParsedNodeText(node, r'''
 SwitchExpressionCase
   guardedPattern: GuardedPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       name: _
     whenClause: WhenClause
       whenKeyword: when
@@ -3443,7 +3443,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
         whenClause: WhenClause
           whenKeyword: when
@@ -3493,7 +3493,7 @@ SwitchExpression
         literal: 0
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -4291,14 +4291,14 @@ CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
     pattern: LogicalAndPattern
-      leftOperand: DeclaredVariablePattern
+      leftOperand: WildcardPattern
         type: NamedType
           name: SimpleIdentifier
             token: int
           question: ?
         name: _
       operator: &&
-      rightOperand: DeclaredVariablePattern
+      rightOperand: WildcardPattern
         type: NamedType
           name: SimpleIdentifier
             token: double
@@ -4320,21 +4320,21 @@ void f(x) {
     assertParsedNodeText(node, r'''
 LogicalAndPattern
   leftOperand: LogicalAndPattern
-    leftOperand: DeclaredVariablePattern
+    leftOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: int
         question: ?
       name: _
     operator: &&
-    rightOperand: DeclaredVariablePattern
+    rightOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: double
         question: ?
       name: _
   operator: &&
-  rightOperand: DeclaredVariablePattern
+  rightOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: Object
@@ -4356,21 +4356,21 @@ void f(x) {
     assertParsedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalAndPattern
-    leftOperand: DeclaredVariablePattern
+    leftOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: int
         question: ?
       name: _
     operator: &&
-    rightOperand: DeclaredVariablePattern
+    rightOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: double
         question: ?
       name: _
   operator: ||
-  rightOperand: DeclaredVariablePattern
+  rightOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: Object
@@ -4391,7 +4391,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 LogicalOrPattern
-  leftOperand: DeclaredVariablePattern
+  leftOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -4399,14 +4399,14 @@ LogicalOrPattern
     name: _
   operator: ||
   rightOperand: LogicalAndPattern
-    leftOperand: DeclaredVariablePattern
+    leftOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: double
         question: ?
       name: _
     operator: &&
-    rightOperand: DeclaredVariablePattern
+    rightOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: Object
@@ -4427,14 +4427,14 @@ CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
     pattern: LogicalOrPattern
-      leftOperand: DeclaredVariablePattern
+      leftOperand: WildcardPattern
         type: NamedType
           name: SimpleIdentifier
             token: int
           question: ?
         name: _
       operator: ||
-      rightOperand: DeclaredVariablePattern
+      rightOperand: WildcardPattern
         type: NamedType
           name: SimpleIdentifier
             token: double
@@ -4456,21 +4456,21 @@ void f(x) {
     assertParsedNodeText(node, r'''
 LogicalOrPattern
   leftOperand: LogicalOrPattern
-    leftOperand: DeclaredVariablePattern
+    leftOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: int
         question: ?
       name: _
     operator: ||
-    rightOperand: DeclaredVariablePattern
+    rightOperand: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: double
         question: ?
       name: _
   operator: ||
-  rightOperand: DeclaredVariablePattern
+  rightOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: Object
@@ -7986,7 +7986,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
         whenClause: WhenClause
           whenKeyword: when
@@ -8017,7 +8017,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -8044,7 +8044,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -8072,7 +8072,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           type: NamedType
             name: SimpleIdentifier
               token: int
@@ -8082,7 +8082,7 @@ SwitchExpression
         literal: 0
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -8985,7 +8985,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern;
     assertParsedNodeText(node, r'''
 GuardedPattern
-  pattern: DeclaredVariablePattern
+  pattern: WildcardPattern
     name: _
   whenClause: WhenClause
     whenKeyword: when
@@ -9005,7 +9005,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-DeclaredVariablePattern
+WildcardPattern
   name: _
 ''');
   }
@@ -9022,7 +9022,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
-  pattern: DeclaredVariablePattern
+  pattern: WildcardPattern
     name: _
   asToken: as
   type: NamedType
@@ -9042,7 +9042,7 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       name: _
 ''');
   }
@@ -9059,7 +9059,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 PostfixPattern
-  operand: DeclaredVariablePattern
+  operand: WildcardPattern
     name: _
   operator: !
 ''');
@@ -9077,7 +9077,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 PostfixPattern
-  operand: DeclaredVariablePattern
+  operand: WildcardPattern
     name: _
   operator: ?
 ''');
@@ -9094,7 +9094,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-DeclaredVariablePattern
+WildcardPattern
   keyword: final
   type: NamedType
     name: SimpleIdentifier
@@ -9115,7 +9115,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
-  pattern: DeclaredVariablePattern
+  pattern: WildcardPattern
     keyword: final
     type: NamedType
       name: SimpleIdentifier
@@ -9139,7 +9139,7 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       keyword: final
       type: NamedType
         name: SimpleIdentifier
@@ -9160,7 +9160,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 PostfixPattern
-  operand: DeclaredVariablePattern
+  operand: WildcardPattern
     keyword: final
     type: NamedType
       name: SimpleIdentifier
@@ -9182,7 +9182,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 PostfixPattern
-  operand: DeclaredVariablePattern
+  operand: WildcardPattern
     keyword: final
     type: NamedType
       name: SimpleIdentifier
@@ -9203,7 +9203,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-DeclaredVariablePattern
+WildcardPattern
   keyword: final
   name: _
 ''');
@@ -9221,7 +9221,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
-  pattern: DeclaredVariablePattern
+  pattern: WildcardPattern
     keyword: final
     name: _
   asToken: as
@@ -9242,7 +9242,7 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       keyword: final
       name: _
 ''');
@@ -9260,7 +9260,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 PostfixPattern
-  operand: DeclaredVariablePattern
+  operand: WildcardPattern
     keyword: final
     name: _
   operator: !
@@ -9279,7 +9279,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 PostfixPattern
-  operand: DeclaredVariablePattern
+  operand: WildcardPattern
     keyword: final
     name: _
   operator: ?
@@ -9297,7 +9297,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-DeclaredVariablePattern
+WildcardPattern
   type: NamedType
     name: SimpleIdentifier
       token: int
@@ -9317,7 +9317,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
-  pattern: DeclaredVariablePattern
+  pattern: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -9340,7 +9340,7 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       type: NamedType
         name: SimpleIdentifier
           token: int
@@ -9360,7 +9360,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 PostfixPattern
-  operand: DeclaredVariablePattern
+  operand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -9381,7 +9381,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 PostfixPattern
-  operand: DeclaredVariablePattern
+  operand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -9401,7 +9401,7 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-DeclaredVariablePattern
+WildcardPattern
   keyword: var
   name: _
 ''');
@@ -9419,7 +9419,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 CastPattern
-  pattern: DeclaredVariablePattern
+  pattern: WildcardPattern
     keyword: var
     name: _
   asToken: as
@@ -9440,7 +9440,7 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       keyword: var
       name: _
 ''');
@@ -9458,7 +9458,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 PostfixPattern
-  operand: DeclaredVariablePattern
+  operand: WildcardPattern
     keyword: var
     name: _
   operator: !
@@ -9477,7 +9477,7 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 PostfixPattern
-  operand: DeclaredVariablePattern
+  operand: WildcardPattern
     keyword: var
     name: _
   operator: ?

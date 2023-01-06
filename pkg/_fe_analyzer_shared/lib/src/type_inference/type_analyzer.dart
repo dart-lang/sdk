@@ -357,15 +357,11 @@ mixin TypeAnalyzer<
     return unknownType;
   }
 
-  /// Analyzes a variable pattern in a non-assignment context (or a wildcard
-  /// pattern).  [node] is the pattern itself, [variable] is the variable,
-  /// [declaredType] is the explicitly declared type (if present), and [isFinal]
-  /// indicates whether the variable is final.
+  /// Analyzes a variable pattern in a non-assignment context.  [node] is the
+  /// pattern itself, [variable] is the variable, [declaredType] is the
+  /// explicitly declared type (if present).
   ///
   /// See [dispatchPattern] for the meaning of [context].
-  ///
-  /// If this is a wildcard pattern (it doesn't bind any variable), [variable]
-  /// should be `null`.
   ///
   /// Returns the static type of the variable (possibly inferred).
   ///
@@ -373,8 +369,7 @@ mixin TypeAnalyzer<
   Type analyzeDeclaredVariablePattern(
     MatchContext<Node, Expression, Pattern, Type, Variable> context,
     Pattern node,
-    Variable? variable,
-    String? name,
+    Variable variable,
     Type? declaredType,
   ) {
     Type matchedType = flow.getMatchedValueType();
@@ -392,19 +387,13 @@ mixin TypeAnalyzer<
     flow.declaredVariablePattern(
         matchedType: matchedType, staticType: staticType);
     bool isImplicitlyTyped = declaredType == null;
-    if (variable != null) {
-      if (name == null) {
-        throw new StateError(
-            'When the variable is not null, the name must also be not null');
-      }
-      flow.declare(variable, false);
-      setVariableType(variable, staticType);
-      // TODO(paulberry): are we handling _isFinal correctly?
-      flow.initialize(variable, matchedType, context.getInitializer(node),
-          isFinal: context.isFinal || isVariableFinal(variable),
-          isLate: context.isLate,
-          isImplicitlyTyped: isImplicitlyTyped);
-    }
+    flow.declare(variable, false);
+    setVariableType(variable, staticType);
+    // TODO(paulberry): are we handling _isFinal correctly?
+    flow.initialize(variable, matchedType, context.getInitializer(node),
+        isFinal: context.isFinal || isVariableFinal(variable),
+        isLate: context.isLate,
+        isImplicitlyTyped: isImplicitlyTyped);
     return staticType;
   }
 
@@ -1443,6 +1432,46 @@ mixin TypeAnalyzer<
     flow.declare(variable, false);
     setVariableType(variable, inferredType);
     return inferredType;
+  }
+
+  /// Analyzes a wildcard pattern.  [node] is the pattern.
+  ///
+  /// See [dispatchPattern] for the meaning of [context].
+  ///
+  /// Stack effect: none.
+  void analyzeWildcardPattern({
+    required MatchContext<Node, Expression, Pattern, Type, Variable> context,
+    required Pattern node,
+    required Type? declaredType,
+  }) {
+    Type matchedType = flow.getMatchedValueType();
+    Node? irrefutableContext = context.irrefutableContext;
+    if (irrefutableContext != null && declaredType != null) {
+      if (!operations.isAssignableTo(matchedType, declaredType)) {
+        errors?.patternTypeMismatchInIrrefutableContext(
+          pattern: node,
+          context: irrefutableContext,
+          matchedType: matchedType,
+          requiredType: declaredType,
+        );
+      }
+    }
+    if (declaredType != null) {
+      flow.declaredVariablePattern(
+        matchedType: matchedType,
+        staticType: declaredType,
+      );
+    }
+  }
+
+  /// Computes the type schema for a wildcard pattern.  [declaredType] is the
+  /// explicitly declared type (if present).
+  ///
+  /// Stack effect: none.
+  Type analyzeWildcardPatternSchema({
+    required Type? declaredType,
+  }) {
+    return declaredType ?? unknownType;
   }
 
   /// If [type] is a record type, returns it.
