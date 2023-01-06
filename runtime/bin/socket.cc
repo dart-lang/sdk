@@ -384,7 +384,7 @@ void FUNCTION_NAME(Socket_CreateConnect)(Dart_NativeArguments args) {
 }
 
 // This function will abort if sourceAddr is a Unix domain socket.
-// The family ("sa_family") of the socket address is infered from the length
+// The family ("sa_family") of the socket address is inferred from the length
 // of the address. Unix domain sockets addresses are the bytes of their file
 // system path so they have variable length. They cannot, therefore, be
 // differentiated from other address types in this function.
@@ -772,7 +772,7 @@ void FUNCTION_NAME(Socket_SendMessage)(Dart_NativeArguments args) {
   intptr_t offset = DartUtils::GetNativeIntptrArgument(args, 2);
   intptr_t length = DartUtils::GetNativeIntptrArgument(args, 3);
 
-  // List of triples <level, type, data> aranged to minimize dart api use in
+  // List of triples <level, type, data> arranged to minimize dart api use in
   // native methods.
   Dart_Handle control_message_list_dart =
       ThrowIfError(Dart_GetNativeArgument(args, 4));

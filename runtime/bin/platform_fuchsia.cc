@@ -138,7 +138,7 @@ const char* Platform::ResolveExecutablePath() {
     }
   }
   // Couldn't find it. This causes null to be returned for
-  // Platform.resovledExecutable.
+  // Platform.resolvedExecutable.
   return NULL;
 }
 

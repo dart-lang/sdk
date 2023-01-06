@@ -535,13 +535,13 @@ class ProcessStarter {
           execvp(path_, const_cast<char* const*>(program_arguments_));
           ReportChildError();
         } else {
-          // Exit the intermeiate process. Avoid any atexit callbacks
+          // Exit the intermediate process. Avoid any atexit callbacks
           // to prevent deadlocks.
           _Exit(0);
         }
       }
     } else {
-      // Exit the intermeiate process. Avoid any atexit callbacks
+      // Exit the intermediate process. Avoid any atexit callbacks
       // to prevent deadlocks.
       _Exit(0);
     }

@@ -441,7 +441,7 @@ final returnStruct17BytesInt = ffiTestFunctions.lookupFunction<
     Struct17BytesInt Function(Int64, Int64, Int8),
     Struct17BytesInt Function(int, int, int)>("ReturnStruct17BytesInt");
 
-/// Rerturn value returned in preallocated space passed by pointer on most ABIs.
+/// Return value returned in preallocated space passed by pointer on most ABIs.
 /// Is non word size on purpose, to test that structs are rounded up to word size
 /// on all ABIs.
 void testReturnStruct17BytesInt() {

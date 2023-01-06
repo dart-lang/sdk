@@ -274,8 +274,8 @@ uint32_t IOHandle::WaitEnd(zx_signals_t observed) {
 }
 
 // This function controls the simulation of edge-triggering. It is responsible
-// for removing events from the event mask when they should be supressed, and
-// for supressing future events. Events are unsupressed by their respective
+// for removing events from the event mask when they should be suppressed, and
+// for suppressing future events. Events are unsuppressed by their respective
 // operations by the Dart thread on the socket---that is, where the
 // *_events_enabled_ flags are set to true.
 intptr_t IOHandle::ToggleEvents(intptr_t event_mask) {
@@ -289,7 +289,7 @@ intptr_t IOHandle::ToggleEvents(intptr_t event_mask) {
         fd_);
     event_mask = event_mask & ~(1 << kOutEvent);
   }
-  // If the kOutEvent bit is set, then supress future write events until the
+  // If the kOutEvent bit is set, then suppress future write events until the
   // Dart thread writes.
   if ((event_mask & (1 << kOutEvent)) != 0) {
     LOG_INFO(
@@ -331,7 +331,7 @@ intptr_t IOHandle::ToggleEvents(intptr_t event_mask) {
           fd_);
       read_events_enabled_ = false;
     }
-    // Also supress future read events if we get a kCloseEvent. This is to
+    // Also suppress future read events if we get a kCloseEvent. This is to
     // account for POLLIN being set by Fuchsia when the socket is read-closed.
     if ((event_mask & (1 << kCloseEvent)) != 0) {
       LOG_INFO(
@@ -351,7 +351,7 @@ intptr_t IOHandle::ToggleEvents(intptr_t event_mask) {
         fd_);
     event_mask = event_mask & ~(1 << kCloseEvent);
   }
-  // If the kCloseEvent bit is set, then supress future close events, they will
+  // If the kCloseEvent bit is set, then suppress future close events, they will
   // be ignored by the Dart thread. See _NativeSocket.multiplex in
   // socket_patch.dart.
   if ((event_mask & (1 << kCloseEvent)) != 0) {

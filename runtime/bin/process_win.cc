@@ -554,7 +554,7 @@ class ProcessStarter {
     if (!Process::ModeIsAttached(mode_)) {
       creation_flags |= DETACHED_PROCESS;
     } else {
-      // Unless we are inherting stdio which means there is some console
+      // Unless we are inheriting stdio which means there is some console
       // associated with the app, we want to ensure no console window pops
       // up for the spawned child.
       if (mode_ != kInheritStdio) {
