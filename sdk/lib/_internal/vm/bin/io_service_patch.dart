@@ -8,35 +8,34 @@ class _IOServicePorts {
   // We limit the number of IO Service ports per isolate so that we don't
   // spawn too many threads all at once, which can crash the VM on Windows.
   static const int maxPorts = 32;
-  List<SendPort> _ports = <SendPort>[];
-  List<SendPort> _freePorts = <SendPort>[];
-  Map<int, SendPort> _usedPorts = new HashMap<int, SendPort>();
+  final List<SendPort> _ports = [];
+  final List<int> _useCounts = [];
+  final List<int> _freePorts = [];
+  final Map<int, int> _usedPorts = HashMap<int, int>();
 
   _IOServicePorts();
 
   SendPort _getPort(int forRequestId) {
-    if (_freePorts.isEmpty && _usedPorts.length < maxPorts) {
+    assert(!_usedPorts.containsKey(forRequestId));
+    if (_freePorts.isEmpty && _ports.length < maxPorts) {
       final SendPort port = _newServicePort();
       _ports.add(port);
-      _freePorts.add(port);
+      _useCounts.add(0);
+      _freePorts.add(_ports.length - 1);
     }
-    if (!_freePorts.isEmpty) {
-      final SendPort port = _freePorts.removeLast();
-      assert(!_usedPorts.containsKey(forRequestId));
-      _usedPorts[forRequestId] = port;
-      return port;
-    }
-    // We have already allocated the max number of ports. Re-use an
-    // existing one.
-    final SendPort port = _ports[forRequestId % maxPorts];
-    _usedPorts[forRequestId] = port;
-    return port;
+    // Use a free port if one exists.
+    final index = _freePorts.isNotEmpty
+        ? _freePorts.removeLast()
+        : forRequestId % maxPorts;
+    _usedPorts[forRequestId] = index;
+    _useCounts[index]++;
+    return _ports[index];
   }
 
   void _returnPort(int forRequestId) {
-    final SendPort port = _usedPorts.remove(forRequestId)!;
-    if (!_usedPorts.values.contains(port)) {
-      _freePorts.add(port);
+    final index = _usedPorts.remove(forRequestId)!;
+    if (--_useCounts[index] == 0) {
+      _freePorts.add(index);
     }
   }
 
