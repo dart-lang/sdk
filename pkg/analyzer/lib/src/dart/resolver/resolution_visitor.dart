@@ -391,33 +391,30 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.type?.accept(this);
 
     final name = node.name.lexeme;
-    if (name != '_') {
-      var element = VariablePatternBindElementImpl(
-        node,
-        name,
-        node.name.offset,
-      );
-      _patternVariables.add(name, element);
-      _elementHolder.enclose(element);
-      _define(element);
-      element.hasImplicitType = node.type == null;
-      element.type = node.type?.type ?? _dynamicType;
-      node.declaredElement = element;
+    var element = VariablePatternBindElementImpl(
+      node,
+      name,
+      node.name.offset,
+    );
+    _patternVariables.add(name, element);
+    _elementHolder.enclose(element);
+    _define(element);
+    element.hasImplicitType = node.type == null;
+    element.type = node.type?.type ?? _dynamicType;
+    node.declaredElement = element;
 
-      var patternContext = node.patternContext;
-      if (patternContext is PatternVariableDeclarationImpl) {
-        element.isFinal = patternContext.finalToken != null;
-        var keyword = node.keyword;
-        if (keyword != null) {
-          _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode
-                .VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
-            keyword,
-          );
-        }
-      } else {
-        element.isFinal = node.finalToken != null;
+    var patternContext = node.patternContext;
+    if (patternContext is PatternVariableDeclarationImpl) {
+      element.isFinal = patternContext.finalToken != null;
+      var keyword = node.keyword;
+      if (keyword != null) {
+        _errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+          keyword,
+        );
       }
+    } else {
+      element.isFinal = node.finalToken != null;
     }
   }
 

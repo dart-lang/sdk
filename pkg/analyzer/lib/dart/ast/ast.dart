@@ -224,15 +224,12 @@ abstract class AssertStatement implements Assertion, Statement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class AssignedVariablePattern implements DartPattern {
+abstract class AssignedVariablePattern implements VariablePattern {
   /// Return the element referenced by this pattern, or `null` if either
   /// [name] does not resolve to an element, or the AST structure has not
   /// been resolved. In valid code this will be either [LocalVariableElement]
   /// or [ParameterElement].
   Element? get element;
-
-  /// The name of the variable being referenced.
-  Token get name;
 }
 
 /// An assignment expression.
@@ -694,6 +691,8 @@ abstract class AstVisitor<R> {
   R? visitWhenClause(WhenClause node);
 
   R? visitWhileStatement(WhileStatement node);
+
+  R? visitWildcardPattern(WildcardPattern node);
 
   R? visitWithClause(WithClause node);
 
@@ -1747,19 +1746,13 @@ abstract class DeclaredIdentifier implements Declaration {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class DeclaredVariablePattern implements DartPattern {
-  /// Return the element associated with this declaration, or `null` if either
-  /// the variable name is `_` (in which case no variable is defined) or the AST
+abstract class DeclaredVariablePattern implements VariablePattern {
+  /// Return the element associated with this declaration, or `null` if the AST
   /// structure has not been resolved.
   VariablePatternElement? get declaredElement;
 
-  /// The 'var' or 'final' keyword used when there is no [type], or `null` if a
-  /// type is given.
+  /// The 'var' or 'final' keyword.
   Token? get keyword;
-
-  /// The name of the variable being bound, if `_` then no variable is bound,
-  /// and [declaredElement] is `null`.
-  Token get name;
 
   /// The type that the variable is required to match, or `null` if any type is
   /// matched.
@@ -5472,6 +5465,16 @@ abstract class VariableDeclarationStatement implements Statement {
   VariableDeclarationList get variables;
 }
 
+/// The shared interface of [AssignedVariablePattern] and
+/// [DeclaredVariablePattern].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class VariablePattern implements DartPattern {
+  /// The name of the variable declared or referenced by the pattern.
+  Token get name;
+}
+
 /// A guard in a pattern-based `case` in a `switch` statement, `switch`
 /// expression, `if` statement, or `if` element.
 ///
@@ -5511,6 +5514,25 @@ abstract class WhileStatement implements Statement {
 
   /// Return the token representing the 'while' keyword.
   Token get whileKeyword;
+}
+
+/// A wildcard pattern.
+///
+///    wildcardPattern ::=
+///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? '_'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class WildcardPattern implements DartPattern {
+  /// The 'var' or 'final' keyword.
+  Token? get keyword;
+
+  /// The `_` token.
+  Token get name;
+
+  /// The type that the pattern is required to match, or `null` if any type is
+  /// matched.
+  TypeAnnotation? get type;
 }
 
 /// The with clause in a class declaration.

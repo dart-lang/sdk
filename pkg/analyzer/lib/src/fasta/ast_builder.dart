@@ -5361,7 +5361,15 @@ class AstBuilder extends StackListener {
       throw UnimplementedError('Patterns not enabled');
     }
     var type = pop() as TypeAnnotationImpl?;
-    if (inAssignmentPattern) {
+    if (variable.lexeme == '_') {
+      push(
+        WildcardPatternImpl(
+          keyword: keyword,
+          type: type,
+          name: variable,
+        ),
+      );
+    } else if (inAssignmentPattern) {
       push(
         AssignedVariablePatternImpl(
           name: variable,

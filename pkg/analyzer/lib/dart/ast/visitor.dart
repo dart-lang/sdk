@@ -751,6 +751,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitWhileStatement(WhileStatement node) => visitStatement(node);
 
   @override
+  R? visitWildcardPattern(WildcardPattern node) => visitDartPattern(node);
+
+  @override
   R? visitWithClause(WithClause node) => visitNode(node);
 
   @override
@@ -1748,6 +1751,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitWildcardPattern(WildcardPattern node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitWithClause(WithClause node) {
     node.visitChildren(this);
     return null;
@@ -2270,6 +2279,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitWhileStatement(WhileStatement node) => null;
+
+  @override
+  R? visitWildcardPattern(WildcardPattern node) => null;
 
   @override
   R? visitWithClause(WithClause node) => null;
@@ -2798,6 +2810,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitWhileStatement(WhileStatement node) => _throw(node);
+
+  @override
+  R? visitWildcardPattern(WildcardPattern node) => _throw(node);
 
   @override
   R? visitWithClause(WithClause node) => _throw(node);
@@ -4130,6 +4145,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitWildcardPattern(WildcardPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitWildcardPattern(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitWithClause(WithClause node) {
     stopwatch.start();
     T? result = _baseVisitor.visitWithClause(node);
@@ -4687,6 +4710,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitWhileStatement(WhileStatement node) => visitNode(node);
+
+  @override
+  R? visitWildcardPattern(WildcardPattern node) => visitNode(node);
 
   @override
   R? visitWithClause(WithClause node) => visitNode(node);

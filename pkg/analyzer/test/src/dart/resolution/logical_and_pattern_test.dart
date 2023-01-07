@@ -23,7 +23,7 @@ void f(x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalAndPattern
-  leftOperand: DeclaredVariablePattern
+  leftOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -32,7 +32,7 @@ LogicalAndPattern
       type: int
     name: _
   operator: &&
-  rightOperand: DeclaredVariablePattern
+  rightOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: double
@@ -55,7 +55,7 @@ void f(x) {
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 LogicalAndPattern
-  leftOperand: DeclaredVariablePattern
+  leftOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -64,7 +64,7 @@ LogicalAndPattern
       type: int
     name: _
   operator: &&
-  rightOperand: DeclaredVariablePattern
+  rightOperand: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: double
