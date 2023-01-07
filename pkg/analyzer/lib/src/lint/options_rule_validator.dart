@@ -11,6 +11,7 @@ import 'package:analyzer/src/lint/state.dart';
 import 'package:analyzer/src/plugin/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:collection/collection.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 
 // TODO(pq): migrate these codes to `option_codes.dart`?
@@ -59,12 +60,23 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   static const rulesKey = 'rules';
 
   final LintRuleProvider ruleProvider;
+  final VersionConstraint? sdkVersionConstraint;
 
-  LinterRuleOptionsValidator({LintRuleProvider? provider})
+  LinterRuleOptionsValidator(
+      {LintRuleProvider? provider, this.sdkVersionConstraint})
       : ruleProvider = provider ?? (() => Registry.ruleRegistry.rules);
 
   LintRule? getRegisteredLint(Object value) =>
       ruleProvider().firstWhereOrNull((rule) => rule.name == value);
+
+  bool isDeprecatedInCurrentSdk(State state) {
+    if (state is! DeprecatedState) return false;
+    var since = state.since;
+    if (since == null) return true;
+    var sdk = sdkVersionConstraint;
+    if (sdk == null) return false;
+    return sdk.allows(since);
+  }
 
   @override
   List<AnalysisError> validate(ErrorReporter reporter, YamlMap options) {
@@ -109,7 +121,7 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         }
       }
       var state = rule.state;
-      if (state is DeprecatedState) {
+      if (isDeprecatedInCurrentSdk(state)) {
         reporter.reportErrorForSpan(DEPRECATED_LINT_HINT, node.span, [value]);
       } else if (state is RemovedState) {
         var since = state.since.toString();

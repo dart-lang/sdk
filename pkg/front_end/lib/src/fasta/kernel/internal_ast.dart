@@ -5163,6 +5163,12 @@ class IfCaseStatement extends InternalStatement {
 final MapPatternEntry dummyMapPatternEntry =
     new MapPatternEntry(dummyPattern, dummyPattern, TreeNode.noOffset);
 
+/// This is used as a sentinel value to mark the occurrence of the rest pattern
+final MapPatternEntry restMapPatternEntry = new MapPatternEntry(
+    new ExpressionPattern(new NullLiteral()),
+    new ExpressionPattern(new NullLiteral()),
+    TreeNode.noOffset);
+
 class MapPatternEntry extends TreeNode with InternalTreeNode {
   final Pattern key;
   final Pattern value;
@@ -5256,6 +5262,7 @@ class MapPattern extends Pattern {
     Expression? keysCheck;
     for (int i = entries.length - 1; i >= 0; i--) {
       MapPatternEntry entry = entries[i];
+      if (identical(entry, restMapPatternEntry)) continue;
       ExpressionPattern keyPattern = entry.key as ExpressionPattern;
 
       // containsKeyCheck: `mapVariable`.containsKey(`keyPattern.expression`)
@@ -5307,6 +5314,75 @@ class MapPattern extends Pattern {
       typeAndKeysCheck = null;
     }
 
+    ObjectAccessTarget lengthTarget = inferenceVisitor.findInterfaceMember(
+        targetMapType, lengthName, fileOffset,
+        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+
+    // lengthGet: `mapVariable`.length
+    //   ==> MVAR.length
+    Expression lengthGet = new InstanceGet(
+        InstanceAccessKind.Instance,
+        inferenceVisitor.engine.forest
+            .createVariableGet(fileOffset, mapVariable)
+          ..promotedType = typeCheckForTargetMapNeeded ? targetMapType : null,
+        lengthName,
+        resultType: lengthTarget.getGetterType(inferenceVisitor),
+        interfaceTarget: lengthTarget.member as Procedure)
+      ..fileOffset = fileOffset;
+
+    Expression lengthCheck;
+    // In map patterns the rest pattern can appear only in the end.
+    bool hasRestPattern =
+        entries.isNotEmpty && identical(entries.last, restMapPatternEntry);
+    if (hasRestPattern) {
+      ObjectAccessTarget greaterThanOrEqualsTarget =
+          inferenceVisitor.findInterfaceMember(
+              inferenceVisitor.coreTypes.intNonNullableRawType,
+              greaterThanOrEqualsName,
+              fileOffset,
+              callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+
+      // lengthCheck: `lengthGet` >= `entries.length - 1`
+      //   ==> MVAR.length >= `entries.length - 1`
+      lengthCheck = new InstanceInvocation(
+          InstanceAccessKind.Instance,
+          lengthGet,
+          greaterThanOrEqualsName,
+          inferenceVisitor.engine.forest.createArguments(fileOffset, [
+            inferenceVisitor.engine.forest
+                .createIntLiteral(fileOffset, entries.length - 1)
+          ]),
+          functionType:
+              greaterThanOrEqualsTarget.getFunctionType(inferenceVisitor),
+          interfaceTarget: greaterThanOrEqualsTarget.member as Procedure)
+        ..fileOffset = fileOffset;
+    } else {
+      ObjectAccessTarget equalsTarget = inferenceVisitor.findInterfaceMember(
+          inferenceVisitor.coreTypes.intNonNullableRawType,
+          equalsName,
+          fileOffset,
+          callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+
+      // lengthCheck: `lengthGet` == `entries.length`
+      lengthCheck = new EqualsCall(
+          lengthGet,
+          inferenceVisitor.engine.forest
+              .createIntLiteral(fileOffset, entries.length),
+          functionType: equalsTarget.getFunctionType(inferenceVisitor),
+          interfaceTarget: equalsTarget.member as Procedure)
+        ..fileOffset = fileOffset;
+    }
+
+    Expression typeAndKeysAndLengthCheck;
+    if (typeAndKeysCheck != null) {
+      // typeAndKeysAndLengthCheck: `typeAndKeysCheck` && `lengthCheck`
+      typeAndKeysAndLengthCheck = inferenceVisitor.engine.forest
+          .createLogicalExpression(fileOffset, typeAndKeysCheck,
+              doubleAmpersandName.text, lengthCheck);
+    } else {
+      typeAndKeysAndLengthCheck = lengthCheck;
+    }
+
     ObjectAccessTarget valueAccess = inferenceVisitor.findInterfaceMember(
         targetMapType, indexGetName, fileOffset,
         callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
@@ -5317,6 +5393,7 @@ class MapPattern extends Pattern {
     List<VariableDeclaration> valueAccessVariables = [];
     CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
     for (MapPatternEntry entry in entries) {
+      if (identical(entry, restMapPatternEntry)) continue;
       ExpressionPattern keyPattern = entry.key as ExpressionPattern;
 
       // [keyPattern.expression] can be cloned without caching because it's a
@@ -5370,7 +5447,7 @@ class MapPattern extends Pattern {
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
             kind: PatternTransformationElementKind.regular,
-            condition: typeAndKeysCheck,
+            condition: typeAndKeysAndLengthCheck,
             variableInitializers: valueAccessVariables),
         inferenceVisitor);
 
@@ -5697,7 +5774,7 @@ class RestPattern extends Pattern {
 
   @override
   String toString() {
-    return "RestPattern(${toStringInternal()}";
+    return "RestPattern(${toStringInternal()})";
   }
 
   @override

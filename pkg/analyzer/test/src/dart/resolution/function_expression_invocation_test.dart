@@ -349,6 +349,50 @@ PropertyAccess
 ''');
   }
 
+  test_on_switchExpression() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  (switch (x) {
+    _ => foo,
+  }());
+}
+
+void foo() {}
+''');
+
+    final node = findNode.functionExpressionInvocation('}()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+        arrow: =>
+        expression: SimpleIdentifier
+          token: foo
+          staticElement: self::@function::foo
+          staticType: void Function()
+    rightBracket: }
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
   test_record_field_named() async {
     await assertNoErrorsInCode(r'''
 void f(({void Function(int) foo}) r) {

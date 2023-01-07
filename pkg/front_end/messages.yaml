@@ -6048,3 +6048,15 @@ VariablePatternTypeMismatchInSwitchHeads:
   experiments: patterns
   script: |
     test(dynamic x) { switch (x) { case [int a]: case [double a] : return a; default: return null; } }
+
+RestPatternMoreThanOne:
+  problemMessage: "The '...' pattern can appear only once in the enclosing pattern."
+  experiments: patterns
+  script: |
+    test(dynamic x) { if (x case {..., 1: 1, ...}) {} }
+
+RestPatternNotLastInMapPattern:
+  problemMessage: "The '...' pattern can appear only at the end in map patterns."
+  experiments: patterns
+  script: |
+    test(dynamic x) { if (x case {..., 1: 1}) {} }

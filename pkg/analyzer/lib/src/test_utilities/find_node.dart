@@ -107,6 +107,10 @@ class FindNode {
     return _node(search, (n) => n is AsExpression);
   }
 
+  AsExpression asExpression(String search) {
+    return _node(search, (n) => n is AsExpression);
+  }
+
   AssertStatement assertStatement(String search) {
     return _node(search, (n) => n is AssertStatement);
   }

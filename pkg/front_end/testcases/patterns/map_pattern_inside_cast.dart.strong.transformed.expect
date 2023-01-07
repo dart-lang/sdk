@@ -11,7 +11,7 @@ static method test(dynamic x) → dynamic {
     if(!#t3) {
       final core::Object #t4 = let dynamic #t5 = #t1 in #t5 == null ?{core::Object} #t5 as{ForNonNullableByDefault} core::Object : #t5{core::Object};
       final core::Object #t6 = #t4;
-      if(#t6 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #t6{core::Map<dynamic, dynamic>}.{core::Map::containsKey}("a"){(core::Object?) → core::bool}) {
+      if(#t6 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #t6{core::Map<dynamic, dynamic>}.{core::Map::containsKey}("a"){(core::Object?) → core::bool} && #t6{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
         final dynamic #t7 = #t6{core::Map<dynamic, dynamic>}.{core::Map::[]}("a"){(core::Object?) → dynamic};
         if(#t7 =={core::Object::==}{(core::Object) → core::bool} 1) {
           #t2 = 0;
