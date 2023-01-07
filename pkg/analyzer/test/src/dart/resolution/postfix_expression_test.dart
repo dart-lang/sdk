@@ -85,6 +85,50 @@ PostfixExpression
     assertType(findNode.simple('x; // ref'), 'Object');
   }
 
+  test_inc_switchExpression() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  (switch (x) {
+    _ => 0,
+  }++);
+}
+''', [
+      error(ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 51, 2),
+    ]);
+
+    var node = findNode.postfix('++');
+    assertResolvedNodeText(node, r'''
+PostfixExpression
+  operand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+        arrow: =>
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+    rightBracket: }
+    staticType: int
+  operator: ++
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
   test_nullCheck() async {
     await assertNoErrorsInCode(r'''
 void f(int? x) {

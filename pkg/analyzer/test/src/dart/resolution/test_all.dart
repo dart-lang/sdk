@@ -4,6 +4,7 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'as_expression_test.dart' as as_expression;
 import 'assignment_test.dart' as assignment;
 import 'ast_rewrite_test.dart' as ast_rewrite;
 import 'augmentation_import_test.dart' as augmentation_import;
@@ -43,6 +44,7 @@ import 'instance_member_inference_class_test.dart'
 import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin;
 import 'interpolation_string_test.dart' as interpolation_string;
+import 'is_expression_test.dart' as is_expression;
 import 'language_version_test.dart' as language_version;
 import 'library_augmentation_test.dart' as library_element2;
 import 'library_element_test.dart' as library_element;
@@ -97,6 +99,7 @@ import 'yield_statement_test.dart' as yield_statement;
 
 main() {
   defineReflectiveSuite(() {
+    as_expression.main();
     assignment.main();
     ast_rewrite.main();
     augmentation_import.main();
@@ -133,6 +136,7 @@ main() {
     instance_member_inference_class.main();
     instance_member_inference_mixin.main();
     interpolation_string.main();
+    is_expression.main();
     language_version.main();
     library_element2.main();
     library_element.main();

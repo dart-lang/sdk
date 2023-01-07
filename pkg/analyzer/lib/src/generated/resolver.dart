@@ -782,7 +782,22 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         _replacements[expression] ?? expression, replacementExpression));
     var staticType = replacementExpression.staticType;
     if (staticType == null) {
-      assert(replacementExpression is ExtensionOverride);
+      var shouldHaveType = true;
+      if (replacementExpression is ExtensionOverride) {
+        shouldHaveType = false;
+      } else if (replacementExpression is IdentifierImpl) {
+        var element = replacementExpression.staticElement;
+        if (element is ExtensionElement || element is InterfaceElement) {
+          shouldHaveType = false;
+        }
+      }
+      if (shouldHaveType) {
+        assert(
+          false,
+          'No static type for: '
+          '(${replacementExpression.runtimeType}) $replacementExpression',
+        );
+      }
       staticType = unknownType;
     }
     return SimpleTypeAnalysisResult<DartType>(type: staticType);
@@ -1392,11 +1407,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
   /// or implicit [PrefixExpression] or [PostfixExpression].
   PropertyElementResolverResult resolveForWrite({
-    required AstNode node,
+    required Expression node,
     required bool hasRead,
   }) {
     if (node is IndexExpression) {
-      node.target?.accept(this);
+      var target = node.target;
+      if (target != null) {
+        analyzeExpression(target, null);
+        popRewrite();
+      }
+
       startNullAwareIndexExpression(node);
 
       var result = _propertyElementResolver.resolveIndexExpression(
@@ -1465,7 +1485,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       return result;
     } else {
-      node.accept(this);
+      analyzeExpression(node, null);
+      popRewrite();
       return PropertyElementResolverResult();
     }
   }
@@ -1781,11 +1802,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitAsExpression(AsExpression node, {DartType? contextType}) {
+  void visitAsExpression(
+    covariant AsExpressionImpl node, {
+    DartType? contextType,
+  }) {
     checkUnreachableNode(node);
-    node.visitChildren(this);
-    typeAnalyzer.visitAsExpression(node as AsExpressionImpl,
-        contextType: contextType);
+
+    analyzeExpression(node.expression, null);
+    popRewrite();
+
+    node.type.accept(this);
+
+    typeAnalyzer.visitAsExpression(node, contextType: contextType);
     flowAnalysis.asExpression(node);
     _insertImplicitCallReference(
         insertGenericFunctionInstantiation(node, contextType: contextType),
@@ -2530,12 +2558,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node,
-      {DartType? contextType}) {
+  void visitFunctionExpressionInvocation(
+    covariant FunctionExpressionInvocationImpl node, {
+    DartType? contextType,
+  }) {
+    analyzeExpression(node.function, null);
+    node.function = popRewrite()!;
+
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
-    node.function.accept(this);
-    _functionExpressionInvocationResolver.resolve(
-        node as FunctionExpressionInvocationImpl, whyNotPromotedList,
+    _functionExpressionInvocationResolver.resolve(node, whyNotPromotedList,
         contextType: contextType);
     nullShortingTermination(node);
     var replacement =
@@ -2666,7 +2697,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitIndexExpression(covariant IndexExpressionImpl node,
       {DartType? contextType}) {
     checkUnreachableNode(node);
-    node.target?.accept(this);
+
+    var target = node.target;
+    if (target != null) {
+      analyzeExpression(target, null);
+      popRewrite();
+    }
+
     startNullAwareIndexExpression(node);
 
     var result = _propertyElementResolver.resolveIndexExpression(
@@ -2735,11 +2772,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitIsExpression(IsExpression node, {DartType? contextType}) {
+  void visitIsExpression(
+    covariant IsExpressionImpl node, {
+    DartType? contextType,
+  }) {
     checkUnreachableNode(node);
-    node.visitChildren(this);
-    typeAnalyzer.visitIsExpression(node as IsExpressionImpl,
-        contextType: contextType);
+
+    analyzeExpression(node.expression, null);
+    popRewrite();
+
+    node.type.accept(this);
+
+    typeAnalyzer.visitIsExpression(node, contextType: contextType);
     flowAnalysis.isExpression(node);
   }
 
@@ -3025,7 +3069,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitPropertyAccess(covariant PropertyAccessImpl node,
       {DartType? contextType}) {
     checkUnreachableNode(node);
-    node.target?.accept(this);
+
+    var target = node.target;
+    if (target != null) {
+      analyzeExpression(target, null);
+      popRewrite();
+    }
+
     startNullAwarePropertyAccess(node);
 
     var result = _propertyElementResolver.resolvePropertyAccess(
