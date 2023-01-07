@@ -10557,6 +10557,25 @@ const MessageCode messageRequiredParameterWithDefault = const MessageCode(
         r"""Try removing the default value or making the parameter optional.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRestPatternMoreThanOne = messageRestPatternMoreThanOne;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRestPatternMoreThanOne = const MessageCode(
+    "RestPatternMoreThanOne",
+    problemMessage:
+        r"""The '...' pattern can appear only once in the enclosing pattern.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRestPatternNotLastInMapPattern =
+    messageRestPatternNotLastInMapPattern;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRestPatternNotLastInMapPattern = const MessageCode(
+    "RestPatternNotLastInMapPattern",
+    problemMessage:
+        r"""The '...' pattern can appear only at the end in map patterns.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRethrowNotCatch = messageRethrowNotCatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

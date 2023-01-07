@@ -119,7 +119,7 @@ static method test(dynamic value, core::bool expected) → void {
     }
     if(!#t3) {
       final dynamic #t8 = #t1;
-      if(#t8 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #t8{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(42){(core::Object?) → core::bool}) {
+      if(#t8 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #t8{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(42){(core::Object?) → core::bool} && #t8{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
         final dynamic #t9 = #t8{core::Map<dynamic, dynamic>}.{core::Map::[]}(42){(core::Object?) → dynamic};
         if(#t9 =={core::Object::==}{(core::Object) → core::bool} "foo") {
           #t2 = 2;
@@ -129,7 +129,7 @@ static method test(dynamic value, core::bool expected) → void {
     }
     if(!#t3) {
       final dynamic #t10 = #t1;
-      if(#t10 is{ForNonNullableByDefault} core::Map<core::num, core::Object> && #t10{core::Map<core::num, core::Object>}.{core::Map::containsKey}(42){(core::Object?) → core::bool}) {
+      if(#t10 is{ForNonNullableByDefault} core::Map<core::num, core::Object> && #t10{core::Map<core::num, core::Object>}.{core::Map::containsKey}(42){(core::Object?) → core::bool} && #t10{core::Map<core::num, core::Object>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
         final core::Object #t11 = #t10{core::Map<core::num, core::Object>}.{core::Map::[]}(42){(core::Object?) → core::Object?};
         if(#t11 =={core::Object::==}{(core::Object) → core::bool} "foo") {
           #t2 = 3;

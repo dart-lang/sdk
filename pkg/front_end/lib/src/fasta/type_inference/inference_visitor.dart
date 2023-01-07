@@ -9657,21 +9657,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     MapPattern pattern, {
     required SharedMatchContext context,
   }) {
-    analyzeMapPattern(context, pattern,
+    DartType mapType = analyzeMapPattern(context, pattern,
         typeArguments: new MapPatternTypeArguments<DartType>(
             keyType: pattern.keyType ?? const DynamicType(),
             valueType: pattern.valueType ?? const DynamicType()),
         elements: pattern.entries);
-    DartType matchedType = flow.getMatchedValueType();
     for (int i = pattern.entries.length - 1; i >= 0; i--) {
       Node? rewrite = popRewrite();
       if (!identical(pattern.entries[i], rewrite)) {
         pattern.entries[i] = (rewrite as MapPatternEntry)..parent = pattern;
       }
     }
-    if (matchedType is InterfaceType) {
+    if (mapType is InterfaceType) {
       List<DartType>? mapTypeArguments = hierarchyBuilder
-          .getTypeArgumentsAsInstanceOf(matchedType, coreTypes.mapClass);
+          .getTypeArgumentsAsInstanceOf(mapType, coreTypes.mapClass);
       if (mapTypeArguments != null && mapTypeArguments.length == 2) {
         pattern.keyType = mapTypeArguments[0];
         pattern.valueType = mapTypeArguments[1];
