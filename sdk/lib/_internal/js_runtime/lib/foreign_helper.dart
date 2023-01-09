@@ -86,7 +86,7 @@ import 'dart:_rti' show Rti;
 ///
 ///  + Do not use any parameter, local, method or field names in the
 ///    [codeTemplate].  These names are all subject to arbitrary renaming by the
-///    compiler.  Pass the values in via `#` substition, and test with the
+///    compiler.  Pass the values in via `#` substitution, and test with the
 ///    `--minify` dart2js command-line option.
 ///
 ///  + The substituted expressions are values, not locations.

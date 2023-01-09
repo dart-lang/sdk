@@ -47,7 +47,7 @@ void recursiveTest(int recursionCounter) {
 
 Struct20BytesHomogeneousInt32 dartPassStructRecursive(
     int recursionCounter, Struct20BytesHomogeneousInt32 struct) {
-  print("callbackPassStructRecurisive($recursionCounter, $struct)");
+  print("callbackPassStructRecursive($recursionCounter, $struct)");
   struct.a0++;
   final structA0Saved = struct.a0;
   if (recursionCounter <= 0) {
