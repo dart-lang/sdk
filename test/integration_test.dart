@@ -31,8 +31,6 @@ import 'integration/flutter_style_todos.dart' as flutter_style_todos;
 import 'integration/lines_longer_than_80_chars.dart'
     as lines_longer_than_80_chars;
 import 'integration/only_throw_errors.dart' as only_throw_errors;
-import 'integration/prefer_asserts_in_initializer_lists.dart'
-    as prefer_asserts_in_initializer_lists;
 import 'integration/prefer_const_constructors.dart'
     as prefer_const_constructors;
 import 'integration/prefer_const_constructors_in_immutables.dart'
@@ -183,7 +181,6 @@ void ruleTests() {
     lines_longer_than_80_chars.main();
     only_throw_errors.main();
     always_require_non_null_named_parameters.main();
-    prefer_asserts_in_initializer_lists.main();
     prefer_const_constructors_in_immutables.main();
     avoid_relative_lib_imports.main();
     prefer_relative_imports.main();

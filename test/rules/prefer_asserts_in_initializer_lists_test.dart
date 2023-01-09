@@ -58,4 +58,38 @@ class A {
       error(CompileTimeErrorCode.NON_BOOL_EXPRESSION, 40, 50),
     ]);
   }
+
+  test_firstStatement() async {
+    await assertDiagnostics(r'''
+class A {
+  A.named(a) {
+    assert(a != null);
+  }
+} 
+
+''', [
+      lint(29, 6),
+    ]);
+  }
+
+  test_afterFirstStatement() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A.named(a) {
+    print('');
+    assert(a != null);
+  }
+} 
+
+''');
+  }
+
+  test_initializer() async {
+    await assertNoDiagnostics(r'''
+class A {
+  A.named(a) : assert(a != null);
+} 
+
+''');
+  }
 }
