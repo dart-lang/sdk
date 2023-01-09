@@ -1,36 +1,4 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/inline_class/external.dart:25:10: Error: The modifier 'external' should be before the modifier 'static'.
-// Try re-ordering the modifiers.
-//   static external A staticMethod();
-//          ^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/external.dart:27:10: Error: The modifier 'external' should be before the modifier 'static'.
-// Try re-ordering the modifiers.
-//   static external T staticGenericMethod<T>(T t);
-//          ^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/external.dart:29:10: Error: The modifier 'external' should be before the modifier 'static'.
-// Try re-ordering the modifiers.
-//   static external B get staticGetter;
-//          ^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/external.dart:31:10: Error: The modifier 'external' should be before the modifier 'static'.
-// Try re-ordering the modifiers.
-//   static external void set staticGetter(B b);
-//          ^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/external.dart:46:5: Error: Setter not found: 'staticSetter'.
-//   B.staticSetter = b2;
-//     ^^^^^^^^^^^^
-//
-// pkg/front_end/testcases/inline_class/external.dart:43:9: Error: A value of type 'A Function()' can't be assigned to a variable of type 'A'.
-//  - 'A' is from 'pkg/front_end/testcases/inline_class/external.dart'.
-//   a = B.staticMethod;
-//         ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -40,21 +8,27 @@ abstract class A extends core::Object {
     ;
 }
 inline class B /* declaredRepresentationType = self::A */ {
+  get field = self::B|get#field;
+  set field = self::B|set#field;
   method method = self::B|method;
   tearoff method = self::B|get#method;
   method genericMethod = self::B|genericMethod;
   tearoff genericMethod = self::B|get#genericMethod;
   get getter = self::B|get#getter;
+  static get staticField = get self::B|staticField;
+  static set staticField = set self::B|staticField;
   static method staticMethod = self::B|staticMethod;
   static method staticGenericMethod = self::B|staticGenericMethod;
   static get staticGetter = get self::B|staticGetter;
   set setter = self::B|set#setter;
-  static set staticGetter = set self::B|staticGetter;
+  static set staticSetter = set self::B|staticSetter;
   constructor • = self::B|;
   constructor named = self::B|named;
 }
 external static method B|(self::A a) → self::B;
 external static method B|named(core::int i) → self::B;
+external static method B|get#field(self::A #this) → self::A;
+external static method B|set#field(self::A #this, self::A #externalFieldValue) → void;
 external static method B|method(lowered final self::B #this) → self::A;
 static method B|get#method(lowered final self::B #this) → () → self::A
   return () → self::A => self::B|method(#this);
@@ -63,28 +37,37 @@ static method B|get#genericMethod(lowered final self::B #this) → <T extends co
   return <T extends core::Object? = dynamic>(T% t) → T% => self::B|genericMethod<T%>(#this, t);
 external static method B|get#getter(lowered final self::B #this) → self::B;
 external static method B|set#setter(lowered final self::B #this, self::B b) → void;
+external static get B|staticField() → self::A;
+external static set B|staticField(self::A #externalFieldValue) → void;
 external static method B|staticMethod() → self::A;
 external static method B|staticGenericMethod<T extends core::Object? = dynamic>(self::B|staticGenericMethod::T% t) → self::B|staticGenericMethod::T%;
 external static get B|staticGetter() → self::B;
-external static set B|staticGetter(self::B b) → void;
+external static set B|staticSetter(self::B b) → void;
 static method method(self::A a) → void {
   self::B b1 = self::B|(a);
   self::B b2 = self::B|named(0);
+  a = self::B|get#field(b1);
+  self::B|set#field(b1, a);
   a = self::B|method(b1);
+  () → self::A f1 = self::B|get#method(b1);
   b2 = self::B|genericMethod<self::B>(b2, b2);
+  <T extends core::Object? = dynamic>(T%) → T% f2 = self::B|get#genericMethod(b2);
+  (core::int) → core::int f3 = self::B|get#genericMethod(b2)<core::int>;
   b1 = self::B|get#getter(b2);
   self::B|set#setter(b1, b2);
-  a = invalid-expression "pkg/front_end/testcases/inline_class/external.dart:43:9: Error: A value of type 'A Function()' can't be assigned to a variable of type 'A'.
- - 'A' is from 'pkg/front_end/testcases/inline_class/external.dart'.
-  a = B.staticMethod;
-        ^" in #C1 as{TypeError,ForNonNullableByDefault} self::A;
+  a = self::B|staticField;
+  self::B|staticField = a;
+  a = self::B|staticMethod();
+  () → self::A f4 = #C1;
   b2 = self::B|staticGenericMethod<self::B>(b2);
+  <T extends core::Object? = dynamic>(T%) → T% f5 = #C2;
+  (core::String) → core::String f6 = #C3;
   b1 = self::B|staticGetter;
-  invalid-expression "pkg/front_end/testcases/inline_class/external.dart:46:5: Error: Setter not found: 'staticSetter'.
-  B.staticSetter = b2;
-    ^^^^^^^^^^^^";
+  self::B|staticSetter = b2;
 }
 
 constants  {
   #C1 = static-tearoff self::B|staticMethod
+  #C2 = static-tearoff self::B|staticGenericMethod
+  #C3 = instantiation #C2 <core::String>
 }

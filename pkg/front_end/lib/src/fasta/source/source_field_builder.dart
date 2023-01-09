@@ -38,6 +38,7 @@ import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 import '../util/helpers.dart' show DelayedActionPerformer;
 import 'source_class_builder.dart';
+import 'source_inline_class_builder.dart';
 import 'source_member_builder.dart';
 
 class SourceFieldBuilder extends SourceMemberBuilderImpl
@@ -1566,6 +1567,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   final bool isAbstract;
   final bool isExternal;
   final bool _isExtensionInstanceMember;
+  final bool _isInlineClassInstanceMember;
 
   late Procedure _getter;
   Procedure? _setter;
@@ -1597,8 +1599,11 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
         assert(isNonNullableByDefault != null),
         _isExtensionInstanceMember = isExternal &&
             nameScheme.isExtensionMember &&
+            nameScheme.isInstanceMember,
+        _isInlineClassInstanceMember = isExternal &&
+            nameScheme.isInlineClassMember &&
             nameScheme.isInstanceMember {
-    if (_isExtensionInstanceMember) {
+    if (_isExtensionInstanceMember || _isInlineClassInstanceMember) {
       _getter = new Procedure(
           dummyName,
           ProcedureKind.Method,
@@ -1690,17 +1695,26 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
         "Type has already been computed for field ${_fieldBuilder.name}.");
     _type = value;
     if (value is! InferredType) {
-      if (_isExtensionInstanceMember) {
-        SourceExtensionBuilder extensionBuilder =
-            _fieldBuilder.parent as SourceExtensionBuilder;
-        DartType onType = extensionBuilder.extension.onType;
-        List<TypeParameter> typeParameters =
-            extensionBuilder.extension.typeParameters;
+      if (_isExtensionInstanceMember || _isInlineClassInstanceMember) {
+        DartType thisParameterType;
+        List<TypeParameter> typeParameters;
+        if (_isExtensionInstanceMember) {
+          SourceExtensionBuilder extensionBuilder =
+              _fieldBuilder.parent as SourceExtensionBuilder;
+          thisParameterType = extensionBuilder.extension.onType;
+          typeParameters = extensionBuilder.extension.typeParameters;
+        } else {
+          SourceInlineClassBuilder inlineClassBuilder =
+              _fieldBuilder.parent as SourceInlineClassBuilder;
+          thisParameterType =
+              inlineClassBuilder.inlineClass.declaredRepresentationType;
+          typeParameters = inlineClassBuilder.inlineClass.typeParameters;
+        }
         if (typeParameters.isNotEmpty) {
           FreshTypeParameters getterTypeParameters =
               getFreshTypeParameters(typeParameters);
           _getter.function.positionalParameters.first.type =
-              getterTypeParameters.substitute(onType);
+              getterTypeParameters.substitute(thisParameterType);
           _getter.function.returnType = getterTypeParameters.substitute(value);
           _getter.function.typeParameters =
               getterTypeParameters.freshTypeParameters;
@@ -1712,7 +1726,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
             FreshTypeParameters setterTypeParameters =
                 getFreshTypeParameters(typeParameters);
             setter.function.positionalParameters.first.type =
-                setterTypeParameters.substitute(onType);
+                setterTypeParameters.substitute(thisParameterType);
             setter.function.positionalParameters[1].type =
                 setterTypeParameters.substitute(value);
             setter.function.typeParameters =
@@ -1723,8 +1737,8 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
         } else {
           _getter.function.returnType = value;
           _setter?.function.positionalParameters[1].type = value;
-          _getter.function.positionalParameters.first.type = onType;
-          _setter?.function.positionalParameters.first.type = onType;
+          _getter.function.positionalParameters.first.type = thisParameterType;
+          _setter?.function.positionalParameters.first.type = thisParameterType;
         }
       } else {
         _getter.function.returnType = value;
@@ -1755,13 +1769,16 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   void build(
       SourceLibraryBuilder libraryBuilder, SourceFieldBuilder fieldBuilder) {
     bool isExtensionMember = fieldBuilder.isExtensionMember;
-    bool isInstanceMember = !fieldBuilder.isExtensionMember &&
+    bool isInlineClassMember = fieldBuilder.isInlineClassMember;
+    bool isInstanceMember = !isExtensionMember &&
+        !isInlineClassMember &&
         !fieldBuilder.isStatic &&
         !fieldBuilder.isTopLevel;
     _getter..isConst = fieldBuilder.isConst;
     _getter
       ..isStatic = !isInstanceMember
       ..isExtensionMember = isExtensionMember
+      ..isInlineClassMember = isInlineClassMember
       ..isAbstract = isAbstract && !isExternal
       ..isExternal = isExternal;
 
@@ -1769,6 +1786,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       _setter!
         ..isStatic = !isInstanceMember
         ..isExtensionMember = isExtensionMember
+        ..isInlineClassMember = isInlineClassMember
         ..isAbstract = isAbstract && !isExternal
         ..isExternal = isExternal;
     }
@@ -1779,17 +1797,25 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       SourceLibraryBuilder library,
       SourceFieldBuilder fieldBuilder,
       void Function(Member, BuiltMemberKind) f) {
-    f(
-        _getter,
-        fieldBuilder.isExtensionMember
-            ? BuiltMemberKind.ExtensionGetter
-            : BuiltMemberKind.Method);
+    BuiltMemberKind getterMemberKind;
+    if (fieldBuilder.isExtensionMember) {
+      getterMemberKind = BuiltMemberKind.ExtensionGetter;
+    } else if (fieldBuilder.isInlineClassMember) {
+      getterMemberKind = BuiltMemberKind.InlineClassGetter;
+    } else {
+      getterMemberKind = BuiltMemberKind.Method;
+    }
+    f(_getter, getterMemberKind);
     if (_setter != null) {
-      f(
-          _setter!,
-          fieldBuilder.isExtensionMember
-              ? BuiltMemberKind.ExtensionSetter
-              : BuiltMemberKind.Method);
+      BuiltMemberKind setterMemberKind;
+      if (fieldBuilder.isExtensionMember) {
+        setterMemberKind = BuiltMemberKind.ExtensionSetter;
+      } else if (fieldBuilder.isInlineClassMember) {
+        setterMemberKind = BuiltMemberKind.InlineClassSetter;
+      } else {
+        setterMemberKind = BuiltMemberKind.Method;
+      }
+      f(_setter!, setterMemberKind);
     }
   }
 

@@ -1690,15 +1690,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<Object?> argumentsEvaluationOrder;
     if (libraryFeatures.namedArgumentsAnywhere.isEnabled &&
         arguments.argumentsOriginalOrder != null) {
-      if (staticTarget?.isExtensionMember ?? false) {
-        // Add the receiver.
-        argumentsEvaluationOrder = <Object?>[
-          arguments.positional[0],
-          ...arguments.argumentsOriginalOrder!
-        ];
-      } else {
-        argumentsEvaluationOrder = arguments.argumentsOriginalOrder!;
-      }
+      argumentsEvaluationOrder = arguments.argumentsOriginalOrder!;
     } else {
       argumentsEvaluationOrder = <Object?>[
         ...arguments.positional,
