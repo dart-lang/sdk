@@ -69,6 +69,12 @@
 [`DeferredLibrary`]: https://api.dart.dev/stable/2.18.4/dart-async/DeferredLibrary-class.html
 [`deferred as`]: https://dart.dev/guides/language/language-tour#deferred-loading
 
+#### `dart:collection`
+
+- Deprecated the `HasNextIterator` class ([#50883][]).
+
+[#50883]: https://github.com/dart-lang/sdk/issues/50883
+
 #### `dart:developer`
 
 - **Breaking change** [#49529][]:
