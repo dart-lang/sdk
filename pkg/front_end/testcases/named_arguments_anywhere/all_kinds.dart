@@ -19,8 +19,11 @@ foo(int x, int y, {required int z}) {}
 extension E on A {
   method1() {
     method2(foo: 1, 2); // This call.
+    staticMethod2(foo: 1, 2);
   }
   method2(int bar, {int? foo}) {}
+
+  static staticMethod2(int bar, {int? foo}) {}
 }
 
 test(dynamic d, Function f, A a) {
@@ -71,6 +74,15 @@ test(dynamic d, Function f, A a) {
   local(1, 2, z: 3);
   local(1, z: 2, 3);
   local(z: 1, 2, 3);
+
+  // Implicit extension instance call.
+  a.method2(foo: 1, 2);
+
+  // Explicit extension instance call.
+  E(a).method2(foo: 1, 2);
+
+  // Explicit extension static call.
+  E.staticMethod2(foo: 1, 2);
 }
 
 class Test extends A {
