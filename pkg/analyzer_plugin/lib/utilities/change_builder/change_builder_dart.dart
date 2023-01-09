@@ -221,7 +221,7 @@ abstract class DartEditBuilder implements EditBuilder {
       Expression argument, int index, Set<String> usedNames);
 
   /// Write the code for a list of [parameters], including the surrounding
-  /// parentheses.
+  /// parentheses and default values (unless [includeDefaultValues] is `false`).
   ///
   /// If a [methodBeingCopied] is provided, then type parameters defined by that
   /// method are assumed to be part of what is being written and hence valid
@@ -229,7 +229,9 @@ abstract class DartEditBuilder implements EditBuilder {
   ///
   /// If [requiredTypes] is `true`, then the types are always written.
   void writeParameters(Iterable<ParameterElement> parameters,
-      {ExecutableElement? methodBeingCopied, bool requiredTypes});
+      {ExecutableElement? methodBeingCopied,
+      bool includeDefaultValues = true,
+      bool requiredTypes});
 
   /// Write the code for a list of parameters that would match the given list of
   /// [arguments]. The surrounding parentheses are *not* written.
@@ -267,9 +269,6 @@ abstract class DartEditBuilder implements EditBuilder {
   /// [addSupertypeProposals] is `true`, then all of the supertypes of the
   /// [type] will be added as suggestions for alternatives to the type name.
   ///
-  /// If [includeDefaultValuesInFunctionTypes] is `true`, function types will be
-  /// written including their default values.
-  ///
   /// If a [methodBeingCopied] is provided, then type parameters defined by that
   /// method are assumed to be part of what is being written and hence valid
   /// types.
@@ -279,7 +278,6 @@ abstract class DartEditBuilder implements EditBuilder {
       {bool addSupertypeProposals = false,
       String? groupName,
       ExecutableElement? methodBeingCopied,
-      bool includeDefaultValuesInFunctionTypes = true,
       bool required = false});
 
   /// Write the code to declare the given [typeParameter]. The enclosing angle

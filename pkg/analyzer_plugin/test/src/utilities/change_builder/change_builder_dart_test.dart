@@ -1119,6 +1119,27 @@ class A {}
         equalsIgnoringWhitespace('(int a, {bool b = false, String c})'));
   }
 
+  Future<void> test_writeParameters_noDefaults() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'f(int a, {bool b = false, String c = ""}) {}';
+    addSource(path, content);
+
+    var unit = (await resolveFile(path)).unit;
+    var f = unit.declarations[0] as FunctionDeclaration;
+    var parameters = f.functionExpression.parameters;
+    var elements = parameters?.parameters.map((p) => p.declaredElement!);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameters(elements!, includeDefaultValues: false);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement,
+        equalsIgnoringWhitespace('(int a, {bool b, String c})'));
+  }
+
   Future<void> test_writeParameters_positional() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = 'f(int a, [bool b = false, String c]) {}';
