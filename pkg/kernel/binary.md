@@ -174,7 +174,7 @@ type MetadataMapping {
 
 // Component index with all fixed-size-32-bit integers.
 // This gives "semi-random-access" to certain parts of the binary.
-// By reading the last 4 bytes one knows the number of libaries,
+// By reading the last 4 bytes one knows the number of libraries,
 // which allows to skip to any other field in this component index,
 // which again allows to skip to what it points to.
 type ComponentIndex {

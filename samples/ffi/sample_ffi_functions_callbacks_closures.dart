@@ -18,7 +18,7 @@ void main() {
     counter++;
   }
 
-  // C holds on to this closure through a `Dart_PersistenHandle`.
+  // C holds on to this closure through a `Dart_PersistentHandle`.
   registerClosureCallback(closure);
 
   // Some time later this closure can be invoked.
