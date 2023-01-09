@@ -615,6 +615,7 @@ mixin TypeAnalyzer<
       }
     }
     // Stack: ()
+    flow.listPattern_begin();
     Node? previousRestPattern;
     for (Node element in elements) {
       if (isRestPatternElement(element)) {

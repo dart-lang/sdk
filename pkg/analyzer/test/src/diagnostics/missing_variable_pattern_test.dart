@@ -551,9 +551,9 @@ GuardedPattern
 
   test_switchStatement_case2_left() async {
     await assertNoErrorsInCode(r'''
-void f(int x) {
+void f(num x) {
   switch (x) {
-    case final a:
+    case final double a:
     case 2:
       return;
   }
@@ -590,9 +590,9 @@ void f(int x) {
 
   test_switchStatement_differentCases_sibling() async {
     await assertNoErrorsInCode(r'''
-void f(int x) {
+void f(num x) {
   switch (x) {
-    case final a:
+    case final double a:
       return;
     case 2:
       return;

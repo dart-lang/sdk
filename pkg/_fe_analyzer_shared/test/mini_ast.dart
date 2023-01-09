@@ -825,6 +825,7 @@ class MiniAstOperations
     'Never': false,
     'num': false,
     'Object': false,
+    'Object?': false,
     'String': false,
   };
 
@@ -939,6 +940,7 @@ class MiniAstOperations
     'Object? <: int': false,
     'Object? <: int?': false,
     'Object? <: Null': false,
+    'Object? <: String': false,
     'String <: int': false,
     'String <: int?': false,
     'String <: List<num>': false,
