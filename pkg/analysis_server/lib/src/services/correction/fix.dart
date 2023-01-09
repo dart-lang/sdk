@@ -1565,6 +1565,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Replace with 'isEmpty' everywhere in file",
   );
+  static const REPLACE_WITH_IS_NAN = FixKind(
+    'dart.fix.replace.withIsNaN',
+    DartFixKindPriority.DEFAULT,
+    "Replace the condition with '.isNaN'",
+  );
   static const REPLACE_WITH_IS_NOT_EMPTY = FixKind(
     'dart.fix.replace.withIsNotEmpty',
     DartFixKindPriority.DEFAULT,
@@ -1613,7 +1618,7 @@ class DartFixKind {
   static const REPLACE_WITH_VAR_MULTI = FixKind(
     'dart.fix.replace.withVar.multi',
     DartFixKindPriority.IN_FILE,
-    "Replace type annotations with 'var' in file",
+    "Replace type annotations with 'var' everywhere in file",
   );
   static const SORT_CHILD_PROPERTY_LAST = FixKind(
     'dart.fix.sort.childPropertyLast',

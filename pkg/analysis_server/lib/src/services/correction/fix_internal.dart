@@ -189,6 +189,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_extens
 import 'package:analysis_server/src/services/correction/dart/replace_with_identifier.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_interpolation.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_is_empty.dart';
+import 'package:analysis_server/src/services/correction/dart/replace_with_is_nan.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_not_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_null_aware.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_tear_off.dart';
@@ -1464,6 +1465,12 @@ class FixProcessor extends BaseProcessor {
 //    HintCode.UNNECESSARY_NO_SUCH_METHOD: [
 // TODO(brianwilkerson) Add a fix to remove the method.
 //    ],
+    HintCode.UNNECESSARY_NAN_COMPARISON_FALSE: [
+      ReplaceWithIsNan.new,
+    ],
+    HintCode.UNNECESSARY_NAN_COMPARISON_TRUE: [
+      ReplaceWithIsNan.new,
+    ],
     HintCode.UNNECESSARY_NULL_COMPARISON_FALSE: [
       RemoveComparison.new,
     ],

@@ -230,6 +230,7 @@ import 'replace_with_extension_name_test.dart' as replace_with_extension_name;
 import 'replace_with_identifier_test.dart' as replace_with_identifier;
 import 'replace_with_interpolation_test.dart' as replace_with_interpolation;
 import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
+import 'replace_with_is_nan_test.dart' as replace_with_is_nan;
 import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
 import 'replace_with_not_null_aware_test.dart' as replace_with_not_null_aware;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
@@ -451,6 +452,7 @@ void main() {
     replace_with_identifier.main();
     replace_with_interpolation.main();
     replace_with_is_empty.main();
+    replace_with_is_nan.main();
     replace_with_is_not_empty.main();
     replace_with_not_null_aware.main();
     replace_with_null_aware.main();
