@@ -89,12 +89,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     var declaration = node.parent;
     if (declaration is ConstructorDeclaration) {
       if (declaration.constKeyword == null) return;
+      var classDecl = declaration.thisOrAncestorOfType<ClassDeclaration>();
+      if (classDecl == null) return;
       // no lint if several constructors
-      var constructorCount = declaration
-          .thisOrAncestorOfType<ClassDeclaration>()!
-          .members
-          .whereType<ConstructorDeclaration>()
-          .length;
+      var constructorCount =
+          classDecl.members.whereType<ConstructorDeclaration>().length;
       if (constructorCount > 1) return;
 
       var visitor = HasParameterReferenceVisitor(
