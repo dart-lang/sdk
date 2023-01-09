@@ -34537,7 +34537,6 @@ abstract class _DocumentType extends Node implements ChildNode {
   }
 
   // From ChildNode
-
 }
 
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -35652,7 +35651,6 @@ abstract class _WorkerLocation extends JavaScriptObject
   }
 
   // From URLUtilsReadOnly
-
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35670,7 +35668,6 @@ abstract class _WorkerNavigator extends NavigatorConcurrentHardware
   // From NavigatorID
 
   // From NavigatorOnLine
-
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -38390,7 +38387,7 @@ abstract class _KeyName {
   static const String BROWSER_BACK = "BrowserBack";
 
   /** The Browser Favorites key */
-  static const String BROWSER_FAVORTIES = "BrowserFavorites";
+  static const String BROWSER_FAVORITES = "BrowserFavorites";
 
   /** The Browser Forward key */
   static const String BROWSER_FORWARD = "BrowserForward";

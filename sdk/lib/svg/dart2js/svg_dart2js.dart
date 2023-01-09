@@ -4102,7 +4102,6 @@ abstract class _SVGFEDropShadowElement extends SvgElement
   _SVGFEDropShadowElement.created() : super.created();
 
   // From SVGFilterPrimitiveStandardAttributes
-
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4127,5 +4126,4 @@ abstract class _SVGMPathElement extends SvgElement implements UriReference {
   _SVGMPathElement.created() : super.created();
 
   // From SVGURIReference
-
 }
