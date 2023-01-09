@@ -30,6 +30,7 @@ class AvoidReturningNullForFuture extends LintRule {
             name: 'avoid_returning_null_for_future',
             description: _desc,
             details: _details,
+            state: State.deprecated(since: dart3),
             group: Group.errors);
 
   @override
