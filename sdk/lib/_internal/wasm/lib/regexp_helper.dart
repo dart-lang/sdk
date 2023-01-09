@@ -175,7 +175,12 @@ class _MatchImplementation implements RegExpMatch {
 
   int get end => (start + (_match[0].toString()).length);
 
-  String? group(int index) => _match[index]?.toString();
+  String? group(int index) {
+    if (index < 0 || index >= _match.length) {
+      throw RangeError("Index $index is out of range ${_match.length}");
+    }
+    return _match[index]?.toString();
+  }
 
   String? operator [](int index) => group(index);
 
