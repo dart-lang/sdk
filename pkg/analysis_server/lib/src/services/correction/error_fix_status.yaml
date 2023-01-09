@@ -183,6 +183,8 @@ CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE:
   status: needsEvaluation
 CompileTimeErrorCode.CAST_TO_NON_TYPE:
   status: hasFix
+CompileTimeErrorCode.CLASS_USED_AS_MIXIN:
+  status: needsEvaluation
 CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER:
   status: needsEvaluation
   since: 2.15

@@ -390,6 +390,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER',
   );
 
+  ///  Parameters:
+  ///  0: the name of the class being used as a mixin
+  static const CompileTimeErrorCode CLASS_USED_AS_MIXIN = CompileTimeErrorCode(
+    'CLASS_USED_AS_MIXIN',
+    "The class '{0}' can't be implicitly used as a mixin because it isn't a "
+        "mixin class nor a mixin.",
+  );
+
   static const CompileTimeErrorCode CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE =
       CompileTimeErrorCode(
     'CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
