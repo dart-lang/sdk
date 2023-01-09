@@ -3628,8 +3628,8 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  Type getVariableType(Var node) {
-    return node.type;
+  Type getVariableType(Var variable) {
+    return variable.type;
   }
 
   @override
