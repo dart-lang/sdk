@@ -1347,6 +1347,46 @@ class JSCommandLineOutput extends CommandOutput
   }
 }
 
+class Dart2WasmCommandLineOutput extends CommandOutput
+    with _UnittestSuiteMessagesMixin {
+  Dart2WasmCommandLineOutput(Command command, int exitCode, bool timedOut,
+      List<int> stdout, List<int> stderr, Duration time)
+      : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
+
+  Expectation result(TestCase testCase) {
+    // Handle crashes and timeouts first.
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
+
+    if (testCase.hasRuntimeError) {
+      if (exitCode != 0) return Expectation.pass;
+      return Expectation.missingRuntimeError;
+    }
+
+    var outcome = exitCode == 0 ? Expectation.pass : Expectation.runtimeError;
+    return _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
+  }
+
+  /// Cloned code from member result(), with changes.
+  /// Delete existing result() function and rename, when status files are gone.
+  Expectation realResult(TestCase testCase) {
+    // Handle crashes and timeouts first.
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
+
+    if (exitCode != 0) return Expectation.runtimeError;
+    var output = decodeUtf8(stdout);
+    if (_isAsyncTest(output) && !_isAsyncTestSuccessful(output)) {
+      return Expectation.fail;
+    }
+    return Expectation.pass;
+  }
+}
+
 class ScriptCommandOutput extends CommandOutput {
   final Expectation _result;
 
