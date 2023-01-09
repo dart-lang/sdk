@@ -9,7 +9,45 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstantIdentifierNamesRecordsTest);
+    defineReflectiveTests(ConstantIdentifierNamesPatternsTest);
   });
+}
+
+@reflectiveTest
+class ConstantIdentifierNamesPatternsTest extends LintRuleTest {
+  @override
+  List<String> get experiments => ['patterns', 'records'];
+
+  @override
+  String get lintRule => 'constant_identifier_names';
+
+  test_destructuredConstField() async {
+    await assertDiagnostics(r'''
+class A {
+  static const AA = (1, );
+}
+''', [
+      lint(25, 2),
+    ]);
+  }
+
+  test_destructuredConstVariable() async {
+    await assertDiagnostics(r'''
+const AA = (1, );
+''', [
+      lint(6, 2),
+    ]);
+  }
+
+  test_destructuredFinalVariable() async {
+    await assertDiagnostics(r'''
+void f() {
+  final (AA, ) = (1, );
+}
+''', [
+      lint(20, 2),
+    ]);
+  }
 }
 
 @reflectiveTest

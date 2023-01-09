@@ -63,6 +63,7 @@ class ConstantIdentifierNames extends LintRule {
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
     var visitor = _Visitor(this);
+    registry.addDeclaredVariablePattern(this, visitor);
     registry.addEnumConstantDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
@@ -79,6 +80,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!isLowerCamelCase(name)) {
       rule.reportLintForToken(id, arguments: [name]);
     }
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    checkIdentifier(node.name);
   }
 
   @override
