@@ -1401,6 +1401,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// or `null` if the receiver is the builder for the library.
   final DartFileEditBuilderImpl? libraryChangeBuilder;
 
+  @override
+  String? fileHeader;
+
   /// Whether to create edits that add imports for any written types that are
   /// not already imported.
   final bool createEditsForImports;
@@ -1428,7 +1431,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       resolvedUnit.session.analysisContext.analysisOptions.codeStyleOptions;
 
   @override
-  bool get hasEdits => super.hasEdits || librariesToImport.isNotEmpty;
+  bool get hasEdits =>
+      super.hasEdits || librariesToImport.isNotEmpty || fileHeader != null;
 
   @override
   List<Uri> get requiredImports => librariesToImport.keys.toList();
@@ -1498,6 +1502,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   void finalize() {
     if (createEditsForImports && librariesToImport.isNotEmpty) {
       _addLibraryImports(librariesToImport.values);
+    }
+    var header = fileHeader;
+    if (header != null) {
+      addInsertion(0, insertBeforeExisting: true, (builder) {
+        builder.writeln(header);
+      });
     }
   }
 

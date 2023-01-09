@@ -308,6 +308,10 @@ abstract class DartEditBuilder implements EditBuilder {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartFileEditBuilder implements FileEditBuilder {
+  /// Set the file header to be added before any generated imports. A blank line
+  /// will automatically be added after the file header.
+  set fileHeader(String fileHeader);
+
   /// A list of new URIs that must be imported for the types being referenced in
   /// edits.
   List<Uri> get requiredImports;
