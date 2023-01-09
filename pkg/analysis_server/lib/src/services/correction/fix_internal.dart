@@ -102,6 +102,7 @@ import 'package:analysis_server/src/services/correction/dart/make_conditional_on
 import 'package:analysis_server/src/services/correction/dart/make_field_not_final.dart';
 import 'package:analysis_server/src/services/correction/dart/make_field_public.dart';
 import 'package:analysis_server/src/services/correction/dart/make_final.dart';
+import 'package:analysis_server/src/services/correction/dart/make_required_named_parameters_first.dart';
 import 'package:analysis_server/src/services/correction/dart/make_return_type_nullable.dart';
 import 'package:analysis_server/src/services/correction/dart/make_super_invocation_last.dart';
 import 'package:analysis_server/src/services/correction/dart/make_variable_not_final.dart';
@@ -373,6 +374,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.always_put_control_body_on_new_line: [
       UseCurlyBraces.nonBulk,
+    ],
+    LintNames.always_put_required_named_parameters_first: [
+      MakeRequiredNamedParametersFirst.new,
     ],
     LintNames.always_require_non_null_named_parameters: [
       AddRequired.new,

@@ -1748,9 +1748,7 @@ LintCode.always_declare_return_types:
 LintCode.always_put_control_body_on_new_line:
   status: hasFix
 LintCode.always_put_required_named_parameters_first:
-  status: needsFix
-  notes: |-
-    Can fix by moving required named parameters before non-required ones.
+  status: hasFix
 LintCode.always_require_non_null_named_parameters:
   status: hasFix
 LintCode.always_specify_types:
