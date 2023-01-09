@@ -10,7 +10,66 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(NonConstantIdentifierNamesTest);
     defineReflectiveTests(NonConstantIdentifierNamesRecordsTest);
+    defineReflectiveTests(NonConstantIdentifierNamesPatternsTest);
   });
+}
+
+@reflectiveTest
+class NonConstantIdentifierNamesPatternsTest extends LintRuleTest {
+  @override
+  List<String> get experiments => ['patterns', 'records'];
+
+  @override
+  String get lintRule => 'non_constant_identifier_names';
+
+  @FailingTest(reason: 'Flow analysis fails w/ a Bad state exception')
+  test_patternForStatement() async {
+    await assertDiagnostics(r'''
+void f() {
+  for (var (AB, ) = (0, 1); AB <= 13; (AB, ) = ( , AB++)) { }
+}
+''', [
+      lint(18, 2),
+    ]);
+  }
+
+  test_patternIfStatement() async {
+    await assertDiagnostics(r'''
+void f() {
+  if ([1,2] case [int AB, int]) { }
+}
+''', [
+      lint(33, 2),
+    ]);
+  }
+
+  test_patternIfStatement_underscores() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  if ([1,2] case [int _, int __]) { }
+}
+''');
+  }
+
+  test_patternRecordField() async {
+    await assertDiagnostics(r'''
+void f() {
+  var (AB, ) = (1, );
+}
+''', [
+      lint(18, 2),
+    ]);
+  }
+
+  test_patternRecordField_underscores() async {
+    await assertDiagnostics(r'''
+void f() {
+  var (___, ) = (1, );
+}
+''', [
+      lint(18, 3),
+    ]);
+  }
 }
 
 @reflectiveTest
@@ -27,6 +86,46 @@ var a = (x: 1);
 var b = (XX: 1);
 ''', [
       lint(25, 2),
+    ]);
+  }
+
+  test_recordFields_fieldNameDuplicated() async {
+    // This will produce a compile-time error and we don't want to over-report.
+    await assertDiagnostics(r'''
+var r = (a: 1, a: 2);
+''', [
+      // No Lint.
+      error(CompileTimeErrorCode.DUPLICATE_FIELD_NAME, 15, 1),
+    ]);
+  }
+
+  test_recordFields_fieldNameFromObject() async {
+    // This will produce a compile-time error and we don't want to over-report.
+    await assertDiagnostics(r'''
+var a = (hashCode: 1);
+''', [
+      // No Lint.
+      error(CompileTimeErrorCode.INVALID_FIELD_NAME_FROM_OBJECT, 9, 8),
+    ]);
+  }
+
+  test_recordFields_fieldNamePositional() async {
+    // This will produce a compile-time error and we don't want to over-report.
+    await assertDiagnostics(r'''
+var r = (0, $0: 2);
+''', [
+      // No Lint.
+      error(CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL, 12, 2),
+    ]);
+  }
+
+  test_recordFields_privateFieldName() async {
+    // This will produce a compile-time error and we don't want to over-report.
+    await assertDiagnostics(r'''
+var a = (_x: 1);
+''', [
+      // No Lint.
+      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 9, 2),
     ]);
   }
 
@@ -52,16 +151,6 @@ var AA = (x: 1);
 const BB = (x: 1);
 ''', [
       lint(4, 2),
-    ]);
-  }
-
-  test_test_recordFields_underscores() async {
-    // This will produce a compile-time error and we don't want to over-report.
-    await assertDiagnostics(r'''
-var a = (_x: 1);
-''', [
-      // No Lint.
-      error(CompileTimeErrorCode.INVALID_FIELD_NAME_PRIVATE, 9, 2),
     ]);
   }
 }
