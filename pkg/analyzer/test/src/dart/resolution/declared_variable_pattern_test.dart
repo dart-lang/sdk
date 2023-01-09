@@ -58,6 +58,148 @@ DeclaredVariablePattern
 ''');
   }
 
+  test_patternVariableDeclaration_final_recordPattern_listPattern() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  final [a] = [0];
+}
+''');
+    final node = findNode.singlePatternVariableDeclaration.pattern;
+    assertResolvedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    DeclaredVariablePattern
+      name: a
+      declaredElement: hasImplicitType isFinal a@54
+        type: int
+  rightBracket: ]
+  requiredType: List<int>
+''');
+  }
+
+  test_patternVariableDeclaration_final_recordPattern_listPattern_restPattern() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  final [...a] = [0, 1, 2];
+}
+''');
+    final node = findNode.singlePatternVariableDeclaration.pattern;
+    assertResolvedNodeText(node, r'''
+ListPattern
+  leftBracket: [
+  elements
+    RestPatternElement
+      operator: ...
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType isFinal a@57
+          type: List<int>
+  rightBracket: ]
+  requiredType: List<int>
+''');
+  }
+
+  test_patternVariableDeclaration_final_recordPattern_mapPattern_entry() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  final {0: a} = {0: 1};
+}
+''');
+    final node = findNode.singlePatternVariableDeclaration.pattern;
+    assertResolvedNodeText(node, r'''
+MapPattern
+  leftBracket: {
+  elements
+    MapPatternEntry
+      key: IntegerLiteral
+        literal: 0
+        staticType: int
+      separator: :
+      value: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType isFinal a@57
+          type: int
+  rightBracket: }
+  requiredType: Map<int, int>
+''');
+  }
+
+  test_patternVariableDeclaration_final_recordPattern_objectPattern() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  final int(sign: a) = 0;
+}
+''');
+    final node = findNode.singlePatternVariableDeclaration.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: int
+      staticElement: dart:core::@class::int
+      staticType: null
+    type: int
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: sign
+        colon: :
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType isFinal a@63
+          type: int
+      fieldElement: dart:core::@class::int::@getter::sign
+  rightParenthesis: )
+''');
+  }
+
+  test_patternVariableDeclaration_final_recordPattern_parenthesizedPattern() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  final (a) = 0;
+}
+''');
+    final node = findNode.singlePatternVariableDeclaration.pattern;
+    assertResolvedNodeText(node, r'''
+ParenthesizedPattern
+  leftParenthesis: (
+  pattern: DeclaredVariablePattern
+    name: a
+    declaredElement: hasImplicitType isFinal a@54
+      type: int
+  rightParenthesis: )
+''');
+  }
+
+  test_patternVariableDeclaration_final_recordPattern_recordPattern() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  // ignore:unused_local_variable
+  final (a,) = (0,);
+}
+''');
+    final node = findNode.singlePatternVariableDeclaration.pattern;
+    assertResolvedNodeText(node, r'''
+RecordPattern
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType isFinal a@54
+          type: int
+      fieldElement: <null>
+  rightParenthesis: )
+''');
+  }
+
   test_typed_switchCase() async {
     await assertNoErrorsInCode(r'''
 void f(x) {
