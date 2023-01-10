@@ -13,7 +13,7 @@ const _details =
 
 The `SizedBox.shrink(...)` and `SizedBox.expand(...)` constructors should be used
 instead of the more general `SizedBox(...)` constructor when the named constructors
-capture the intent of the code more succinctly. 
+capture the intent of the code more succinctly.
 
 **Examples**
 
@@ -57,12 +57,23 @@ Widget buildLogo() {
 ''';
 
 class SizedBoxShrinkExpand extends LintRule {
+  static const LintCode code = LintCode(
+      'sized_box_shrink_expand',
+      "Use 'SizedBox.{0}' to avoid needing to specify the 'height' and "
+          "'width'.",
+      correctionMessage:
+          "Try using 'SizedBox.{0}' and removing the 'height' and 'width' "
+          'arguments.');
+
   SizedBoxShrinkExpand()
       : super(
             name: 'sized_box_shrink_expand',
             description: 'Use SizedBox shrink and expand named constructors.',
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -73,38 +84,12 @@ class SizedBoxShrinkExpand extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor {
-  final SizedBoxShrinkExpand rule;
-
-  _Visitor(this.rule);
-
-  static const LintCode useShrink = LintCode(
-      'sized_box_shrink_expand', 'Use the `SizedBox.shrink` constructor.');
-  static const LintCode useExpand = LintCode(
-      'sized_box_shrink_expand', 'Use the `SizedBox.expand` constructor.');
-
-  @override
-  void visitInstanceCreationExpression(InstanceCreationExpression node) {
-    // Only interested in the default constructor for the SizedBox widget
-    if (!isExactWidgetTypeSizedBox(node.staticType) ||
-        node.constructorName.name != null) {
-      return;
-    }
-
-    var data = _ArgumentData(node.argumentList);
-    if (data.positionalArgumentFound) {
-      return;
-    }
-    if (data.width == 0 && data.height == 0) {
-      rule.reportLint(node.constructorName, errorCode: useShrink);
-    } else if (data.width == double.infinity &&
-        data.height == double.infinity) {
-      rule.reportLint(node.constructorName, errorCode: useExpand);
-    }
-  }
-}
-
 class _ArgumentData {
+  var positionalArgumentFound = false;
+
+  double? width;
+
+  double? height;
   _ArgumentData(ArgumentList node) {
     for (var argument in node.arguments) {
       if (argument is! NamedExpression) {
@@ -119,7 +104,6 @@ class _ArgumentData {
       }
     }
   }
-
   double? _argumentValue(Expression argument) {
     if (argument is IntegerLiteral) {
       return argument.value?.toDouble();
@@ -132,8 +116,30 @@ class _ArgumentData {
     }
     return null;
   }
+}
 
-  var positionalArgumentFound = false;
-  double? width;
-  double? height;
+class _Visitor extends SimpleAstVisitor {
+  final SizedBoxShrinkExpand rule;
+
+  _Visitor(this.rule);
+
+  @override
+  void visitInstanceCreationExpression(InstanceCreationExpression node) {
+    // Only interested in the default constructor for the SizedBox widget
+    if (!isExactWidgetTypeSizedBox(node.staticType) ||
+        node.constructorName.name != null) {
+      return;
+    }
+
+    var data = _ArgumentData(node.argumentList);
+    if (data.positionalArgumentFound) {
+      return;
+    }
+    if (data.width == 0 && data.height == 0) {
+      rule.reportLint(node.constructorName, arguments: ['shrink']);
+    } else if (data.width == double.infinity &&
+        data.height == double.infinity) {
+      rule.reportLint(node.constructorName, arguments: ['expand']);
+    }
+  }
 }

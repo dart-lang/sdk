@@ -28,12 +28,20 @@ b() {
 ''';
 
 class EnableNullSafety extends LintRule implements NodeLintRule {
+  static const LintCode code = LintCode(
+      'enable_null_safety', 'Use sound null safety.',
+      correctionMessage:
+          "Try specifying a dart version greater than or equal to '2.12'.");
+
   EnableNullSafety()
       : super(
             name: 'enable_null_safety',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

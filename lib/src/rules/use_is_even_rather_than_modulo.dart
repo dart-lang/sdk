@@ -29,12 +29,19 @@ bool isOdd = 13.isOdd;
 ''';
 
 class UseIsEvenRatherThanModuloCheck extends LintRule {
+  static const LintCode code = LintCode(
+      'use_is_even_rather_than_modulo', "Use '{0}' rather than '% 2'.",
+      correctionMessage: "Try using '{0}'.");
+
   UseIsEvenRatherThanModuloCheck()
       : super(
             name: 'use_is_even_rather_than_modulo',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -72,7 +79,11 @@ class _Visitor extends SimpleAstVisitor<void> {
           rightChild is IntegerLiteral &&
           rightChild.value == 2 &&
           (rightChildType?.isDartCoreInt ?? false)) {
-        rule.reportLint(node);
+        var value = right.value;
+        if (value == null) {
+          return;
+        }
+        rule.reportLint(node, arguments: [value == 0 ? 'isEven' : 'isOdd']);
       }
     }
   }

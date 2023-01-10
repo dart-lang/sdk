@@ -40,12 +40,20 @@ class Box {
 ''';
 
 class UnnecessaryGetters extends LintRule {
+  static const LintCode code = LintCode(
+      'unnecessary_getters', 'Unnecessary use of getter to wrap a field.',
+      correctionMessage:
+          "Try removing the getter and making the field 'final'.");
+
   UnnecessaryGetters()
       : super(
             name: 'unnecessary_getters',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

@@ -46,6 +46,10 @@ void mutableCase() {
 ''';
 
 class PreferFinalLocals extends LintRule {
+  static const LintCode code = LintCode(
+      'prefer_final_locals', 'Local variables should be final.',
+      correctionMessage: 'Try making the variables final.');
+
   PreferFinalLocals()
       : super(
             name: 'prefer_final_locals',
@@ -55,6 +59,9 @@ class PreferFinalLocals extends LintRule {
 
   @override
   List<String> get incompatibleRules => const ['unnecessary_final'];
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

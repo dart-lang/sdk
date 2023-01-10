@@ -44,12 +44,21 @@ Future<void> createDir(String path) async {}
 ''';
 
 class DiscardedFutures extends LintRule {
+  static const LintCode code = LintCode('discarded_futures',
+      "Asynchronous function invoked in a non-'async' function.",
+      correctionMessage:
+          "Try converting the enclosing function to be 'async' and then "
+          "'await' the future");
+
   DiscardedFutures()
       : super(
             name: 'discarded_futures',
             description: _desc,
             details: _details,
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

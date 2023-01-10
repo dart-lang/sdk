@@ -68,12 +68,19 @@ setters inherit the docs from the getters.
 // exports - and linting against that.
 
 class PublicMemberApiDocs extends LintRule {
+  static const LintCode code = LintCode(
+      'public_member_api_docs', 'Missing documentation for a public member.',
+      correctionMessage: 'Try adding documentation for the member.');
+
   PublicMemberApiDocs()
       : super(
             name: 'public_member_api_docs',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

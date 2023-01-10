@@ -28,6 +28,10 @@ export 'a.dart' show A, B hide C, D;
 ''';
 
 class CombinatorsOrdering extends LintRule {
+  static const LintCode code = LintCode(
+      'combinators_ordering', 'Sort combinator names alphabetically.',
+      correctionMessage: 'Try sorting the combinator names alphabetically.');
+
   CombinatorsOrdering()
       : super(
           name: 'combinators_ordering',
@@ -35,6 +39,9 @@ class CombinatorsOrdering extends LintRule {
           details: _details,
           group: Group.style,
         );
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -48,9 +55,9 @@ class CombinatorsOrdering extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule);
-
   final LintRule rule;
+
+  _Visitor(this.rule);
 
   @override
   void visitHideCombinator(HideCombinator node) {
