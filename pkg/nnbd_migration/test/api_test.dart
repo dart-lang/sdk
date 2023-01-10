@@ -4904,6 +4904,29 @@ Future<List<int>> getInts() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50958')
+  Future<void> test_generic_bound() async {
+    var content = '''
+abstract class C<T> {
+  void f<U extends T>();
+}
+void f(C<String> s, C<List<int>> i) {
+  s.f<String>();
+  i.f<List<int>>();
+}
+''';
+    var expected = '''
+abstract class C<T> {
+  void f<U extends T>();
+}
+void f(C<String> s, C<List<int>> i) {
+  s.f<String>();
+  i.f<List<int>>();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_generic_exact_propagation() async {
     var content = '''
 class C<T> {
