@@ -3457,12 +3457,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (!_assignedVariables.isFinished) {
       _assignedVariables.finish();
     }
-    AssignedVariablesNodeInfo anywhere = _assignedVariables.anywhere;
-    Set<int> implicitlyDeclaredVars = {...anywhere.read, ...anywhere.written};
-    implicitlyDeclaredVars.removeAll(anywhere.declared);
-    for (int variableKey in implicitlyDeclaredVars) {
-      _current = _current.declare(variableKey, true);
-    }
+    assert(() {
+      AssignedVariablesNodeInfo anywhere = _assignedVariables.anywhere;
+      Set<int> implicitlyDeclaredVars = {...anywhere.read, ...anywhere.written};
+      implicitlyDeclaredVars.removeAll(anywhere.declared);
+      assert(implicitlyDeclaredVars.isEmpty,
+          'All variables should be declared somewhere');
+      return true;
+    }());
   }
 
   @override
