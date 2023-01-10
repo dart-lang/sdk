@@ -133,15 +133,13 @@ void testZLibDeflateRaw(List<int> data) {
 }
 
 void testZLibDeflateInvalidLevel() {
-  test2(gzip, level) {
-    [true, false].forEach((gzip) {
-      [-2, -20, 10, 42].forEach((level) {
-        Expect.throwsArgumentError(
-            () => new ZLibEncoder(gzip: gzip, level: level),
-            "'level' must be in range -1..9");
-      });
+  [true, false].forEach((gzip) {
+    [-2, -20, 10, 42].forEach((level) {
+      Expect.throwsArgumentError(
+          () => new ZLibEncoder(gzip: gzip, level: level),
+          "'level' must be in range -1..9");
     });
-  }
+  });
 }
 
 void testZLibInflate(List<int> data) {
