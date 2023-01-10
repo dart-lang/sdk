@@ -510,7 +510,7 @@ mixin TypeAnalyzer<
     );
 
     for (Variable variable in variables.values) {
-      flow.declare(variable, true);
+      flow.declare(variable, true, skipDuplicateCheck: true);
     }
 
     handle_ifCaseStatement_afterPattern(
@@ -1372,7 +1372,9 @@ mixin TypeAnalyzer<
       // If there are joined variables, declare them.
       if (heads.length > 1 || memberInfo.hasLabels) {
         for (Variable variable in variables.values) {
-          flow.declare(variable, true);
+          // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
+          // around a failure in switch_statement_test.dart; fix this.
+          flow.declare(variable, true, skipDuplicateCheck: true);
         }
       }
       for (Statement statement in memberInfo.body) {

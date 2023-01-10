@@ -5,13 +5,13 @@
 part of "core_patch.dart";
 
 /// Finds a named parameter in a named parameter list passed to a dynamic
-/// forwarder and returns the value of that named parameter. Returns `null` if
-/// the name is not in the list.
+/// forwarder and returns the index of the value of that named parameter.
+/// Returns `null` if the name is not in the list.
 @pragma("wasm:entry-point")
-Object? _getNamedParameter(List<Object?> namedArguments, Symbol paramName) {
+int? _getNamedParameterIndex(List<Object?> namedArguments, Symbol paramName) {
   for (int i = 0; i < namedArguments.length; i += 2) {
     if (identical(namedArguments[i], paramName)) {
-      return namedArguments[i + 1];
+      return i + 1;
     }
   }
   return null;

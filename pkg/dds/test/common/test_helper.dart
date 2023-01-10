@@ -12,6 +12,7 @@ late Uri remoteVmServiceUri;
 
 Future<Process> spawnDartProcess(
   String script, {
+  bool serveObservatory = true,
   bool pauseOnStart = true,
   bool disableServiceAuthCodes = false,
 }) async {
@@ -23,6 +24,7 @@ Future<Process> spawnDartProcess(
   final arguments = [
     '--disable-dart-dev',
     '--observe=0',
+    if (!serveObservatory) '--no-serve-observatory',
     if (pauseOnStart) '--pause-isolates-on-start',
     if (disableServiceAuthCodes) '--disable-service-auth-codes',
     '--write-service-info=$serviceInfoUri',

@@ -196,8 +196,8 @@ mixin KernelNodes {
       "dart:core", "_TypeUniverse", "substituteFunctionTypeArgument");
 
   // dart:core dynamic invocation helper procedures
-  late final Procedure getNamedParameter =
-      index.getTopLevelProcedure("dart:core", "_getNamedParameter");
+  late final Procedure getNamedParameterIndex =
+      index.getTopLevelProcedure("dart:core", "_getNamedParameterIndex");
   late final Procedure namedParameterListToMap =
       index.getTopLevelProcedure("dart:core", "_namedParameterListToMap");
 

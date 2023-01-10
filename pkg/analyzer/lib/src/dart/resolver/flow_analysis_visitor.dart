@@ -158,7 +158,10 @@ class FlowAnalysisHelper {
 
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        flow!.declare(parameter.declaredElement!, true);
+        // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
+        // around a failure in duplicate_definition_test.dart; fix this.
+        flow!.declare(parameter.declaredElement!, true,
+            skipDuplicateCheck: true);
       }
     }
   }

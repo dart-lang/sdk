@@ -1,3 +1,6 @@
+# 2.7.0
+- Added `DartDevelopmentService.setExternalDevToolsUri(Uri uri)`, adding support for registering an external DevTools server with DDS.
+
 # 2.6.1
 - [DAP] Fix a crash handling errors when fetching full strings in evaluation and logging events.
 
