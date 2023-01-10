@@ -9902,7 +9902,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     variable
       ..isFinal = isFinal
       ..type = type;
-    flow.declare(variable, true);
+    // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
+    // around a failure in language/patterns/switch_case_scope_error_test; fix
+    // this.
+    flow.declare(variable, true, skipDuplicateCheck: true);
   }
 
   @override

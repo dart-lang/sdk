@@ -185,7 +185,14 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   ///
   /// A local variable is [initialized] if its declaration has an initializer.
   /// A function parameter is always initialized, so [initialized] is `true`.
-  void declare(Variable variable, bool initialized);
+  ///
+  /// In debug builds, an assertion will normally verify that no variable gets
+  /// declared more than once.  This assertion may be disabled by passing `true`
+  /// to [skipDuplicateCheck].
+  ///
+  /// TODO(paulberry): try to remove all uses of skipDuplicateCheck
+  void declare(Variable variable, bool initialized,
+      {bool skipDuplicateCheck = false});
 
   /// Call this method after visiting a variable pattern in a non-assignment
   /// context (or a wildcard pattern).
@@ -1006,9 +1013,13 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void declare(Variable variable, bool initialized) {
-    _wrap('declare($variable, $initialized)',
-        () => _wrapped.declare(variable, initialized));
+  void declare(Variable variable, bool initialized,
+      {bool skipDuplicateCheck = false}) {
+    _wrap(
+        'declare($variable, $initialized, '
+        'skipDuplicateCheck: $skipDuplicateCheck)',
+        () => _wrapped.declare(variable, initialized,
+            skipDuplicateCheck: skipDuplicateCheck));
   }
 
   @override
@@ -3436,6 +3447,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   final PromotionKeyStore<Variable> promotionKeyStore;
 
+  /// For debugging only: the set of [Variable]s that have been passed to
+  /// [declare] so far.  This is used to detect unnecessary calls to [declare].
+  final Set<Variable> _debugDeclaredVariables = {};
+
   _FlowAnalysisImpl(this.operations, this._assignedVariables,
       {required this.respectImplicitlyTypedVarInitializers})
       : promotionKeyStore = _assignedVariables.promotionKeyStore {
@@ -3541,7 +3556,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void declare(Variable variable, bool initialized) {
+  void declare(Variable variable, bool initialized,
+      {bool skipDuplicateCheck = false}) {
+    assert(_debugDeclaredVariables.add(variable) || skipDuplicateCheck,
+        'Variable $variable already declared');
     _current = _current.declare(
         promotionKeyStore.keyForVariable(variable), initialized);
   }
@@ -4920,7 +4938,8 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void constantPattern_end(Expression expression) {}
 
   @override
-  void declare(Variable variable, bool initialized) {}
+  void declare(Variable variable, bool initialized,
+      {bool skipDuplicateCheck = false}) {}
 
   @override
   void declaredVariablePattern(

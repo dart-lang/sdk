@@ -1940,7 +1940,12 @@ class BodyBuilder extends StackListenerImpl
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder parameter = formals[i];
-        typeInferrer.flowAnalysis.declare(parameter.variable!, true);
+        // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
+        // around a failure in
+        // co19/Language/Expressions/Postfix_Expressions/conditional_increment_t02;
+        // fix this.
+        typeInferrer.flowAnalysis
+            .declare(parameter.variable!, true, skipDuplicateCheck: true);
       }
     }
 
