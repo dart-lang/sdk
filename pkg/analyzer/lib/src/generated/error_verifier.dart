@@ -2851,13 +2851,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         languageVersionToken,
         ['$sourceLanguageConstraint'],
       );
-    } else {
-      errorReporter.reportErrorForOffset(
-        CompileTimeErrorCode.ILLEGAL_LANGUAGE_VERSION_OVERRIDE,
-        0,
-        0,
-        ['$sourceLanguageConstraint'],
-      );
     }
   }
 

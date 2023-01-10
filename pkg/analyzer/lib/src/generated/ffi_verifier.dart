@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 
 /// A visitor used to find problems with the way the `dart:ffi` APIs are being
 /// used. See 'pkg/vm/lib/transformations/ffi_checks.md' for the specification
@@ -172,7 +173,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstructorFieldInitializer(ConstructorFieldInitializer node) {
-    if (!typeSystem.isNonNullableByDefault && inCompound) {
+    if (!noSoundNullSafety &&
+        !typeSystem.isNonNullableByDefault &&
+        inCompound) {
       _errorReporter.reportErrorForNode(
         FfiCode.FIELD_INITIALIZER_IN_STRUCT,
         node,
@@ -1022,7 +1025,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       }
     }
 
-    if (!typeSystem.isNonNullableByDefault) {
+    if (!noSoundNullSafety && !typeSystem.isNonNullableByDefault) {
       for (VariableDeclaration field in fields.variables) {
         if (field.initializer != null) {
           _errorReporter.reportErrorForToken(

@@ -3329,6 +3329,7 @@ _f(_C<int> c) => (c).x;
 
   Future<void> test_removeLanguageVersionComment() async {
     await analyze('''
+// ignore: illegal_language_version_override
 // @dart = 2.6
 void main() {}
 ''');
@@ -3338,6 +3339,7 @@ void main() {}
   Future<void> test_removeLanguageVersionComment_withCopyright() async {
     await analyze('''
 // Some copyright notice here...
+// ignore: illegal_language_version_override
 // @dart = 2.6
 void main() {}
 ''');

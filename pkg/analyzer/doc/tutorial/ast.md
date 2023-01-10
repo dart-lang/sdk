@@ -54,7 +54,7 @@ If you need an unresolved AST, then you can use the following method to access
 the AST:
 
 ```dart
-void processFile(AnalysisSession session, String path) async {
+Future<void> processFile(AnalysisSession session, String path) async {
   var result = session.getParsedUnit(path);
   if (result is ParsedUnitResult) {
     CompilationUnit unit = result.unit;
@@ -66,7 +66,7 @@ If you need a resolved AST, then you need to use the following asynchronous
 method to access it:
 
 ```dart
-void processFile(AnalysisSession session, String path) async {
+Future<void> processFile(AnalysisSession session, String path) async {
   var result = await session.getResolvedUnit(path);
   if (result is ResolvedUnitResult) {
     CompilationUnit unit = result.unit;
@@ -102,7 +102,7 @@ void printMembers(CompilationUnit unit) {
           if (classMember.name == null) {
             print('  ${unitMember.name.lexeme}');
           } else {
-            print('  ${unitMember.name.lexeme}.${classMember.name.lexeme}');
+            print('  ${unitMember.name.lexeme}.${classMember.name!.lexeme}');
           }
         }
       }

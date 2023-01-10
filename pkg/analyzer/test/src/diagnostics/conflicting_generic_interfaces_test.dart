@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -47,31 +48,41 @@ class C extends A implements B {}
   }
 
   test_class_extends_implements_optOut() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$testPackageLibPath/a.dart', r'''
 class I<T> {}
 class A implements I<int> {}
 class B implements I<int?> {}
 ''');
-    await assertNoErrorsInCode('''
+      await assertNoErrorsInCode('''
 // @dart = 2.5
 import 'a.dart';
 
 class C extends A implements B {}
 ''');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_class_extends_optIn_implements_optOut() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 
 class B extends A<int> {}
 ''');
-    await assertNoErrorsInCode(r'''
+      await assertNoErrorsInCode(r'''
 // @dart = 2.5
 import 'a.dart';
 
 class C extends B implements A<int> {}
 ''');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_class_extends_with() async {

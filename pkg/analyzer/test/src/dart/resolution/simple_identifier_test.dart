@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -35,7 +36,9 @@ enum E<T> {
   }
 
   test_functionReference() async {
-    await assertErrorsInCode('''
+    try {
+      noSoundNullSafety = false;
+      await assertErrorsInCode('''
 // @dart = 2.7
 import 'dart:math';
 
@@ -46,18 +49,21 @@ class A {
 @A([min])
 main() {}
 ''', [
-      error(CompileTimeErrorCode.COULD_NOT_INFER, 66, 5),
-    ]);
+        error(CompileTimeErrorCode.COULD_NOT_INFER, 66, 5),
+      ]);
 
-    var identifier = findNode.simple('min]');
-    assertElement(
-      identifier,
-      elementMatcher(
-        findElement.importFind('dart:math').topFunction('min'),
-        isLegacy: true,
-      ),
-    );
-    assertType(identifier, 'T* Function<T extends num*>(T*, T*)*');
+      var identifier = findNode.simple('min]');
+      assertElement(
+        identifier,
+        elementMatcher(
+          findElement.importFind('dart:math').topFunction('min'),
+          isLegacy: true,
+        ),
+      );
+      assertType(identifier, 'T* Function<T extends num*>(T*, T*)*');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_implicitCall_tearOff_nullable() async {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -26,24 +27,36 @@ void f() {
   }
 
   test_literal_null() async {
-    await assertErrorsInCode(r'''
+    try {
+      noSoundNullSafety = false;
+      await assertErrorsInCode(r'''
 // @dart = 2.9
 void f() {
   null();
 }
 ''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 28, 4),
-    ]);
+        error(
+            CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 28, 4),
+      ]);
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_type_Null() async {
-    await assertErrorsInCode(r'''
+    try {
+      noSoundNullSafety = false;
+      await assertErrorsInCode(r'''
 // @dart = 2.9
 void f(Null a) {
   a();
 }
 ''', [
-      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 34, 1),
-    ]);
+        error(
+            CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 34, 1),
+      ]);
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 }

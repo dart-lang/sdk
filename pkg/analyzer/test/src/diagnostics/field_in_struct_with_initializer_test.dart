@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/ffi_code.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -17,25 +18,35 @@ main() {
 class FieldInStructWithInitializerTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   test_instance_withInitializer() async {
-    await assertErrorsInCode(r'''
+    try {
+      noSoundNullSafety = false;
+      await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
   Pointer p = nullptr;
 }
 ''', [
-      error(FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, 54, 1),
-    ]);
+        error(FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, 54, 1),
+      ]);
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_instance_withInitializer2() async {
-    await assertErrorsInCode(r'''
+    try {
+      noSoundNullSafety = false;
+      await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Union {
   Pointer p = nullptr;
 }
 ''', [
-      error(FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, 53, 1),
-    ]);
+        error(FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, 53, 1),
+      ]);
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_instance_withoutInitializer() async {

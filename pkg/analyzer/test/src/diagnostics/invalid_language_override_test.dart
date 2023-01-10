@@ -35,21 +35,21 @@ int i = 0;
 
   test_correct_withMultipleWhitespace() async {
     await assertNoErrorsInCode('''
-//  @dart  =  2.0${"  "}
+//  @dart  =  2.19${"  "}
 int i = 0;
 ''');
   }
 
   test_correct_withoutWhitespace() async {
     await assertNoErrorsInCode(r'''
-//@dart=2.0
+//@dart=2.19
 int i = 0;
 ''');
   }
 
   test_correct_withWhitespace() async {
     await assertNoErrorsInCode(r'''
-// @dart = 2.0
+// @dart = 2.19
 int i = 0;
 ''');
   }
@@ -74,9 +74,9 @@ int i = 0;
 
   test_invalidOverrideFollowsValidOverride() async {
     await assertNoErrorsInCode(r'''
-// @dart = 2.0
+// @dart = 2.19
 // comment.
-// @dart >= 2.0
+// @dart >= 2.19
 int i = 0;
 ''');
   }
@@ -116,7 +116,7 @@ class A {}
 
   test_location_beforeDeclaration() async {
     await assertNoErrorsInCode(r'''
-// @dart = 2.5
+// @dart = 2.19
 class A {}
 ''');
   }
@@ -198,7 +198,7 @@ int i = 0;
 
   test_noWhitespace() async {
     await assertNoErrorsInCode(r'''
-//@dart=2.0
+//@dart=2.19
 int i = 0;
 ''');
   }
@@ -213,7 +213,7 @@ int i = 0;
   test_shebangLine() async {
     await assertNoErrorsInCode(r'''
 #!/usr/bin/dart
-// @dart = 2.0
+// @dart = 2.19
 int i = 0;
 ''');
   }

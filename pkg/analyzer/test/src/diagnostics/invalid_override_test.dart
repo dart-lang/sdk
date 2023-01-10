@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -215,13 +216,15 @@ class B implements A {
   }
 
   test_method_parameter_functionTyped_optOut_extends_optIn() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$testPackageLibPath/a.dart', r'''
 abstract class A {
   A catchError(void Function(Object) a);
 }
 ''');
 
-    await assertNoErrorsInCode('''
+      await assertNoErrorsInCode('''
 // @dart=2.6
 import 'a.dart';
 
@@ -229,16 +232,21 @@ class B implements A {
   A catchError(void Function(dynamic) a) => this;
 }
 ''');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_method_parameter_interfaceOptOut_concreteOptIn() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void foo(Object a) {}
 }
 ''');
 
-    await assertNoErrorsInCode('''
+      await assertNoErrorsInCode('''
 // @dart=2.6
 import 'a.dart';
 
@@ -246,6 +254,9 @@ class B extends A {
   void foo(dynamic a);
 }
 ''');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_mixedInheritance_1() async {

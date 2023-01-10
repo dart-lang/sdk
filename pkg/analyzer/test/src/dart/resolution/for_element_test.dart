@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -17,13 +18,15 @@ main() {
 class ForEachElementTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   test_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$testPackageLibPath/a.dart', r'''
 class A implements Iterable<int> {
   Iterator<int> iterator => throw 0;
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+      await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -33,6 +36,9 @@ f(A a) {
   }
 }
 ''');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_withDeclaration_scope() async {

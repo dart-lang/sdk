@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -288,14 +289,16 @@ void f() {
   }
 
   Future<void> test_constructor_single_closure_nnbd_into_legacy() async {
-    addSource('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      addSource('$testPackageLibPath/a.dart', r'''
 typedef int Callback(int? a);
 
 class A {
   A({required Callback callback}) {}
 }
 ''');
-    await resolveTestCode('''
+      await resolveTestCode('''
 // @dart = 2.8
 import 'package:test/a.dart';
 
@@ -304,7 +307,7 @@ void f() {
   print(a);
 }
 ''');
-    await assertHasFix('''
+      await assertHasFix('''
 // @dart = 2.8
 import 'package:test/a.dart';
 
@@ -313,6 +316,9 @@ void f() {
   print(a);
 }
 ''');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   Future<void> test_constructor_single_list() async {

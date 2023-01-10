@@ -4,6 +4,10 @@
 
 include: analysis_options_no_lints.yaml
 
+analyzer:
+  errors:
+    illegal_language_version_override: ignore
+
 linter:
   rules:
     - curly_braces_in_flow_control_structures
