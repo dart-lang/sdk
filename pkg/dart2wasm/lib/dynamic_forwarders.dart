@@ -334,8 +334,8 @@ class Forwarder {
               translator, function, targetMemberParamInfo.named.length);
           b.local_set(adjustedNamedArgsLocal);
 
-          final namedParameterValueLocal =
-              function.addLocal(translator.topInfo.nullableType);
+          final namedParameterIdxLocal = function.addLocal(
+              translator.classInfo[translator.boxedIntClass]!.nullableType);
 
           final remainingNamedArgsLocal = numArgsLocal;
           b.local_get(namedArgsLocal);
@@ -371,9 +371,9 @@ class Forwarder {
                 translator.classInfo[translator.symbolClass]!.nonNullableType);
 
             b.call(translator.functions
-                .getFunction(translator.getNamedParameter.reference));
+                .getFunction(translator.getNamedParameterIndex.reference));
+            b.local_tee(namedParameterIdxLocal);
 
-            b.local_tee(namedParameterValueLocal);
             b.ref_is_null();
             b.i32_eqz();
             b.if_();
@@ -383,20 +383,28 @@ class Forwarder {
             b.local_set(remainingNamedArgsLocal);
             b.end();
 
-            b.local_get(namedParameterValueLocal);
+            b.local_get(namedParameterIdxLocal);
             b.ref_is_null();
             if (functionNodeDefaultValue == null &&
                 paramInfoDefaultValue == null) {
               // Required
               b.br_if(topBlock);
               b.local_get(adjustedNamedArgsLocal);
-              b.local_get(namedParameterValueLocal);
+              b.local_get(namedArgsLocal);
+              translator.indexList(b, (b) {
+                b.local_get(namedParameterIdxLocal);
+                translator.convertType(
+                    function, namedParameterIdxLocal.type, w.NumType.i64);
+                b.i32_wrap_i64();
+              });
               b.call(translator.functions
                   .getFunction(translator.growableListAdd.reference));
             } else {
               // Optional, either has a default in the member or not used by
               // the member
               b.if_();
+
+              b.local_get(adjustedNamedArgsLocal);
 
               if (functionNodeDefaultValue != null) {
                 // Used by the member, has a default value
@@ -414,13 +422,24 @@ class Forwarder {
                   translator.topInfo.nullableType,
                 );
               }
-              b.local_set(namedParameterValueLocal);
 
-              b.end();
-              b.local_get(adjustedNamedArgsLocal);
-              b.local_get(namedParameterValueLocal);
               b.call(translator.functions
                   .getFunction(translator.growableListAdd.reference));
+
+              b.else_();
+
+              b.local_get(adjustedNamedArgsLocal);
+              b.local_get(namedArgsLocal);
+              translator.indexList(b, (b) {
+                b.local_get(namedParameterIdxLocal);
+                translator.convertType(
+                    function, namedParameterIdxLocal.type, w.NumType.i64);
+                b.i32_wrap_i64();
+              });
+              b.call(translator.functions
+                  .getFunction(translator.growableListAdd.reference));
+
+              b.end();
             }
           }
 
