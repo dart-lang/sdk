@@ -47,8 +47,6 @@ void testAbsoluteUriInRequest() {
   asyncStart();
   Uri requestedUri;
   HttpServer.bind("localhost", 0).then((server) {
-    // Disconnect the client as soon as the response is sent.
-    server.idleTimeout = const Duration();
     server.listen((request) {
       requestedUri = request.requestedUri;
       request.response.close();
@@ -56,7 +54,9 @@ void testAbsoluteUriInRequest() {
 
     Socket.connect("localhost", server.port).then((socket) {
       socket.write("GET http://google.com/ HTTP/1.1\r\n");
-      socket.write("Host: google.com\r\n\r\n");
+      socket.write("Host: google.com\r\n");
+      socket.write("Connection: close\r\n");
+      socket.write("\r\n");
       socket.flush().then((_) => socket.drain().then((_) {
             Expect.equals(Uri.http("google.com", "/"), requestedUri);
             socket.close();
