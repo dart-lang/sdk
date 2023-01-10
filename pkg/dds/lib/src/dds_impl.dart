@@ -320,18 +320,41 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   }
 
   Handler _httpHandler() {
+    final notFoundHandler = proxyHandler(remoteVmServiceUri);
+
+    // If DDS is serving DevTools, install the DevTools handlers and forward
+    // any unhandled HTTP requests to the VM service.
     if (_devToolsConfiguration != null && _devToolsConfiguration!.enable) {
-      // Install the DevTools handlers and forward any unhandled HTTP requests to
-      // the VM service.
       final String buildDir =
           _devToolsConfiguration!.customBuildDirectoryPath.toFilePath();
       return defaultHandler(
         dds: this,
         buildDir: buildDir,
-        notFoundHandler: proxyHandler(remoteVmServiceUri),
+        notFoundHandler: notFoundHandler,
       ) as FutureOr<Response> Function(Request);
     }
-    return proxyHandler(remoteVmServiceUri);
+
+    // Otherwise, DevTools may be served externally, or not at all.
+    return (Request request) {
+      final pathSegments = request.url.pathSegments;
+      if (pathSegments.isEmpty || pathSegments.first != 'devtools') {
+        // Not a DevTools request, forward to the VM service.
+        return notFoundHandler(request);
+      } else {
+        if (_devToolsUri == null) {
+          // DevTools is not being served externally.
+          return Response.notFound(
+            'No DevTools instance is registered with the Dart Development Service (DDS).',
+          );
+        }
+        // Redirect to the external DevTools server.
+        return Response.seeOther(
+          _devToolsUri!.replace(
+            queryParameters: request.requestedUri.queryParameters,
+          ),
+        );
+      }
+    };
   }
 
   List<String> _cleanupPathSegments(Uri uri) {
@@ -365,7 +388,8 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     return uri.replace(scheme: 'sse', pathSegments: pathSegments);
   }
 
-  Uri? _toDevTools(Uri? uri) {
+  @visibleForTesting
+  Uri? toDevTools(Uri? uri) {
     // The DevTools URI is a bit strange as the query parameters appear after
     // the fragment. There's no nice way to encode the query parameters
     // properly, so we create another Uri just to grab the formatted query.
@@ -419,8 +443,20 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   Uri? get wsUri => _toWebSocket(_uri);
 
   @override
-  Uri? get devToolsUri =>
-      _devToolsConfiguration?.enable ?? false ? _toDevTools(_uri) : null;
+  Uri? get devToolsUri {
+    _devToolsUri ??=
+        _devToolsConfiguration?.enable ?? false ? toDevTools(_uri) : null;
+    return _devToolsUri;
+  }
+
+  void setExternalDevToolsUri(Uri uri) {
+    if (_devToolsConfiguration?.enable ?? false) {
+      throw StateError('A hosted DevTools instance is already being served.');
+    }
+    _devToolsUri = uri;
+  }
+
+  Uri? _devToolsUri;
 
   final bool _ipv6;
 

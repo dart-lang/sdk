@@ -103,6 +103,13 @@ abstract class DartDevelopmentService {
   /// Stop accepting requests after gracefully handling existing requests.
   Future<void> shutdown();
 
+  /// Registers an external DevTools server with this instance of
+  /// [DartDevelopmentService] to allow for DDS to redirect DevTools requests
+  /// to the DevTools server.
+  ///
+  /// Throws a [StateError] if DevTools is already being served by DDS.
+  void setExternalDevToolsUri(Uri uri);
+
   /// Set to `true` if this instance of [DartDevelopmentService] requires an
   /// authentication code to connect.
   bool get authCodesEnabled;
