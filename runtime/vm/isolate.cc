@@ -286,6 +286,9 @@ void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
     return;
   }
 
+  // Avoid shutdown having to wait for the timeout to expire.
+  if (ShuttingDownLocked()) return;
+
   // Wait for the recommended idle timeout.
   // We can be woken up because of a), b) or c)
   const auto result =
