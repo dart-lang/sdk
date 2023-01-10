@@ -48,7 +48,7 @@ class DiscardedFutures extends LintRule {
       "Asynchronous function invoked in a non-'async' function.",
       correctionMessage:
           "Try converting the enclosing function to be 'async' and then "
-          "'await' the future");
+          "'await' the future.");
 
   DiscardedFutures()
       : super(
