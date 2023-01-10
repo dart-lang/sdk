@@ -7289,7 +7289,8 @@ TypeArgumentsPtr TypeArguments::InstantiateFrom(
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
     Heap::Space space,
-    TrailPtr trail) const {
+    TrailPtr trail,
+    intptr_t num_parent_type_args_adjustment) const {
   ASSERT(!IsInstantiated());
   if ((instantiator_type_arguments.IsNull() ||
        instantiator_type_arguments.Length() == Length()) &&
@@ -7311,7 +7312,8 @@ TypeArgumentsPtr TypeArguments::InstantiateFrom(
     if (!type.IsNull() && !type.IsInstantiated()) {
       type = type.InstantiateFrom(instantiator_type_arguments,
                                   function_type_arguments,
-                                  num_free_fun_type_params, space, trail);
+                                  num_free_fun_type_params, space, trail,
+                                  num_parent_type_args_adjustment);
       // A returned null type indicates a failed instantiation in dead code that
       // must be propagated up to the caller, the optimizing compiler.
       if (type.IsNull()) {
@@ -7321,6 +7323,37 @@ TypeArgumentsPtr TypeArguments::InstantiateFrom(
     instantiated_array.SetTypeAt(i, type);
   }
   return instantiated_array.ptr();
+}
+
+TypeArgumentsPtr TypeArguments::UpdateParentFunctionType(
+    intptr_t num_parent_type_args_adjustment,
+    intptr_t num_free_fun_type_params,
+    Heap::Space space,
+    TrailPtr trail) const {
+  Zone* zone = Thread::Current()->zone();
+  TypeArguments* updated_args = nullptr;
+  AbstractType& type = AbstractType::Handle(zone);
+  AbstractType& updated = AbstractType::Handle(zone);
+  for (intptr_t i = 0, n = Length(); i < n; ++i) {
+    type = TypeAt(i);
+    updated =
+        type.UpdateParentFunctionType(num_parent_type_args_adjustment,
+                                      num_free_fun_type_params, space, trail);
+    if (type.ptr() != updated.ptr()) {
+      if (updated_args == nullptr) {
+        updated_args =
+            &TypeArguments::Handle(zone, TypeArguments::New(n, space));
+        for (intptr_t j = 0; j < i; ++j) {
+          type = TypeAt(j);
+          updated_args->SetTypeAt(j, type);
+        }
+      }
+    }
+    if (updated_args != nullptr) {
+      updated_args->SetTypeAt(i, updated);
+    }
+  }
+  return (updated_args != nullptr) ? updated_args->ptr() : ptr();
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -9269,7 +9302,8 @@ AbstractTypePtr FunctionType::InstantiateFrom(
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
     Heap::Space space,
-    TrailPtr trail) const {
+    TrailPtr trail,
+    intptr_t num_parent_type_args_adjustment) const {
   ASSERT(IsFinalized() || IsBeingFinalized());
   Zone* zone = Thread::Current()->zone();
   const intptr_t num_parent_type_args = NumParentTypeArguments();
@@ -9293,6 +9327,12 @@ AbstractTypePtr FunctionType::InstantiateFrom(
       num_free_fun_type_params < num_parent_type_args
           ? num_parent_type_args - num_free_fun_type_params
           : 0;
+
+  // Adjust number of parent type arguments for all nested substituted types.
+  num_parent_type_args_adjustment =
+      remaining_parent_type_params +
+      (delete_type_parameters ? 0 : NumTypeParameters());
+
   FunctionType& sig = FunctionType::Handle(
       FunctionType::New(remaining_parent_type_params, nullability(), space));
   AbstractType& type = AbstractType::Handle(zone);
@@ -9313,14 +9353,16 @@ AbstractTypePtr FunctionType::InstantiateFrom(
       if (!type_args.IsNull() && !type_args.IsInstantiated()) {
         type_args = type_args.InstantiateFrom(
             instantiator_type_arguments, function_type_arguments,
-            num_free_fun_type_params, space, trail);
+            num_free_fun_type_params, space, trail,
+            num_parent_type_args_adjustment);
       }
       sig_type_params.set_bounds(type_args);
       type_args = type_params.defaults();
       if (!type_args.IsNull() && !type_args.IsInstantiated()) {
         type_args = type_args.InstantiateFrom(
             instantiator_type_arguments, function_type_arguments,
-            num_free_fun_type_params, space, trail);
+            num_free_fun_type_params, space, trail,
+            num_parent_type_args_adjustment);
       }
       sig_type_params.set_defaults(type_args);
       sig.SetTypeParameters(sig_type_params);
@@ -9329,9 +9371,10 @@ AbstractTypePtr FunctionType::InstantiateFrom(
 
   type = result_type();
   if (!type.IsInstantiated()) {
-    type = type.InstantiateFrom(instantiator_type_arguments,
-                                function_type_arguments,
-                                num_free_fun_type_params, space, trail);
+    type =
+        type.InstantiateFrom(instantiator_type_arguments,
+                             function_type_arguments, num_free_fun_type_params,
+                             space, trail, num_parent_type_args_adjustment);
     // A returned null type indicates a failed instantiation in dead code that
     // must be propagated up to the caller, the optimizing compiler.
     if (type.IsNull()) {
@@ -9350,7 +9393,8 @@ AbstractTypePtr FunctionType::InstantiateFrom(
     if (!type.IsInstantiated()) {
       type = type.InstantiateFrom(instantiator_type_arguments,
                                   function_type_arguments,
-                                  num_free_fun_type_params, space, trail);
+                                  num_free_fun_type_params, space, trail,
+                                  num_parent_type_args_adjustment);
       // A returned null type indicates a failed instantiation in dead code that
       // must be propagated up to the caller, the optimizing compiler.
       if (type.IsNull()) {
@@ -9375,6 +9419,80 @@ AbstractTypePtr FunctionType::InstantiateFrom(
 
   // Canonicalization is not part of instantiation.
   return sig.ptr();
+}
+
+AbstractTypePtr FunctionType::UpdateParentFunctionType(
+    intptr_t num_parent_type_args_adjustment,
+    intptr_t num_free_fun_type_params,
+    Heap::Space space,
+    TrailPtr trail) const {
+  ASSERT(num_parent_type_args_adjustment > 0);
+  ASSERT(IsFinalized());
+  Zone* zone = Thread::Current()->zone();
+
+  const intptr_t old_num_parent_type_args = NumParentTypeArguments();
+  // From now on, adjust all type parameter types
+  // which belong to this or nested function types.
+  if (num_free_fun_type_params > old_num_parent_type_args) {
+    num_free_fun_type_params = old_num_parent_type_args;
+  }
+
+  FunctionType& new_type = FunctionType::Handle(
+      zone, FunctionType::New(
+                NumParentTypeArguments() + num_parent_type_args_adjustment,
+                nullability(), space));
+  AbstractType& type = AbstractType::Handle(zone);
+
+  const TypeParameters& type_params =
+      TypeParameters::Handle(zone, type_parameters());
+  if (!type_params.IsNull()) {
+    const TypeParameters& new_type_params =
+        TypeParameters::Handle(zone, TypeParameters::New());
+    // No need to set names that are ignored in a signature, however, the
+    // length of the names array defines the number of type parameters.
+    new_type_params.set_names(Array::Handle(zone, type_params.names()));
+    new_type_params.set_flags(Array::Handle(zone, type_params.flags()));
+    TypeArguments& type_args = TypeArguments::Handle(zone);
+    type_args = type_params.bounds();
+    if (!type_args.IsNull()) {
+      type_args = type_args.UpdateParentFunctionType(
+          num_parent_type_args_adjustment, num_free_fun_type_params, space,
+          trail);
+    }
+    new_type_params.set_bounds(type_args);
+    type_args = type_params.defaults();
+    if (!type_args.IsNull()) {
+      type_args = type_args.UpdateParentFunctionType(
+          num_parent_type_args_adjustment, num_free_fun_type_params, space,
+          trail);
+    }
+    new_type_params.set_defaults(type_args);
+    new_type.SetTypeParameters(new_type_params);
+  }
+
+  type = result_type();
+  type = type.UpdateParentFunctionType(num_parent_type_args_adjustment,
+                                       num_free_fun_type_params, space, trail);
+  new_type.set_result_type(type);
+
+  const intptr_t num_params = NumParameters();
+  new_type.set_num_implicit_parameters(num_implicit_parameters());
+  new_type.set_num_fixed_parameters(num_fixed_parameters());
+  new_type.SetNumOptionalParameters(NumOptionalParameters(),
+                                    HasOptionalPositionalParameters());
+  new_type.set_parameter_types(Array::Handle(Array::New(num_params, space)));
+  for (intptr_t i = 0; i < num_params; i++) {
+    type = ParameterTypeAt(i);
+    type =
+        type.UpdateParentFunctionType(num_parent_type_args_adjustment,
+                                      num_free_fun_type_params, space, trail);
+    new_type.SetParameterTypeAt(i, type);
+  }
+  new_type.set_named_parameter_names(
+      Array::Handle(zone, named_parameter_names()));
+  new_type.SetIsFinalized();
+
+  return new_type.ptr();
 }
 
 // Checks if the type of the specified parameter of this signature is a
@@ -9880,13 +9998,16 @@ FunctionPtr Function::ImplicitClosureFunction() const {
     const auto& instantiator_type_args = TypeArguments::Handle(
         zone, AbstractType::Handle(zone, closure_signature.result_type())
                   .arguments());
+    const intptr_t num_type_args = closure_signature.NumTypeArguments();
     auto& param_type = AbstractType::Handle(zone);
     for (intptr_t i = kClosure; i < num_params; ++i) {
       param_type = closure_signature.ParameterTypeAt(i);
+      param_type = param_type.UpdateParentFunctionType(num_type_args, kAllFree,
+                                                       Heap::kOld);
       if (!param_type.IsInstantiated()) {
-        param_type = param_type.InstantiateFrom(instantiator_type_args,
-                                                Object::null_type_arguments(),
-                                                kAllFree, Heap::kOld);
+        param_type = param_type.InstantiateFrom(
+            instantiator_type_args, Object::null_type_arguments(),
+            kNoneFree /* avoid truncating parent type args */, Heap::kOld);
         closure_signature.SetParameterTypeAt(i, param_type);
       }
     }
@@ -20701,11 +20822,21 @@ AbstractTypePtr AbstractType::InstantiateFrom(
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
     Heap::Space space,
-    TrailPtr trail) const {
+    TrailPtr trail,
+    intptr_t num_parent_type_args_adjustment) const {
   // All subclasses should implement this appropriately, so the only value that
   // should reach this implementation should be the null value.
   ASSERT(IsNull());
   // AbstractType is an abstract class.
+  UNREACHABLE();
+  return NULL;
+}
+
+AbstractTypePtr AbstractType::UpdateParentFunctionType(
+    intptr_t num_parent_type_args_adjustment,
+    intptr_t num_free_fun_type_params,
+    Heap::Space space,
+    TrailPtr trail) const {
   UNREACHABLE();
   return NULL;
 }
@@ -21522,7 +21653,8 @@ AbstractTypePtr Type::InstantiateFrom(
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
     Heap::Space space,
-    TrailPtr trail) const {
+    TrailPtr trail,
+    intptr_t num_parent_type_args_adjustment) const {
   Zone* zone = Thread::Current()->zone();
   ASSERT(IsFinalized() || IsBeingFinalized());
   ASSERT(!IsInstantiated());
@@ -21534,7 +21666,7 @@ AbstractTypePtr Type::InstantiateFrom(
   ASSERT(type_arguments.Length() == cls.NumTypeArguments());
   type_arguments = type_arguments.InstantiateFrom(
       instantiator_type_arguments, function_type_arguments,
-      num_free_fun_type_params, space, trail);
+      num_free_fun_type_params, space, trail, num_parent_type_args_adjustment);
   // A returned empty_type_arguments indicates a failed instantiation in dead
   // code that must be propagated up to the caller, the optimizing compiler.
   if (type_arguments.ptr() == Object::empty_type_arguments().ptr()) {
@@ -21553,6 +21685,32 @@ AbstractTypePtr Type::InstantiateFrom(
   }
   // Canonicalization is not part of instantiation.
   return instantiated_type.NormalizeFutureOrType(space);
+}
+
+AbstractTypePtr Type::UpdateParentFunctionType(
+    intptr_t num_parent_type_args_adjustment,
+    intptr_t num_free_fun_type_params,
+    Heap::Space space,
+    TrailPtr trail) const {
+  ASSERT(IsFinalized());
+  ASSERT(num_parent_type_args_adjustment > 0);
+  if (arguments() == Object::null()) {
+    return ptr();
+  }
+  Zone* zone = Thread::Current()->zone();
+  const auto& type_args = TypeArguments::Handle(zone, arguments());
+  const auto& updated_type_args =
+      TypeArguments::Handle(zone, type_args.UpdateParentFunctionType(
+                                      num_parent_type_args_adjustment,
+                                      num_free_fun_type_params, space, trail));
+  if (type_args.ptr() == updated_type_args.ptr()) {
+    return ptr();
+  }
+  const Class& cls = Class::Handle(zone, type_class());
+  const Type& new_type = Type::Handle(
+      zone, Type::New(cls, updated_type_args, nullability(), space));
+  new_type.SetIsFinalized();
+  return new_type.ptr();
 }
 
 // Certain built-in classes are treated as syntactically equivalent.
@@ -22411,7 +22569,8 @@ AbstractTypePtr TypeRef::InstantiateFrom(
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
     Heap::Space space,
-    TrailPtr trail) const {
+    TrailPtr trail,
+    intptr_t num_parent_type_args_adjustment) const {
   TypeRef& instantiated_type_ref = TypeRef::Handle();
   instantiated_type_ref ^= OnlyBuddyInTrail(trail);
   if (!instantiated_type_ref.IsNull()) {
@@ -22425,7 +22584,7 @@ AbstractTypePtr TypeRef::InstantiateFrom(
   AbstractType& instantiated_ref_type = AbstractType::Handle();
   instantiated_ref_type = ref_type.InstantiateFrom(
       instantiator_type_arguments, function_type_arguments,
-      num_free_fun_type_params, space, trail);
+      num_free_fun_type_params, space, trail, num_parent_type_args_adjustment);
   // A returned null type indicates a failed instantiation in dead code that
   // must be propagated up to the caller, the optimizing compiler.
   if (instantiated_ref_type.IsNull()) {
@@ -22437,6 +22596,35 @@ AbstractTypePtr TypeRef::InstantiateFrom(
   instantiated_type_ref.InitializeTypeTestingStubNonAtomic(Code::Handle(
       TypeTestingStubGenerator::DefaultCodeForType(instantiated_type_ref)));
   return instantiated_type_ref.ptr();
+}
+
+AbstractTypePtr TypeRef::UpdateParentFunctionType(
+    intptr_t num_parent_type_args_adjustment,
+    intptr_t num_free_fun_type_params,
+    Heap::Space space,
+    TrailPtr trail) const {
+  ASSERT(IsFinalized());
+  ASSERT(num_parent_type_args_adjustment > 0);
+  Zone* zone = Thread::Current()->zone();
+  TypeRef& new_type_ref = TypeRef::Handle(zone);
+  new_type_ref ^= OnlyBuddyInTrail(trail);
+  if (!new_type_ref.IsNull()) {
+    return new_type_ref.ptr();
+  }
+  new_type_ref = TypeRef::New();
+  AddOnlyBuddyToTrail(&trail, new_type_ref);
+
+  AbstractType& ref_type = AbstractType::Handle(type());
+  ASSERT(!ref_type.IsNull() && !ref_type.IsTypeRef());
+
+  const auto& updated_ref_type =
+      AbstractType::Handle(zone, ref_type.UpdateParentFunctionType(
+                                     num_parent_type_args_adjustment,
+                                     num_free_fun_type_params, space, trail));
+  ASSERT(!updated_ref_type.IsTypeRef());
+  new_type_ref.set_type(updated_ref_type);
+
+  return new_type_ref.ptr();
 }
 
 void TypeRef::set_type(const AbstractType& value) const {
@@ -22743,8 +22931,10 @@ AbstractTypePtr TypeParameter::InstantiateFrom(
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
     Heap::Space space,
-    TrailPtr trail) const {
+    TrailPtr trail,
+    intptr_t num_parent_type_args_adjustment) const {
   AbstractType& result = AbstractType::Handle();
+  bool substituted = false;
   if (IsFunctionTypeParameter()) {
     ASSERT(IsFinalized());
     if (index() >= num_free_fun_type_params) {
@@ -22755,7 +22945,8 @@ AbstractTypePtr TypeParameter::InstantiateFrom(
       if (!upper_bound.IsInstantiated()) {
         upper_bound = upper_bound.InstantiateFrom(
             instantiator_type_arguments, function_type_arguments,
-            num_free_fun_type_params, space, trail);
+            num_free_fun_type_params, space, trail,
+            num_parent_type_args_adjustment);
       }
       if ((upper_bound.IsTypeRef() &&
            TypeRef::Cast(upper_bound).type() == Type::NeverType()) ||
@@ -22774,6 +22965,7 @@ AbstractTypePtr TypeParameter::InstantiateFrom(
       return Type::DynamicType();
     } else {
       result = function_type_arguments.TypeAt(index());
+      substituted = true;
       ASSERT(!result.IsTypeParameter());
     }
   } else {
@@ -22792,13 +22984,47 @@ AbstractTypePtr TypeParameter::InstantiateFrom(
       return AbstractType::null();
     }
     result = instantiator_type_arguments.TypeAt(index());
+    substituted = true;
     // Instantiating a class type parameter cannot result in a
     // function type parameter.
     // Bounds of class type parameters are ignored in the VM.
   }
   result = result.SetInstantiatedNullability(*this, space);
+  if (substituted && (num_parent_type_args_adjustment != 0)) {
+    // This type parameter is used inside a generic function type.
+    // A type being substituted can have nested function types,
+    // whose number of parent function type arguments should be adjusted
+    // after the substitution.
+    result = result.UpdateParentFunctionType(num_parent_type_args_adjustment,
+                                             kAllFree, space);
+  }
   // Canonicalization is not part of instantiation.
   return result.NormalizeFutureOrType(space);
+}
+
+AbstractTypePtr TypeParameter::UpdateParentFunctionType(
+    intptr_t num_parent_type_args_adjustment,
+    intptr_t num_free_fun_type_params,
+    Heap::Space space,
+    TrailPtr trail) const {
+  ASSERT(IsFinalized());
+  ASSERT(num_parent_type_args_adjustment > 0);
+  if (IsFunctionTypeParameter() && (index() >= num_free_fun_type_params)) {
+    Zone* zone = Thread::Current()->zone();
+    auto& new_tp = TypeParameter::Handle(zone);
+    new_tp ^= Object::Clone(*this, space);
+    new_tp.set_base(base() + num_parent_type_args_adjustment);
+    new_tp.set_index(index() + num_parent_type_args_adjustment);
+    auto& type = AbstractType::Handle(zone, bound());
+    type =
+        type.UpdateParentFunctionType(num_parent_type_args_adjustment,
+                                      num_free_fun_type_params, space, trail);
+    new_tp.set_bound(type);
+    ASSERT(new_tp.IsFinalized());
+    return new_tp.ptr();
+  } else {
+    return ptr();
+  }
 }
 
 AbstractTypePtr TypeParameter::Canonicalize(Thread* thread,
@@ -27904,7 +28130,8 @@ AbstractTypePtr RecordType::InstantiateFrom(
     const TypeArguments& function_type_arguments,
     intptr_t num_free_fun_type_params,
     Heap::Space space,
-    TrailPtr trail) const {
+    TrailPtr trail,
+    intptr_t num_parent_type_args_adjustment) const {
   ASSERT(IsFinalized() || IsBeingFinalized());
   Zone* zone = Thread::Current()->zone();
 
@@ -27918,7 +28145,8 @@ AbstractTypePtr RecordType::InstantiateFrom(
     if (!type.IsInstantiated()) {
       type = type.InstantiateFrom(instantiator_type_arguments,
                                   function_type_arguments,
-                                  num_free_fun_type_params, space, trail);
+                                  num_free_fun_type_params, space, trail,
+                                  num_parent_type_args_adjustment);
       // A returned null type indicates a failed instantiation in dead code that
       // must be propagated up to the caller, the optimizing compiler.
       if (type.IsNull()) {
@@ -27941,6 +28169,45 @@ AbstractTypePtr RecordType::InstantiateFrom(
 
   // Canonicalization is not part of instantiation.
   return rec.ptr();
+}
+
+AbstractTypePtr RecordType::UpdateParentFunctionType(
+    intptr_t num_parent_type_args_adjustment,
+    intptr_t num_free_fun_type_params,
+    Heap::Space space,
+    TrailPtr trail) const {
+  ASSERT(IsFinalized());
+  ASSERT(num_parent_type_args_adjustment > 0);
+  Zone* zone = Thread::Current()->zone();
+  const auto& types = Array::Handle(zone, field_types());
+  Array* updated_types = nullptr;
+  auto& type = AbstractType::Handle(zone);
+  auto& updated = AbstractType::Handle(zone);
+  for (intptr_t i = 0, n = NumFields(); i < n; ++i) {
+    type ^= types.At(i);
+    updated =
+        type.UpdateParentFunctionType(num_parent_type_args_adjustment,
+                                      num_free_fun_type_params, space, trail);
+    if (type.ptr() != updated.ptr()) {
+      if (updated_types == nullptr) {
+        updated_types = &Array::Handle(zone, Array::New(n, space));
+        for (intptr_t j = 0; j < i; ++j) {
+          type ^= types.At(j);
+          updated_types->SetAt(j, type);
+        }
+      }
+    }
+    if (updated_types != nullptr) {
+      updated_types->SetAt(i, updated);
+    }
+  }
+  if (updated_types == nullptr) {
+    return ptr();
+  }
+  const auto& new_rt = RecordType::Handle(
+      zone, RecordType::New(shape(), *updated_types, nullability(), space));
+  new_rt.SetIsFinalized();
+  return new_rt.ptr();
 }
 
 bool RecordType::IsSubtypeOf(const RecordType& other, Heap::Space space) const {
