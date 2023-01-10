@@ -41,6 +41,19 @@ class _Error extends Error {
   String toString() => _message;
 }
 
+// This error is emitted when we catch an opaque object that was thrown from
+// JavaScript
+@pragma("wasm:entry-point")
+class _JavaScriptError extends Error {
+  _JavaScriptError();
+
+  @pragma("wasm:entry-point")
+  factory _JavaScriptError._() => _JavaScriptError();
+
+  @override
+  String toString() => "JavaScriptError";
+}
+
 class _TypeError extends _Error implements TypeError {
   _TypeError(String message) : super(message);
 

@@ -430,6 +430,17 @@ class Instructions with SerializerMixin {
     _writeTag(tag);
   }
 
+  void catch_all() {
+    assert(_topOfLabelStack is Try ||
+        _reportError("Unexpected 'catch_all' (not in 'try' block"));
+    final Try try_ = _topOfLabelStack as Try;
+    assert(_verifyEndOfBlock([],
+        trace: ['catch_all'], reachableAfter: try_.reachable, reindent: true));
+    try_.hasCatch = true;
+    _reachable = try_.reachable;
+    writeByte(0x19);
+  }
+
   /// Emit a `throw` instruction.
   void throw_(Tag tag) {
     assert(_verifyTypes(tag.type.inputs, const [], trace: ['throw', tag]));
