@@ -1021,14 +1021,48 @@ class SocketMessage {
 
 /// An unbuffered interface to a UDP socket.
 ///
-/// The raw datagram socket delivers the datagrams in the same chunks as the
-/// underlying operating system. It's a [Stream] of [RawSocketEvent]s.
+/// The raw datagram socket delivers a [Stream] of [RawSocketEvent]s in the
+/// same chunks as the underlying operating system receives them.
 ///
 /// Note that the event [RawSocketEvent.readClosed] will never be
 /// received as an UDP socket cannot be closed by a remote peer.
 ///
 /// It is not the same as a
 /// [POSIX raw socket](http://man7.org/linux/man-pages/man7/raw.7.html).
+///
+/// ```dart
+/// import 'dart:io';
+/// import 'dart:typed_data';
+///
+/// void main() async {
+///   // Read the current time from an NTP server.
+///   final serverAddress = (await InternetAddress.lookup('pool.ntp.org')).first;
+///   final clientSocket = await RawDatagramSocket.bind(
+///       serverAddress.type == InternetAddressType.IPv6
+///           ? InternetAddress.anyIPv6
+///           : InternetAddress.anyIPv4,
+///       0);
+///   final ntpQuery = Uint8List(48);
+///   ntpQuery[0] = 0x23; // See RFC 5905 7.3
+///   clientSocket.send(ntpQuery, serverAddress, 123);
+///
+///   clientSocket.listen((event) {
+///     switch (event) {
+///       case RawSocketEvent.read:
+///         final datagram = clientSocket.receive();
+///         // Parse `datagram.data`
+///         clientSocket.close();
+///         break;
+///       case RawSocketEvent.write:
+///         break;
+///       case RawSocketEvent.closed:
+///         break;
+///       default:
+///         throw "Unexpected event $event";
+///     }
+///   });
+/// }
+/// ```
 abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
   /// Whether the [RawDatagramSocket] should listen for
   /// [RawSocketEvent.read] events.
