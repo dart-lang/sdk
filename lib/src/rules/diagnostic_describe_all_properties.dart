@@ -71,7 +71,7 @@ class DiagnosticsDescribeAllProperties extends LintRule {
       'diagnostic_describe_all_properties',
       "The public property isn't described by either 'debugFillProperties' or "
           "'debugDescribeChildren'.",
-      correctionMessage: 'Try described the property.');
+      correctionMessage: 'Try describing the property.');
 
   DiagnosticsDescribeAllProperties()
       : super(
