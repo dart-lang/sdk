@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/hint_codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -36,7 +37,9 @@ void f() {
   }
 
   test_legacy() async {
-    await assertNoErrorsInCode('''
+    try {
+      noSoundNullSafety = false;
+      await assertNoErrorsInCode('''
 // @dart=2.9
 import 'dart:async';
 
@@ -46,6 +49,9 @@ void f() {
   c.complete(null);
 }
 ''');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_null() async {
@@ -98,13 +104,18 @@ void f() {
   }
 
   test_legacy() async {
-    await assertNoErrorsInCode('''
+    try {
+      noSoundNullSafety = false;
+      await assertNoErrorsInCode('''
 // @dart=2.9
 void f() {
   Future<int>.value();
   Future<int>.value(null);
 }
 ''');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_null() async {

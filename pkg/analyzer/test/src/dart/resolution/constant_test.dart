@@ -8,6 +8,7 @@ import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,7 +24,9 @@ main() {
 @reflectiveTest
 class ConstantResolutionTest extends PubPackageResolutionTest {
   test_constructor_nullSafe_fromLegacy_super() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A(List<Object> a);
 }
@@ -33,7 +36,7 @@ class B extends A {
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+      await assertNoErrorsInCode(r'''
 // @dart = 2.8
 import 'a.dart';
 
@@ -41,19 +44,24 @@ const a = <dynamic>[];
 const b = B(a);
 ''');
 
-    var b = findElement.topVar('b');
-    assertType(b.computeConstantValue()!.type, 'B*');
+      var b = findElement.topVar('b');
+      assertType(b.computeConstantValue()!.type, 'B*');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_constructor_nullSafe_fromLegacy_this() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A(List<Object> a) : this(a);
   const A.second(List<Object> a);
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+      await assertNoErrorsInCode(r'''
 // @dart = 2.8
 import 'a.dart';
 
@@ -61,8 +69,11 @@ const a = <dynamic>[];
 const b = A(a);
 ''');
 
-    var b = findElement.topVar('b');
-    assertType(b.computeConstantValue()!.type, 'A*');
+      var b = findElement.topVar('b');
+      assertType(b.computeConstantValue()!.type, 'A*');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_context_eliminateTypeVariables() async {
@@ -87,25 +98,32 @@ class A<T, U> {
   }
 
   test_field_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const foo = 42;
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+      await assertNoErrorsInCode(r'''
 // @dart = 2.5
 import 'a.dart';
 
 const bar = A.foo;
 ''');
 
-    var bar = findElement.topVar('bar');
-    _assertIntValue(bar, 42);
+      var bar = findElement.topVar('bar');
+      _assertIntValue(bar, 42);
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_fromEnvironment_optOut_fromOptIn() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 
 const cBool = const bool.fromEnvironment('foo', defaultValue: false);
@@ -113,81 +131,100 @@ const cInt = const int.fromEnvironment('foo', defaultValue: 1);
 const cString = const String.fromEnvironment('foo', defaultValue: 'bar');
 ''');
 
-    await assertErrorsInCode(r'''
+      await assertErrorsInCode(r'''
 import 'a.dart';
 
 const vBool = cBool;
 const vInt = cInt;
 const vString = cString;
 ''', [
-      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-    ]);
+        error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+      ]);
 
-    DartObjectImpl evaluate(String name) {
-      return findElement.topVar(name).computeConstantValue() as DartObjectImpl;
+      DartObjectImpl evaluate(String name) {
+        return findElement.topVar(name).computeConstantValue()
+            as DartObjectImpl;
+      }
+
+      expect(evaluate('vBool').toBoolValue(), false);
+      expect(evaluate('vInt').toIntValue(), 1);
+      expect(evaluate('vString').toStringValue(), 'bar');
+    } finally {
+      noSoundNullSafety = true;
     }
-
-    expect(evaluate('vBool').toBoolValue(), false);
-    expect(evaluate('vInt').toIntValue(), 1);
-    expect(evaluate('vString').toStringValue(), 'bar');
   }
 
   test_topLevelVariable_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$testPackageLibPath/a.dart', r'''
 const foo = 42;
 ''');
 
-    await assertNoErrorsInCode(r'''
+      await assertNoErrorsInCode(r'''
 // @dart = 2.5
 import 'a.dart';
 
 const bar = foo;
 ''');
 
-    var bar = findElement.topVar('bar');
-    assertType(bar.type, 'int*');
-    _assertIntValue(bar, 42);
+      var bar = findElement.topVar('bar');
+      assertType(bar.type, 'int*');
+      _assertIntValue(bar, 42);
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_topLevelVariable_optOut2() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$testPackageLibPath/a.dart', r'''
 const a = 42;
 ''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
+      newFile('$testPackageLibPath/b.dart', r'''
 import 'a.dart';
 
 const b = a;
 ''');
 
-    await assertNoErrorsInCode(r'''
+      await assertNoErrorsInCode(r'''
 // @dart = 2.5
 import 'b.dart';
 
 const c = b;
 ''');
 
-    var c = findElement.topVar('c');
-    assertType(c.type, 'int*');
-    _assertIntValue(c, 42);
+      var c = findElement.topVar('c');
+      assertType(c.type, 'int*');
+      _assertIntValue(c, 42);
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_topLevelVariable_optOut3() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 const a = int.fromEnvironment('a', defaultValue: 42);
 ''');
 
-    await assertNoErrorsInCode(r'''
+      await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
 const b = a;
 ''');
 
-    var c = findElement.topVar('b');
-    assertType(c.type, 'int*');
-    _assertIntValue(c, 42);
+      var c = findElement.topVar('b');
+      assertType(c.type, 'int*');
+      _assertIntValue(c, 42);
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   void _assertIntValue(VariableElement element, int value) {
@@ -409,14 +446,16 @@ extension E on int {
 
   /// See https://github.com/dart-lang/sdk/issues/43462
   test_useLanguageVersionOfEnclosingLibrary() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$testPackageLibPath/a.dart', r'''
 class Wrapper {
   final int value;
   const Wrapper(Object value) : value = value as int;
 }
 ''');
 
-    await assertNoErrorsInCode(r'''
+      await assertNoErrorsInCode(r'''
 // @dart = 2.4
 import 'a.dart';
 
@@ -424,5 +463,8 @@ void f() {
   const Wrapper(0);
 }
 ''');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 }

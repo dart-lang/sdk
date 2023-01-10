@@ -575,7 +575,11 @@ int${migrated ? '?' : ''} f() => null;
   test_lifecycle_already_migrated_file() async {
     Map<String, String?> createProject({bool migrated = false}) {
       var projectContents = simpleProject(sourceText: '''
-${migrated ? '' : '// @dart = 2.6'}
+${migrated ? '''
+// ignore: illegal_language_version_override
+''' : '''
+// ignore: illegal_language_version_override
+// @dart = 2.6'''}
 import 'already_migrated.dart';
 int${migrated ? '?' : ''} x = y;
 ''', migrated: true);
@@ -1876,16 +1880,17 @@ name: test
     expect(
         logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
     // The Dart source code should still be migrated.
-    assertProjectContents(
-        projectDir, simpleProject(migrated: true, sourceText: '''
+    assertProjectContents(projectDir, simpleProject(
+        migrated: true,
+        sourceText: '''
 import 'package:collection/collection.dart' show IterableExtension;
 
 int? firstEven(Iterable<int> x)
     => x.firstWhereOrNull((x) => x.isEven);
 ''',
-            // Note: section order is weird, but it's valid and this is a rare use
-            // case.
-            pubspecText: '''
+        // Note: section order is weird, but it's valid and this is a rare use
+        // case.
+        pubspecText: '''
 environment:
   sdk: '>=2.12.0 <3.0.0'
 dependencies:
@@ -1906,7 +1911,9 @@ int firstEven(Iterable<int> x)
     expect(
         logger.stdoutBuffer.toString(), contains('Please run `dart pub get`'));
     // The Dart source code should still be migrated.
-    assertProjectContents(projectDir, simpleProject(migrated: true, sourceText: '''
+    assertProjectContents(projectDir, simpleProject(
+        migrated: true,
+        sourceText: '''
 import 'package:collection/collection.dart' show IterableExtension;
 
 int? firstEven(Iterable<int> x)

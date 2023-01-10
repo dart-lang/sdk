@@ -6,6 +6,7 @@ analyzer:
   errors:
     todo: ignore
     deprecated_member_use: ignore
+    illegal_language_version_override: ignore
     unused_local_variable: ignore
     unused_field: ignore
     unused_element: ignore

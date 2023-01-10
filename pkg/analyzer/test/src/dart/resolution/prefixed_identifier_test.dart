@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -18,11 +19,13 @@ main() {
 class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest
     with PrefixedIdentifierResolutionTestCases {
   test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-    await assertErrorsInCode(r'''
+      await assertErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart' deferred as a;
 
@@ -30,19 +33,22 @@ main() {
   a.loadLibrary;
 }
 ''', [
-      error(HintCode.UNUSED_IMPORT, 22, 8),
-    ]);
+        error(HintCode.UNUSED_IMPORT, 22, 8),
+      ]);
 
-    var import = findElement.importFind('package:test/a.dart');
+      var import = findElement.importFind('package:test/a.dart');
 
-    assertPrefixedIdentifier(
-      findNode.prefixed('a.loadLibrary'),
-      element: elementMatcher(
-        import.importedLibrary.loadLibraryFunction,
-        isLegacy: true,
-      ),
-      type: 'Future<dynamic>* Function()*',
-    );
+      assertPrefixedIdentifier(
+        findNode.prefixed('a.loadLibrary'),
+        element: elementMatcher(
+          import.importedLibrary.loadLibraryFunction,
+          isLegacy: true,
+        ),
+        type: 'Future<dynamic>* Function()*',
+      );
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_enum_read() async {

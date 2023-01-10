@@ -6112,7 +6112,7 @@ CompileTimeErrorCode:
 
       ```dart
       %uri="lib/part.dart"
-      // @dart = 2.6
+      // @dart = 2.14
       part of 'test.dart';
       ```
 
@@ -6120,7 +6120,7 @@ CompileTimeErrorCode:
       must have the same language version as the defining compilation unit:
 
       ```dart
-      // @dart = 2.5
+      // @dart = 2.15
       part [!'part.dart'!];
       ```
 
@@ -19104,7 +19104,7 @@ HintCode:
       the word `dart` and the version number:
 
       ```dart
-      [!// @Dart 2.9!]
+      [!// @Dart 2.13!]
       ```
 
       #### Common fixes
@@ -19113,7 +19113,7 @@ HintCode:
       the comment to follow the correct format:
 
       ```dart
-      // @dart = 2.9
+      // @dart = 2.13
       ```
   INVALID_LANGUAGE_VERSION_OVERRIDE_LOCATION:
     sharedName: INVALID_LANGUAGE_VERSION_OVERRIDE

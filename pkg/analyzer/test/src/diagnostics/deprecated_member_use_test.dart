@@ -4,6 +4,7 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -39,13 +40,15 @@ class DeprecatedMemberUse_BasicWorkspace_WithoutNullSafetyTest
 class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest
     with DeprecatedMemberUse_BasicWorkspaceTestCases {
   test_instanceCreation_namedParameter_fromLegacy() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   A({@deprecated int a}) {}
 }
 ''');
 
-    await assertErrorsInCode(r'''
+      await assertErrorsInCode(r'''
 // @dart = 2.9
 import 'package:aaa/a.dart';
 
@@ -53,16 +56,21 @@ void f() {
   A(a: 0);
 }
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 60, 1),
-    ]);
+        error(HintCode.DEPRECATED_MEMBER_USE, 60, 1),
+      ]);
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_methodInvocation_namedParameter_ofFunction_fromLegacy() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 void foo({@deprecated int a}) {}
 ''');
 
-    await assertErrorsInCode(r'''
+      await assertErrorsInCode(r'''
 // @dart = 2.9
 import 'package:aaa/a.dart';
 
@@ -70,18 +78,23 @@ void f() {
   foo(a: 0);
 }
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 62, 1),
-    ]);
+        error(HintCode.DEPRECATED_MEMBER_USE, 62, 1),
+      ]);
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_methodInvocation_namedParameter_ofMethod_fromLegacy() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   void foo({@deprecated int a}) {}
 }
 ''');
 
-    await assertErrorsInCode(r'''
+      await assertErrorsInCode(r'''
 // @dart = 2.9
 import 'package:aaa/a.dart';
 
@@ -89,18 +102,23 @@ void f(A a) {
   a.foo(a: 0);
 }
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 67, 1),
-    ]);
+        error(HintCode.DEPRECATED_MEMBER_USE, 67, 1),
+      ]);
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_superConstructorInvocation_namedParameter_fromLegacy() async {
-    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   A({@deprecated int a}) {}
 }
 ''');
 
-    await assertErrorsInCode(r'''
+      await assertErrorsInCode(r'''
 // @dart = 2.9
 import 'package:aaa/a.dart';
 
@@ -108,8 +126,11 @@ class B extends A {
   B() : super(a: 0);
 }
 ''', [
-      error(HintCode.DEPRECATED_MEMBER_USE, 79, 1),
-    ]);
+        error(HintCode.DEPRECATED_MEMBER_USE, 79, 1),
+      ]);
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 }
 

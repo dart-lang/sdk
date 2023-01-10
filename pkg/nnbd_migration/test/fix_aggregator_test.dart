@@ -1721,6 +1721,7 @@ class C {
 
   Future<void> test_removeLanguageVersion() async {
     await analyze('''
+// ignore: illegal_language_version_override
 //@dart=2.6
 void main() {}
 ''');
@@ -1729,7 +1730,11 @@ void main() {}
         ..removeLanguageVersionComment = true
     })!;
     // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
-    expect(previewInfo.applyTo(code!), '\nvoid main() {}\n');
+    expect(previewInfo.applyTo(code!), '''
+// ignore: illegal_language_version_override
+
+void main() {}
+''');
   }
 
   Future<void> test_removeLanguageVersion_after_license() async {
@@ -1737,6 +1742,7 @@ void main() {}
 // Some licensing stuff here...
 // Some copyrighting stuff too...
 // etc...
+// ignore: illegal_language_version_override
 // @dart = 2.6
 void main() {}
 ''');
@@ -1749,6 +1755,7 @@ void main() {}
 // Some licensing stuff here...
 // Some copyrighting stuff too...
 // etc...
+// ignore: illegal_language_version_override
 
 void main() {}
 ''');
@@ -1756,6 +1763,7 @@ void main() {}
 
   Future<void> test_removeLanguageVersion_spaces() async {
     await analyze('''
+// ignore: illegal_language_version_override
 // @dart = 2.6
 void main() {}
 ''');
@@ -1764,11 +1772,16 @@ void main() {}
         ..removeLanguageVersionComment = true
     })!;
     // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
-    expect(previewInfo.applyTo(code!), '\nvoid main() {}\n');
+    expect(previewInfo.applyTo(code!), '''
+// ignore: illegal_language_version_override
+
+void main() {}
+''');
   }
 
   Future<void> test_removeLanguageVersion_withOtherChanges() async {
     await analyze('''
+// ignore: illegal_language_version_override
 //@dart=2.6
 int f() => null;
 ''');
@@ -1782,7 +1795,11 @@ int f() => null;
             true)
     })!;
     // TODO(mfairhurst): Remove beginning \n once it renders properly in preview
-    expect(previewInfo.applyTo(code!), '\nint? f() => null;\n');
+    expect(previewInfo.applyTo(code!), '''
+// ignore: illegal_language_version_override
+
+int? f() => null;
+''');
   }
 
   Future<void> test_removeNullAwarenessFromMethodInvocation() async {

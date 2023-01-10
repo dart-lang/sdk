@@ -49,14 +49,14 @@ int? a;
   }
 
   test_lessThanPackage() async {
-    _configureTestPackageLanguageVersion('2.5');
+    _configureTestPackageLanguageVersion('2.19');
     await assertNoErrorsInCode(r'''
-// @dart = 2.4
+// @dart = 2.18
 class A {}
 ''');
     _assertUnitLanguageVersion(
-      package: Version.parse('2.5.0'),
-      override: Version.parse('2.4.0'),
+      package: Version.parse('2.19.0'),
+      override: Version.parse('2.18.0'),
     );
   }
 

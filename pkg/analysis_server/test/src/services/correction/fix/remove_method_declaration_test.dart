@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -123,13 +124,15 @@ class B extends A<int> {
   }
 
   Future<void> test_method_nullSafety_optIn_fromOptOut() async {
-    createAnalysisOptionsFile(lints: [lintCode]);
-    newFile('$testPackageLibPath/a.dart', r'''
+    try {
+      noSoundNullSafety = false;
+      createAnalysisOptionsFile(lints: [lintCode]);
+      newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo() => 0;
 }
 ''');
-    await resolveTestCode('''
+      await resolveTestCode('''
 // @dart = 2.7
 import 'a.dart';
 
@@ -138,13 +141,16 @@ class B extends A {
   int foo() => super.foo();
 }
 ''');
-    await assertHasFix('''
+      await assertHasFix('''
 // @dart = 2.7
 import 'a.dart';
 
 class B extends A {
 }
 ''');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   Future<void> test_method_toString() async {

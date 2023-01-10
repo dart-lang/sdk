@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1492,7 +1493,9 @@ bool test(C c) => c.method<bool>(arg: true);
   }
 
   test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
-    await assertNoErrorsInCode('''
+    try {
+      noSoundNullSafety = false;
+      await assertNoErrorsInCode('''
 // @dart = 2.9
 typedef Foo<S> = S Function<T>(T x);
 
@@ -1507,10 +1510,15 @@ main(Object p) {
   }
 }
 ''');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() async {
-    await assertNoErrorsInCode('''
+    try {
+      noSoundNullSafety = false;
+      await assertNoErrorsInCode('''
 // @dart = 2.9
 typedef Foo = T Function<T>(T x);
 
@@ -1521,6 +1529,9 @@ main(Object p) {
   }
 }
 ''');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_genericTypeAlias_fieldAndReturnType_noTypeParameters() async {
@@ -3123,7 +3134,9 @@ main(Object p) {
   }
 
   test_typePromotion_if_is_and_subThenSuper() async {
-    await assertNoErrorsInCode(r'''
+    try {
+      noSoundNullSafety = false;
+      await assertNoErrorsInCode(r'''
 // @dart = 2.9
 class A {
   var a;
@@ -3138,6 +3151,9 @@ main(Object p) {
   }
 }
 ''');
+    } finally {
+      noSoundNullSafety = true;
+    }
   }
 
   test_typePromotion_if_is_parenthesized() async {

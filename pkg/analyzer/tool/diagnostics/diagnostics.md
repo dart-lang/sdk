@@ -7619,7 +7619,7 @@ the one being used for the library to which the part belongs.
 Given a [part file][] named `part.dart` that contains the following:
 
 {% prettify dart tag=pre+code %}
-// @dart = 2.6
+// @dart = 2.14
 part of 'test.dart';
 {% endprettify %}
 
@@ -7627,7 +7627,7 @@ The following code produces this diagnostic because the parts of a library
 must have the same language version as the defining compilation unit:
 
 {% prettify dart tag=pre+code %}
-// @dart = 2.5
+// @dart = 2.15
 part [!'part.dart'!];
 {% endprettify %}
 
@@ -9001,7 +9001,7 @@ be lowercase in such a comment and because there's no equal sign between
 the word `dart` and the version number:
 
 {% prettify dart tag=pre+code %}
-[!// @Dart 2.9!]
+[!// @Dart 2.13!]
 {% endprettify %}
 
 #### Common fixes
@@ -9010,7 +9010,7 @@ If the comment is intended to be a language version override, then change
 the comment to follow the correct format:
 
 {% prettify dart tag=pre+code %}
-// @dart = 2.9
+// @dart = 2.13
 {% endprettify %}
 
 ### invalid_literal_annotation
