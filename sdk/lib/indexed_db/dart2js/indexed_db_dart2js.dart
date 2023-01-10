@@ -1164,7 +1164,7 @@ class Transaction extends EventTarget {
    * Provides a Future which will be completed once the transaction has
    * completed.
    *
-   * The future will error if an error occurrs on the transaction or if the
+   * The future will error if an error occurs on the transaction or if the
    * transaction is aborted.
    */
   Future<Database> get completed {

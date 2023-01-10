@@ -19,7 +19,7 @@ import "collections/closable_iterator.dart";
 ///
 /// All functions against a database may throw [SQLiteError].
 ///
-/// This database interacts with SQLite synchonously.
+/// This database interacts with SQLite synchronously.
 class Database {
   late DatabaseResource _database;
   bool _open = false;

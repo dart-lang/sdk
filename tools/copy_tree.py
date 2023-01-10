@@ -61,7 +61,7 @@ def ValidateArgs(args):
 
 
 def CopyTree(src, dst, ignore=None):
-    # Recusive helper method to collect errors but keep processing.
+    # Recursive helper method to collect errors but keep processing.
     def copy_tree(src, dst, ignore, errors):
         names = os.listdir(src)
         if ignore is not None:

@@ -130,6 +130,12 @@ Updates the Linter to `1.32.0`, which includes changes that
 - update `use_build_context_synchronously` to check context properties.
 - fix a false positive for `avoid_private_typedef_functions` with generalized type aliases.
 
+#### Migration tool removal
+
+The null safety migration tool (`dart migrate`) has been removed.  If you still
+have code which needs to be migrated to null safety, please run `dart migrate`
+using Dart version 2.19, before upgrading to Dart version 3.0.
+
 ## 2.19.0
 
 ### Language

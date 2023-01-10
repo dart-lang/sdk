@@ -208,7 +208,7 @@ And finally, we have implemented the package API by calling the C API.
 
 In this minitutorial we used these `dart:ffi` features:
 
-* Loading dynamic libararies and looking up C functions in these dynamic libraries.
+* Loading dynamic libraries and looking up C functions in these dynamic libraries.
 * Calling C functions, with `dart:ffi` automatically marshalling arguments and return value.
 * Manipulating C memory through `Pointer`s with `allocate`, `free`, `load`, `store`, and `elementAt`.
 

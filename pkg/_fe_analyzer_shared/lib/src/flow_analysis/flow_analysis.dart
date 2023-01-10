@@ -477,6 +477,9 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method just after visiting the initializer of a late variable.
   void lateInitializer_end();
 
+  /// Call this method just before visiting the subpatterns of a list pattern.
+  void listPattern_begin();
+
   /// Call this method before visiting the LHS of a logical binary operation
   /// ("||" or "&&").
   void logicalBinaryOp_begin();
@@ -1257,6 +1260,11 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   @override
   void lateInitializer_end() {
     _wrap('lateInitializer_end()', () => _wrapped.lateInitializer_end());
+  }
+
+  @override
+  void listPattern_begin() {
+    _wrap('listPattern_begin()', () => _wrapped.listPattern_begin());
   }
 
   @override
@@ -3556,7 +3564,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // If there's a scrutinee, and its value is known to be the same as that of
     // the synthetic cache variable, promote it too.
     if (scrutineeReference != null &&
-        _current.infoFor(matchedValueReference.promotionKey).ssaNode ==
+        _current.infoFor(scrutineeReference.promotionKey).ssaNode ==
             _scrutineeSsaNode) {
       ifTrue = ifTrue
           .tryPromoteForTypeCheck(this, scrutineeReference, staticType)
@@ -3983,6 +3991,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  void listPattern_begin() {
+    // As a temporary measure, just assume the pattern might or might not match.
+    // This avoids some bogus "unreachable code" warnings in analyzer tests.
+    // TODO(paulberry): replace this with a full implementation.
+    _unmatched = _join(_unmatched!, _current);
+  }
+
+  @override
   void logicalBinaryOp_begin() {
     _current = _current.split();
   }
@@ -4181,7 +4197,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void switchStatement_beginAlternative() {
-    assert(_stack.last is _SwitchAlternativesContext<Type>);
+    _SwitchAlternativesContext<Type> context =
+        _stack.last as _SwitchAlternativesContext<Type>;
+    _current = context._switchStatementContext._unmatched;
     _pushPattern();
   }
 
@@ -4189,8 +4207,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void switchStatement_beginAlternatives() {
     _SwitchStatementContext<Type> context =
         _stack.last as _SwitchStatementContext<Type>;
-    _current = context._previous.split();
-    _stack.add(new _SwitchAlternativesContext<Type>(_current));
+    _stack.add(new _SwitchAlternativesContext<Type>(context));
   }
 
   @override
@@ -4219,13 +4236,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void switchStatement_endAlternative(Expression? guard) {
-    // TODO(paulberry): make use of `unmatched`
-    // ignore: unused_local_variable
     FlowModel<Type> unmatched = _popPattern(guard);
     _SwitchAlternativesContext<Type> context =
         _stack.last as _SwitchAlternativesContext<Type>;
+    // Future alternatives will be analyzed under the assumption that this
+    // alternative didn't match.  This models the fact that a switch statement
+    // behaves like a chain of if/else tests.
+    context._switchStatementContext._unmatched = unmatched;
     context._combinedModel = _join(context._combinedModel, _current);
-    _current = context._previous;
   }
 
   @override
@@ -4233,16 +4251,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       {required bool hasLabels}) {
     _SwitchAlternativesContext<Type> alternativesContext =
         _stack.removeLast() as _SwitchAlternativesContext<Type>;
-    _SimpleStatementContext<Type> switchContext =
-        _stack.last as _SimpleStatementContext<Type>;
+    _SwitchStatementContext<Type> switchContext =
+        _stack.last as _SwitchStatementContext<Type>;
     if (hasLabels) {
       AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node!);
       _current = switchContext._previous
           .conservativeJoin(this, info.written, info.captured);
     } else {
-      _current =
-          (alternativesContext._combinedModel ?? alternativesContext._previous)
-              .unsplit();
+      _current = alternativesContext._combinedModel ?? switchContext._unmatched;
     }
     // TODO(paulberry): consider doing a split here if unreachable, and a join
     // later, so that one case matching everything won't prevent promotion in
@@ -4438,13 +4454,35 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void _dumpState() {
     print('  current: $_current');
-    print('  expressionWithInfo: $_expressionWithInfo');
-    print('  expressionInfo: $_expressionInfo');
-    print('  expressionWithReference: $_expressionWithReference');
-    print('  expressionReference: $_expressionReference');
-    print('  stack:');
-    for (_FlowContext stackEntry in _stack.reversed) {
-      print('    $stackEntry');
+    if (_unmatched != null) {
+      print('  unmatched: $_unmatched');
+    }
+    if (_scrutineeReference != null) {
+      print('  scrutineeReference: $_scrutineeReference');
+    }
+    if (_scrutineeSsaNode != null) {
+      print('  scrutineeSsaNode: $_scrutineeSsaNode');
+    }
+    if (_scrutineeType != null) {
+      print('  scrutineeType: $_scrutineeType');
+    }
+    if (_expressionWithInfo != null) {
+      print('  expressionWithInfo: $_expressionWithInfo');
+    }
+    if (_expressionInfo != null) {
+      print('  expressionInfo: $_expressionInfo');
+    }
+    if (_expressionWithReference != null) {
+      print('  expressionWithReference: $_expressionWithReference');
+    }
+    if (_expressionReference != null) {
+      print('  expressionReference: $_expressionReference');
+    }
+    if (_stack.isNotEmpty) {
+      print('  stack:');
+      for (_FlowContext stackEntry in _stack.reversed) {
+        print('    $stackEntry');
+      }
     }
   }
 
@@ -5053,6 +5091,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void lateInitializer_end() {}
 
   @override
+  void listPattern_begin() {}
+
+  @override
   void logicalBinaryOp_begin() {
     _writeStackForAnd.add({});
   }
@@ -5561,16 +5602,16 @@ class _SimpleStatementContext<Type extends Object>
 }
 
 class _SwitchAlternativesContext<Type extends Object> extends _FlowContext {
-  final FlowModel<Type> _previous;
+  /// The enclosing [_SwitchStatementContext].
+  final _SwitchStatementContext<Type> _switchStatementContext;
 
   FlowModel<Type>? _combinedModel;
 
-  _SwitchAlternativesContext(this._previous);
+  _SwitchAlternativesContext(this._switchStatementContext);
 
   @override
-  Map<String, Object?> get _debugFields => super._debugFields
-    ..['previous'] = _previous
-    ..['combinedModel'] = _combinedModel;
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['combinedModel'] = _combinedModel;
 
   @override
   String get _debugType => '_SwitchAlternativesContext';
@@ -5582,12 +5623,19 @@ class _SwitchStatementContext<Type extends Object>
   /// The static type of the value being matched.
   final Type _scrutineeType;
 
+  /// Flow state for the code path where no switch cases have matched yet.  If
+  /// we think of a switch statement as syntactic sugar for a chain of if-else
+  /// statements, this is the flow state on entry to the next `if`.
+  FlowModel<Type> _unmatched;
+
   _SwitchStatementContext(
-      super.checkpoint, super._previous, this._scrutineeType);
+      super.checkpoint, super._previous, this._scrutineeType)
+      : _unmatched = _previous;
 
   @override
-  Map<String, Object?> get _debugFields =>
-      super._debugFields..['scrutineeType'] = _scrutineeType;
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['scrutineeType'] = _scrutineeType
+    ..['unmatched'] = _unmatched;
 
   @override
   String get _debugType => '_SwitchStatementContext';

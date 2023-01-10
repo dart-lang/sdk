@@ -615,6 +615,7 @@ mixin TypeAnalyzer<
       }
     }
     // Stack: ()
+    flow.listPattern_begin();
     Node? previousRestPattern;
     for (Node element in elements) {
       if (isRestPatternElement(element)) {
@@ -1574,8 +1575,8 @@ mixin TypeAnalyzer<
   SwitchStatementMemberInfo<Node, Statement, Expression, Variable>
       getSwitchStatementMemberInfo(Statement node, int caseIndex);
 
-  /// Returns the type of [node].
-  Type getVariableType(Variable node);
+  /// Returns the type of [variable].
+  Type getVariableType(Variable variable);
 
   /// Called after visiting the pattern in `if-case` statement.
   /// [variables] are variables declared in the pattern.

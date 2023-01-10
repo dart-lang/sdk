@@ -15,7 +15,7 @@ import 'package:kernel/type_environment.dart';
 /// [Statement]s can be replaced by other [Expression]s and [Statement]s
 /// respectively. This means one cannot do `visitX() { super.visitX() as X }`.
 ///
-/// This transform must be run on the standard libaries as well. For example
+/// This transform must be run on the standard libraries as well. For example
 /// `NativeFinalizer`s `attach` implementation depends on it.
 mixin FinalizableTransformer on Transformer {
   TypeEnvironment get env;

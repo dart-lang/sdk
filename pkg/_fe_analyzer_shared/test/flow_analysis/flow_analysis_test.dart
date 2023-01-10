@@ -6620,6 +6620,19 @@ main() {
       });
     });
 
+    group('List pattern:', () {
+      test('Not guaranteed to match', () {
+        h.run([
+          switch_(expr('Object'), [
+            listPattern([]).then([break_()]),
+            default_.then([
+              checkReachable(true),
+            ]),
+          ]),
+        ]);
+      });
+    });
+
     group('Switch expression:', () {
       test('guarded', () {
         var x = Var('x');
@@ -6638,7 +6651,42 @@ main() {
         ]);
       });
 
-      test('promotes', () {
+      group('guard promotes later cases:', () {
+        test('when pattern fully covers the scrutinee type', () {
+          // `case _ when x == null:` promotes `x` to non-null in later cases,
+          // because the implicit type of `_` fully covers the scrutinee type.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            switchExpr(expr('Object?'), [
+              wildcard().when(x.expr.eq(nullLiteral)).thenExpr(intLiteral(0)),
+              wildcard().thenExpr(block([
+                checkPromoted(x, 'int'),
+              ]).thenExpr(intLiteral(1))),
+            ]).stmt,
+          ]);
+        });
+
+        test('when pattern does not fully cover the scrutinee type', () {
+          // `case String _ when x == null:` does not promote `y` to non-null in
+          // later cases, because the type `String` does not fully cover the
+          // scrutinee type.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            switchExpr(expr('Object?'), [
+              wildcard(type: 'String')
+                  .when(x.expr.eq(nullLiteral))
+                  .thenExpr(intLiteral(0)),
+              wildcard().thenExpr(block([
+                checkNotPromoted(x),
+              ]).thenExpr(intLiteral(1))),
+            ]).stmt,
+          ]);
+        });
+      });
+
+      test('promotes scrutinee', () {
         var x = Var('x');
         var y = Var('y');
         h.run([
@@ -6652,6 +6700,55 @@ main() {
               checkReachable(true),
               checkNotPromoted(x),
             ]).thenExpr(expr('String'))),
+          ]).stmt,
+        ]);
+      });
+
+      test('reassigned scrutinee var no longer promotes', () {
+        var x = Var('x');
+        // Note that the second `wildcard(type: 'int')` doesn't promote `x`
+        // because it's been reassigned.  But it does still promote the
+        // scrutinee in the RHS of the `&&`.
+        h.run([
+          declare(x, initializer: expr('Object')),
+          switchExpr(x.expr, [
+            wildcard(type: 'int')
+                .and(wildcard(expectInferredType: 'int'))
+                .thenExpr(block([
+                  checkPromoted(x, 'int'),
+                ]).thenExpr(intLiteral(0))),
+            wildcard()
+                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .thenExpr(intLiteral(1)),
+            wildcard(type: 'int')
+                .and(wildcard(expectInferredType: 'int'))
+                .thenExpr(block([
+                  checkNotPromoted(x),
+                ]).thenExpr(intLiteral(2))),
+            wildcard().thenExpr(intLiteral(3)),
+          ]).stmt,
+        ]);
+      });
+
+      test(
+          'cached scrutinee retains promoted type even if scrutinee var '
+          'reassigned', () {
+        var x = Var('x');
+        var y = Var('y');
+        // `x` is promoted at the time the scrutinee is cached.  Therefore, even
+        // though `case _ where f(x = ...)` de-promotes `x`, the promoted type
+        // is still used for type inference in the later `case var y`.
+        h.run([
+          declare(x, initializer: expr('Object')),
+          x.expr.as_('int').stmt,
+          checkPromoted(x, 'int'),
+          switchExpr(x.expr, [
+            wildcard()
+                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .thenExpr(intLiteral(0)),
+            y.pattern(expectInferredType: 'int').thenExpr(block([
+                  checkNotPromoted(x),
+                ]).thenExpr(intLiteral(1))),
           ]).stmt,
         ]);
       });
@@ -6679,7 +6776,42 @@ main() {
         ]);
       });
 
-      test('promotes', () {
+      group('guard promotes later cases:', () {
+        test('when pattern fully covers the scrutinee type', () {
+          // `case _ when x == null:` promotes `x` to non-null in later cases,
+          // because the implicit type of `_` fully covers the scrutinee type.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            switch_(expr('Object?'), [
+              wildcard().when(x.expr.eq(nullLiteral)).then([break_()]),
+              wildcard().then([
+                checkPromoted(x, 'int'),
+              ]),
+            ]),
+          ]);
+        });
+
+        test('when pattern does not fully cover the scrutinee type', () {
+          // `case String _ when x == null:` does not promote `x` to non-null in
+          // later cases, because the type `String` does not fully cover the
+          // scrutinee type.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            switch_(expr('Object?'), [
+              wildcard(type: 'String')
+                  .when(x.expr.eq(nullLiteral))
+                  .then([break_()]),
+              wildcard().then([
+                checkNotPromoted(x),
+              ]),
+            ]),
+          ]);
+        });
+      });
+
+      test('promotes scrutinee', () {
         var x = Var('x');
         var y = Var('y');
         h.run([
@@ -6848,6 +6980,56 @@ main() {
             ]),
           ]);
         });
+      });
+
+      test('reassigned scrutinee var no longer promotes', () {
+        var x = Var('x');
+        // Note that the second `wildcard(type: 'int')` doesn't promote `x`
+        // because it's been reassigned.  But it does still promote the
+        // scrutinee in the RHS of the `&&`.
+        h.run([
+          declare(x, initializer: expr('Object')),
+          switch_(x.expr, [
+            wildcard(type: 'int')
+                .and(wildcard(expectInferredType: 'int'))
+                .then([
+              checkPromoted(x, 'int'),
+            ]),
+            wildcard()
+                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .then([
+              break_(),
+            ]),
+            wildcard(type: 'int')
+                .and(wildcard(expectInferredType: 'int'))
+                .then([
+              checkNotPromoted(x),
+            ])
+          ]),
+        ]);
+      });
+
+      test(
+          'cached scrutinee retains promoted type even if scrutinee var '
+          'reassigned', () {
+        var x = Var('x');
+        var y = Var('y');
+        // `x` is promoted at the time the scrutinee is cached.  Therefore, even
+        // though `case _ where f(x = ...)` de-promotes `x`, the promoted type
+        // is still used for type inference in the later `case var y`.
+        h.run([
+          declare(x, initializer: expr('Object')),
+          x.expr.as_('int').stmt,
+          checkPromoted(x, 'int'),
+          switch_(x.expr, [
+            wildcard()
+                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .then([break_()]),
+            y.pattern(expectInferredType: 'int').then([
+              checkNotPromoted(x),
+            ]),
+          ]),
+        ]);
       });
     });
 

@@ -5,6 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol_custom_generated.dart'
     show CommandParameter, SaveUriCommandParameter;
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/import_analyzer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -66,24 +67,17 @@ class MoveTopLevelToFile extends RefactoringProducer {
     if (destinationImportUri == null) {
       return;
     }
-    // TODO(brianwilkerson) If we attempt to copy the file header, then the
-    //  imports are inserted before the file header, which is wrong. To solve
-    //  this, I think we need to teach `DartFileEditBuilder` about header
-    //  comments so that it can insert the comment before the imports. When
-    //  that's happened, uncomment the code below and replace the code inside
-    //  `addInsertion` to set the file header rather than to include it in the
-    //  insertion.
-    // var destinationExists =
-    //     unitResult.session.resourceProvider.getFile(destinationFilePath).exists;
-    // String? fileHeader;
-    // if (!destinationExists) {
-    //   var headerTokens = unitResult.unit.fileHeader;
-    //   if (headerTokens.isNotEmpty) {
-    //     var offset = headerTokens.first.offset;
-    //     var end = headerTokens.last.end;
-    //     fileHeader = utils.getText(offset, end - offset);
-    //   }
-    // }
+    var destinationExists =
+        unitResult.session.resourceProvider.getFile(destinationFilePath).exists;
+    String? fileHeader;
+    if (!destinationExists) {
+      var headerTokens = unitResult.unit.fileHeader;
+      if (headerTokens.isNotEmpty) {
+        var offset = headerTokens.first.offset;
+        var end = headerTokens.last.end;
+        fileHeader = utils.getText(offset, end - offset);
+      }
+    }
 
     var lineInfo = unitResult.lineInfo;
     var ranges = members.groups
@@ -95,8 +89,10 @@ class MoveTopLevelToFile extends RefactoringProducer {
     await builder.addDartFileEdit(destinationFilePath, (builder) {
       // TODO(dantup): Ensure the range inserted and deleted match (allowing for
       //  whitespace), including handling of leading/trailing comments etc.
+      if (fileHeader != null) {
+        builder.fileHeader = fileHeader + utils.endOfLine;
+      }
       builder.addInsertion(0, (builder) {
-        // TODO(brianwilkerson) Set the file header.
         for (var i = 0; i < members.groups.length; i++) {
           var group = members.groups[i];
           var sourceRange =

@@ -524,7 +524,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       {bool isCovariant = false,
       bool isRequiredNamed = false,
       ExecutableElement? methodBeingCopied,
-      bool includeDefaultValuesInFunctionTypes = true,
       String? nameGroupName,
       DartType? type,
       String? typeGroupName,
@@ -534,18 +533,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         late bool hasType;
         addLinkedEdit(typeGroupName, (DartLinkedEditBuilder builder) {
           hasType = _writeType(type,
-              methodBeingCopied: methodBeingCopied,
-              includeDefaultValuesInFunctionTypes:
-                  includeDefaultValuesInFunctionTypes,
-              required: isRequiredType);
+              methodBeingCopied: methodBeingCopied, required: isRequiredType);
           builder.addSuperTypesAsSuggestions(type);
         });
         return hasType;
       }
-      return _writeType(type,
-          methodBeingCopied: methodBeingCopied,
-          includeDefaultValuesInFunctionTypes:
-              includeDefaultValuesInFunctionTypes);
+      return _writeType(type, methodBeingCopied: methodBeingCopied);
     }
 
     void writeName() {
@@ -621,7 +614,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   @override
   void writeParameters(Iterable<ParameterElement> parameters,
       {ExecutableElement? methodBeingCopied,
-      bool includeDefaultValuesInFunctionTypes = true,
+      bool includeDefaultValues = true,
       bool requiredTypes = false}) {
     var parameterNames = <String>{};
     for (var i = 0; i < parameters.length; i++) {
@@ -663,14 +656,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           isCovariant: parameter.isCovariant,
           isRequiredNamed: parameter.isRequiredNamed,
           methodBeingCopied: methodBeingCopied,
-          includeDefaultValuesInFunctionTypes:
-              includeDefaultValuesInFunctionTypes,
           nameGroupName: parameter.isNamed ? null : '${groupPrefix}PARAM$i',
           type: parameter.type,
           typeGroupName: '${groupPrefix}TYPE$i',
           isRequiredType: requiredTypes);
       // default value
-      if (includeDefaultValuesInFunctionTypes) {
+      if (includeDefaultValues) {
         var defaultCode = parameter.defaultValueCode;
         if (defaultCode != null) {
           write(' = ');
@@ -759,7 +750,6 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       {bool addSupertypeProposals = false,
       String? groupName,
       ExecutableElement? methodBeingCopied,
-      bool includeDefaultValuesInFunctionTypes = true,
       bool required = false}) {
     var wroteType = false;
     if (type != null && !type.isDynamic) {
@@ -771,12 +761,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           }
         });
       } else {
-        wroteType = _writeType(
-          type,
-          methodBeingCopied: methodBeingCopied,
-          includeDefaultValuesInFunctionTypes:
-              includeDefaultValuesInFunctionTypes,
-        );
+        wroteType = _writeType(type, methodBeingCopied: methodBeingCopied);
       }
     }
     if (!wroteType && required) {
@@ -1234,9 +1219,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// Causes any libraries whose elements are used by the generated code, to be
   /// imported.
   bool _writeType(DartType? type,
-      {ExecutableElement? methodBeingCopied,
-      bool includeDefaultValuesInFunctionTypes = true,
-      bool required = false}) {
+      {ExecutableElement? methodBeingCopied, bool required = false}) {
     type = _getVisibleType(type, methodBeingCopied: methodBeingCopied);
 
     // If not a useful type, don't write it.
@@ -1279,8 +1262,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       writeParameters(
         type.parameters,
         methodBeingCopied: methodBeingCopied,
-        includeDefaultValuesInFunctionTypes:
-            includeDefaultValuesInFunctionTypes,
+        includeDefaultValues: false,
         requiredTypes: true,
       );
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
@@ -1419,6 +1401,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// or `null` if the receiver is the builder for the library.
   final DartFileEditBuilderImpl? libraryChangeBuilder;
 
+  @override
+  String? fileHeader;
+
   /// Whether to create edits that add imports for any written types that are
   /// not already imported.
   final bool createEditsForImports;
@@ -1446,7 +1431,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       resolvedUnit.session.analysisContext.analysisOptions.codeStyleOptions;
 
   @override
-  bool get hasEdits => super.hasEdits || librariesToImport.isNotEmpty;
+  bool get hasEdits =>
+      super.hasEdits || librariesToImport.isNotEmpty || fileHeader != null;
 
   @override
   List<Uri> get requiredImports => librariesToImport.keys.toList();
@@ -1516,6 +1502,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   void finalize() {
     if (createEditsForImports && librariesToImport.isNotEmpty) {
       _addLibraryImports(librariesToImport.values);
+    }
+    var header = fileHeader;
+    if (header != null) {
+      addInsertion(0, insertBeforeExisting: true, (builder) {
+        builder.writeln(header);
+      });
     }
   }
 

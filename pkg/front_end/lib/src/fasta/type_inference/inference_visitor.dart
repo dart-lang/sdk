@@ -9888,8 +9888,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
-  DartType getVariableType(VariableDeclaration node) {
-    return node.type;
+  DartType getVariableType(VariableDeclaration variable) {
+    return variable.type;
   }
 
   @override
