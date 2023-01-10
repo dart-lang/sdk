@@ -141,7 +141,10 @@ class SharedTypeAnalyzerErrors
 
   @override
   void nonBooleanCondition(Expression node) {
-    throw UnimplementedError('TODO(paulberry)');
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.NON_BOOL_CONDITION,
+      node,
+    );
   }
 
   @override

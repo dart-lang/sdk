@@ -19,6 +19,16 @@ main() {
 
 @reflectiveTest
 class NonBoolConditionTest extends PubPackageResolutionTest {
+  test_guardedPattern_whenClause() async {
+    await assertErrorsInCode(r'''
+void f() {
+  if (0 case _ when 1) {}
+}
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 31, 1),
+    ]);
+  }
+
   test_if_null() async {
     await assertErrorsInCode(r'''
 void f(Null a) {
