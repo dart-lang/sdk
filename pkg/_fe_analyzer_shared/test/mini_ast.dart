@@ -3117,6 +3117,16 @@ class _MiniAstErrors
   }
 
   @override
+  void matchedTypeIsStrictlyNonNullable({
+    required Pattern pattern,
+    required Type matchedType,
+  }) {
+    _recordError(
+        'matchedTypeIsStrictlyNonNullable(pattern: ${pattern.errorId}, '
+        'matchedType: ${matchedType.type})');
+  }
+
+  @override
   void nonBooleanCondition(Expression node) {
     _recordError('nonBooleanCondition(${node.errorId})');
   }

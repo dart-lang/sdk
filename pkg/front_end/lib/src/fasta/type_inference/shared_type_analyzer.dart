@@ -85,6 +85,14 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void matchedTypeIsStrictlyNonNullable({
+    required Pattern pattern,
+    required DartType matchedType,
+  }) {
+    // TODO(scheglov) Implement it.
+  }
+
+  @override
   void nonBooleanCondition(Expression node) {
     throw new UnimplementedError('TODO(paulberry)');
   }

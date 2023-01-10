@@ -23420,4 +23420,11 @@ StaticWarningCode:
         return x;
       }
       ```
-
+  UNNECESSARY_NULL_ASSERT_PATTERN:
+    problemMessage: The null-assert pattern will have no effect because the matched type isn't nullable.
+    correctionMessage: Try replacing the null-assert pattern with its nested pattern.
+    comment: No parameters.
+  UNNECESSARY_NULL_CHECK_PATTERN:
+    problemMessage: The null-check pattern will have no effect because the matched type isn't nullable.
+    correctionMessage: Try replacing the null-check pattern with its nested pattern.
+    comment: No parameters.

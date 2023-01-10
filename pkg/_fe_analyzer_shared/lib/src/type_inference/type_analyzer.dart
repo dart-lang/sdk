@@ -904,7 +904,7 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Pattern innerPattern).
   void analyzeNullCheckOrAssertPattern(
       MatchContext<Node, Expression, Pattern, Type, Variable> context,
-      Node node,
+      Pattern node,
       Pattern innerPattern,
       {required bool isAssert}) {
     // Stack: ()
@@ -915,6 +915,12 @@ mixin TypeAnalyzer<
       errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
       // Avoid cascading errors
       context = context.makeRefutable();
+    } else if (operations.classifyType(matchedType) ==
+        TypeClassification.nonNullable) {
+      errors?.matchedTypeIsStrictlyNonNullable(
+        pattern: node,
+        matchedType: matchedType,
+      );
     }
     flow.pushSubpattern(innerMatchedType, isDistinctValue: false);
     dispatchPattern(context, innerPattern);
@@ -1987,6 +1993,13 @@ abstract class TypeAnalyzerErrors<
   void inconsistentJoinedPatternVariable({
     required Variable variable,
     required Variable component,
+  });
+
+  /// Called when a null-assert or null-check pattern is used with the matched
+  /// type that is strictly non-nullable, so the null check is not necessary.
+  void matchedTypeIsStrictlyNonNullable({
+    required Pattern pattern,
+    required Type matchedType,
   });
 
   /// Called if the static type of a condition is not assignable to `bool`.

@@ -2768,3 +2768,7 @@ StaticWarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
   notes: Deprecated
 StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION:
   status: hasFix
+StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN:
+  status: needsFix
+StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN:
+  status: needsFix

@@ -971,6 +971,8 @@ const List<ErrorCode> errorCodeValues = [
   StaticWarningCode.SDK_VERSION_UI_AS_CODE,
   StaticWarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT,
   StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION,
+  StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN,
+  StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN,
   TodoCode.FIXME,
   TodoCode.HACK,
   TodoCode.TODO,

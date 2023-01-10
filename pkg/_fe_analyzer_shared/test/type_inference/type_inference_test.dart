@@ -2421,12 +2421,15 @@ main() {
       test('Type schema', () {
         var x = Var('x');
         h.run([
-          match(x.pattern(type: 'int').nullAssert,
+          match(x.pattern(type: 'int').nullAssert..errorId = 'PATTERN',
                   expr('int').checkContext('int?'))
               .checkIr('match(expr(int), '
                   'nullAssertPattern(varPattern(x, matchedType: int, '
                   'staticType: int), matchedType: int))'),
-        ]);
+        ], expectedErrors: {
+          'matchedTypeIsStrictlyNonNullable(pattern: PATTERN, '
+              'matchedType: int)'
+        });
       });
 
       group('Refutability:', () {
@@ -2440,10 +2443,13 @@ main() {
 
         test('When matched type is non-nullable', () {
           h.run([
-            match(wildcard().nullAssert, expr('int'))
+            match(wildcard().nullAssert..errorId = 'PATTERN', expr('int'))
                 .checkIr('match(expr(int), nullAssertPattern('
                     'wildcardPattern(matchedType: int), matchedType: int))'),
-          ]);
+          ], expectedErrors: {
+            'matchedTypeIsStrictlyNonNullable(pattern: PATTERN, '
+                'matchedType: int)'
+          });
         });
 
         test('When matched type is dynamic', () {
@@ -2457,12 +2463,44 @@ main() {
 
         test('Sub-refutability', () {
           h.run([
-            (match((wildcard(type: 'int')..errorId = 'INT').nullAssert,
+            (match(
+                (wildcard(type: 'int')..errorId = 'INT').nullAssert
+                  ..errorId = 'PATTERN',
                 expr('num'))
               ..errorId = 'CONTEXT'),
           ], expectedErrors: {
+            'matchedTypeIsStrictlyNonNullable(pattern: PATTERN, '
+                'matchedType: num)',
             'patternTypeMismatchInIrrefutableContext(pattern: INT, '
                 'context: CONTEXT, matchedType: num, requiredType: int)'
+          });
+        });
+      });
+
+      group('Refutable', () {
+        test('When matched type is nullable', () {
+          h.run([
+            ifCase(
+              expr('int?'),
+              wildcard().nullAssert,
+              [],
+            ).checkIr('ifCase(expr(int?), nullAssertPattern(wildcardPattern('
+                'matchedType: int), matchedType: int?), variables(), true, '
+                'block(), noop)'),
+          ]);
+        });
+        test('When matched type is non-nullable', () {
+          h.run([
+            ifCase(
+              expr('int'),
+              wildcard().nullAssert..errorId = 'PATTERN',
+              [],
+            ).checkIr('ifCase(expr(int), nullAssertPattern(wildcardPattern('
+                'matchedType: int), matchedType: int), variables(), true, '
+                'block(), noop)'),
+          ], expectedErrors: {
+            'matchedTypeIsStrictlyNonNullable(pattern: PATTERN, '
+                'matchedType: int)'
           });
         });
       });
@@ -2515,6 +2553,34 @@ main() {
               ..errorId = 'CONTEXT'),
           ], expectedErrors: {
             'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          });
+        });
+      });
+
+      group('Refutable', () {
+        test('When matched type is nullable', () {
+          h.run([
+            ifCase(
+              expr('int?'),
+              wildcard().nullCheck,
+              [],
+            ).checkIr('ifCase(expr(int?), nullCheckPattern(wildcardPattern('
+                'matchedType: int), matchedType: int?), variables(), true, '
+                'block(), noop)'),
+          ]);
+        });
+        test('When matched type is non-nullable', () {
+          h.run([
+            ifCase(
+              expr('int'),
+              wildcard().nullCheck..errorId = 'PATTERN',
+              [],
+            ).checkIr('ifCase(expr(int), nullCheckPattern(wildcardPattern('
+                'matchedType: int), matchedType: int), variables(), true, '
+                'block(), noop)'),
+          ], expectedErrors: {
+            'matchedTypeIsStrictlyNonNullable(pattern: PATTERN, '
+                'matchedType: int)'
           });
         });
       });
