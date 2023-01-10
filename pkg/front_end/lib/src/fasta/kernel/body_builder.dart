@@ -8808,7 +8808,12 @@ class BodyBuilder extends StackListenerImpl
         ValueKinds.Generator,
         ValueKinds.ProblemBuilder,
       ]),
-      ValueKinds.Pattern
+      unionOfKinds([
+        ValueKinds.Pattern,
+        ValueKinds.Expression,
+        ValueKinds.Generator,
+        ValueKinds.ProblemBuilder,
+      ]),
     ]));
     Expression expression = popForValue();
     Pattern pattern = toPattern(pop());
