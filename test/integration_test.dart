@@ -31,8 +31,6 @@ import 'integration/flutter_style_todos.dart' as flutter_style_todos;
 import 'integration/lines_longer_than_80_chars.dart'
     as lines_longer_than_80_chars;
 import 'integration/only_throw_errors.dart' as only_throw_errors;
-import 'integration/prefer_const_constructors.dart'
-    as prefer_const_constructors;
 import 'integration/prefer_const_constructors_in_immutables.dart'
     as prefer_const_constructors_in_immutables;
 import 'integration/prefer_mixin.dart' as prefer_mixin;
@@ -191,7 +189,6 @@ void ruleTests() {
     unnecessary_string_escapes.main();
     prefer_mixin.main();
     use_build_context_synchronously.main();
-    prefer_const_constructors.main();
     unnecessary_library_directive.main();
   });
 }

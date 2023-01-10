@@ -1,3 +1,0 @@
-class A {
-  const A();
-}

@@ -44,6 +44,25 @@ main() {
 ''');
   }
 
+  test_deferredConstructorCall() async {
+    newFile2('$testPackageLibPath/a.dart', '''
+class A {
+  const A();
+}
+''');
+
+    await assertDiagnostics(r'''
+import 'a.dart' deferred as a;
+
+void f() {
+  var aa = a.A();
+}
+''', [
+      // No lint.
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 49, 2),
+    ]);
+  }
+
   test_extraPositionalArgument() async {
     await assertDiagnostics(r'''
 import 'package:meta/meta.dart';
