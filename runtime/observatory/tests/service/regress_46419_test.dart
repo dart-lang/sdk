@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--verbose-debug
 
+import 'dart:async';
+
 import 'package:observatory/service_io.dart';
 import 'package:test/test.dart';
 import 'service_test_common.dart';
@@ -52,18 +54,20 @@ final tests = <IsolateTest>[
     print("BP2 - $bp2");
     expect(bp2, isNotNull);
   },
-  resumeIsolate,
   (Isolate isolate) async {
     final stream = await isolate.vm.getEventStream(VM.kDebugStream);
-    await for (ServiceEvent event in stream) {
+    final done = Completer<bool>();
+    stream.listen((event) async {
       if (event.kind == ServiceEvent.kPauseBreakpoint) {
         var bp = event.breakpoint;
         print('Hit $bp');
         expect(bp, bp2);
         await isolate.resume();
-        break;
+        done.complete(true);
       }
-    }
+    });
+    await resumeIsolate(isolate);
+    await done.future;
   }
 ];
 
