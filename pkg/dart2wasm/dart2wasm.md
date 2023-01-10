@@ -24,9 +24,9 @@ where *options* include:
 | `--shared-memory-max-pages` *pagecount* |         | Max size of the imported memory buffer. If `--shared-import-memory` is specified, this must also be specified.
 | `--watch` *offset*                      |         | Print stack trace leading to the byte at offset *offset* in the `.wasm` output file. Can be specified multiple times.
 
-The resulting `.wasm` file can be run with:
+Dart2Wasm will output a `wasm` file, containing Dart compiled to Wasm, as well as an `mjs` file containing the runtime. The result can be run with:
 
-`d8 --experimental-wasm-gc --experimental-wasm-stack-switching --experimental-wasm-type-reflection pkg/dart2wasm/bin/run_wasm.js -- `*outfile*`.wasm`
+`d8 --experimental-wasm-gc --experimental-wasm-stack-switching --experimental-wasm-type-reflection pkg/dart2wasm/bin/run_wasm.js -- `*outfile*`.wasm` /abs/path/to/`*outfile*`.mjs
 
 Where `d8` is the [V8 developer shell](https://v8.dev/docs/d8).
 

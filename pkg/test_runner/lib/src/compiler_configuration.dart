@@ -571,13 +571,15 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> originalArguments,
       CommandArtifact? artifact) {
+    final filename = artifact!.filename;
     return [
       '--experimental-wasm-gc',
       '--experimental-wasm-stack-switching',
       '--experimental-wasm-type-reflection',
       'pkg/dart2wasm/bin/run_wasm.js',
       '--',
-      artifact!.filename,
+      '${filename.substring(0, filename.lastIndexOf('.'))}.mjs',
+      filename,
       ...testFile.sharedObjects
           .map((obj) => '${_configuration.buildDirectory}/wasm/$obj.wasm'),
     ];

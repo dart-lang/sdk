@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:args/args.dart' as args;
 import 'package:front_end/src/api_unstable/vm.dart'
@@ -122,15 +121,16 @@ CompilerOptions parseArguments(List<String> arguments) {
 
 Future<int> main(List<String> args) async {
   CompilerOptions options = parseArguments(args);
-  Uint8List? module = await compileToModule(
+  CompilerOutput? output = await compileToModule(
       options, (message) => printDiagnosticMessage(message, print));
 
-  if (module == null) {
+  if (output == null) {
     exitCode = 1;
     return exitCode;
   }
 
-  await File(options.outputFile).writeAsBytes(module);
+  await File(options.outputFile).writeAsBytes(output.wasmModule);
+  await File(options.outputJSRuntimeFile).writeAsString(output.jsRuntime);
 
   return 0;
 }
