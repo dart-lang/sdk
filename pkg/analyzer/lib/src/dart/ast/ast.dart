@@ -10993,7 +10993,7 @@ class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   Token get beginToken => leftParenthesis;
 
   @override
-  Token get endToken => rightParenthesis;
+  Token get endToken => question ?? rightParenthesis;
 
   @override
   ChildEntities get _childEntities => super._childEntities
