@@ -150,6 +150,19 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void patternForInExpressionIsNotIterable({
+    required AstNode node,
+    required Expression expression,
+    required DartType expressionType,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
+      expression,
+      [expressionType, 'Iterable'],
+    );
+  }
+
+  @override
   void patternTypeMismatchInIrrefutableContext({
     required covariant DartPatternImpl pattern,
     required AstNode context,

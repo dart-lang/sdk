@@ -404,8 +404,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.declaredElement = element;
 
     var patternContext = node.patternContext;
-    if (patternContext is PatternVariableDeclarationImpl) {
-      element.isFinal = patternContext.finalToken != null;
+    if (patternContext is ForEachPartsWithPatternImpl) {
+      element.isFinal = patternContext.finalKeyword != null;
+    } else if (patternContext is PatternVariableDeclarationImpl) {
+      element.isFinal = patternContext.finalKeyword != null;
       var keyword = node.keyword;
       if (keyword != null) {
         _errorReporter.reportErrorForToken(
@@ -414,7 +416,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         );
       }
     } else {
-      element.isFinal = node.finalToken != null;
+      element.isFinal = node.finalKeyword != null;
     }
   }
 
@@ -597,6 +599,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         },
       );
     });
+  }
+
+  @override
+  void visitForEachPartsWithPattern(
+    covariant ForEachPartsWithPatternImpl node,
+  ) {
+    _patternVariables.casePatternStart();
+    super.visitForEachPartsWithPattern(node);
+    var variablesMap = _patternVariables.casePatternFinish();
+    node.variables = variablesMap.values
+        .whereType<VariablePatternBindElementImpl>()
+        .toList();
   }
 
   @override

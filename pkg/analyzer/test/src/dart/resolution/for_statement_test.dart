@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -13,6 +14,7 @@ main() {
         ForStatement_ForEachPartsWithDeclaration_ResolutionTest);
     defineReflectiveTests(
         ForStatement_ForEachPartsWithIdentifier_ResolutionTest);
+    defineReflectiveTests(ForStatement_ForEachPartsWithPattern_ResolutionTest);
     defineReflectiveTests(ForStatement_ForParts_ResolutionTest);
   });
 }
@@ -395,6 +397,223 @@ ForStatement
           token: v
           staticElement: self::@function::f::@parameter::v
           staticType: dynamic
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+}
+
+@reflectiveTest
+class ForStatement_ForEachPartsWithPattern_ResolutionTest
+    extends PubPackageResolutionTest {
+  test_iterable_dynamic() async {
+    await assertNoErrorsInCode(r'''
+void f(x) {
+  for (var (a) in x) {
+    a;
+  }
+}
+''');
+    var node = findNode.forStatement('for');
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@24
+          type: dynamic
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: dynamic
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@24
+          staticType: dynamic
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_iterable_List() async {
+    await assertNoErrorsInCode(r'''
+void f(List<int> x) {
+  for (var (a) in x) {
+    a;
+  }
+}
+''');
+    var node = findNode.forStatement('for');
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@34
+          type: int
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: List<int>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@34
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_iterable_Object() async {
+    await assertErrorsInCode(r'''
+void f(Object x) {
+  for (var (a) in x) {
+    a;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE, 37, 1),
+    ]);
+    var node = findNode.forStatement('for');
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType a@31
+          type: dynamic
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@31
+          staticType: dynamic
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_keyword_final_patternVariable() async {
+    await assertNoErrorsInCode(r'''
+void f(List<int> x) {
+  for (final (a) in x) {
+    a;
+  }
+}
+''');
+    var node = findNode.forStatement('for');
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: final
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredElement: hasImplicitType isFinal a@36
+          type: int
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: List<int>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@36
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_pattern_patternVariable_typed() async {
+    await assertNoErrorsInCode(r'''
+void f(List<int> x) {
+  for (var (num a) in x) {
+    a;
+  }
+}
+''');
+    var node = findNode.forStatement('for');
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        type: NamedType
+          name: SimpleIdentifier
+            token: num
+            staticElement: dart:core::@class::num
+            staticType: null
+          type: num
+        name: a
+        declaredElement: a@38
+          type: num
+      rightParenthesis: )
+    inKeyword: in
+    iterable: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: List<int>
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@38
+          staticType: num
         semicolon: ;
     rightBracket: }
 ''');

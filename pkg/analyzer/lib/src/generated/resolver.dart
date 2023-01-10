@@ -4358,6 +4358,23 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitForEachPartsWithPattern(
+    covariant ForEachPartsWithPatternImpl node,
+  ) {
+    //
+    // We visit the iterator before the pattern because the pattern variables
+    // cannot be in scope while visiting the iterator.
+    //
+    node.iterable.accept(this);
+
+    for (var variable in node.variables) {
+      _define(variable);
+    }
+
+    node.pattern.accept(this);
+  }
+
+  @override
   void visitForElement(ForElement node) {
     Scope outerNameScope = nameScope;
     try {

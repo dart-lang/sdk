@@ -103,6 +103,15 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void patternForInExpressionIsNotIterable({
+    required Node node,
+    required Expression expression,
+    required DartType expressionType,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
   void patternTypeMismatchInIrrefutableContext(
       {required Node pattern,
       required Node context,
