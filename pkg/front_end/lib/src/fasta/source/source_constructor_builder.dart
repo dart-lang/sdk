@@ -122,14 +122,6 @@ abstract class AbstractSourceConstructorBuilder
   ProcedureKind? get kind => null;
 
   @override
-  Statement? get body {
-    if (bodyInternal == null && !isExternal) {
-      bodyInternal = new EmptyStatement();
-    }
-    return bodyInternal;
-  }
-
-  @override
   AsyncMarker get asyncModifier => AsyncMarker.Sync;
 
   @override
@@ -1130,20 +1122,19 @@ class SourceInlineClassConstructorBuilder
 
   @override
   int buildBodyNodes(void Function(Member, BuiltMemberKind) f) {
-    if (!isExternal) {
-      VariableDeclaration thisVariable = this.thisVariable!;
-      List<Statement> statements = [thisVariable];
-      _InitializerToStatementConverter visitor =
-          new _InitializerToStatementConverter(statements, thisVariable);
-      for (Initializer initializer in initializers) {
-        initializer.accept(visitor);
-      }
-      if (body != null && body is! EmptyStatement) {
-        statements.add(body!);
-      }
-      statements.add(new ReturnStatement(new VariableGet(thisVariable)));
-      body = new Block(statements);
+    VariableDeclaration thisVariable = this.thisVariable!;
+    List<Statement> statements = [thisVariable];
+    _InitializerToStatementConverter visitor =
+        new _InitializerToStatementConverter(statements, thisVariable);
+    for (Initializer initializer in initializers) {
+      initializer.accept(visitor);
     }
+    if (body != null && body is! EmptyStatement) {
+      statements.add(body!);
+    }
+    statements.add(new ReturnStatement(new VariableGet(thisVariable)));
+    body = new Block(statements);
+
     // TODO(johnniwinther): Support augmentation.
     return 0;
   }
@@ -1164,6 +1155,7 @@ class SourceInlineClassConstructorBuilder
     // According to the specification §9.3 the return type of a constructor
     // function is its enclosing class.
     super.buildFunction();
+
     InlineClass inlineClass = inlineClassBuilder.inlineClass;
     List<DartType> typeParameterTypes = <DartType>[];
     for (int i = 0; i < function.typeParameters.length; i++) {

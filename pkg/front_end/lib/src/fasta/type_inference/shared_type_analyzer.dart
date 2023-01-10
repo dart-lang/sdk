@@ -85,6 +85,14 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void matchedTypeIsStrictlyNonNullable({
+    required Pattern pattern,
+    required DartType matchedType,
+  }) {
+    // TODO(scheglov) Implement it.
+  }
+
+  @override
   void nonBooleanCondition(Expression node) {
     throw new UnimplementedError('TODO(paulberry)');
   }
@@ -92,6 +100,15 @@ class SharedTypeAnalyzerErrors
   @override
   void patternDoesNotAllowLate(Node pattern) {
     throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void patternForInExpressionIsNotIterable({
+    required Node node,
+    required Expression expression,
+    required DartType expressionType,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
   }
 
   @override

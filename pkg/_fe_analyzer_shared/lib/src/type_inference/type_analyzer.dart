@@ -904,7 +904,7 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Pattern innerPattern).
   void analyzeNullCheckOrAssertPattern(
       MatchContext<Node, Expression, Pattern, Type, Variable> context,
-      Node node,
+      Pattern node,
       Pattern innerPattern,
       {required bool isAssert}) {
     // Stack: ()
@@ -915,6 +915,12 @@ mixin TypeAnalyzer<
       errors?.refutablePatternInIrrefutableContext(node, irrefutableContext);
       // Avoid cascading errors
       context = context.makeRefutable();
+    } else if (operations.classifyType(matchedType) ==
+        TypeClassification.nonNullable) {
+      errors?.matchedTypeIsStrictlyNonNullable(
+        pattern: node,
+        matchedType: matchedType,
+      );
     }
     flow.pushSubpattern(innerMatchedType, isDistinctValue: false);
     dispatchPattern(context, innerPattern);
@@ -1028,6 +1034,52 @@ mixin TypeAnalyzer<
     flow.patternAssignment_end();
     // Stack: (Expression, Pattern)
     return new SimpleTypeAnalysisResult<Type>(type: rhsType);
+  }
+
+  /// Analyzes a `pattern-for-in` statement of the form
+  /// `for (<keyword> <pattern> in <expression>) <statement>`.
+  ///
+  /// Stack effect: pushes (Expression, Pattern).
+  void analyzePatternForInStatement({
+    required Statement node,
+    required Pattern pattern,
+    required Iterable<Variable> patternVariables,
+    required Expression expression,
+    required Statement body,
+  }) {
+    // Stack: ()
+    Type expressionType = analyzeExpression(expression, unknownType);
+    // Stack: (Expression)
+
+    Type? elementType = operations.matchIterableType(expressionType);
+    if (elementType == null) {
+      if (operations.isDynamic(expressionType)) {
+        elementType = dynamicType;
+      } else {
+        errors?.patternForInExpressionIsNotIterable(
+          node: node,
+          expression: expression,
+          expressionType: expressionType,
+        );
+        elementType = dynamicType;
+      }
+    }
+    flow.patternForInStatement_afterExpression(elementType);
+
+    dispatchPattern(
+      new MatchContext<Node, Expression, Pattern, Type, Variable>(
+        isFinal: false,
+        irrefutableContext: node,
+        topPattern: pattern,
+      ),
+      pattern,
+    );
+    // Stack: (Expression, Pattern)
+
+    flow.forEach_bodyBegin(node);
+    dispatchStatement(body);
+    flow.forEach_end();
+    flow.patternForInStatement_end();
   }
 
   /// Analyzes a patternVariableDeclaration statement of the form
@@ -1989,6 +2041,13 @@ abstract class TypeAnalyzerErrors<
     required Variable component,
   });
 
+  /// Called when a null-assert or null-check pattern is used with the matched
+  /// type that is strictly non-nullable, so the null check is not necessary.
+  void matchedTypeIsStrictlyNonNullable({
+    required Pattern pattern,
+    required Type matchedType,
+  });
+
   /// Called if the static type of a condition is not assignable to `bool`.
   void nonBooleanCondition(Expression node);
 
@@ -1999,6 +2058,16 @@ abstract class TypeAnalyzerErrors<
   ///
   /// [pattern] is the AST node of the illegal pattern.
   void patternDoesNotAllowLate(Node pattern);
+
+  /// Called if in a pattern `for-in` statement or element, the [expression]
+  /// that should be an `Iterable` (or dynamic) is actually not.
+  ///
+  /// [expressionType] is the actual type of the [expression].
+  void patternForInExpressionIsNotIterable({
+    required Node node,
+    required Expression expression,
+    required Type expressionType,
+  });
 
   /// Called if, for a pattern in an irrefutable context, the matched type of
   /// the pattern is not assignable to the required type.

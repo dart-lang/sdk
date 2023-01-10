@@ -795,6 +795,10 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       } else if (forLoopParts is ForEachPartsWithDeclaration) {
         var variable = forLoopParts.loopVariable.declaredElement!;
         assignedVariables.declare(variable);
+      } else if (forLoopParts is ForEachPartsWithPatternImpl) {
+        for (var variable in forLoopParts.variables) {
+          assignedVariables.declare(variable);
+        }
       } else {
         throw StateError('Unrecognized for loop parts');
       }

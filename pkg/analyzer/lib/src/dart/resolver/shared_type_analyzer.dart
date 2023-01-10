@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -117,6 +118,28 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void matchedTypeIsStrictlyNonNullable({
+    required DartPattern pattern,
+    required DartType matchedType,
+  }) {
+    if (pattern is PostfixPatternImpl) {
+      if (pattern.operator.type == TokenType.BANG) {
+        _errorReporter.reportErrorForToken(
+          StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN,
+          pattern.operator,
+        );
+      } else {
+        _errorReporter.reportErrorForToken(
+          StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN,
+          pattern.operator,
+        );
+      }
+    } else {
+      throw UnimplementedError('(${pattern.runtimeType}) $pattern');
+    }
+  }
+
+  @override
   void nonBooleanCondition(Expression node) {
     throw UnimplementedError('TODO(paulberry)');
   }
@@ -124,6 +147,19 @@ class SharedTypeAnalyzerErrors
   @override
   void patternDoesNotAllowLate(AstNode pattern) {
     throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void patternForInExpressionIsNotIterable({
+    required AstNode node,
+    required Expression expression,
+    required DartType expressionType,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
+      expression,
+      [expressionType, 'Iterable'],
+    );
   }
 
   @override

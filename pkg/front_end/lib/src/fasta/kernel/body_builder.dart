@@ -2145,7 +2145,7 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     setParents(builtInitializers, member);
-    if (body == null && !constructorDeclaration.isExternal) {
+    if (body == null) {
       /// >If a generative constructor c is not a redirecting constructor
       /// >and no body is provided, then c implicitly has an empty body {}.
       /// We use an empty statement instead.

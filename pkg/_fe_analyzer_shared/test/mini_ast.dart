@@ -306,6 +306,20 @@ Pattern objectPattern({
   );
 }
 
+/// Creates a "pattern-for-in" statement.
+///
+/// This models code like:
+///     void f(Iterable<(int, String)> iterable) {
+///       for (var (a, b) in iterable) { ... }
+///     }
+Statement patternForIn(
+    Pattern pattern, Expression expression, List<Statement> body) {
+  var location = computeLocation();
+  return new _PatternForIn(
+      pattern, expression, _Block(body, location: location),
+      location: location);
+}
+
 Pattern recordPattern(List<RecordPatternField> fields) =>
     _RecordPattern(fields, location: computeLocation());
 
@@ -3117,6 +3131,16 @@ class _MiniAstErrors
   }
 
   @override
+  void matchedTypeIsStrictlyNonNullable({
+    required Pattern pattern,
+    required Type matchedType,
+  }) {
+    _recordError(
+        'matchedTypeIsStrictlyNonNullable(pattern: ${pattern.errorId}, '
+        'matchedType: ${matchedType.type})');
+  }
+
+  @override
   void nonBooleanCondition(Expression node) {
     _recordError('nonBooleanCondition(${node.errorId})');
   }
@@ -3124,6 +3148,17 @@ class _MiniAstErrors
   @override
   void patternDoesNotAllowLate(Node pattern) {
     _recordError('patternDoesNotAllowLate(${pattern.errorId})');
+  }
+
+  @override
+  void patternForInExpressionIsNotIterable({
+    required Node node,
+    required Expression expression,
+    required Type expressionType,
+  }) {
+    _recordError('patternForInExpressionIsNotIterable(node: ${node.errorId}, '
+        'expression: ${expression.errorId}, '
+        'expressionType: ${expressionType.type})');
   }
 
   @override
@@ -4128,6 +4163,53 @@ class _PatternAssignment extends Expression {
         'patternAssignment', [Kind.expression, Kind.pattern], Kind.expression,
         location: location);
     return result;
+  }
+}
+
+class _PatternForIn extends Statement {
+  final Pattern pattern;
+  final Expression expression;
+  final Statement body;
+  late final Map<String, Var> variables;
+
+  _PatternForIn(this.pattern, this.expression, this.body,
+      {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    expression.preVisit(visitor);
+
+    var variableBinder = _VariableBinder(errors: visitor.errors);
+    variableBinder.casePatternStart();
+    pattern.preVisit(visitor, variableBinder, isInAssignment: false);
+    variables = variableBinder.casePatternFinish();
+    variableBinder.finish();
+
+    visitor._assignedVariables.beginNode();
+    body.preVisit(visitor);
+    visitor._assignedVariables.endNode(this);
+  }
+
+  @override
+  String toString() {
+    return 'for ($pattern in $expression) $body';
+  }
+
+  @override
+  void visit(Harness h) {
+    h.typeAnalyzer.analyzePatternForInStatement(
+      node: this,
+      pattern: pattern,
+      patternVariables: variables.values,
+      expression: expression,
+      body: body,
+    );
+    h.irBuilder.apply(
+      'forEach',
+      [Kind.expression, Kind.pattern, Kind.statement],
+      Kind.statement,
+      location: location,
+    );
   }
 }
 

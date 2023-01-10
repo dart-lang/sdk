@@ -799,6 +799,10 @@ import 'unnecessary_nan_comparison_test.dart' as unnecessary_nan_comparison;
 import 'unnecessary_no_such_method_test.dart' as unnecessary_no_such_method;
 import 'unnecessary_non_null_assertion_test.dart'
     as unnecessary_non_null_assertion;
+import 'unnecessary_null_assert_pattern_test.dart'
+    as unnecessary_null_assert_pattern;
+import 'unnecessary_null_check_pattern_test.dart'
+    as unnecessary_null_check_pattern;
 import 'unnecessary_null_comparison_test.dart' as unnecessary_null_comparison;
 import 'unnecessary_question_mark_test.dart' as unnecessary_question_mark;
 import 'unnecessary_type_check_test.dart' as unnecessary_type_check;
@@ -1368,6 +1372,8 @@ main() {
     unnecessary_nan_comparison.main();
     unnecessary_no_such_method.main();
     unnecessary_non_null_assertion.main();
+    unnecessary_null_assert_pattern.main();
+    unnecessary_null_check_pattern.main();
     unnecessary_null_comparison.main();
     unnecessary_question_mark.main();
     unnecessary_type_check.main();

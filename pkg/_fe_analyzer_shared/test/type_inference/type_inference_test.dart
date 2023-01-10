@@ -1531,6 +1531,68 @@ main() {
         });
       });
     });
+
+    group('Pattern-for-in:', () {
+      group('Expression type:', () {
+        test('Iterable', () {
+          var x = Var('x');
+          h.run([
+            patternForIn(x.pattern(), expr('Iterable<int>'), [])
+                .checkIr('forEach(expr(Iterable<int>), varPattern(x, '
+                    'matchedType: int, staticType: int), block())'),
+          ]);
+        });
+        test('dynamic', () {
+          var x = Var('x');
+          h.run([
+            patternForIn(x.pattern(), expr('dynamic'), [])
+                .checkIr('forEach(expr(dynamic), varPattern(x, '
+                    'matchedType: dynamic, staticType: dynamic), block())'),
+          ]);
+        });
+        test('Object', () {
+          var x = Var('x');
+          h.run([
+            (patternForIn(
+                    x.pattern(), expr('Object')..errorId = 'EXPRESSION', [])
+                  ..errorId = 'FOR')
+                .checkIr('forEach(expr(Object), varPattern(x, '
+                    'matchedType: dynamic, staticType: dynamic), block())'),
+          ], expectedErrors: {
+            'patternForInExpressionIsNotIterable(node: FOR, '
+                'expression: EXPRESSION, expressionType: Object)'
+          });
+        });
+      });
+      group('Refutability:', () {
+        test('When a refutable pattern', () {
+          var x = Var('x');
+          h.run([
+            (patternForIn(x.pattern().nullCheck..errorId = 'PATTERN',
+                    expr('Iterable<int?>'), [])
+                  ..errorId = 'FOR')
+                .checkIr('forEach(expr(Iterable<int?>), nullCheckPattern('
+                    'varPattern(x, matchedType: int, staticType: int), '
+                    'matchedType: int?), block())'),
+          ], expectedErrors: {
+            'refutablePatternInIrrefutableContext(PATTERN, FOR)',
+          });
+        });
+        test('When the variable type is not a subtype of the matched type', () {
+          var x = Var('x');
+          h.run([
+            (patternForIn(x.pattern(type: 'String')..errorId = 'PATTERN',
+                    expr('Iterable<int>'), [])
+                  ..errorId = 'FOR')
+                .checkIr('forEach(expr(Iterable<int>), varPattern(x, '
+                    'matchedType: int, staticType: String), block())'),
+          ], expectedErrors: {
+            'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
+                'context: FOR, matchedType: int, requiredType: String)',
+          });
+        });
+      });
+    });
   });
 
   group('Patterns:', () {
@@ -2421,12 +2483,15 @@ main() {
       test('Type schema', () {
         var x = Var('x');
         h.run([
-          match(x.pattern(type: 'int').nullAssert,
+          match(x.pattern(type: 'int').nullAssert..errorId = 'PATTERN',
                   expr('int').checkContext('int?'))
               .checkIr('match(expr(int), '
                   'nullAssertPattern(varPattern(x, matchedType: int, '
                   'staticType: int), matchedType: int))'),
-        ]);
+        ], expectedErrors: {
+          'matchedTypeIsStrictlyNonNullable(pattern: PATTERN, '
+              'matchedType: int)'
+        });
       });
 
       group('Refutability:', () {
@@ -2440,10 +2505,13 @@ main() {
 
         test('When matched type is non-nullable', () {
           h.run([
-            match(wildcard().nullAssert, expr('int'))
+            match(wildcard().nullAssert..errorId = 'PATTERN', expr('int'))
                 .checkIr('match(expr(int), nullAssertPattern('
                     'wildcardPattern(matchedType: int), matchedType: int))'),
-          ]);
+          ], expectedErrors: {
+            'matchedTypeIsStrictlyNonNullable(pattern: PATTERN, '
+                'matchedType: int)'
+          });
         });
 
         test('When matched type is dynamic', () {
@@ -2457,12 +2525,44 @@ main() {
 
         test('Sub-refutability', () {
           h.run([
-            (match((wildcard(type: 'int')..errorId = 'INT').nullAssert,
+            (match(
+                (wildcard(type: 'int')..errorId = 'INT').nullAssert
+                  ..errorId = 'PATTERN',
                 expr('num'))
               ..errorId = 'CONTEXT'),
           ], expectedErrors: {
+            'matchedTypeIsStrictlyNonNullable(pattern: PATTERN, '
+                'matchedType: num)',
             'patternTypeMismatchInIrrefutableContext(pattern: INT, '
                 'context: CONTEXT, matchedType: num, requiredType: int)'
+          });
+        });
+      });
+
+      group('Refutable', () {
+        test('When matched type is nullable', () {
+          h.run([
+            ifCase(
+              expr('int?'),
+              wildcard().nullAssert,
+              [],
+            ).checkIr('ifCase(expr(int?), nullAssertPattern(wildcardPattern('
+                'matchedType: int), matchedType: int?), variables(), true, '
+                'block(), noop)'),
+          ]);
+        });
+        test('When matched type is non-nullable', () {
+          h.run([
+            ifCase(
+              expr('int'),
+              wildcard().nullAssert..errorId = 'PATTERN',
+              [],
+            ).checkIr('ifCase(expr(int), nullAssertPattern(wildcardPattern('
+                'matchedType: int), matchedType: int), variables(), true, '
+                'block(), noop)'),
+          ], expectedErrors: {
+            'matchedTypeIsStrictlyNonNullable(pattern: PATTERN, '
+                'matchedType: int)'
           });
         });
       });
@@ -2515,6 +2615,34 @@ main() {
               ..errorId = 'CONTEXT'),
           ], expectedErrors: {
             'refutablePatternInIrrefutableContext(PATTERN, CONTEXT)'
+          });
+        });
+      });
+
+      group('Refutable', () {
+        test('When matched type is nullable', () {
+          h.run([
+            ifCase(
+              expr('int?'),
+              wildcard().nullCheck,
+              [],
+            ).checkIr('ifCase(expr(int?), nullCheckPattern(wildcardPattern('
+                'matchedType: int), matchedType: int?), variables(), true, '
+                'block(), noop)'),
+          ]);
+        });
+        test('When matched type is non-nullable', () {
+          h.run([
+            ifCase(
+              expr('int'),
+              wildcard().nullCheck..errorId = 'PATTERN',
+              [],
+            ).checkIr('ifCase(expr(int), nullCheckPattern(wildcardPattern('
+                'matchedType: int), matchedType: int), variables(), true, '
+                'block(), noop)'),
+          ], expectedErrors: {
+            'matchedTypeIsStrictlyNonNullable(pattern: PATTERN, '
+                'matchedType: int)'
           });
         });
       });

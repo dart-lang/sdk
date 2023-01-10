@@ -5603,6 +5603,26 @@ class StaticWarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const StaticWarningCode UNNECESSARY_NULL_ASSERT_PATTERN =
+      StaticWarningCode(
+    'UNNECESSARY_NULL_ASSERT_PATTERN',
+    "The null-assert pattern will have no effect because the matched type "
+        "isn't nullable.",
+    correctionMessage:
+        "Try replacing the null-assert pattern with its nested pattern.",
+  );
+
+  ///  No parameters.
+  static const StaticWarningCode UNNECESSARY_NULL_CHECK_PATTERN =
+      StaticWarningCode(
+    'UNNECESSARY_NULL_CHECK_PATTERN',
+    "The null-check pattern will have no effect because the matched type isn't "
+        "nullable.",
+    correctionMessage:
+        "Try replacing the null-check pattern with its nested pattern.",
+  );
+
   /// Initialize a newly created error code to have the given [name].
   const StaticWarningCode(
     String name,

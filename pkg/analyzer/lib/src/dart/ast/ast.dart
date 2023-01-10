@@ -3526,7 +3526,7 @@ class DeclaredVariablePatternImpl extends VariablePatternImpl
   Token get endToken => name;
 
   /// If [keyword] is `final`, returns it.
-  Token? get finalToken {
+  Token? get finalKeyword {
     final keyword = this.keyword;
     if (keyword != null && keyword.keyword == Keyword.FINAL) {
       return keyword;
@@ -3548,7 +3548,9 @@ class DeclaredVariablePatternImpl extends VariablePatternImpl
       } else if (parent is RestPatternElementImpl) {
         parent = parent.parent;
       }
-      if (parent is PatternVariableDeclarationImpl) {
+      if (parent is ForEachPartsWithPatternImpl) {
+        return parent;
+      } else if (parent is PatternVariableDeclarationImpl) {
         return parent;
       } else if (parent is PatternAssignmentImpl) {
         return parent;
@@ -5178,6 +5180,9 @@ class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   @override
   final DartPatternImpl pattern;
 
+  /// Variables declared in [pattern].
+  late final List<VariablePatternBindElementImpl> variables;
+
   ForEachPartsWithPatternImpl({
     required List<AnnotationImpl>? metadata,
     required this.keyword,
@@ -5196,6 +5201,14 @@ class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     } else {
       return _metadata.beginToken!;
     }
+  }
+
+  /// If [keyword] is `final`, returns it.
+  Token? get finalKeyword {
+    if (keyword.keyword == Keyword.FINAL) {
+      return keyword;
+    }
+    return null;
   }
 
   @override
@@ -10209,7 +10222,7 @@ class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   }
 
   /// If [keyword] is `final`, returns it.
-  Token? get finalToken {
+  Token? get finalKeyword {
     if (keyword.keyword == Keyword.FINAL) {
       return keyword;
     }
@@ -14057,7 +14070,7 @@ class WildcardPatternImpl extends DartPatternImpl implements WildcardPattern {
   Token get endToken => name;
 
   /// If [keyword] is `final`, returns it.
-  Token? get finalToken {
+  Token? get finalKeyword {
     final keyword = this.keyword;
     if (keyword != null && keyword.keyword == Keyword.FINAL) {
       return keyword;

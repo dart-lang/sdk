@@ -47,6 +47,15 @@ class ForResolver {
 
     if (forLoopParts is ForPartsImpl) {
       _forParts(node, forLoopParts, visitBody);
+    } else if (forLoopParts is ForEachPartsWithPatternImpl) {
+      _resolver.analyzePatternForInStatement(
+        node: node,
+        pattern: forLoopParts.pattern,
+        patternVariables: forLoopParts.variables,
+        expression: forLoopParts.iterable,
+        body: node.body,
+      );
+      _resolver.popRewrite();
     } else if (forLoopParts is ForEachPartsImpl) {
       _forEachParts(node, node.awaitKeyword != null, forLoopParts, visitBody);
     }
