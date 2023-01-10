@@ -14866,16 +14866,16 @@ the one that defines the mixins.
 Given a file named `a.dart` containing the following code:
 
 {% prettify dart tag=pre+code %}
-class A {
+mixin A {
   void _foo() {}
 }
 
-class B {
+mixin B {
   void _foo() {}
 }
 {% endprettify %}
 
-The following code produces this diagnostic because the classes `A` and `B`
+The following code produces this diagnostic because the mixins `A` and `B`
 both define the method `_foo`:
 
 {% prettify dart tag=pre+code %}

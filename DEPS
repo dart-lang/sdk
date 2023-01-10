@@ -125,7 +125,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "d0c6b1da52c9f80679a7aaa05e5935ef5c6bb52f", # manually rev'd
 
-  "dartdoc_rev": "9ed196f1cec6c764c22acaa6599de5c30e361d4a",
+  "dartdoc_rev": "29a1bbf8576f39c6f7c7dcf71f131a59bb346625",
   "devtools_rev": "dd3fade2bd2ef74fc6102e56333a48f0efc594d3",
   "ffi_rev": "2a56c2a9a87122c057168874bde384debbb806b0",
   "file_rev": "b768f79dcd104a5feabafab47101c4355b71cd8f",
@@ -139,7 +139,7 @@ vars = {
   "intl_rev": "c61fdd19c5a1a72b60d58152e2860f08725d188b",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "bd9f8d90ec9ce9d0da5c11f3e71b87af3aaca3b4",
-  "linter_rev": "79b843349deaea4a2455cfa37cc47cbc0e472190", # 1.32.0
+  "linter_rev": "8f7b75f8a3501ca2c4d5bbc1f003d90d66447544", # 1.32.0 (avoid_field_initializers_in_const_classes cherry-pick)
   "lints_rev": "dfded5e265015f21ce154577fe8488dc244e33c2",
   "logging_rev": "b525d5c39c8ae6f0826c63a371d286080e2ec93e",
   "markdown_rev": "ee3f4e976efcfed87c6ec78364bc2dd3c6e717b9", # https://github.com/dart-lang/markdown/pull/494
@@ -162,7 +162,7 @@ vars = {
   "sse_rev": "3c37edbd3fc0eced79abd26d78ec7d350340523a",
   "stack_trace_rev": "c08ee90b83380381a893d1e77a9a533d632f40e0",
   "stream_channel_rev": "0a7800ae41be5f7ba9990388fecc30a700186a48",
-  "string_scanner_rev": "6ddab2c6a3374c9b0fe5ba08ff9badce944a797e",
+  "string_scanner_rev": "c58618df0f17cbed664b3868c949abb13491e4d3",
   "sync_http_rev": "86226142aed0899792b7a0fa1ec491e03425aba3",
   "term_glyph_rev": "2bf45943466a5bb2d8d1add714fbfeebe5cabab5",
   "test_descriptor_rev": "b73c691c4e38e23bf8383148d3d68fa65e4a57e9",
@@ -176,7 +176,7 @@ vars = {
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "ebd0fe9ba8cbbb6f3d16b95092232a60dd867c5b",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
-  "webdev_rev": "8795ca5b89df0f912e31b0f5fa372b90f2a0bf66",
+  "webdev_rev": "49f97b8848c264e634affb045cf95ff4a34a7784",
   "webdriver_rev": "fcce0f0d0ebbda36398e1a6e3f29dfeb4eda43db",
   "webkit_inspection_protocol_rev": "ddb624cd85954dd384056cc253a8fc2b9da5364d",
   "yaml_edit_rev": "299f74594ff9fda412c1da5c0b5d5231d0c6fc42",

@@ -627,10 +627,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   /// Helper function to throw a Wasm ref downcast error.
   void throwWasmRefError(String expected) {
-    wrap(
-        StringLiteral(expected),
-        translator
-            .translateType(translator.coreTypes.stringNonNullableRawType));
+    _emitString(expected);
     call(translator.stackTraceCurrent.reference);
     call(translator.throwWasmRefError.reference);
     b.unreachable();
@@ -2736,6 +2733,23 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return operand.type;
   }
 
+  @override
+  w.ValueType visitLoadLibrary(LoadLibrary node, w.ValueType expectedType) {
+    LibraryDependency import = node.import;
+    _emitString(import.enclosingLibrary.importUri.toString());
+    _emitString(import.name!);
+    return call(translator.loadLibrary.reference);
+  }
+
+  @override
+  w.ValueType visitCheckLibraryIsLoaded(
+      CheckLibraryIsLoaded node, w.ValueType expectedType) {
+    LibraryDependency import = node.import;
+    _emitString(import.enclosingLibrary.importUri.toString());
+    _emitString(import.name!);
+    return call(translator.checkLibraryIsLoaded.reference);
+  }
+
   /// Pushes the `_Type` object for a function or class type parameter to the
   /// stack and returns the value type of the object.
   w.ValueType instantiateTypeParameter(TypeParameter parameter) {
@@ -3031,15 +3045,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // Type check failed
     b.local_get(argLocal);
     b.local_get(argExpectedTypeLocal);
-    wrap(
-        StringLiteral(argName),
-        translator
-            .translateType(translator.coreTypes.stringNonNullableRawType));
+    _emitString(argName);
     call(translator.stackTraceCurrent.reference);
     call(translator.throwArgumentTypeCheckError.reference);
     b.unreachable();
     b.end();
   }
+
+  void _emitString(String str) => wrap(StringLiteral(str),
+      translator.translateType(translator.coreTypes.stringNonNullableRawType));
 }
 
 class TryBlockFinalizer {

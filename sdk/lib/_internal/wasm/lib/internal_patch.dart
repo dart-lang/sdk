@@ -5,6 +5,7 @@
 import "dart:typed_data" show Uint8List;
 
 part "class_id.dart";
+part "deferred.dart";
 part "print_patch.dart";
 part "symbol_patch.dart";
 

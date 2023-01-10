@@ -183,6 +183,8 @@ CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IS_NOT_SWITCH_EXPRESSION_SUBTYPE:
   status: needsEvaluation
 CompileTimeErrorCode.CAST_TO_NON_TYPE:
   status: hasFix
+CompileTimeErrorCode.CLASS_USED_AS_MIXIN:
+  status: needsEvaluation
 CompileTimeErrorCode.CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER:
   status: needsEvaluation
   since: 2.15
@@ -1638,13 +1640,13 @@ HintCode.UNNECESSARY_IGNORE:
 HintCode.UNNECESSARY_IMPORT:
   status: hasFix
 HintCode.UNNECESSARY_NAN_COMPARISON_FALSE:
-  status: needsFix
+  status: hasFix
   notes: |-
-    Use 'isNaN', or remove the comparison.
+    Add another fix to remove the comparison.
 HintCode.UNNECESSARY_NAN_COMPARISON_TRUE:
-  status: needsFix
+  status: hasFix
   notes: |-
-    Use 'isNaN', or remove the comparison.
+    Add another fix to remove the comparison.
 HintCode.UNNECESSARY_NO_SUCH_METHOD:
   status: needsFix
   notes: |-
@@ -1746,9 +1748,7 @@ LintCode.always_declare_return_types:
 LintCode.always_put_control_body_on_new_line:
   status: hasFix
 LintCode.always_put_required_named_parameters_first:
-  status: needsFix
-  notes: |-
-    Can fix by moving required named parameters before non-required ones.
+  status: hasFix
 LintCode.always_require_non_null_named_parameters:
   status: hasFix
 LintCode.always_specify_types:

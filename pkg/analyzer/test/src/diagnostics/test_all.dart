@@ -66,6 +66,7 @@ import 'cast_from_null_always_fails_test.dart' as cast_from_null_always_fails;
 import 'cast_to_non_type_test.dart' as cast_to_non_type;
 import 'class_instantiation_access_to_member_test.dart'
     as class_instantiation_access_to_member;
+import 'class_used_as_mixin_test.dart' as class_used_as_mixin;
 import 'concrete_class_has_enum_superinterface_test.dart'
     as concrete_class_has_enum_superinterface;
 import 'concrete_class_with_abstract_member_test.dart'
@@ -884,6 +885,7 @@ main() {
     cast_from_null_always_fails.main();
     cast_to_non_type.main();
     class_instantiation_access_to_member.main();
+    class_used_as_mixin.main();
     concrete_class_has_enum_superinterface.main();
     concrete_class_with_abstract_member.main();
     conflicting_constructor_and_static_field.main();

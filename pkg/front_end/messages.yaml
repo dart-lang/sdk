@@ -6021,6 +6021,7 @@ SealedMixinSubtypeOutsideOfLibrary:
 
 CantUseClassAsMixin:
   problemMessage: "Class '#name' can't be used as a mixin."
+  analyzerCode: CLASS_USED_AS_MIXIN
   experiments: class-modifiers
   script:
     main.dart:

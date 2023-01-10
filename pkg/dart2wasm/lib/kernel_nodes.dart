@@ -11,14 +11,17 @@ mixin KernelNodes {
   Component get component;
 
   late final LibraryIndex index = LibraryIndex(component, [
+    "dart:_internal",
     "dart:async",
     "dart:collection",
     "dart:core",
     "dart:ffi",
-    "dart:_internal",
     "dart:typed_data",
     "dart:wasm"
   ]);
+
+  // dart:_internal classes
+  late final Class symbolClass = index.getClass("dart:_internal", "Symbol");
 
   // dart:collection classes
   late final Class hashFieldBaseClass =
@@ -89,9 +92,6 @@ mixin KernelNodes {
   late final Class unmodifiableByteDataViewClass =
       index.getClass("dart:typed_data", "_UnmodifiableByteDataView");
 
-  // dart:_internal classes
-  late final Class symbolClass = index.getClass("dart:_internal", "Symbol");
-
   // dart:wasm classes
   late final Class wasmTypesBaseClass =
       index.getClass("dart:wasm", "_WasmBase");
@@ -114,6 +114,12 @@ mixin KernelNodes {
   late final Class wasmFunctionClass =
       index.getClass("dart:wasm", "WasmFunction");
   late final Class wasmTableClass = index.getClass("dart:wasm", "WasmTable");
+
+  // dart:_internal procedures
+  late final Procedure loadLibrary =
+      index.getTopLevelProcedure("dart:_internal", "loadLibrary");
+  late final Procedure checkLibraryIsLoaded =
+      index.getTopLevelProcedure("dart:_internal", "checkLibraryIsLoaded");
 
   // dart:async procedures
   late final Procedure asyncHelper =

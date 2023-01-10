@@ -8118,6 +8118,15 @@ class TypeArguments : public Instance {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
+      TrailPtr trail = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
+
+  // Update number of parent function type arguments for
+  // all elements of this vector.
+  TypeArgumentsPtr UpdateParentFunctionType(
+      intptr_t num_parent_type_args_adjustment,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
       TrailPtr trail = nullptr) const;
 
   // Runtime instantiation with canonicalization. Not to be used during type
@@ -8465,6 +8474,21 @@ class AbstractType : public Instance {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
+      TrailPtr trail = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
+
+  // Update number of parent function type arguments for the
+  // nested function types and their type parameters.
+  //
+  // This adjustment is needed when nesting one generic function type
+  // inside another.
+  // Number of parent function type arguments is adjusted by
+  // [num_parent_type_args_adjustment].
+  // Type parameters up to [num_free_fun_type_params] are not adjusted.
+  virtual AbstractTypePtr UpdateParentFunctionType(
+      intptr_t num_parent_type_args_adjustment,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
       TrailPtr trail = nullptr) const;
 
   // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
@@ -8754,7 +8778,15 @@ class Type : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
+      TrailPtr trail = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
+
+  virtual AbstractTypePtr UpdateParentFunctionType(
+      intptr_t num_parent_type_args_adjustment,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
       TrailPtr trail = nullptr) const;
+
   virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if type is canonical.
@@ -8894,7 +8926,15 @@ class FunctionType : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
+      TrailPtr trail = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
+
+  virtual AbstractTypePtr UpdateParentFunctionType(
+      intptr_t num_parent_type_args_adjustment,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
       TrailPtr trail = nullptr) const;
+
   virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if type is canonical.
@@ -9173,7 +9213,15 @@ class TypeRef : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
+      TrailPtr trail = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
+
+  virtual AbstractTypePtr UpdateParentFunctionType(
+      intptr_t num_parent_type_args_adjustment,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
       TrailPtr trail = nullptr) const;
+
   virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if typeref is canonical.
@@ -9258,7 +9306,15 @@ class TypeParameter : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
+      TrailPtr trail = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
+
+  virtual AbstractTypePtr UpdateParentFunctionType(
+      intptr_t num_parent_type_args_adjustment,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
       TrailPtr trail = nullptr) const;
+
   virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if type parameter is canonical.
@@ -10964,7 +11020,15 @@ class RecordType : public AbstractType {
       const TypeArguments& function_type_arguments,
       intptr_t num_free_fun_type_params,
       Heap::Space space,
+      TrailPtr trail = nullptr,
+      intptr_t num_parent_type_args_adjustment = 0) const;
+
+  virtual AbstractTypePtr UpdateParentFunctionType(
+      intptr_t num_parent_type_args_adjustment,
+      intptr_t num_free_fun_type_params,
+      Heap::Space space,
       TrailPtr trail = nullptr) const;
+
   virtual AbstractTypePtr Canonicalize(Thread* thread, TrailPtr trail) const;
 #if defined(DEBUG)
   // Check if type is canonical.

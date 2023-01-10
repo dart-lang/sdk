@@ -1404,6 +1404,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkMixinsSuperClass(withClause);
       _checkForMixinWithConflictingPrivateMember(withClause, superclass);
       _checkForConflictingGenerics(node);
+      _checkForClassUsedAsMixin(node, withClause);
       _checkForSealedSupertypeOutsideOfLibrary(
           node, superclass, withClause, implementsClause);
       if (node is ClassDeclaration) {
@@ -1801,6 +1802,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       SwitchMember member = members[i];
       if (member is SwitchCase) {
         _checkForCaseBlockNotTerminated(member);
+      }
+    }
+  }
+
+  /// Verify that if a class is being mixed in and class modifiers are enabled
+  /// in that class' library, then the mixin application must be in the same
+  /// library as that class declaration.
+  ///
+  /// No error is emitted if the class being mixed in is a mixin class.
+  ///
+  /// See [CompileTimeErrorCode.CLASS_USED_AS_MIXIN].
+  void _checkForClassUsedAsMixin(
+      NamedCompilationUnitMember node, WithClause? withClause) {
+    if (withClause != null) {
+      for (NamedType withMixin in withClause.mixinTypes) {
+        final withType = withMixin.type;
+        if (withType is InterfaceType) {
+          final withElement = withType.element;
+          if (withElement is ClassElementImpl &&
+              !withElement.isMixinClass &&
+              withElement.library != _currentLibrary &&
+              withElement.library.featureSet
+                  .isEnabled(Feature.class_modifiers)) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.CLASS_USED_AS_MIXIN,
+                node,
+                [withElement.name]);
+          }
+        }
       }
     }
   }

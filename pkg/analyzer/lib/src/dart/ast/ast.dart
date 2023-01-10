@@ -3540,7 +3540,14 @@ class DeclaredVariablePatternImpl extends VariablePatternImpl
   /// * Matching context: [GuardedPatternImpl]
   AstNodeImpl? get patternContext {
     for (DartPatternImpl current = this;;) {
-      final parent = current.parent;
+      var parent = current.parent;
+      if (parent is MapPatternEntry) {
+        parent = parent.parent;
+      } else if (parent is RecordPatternFieldImpl) {
+        parent = parent.parent;
+      } else if (parent is RestPatternElementImpl) {
+        parent = parent.parent;
+      }
       if (parent is PatternVariableDeclarationImpl) {
         return parent;
       } else if (parent is PatternAssignmentImpl) {
@@ -10986,7 +10993,7 @@ class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   Token get beginToken => leftParenthesis;
 
   @override
-  Token get endToken => rightParenthesis;
+  Token get endToken => question ?? rightParenthesis;
 
   @override
   ChildEntities get _childEntities => super._childEntities

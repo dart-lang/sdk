@@ -528,6 +528,18 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
   Uri get requestedUri {
     var requestedUri = _requestedUri;
     if (requestedUri != null) return requestedUri;
+
+    // `uri` can be an absoluteURI or an abs_path (RFC 2616 section 5.1.2).
+    // If `uri` is already absolute then use it as-is. Otherwise construct an
+    // absolute URI using `uri` and header information.
+
+    // RFC 3986 section 4.3 says that an absolute URI must have a scheme and
+    // cannot have a fragment. But any URI with a scheme is sufficient for the
+    // purpose of providing the `requestedUri`.
+    if (uri.hasScheme) {
+      return _requestedUri = uri;
+    }
+
     var proto = headers['x-forwarded-proto'];
     var scheme = proto != null
         ? proto.first

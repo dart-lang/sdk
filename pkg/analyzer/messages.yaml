@@ -1568,6 +1568,11 @@ CompileTimeErrorCode:
       num x = 0;
       int y = x as int;
       ```
+  CLASS_USED_AS_MIXIN:
+    problemMessage: "The class '{0}' can't be implicitly used as a mixin because it isn't a mixin class nor a mixin."
+    comment: |-
+      Parameters:
+      0: the name of the class being used as a mixin
   CLASS_INSTANTIATION_ACCESS_TO_INSTANCE_MEMBER:
     sharedName: CLASS_INSTANTIATION_ACCESS_TO_MEMBER
     problemMessage: "The instance member '{0}' can't be accessed on a class instantiation."
@@ -11446,16 +11451,16 @@ CompileTimeErrorCode:
 
       ```dart
       %uri="lib/a.dart"
-      class A {
+      mixin A {
         void _foo() {}
       }
 
-      class B {
+      mixin B {
         void _foo() {}
       }
       ```
 
-      The following code produces this diagnostic because the classes `A` and `B`
+      The following code produces this diagnostic because the mixins `A` and `B`
       both define the method `_foo`:
 
       ```dart

@@ -862,6 +862,29 @@ class JSCommandLineCommand extends ProcessCommand {
       JSCommandLineOutput(this, exitCode, timedOut, stdout, stderr, time);
 }
 
+class Dart2WasmCommandLineCommand extends ProcessCommand {
+  Dart2WasmCommandLineCommand(
+      String displayName, String executable, List<String> arguments,
+      [Map<String, String> environmentOverrides = const {}, int index = 0])
+      : super(displayName, executable, arguments, environmentOverrides, null,
+            index);
+
+  Dart2WasmCommandLineCommand indexedCopy(int index) =>
+      Dart2WasmCommandLineCommand(
+          displayName, executable, arguments, environmentOverrides, index);
+
+  Dart2WasmCommandLineOutput createOutput(
+          int exitCode,
+          bool timedOut,
+          List<int> stdout,
+          List<int> stderr,
+          Duration time,
+          bool compilationSkipped,
+          [int? pid = 0]) =>
+      Dart2WasmCommandLineOutput(
+          this, exitCode, timedOut, stdout, stderr, time);
+}
+
 /// [ScriptCommand]s are executed by dart code.
 abstract class ScriptCommand extends Command {
   ScriptCommand._(String displayName, {int index = 0})

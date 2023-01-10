@@ -913,9 +913,8 @@ const Template<Message Function(String name)> templateCantUseClassAsMixin =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeCantUseClassAsMixin =
-    const Code<Message Function(String name)>(
-  "CantUseClassAsMixin",
-);
+    const Code<Message Function(String name)>("CantUseClassAsMixin",
+        analyzerCodes: <String>["CLASS_USED_AS_MIXIN"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCantUseClassAsMixin(String name) {
