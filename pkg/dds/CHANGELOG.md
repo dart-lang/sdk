@@ -1,5 +1,6 @@
 # 2.7.1
 - Updated `vm_service` version to ^10.0.0.
+- Simplified the DevTools URI composed by DDS.
 
 # 2.7.0
 - Added `DartDevelopmentService.setExternalDevToolsUri(Uri uri)`, adding support for registering an external DevTools server with DDS.

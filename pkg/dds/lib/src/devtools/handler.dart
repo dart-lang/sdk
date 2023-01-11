@@ -32,8 +32,8 @@ FutureOr<Handler> defaultHandler({
   ClientManager? clientManager,
   Handler? notFoundHandler,
 }) {
-  // When served through DDS, the app root is /devtools/.
-  // This variable is used in base href and must start and end with `/`.
+  // When served through DDS, the app root is /devtools.
+  // This variable is used in base href and must start and end with `/`
   var appRoot = dds != null ? '/devtools/' : '/';
   if (dds?.authCodesEnabled ?? false) {
     appRoot = '/${dds!.authCode}$appRoot';
