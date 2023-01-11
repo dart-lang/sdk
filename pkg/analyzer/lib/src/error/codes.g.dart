@@ -1707,7 +1707,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode FOR_IN_OF_INVALID_TYPE =
       CompileTimeErrorCode(
     'FOR_IN_OF_INVALID_TYPE',
-    "The type '{0}' used in the 'for' loop must implement {1}.",
+    "The type '{0}' used in the 'for' loop must implement '{1}'.",
     hasPublishedDocs: true,
   );
 

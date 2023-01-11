@@ -5242,7 +5242,7 @@ CompileTimeErrorCode:
       }
       ```
   FOR_IN_OF_INVALID_TYPE:
-    problemMessage: "The type '{0}' used in the 'for' loop must implement {1}."
+    problemMessage: "The type '{0}' used in the 'for' loop must implement '{1}'."
     hasPublishedDocs: true
     comment: |-
       Parameters:
