@@ -128,12 +128,19 @@ const _details = r'''
 ''';
 
 class $className extends LintRule {
+  static const LintCode code = LintCode(
+      '$ruleName', '<add problem message here>',
+      correctionMessage: '<add correction message here>');
+
   $className()
       : super(
             name: '$ruleName',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(NodeLintRegistry registry, LinterContext context) {
@@ -154,6 +161,7 @@ class _Visitor extends SimpleAstVisitor {
 }
 """;
 
+// todo(pq): update to generate a unit test instead.
 String _generateTest(String libName, String className) => '''
 // Copyright (c) $_thisYear, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
