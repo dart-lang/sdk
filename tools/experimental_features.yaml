@@ -102,7 +102,7 @@
 # files that specify an earlier version.
 #
 # Furthermore, most of the above was designed with language features
-# (spanning both CFE anqgit d Analyzer) in mind, but didn't take into account
+# (spanning both CFE and Analyzer) in mind, but didn't take into account
 # features in individual products (e.g. in CFE that has no influence on
 # Analyzer). As a stepping-stone to allow for this usage as well, a "category"
 # is also available. If no "category" is specified it's assumed to be the
