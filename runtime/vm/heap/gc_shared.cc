@@ -37,10 +37,9 @@ void GCLinkedLists::FlushInto(GCLinkedLists* to) {
 }
 
 Heap::Space SpaceForExternal(FinalizerEntryPtr raw_entry) {
-  // Not Smi, these cannot be integers. They either need to be valid Expando
-  // keys (Finalizer) or Finalizable (NativeFinalizer).
-  ASSERT(raw_entry->untag()->value().IsHeapObject());
-  return raw_entry->untag()->value()->IsOldObject() ? Heap::kOld : Heap::kNew;
+  // As with WeakTables, Smis are "old".
+  return raw_entry->untag()->value()->IsSmiOrOldObject() ? Heap::kOld
+                                                         : Heap::kNew;
 }
 
 }  // namespace dart
