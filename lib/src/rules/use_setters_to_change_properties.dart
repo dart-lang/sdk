@@ -31,12 +31,19 @@ button.visible = false;
 ''';
 
 class UseSettersToChangeAProperty extends LintRule {
+  static const LintCode code = LintCode('use_setters_to_change_properties',
+      'The method is used to change a property.',
+      correctionMessage: 'Try converting the method to a setter.');
+
   UseSettersToChangeAProperty()
       : super(
             name: 'use_setters_to_change_properties',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

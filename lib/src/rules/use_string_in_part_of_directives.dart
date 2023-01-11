@@ -29,6 +29,11 @@ part of '../../my_library.dart';
 ''';
 
 class UseStringInPartOfDirectives extends LintRule {
+  static const LintCode code = LintCode('use_string_in_part_of_directives',
+      'The part-of directive uses a library name.',
+      correctionMessage:
+          'Try converting the directive to use the URI of the library.');
+
   UseStringInPartOfDirectives()
       : super(
           name: 'use_string_in_part_of_directives',
@@ -36,6 +41,9 @@ class UseStringInPartOfDirectives extends LintRule {
           details: _details,
           group: Group.style,
         );
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -48,9 +56,9 @@ class UseStringInPartOfDirectives extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule);
-
   final LintRule rule;
+
+  _Visitor(this.rule);
 
   @override
   void visitPartOfDirective(PartOfDirective node) {

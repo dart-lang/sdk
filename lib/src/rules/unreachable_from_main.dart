@@ -42,6 +42,10 @@ void f() {}
 ''';
 
 class UnreachableFromMain extends LintRule {
+  static const LintCode code = LintCode('invariant_booleans',
+      'Unreachable top-level member in an executable library.',
+      correctionMessage: 'Try referencing the member or removing it.');
+
   UnreachableFromMain()
       : super(
           name: 'unreachable_from_main',
@@ -50,6 +54,9 @@ class UnreachableFromMain extends LintRule {
           group: Group.style,
           state: State.experimental(),
         );
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -61,10 +68,69 @@ class UnreachableFromMain extends LintRule {
   }
 }
 
-class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule);
+/// A visitor which gathers the declarations of the identifiers it visits.
+class _IdentifierVisitor extends RecursiveAstVisitor {
+  Map<Element, Declaration> declarationMap;
 
+  Set<Declaration> declarations = {};
+
+  _IdentifierVisitor(this.declarationMap);
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _visitCompoundAssignmentExpression(node);
+    super.visitAssignmentExpression(node);
+  }
+
+  @override
+  void visitPostfixExpression(PostfixExpression node) {
+    _visitCompoundAssignmentExpression(node);
+    super.visitPostfixExpression(node);
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    _visitCompoundAssignmentExpression(node);
+    super.visitPrefixExpression(node);
+  }
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    var e = node.staticElement;
+    if (e != null) {
+      _addDeclaration(e);
+    }
+    super.visitSimpleIdentifier(node);
+  }
+
+  /// Adds the declaration of the top-level element which contains [element] to
+  /// [declarations], if it is found in [declarationMap].
+  void _addDeclaration(Element element) {
+    var enclosingElement = element.thisOrAncestorMatching((a) =>
+        a.enclosingElement == null ||
+        a.enclosingElement is CompilationUnitElement);
+    var enclosingDeclaration = declarationMap[enclosingElement];
+    if (enclosingDeclaration != null) {
+      declarations.add(enclosingDeclaration);
+    }
+  }
+
+  void _visitCompoundAssignmentExpression(CompoundAssignmentExpression node) {
+    var readElement = node.readElement;
+    if (readElement != null) {
+      _addDeclaration(readElement);
+    }
+    var writeElement = node.writeElement;
+    if (writeElement != null) {
+      _addDeclaration(writeElement);
+    }
+  }
+}
+
+class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
+
+  _Visitor(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -157,65 +223,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     return name != null &&
         name.hasKnownValue &&
         name.toStringValue() == 'vm:entry-point';
-  }
-}
-
-/// A visitor which gathers the declarations of the identifiers it visits.
-class _IdentifierVisitor extends RecursiveAstVisitor {
-  Map<Element, Declaration> declarationMap;
-
-  Set<Declaration> declarations = {};
-
-  _IdentifierVisitor(this.declarationMap);
-
-  @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _visitCompoundAssignmentExpression(node);
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
-  void visitPostfixExpression(PostfixExpression node) {
-    _visitCompoundAssignmentExpression(node);
-    super.visitPostfixExpression(node);
-  }
-
-  @override
-  void visitPrefixExpression(PrefixExpression node) {
-    _visitCompoundAssignmentExpression(node);
-    super.visitPrefixExpression(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var e = node.staticElement;
-    if (e != null) {
-      _addDeclaration(e);
-    }
-    super.visitSimpleIdentifier(node);
-  }
-
-  void _visitCompoundAssignmentExpression(CompoundAssignmentExpression node) {
-    var readElement = node.readElement;
-    if (readElement != null) {
-      _addDeclaration(readElement);
-    }
-    var writeElement = node.writeElement;
-    if (writeElement != null) {
-      _addDeclaration(writeElement);
-    }
-  }
-
-  /// Adds the declaration of the top-level element which contains [element] to
-  /// [declarations], if it is found in [declarationMap].
-  void _addDeclaration(Element element) {
-    var enclosingElement = element.thisOrAncestorMatching((a) =>
-        a.enclosingElement == null ||
-        a.enclosingElement is CompilationUnitElement);
-    var enclosingDeclaration = declarationMap[enclosingElement];
-    if (enclosingDeclaration != null) {
-      declarations.add(enclosingDeclaration);
-    }
   }
 }
 
