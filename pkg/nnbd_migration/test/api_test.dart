@@ -4904,7 +4904,6 @@ Future<List<int>> getInts() {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50958')
   Future<void> test_generic_bound() async {
     var content = '''
 abstract class C<T> {

@@ -1909,10 +1909,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseArgumentsOptMetadata(Token token) {
-    doPrint('parseArgumentsOptMetadata(' '$token)');
+  Token parseArgumentsOptMetadata(Token token, bool hasTypeArguments) {
+    doPrint('parseArgumentsOptMetadata(' '$token, ' '$hasTypeArguments)');
     indent++;
-    var result = super.parseArgumentsOptMetadata(token);
+    var result = super.parseArgumentsOptMetadata(token, hasTypeArguments);
     indent--;
     return result;
   }
