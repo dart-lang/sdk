@@ -492,9 +492,9 @@ class Isolate {
   /// no exit message will be sent.
   ///
   /// The [response] object must follow the same restrictions as enforced by
-  /// [SendPort.send].
-  /// It is recommended to only use simple values that can be sent to all
-  /// isolates, like `null`, booleans, numbers or strings.
+  /// [SendPort.send] when sending to an isolate from another isolate group;
+  /// only simple values that can be sent to all isolates, like `null`,
+  /// booleans, numbers or strings, are allowed.
   ///
   /// Since isolates run concurrently, it's possible for it to exit before the
   /// exit listener is established, and in that case no response will be
@@ -571,9 +571,9 @@ class Isolate {
   /// Requests that the isolate send [response] on the [responsePort].
   ///
   /// The [response] object must follow the same restrictions as enforced by
-  /// [SendPort.send].
-  /// It is recommended to only use simple values that can be sent to all
-  /// isolates, like `null`, booleans, numbers or strings.
+  /// [SendPort.send] when sending to an isolate from another isolate group;
+  /// only simple values that can be sent to all isolates, like `null`,
+  /// booleans, numbers or strings, are allowed.
   ///
   /// If the isolate is alive, it will eventually send `response`
   /// (defaulting to `null`) on the response port.
