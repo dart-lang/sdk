@@ -26,8 +26,23 @@ DEFINE_FLAG(bool,
             print_flow_graph_as_json,
             false,
             "Use machine readable output when printing IL graphs.");
+DEFINE_FLAG(bool, print_redundant_il, false, "Print redundant IL instructions");
 
 DECLARE_FLAG(bool, trace_inlining_intervals);
+
+static bool IsRedundant(Instruction* instr) {
+  if (auto constant = instr->AsConstant()) {
+    return !constant->HasUses();
+  } else if (auto move = instr->AsParallelMove()) {
+    return move->IsRedundant();
+  } else {
+    return true;
+  }
+}
+
+static bool ShouldPrintInstruction(Instruction* instr) {
+  return FLAG_print_redundant_il || !IsRedundant(instr);
+}
 
 const char* RepresentationToCString(Representation rep) {
   switch (rep) {
@@ -96,8 +111,9 @@ class IlTestPrinter : public AllStatic {
           block_with_defs->initial_definitions()->length() > 0) {
         writer->OpenArray("d");
         for (auto defn : *block_with_defs->initial_definitions()) {
-          if (defn->IsConstant() && !defn->HasUses()) continue;
-          PrintInstruction(writer, defn);
+          if (ShouldPrintInstruction(defn)) {
+            PrintInstruction(writer, defn);
+          }
         }
         writer->CloseArray();
       }
@@ -261,6 +277,12 @@ void FlowGraphPrinter::PrintBlock(BlockEntryInstr* block,
   // And all the successors in the block.
   for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
+
+    // Skip redundant parallel moves.
+    if (!ShouldPrintInstruction(current)) {
+      continue;
+    }
+
     PrintOneInstruction(current, print_locations);
     THR_Print("\n");
   }
@@ -1081,7 +1103,9 @@ void BlockEntryWithInitialDefs::PrintInitialDefinitionsTo(
     for (intptr_t i = 0; i < defns.length(); ++i) {
       Definition* def = defns[i];
       // Skip constants which are not used in the graph.
-      if (def->IsConstant() && !def->HasUses()) continue;
+      if (!ShouldPrintInstruction(def)) {
+        continue;
+      }
       f->AddString("\n      ");
       def->PrintTo(f);
     }

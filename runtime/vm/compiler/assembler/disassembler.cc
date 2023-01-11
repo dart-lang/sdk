@@ -25,6 +25,10 @@ DECLARE_FLAG(bool, trace_inlining_intervals);
 #endif
 
 DEFINE_FLAG(bool, trace_source_positions, false, "Source position diagnostics");
+DEFINE_FLAG(bool,
+            include_inlining_info_in_disassembly,
+            true,
+            "Include inlining information when printing disassembly")
 
 void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
                                              intptr_t hex_size,
@@ -160,7 +164,8 @@ void Disassembler::Disassemble(uword start,
       formatter->Print("        ;; %s\n", comments->CommentAt(comment_finger));
       comment_finger++;
     }
-    if (old_comment_finger != comment_finger && !code.IsNull()) {
+    if (FLAG_include_inlining_info_in_disassembly &&
+        old_comment_finger != comment_finger && !code.IsNull()) {
       char str[4000];
       BufferFormatter f(str, sizeof(str));
       // Comment emitted, emit inlining information.
