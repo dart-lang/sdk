@@ -8094,6 +8094,19 @@ const MessageCode messageMemberWithSameNameAsClass = const MessageCode(
     correctionMessage: r"""Try renaming the member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMetadataSpaceBeforeParenthesis =
+    messageMetadataSpaceBeforeParenthesis;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMetadataSpaceBeforeParenthesis = const MessageCode(
+    "MetadataSpaceBeforeParenthesis",
+    index: 134,
+    problemMessage:
+        r"""Annotations can't have spaces or comments before the parenthesis.""",
+    correctionMessage:
+        r"""Remove any spaces or comments before the parenthesis.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMetadataTypeArguments = messageMetadataTypeArguments;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

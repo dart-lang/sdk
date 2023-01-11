@@ -1777,6 +1777,23 @@ MetadataTypeArgumentsUninstantiated:
   script:
     - "@deprecated<int> class C {}"
 
+MetadataSpaceBeforeParenthesis:
+  index: 134
+  problemMessage: "Annotations can't have spaces or comments before the parenthesis."
+  correctionMessage: Remove any spaces or comments before the parenthesis.
+  analyzerCode: ParserErrorCode.ANNOTATION_SPACE_BEFORE_PARENTHESIS
+  script:
+    - >-
+      class Foo<T> {
+        const Foo();
+      }
+      @Foo<int> () var bar;
+    - >-
+      class Foo {
+        const Foo();
+      }
+      @Foo () class Bar {}
+
 ConstructorNotFound:
   problemMessage: "Couldn't find constructor '#name'."
   analyzerCode: CONSTRUCTOR_NOT_FOUND

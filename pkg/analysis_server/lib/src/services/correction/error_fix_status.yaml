@@ -2244,6 +2244,8 @@ ParserErrorCode.ABSTRACT_TYPEDEF:
   status: needsEvaluation
 ParserErrorCode.ANNOTATION_ON_TYPE_ARGUMENT:
   status: needsEvaluation
+ParserErrorCode.ANNOTATION_SPACE_BEFORE_PARENTHESIS:
+  status: needsEvaluation
 ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS:
   status: needsEvaluation
 ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED:

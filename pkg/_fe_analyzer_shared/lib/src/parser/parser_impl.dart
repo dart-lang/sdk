@@ -1234,7 +1234,7 @@ class Parser {
       reportRecoverableError(
           token, codes.messageMetadataTypeArgumentsUninstantiated);
     }
-    token = parseArgumentsOptMetadata(token);
+    token = parseArgumentsOptMetadata(token, hasTypeArguments);
     listener.endMetadata(atToken, period, token.next!);
     return token;
   }
@@ -7137,13 +7137,39 @@ class Parser {
   /// has to follow the previous token without space.
   /// See also
   /// https://github.com/dart-lang/language/blob/master/accepted/future-releases/records/records-feature-specification.md#ambiguity-with-metadata-annotations
-  Token parseArgumentsOptMetadata(Token token) {
-    Token next = token.next!;
-    if (!optional('(', next) || (token.charEnd != next.charOffset)) {
+  Token parseArgumentsOptMetadata(Token token, bool hasTypeArguments) {
+    final Token next = token.next!;
+    if (!optional('(', next)) {
       listener.handleNoArguments(next);
       return token;
-    } else {
+    } else if (token.charEnd == next.charOffset) {
       return parseArguments(token);
+    } else {
+      // There is a '(', but it's not technically arguments to the metadata.
+      // Decide if we should recover as if it is. This should only be done
+      // if we know that it isn't a record type.
+      if (hasTypeArguments) {
+        // Arguments are required, so parse as arguments anyway.
+        reportRecoverableError(
+            next, codes.messageMetadataSpaceBeforeParenthesis);
+        return parseArguments(token);
+      }
+      final Token startParen = next;
+      final Token endParen = startParen.endGroup!;
+      final Token afterParen = endParen.next!;
+      final String? value = afterParen.stringValue;
+      if (identical(value, 'class') || identical(value, 'enum')) {
+        // The 'class' and 'enum' keywords are reserved keywords and recovery
+        // should be safe. Other keywords aren't reserved and needs more
+        // lookahead to determine if recovery here would be good.
+        //For now we don't.
+        reportRecoverableError(
+            next, codes.messageMetadataSpaceBeforeParenthesis);
+        return parseArguments(token);
+      }
+
+      listener.handleNoArguments(next);
+      return token;
     }
   }
 
