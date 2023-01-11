@@ -84,6 +84,7 @@ import 'type_init_formals_test.dart' as type_init_formals;
 import 'unawaited_futures_test.dart' as unawaited_futures;
 import 'unnecessary_brace_in_string_interps_test.dart'
     as unnecessary_brace_in_string_interps;
+import 'unnecessary_breaks_test.dart' as unnecessary_breaks;
 import 'unnecessary_const_test.dart' as unnecessary_const;
 import 'unnecessary_null_checks_test.dart' as unnecessary_null_checks;
 import 'unnecessary_overrides_test.dart' as unnecessary_overrides;
@@ -155,6 +156,7 @@ void main() {
   type_init_formals.main();
   unawaited_futures.main();
   unnecessary_brace_in_string_interps.main();
+  unnecessary_breaks.main();
   unnecessary_const.main();
   unnecessary_null_checks.main();
   unnecessary_overrides.main();
