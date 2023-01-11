@@ -7114,6 +7114,51 @@ main() {
         });
       });
     });
+
+    test('Pattern inside guard', () {
+      // Roughly equivalent Dart code:
+      //     FutureOr<int> x = ...;
+      //     FutureOr<String> y = ...;
+      //     if (x case int _ when f(() {
+      //           if (y case String _) {
+      //             /* x promoted to `int` */
+      //             /* y promoted to `String` */
+      //           } else {
+      //             /* x promoted to `int` */
+      //             /* y promoted to `Future<String>` */
+      //           }
+      //         }, throw ...)) {
+      //       /* unreachable (due to `throw`) */
+      //     } else {
+      //       /* x promoted to `Future<int>` */
+      //     }
+      // For this to be analyzed correctly, flow analysis needs to avoid mixing
+      // up the "unmatched" state from the outer and inner pattern matches.
+      var x = Var('x');
+      var y = Var('y');
+      h.run([
+        declare(x, initializer: expr('FutureOr<int>')),
+        declare(y, initializer: expr('FutureOr<String>')),
+        ifCase(
+            x.expr,
+            wildcard(type: 'int').when(localFunction([
+              ifCase(y.expr, wildcard(type: 'String'), [
+                checkPromoted(x, 'int'),
+                checkPromoted(y, 'String'),
+              ], [
+                checkPromoted(x, 'int'),
+                checkPromoted(y, 'Future<String>'),
+              ]),
+            ]).thenExpr(throw_(expr('Object')))),
+            [
+              checkReachable(false),
+            ],
+            [
+              checkReachable(true),
+              checkPromoted(x, 'Future<int>'),
+            ]),
+      ]);
+    });
   });
 }
 
