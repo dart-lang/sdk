@@ -158,9 +158,10 @@ class FlowAnalysisHelper {
 
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
+        var declaredElement = parameter.declaredElement!;
         // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
         // around a failure in duplicate_definition_test.dart; fix this.
-        flow!.declare(parameter.declaredElement!, true,
+        flow!.declare(declaredElement, true, declaredElement.type,
             skipDuplicateCheck: true);
       }
     }
@@ -286,8 +287,9 @@ class FlowAnalysisHelper {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        flow!.declare(variable.declaredElement as PromotableElement,
-            variable.initializer != null);
+        var declaredElement = variable.declaredElement as PromotableElement;
+        flow!.declare(declaredElement, variable.initializer != null,
+            declaredElement.type);
       }
     }
   }

@@ -1259,12 +1259,14 @@ class BodyBuilder extends StackListenerImpl
 
     final SourceFunctionBuilder builder = member as SourceFunctionBuilder;
     if (thisVariable != null) {
-      typeInferrer.flowAnalysis.declare(thisVariable!, true);
+      typeInferrer.flowAnalysis
+          .declare(thisVariable!, true, thisVariable!.type);
     }
     if (formals?.parameters != null) {
       for (int i = 0; i < formals!.parameters!.length; i++) {
         FormalParameterBuilder parameter = formals.parameters![i];
-        typeInferrer.flowAnalysis.declare(parameter.variable!, true);
+        VariableDeclaration variable = parameter.variable!;
+        typeInferrer.flowAnalysis.declare(variable, true, variable.type);
       }
       for (int i = 0; i < formals.parameters!.length; i++) {
         FormalParameterBuilder parameter = formals.parameters![i];
@@ -1811,7 +1813,8 @@ class BodyBuilder extends StackListenerImpl
     ReturnStatementImpl fakeReturn = new ReturnStatementImpl(true, expression);
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
-        typeInferrer.flowAnalysis.declare(formals[i].variable!, true);
+        VariableDeclaration variable = formals[i].variable!;
+        typeInferrer.flowAnalysis.declare(variable, true, variable.type);
       }
     }
     InferredFunctionBody inferredFunctionBody = typeInferrer.inferFunctionBody(
@@ -1940,12 +1943,13 @@ class BodyBuilder extends StackListenerImpl
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder parameter = formals[i];
+        VariableDeclaration variable = parameter.variable!;
         // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
         // around a failure in
         // co19/Language/Expressions/Postfix_Expressions/conditional_increment_t02;
         // fix this.
         typeInferrer.flowAnalysis
-            .declare(parameter.variable!, true, skipDuplicateCheck: true);
+            .declare(variable, true, variable.type, skipDuplicateCheck: true);
       }
     }
 

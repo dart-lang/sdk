@@ -888,9 +888,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     variable.isConsistent &= isConsistent;
     variable.isFinal = isFinal;
     variable.type = type;
-    // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
-    // around a failure in switch_statement_test.dart; fix this.
-    flow.declare(variable, true, skipDuplicateCheck: true);
   }
 
   @override

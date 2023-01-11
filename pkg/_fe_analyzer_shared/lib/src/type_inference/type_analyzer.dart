@@ -401,8 +401,8 @@ mixin TypeAnalyzer<
     flow.declaredVariablePattern(
         matchedType: matchedType, staticType: staticType);
     bool isImplicitlyTyped = declaredType == null;
-    flow.declare(variable, false);
     setVariableType(variable, staticType);
+    flow.declare(variable, false, staticType);
     // TODO(paulberry): are we handling _isFinal correctly?
     flow.initialize(variable, matchedType, context.getInitializer(node),
         isFinal: context.isFinal || isVariableFinal(variable),
@@ -518,14 +518,7 @@ mixin TypeAnalyzer<
       pattern,
     );
 
-    _finishJoinedVariables(
-      variables,
-      reportErrors: true,
-    );
-
-    for (Variable variable in variables.values) {
-      flow.declare(variable, true, skipDuplicateCheck: true);
-    }
+    _finishJoinedVariables(variables, reportErrors: true);
 
     handle_ifCaseStatement_afterPattern(
       node: node,
@@ -1433,17 +1426,12 @@ mixin TypeAnalyzer<
       flow.switchStatement_endAlternatives(node,
           hasLabels: memberInfo.hasLabels);
       Map<String, Variable> variables = memberInfo.variables;
-      _finishJoinedVariables(variables, reportErrors: false);
+      if (memberInfo.hasLabels || heads.length > 1) {
+        _finishJoinedVariables(variables, reportErrors: false);
+      }
       handleCase_afterCaseHeads(node, caseIndex, variables.values);
       // Stack: (Expression, numExecutionPaths * StatementCase, CaseHeads)
       // If there are joined variables, declare them.
-      if (heads.length > 1 || memberInfo.hasLabels) {
-        for (Variable variable in variables.values) {
-          // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
-          // around a failure in switch_statement_test.dart; fix this.
-          flow.declare(variable, true, skipDuplicateCheck: true);
-        }
-      }
       for (Statement statement in memberInfo.body) {
         dispatchStatement(statement);
       }
@@ -1499,8 +1487,8 @@ mixin TypeAnalyzer<
       Node node, Variable variable, Type? declaredType,
       {required bool isFinal, required bool isLate}) {
     Type inferredType = declaredType ?? dynamicType;
-    flow.declare(variable, false);
     setVariableType(variable, inferredType);
+    flow.declare(variable, false, inferredType);
     return inferredType;
   }
 
@@ -1913,25 +1901,21 @@ mixin TypeAnalyzer<
                 );
               }
               isConsistent = false;
+              resultIsFinal = null;
+              resultType = null;
               break;
             }
           }
         }
-        if (isConsistent) {
-          finishJoinedPatternVariable(
-            variable,
-            isConsistent: true,
-            isFinal: resultIsFinal ?? false,
-            type: resultType ?? dynamicType,
-          );
-        } else {
-          finishJoinedPatternVariable(
-            variable,
-            isConsistent: false,
-            isFinal: false,
-            type: dynamicType,
-          );
-        }
+        resultIsFinal ??= false;
+        resultType ??= dynamicType;
+        finishJoinedPatternVariable(
+          variable,
+          isConsistent: isConsistent,
+          isFinal: resultIsFinal,
+          type: resultType,
+        );
+        flow.declare(variable, true, resultType);
       }
     }
   }
