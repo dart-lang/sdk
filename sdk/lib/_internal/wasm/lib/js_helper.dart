@@ -28,6 +28,18 @@ class JSValue {
   bool operator ==(Object that) =>
       that is JSValue && areEqualInJS(_ref, that._ref);
 
+  // Because [JSValue] is a subtype of [Object] it can be used in Dart
+  // collections. Unfortunately, JS does not expose an efficient hash code
+  // operation. To avoid surprising behavior, we force all [JSValue]s to fall
+  // back to differentiation via equality, essentially making [Set] and [Map]
+  // a regular linked list when the keys are [JSValue]. This behavior is not
+  // intuitive.
+  // TODO(joshualitt): There are a lot of different directions we can go, but
+  // the most straightforward to to expose `JSMap` and `JSSet` from JS for users
+  // who need to efficiently manage JS objects in collections.
+  @override
+  int get hashCode => 0;
+
   @override
   String toString() => stringify(_ref);
 
