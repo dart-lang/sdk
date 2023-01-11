@@ -164,7 +164,6 @@ class _NaiveInt32x4List extends Object
   }
 
   Int32x4List sublist(int start, [int? end]) {
-    IndexError.check(start, length, indexable: this, name: "sublist");
     int stop = _checkValidRange(start, end, length);
     return _NaiveInt32x4List._externalStorage(
         _storage.sublist(start * 4, stop * 4));
@@ -228,7 +227,6 @@ class _NaiveFloat32x4List extends Object
   }
 
   Float32x4List sublist(int start, [int? end]) {
-    IndexError.check(start, length, indexable: this, name: "sublist");
     int stop = _checkValidRange(start, end, length);
     return _NaiveFloat32x4List._externalStorage(
         _storage.sublist(start * 4, stop * 4));
@@ -286,7 +284,6 @@ class _NaiveFloat64x2List extends Object
   }
 
   Float64x2List sublist(int start, [int? end]) {
-    IndexError.check(start, length, indexable: this, name: "sublist");
     int stop = _checkValidRange(start, end, length);
     return _NaiveFloat64x2List._externalStorage(
         _storage.sublist(start * 2, stop * 2));

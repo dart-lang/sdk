@@ -6715,7 +6715,7 @@ void f() {
 
 ### for_in_of_invalid_type
 
-_The type '{0}' used in the 'for' loop must implement {1}._
+_The type '{0}' used in the 'for' loop must implement '{1}'._
 
 #### Description
 

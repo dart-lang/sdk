@@ -3560,6 +3560,12 @@ CompileTimeErrorCode:
 
       part 'part.dart';
       ```
+  DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE:
+    problemMessage: The variable '{0}' is already assigned in this pattern.
+    correctionMessage: Try renaming the variable.
+    comment: |-
+      Parameters:
+      0: the name of the variable
   DUPLICATE_RECORD_PATTERN_FIELD:
     problemMessage: The field '{0}' is already matched in this pattern.
     correctionMessage: Try removing the duplicate field.
@@ -5242,7 +5248,7 @@ CompileTimeErrorCode:
       }
       ```
   FOR_IN_OF_INVALID_TYPE:
-    problemMessage: "The type '{0}' used in the 'for' loop must implement {1}."
+    problemMessage: "The type '{0}' used in the 'for' loop must implement '{1}'."
     hasPublishedDocs: true
     comment: |-
       Parameters:
@@ -11228,6 +11234,9 @@ CompileTimeErrorCode:
       Parameters:
       0: the matched type
       1: the required type
+  PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
+    problemMessage: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+    correctionMessage: Try assigning to a different variable.
   POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
     problemMessage: Positional super parameters can't be used when the super constructor invocation has a positional argument.
     correctionMessage: Try making all the positional parameters passed to the super constructor be either all super parameters or all normal parameters.

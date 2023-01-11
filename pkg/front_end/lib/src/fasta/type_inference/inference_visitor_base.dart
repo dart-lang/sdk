@@ -2071,7 +2071,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         function.positionalParameters;
     for (int i = 0; i < positionalParameters.length; i++) {
       VariableDeclaration parameter = positionalParameters[i];
-      flowAnalysis.declare(parameter, true);
+      flowAnalysis.declare(parameter, true, parameter.type);
       inferMetadata(visitor, parameter, parameter.annotations);
       if (parameter.initializer != null) {
         ExpressionInferenceResult initializerResult =
@@ -2081,7 +2081,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     for (VariableDeclaration parameter in function.namedParameters) {
-      flowAnalysis.declare(parameter, true);
+      flowAnalysis.declare(parameter, true, parameter.type);
       inferMetadata(visitor, parameter, parameter.annotations);
       ExpressionInferenceResult initializerResult =
           visitor.inferExpression(parameter.initializer!, parameter.type);

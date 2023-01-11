@@ -1512,7 +1512,7 @@ bool ScavengerVisitorBase<parallel>::ForwardOrSetNullIfCollected(
     uword heap_base,
     CompressedObjectPtr* ptr_address) {
   ObjectPtr raw = ptr_address->Decompress(heap_base);
-  if (raw.IsOldObject()) {
+  if (raw->IsSmiOrOldObject()) {
     // Object already null (which is old) or not touched during this GC.
     return false;
   }

@@ -319,7 +319,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   static bool ForwardOrSetNullIfCollected(uword heap_base,
                                           CompressedObjectPtr* ptr_address) {
     ObjectPtr raw = ptr_address->Decompress(heap_base);
-    if (raw.IsNewObject()) {
+    if (raw->IsSmiOrNewObject()) {
       // Object not touched during this GC.
       return false;
     }

@@ -6563,6 +6563,10 @@ class VariablePatternBindElementImpl extends VariablePatternElementImpl
 
 class VariablePatternElementImpl extends LocalVariableElementImpl
     implements VariablePatternElement {
+  /// This flag is set to `true` while we are visiting the [WhenClause] of
+  /// the [GuardedPattern] that declares this variable.
+  bool isVisitingWhenClause = false;
+
   VariablePatternElementImpl(super.name, super.offset);
 }
 

@@ -2785,6 +2785,20 @@ main() {
         ]);
       });
 
+      test('Duplicate assignment to same variable', () {
+        var x = Var('x')..errorId = 'x';
+        h.run([
+          declare(x, type: 'num'),
+          recordPattern([
+            (x.pattern()..errorId = 'x1').recordField(),
+            (x.pattern()..errorId = 'x2').recordField(),
+          ]).assign(expr('(int, int)')).stmt,
+        ], expectedErrors: {
+          'duplicateAssignmentPatternVariable(name: x, original: x1, '
+              'duplicate: x2)',
+        });
+      });
+
       group('Refutability:', () {
         test('When matched type is a subtype of variable type', () {
           var x = Var('x');

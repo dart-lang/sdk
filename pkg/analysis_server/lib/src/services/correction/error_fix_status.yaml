@@ -377,6 +377,8 @@ CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_PART:
   status: needsEvaluation
+CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE:
+  status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD:
   status: needsEvaluation
 CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN:
@@ -901,6 +903,8 @@ CompileTimeErrorCode.PATTERN_ASSIGNMENT_NOT_LOCAL_VARIABLE:
 CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT:
+  status: needsEvaluation
+CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
   status: needsEvaluation
 CompileTimeErrorCode.POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
   status: needsFix

@@ -229,6 +229,8 @@ nnbd_mixed/issue41567: TypeCheckError
 nnbd_mixed/messages_with_types_opt_in: TypeCheckError
 nnbd_mixed/messages_with_types_opt_out: TypeCheckError
 nnbd_mixed/mixin_from_opt_in/main: RuntimeError
+patterns/simple_switch_with_guards_error: Crash
+patterns/simple_switch_with_guards_runtime: Crash
 rasta/abstract_constructor: RuntimeError
 rasta/bad_constructor_redirection: RuntimeError
 rasta/bad_continue: RuntimeError

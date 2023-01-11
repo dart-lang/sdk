@@ -183,6 +183,9 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Register a declaration of the [variable] in the current state.
   /// Should also be called for function parameters.
   ///
+  /// [staticType] should be the static type of the variable (after type
+  /// inference).
+  ///
   /// A local variable is [initialized] if its declaration has an initializer.
   /// A function parameter is always initialized, so [initialized] is `true`.
   ///
@@ -191,7 +194,7 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// to [skipDuplicateCheck].
   ///
   /// TODO(paulberry): try to remove all uses of skipDuplicateCheck
-  void declare(Variable variable, bool initialized,
+  void declare(Variable variable, bool initialized, Type staticType,
       {bool skipDuplicateCheck = false});
 
   /// Call this method after visiting a variable pattern in a non-assignment
@@ -1023,12 +1026,12 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void declare(Variable variable, bool initialized,
+  void declare(Variable variable, bool initialized, Type staticType,
       {bool skipDuplicateCheck = false}) {
     _wrap(
-        'declare($variable, $initialized, '
+        'declare($variable, $initialized, $staticType, '
         'skipDuplicateCheck: $skipDuplicateCheck)',
-        () => _wrapped.declare(variable, initialized,
+        () => _wrapped.declare(variable, initialized, staticType,
             skipDuplicateCheck: skipDuplicateCheck));
   }
 
@@ -3582,8 +3585,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void declare(Variable variable, bool initialized,
+  void declare(Variable variable, bool initialized, Type staticType,
       {bool skipDuplicateCheck = false}) {
+    assert(
+        operations.isSameType(staticType, operations.variableType(variable)));
     assert(_debugDeclaredVariables.add(variable) || skipDuplicateCheck,
         'Variable $variable already declared');
     _current = _current.declare(
@@ -4976,7 +4981,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void constantPattern_end(Expression expression) {}
 
   @override
-  void declare(Variable variable, bool initialized,
+  void declare(Variable variable, bool initialized, Type staticType,
       {bool skipDuplicateCheck = false}) {}
 
   @override

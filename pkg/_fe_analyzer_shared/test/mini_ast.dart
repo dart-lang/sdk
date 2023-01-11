@@ -977,6 +977,7 @@ class MiniAstOperations
     'String? <: Null': false,
     'String? <: Object': false,
     'String? <: Object?': true,
+    '(int, int) <: (Object?, Object?)': true,
   };
 
   static final Map<String, Type> _coreFactors = {
@@ -3077,6 +3078,18 @@ class _MiniAstErrors
         'scrutineeType: ${scrutineeType.type}, '
         'caseExpressionType: ${caseExpressionType.type}, '
         'nullSafetyEnabled: $nullSafetyEnabled)');
+  }
+
+  @override
+  void duplicateAssignmentPatternVariable({
+    required Var variable,
+    required Pattern original,
+    required Pattern duplicate,
+  }) {
+    _recordError(
+      'duplicateAssignmentPatternVariable(name: ${variable.errorId}, '
+      'original: ${original.errorId}, duplicate: ${duplicate.errorId})',
+    );
   }
 
   @override

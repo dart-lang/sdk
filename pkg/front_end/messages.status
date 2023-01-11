@@ -982,6 +982,8 @@ VarAsTypeName/script1: Fail # Too many problems
 VariableCouldBeNullDueToWrite/analyzerCode: Fail
 VariableCouldBeNullDueToWrite/example: Fail
 VariablePatternTypeMismatchInSwitchHeads/analyzerCode: Fail
+VariablePatternTypeMismatchInSwitchHeads/part_wrapped_script: Crash
+VariablePatternTypeMismatchInSwitchHeads/script: Crash
 WeakWithStrongDillLibrary/analyzerCode: Fail
 WeakWithStrongDillLibrary/example: Fail
 WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail

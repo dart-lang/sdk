@@ -1345,7 +1345,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // This is matched by the call to [forEach_end] in
     // [inferElement], [inferMapEntry] or [inferForInStatement].
-    flowAnalysis.declare(variable, true);
+    flowAnalysis.declare(variable, true, variable.type);
     flowAnalysis.forEach_bodyBegin(node);
 
     VariableDeclaration tempVariable =
@@ -1605,9 +1605,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   StatementInferenceResult visitFunctionDeclaration(
       covariant FunctionDeclarationImpl node) {
-    flowAnalysis.declare(node.variable, true);
+    VariableDeclaration variable = node.variable;
     flowAnalysis.functionExpression_begin(node);
-    inferMetadata(this, node.variable, node.variable.annotations);
+    inferMetadata(this, variable, variable.annotations);
     DartType? returnContext =
         node.hasImplicitReturnType ? null : node.function.returnType;
     FunctionType inferredType =
@@ -1616,7 +1616,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       dataForTesting!.typeInferenceResult.inferredVariableTypes[node] =
           inferredType.returnType;
     }
-    node.variable.type = inferredType;
+    variable.type = inferredType;
+    flowAnalysis.declare(variable, true, variable.type);
     flowAnalysis.functionExpression_end();
     return const StatementInferenceResult();
   }
@@ -8366,7 +8367,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.isImplicitlyTyped ? const UnknownType() : node.type;
     DartType inferredType;
     ExpressionInferenceResult? initializerResult;
-    flowAnalysis.declare(node, node.hasDeclaredInitializer);
     if (node.initializer != null) {
       if (node.isLate && node.hasDeclaredInitializer) {
         flowAnalysis.lateInitializer_begin(node);
@@ -8390,6 +8390,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
       node.type = inferredType;
     }
+    flowAnalysis.declare(node, node.hasDeclaredInitializer, node.type);
     if (initializerResult != null) {
       DartType initializerType = initializerResult.inferredType;
       // TODO(paulberry): `initializerType` is sometimes `null` during top
@@ -9912,10 +9913,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     variable
       ..isFinal = isFinal
       ..type = type;
-    // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
-    // around a failure in language/patterns/switch_case_scope_error_test; fix
-    // this.
-    flow.declare(variable, true, skipDuplicateCheck: true);
   }
 
   @override

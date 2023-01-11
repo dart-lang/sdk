@@ -1187,6 +1187,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the variable
+  static const CompileTimeErrorCode DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE =
+      CompileTimeErrorCode(
+    'DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE',
+    "The variable '{0}' is already assigned in this pattern.",
+    correctionMessage: "Try renaming the variable.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the field
   static const CompileTimeErrorCode DUPLICATE_RECORD_PATTERN_FIELD =
       CompileTimeErrorCode(
@@ -1707,7 +1716,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode FOR_IN_OF_INVALID_TYPE =
       CompileTimeErrorCode(
     'FOR_IN_OF_INVALID_TYPE',
-    "The type '{0}' used in the 'for' loop must implement {1}.",
+    "The type '{0}' used in the 'for' loop must implement '{1}'.",
     hasPublishedDocs: true,
   );
 
@@ -3747,6 +3756,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try changing the required type of the pattern, or the matched value "
         "type.",
+  );
+
+  static const CompileTimeErrorCode PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD =
+      CompileTimeErrorCode(
+    'PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD',
+    "Pattern variables can't be assigned inside the guard of the enclosing "
+        "guarded pattern.",
+    correctionMessage: "Try assigning to a different variable.",
   );
 
   ///  No parameters.

@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -16,6 +17,32 @@ import 'package:analyzer/src/generated/source.dart';
 class DiagnosticFactory {
   /// Initialize a newly created diagnostic factory.
   DiagnosticFactory();
+
+  /// Return a diagnostic indicating that [duplicate] uses the same [variable]
+  /// as a previous [original] node in a pattern assignment.
+  AnalysisError duplicateAssignmentPatternVariable({
+    required Source source,
+    required PromotableElement variable,
+    required AssignedVariablePatternImpl original,
+    required AssignedVariablePatternImpl duplicate,
+  }) {
+    return AnalysisError(
+      source,
+      duplicate.offset,
+      duplicate.length,
+      CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
+      [variable.name],
+      [
+        DiagnosticMessageImpl(
+          filePath: source.fullName,
+          length: original.length,
+          message: 'The first assigned variable pattern.',
+          offset: original.offset,
+          url: source.uri.toString(),
+        ),
+      ],
+    );
+  }
 
   /// Return a diagnostic indicating that [duplicateElement] reuses a name
   /// already used by [originalElement].
