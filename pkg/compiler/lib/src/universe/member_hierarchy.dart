@@ -11,24 +11,9 @@ import 'package:compiler/src/elements/names.dart';
 import 'package:compiler/src/inferrer/abstract_value_domain.dart';
 import 'package:compiler/src/js_model/js_world.dart';
 import 'package:compiler/src/universe/call_structure.dart';
+import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/universe/function_set.dart';
 import 'package:compiler/src/universe/selector.dart';
-
-class _QueuedMember {
-  /// The member to be processed.
-  final MemberEntity member;
-
-  /// The class we want to look for ancestors of [member] from. This might be
-  /// a supertype of member's enclosing class or a mixin application.
-  final ClassEntity cls;
-
-  /// Whether or not [cls] is the declarer of [member]. In most cases this is
-  /// true when [cls] equals member's [MemberEntity.enclosingClass]. However
-  /// for mixins this can be true when [cls] is the mixin application class.
-  final bool isDeclaration;
-
-  _QueuedMember(this.member, this.cls, {required this.isDeclaration});
-}
 
 class DynamicCallTarget {
   final MemberEntity member;
@@ -58,27 +43,22 @@ class DynamicCallTarget {
 class MemberHierarchyBuilder {
   final JClosedWorld closedWorld;
   final Map<SelectorMask, Iterable<DynamicCallTarget>> _callCache = {};
-  final Map<Selector, Set<MemberEntity>> _selectorRoots = {};
+  final Map<Selector, Set<MemberEntity>> _dynamicRoots = {};
   final Map<MemberEntity, Set<MemberEntity>> _overrides = {};
 
   MemberHierarchyBuilder(this.closedWorld);
 
-  /// Uses [visited] to detect and avoid cycles in the override graph.
-  void _forEachOverride(MemberEntity member,
-      void Function(MemberEntity override) f, Set<MemberEntity> visited) {
-    final overrides = _overrides[member];
+  /// Applies [f] to each override of [entity].
+  ///
+  /// If [f] returns `true` for a given input then its children are also
+  /// visited.
+  void forEachOverride(
+      MemberEntity entity, bool Function(MemberEntity override) f) {
+    final overrides = _overrides[entity];
     if (overrides == null) return;
     for (final override in overrides) {
-      if (!visited.add(override)) continue;
-      f(override);
-      _forEachOverride(override, f, visited);
+      if (f(override)) forEachOverride(override, f);
     }
-  }
-
-  /// Recursively applies [f] to each override of [entity].
-  void forEachOverride(
-      MemberEntity entity, void Function(MemberEntity override) f) {
-    _forEachOverride(entity, f, {});
   }
 
   /// Finds the first non-strict superclass of [cls] that contains a member
@@ -114,6 +94,32 @@ class MemberHierarchyBuilder {
         : null;
   }
 
+  /// Finds the first non-strict supertype of [cls] that contains a member
+  /// matching [selector] and returns that member.
+  DynamicCallTarget? findSupertypeTarget(ClassEntity cls, Selector selector) {
+    final queue = Queue<ClassEntity>();
+    final elementEnv = closedWorld.elementEnvironment;
+    queue.add(cls);
+    queue.addAll(closedWorld.elementMap
+        .getInterfaces(cls as IndexedClass)
+        .map((c) => c.element));
+    while (queue.isNotEmpty) {
+      final current = queue.removeFirst();
+      final match =
+          elementEnv.lookupLocalClassMember(current, selector.memberName);
+      if (match != null && !skipMember(match, selector)) {
+        return DynamicCallTarget.virtual(match);
+      } else {
+        final superClass = elementEnv.getSuperClass(current);
+        if (superClass != null) queue.add(superClass);
+        queue.addAll(closedWorld.elementMap
+            .getInterfaces(current as IndexedClass)
+            .map((c) => c.element));
+      }
+    }
+    return null;
+  }
+
   /// For each subclass/subtype try to find a member matching selector.
   ///
   /// If we find a match then it covers the entire subtree below that match so
@@ -122,46 +128,19 @@ class MemberHierarchyBuilder {
       ClassEntity baseCls, Selector selector,
       {required bool isSubtype}) {
     final Set<DynamicCallTarget> results = {};
-    final Queue<ClassEntity> toVisit = Queue();
-    final Set<ClassEntity> visited = {};
-    void addSubclasses(ClassEntity cls) {
-      for (final subclass in closedWorld.classHierarchy
-          .getClassHierarchyNode(cls)
-          .directSubclasses) {
-        final subclassCls = subclass.cls;
-        if (visited.add(subclassCls)) toVisit.add(subclassCls);
-      }
-    }
-
-    void addSubtypes(ClassEntity cls) {
-      for (final subtype
-          in closedWorld.classHierarchy.getClassSet(baseCls).subtypeNodes) {
-        final subtypeCls = subtype.cls;
-        if (visited.add(subtypeCls)) toVisit.add(subtypeCls);
-      }
-    }
-
-    addSubclasses(baseCls);
-    if (isSubtype) {
-      addSubtypes(baseCls);
-      // We only need to add this in the subtype case because
-      // `findMatchInSuperclass` will already check superclasses of `baseCls`.
-      // If this is a subtype query then we need to make sure we add supertypes
-      // of `baseCls`.
-      toVisit.add(baseCls);
-    }
-    while (toVisit.isNotEmpty) {
-      final current = toVisit.removeFirst();
-      final match =
-          findSuperclassTarget(current, selector, virtualResult: true);
+    IterationStep handleEntity(entity) {
+      final match = findSuperclassTarget(entity, selector, virtualResult: true);
       if (match != null) {
         results.add(match);
-      } else {
-        addSubclasses(current);
-        if (isSubtype) {
-          addSubtypes(current);
-        }
+        return IterationStep.SKIP_SUBCLASSES;
       }
+      return IterationStep.CONTINUE;
+    }
+
+    if (isSubtype) {
+      closedWorld.classHierarchy.forEachStrictSubtypeOf(baseCls, handleEntity);
+    } else {
+      closedWorld.classHierarchy.forEachStrictSubclassOf(baseCls, handleEntity);
     }
     return results;
   }
@@ -176,7 +155,7 @@ class MemberHierarchyBuilder {
   /// separate potential root.
   Iterable<DynamicCallTarget> rootsForSelector(
       ClassEntity cls, Selector selector) {
-    final roots = _selectorRoots[_normalizeSelector(selector)];
+    final roots = _dynamicRoots[_normalizeSelector(selector)];
     if (roots == null) return const [];
     final classHierarchy = closedWorld.classHierarchy;
     return roots
@@ -268,111 +247,52 @@ class MemberHierarchyBuilder {
     return result;
   }
 
-  void _processNext(
-      Queue<_QueuedMember> queue,
-      Selector selector,
-      Map<ClassEntity, MemberEntity?> roots,
+  void _handleMember(MemberEntity member, ClassEntity cls, Selector selector,
       void Function(MemberEntity parent, MemberEntity override) join) {
-    final state = queue.removeFirst();
-    final cls = state.cls;
-    final member = state.member;
-    if (state.isDeclaration && !roots.containsKey(cls)) {
-      // Only add the potential root if we're processing a declaration of
-      // the member and have not already found an override for the class'
-      // declaration.
-      roots[cls] = member;
-    }
     final elementEnv = closedWorld.elementEnvironment;
-    final elementMap = closedWorld.elementMap;
     final name = selector.memberName;
 
-    void addParent(
-        MemberEntity parent, ClassEntity parentCls, bool fromSuperclass) {
-      if ((_overrides[parent] ??= {}).add(member)) {
-        join(parent, member);
-      }
-
-      // Both the class we are considering and the enclosing class of [member]
-      // are not roots since we found an override for them.
-      roots[cls] = null;
-      roots[member.enclosingClass!] = null;
-
-      // Enqueue parent to continue processing from there. parentCls can be a
-      // mixin application since we consider these to have duplicates of the
-      // mixin's members.
-      queue.add(_QueuedMember(parent, parentCls, isDeclaration: true));
-    }
-
-    void processInterfaces(IndexedClass toProcess) {
-      final interfaces = elementMap.getInterfaces(toProcess);
-      for (final interface in interfaces) {
-        final interfaceCls = interface.element;
-        // For unnamed mixin applications, members can be owned by the
-        // underlying mixin which is also an interface for that same
-        // application. This would cause a self-override unless we explicitly
-        // ignore that interface relationship.
-        if (interfaceCls == member.enclosingClass) continue;
-        final match = elementEnv.lookupLocalClassMember(interfaceCls, name);
-        if (match != null &&
-            !MemberHierarchyBuilder._skipMemberInternal(match)) {
-          addParent(match, interfaceCls, false);
-        } else {
-          // The interface does not contain a match so enqueue the current
-          // member to continue checking the superclasses and supertypes of the
-          // interface.
-          queue.add(_QueuedMember(member, interfaceCls, isDeclaration: false));
-        }
+    void addParent(MemberEntity child, ClassEntity childCls,
+        MemberEntity parent, ClassEntity parentCls) {
+      if (child == parent) return;
+      if ((_overrides[parent] ??= {}).add(child)) {
+        join(parent, child);
       }
     }
-
-    void addInterfaces(IndexedClass toProcess) {
-      processInterfaces(toProcess);
-
-      // Supertypes of the mixin for this class are also supertypes of this
-      // class.
-      final mixinClass = elementEnv.getEffectiveMixinClass(toProcess);
-      if (mixinClass != null) {
-        processInterfaces(mixinClass as IndexedClass);
-      }
-    }
-
-    // Check and add any interfaces for the current class.
-    addInterfaces(cls as IndexedClass);
 
     // Check each superclass in ascending order until we find an ancestor.
     ClassEntity? current = elementEnv.getSuperClass(cls);
     while (current != null) {
       final match = elementEnv.lookupLocalClassMember(current, name);
       if (match != null && !MemberHierarchyBuilder._skipMemberInternal(match)) {
-        addParent(match, current, true);
+        addParent(member, cls, match, current);
         break;
       }
-
-      // If this superclass does not declare a relevant member then check its
-      // interfaces too since a supertype can contain an ancestor.
-      addInterfaces(current as IndexedClass);
       current = elementEnv.getSuperClass(current);
     }
+
+    closedWorld.classHierarchy.getClassSet(cls).forEachSubtype((subtype) {
+      final override = elementEnv.lookupClassMember(subtype, name);
+      if (override == null) return IterationStep.CONTINUE;
+      addParent(override, subtype, member, cls);
+      return IterationStep.CONTINUE;
+    }, ClassHierarchyNode.INSTANTIATED, strict: true);
   }
 
-  void _processMember(
-      MemberEntity member,
-      Map<Selector, Map<ClassEntity, MemberEntity?>> roots,
-      void Function(MemberEntity parent, MemberEntity override) join,
-      Queue<_QueuedMember> queue) {
+  void _processMember(MemberEntity member,
+      void Function(MemberEntity parent, MemberEntity override) join) {
     if (_skipMemberInternal(member)) return;
     final cls = member.enclosingClass!;
     final mixinUses = closedWorld.mixinUsesOf(cls);
     // Process each selector matching member separately.
     for (final selector in _selectorsForMember(member)) {
+      if (!member.isAbstract) {
+        (_dynamicRoots[selector] ??= {}).add(member);
+      }
       for (final mixinUse in mixinUses) {
-        queue.add(_QueuedMember(member, mixinUse, isDeclaration: true));
+        _handleMember(member, mixinUse, selector, join);
       }
-      queue.add(_QueuedMember(member, cls, isDeclaration: true));
-      final selectorRoots = roots[selector] ??= {};
-      while (queue.isNotEmpty) {
-        _processNext(queue, selector, selectorRoots, join);
-      }
+      _handleMember(member, cls, selector, join);
     }
   }
 
@@ -380,22 +300,9 @@ class MemberHierarchyBuilder {
     final liveMembers = closedWorld.liveInstanceMembers
         .followedBy(closedWorld.liveAbstractInstanceMembers);
 
-    // Track root declarations for each selector encountered. Each inner map
-    // tracks declarations of the selector. A null member indicates we found
-    // an override for that declaration.
-    final Map<Selector, Map<ClassEntity, MemberEntity?>> roots = {};
-    final queue = Queue<_QueuedMember>();
     for (final member in liveMembers) {
-      assert(queue.isEmpty);
-      _processMember(member, roots, join, queue);
+      _processMember(member, join);
     }
-
-    // Finalize roots for each selector. Deduplicate remaining root declarations
-    // and store them for later.
-    roots.forEach((selector, selectorRoots) {
-      final validRoots = selectorRoots.values.whereType<MemberEntity>().toSet();
-      if (validRoots.isNotEmpty) _selectorRoots[selector] = validRoots;
-    });
   }
 
   // TODO(natebiggs): Clean up debug code below.
@@ -439,7 +346,7 @@ class MemberHierarchyBuilder {
   }
 
   void dumpRoots([String? selectorName]) {
-    (_selectorRoots.entries
+    (_dynamicRoots.entries
             .where((e) => selectorName == null || e.key.name == selectorName)
             .map((e) {
       final members = e.value.map((m) => m).toList();

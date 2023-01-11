@@ -723,14 +723,19 @@ class FlatTypeMask extends TypeMask {
       return match != null ? [match] : const [];
     }
 
-    if (isSubclass) {
-      // Try to find a superclass that contains a matching member.
-      final superclassMatch = memberHierarchyBuilder
-          .findSuperclassTarget(baseCls, selector, virtualResult: true);
+    // Try to find a superclass that contains a matching member.
+    final superclassMatch = memberHierarchyBuilder
+        .findSuperclassTarget(baseCls, selector, virtualResult: true);
 
-      if (superclassMatch != null) return [superclassMatch];
-    }
+    if (superclassMatch != null) return [superclassMatch];
 
+    // Try to find a supertype that contains a matching member.
+    final supertypeMatch =
+        memberHierarchyBuilder.findSupertypeTarget(baseCls, selector);
+    if (supertypeMatch != null) return [supertypeMatch];
+
+    // Default to a list of superclasses/supertypes that encompasses all
+    // subclasses/subtypes of this type cone.
     return memberHierarchyBuilder.findMatchingAncestors(baseCls, selector,
         isSubtype: isSubtype);
   }

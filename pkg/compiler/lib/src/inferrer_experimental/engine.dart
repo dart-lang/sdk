@@ -988,16 +988,16 @@ class InferrerEngine {
       ir.Node callSite,
       Set<MemberEntity> visited) {
     final member = target.member;
-    final isClosurized = callSiteType.closurizedTargets.contains(member);
-    void handleTarget(MemberEntity override) {
-      if (override.isAbstract || !visited.add(override)) return;
+    bool handleTarget(MemberEntity override) {
+      if (override.isAbstract || !visited.add(override)) return false;
       MemberTypeInformation info = types.getInferredTypeOfMember(override);
       info.addCall(callSiteType.caller, callSite);
 
-      if (isClosurized) {
+      if (types.getInferredTypeOfVirtualMember(member).closurizedCount > 0) {
         _markForClosurization(info, callSiteType,
             remove: false, addToQueue: false);
       }
+      return true;
     }
 
     handleTarget(member);
