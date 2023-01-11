@@ -26,8 +26,8 @@ static method method5<T extends core::num>(self::Enum<self::method5::T> e) → d
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///generic_enum_switch.dart:5:6 -> ListConstant(const <Enum<dynamic>*>[const Enum<num*>{_Enum.index: 0, _Enum._name: "a"}, const Enum<String*>{_Enum.index: 1, _Enum._name: "b"}, const Enum<bool*>{_Enum.index: 2, _Enum._name: "c"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///generic_enum_switch.dart:6:3 -> InstanceConstant(const Enum<num*>{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///generic_enum_switch.dart:7:3 -> InstanceConstant(const Enum<String*>{_Enum.index: 1, _Enum._name: "b"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///generic_enum_switch.dart:8:3 -> InstanceConstant(const Enum<bool*>{_Enum.index: 2, _Enum._name: "c"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///generic_enum_switch.dart:7:6 -> ListConstant(const <Enum<dynamic>*>[const Enum<num*>{_Enum.index: 0, _Enum._name: "a"}, const Enum<String*>{_Enum.index: 1, _Enum._name: "b"}, const Enum<bool*>{_Enum.index: 2, _Enum._name: "c"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///generic_enum_switch.dart:8:3 -> InstanceConstant(const Enum<num*>{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///generic_enum_switch.dart:9:3 -> InstanceConstant(const Enum<String*>{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///generic_enum_switch.dart:10:3 -> InstanceConstant(const Enum<bool*>{_Enum.index: 2, _Enum._name: "c"})
 Extra constant evaluation: evaluated: 9, effectively constant: 4

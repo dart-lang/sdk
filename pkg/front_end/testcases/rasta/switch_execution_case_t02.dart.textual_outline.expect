@@ -1,3 +1,4 @@
+// @dart = 2.19
 test(value) {}
 testEmptyCases(value) {}
 main() {}

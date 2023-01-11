@@ -1,3 +1,4 @@
+// @dart = 2.19
 enum Enum { e1, e2 }
 
 int method1(Enum? e) {}

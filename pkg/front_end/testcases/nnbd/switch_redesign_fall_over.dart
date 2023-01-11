@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// @dart=2.19
+
 // The test checks that the new rules for falling over the last statement in a
 // case block is detected using flow analysis rather than a pre-determined list
 // of statements that should terminate the block.  The new rules can be found at

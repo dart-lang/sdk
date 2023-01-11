@@ -75,6 +75,7 @@ static get x() → self::B
 B get x => super.x;
            ^^^^^"{<invalid>}.x;
 static method f() → void {
+  #L1:
   switch(self::x.{self::A::y}{invalid-type}{<invalid>}.z) {
   }
 }

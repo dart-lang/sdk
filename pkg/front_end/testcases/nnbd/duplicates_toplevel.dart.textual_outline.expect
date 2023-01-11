@@ -1,3 +1,4 @@
+// @dart = 2.19
 var result;
 int topLevelMethod() => 1;
 int topLevelMethod() => 2;
