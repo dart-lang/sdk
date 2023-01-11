@@ -491,6 +491,7 @@ dart.try_builder(
             "timeout": 100 * 60,  # 100 minutes,
         },
         "archs": ["riscv64"],
+        "args": ["--no-clang"],
         "disable_bcid": True,
     },
     recipe = "release/sdk",
