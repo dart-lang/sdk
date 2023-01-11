@@ -4614,6 +4614,26 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitGuardedPattern(covariant GuardedPatternImpl node) {
+    var patternVariables = node.variables.values.toList();
+    for (var variable in patternVariables) {
+      _define(variable);
+    }
+
+    node.pattern.accept(this);
+
+    for (var variable in patternVariables) {
+      variable.isVisitingWhenClause = true;
+    }
+
+    node.whenClause?.accept(this);
+
+    for (var variable in patternVariables) {
+      variable.isVisitingWhenClause = false;
+    }
+  }
+
+  @override
   void visitIfElement(covariant IfElementImpl node) {
     _visitIf(node);
   }
@@ -4763,6 +4783,13 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     if (kind == ElementKind.LOCAL_VARIABLE || kind == ElementKind.PARAMETER) {
       node.staticElement = element;
       if (node.inSetterContext()) {
+        if (element is VariablePatternElementImpl &&
+            element.isVisitingWhenClause) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
+            node,
+          );
+        }
         _localVariableInfo.potentiallyMutatedInScope.add(element);
         if (_enclosingClosure != null &&
             element.enclosingElement != _enclosingClosure) {
@@ -4830,10 +4857,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
             member.expression.accept(this);
           } else if (member is SwitchPatternCaseImpl) {
             _withNameScope(() {
-              var variables = member.guardedPattern.variables;
-              for (var variable in variables.values) {
-                _define(variable);
-              }
               member.guardedPattern.accept(this);
             });
           }
@@ -4939,10 +4962,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     if (caseClause != null) {
       var guardedPattern = caseClause.guardedPattern;
       _withNameScope(() {
-        var patternVariables = guardedPattern.variables;
-        for (var variable in patternVariables.values) {
-          _define(variable);
-        }
         guardedPattern.accept(this);
         node.ifTrue.accept(this);
       });

@@ -3749,6 +3749,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "type.",
   );
 
+  static const CompileTimeErrorCode PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD =
+      CompileTimeErrorCode(
+    'PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD',
+    "Pattern variables can't be assigned inside the guard of the enclosing "
+        "guarded pattern.",
+    correctionMessage: "Try assigning to a different variable.",
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode
       POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT =

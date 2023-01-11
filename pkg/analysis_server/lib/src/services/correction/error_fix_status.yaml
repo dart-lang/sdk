@@ -902,6 +902,8 @@ CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY:
   status: needsEvaluation
 CompileTimeErrorCode.PATTERN_TYPE_MISMATCH_IN_IRREFUTABLE_CONTEXT:
   status: needsEvaluation
+CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
+  status: needsEvaluation
 CompileTimeErrorCode.POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
   status: needsFix
   since: 2.17

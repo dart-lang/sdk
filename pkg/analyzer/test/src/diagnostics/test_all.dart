@@ -619,6 +619,8 @@ import 'pattern_assignment_not_local_variable_test.dart'
     as pattern_assignment_not_local_variable;
 import 'pattern_type_mismatch_in_irrefutable_context_test.dart'
     as pattern_type_mismatch_in_irrefutable_context;
+import 'pattern_variable_assignment_inside_guard_test.dart'
+    as pattern_variable_assignment_inside_guard;
 import 'positional_super_formal_parameter_with_positional_argument_test.dart'
     as positional_super_formal_parameter_with_positional_argument;
 import 'prefix_collides_with_top_level_member_test.dart'
@@ -1250,6 +1252,7 @@ main() {
     part_of_non_part.main();
     pattern_assignment_not_local_variable.main();
     pattern_type_mismatch_in_irrefutable_context.main();
+    pattern_variable_assignment_inside_guard.main();
     positional_super_formal_parameter_with_positional_argument.main();
     prefix_collides_with_top_level_member.main();
     prefix_identifier_not_followed_by_dot.main();

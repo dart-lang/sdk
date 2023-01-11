@@ -6610,7 +6610,7 @@ class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 
   /// Variables declared in [pattern], available in [whenClause] guard, and
   /// to the `ifTrue` node.
-  late Map<String, PromotableElement> variables;
+  late Map<String, VariablePatternElementImpl> variables;
 
   @override
   final WhenClauseImpl? whenClause;

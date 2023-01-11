@@ -11228,6 +11228,9 @@ CompileTimeErrorCode:
       Parameters:
       0: the matched type
       1: the required type
+  PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD:
+    problemMessage: Pattern variables can't be assigned inside the guard of the enclosing guarded pattern.
+    correctionMessage: Try assigning to a different variable.
   POSITIONAL_SUPER_FORMAL_PARAMETER_WITH_POSITIONAL_ARGUMENT:
     problemMessage: Positional super parameters can't be used when the super constructor invocation has a positional argument.
     correctionMessage: Try making all the positional parameters passed to the super constructor be either all super parameters or all normal parameters.
