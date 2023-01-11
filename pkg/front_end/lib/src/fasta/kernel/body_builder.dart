@@ -7532,7 +7532,12 @@ class BodyBuilder extends StackListenerImpl
         ..fileOffset = switchKeyword.charOffset;
     }
     Statement result = switchStatement;
-    if (target.hasUsers) {
+    // We create a labeled statement enclosing the switch statement if it has
+    // explicit break statements targeting it, or if the patterns feature is
+    // enabled, in which case synthetic break statements might be inserted.
+    // TODO(johnniwinther): Remove [LabeledStatement]s in inference visitor
+    // when they have no target.
+    if (target.hasUsers || libraryFeatures.patterns.isEnabled) {
       LabeledStatement labeledStatement = forest.createLabeledStatement(result);
       target.resolveBreaks(forest, labeledStatement, switchStatement);
       result = labeledStatement;

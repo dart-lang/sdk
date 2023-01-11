@@ -49,19 +49,20 @@ static method multipleCaseSwitch(core::int x) → core::int {
   return 0;
 }
 static method continueLabelSwitch(core::int x) → core::int {
+  #L7:
   switch(x) {
-    #L7:
+    #L8:
     case #C7:
       {
         x = x.{core::num::+}(100){(core::num) → core::int};
+        continue #L9;
+      }
+    #L10:
+    case #C8:
+      {
         continue #L8;
       }
     #L9:
-    case #C8:
-      {
-        continue #L7;
-      }
-    #L8:
     case #C2:
       {
         return x.{core::num::+}(3){(core::num) → core::int};

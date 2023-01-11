@@ -4,6 +4,8 @@
  * BSD-style license that can be found in the LICENSE file.
  */
 
+// @dart=2.19
+
 // Slightly modified copy of
 // `co19/src/Language/Statements/Switch/execution_case_t02.dart`.
 

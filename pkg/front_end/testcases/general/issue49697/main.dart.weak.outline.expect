@@ -85,13 +85,13 @@ constants  {
 }
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:7:6 -> ListConstant(const <A*>[const A{_Enum.index: 0, _Enum._name: "a"}, const A{_Enum.index: 1, _Enum._name: "b"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:7:10 -> InstanceConstant(const A{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:7:13 -> InstanceConstant(const A{_Enum.index: 1, _Enum._name: "b"})
-Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:9:6 -> ListConstant(const <B*>[const B{_Enum.index: 0, _Enum._name: "a"}, const B{_Enum.index: 1, _Enum._name: "b"}])
-Evaluated: StaticGet @ org-dartlang-testcase:///main.dart:13:24 -> InstanceConstant(const B{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:10:3 -> InstanceConstant(const B{_Enum.index: 0, _Enum._name: "a"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:11:3 -> InstanceConstant(const B{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:9:6 -> ListConstant(const <A*>[const A{_Enum.index: 0, _Enum._name: "a"}, const A{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:9:10 -> InstanceConstant(const A{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:9:13 -> InstanceConstant(const A{_Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:11:6 -> ListConstant(const <B*>[const B{_Enum.index: 0, _Enum._name: "a"}, const B{_Enum.index: 1, _Enum._name: "b"}])
+Evaluated: StaticGet @ org-dartlang-testcase:///main.dart:15:24 -> InstanceConstant(const B{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:12:3 -> InstanceConstant(const B{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:13:3 -> InstanceConstant(const B{_Enum.index: 1, _Enum._name: "b"})
 Extra constant evaluation: evaluated: 27, effectively constant: 7
 
 

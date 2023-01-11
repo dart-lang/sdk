@@ -37,6 +37,7 @@ import '../kernel/collections.dart'
         SpreadElement,
         SpreadMapEntry,
         convertToElement;
+import '../kernel/exhaustiveness.dart';
 import '../kernel/implicit_type_argument.dart' show ImplicitTypeArgument;
 import '../kernel/internal_ast.dart';
 import '../kernel/late_lowering.dart' as late_lowering;
@@ -139,7 +140,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       this.constructorDeclaration, this.operations)
       : options = new TypeAnalyzerOptions(
             nullSafetyEnabled: inferrer.libraryBuilder.isNonNullableByDefault,
-            patternsEnabled: false),
+            patternsEnabled:
+                inferrer.libraryBuilder.libraryFeatures.patterns.isEnabled),
         super(inferrer, helper);
 
   ClosureContext get closureContext => _closureContext!;
@@ -9205,17 +9207,25 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Statement body = case_.body;
     Node? rewrite = popRewrite();
     // Stack: ()
-    // TODO(paulberry): if `isTerminating` is `false`, add a synthetic `break`.
-    // - I'm not sure exactly how best to do this (if `body` is a block, should
-    //   it be inserted into it, or should we always create a fresh block that
-    //   wraps both `body` and the `break`?)
-    // - I'm not sure if this should be done for the last case in a switch
-    //   statement or not.  I worry there may be a complicated interaction
-    //   between insertion of a synthetic break and the handling of
-    //   `shouldThrowUnsoundnessException` in `visitSwitchStatement`.
     if (!identical(body, rewrite)) {
       body = rewrite as Statement;
       case_.body = body..parent = case_;
+    }
+    // When patterns are enable, if this is not the last case and it is not
+    // terminating, we insert a synthetic break.
+    if (libraryBuilder.libraryFeatures.patterns.isEnabled &&
+        !isTerminating &&
+        caseIndex < node.cases.length - 1) {
+      LabeledStatement switchLabel = node.parent as LabeledStatement;
+      BreakStatement syntheticBreak = new BreakStatement(switchLabel)
+        ..fileOffset = node.fileOffset;
+      if (body is Block) {
+        body.statements.add(syntheticBreak);
+        syntheticBreak.parent = body;
+      } else {
+        body = new Block([body, syntheticBreak])..fileOffset = body.fileOffset;
+        case_.body = body..parent = case_;
+      }
     }
 
     if (node is PatternSwitchStatement) {
@@ -9428,7 +9438,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   @override
   bool isAlwaysExhaustiveType(DartType type) {
-    throw new UnimplementedError('TODO(paulberry)');
+    return computeIsAlwaysExhaustiveType(type, coreTypes);
   }
 
   @override

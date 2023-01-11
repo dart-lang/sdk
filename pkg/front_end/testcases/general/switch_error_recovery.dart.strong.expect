@@ -15,8 +15,9 @@ class C<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> ex
     ;
 }
 static method main() → void {
+  #L1:
   switch(1) {
-    #L1:
+    #L2:
       {}
   }
 }

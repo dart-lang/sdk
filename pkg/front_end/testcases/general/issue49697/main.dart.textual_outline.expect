@@ -1,3 +1,4 @@
+// @dart = 2.19
 import 'main_lib.dart';
 
 enum A { a, b }

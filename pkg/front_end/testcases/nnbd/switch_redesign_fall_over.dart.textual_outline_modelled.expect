@@ -1,3 +1,4 @@
+// @dart = 2.19
 abstract class A {
   Never neverReturn();
   foo(int x, bool b) {}
