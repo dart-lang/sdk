@@ -27,36 +27,26 @@ void f() {
   }
 
   test_literal_null() async {
-    try {
-      noSoundNullSafety = false;
-      await assertErrorsInCode(r'''
+    noSoundNullSafety = false;
+    await assertErrorsInCode(r'''
 // @dart = 2.9
 void f() {
   null();
 }
 ''', [
-        error(
-            CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 28, 4),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 28, 4),
+    ]);
   }
 
   test_type_Null() async {
-    try {
-      noSoundNullSafety = false;
-      await assertErrorsInCode(r'''
+    noSoundNullSafety = false;
+    await assertErrorsInCode(r'''
 // @dart = 2.9
 void f(Null a) {
   a();
 }
 ''', [
-        error(
-            CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 34, 1),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(CompileTimeErrorCode.INVOCATION_OF_NON_FUNCTION_EXPRESSION, 34, 1),
+    ]);
   }
 }

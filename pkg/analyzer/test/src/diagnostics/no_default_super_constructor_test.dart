@@ -81,14 +81,13 @@ class B extends A {
   }
 
   test_super_requiredNamed_legacySubclass_explicitConstructor() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A({required String s});
 }
 ''');
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart=2.8
 import 'a.dart';
 
@@ -96,28 +95,21 @@ class B extends A {
   B();
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_super_requiredNamed_legacySubclass_implicitConstructor() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A({required String s});
 }O
 ''');
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart=2.8
 import 'a.dart';
 
 class B extends A {}
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_super_requiredNamed_subclass_explicit() async {
@@ -269,9 +261,8 @@ class B extends A {
   }
 
   test_super_requiredPositional_subclass_explicit_language214() async {
-    try {
-      noSoundNullSafety = false;
-      await assertErrorsInCode(r'''
+    noSoundNullSafety = false;
+    await assertErrorsInCode(r'''
 // @dart = 2.14
 class A {
   A(p);
@@ -280,12 +271,8 @@ class B extends A {
   B();
 }
 ''', [
-        error(
-            CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT, 58, 1),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(CompileTimeErrorCode.NO_DEFAULT_SUPER_CONSTRUCTOR_EXPLICIT, 58, 1),
+    ]);
   }
 
   test_super_requiredPositional_subclass_external() async {

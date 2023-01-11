@@ -37,9 +37,8 @@ void f() {
   }
 
   test_legacy() async {
-    try {
-      noSoundNullSafety = false;
-      await assertNoErrorsInCode('''
+    noSoundNullSafety = false;
+    await assertNoErrorsInCode('''
 // @dart=2.9
 import 'dart:async';
 
@@ -49,9 +48,6 @@ void f() {
   c.complete(null);
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_null() async {
@@ -104,18 +100,14 @@ void f() {
   }
 
   test_legacy() async {
-    try {
-      noSoundNullSafety = false;
-      await assertNoErrorsInCode('''
+    noSoundNullSafety = false;
+    await assertNoErrorsInCode('''
 // @dart=2.9
 void f() {
   Future<int>.value();
   Future<int>.value(null);
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_null() async {

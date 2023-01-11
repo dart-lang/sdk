@@ -76,22 +76,18 @@ var v = const A(null);
   }
 
   test_notGeneric_null_forNonNullable_fromLegacy() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class C {
   final int f;
   const C(a) : f = a;
 }
 ''');
-      await assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 // @dart = 2.9
 import 'a.dart';
 const a = const C(null);
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_notGeneric_null_forNonNullable_fromNullSafe() async {

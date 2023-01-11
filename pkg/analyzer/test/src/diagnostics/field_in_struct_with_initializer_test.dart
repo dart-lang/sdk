@@ -18,35 +18,27 @@ main() {
 class FieldInStructWithInitializerTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   test_instance_withInitializer() async {
-    try {
-      noSoundNullSafety = false;
-      await assertErrorsInCode(r'''
+    noSoundNullSafety = false;
+    await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Struct {
   Pointer p = nullptr;
 }
 ''', [
-        error(FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, 54, 1),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, 54, 1),
+    ]);
   }
 
   test_instance_withInitializer2() async {
-    try {
-      noSoundNullSafety = false;
-      await assertErrorsInCode(r'''
+    noSoundNullSafety = false;
+    await assertErrorsInCode(r'''
 import 'dart:ffi';
 class C extends Union {
   Pointer p = nullptr;
 }
 ''', [
-        error(FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, 53, 1),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER, 53, 1),
+    ]);
   }
 
   test_instance_withoutInitializer() async {

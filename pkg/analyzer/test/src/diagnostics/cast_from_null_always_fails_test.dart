@@ -73,20 +73,16 @@ void f<T>(Null n) {
   }
 
   test_Null_preNullSafety() async {
-    try {
-      noSoundNullSafety = false;
-      await assertErrorsInCode('''
+    noSoundNullSafety = false;
+    await assertErrorsInCode('''
 // @dart=2.9
 
 void f(Null n) {
   n as int;
 }
 ''', [
-        error(HintCode.UNNECESSARY_CAST, 33, 8),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(HintCode.UNNECESSARY_CAST, 33, 8),
+    ]);
   }
 
   test_nullable_nonNullable() async {

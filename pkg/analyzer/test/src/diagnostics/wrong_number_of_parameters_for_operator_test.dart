@@ -40,9 +40,8 @@ class WrongNumberOfParametersForOperatorTest extends PubPackageResolutionTest {
     // attempting to use a binary operator with no args as part of a compound
     // assignment would crash the analyzer.  Check that that doesn't happen
     // anymore.
-    try {
-      noSoundNullSafety = false;
-      await assertErrorsInCode('''
+    noSoundNullSafety = false;
+    await assertErrorsInCode('''
 // @dart=2.9
 class C {
   C operator+() => C();
@@ -52,12 +51,9 @@ void f(C c) {
   c += 1;
 }
 ''', [
-        error(CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR, 35,
-            1),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_OPERATOR, 35, 1),
+    ]);
   }
 
   test_correct_number_of_parameters_binary() async {

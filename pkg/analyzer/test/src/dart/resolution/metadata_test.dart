@@ -340,15 +340,14 @@ A
   }
 
   test_optIn_fromOptOut_class() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A(int a);
 }
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -356,7 +355,7 @@ import 'a.dart';
 void f() {}
 ''');
 
-      assertResolvedNodeText(findNode.annotation('@A'), r'''
+    assertResolvedNodeText(findNode.annotation('@A'), r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -377,22 +376,18 @@ Annotation
     base: package:test/a.dart::@class::A::@constructor::new
     isLegacy: true
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_optIn_fromOptOut_class_constructor() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   final int a;
   const A.named(this.a);
 }
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -400,8 +395,8 @@ import 'a.dart';
 void f() {}
 ''');
 
-      var annotation = findNode.annotation('@A');
-      assertResolvedNodeText(annotation, r'''
+    var annotation = findNode.annotation('@A');
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -435,27 +430,23 @@ Annotation
     isLegacy: true
 ''');
 
-      _assertElementAnnotationValueText(
-          findElement.function('f').metadata[0], r'''
+    _assertElementAnnotationValueText(
+        findElement.function('f').metadata[0], r'''
 A*
   a: int 42
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_optIn_fromOptOut_class_constructor_withDefault() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   final int a;
   const A.named({this.a = 42});
 }
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -463,8 +454,8 @@ import 'a.dart';
 void f() {}
 ''');
 
-      var annotation = findNode.annotation('@A');
-      assertResolvedNodeText(annotation, r'''
+    var annotation = findNode.annotation('@A');
+    assertResolvedNodeText(annotation, r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -491,26 +482,22 @@ Annotation
     isLegacy: true
 ''');
 
-      _assertElementAnnotationValueText(
-          findElement.function('f').metadata[0], r'''
+    _assertElementAnnotationValueText(
+        findElement.function('f').metadata[0], r'''
 A*
   a: int 42
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_optIn_fromOptOut_class_getter() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const foo = 42;
 }
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -518,7 +505,7 @@ import 'a.dart';
 void f() {}
 ''');
 
-      assertResolvedNodeText(findNode.annotation('@A'), r'''
+    assertResolvedNodeText(findNode.annotation('@A'), r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -542,24 +529,20 @@ Annotation
     isLegacy: true
 ''');
 
-      _assertElementAnnotationValueText(
-          findElement.function('f').metadata[0], r'''
+    _assertElementAnnotationValueText(
+        findElement.function('f').metadata[0], r'''
 int 42
   variable: package:test/a.dart::@class::A::@field::foo
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_optIn_fromOptOut_getter() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 const foo = 42;
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -567,7 +550,7 @@ import 'a.dart';
 void f() {}
 ''');
 
-      assertResolvedNodeText(findNode.annotation('@foo'), r'''
+    assertResolvedNodeText(findNode.annotation('@foo'), r'''
 Annotation
   atSign: @
   name: SimpleIdentifier
@@ -581,26 +564,22 @@ Annotation
     isLegacy: true
 ''');
 
-      _assertElementAnnotationValueText(
-          findElement.function('f').metadata[0], r'''
+    _assertElementAnnotationValueText(
+        findElement.function('f').metadata[0], r'''
 int 42
   variable: package:test/a.dart::@variable::foo
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_optIn_fromOptOut_prefix_class() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A(int a);
 }
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart' as a;
 
@@ -608,7 +587,7 @@ import 'a.dart' as a;
 void f() {}
 ''');
 
-      assertResolvedNodeText(findNode.annotation('@a.A'), r'''
+    assertResolvedNodeText(findNode.annotation('@a.A'), r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -637,21 +616,17 @@ Annotation
     base: package:test/a.dart::@class::A::@constructor::new
     isLegacy: true
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_optIn_fromOptOut_prefix_class_constructor() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A.named(int a);
 }
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart' as a;
 
@@ -659,7 +634,7 @@ import 'a.dart' as a;
 void f() {}
 ''');
 
-      assertResolvedNodeText(findNode.annotation('@a.A'), r'''
+    assertResolvedNodeText(findNode.annotation('@a.A'), r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -695,21 +670,17 @@ Annotation
     base: package:test/a.dart::@class::A::@constructor::named
     isLegacy: true
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_optIn_fromOptOut_prefix_class_getter() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const foo = 0;
 }
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart' as a;
 
@@ -717,7 +688,7 @@ import 'a.dart' as a;
 void f() {}
 ''');
 
-      assertResolvedNodeText(findNode.annotation('@a.A'), r'''
+    assertResolvedNodeText(findNode.annotation('@a.A'), r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -743,19 +714,15 @@ Annotation
     base: package:test/a.dart::@class::A::@getter::foo
     isLegacy: true
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_optIn_fromOptOut_prefix_getter() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 const foo = 0;
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart' as a;
 
@@ -763,7 +730,7 @@ import 'a.dart' as a;
 void f() {}
 ''');
 
-      assertResolvedNodeText(findNode.annotation('@a'), r'''
+    assertResolvedNodeText(findNode.annotation('@a'), r'''
 Annotation
   atSign: @
   name: PrefixedIdentifier
@@ -786,9 +753,6 @@ Annotation
     base: package:test/a.dart::@getter::foo
     isLegacy: true
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_value_class_inference_namedConstructor() async {

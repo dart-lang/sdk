@@ -34,9 +34,8 @@ main() {
   }
 
   test_constructor_tearoffs_disabled_grammar_pre_nnbd() async {
-    try {
-      noSoundNullSafety = false;
-      await assertErrorsInCode('''
+    noSoundNullSafety = false;
+    await assertErrorsInCode('''
 // @dart=2.9
 class Foo<X> {
   const Foo.bar();
@@ -46,12 +45,9 @@ main() {
   Foo<int>.bar.baz();
 }
 ''', [
-        error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 83, 5),
-        error(CompileTimeErrorCode.UNDEFINED_METHOD, 93, 3),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 83, 5),
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 93, 3),
+    ]);
   }
 
   test_nonFunctionTypeAliases_disabled() async {

@@ -1493,9 +1493,8 @@ bool test(C c) => c.method<bool>(arg: true);
   }
 
   test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
-    try {
-      noSoundNullSafety = false;
-      await assertNoErrorsInCode('''
+    noSoundNullSafety = false;
+    await assertNoErrorsInCode('''
 // @dart = 2.9
 typedef Foo<S> = S Function<T>(T x);
 
@@ -1510,15 +1509,11 @@ main(Object p) {
   }
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() async {
-    try {
-      noSoundNullSafety = false;
-      await assertNoErrorsInCode('''
+    noSoundNullSafety = false;
+    await assertNoErrorsInCode('''
 // @dart = 2.9
 typedef Foo = T Function<T>(T x);
 
@@ -1529,9 +1524,6 @@ main(Object p) {
   }
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_genericTypeAlias_fieldAndReturnType_noTypeParameters() async {
@@ -3134,9 +3126,8 @@ main(Object p) {
   }
 
   test_typePromotion_if_is_and_subThenSuper() async {
-    try {
-      noSoundNullSafety = false;
-      await assertNoErrorsInCode(r'''
+    noSoundNullSafety = false;
+    await assertNoErrorsInCode(r'''
 // @dart = 2.9
 class A {
   var a;
@@ -3151,9 +3142,6 @@ main(Object p) {
   }
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_typePromotion_if_is_parenthesized() async {

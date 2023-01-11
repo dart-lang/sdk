@@ -126,9 +126,8 @@ extension E on int {}
   }
 
   test_jsonConfigDisablesExtensions_languageOverrideEnables() async {
-    try {
-      noSoundNullSafety = false;
-      _configureTestWithJsonConfig('''
+    noSoundNullSafety = false;
+    _configureTestWithJsonConfig('''
 {
   "configVersion": 2,
   "packages": [
@@ -142,13 +141,10 @@ extension E on int {}
 }
 ''');
 
-      await assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 // @dart = 2.6
 extension E on int {}
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 }
 

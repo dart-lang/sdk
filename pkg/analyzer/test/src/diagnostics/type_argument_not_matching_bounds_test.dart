@@ -50,32 +50,27 @@ enum E<T extends int> {
   }
 
   test_extends_optIn_fromOptOut_Null() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<X extends int> {}
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart=2.6
 import 'a.dart';
 
 class A1<T extends Null> extends A<T> {}
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_extends_optIn_fromOptOut_otherTypeParameter() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 void foo<T extends U, U>() {
 }
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart=2.6
 import 'a.dart';
 
@@ -86,29 +81,22 @@ main() {
   foo<B, A>();
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_extensionOverride_optIn_fromOptOut_Null() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 extension E<X extends int> on List<X> {
   void m() {}
 }
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart=2.6
 import 'a.dart';
 
 f() => E<Null>([]).m();
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_functionReference() async {
@@ -162,21 +150,17 @@ void f(CB<F2> a) {}
   }
 
   test_instanceCreation_optIn_fromOptOut_Null() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<X extends int> {}
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart=2.6
 import 'a.dart';
 
 f() => A<Null>();
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_metadata_matching() async {
@@ -243,22 +227,18 @@ void g() {
   }
 
   test_methodInvocation_optIn_fromOptOut_Null() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void m<X extends int>() {}
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart=2.6
 import 'a.dart';
 
 f() => A().m<Null>();
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_nonFunctionTypeAlias_body_typeArgument_mismatch() async {
@@ -366,15 +346,14 @@ foo(G g) {}
   }
 
   test_redirectingConstructor_optIn_fromOptOut_Null() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 import 'test.dart';
 
 class A<X extends int> implements B {}
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart=2.6
 import 'a.dart';
 
@@ -382,9 +361,6 @@ class B {
   factory B() = A<Null>;
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_regression_42196() async {

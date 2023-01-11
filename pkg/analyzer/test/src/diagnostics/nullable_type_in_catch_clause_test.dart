@@ -110,9 +110,8 @@ class A<B> {
   }
 
   test_optOut() async {
-    try {
-      noSoundNullSafety = false;
-      await assertNoErrorsInCode('''
+    noSoundNullSafety = false;
+    await assertNoErrorsInCode('''
 // @dart = 2.7
 
 void f() {
@@ -121,8 +120,5 @@ void f() {
   }
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 }

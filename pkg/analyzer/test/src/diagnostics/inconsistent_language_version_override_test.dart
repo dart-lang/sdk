@@ -67,23 +67,19 @@ part of 'a.dart';
   }
 
   test_onlyLibrary() async {
-    try {
-      noSoundNullSafety = false;
-      await _checkLibraryAndPart(
-        libraryContent: r'''
+    noSoundNullSafety = false;
+    await _checkLibraryAndPart(
+      libraryContent: r'''
 // @dart = 2.5
 part 'b.dart';
 ''',
-        partContent: r'''
+      partContent: r'''
 part of 'a.dart';
 ''',
-        libraryErrors: [
-          error(_errorCode, 20, 8),
-        ],
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+      libraryErrors: [
+        error(_errorCode, 20, 8),
+      ],
+    );
   }
 
   test_onlyPart() async {

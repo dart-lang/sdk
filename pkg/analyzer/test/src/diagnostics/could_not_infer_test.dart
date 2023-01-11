@@ -20,15 +20,14 @@ main() {
 @reflectiveTest
 class CouldNotInferTest extends PubPackageResolutionTest {
   test_constructor_nullSafe_fromLegacy() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', '''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', '''
 class C<T extends Object> {
   C(T t);
 }
 ''');
 
-      await assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 // @dart = 2.8
 import 'a.dart';
 
@@ -36,9 +35,6 @@ void f(dynamic a) {
   C(a);
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_functionType() async {

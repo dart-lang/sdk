@@ -23,27 +23,23 @@ main() {
 class MixinInferenceNoPossibleSubstitutionTest extends PubPackageResolutionTest
     with MixinInferenceNoPossibleSubstitutionTestCases {
   test_valid_nonNullableMixins_legacyApplication() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 
 mixin B<T> on A<T> {}
 mixin C<T> on A<T> {}
 ''');
 
-      await assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 // @dart=2.8
 import 'a.dart';
 
 class D extends A<int> with B<int>, C {}
 ''');
 
-      assertType(findNode.namedType('B<int>'), 'B<int*>*');
-      assertType(findNode.namedType('C {}'), 'C<int*>*');
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertType(findNode.namedType('B<int>'), 'B<int*>*');
+    assertType(findNode.namedType('C {}'), 'C<int*>*');
   }
 }
 

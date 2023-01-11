@@ -36,9 +36,8 @@ enum E<T> {
   }
 
   test_functionReference() async {
-    try {
-      noSoundNullSafety = false;
-      await assertErrorsInCode('''
+    noSoundNullSafety = false;
+    await assertErrorsInCode('''
 // @dart = 2.7
 import 'dart:math';
 
@@ -49,21 +48,18 @@ class A {
 @A([min])
 main() {}
 ''', [
-        error(CompileTimeErrorCode.COULD_NOT_INFER, 66, 5),
-      ]);
+      error(CompileTimeErrorCode.COULD_NOT_INFER, 66, 5),
+    ]);
 
-      var identifier = findNode.simple('min]');
-      assertElement(
-        identifier,
-        elementMatcher(
-          findElement.importFind('dart:math').topFunction('min'),
-          isLegacy: true,
-        ),
-      );
-      assertType(identifier, 'T* Function<T extends num*>(T*, T*)*');
-    } finally {
-      noSoundNullSafety = true;
-    }
+    var identifier = findNode.simple('min]');
+    assertElement(
+      identifier,
+      elementMatcher(
+        findElement.importFind('dart:math').topFunction('min'),
+        isLegacy: true,
+      ),
+    );
+    assertType(identifier, 'T* Function<T extends num*>(T*, T*)*');
   }
 
   test_implicitCall_tearOff_nullable() async {
