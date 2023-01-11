@@ -63,6 +63,10 @@ class MatchContext<Node extends Object, Expression extends Node,
   /// statement or switch expression.
   final Expression? _switchScrutinee;
 
+  /// If the match is being done in a pattern assignment, the set of variables
+  /// assigned so far.
+  final Map<Variable, Pattern>? assignedVariables;
+
   MatchContext({
     Expression? initializer,
     this.irrefutableContext,
@@ -70,6 +74,7 @@ class MatchContext<Node extends Object, Expression extends Node,
     this.isLate = false,
     Expression? switchScrutinee,
     required this.topPattern,
+    this.assignedVariables,
   })  : _initializer = initializer,
         _switchScrutinee = switchScrutinee;
 

@@ -75,6 +75,22 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void duplicateAssignmentPatternVariable({
+    required covariant PromotableElement variable,
+    required covariant AssignedVariablePatternImpl original,
+    required covariant AssignedVariablePatternImpl duplicate,
+  }) {
+    _errorReporter.reportError(
+      DiagnosticFactory().duplicateAssignmentPatternVariable(
+        source: _errorReporter.source,
+        variable: variable,
+        original: original,
+        duplicate: duplicate,
+      ),
+    );
+  }
+
+  @override
   void duplicateRecordPatternField({
     required String name,
     required covariant SharedRecordPatternField original,

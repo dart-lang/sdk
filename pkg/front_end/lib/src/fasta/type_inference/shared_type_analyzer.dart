@@ -58,6 +58,15 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void duplicateAssignmentPatternVariable({
+    required VariableDeclaration variable,
+    required Pattern original,
+    required Pattern duplicate,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
   void duplicateRecordPatternField({
     required String name,
     required RecordPatternField<Node, Pattern> original,

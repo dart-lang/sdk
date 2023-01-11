@@ -1187,6 +1187,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the variable
+  static const CompileTimeErrorCode DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE =
+      CompileTimeErrorCode(
+    'DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE',
+    "The variable '{0}' is already assigned in this pattern.",
+    correctionMessage: "Try renaming the variable.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the field
   static const CompileTimeErrorCode DUPLICATE_RECORD_PATTERN_FIELD =
       CompileTimeErrorCode(

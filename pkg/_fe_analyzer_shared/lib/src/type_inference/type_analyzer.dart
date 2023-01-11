@@ -263,6 +263,20 @@ mixin TypeAnalyzer<
       MatchContext<Node, Expression, Pattern, Type, Variable> context,
       Pattern node,
       Variable variable) {
+    Map<Variable, Pattern>? assignedVariables = context.assignedVariables;
+    if (assignedVariables != null) {
+      Pattern? original = assignedVariables[variable];
+      if (original == null) {
+        assignedVariables[variable] = node;
+      } else {
+        errors?.duplicateAssignmentPatternVariable(
+          variable: variable,
+          original: original,
+          duplicate: node,
+        );
+      }
+    }
+
     Type variableDeclaredType = operations.variableType(variable);
     Node? irrefutableContext = context.irrefutableContext;
     assert(irrefutableContext != null,
@@ -1028,6 +1042,7 @@ mixin TypeAnalyzer<
         initializer: rhs,
         irrefutableContext: node,
         topPattern: pattern,
+        assignedVariables: <Variable, Pattern>{},
       ),
       pattern,
     );
@@ -2018,6 +2033,13 @@ abstract class TypeAnalyzerErrors<
       required Type scrutineeType,
       required Type caseExpressionType,
       required bool nullSafetyEnabled});
+
+  /// Called for variable that is assigned more than once.
+  void duplicateAssignmentPatternVariable({
+    required Variable variable,
+    required Pattern original,
+    required Pattern duplicate,
+  });
 
   /// Called for a pair of named fields have the same name.
   void duplicateRecordPatternField({

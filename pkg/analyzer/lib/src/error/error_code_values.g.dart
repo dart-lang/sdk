@@ -143,6 +143,7 @@ const List<ErrorCode> errorCodeValues = [
   CompileTimeErrorCode.DUPLICATE_FIELD_NAME,
   CompileTimeErrorCode.DUPLICATE_NAMED_ARGUMENT,
   CompileTimeErrorCode.DUPLICATE_PART,
+  CompileTimeErrorCode.DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE,
   CompileTimeErrorCode.DUPLICATE_RECORD_PATTERN_FIELD,
   CompileTimeErrorCode.DUPLICATE_REST_ELEMENT_IN_PATTERN,
   CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN,
