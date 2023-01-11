@@ -1894,9 +1894,6 @@ class Parser {
       next = token.next!;
     }
 
-    final bool isNamedParameter =
-        parameterKind == FormalParameterKind.optionalNamed;
-
     Token? thisKeyword;
     Token? superKeyword;
     Token? periodAfterThisOrSuper;
@@ -2006,6 +2003,7 @@ class Parser {
     if (periodAfterThisOrSuper != null) {
       token = periodAfterThisOrSuper;
     }
+    final bool isNamedParameter = parameterKind.isNamed;
     next = token.next!;
     if (inFunctionType &&
         !isNamedParameter &&
