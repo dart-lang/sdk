@@ -2509,26 +2509,24 @@ class _ConnectionTarget {
           return _ConnectionInfo(connection, proxy);
         }
       }, onError: (error) {
-        // When there is a timeout, there is a race in which the connectionTask
-        // Future won't be completed with an error before the socketFuture here
-        // is completed with a TimeoutException by the onTimeout callback above.
-        // In this case, propagate a SocketException as specified by the
-        // HttpClient.connectionTimeout docs.
+        _connecting--;
+        _socketTasks.remove(task);
+        _checkPending();
+        // When there is a timeout, cancel the ConnectionTask and propagate a
+        // SocketException as specified by the HttpClient.connectionTimeout
+        // docs.
         if (error is TimeoutException) {
           assert(connectionTimeout != null);
-          _connecting--;
-          _socketTasks.remove(task);
           task.cancel();
           throw SocketException(
               "HTTP connection timed out after $connectionTimeout, "
               "host: $host, port: $port");
         }
-        _socketTasks.remove(task);
-        _checkPending();
         throw error;
       });
     }, onError: (error) {
       _connecting--;
+      _checkPending();
       throw error;
     });
   }

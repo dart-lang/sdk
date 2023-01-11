@@ -842,44 +842,35 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // It is not valid dart to have a try without a catch.
     assert(node.catches.isNotEmpty);
 
-    // We lower a [TryCatch] to a wasm try block. If there are any [Catch]
-    // nodes, we generate a single wasm catch instruction, and dispatch at
-    // runtime based on the type of the caught exception.
+    // We lower a [TryCatch] to a wasm try block.
     w.Label try_ = b.try_();
     visitStatement(node.body);
     b.br(try_);
 
-    // Insert a catch instruction which will catch any thrown Dart
-    // exceptions.
     // Note: We must wait to add the try block to the [tryLabels] stack until
     // after we have visited the body of the try. This is to handle the case of
     // a rethrow nested within a try nested within a catch, that is we need the
     // rethrow to target the last try block with a catch.
     tryLabels.add(try_);
-    b.catch_(translator.exceptionTag);
 
     // Stash the original exception in a local so we can push it back onto the
     // stack after each type test. Also, store the stack trace in a local.
-    w.RefType stackTrace = translator.stackTraceInfo.nonNullableType;
-    w.Local thrownStackTrace = addLocal(stackTrace);
-    b.local_set(thrownStackTrace);
+    w.Local thrownException = addLocal(translator.topInfo.nonNullableType);
+    w.Local thrownStackTrace =
+        addLocal(translator.stackTraceInfo.nonNullableType);
 
-    w.RefType exception = translator.topInfo.nonNullableType;
-    w.Local thrownException = addLocal(exception);
-    b.local_set(thrownException);
-
-    // For each catch node:
-    //   1) Create a block for the catch.
-    //   2) Push the caught exception onto the stack.
-    //   3) Add a type test based on the guard of the catch.
-    //   4) If the test fails, we jump to the next catch. Otherwise, we
-    //      execute the body of the catch.
-    for (Catch catch_ in node.catches) {
+    void emitCatchBlock(Catch catch_, bool emitGuard) {
+      // For each catch node:
+      //   1) Create a block for the catch.
+      //   2) Push the caught exception onto the stack.
+      //   3) Add a type test based on the guard of the catch.
+      //   4) If the test fails, we jump to the next catch. Otherwise, we
+      //      execute the body of the catch.
       w.Label catchBlock = b.block();
       DartType guard = catch_.guard;
 
       // Only emit the type test if the guard is not [Object].
-      if (guard != translator.coreTypes.objectNonNullableRawType) {
+      if (emitGuard) {
         b.local_get(thrownException);
         types.emitTypeTest(
             this, guard, translator.coreTypes.objectNonNullableRawType, node);
@@ -891,7 +882,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // the catch's exception [VariableDeclaration] node.
       VariableDeclaration? exceptionDeclaration = catch_.exception;
       if (exceptionDeclaration != null) {
-        w.Local guardedException = addLocal(exception);
+        w.Local guardedException = addLocal(translator.topInfo.nonNullableType);
         locals[exceptionDeclaration] = guardedException;
         b.local_get(thrownException);
         b.local_set(guardedException);
@@ -901,7 +892,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // corresponding to the catch's stack trace [VariableDeclaration] node.
       VariableDeclaration? stackTraceDeclaration = catch_.stackTrace;
       if (stackTraceDeclaration != null) {
-        w.Local guardedStackTrace = addLocal(stackTrace);
+        w.Local guardedStackTrace =
+            addLocal(translator.stackTraceInfo.nonNullableType);
         locals[stackTraceDeclaration] = guardedStackTrace;
         b.local_get(thrownStackTrace);
         b.local_set(guardedStackTrace);
@@ -913,10 +905,78 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.end(); // end catchBlock.
     }
 
-    // We insert a rethrow just before the end of the try block to handle the
-    // case where none of the catch blocks catch the type of the thrown
-    // exception.
+    // Insert a catch instruction which will catch any thrown Dart
+    // exceptions.
+    b.catch_(translator.exceptionTag);
+
+    b.local_set(thrownStackTrace);
+    b.local_set(thrownException);
+    for (final Catch catch_ in node.catches) {
+      // Only insert type checks if the guard is not `Object`
+      final bool shouldEmitGuard =
+          catch_.guard != translator.coreTypes.objectNonNullableRawType;
+      emitCatchBlock(catch_, shouldEmitGuard);
+      if (!shouldEmitGuard) {
+        // If we didn't emit a guard, we won't ever fall through to the
+        // following catch blocks.
+        break;
+      }
+    }
+    // Rethrow if all the catch blocks fall through
     b.rethrow_(try_);
+
+    bool guardCanMatchJSException(DartType guard) {
+      if (guard is DynamicType) {
+        return true;
+      }
+      if (guard is InterfaceType) {
+        return translator.hierarchy
+            .isSubtypeOf(translator.javaScriptErrorClass, guard.classNode);
+      }
+      if (guard is TypeParameterType) {
+        return guardCanMatchJSException(guard.bound);
+      }
+      return false;
+    }
+
+    // If we have a catches that are generic enough to catch a JavaScript
+    // error, we need to put that into a catch_all block.
+    final Iterable<Catch> catchAllCatches =
+        node.catches.where((c) => guardCanMatchJSException(c.guard));
+
+    if (catchAllCatches.isNotEmpty) {
+      // This catches any objects that aren't dart exceptions, such as
+      // JavaScript exceptions or objects.
+      b.catch_all();
+
+      // We can't inspect the thrown object in a catch_all and get a stack
+      // trace, so we just attach the current stack trace.
+      call(translator.stackTraceCurrent.reference);
+      b.local_set(thrownStackTrace);
+
+      // We create a generic JavaScript error in this case.
+      call(translator.javaScriptErrorFactory.reference);
+      b.local_set(thrownException);
+
+      for (final c in catchAllCatches) {
+        // Type guards based on a type parameter are special, in that we cannot
+        // statically determine whether a JavaScript error will always satisfy
+        // the guard, so we should emit the type checking code for it. All
+        // other guards will always match a JavaScript error, however, so no
+        // need to emit type checks for those.
+        final bool shouldEmitGuard = c.guard is TypeParameterType;
+        emitCatchBlock(c, shouldEmitGuard);
+        if (!shouldEmitGuard) {
+          // If we didn't emit a guard, we won't ever fall through to the
+          // following catch blocks.
+          break;
+        }
+      }
+
+      // Rethrow if the catch block falls through
+      b.rethrow_(try_);
+    }
+
     tryLabels.removeLast();
     b.end(); // end try_.
   }

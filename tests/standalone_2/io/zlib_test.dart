@@ -123,8 +123,8 @@ void testZLibDeflateRaw(List<int> data) {
     buffer.addAll(data);
     return buffer;
   }).then((data) {
-    Expect
-        .listEquals([99, 96, 100, 98, 102, 97, 101, 99, 231, 224, 4, 0], data);
+    Expect.listEquals(
+        [99, 96, 100, 98, 102, 97, 101, 99, 231, 224, 4, 0], data);
     asyncEnd();
   });
   controller.add(data);
@@ -132,17 +132,13 @@ void testZLibDeflateRaw(List<int> data) {
 }
 
 void testZLibDeflateInvalidLevel() {
-  test2(gzip, level) {
-    [true, false].forEach((gzip) {
-      [-2, -20, 10, 42, null, "9"].forEach((level) {
-        Expect.throwsArgumentError(
-            () => new ZLibEncoder(gzip: gzip, level: level),
-            "'level' must be in range -1..9");
-      });
+  [true, false].forEach((gzip) {
+    [-2, -20, 10, 42, null, "9"].forEach((level) {
+      Expect.throwsArgumentError(
+          () => new ZLibEncoder(gzip: gzip, level: level),
+          "'level' must be in range -1..9");
     });
-  }
-
-  ;
+  });
 }
 
 void testZLibInflate(List<int> data) {

@@ -369,7 +369,9 @@ class Server {
       }
       return;
     }
-    if (!_serveObservatory) {
+    // Don't redirect HTTP VM service requests, just requests for Observatory
+    // assets.
+    if (!_serveObservatory && path == '/index.html') {
       final ddsUri = _service.ddsUri;
       if (ddsUri == null) {
         request.response.headers.contentType = ContentType.text;

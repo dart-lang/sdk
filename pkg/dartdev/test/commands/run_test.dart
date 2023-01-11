@@ -618,9 +618,9 @@ void main(List<String> args) => print("$b $args");
           // Wait for process to start.
           await completer.future;
           final client = HttpClient();
-          final request = await client.getUrl(Uri.parse(uri));
-          final response = await request.close();
-          final content = await response.transform(utf8.decoder).join();
+          var request = await client.getUrl(Uri.parse(uri));
+          var response = await request.close();
+          var content = await response.transform(utf8.decoder).join();
           expect(content.contains('Dart VM Observatory'), serve);
           if (!serve) {
             if (withDds) {
@@ -634,6 +634,13 @@ void main(List<String> args) => print("$b $args");
               );
             }
           }
+
+          // Ensure we can always make VM service requests via HTTP.
+          request = await client.getUrl(Uri.parse('${uri}getVM'));
+          response = await request.close();
+          content = await response.transform(utf8.decoder).join();
+          expect(content.contains('"jsonrpc":"2.0"'), true);
+
           process.kill();
         },
       );

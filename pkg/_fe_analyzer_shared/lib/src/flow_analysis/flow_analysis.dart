@@ -4696,10 +4696,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       FlowModel.merge(operations, first, second, _current._emptyVariableMap);
 
   FlowModel<Type> _popPattern(Expression? guard) {
-    _FlowContext context = _stack.removeLast();
-    assert(context is _TopPatternContext<Type>);
+    _TopPatternContext<Type> context =
+        _stack.removeLast() as _TopPatternContext<Type>;
     FlowModel<Type> unmatched = _unmatched!;
-    _unmatched = null;
+    _unmatched = context._previousUnmatched;
     if (guard != null) {
       ExpressionInfo<Type> guardInfo = _expressionEnd(guard);
       _current = guardInfo.ifTrue;
@@ -4717,11 +4717,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   void _pushPattern() {
-    assert(_unmatched == null);
-    _unmatched = _current.setUnreachable();
     _stack.add(new _TopPatternContext<Type>(
         _makeTemporaryReference(_scrutineeSsaNode, _scrutineeType!),
-        _scrutineeType!));
+        _scrutineeType!,
+        _unmatched));
+    _unmatched = _current.setUnreachable();
   }
 
   void _pushScrutinee(
@@ -5706,7 +5706,14 @@ class _SwitchStatementContext<Type extends Object>
 
 /// [_FlowContext] representing the top level of a pattern syntax tree.
 class _TopPatternContext<Type extends Object> extends _PatternContext<Type> {
-  _TopPatternContext(super._matchedValueReference, super.matchedValueType);
+  final FlowModel<Type>? _previousUnmatched;
+
+  _TopPatternContext(super._matchedValueReference, super.matchedValueType,
+      this._previousUnmatched);
+
+  @override
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['previousUnmatched'] = _previousUnmatched;
 
   @override
   String get _debugType => '_TopPatternContext';
