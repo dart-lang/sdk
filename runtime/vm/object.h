@@ -12414,7 +12414,16 @@ class RegExp : public Instance {
   };
 
   class TypeBits : public BitField<int8_t, RegExType, kTypePos, kTypeSize> {};
-  class FlagsBits : public BitField<int8_t, intptr_t, kFlagsPos, kFlagsSize> {};
+  class GlobalBit : public BitField<int8_t, bool, kFlagsPos, 1> {};
+  class IgnoreCaseBit : public BitField<int8_t, bool, GlobalBit::kNextBit, 1> {
+  };
+  class MultiLineBit
+      : public BitField<int8_t, bool, IgnoreCaseBit::kNextBit, 1> {};
+  class UnicodeBit : public BitField<int8_t, bool, MultiLineBit::kNextBit, 1> {
+  };
+  class DotAllBit : public BitField<int8_t, bool, UnicodeBit::kNextBit, 1> {};
+
+  class FlagsBits : public BitField<int8_t, int8_t, kFlagsPos, kFlagsSize> {};
 
   bool is_initialized() const { return (type() != kUninitialized); }
   bool is_simple() const { return (type() == kSimple); }
@@ -12510,29 +12519,19 @@ class RegExp : public Instance {
   void set_num_bracket_expressions(intptr_t value) const;
   void set_capture_name_map(const Array& array) const;
   void set_is_global() const {
-    RegExpFlags f = flags();
-    f.SetGlobal();
-    set_flags(f);
+    untag()->type_flags_.UpdateBool<GlobalBit>(true);
   }
   void set_is_ignore_case() const {
-    RegExpFlags f = flags();
-    f.SetIgnoreCase();
-    set_flags(f);
+    untag()->type_flags_.UpdateBool<IgnoreCaseBit>(true);
   }
   void set_is_multi_line() const {
-    RegExpFlags f = flags();
-    f.SetMultiLine();
-    set_flags(f);
+    untag()->type_flags_.UpdateBool<MultiLineBit>(true);
   }
   void set_is_unicode() const {
-    RegExpFlags f = flags();
-    f.SetUnicode();
-    set_flags(f);
+    untag()->type_flags_.UpdateBool<UnicodeBit>(true);
   }
   void set_is_dot_all() const {
-    RegExpFlags f = flags();
-    f.SetDotAll();
-    set_flags(f);
+    untag()->type_flags_.UpdateBool<DotAllBit>(true);
   }
   void set_is_simple() const { set_type(kSimple); }
   void set_is_complex() const { set_type(kComplex); }
@@ -12545,13 +12544,11 @@ class RegExp : public Instance {
   }
 
   RegExpFlags flags() const {
-    return RegExpFlags(FlagsBits::decode(untag()->type_flags_));
+    return RegExpFlags(untag()->type_flags_.Read<FlagsBits>());
   }
   void set_flags(RegExpFlags flags) const {
-    StoreNonPointer(&untag()->type_flags_,
-                    FlagsBits::update(flags.value(), untag()->type_flags_));
+    untag()->type_flags_.Update<FlagsBits>(flags.value());
   }
-  const char* Flags() const;
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
 
@@ -12563,11 +12560,9 @@ class RegExp : public Instance {
 
  private:
   void set_type(RegExType type) const {
-    StoreNonPointer(&untag()->type_flags_,
-                    TypeBits::update(type, untag()->type_flags_));
+    untag()->type_flags_.Update<TypeBits>(type);
   }
-
-  RegExType type() const { return TypeBits::decode(untag()->type_flags_); }
+  RegExType type() const { return untag()->type_flags_.Read<TypeBits>(); }
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(RegExp, Instance);
   friend class Class;
