@@ -3889,20 +3889,36 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     List<DartType> typeArguments =
         _getStaticTypeArguments(function, node.arguments);
 
-    bool checkFactoryConstructor(List<HInstruction?> args) {
-      if (function is ConstructorEntity && function.isFactoryConstructor) {
-        _handleInvokeFactoryConstructor(node, function, typeMask,
-            List<HInstruction>.from(args), sourceInformation);
-        return true;
+    // Recognize e.g. `bool.fromEnvironment('x')`
+    // TODO(sra): Can we delete this code now that the CFE does constant folding
+    // for us during loading?
+    if (function.isExternal &&
+        function is ConstructorEntity &&
+        function.isFromEnvironmentConstructor) {
+      if (node.isConst) {
+        // Just like all const constructors (see visitConstructorInvocation).
+        stack.add(graph.addConstant(
+            _elementMap.getConstantValue(_memberContextNode!, node)!,
+            closedWorld,
+            sourceInformation: sourceInformation));
+      } else {
+        _generateUnsupportedError(
+            '${function.enclosingClass.name}.${function.name} '
+            'can only be used as a const constructor',
+            sourceInformation);
       }
-      return false;
+      return;
     }
 
     if (closedWorld.nativeData.isJsInteropMember(function)) {
       final arguments =
           _visitArgumentsForNativeStaticTarget(target.function, node.arguments);
 
-      if (checkFactoryConstructor(arguments)) return;
+      if (function is ConstructorEntity && function.isFactoryConstructor) {
+        _handleInvokeNativeFactoryConstructor(
+            node, function, typeMask, arguments, sourceInformation);
+        return;
+      }
 
       // Static methods currently ignore the type parameters.
       _pushStaticNativeInvocation(function, arguments, typeMask, typeArguments);
@@ -3915,7 +3931,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
           typeArguments,
           sourceInformation);
 
-      if (checkFactoryConstructor(arguments)) return;
+      if (function is ConstructorEntity && function.isFactoryConstructor) {
+        _handleInvokeFactoryConstructor(
+            node, function, typeMask, arguments, sourceInformation);
+        return;
+      }
 
       // Static methods currently ignore the type parameters.
       _pushStaticInvocation(function, arguments, typeMask, typeArguments,
@@ -3929,25 +3949,6 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       AbstractValue typeMask,
       List<HInstruction> arguments,
       SourceInformation? sourceInformation) {
-    // Recognize e.g. `bool.fromEnvironment('x')`
-    // TODO(sra): Can we delete this code now that the CFE does constant folding
-    // for us during loading?
-    if (function.isExternal && function.isFromEnvironmentConstructor) {
-      if (invocation.isConst) {
-        // Just like all const constructors (see visitConstructorInvocation).
-        stack.add(graph.addConstant(
-            _elementMap.getConstantValue(_memberContextNode!, invocation)!,
-            closedWorld,
-            sourceInformation: sourceInformation));
-      } else {
-        _generateUnsupportedError(
-            '${function.enclosingClass.name}.${function.name} '
-            'can only be used as a const constructor',
-            sourceInformation);
-      }
-      return;
-    }
-
     // Recognize `List()` and `List(n)`.
     if (_commonElements.isUnnamedListConstructor(function)) {
       if (invocation.arguments.named.isEmpty) {
@@ -4037,6 +4038,30 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         }
       }
     }
+  }
+
+  void _handleInvokeNativeFactoryConstructor(
+      ir.StaticInvocation invocation,
+      ConstructorEntity function,
+      AbstractValue typeMask,
+      List<HInstruction?> arguments,
+      SourceInformation? sourceInformation) {
+    InterfaceType instanceType = _elementMap.createInterfaceType(
+        invocation.target.enclosingClass!, invocation.arguments.types);
+
+    // Factory constructors take type parameters.
+    List<DartType> typeArguments =
+        _getConstructorTypeArguments(function, invocation.arguments);
+
+    // TODO(johnniwinther): Remove this when type arguments are passed to
+    // constructors like calling a generic method.
+    _addTypeArguments(
+        arguments,
+        _getClassTypeArguments(function.enclosingClass, invocation.arguments),
+        sourceInformation);
+    instanceType = localsHandler.substInContext(instanceType) as InterfaceType;
+    _addImplicitInstantiation(instanceType);
+    _pushStaticNativeInvocation(function, arguments, typeMask, typeArguments);
   }
 
   /// Handle the `JSArray<E>.typed` constructor, which returns its argument,
@@ -6186,16 +6211,11 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
     ParameterStructure parameterStructure = function.parameterStructure;
     List<String> selectorArgumentNames =
         selector.callStructure.getOrderedNamedArguments();
-    List<HInstruction?> compiledArguments = List<HInstruction?>.filled(
-        parameterStructure.totalParameters +
-            parameterStructure.typeParameters +
-            1,
-        null); // Plus one for receiver.
-
-    int compiledArgumentIndex = 0;
+    bool methodNeedsTypeArguments = _rtiNeed.methodNeedsTypeArguments(function);
+    List<HInstruction> compiledArguments = [];
 
     // Copy receiver.
-    compiledArguments[compiledArgumentIndex++] = providedArguments[0];
+    compiledArguments.add(providedArguments[0]);
 
     /// Offset of positional arguments in [providedArguments].
     int positionalArgumentOffset = 1;
@@ -6210,13 +6230,12 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         (DartType type, String? name, ConstantValue? defaultValue) {
       if (positionalArgumentIndex < parameterStructure.positionalParameters) {
         if (positionalArgumentIndex < callStructure.positionalArgumentCount) {
-          compiledArguments[compiledArgumentIndex++] = providedArguments[
-              positionalArgumentOffset + positionalArgumentIndex++];
+          compiledArguments.add(providedArguments[
+              positionalArgumentOffset + positionalArgumentIndex++]);
         } else {
           assert(defaultValue != null,
               failedAt(function, 'No constant computed for parameter $name'));
-          compiledArguments[compiledArgumentIndex++] =
-              graph.addConstant(defaultValue!, closedWorld);
+          compiledArguments.add(graph.addConstant(defaultValue!, closedWorld));
         }
       } else {
         // Example:
@@ -6233,17 +6252,16 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         if (namedArgumentIndex < selectorArgumentNames.length &&
             name == selectorArgumentNames[namedArgumentIndex]) {
           // The named argument was provided in the function invocation.
-          compiledArguments[compiledArgumentIndex++] =
-              providedArguments[namedArgumentOffset + namedArgumentIndex++];
+          compiledArguments.add(
+              providedArguments[namedArgumentOffset + namedArgumentIndex++]);
         } else {
           assert(defaultValue != null,
               failedAt(function, 'No constant computed for parameter $name'));
-          compiledArguments[compiledArgumentIndex++] =
-              graph.addConstant(defaultValue!, closedWorld);
+          compiledArguments.add(graph.addConstant(defaultValue!, closedWorld));
         }
       }
     });
-    if (_rtiNeed.methodNeedsTypeArguments(function)) {
+    if (methodNeedsTypeArguments) {
       if (callStructure.typeArgumentCount ==
           parameterStructure.typeParameters) {
         /// Offset of type arguments in [providedArguments].
@@ -6252,20 +6270,20 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         for (int typeArgumentIndex = 0;
             typeArgumentIndex < callStructure.typeArgumentCount;
             typeArgumentIndex++) {
-          compiledArguments[compiledArgumentIndex++] =
-              providedArguments[typeArgumentOffset + typeArgumentIndex];
+          compiledArguments
+              .add(providedArguments[typeArgumentOffset + typeArgumentIndex]);
         }
       } else {
         assert(callStructure.typeArgumentCount == 0);
         // Pass type variable bounds as type arguments.
         for (TypeVariableType typeVariable
             in _elementEnvironment.getFunctionTypeVariables(function)) {
-          compiledArguments[compiledArgumentIndex++] =
-              _computeTypeArgumentDefaultValue(function, typeVariable);
+          compiledArguments
+              .add(_computeTypeArgumentDefaultValue(function, typeVariable));
         }
       }
     }
-    return List<HInstruction>.from(compiledArguments, growable: false);
+    return compiledArguments;
   }
 
   HInstruction _computeTypeArgumentDefaultValue(

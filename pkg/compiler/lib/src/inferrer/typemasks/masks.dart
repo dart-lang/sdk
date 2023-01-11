@@ -51,8 +51,9 @@ class CommonMasks with AbstractValueDomain {
 
   /// Cache of [FlatTypeMask]s grouped by the possible values of the
   /// `FlatTypeMask.flags` property.
-  final List<Map<ClassEntity, TypeMask>?> _canonicalizedTypeMasks = List.filled(
-      _FlatTypeMaskKind.values.length << FlatTypeMask._USED_INDICES, null);
+  final List<Map<ClassEntity?, TypeMask>?> _canonicalizedTypeMasks =
+      List.filled(
+          _FlatTypeMaskKind.values.length << FlatTypeMask._USED_INDICES, null);
 
   /// Return the cached mask for [base] with the given flags, or
   /// calls [createMask] to create the mask and cache it.
