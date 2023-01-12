@@ -22,22 +22,26 @@ class DynamicForwarders {
 
   DynamicForwarders(this.translator);
 
-  Forwarder getGetterForwarder(DynamicGet node) {
-    final memberName = node.name.text;
-    return _getterForwarderOfName[memberName] ??=
-        Forwarder(translator, _ForwarderKind.Getter, memberName);
-  }
+  Forwarder getDynamicGetForwarder(String memberName) =>
+      _getterForwarderOfName[memberName] ??=
+          Forwarder(translator, _ForwarderKind.Getter, memberName)
+            .._generateCode(translator);
 
-  Forwarder getSetterForwarder(DynamicSet node) {
-    final memberName = node.name.text;
-    return _setterForwarderOfName[memberName] ??=
-        Forwarder(translator, _ForwarderKind.Setter, memberName);
-  }
+  Forwarder getDynamicSetForwarder(String memberName) =>
+      _setterForwarderOfName[memberName] ??=
+          Forwarder(translator, _ForwarderKind.Setter, memberName)
+            .._generateCode(translator);
 
-  Forwarder getMethodForwarder(DynamicInvocation node) {
-    final memberName = node.name.text;
-    return _methodForwarderOfName[memberName] ??=
-        Forwarder(translator, _ForwarderKind.Method, memberName);
+  Forwarder getDynamicInvocationForwarder(String memberName) {
+    // Add Wasm function to the map before generating the forwarder code, to
+    // allow recursive calls in the "call" forwarder.
+    var forwarder = _methodForwarderOfName[memberName];
+    if (forwarder == null) {
+      forwarder = Forwarder(translator, _ForwarderKind.Method, memberName);
+      _methodForwarderOfName[memberName] = forwarder;
+      forwarder._generateCode(translator);
+    }
+    return forwarder;
   }
 }
 
@@ -68,35 +72,32 @@ class Forwarder {
   final w.DefinedFunction function;
 
   Forwarder(Translator translator, this.kind, this.memberName)
-      : function = translator.m.addFunction(kind.functionType(translator),
-            "$kind forwarder for '$memberName'") {
-    _generateCode(translator, function);
-  }
+      : function = translator.m.addFunction(
+            kind.functionType(translator), "$kind forwarder for '$memberName'");
 
-  void _generateCode(Translator translator, w.DefinedFunction function) {
+  void _generateCode(Translator translator) {
     switch (kind) {
       case _ForwarderKind.Getter:
-        _generateGetterCode(translator, function);
+        _generateGetterCode(translator);
         break;
 
       case _ForwarderKind.Setter:
-        _generateSetterCode(translator, function);
+        _generateSetterCode(translator);
         break;
 
       case _ForwarderKind.Method:
-        _generateMethodCode(translator, function);
+        _generateMethodCode(translator);
         break;
     }
   }
 
-  void _generateGetterCode(Translator translator, w.DefinedFunction function) {
+  void _generateGetterCode(Translator translator) {
     final w.Instructions b = function.body;
 
     final receiverLocal = function.locals[0];
 
     final selectors =
-        translator.dispatchTable.selectorsForDynamicGet(memberName)?.toList() ??
-            [];
+        translator.dispatchTable.dynamicGetterSelectors(memberName);
     for (final selector in selectors) {
       translator.functions.activateSelector(selector);
       for (int classID in selector.classIds) {
@@ -149,15 +150,14 @@ class Forwarder {
     b.end();
   }
 
-  void _generateSetterCode(Translator translator, w.DefinedFunction function) {
+  void _generateSetterCode(Translator translator) {
     final w.Instructions b = function.body;
 
     final receiverLocal = function.locals[0];
     final positionalArgLocal = function.locals[1];
 
     final selectors =
-        translator.dispatchTable.selectorsForDynamicSet(memberName)?.toList() ??
-            [];
+        translator.dispatchTable.dynamicSetterSelectors(memberName);
     for (final selector in selectors) {
       translator.functions.activateSelector(selector);
       for (int classID in selector.classIds) {
@@ -196,7 +196,7 @@ class Forwarder {
     b.end();
   }
 
-  void _generateMethodCode(Translator translator, w.DefinedFunction function) {
+  void _generateMethodCode(Translator translator) {
     final w.Instructions b = function.body;
 
     final receiverLocal = function.locals[0];
@@ -204,13 +204,14 @@ class Forwarder {
     final positionalArgsLocal = function.locals[2];
     final namedArgsLocal = function.locals[3];
 
+    // Continuation of this block calls `noSuchMethod` on the receiver.
+    final noSuchMethodBlock = b.block();
+
     final numArgsLocal = function.addLocal(w.NumType.i32);
 
-    final selectors = translator.dispatchTable
-            .selectorsForDynamicInvocation(memberName)
-            ?.toList() ??
-        [];
-    for (final selector in selectors) {
+    final methodSelectors =
+        translator.dispatchTable.dynamicMethodSelectors(memberName);
+    for (final selector in methodSelectors) {
       translator.functions.activateSelector(selector);
       for (int classID in selector.classIds) {
         final Reference target = selector.targets[classID]!;
@@ -225,15 +226,17 @@ class Forwarder {
         b.struct_get(translator.topInfo.struct, FieldIndex.classId);
         b.i32_const(classID);
         b.i32_eq();
-        final topBlock = b.if_();
+        b.if_();
 
         // Check number of type arguments. It needs to be 0 or match the
         // member's type parameters.
         if (targetMemberParamInfo.typeParamCount == 0) {
+          // typeArgs.length == 0
           b.local_get(typeArgsLocal);
           translator.getListLength(b);
           b.i32_eqz();
         } else {
+          // typeArgs.length == 0 || typeArgs.length == typeParams.length
           b.local_get(typeArgsLocal);
           translator.getListLength(b);
           b.local_tee(numArgsLocal);
@@ -243,7 +246,8 @@ class Forwarder {
           b.i32_eq();
           b.i32_or();
         }
-        b.if_();
+        b.i32_eqz();
+        b.br_if(noSuchMethodBlock);
 
         // Check number of positional parameters and add missing optional
         // arguments
@@ -262,7 +266,8 @@ class Forwarder {
         b.i32_const(nTotal);
         b.i32_le_u();
         b.i32_and();
-        b.if_();
+        b.i32_eqz();
+        b.br_if(noSuchMethodBlock);
 
         // Add default values of optional positional parameters if needed
         w.Local? adjustedPositionalArgsLocal;
@@ -322,11 +327,12 @@ class Forwarder {
         // value.
         w.Local? adjustedNamedArgsLocal;
         if (targetMemberParamInfo.named.isEmpty) {
+          // namedArgs.length == 0
           b.local_get(namedArgsLocal);
           translator.getListLength(b);
           b.i32_eqz();
           b.i32_eqz();
-          b.br_if(topBlock);
+          b.br_if(noSuchMethodBlock);
         } else {
           adjustedNamedArgsLocal = function.addLocal(translator
               .classInfo[translator.growableListClass]!.nonNullableType);
@@ -387,8 +393,8 @@ class Forwarder {
             b.ref_is_null();
             if (functionNodeDefaultValue == null &&
                 paramInfoDefaultValue == null) {
-              // Required
-              b.br_if(topBlock);
+              // Required parameter missing
+              b.br_if(noSuchMethodBlock);
               b.local_get(adjustedNamedArgsLocal);
               b.local_get(namedArgsLocal);
               translator.indexList(b, (b) {
@@ -448,7 +454,7 @@ class Forwarder {
           b.local_get(remainingNamedArgsLocal);
           b.i32_eqz();
           b.i32_eqz();
-          b.br_if(topBlock);
+          b.br_if(noSuchMethodBlock);
         }
 
         b.local_get(receiverLocal);
@@ -458,13 +464,163 @@ class Forwarder {
         final wasmFunction =
             translator.functions.getFunction(targetMember.typeCheckerReference);
         b.call(wasmFunction);
-
         b.return_();
-        b.end(); // positional args check
-        b.end(); // type args check
-        b.end();
+        b.end(); // class ID
       }
     }
+
+    final getterSelectors =
+        translator.dispatchTable.dynamicGetterSelectors(memberName);
+    final getterValueLocal = function.addLocal(translator.topInfo.nullableType);
+    for (final selector in getterSelectors) {
+      translator.functions.activateSelector(selector);
+      for (int classID in selector.classIds) {
+        final Reference target = selector.targets[classID]!;
+        final targetMember = target.asMember;
+        if (targetMember.isAbstract) {
+          continue;
+        }
+        // This loop checks getters and fields. Methods are considered in the
+        // previous loop, skip them here.
+        if (targetMember is Procedure && !targetMember.isGetter) {
+          continue;
+        }
+        final targetClass = targetMember.enclosingClass!;
+        final targetClassInfo = translator.classInfo[targetClass]!;
+
+        b.local_get(receiverLocal);
+        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.i32_const(classID);
+        b.i32_eq();
+        b.if_();
+
+        final w.ValueType receiverType = targetClassInfo.nonNullableType;
+        final Reference targetReference;
+        if (targetMember is Procedure) {
+          assert(targetMember.isGetter); // methods are skipped above
+          targetReference = targetMember.reference;
+        } else if (targetMember is Field) {
+          targetReference = targetMember.getterReference;
+        } else {
+          throw '_generateMethodCode: member is not a procedure or field: $targetMember';
+        }
+
+        final w.BaseFunction targetFunction =
+            translator.functions.getFunction(targetReference);
+
+        // Get field value
+        b.local_get(receiverLocal);
+        translator.convertType(function, receiverLocal.type, receiverType);
+        b.call(targetFunction);
+        translator.convertType(function, targetFunction.type.outputs.single,
+            translator.topInfo.nullableType);
+        b.local_tee(getterValueLocal);
+
+        // Throw `NoSuchMethodError` if the value is null
+        b.br_on_null(noSuchMethodBlock);
+        // Reuse `receiverLocal`. This also updates the `noSuchMethod` receiver
+        // below.
+        b.local_tee(receiverLocal);
+
+        // Invoke "call" if the value is not a closure
+        b.struct_get(translator.topInfo.struct, FieldIndex.classId);
+        b.i32_const(translator.classInfo[translator.functionClass]!.classId);
+        b.i32_ne();
+        b.if_();
+        // Value is not a closure
+        final callForwarder = translator.dynamicForwarders
+            .getDynamicInvocationForwarder("call")
+            .function;
+        b.local_get(receiverLocal);
+        b.local_get(typeArgsLocal);
+        b.local_get(positionalArgsLocal);
+        b.local_get(namedArgsLocal);
+        b.call(callForwarder);
+        b.return_();
+        b.end();
+
+        // Value is a closure, cast it to `#ClosureBase`
+        final receiverClosureBaseLocal = function.addLocal(w.RefType.def(
+            translator.closureLayouter.closureBaseStruct,
+            nullable: false));
+        b.local_get(receiverLocal);
+        b.ref_cast(translator.closureLayouter.closureBaseStruct);
+        b.local_tee(receiverClosureBaseLocal);
+
+        // Read the `_FunctionType` field
+        final getterValueFunctionTypeLocal =
+            function.addLocal(translator.closureLayouter.functionTypeType);
+        b.struct_get(translator.closureLayouter.closureBaseStruct,
+            FieldIndex.closureRuntimeType);
+        b.local_tee(getterValueFunctionTypeLocal);
+
+        // Check closure shape
+        final shapeCheckerFunction = translator.functions
+            .getFunction(translator.checkClosureShape.reference);
+        final shapeCheckerFunctionInputs = shapeCheckerFunction.type.inputs;
+
+        b.local_get(typeArgsLocal);
+        translator.convertType(
+            function, typeArgsLocal.type, shapeCheckerFunctionInputs[1]);
+
+        b.local_get(positionalArgsLocal);
+        translator.convertType(
+            function, positionalArgsLocal.type, shapeCheckerFunctionInputs[2]);
+
+        b.local_get(namedArgsLocal);
+        translator.convertType(
+            function, namedArgsLocal.type, shapeCheckerFunctionInputs[3]);
+
+        b.call(shapeCheckerFunction);
+
+        b.i32_eqz();
+        b.br_if(noSuchMethodBlock);
+
+        // Shape check passed, check types.
+        final typeCheckerFun = translator.functions
+            .getFunction(translator.checkClosureType.reference);
+        final typeCheckerFunInputs = typeCheckerFun.type.inputs;
+
+        b.local_get(getterValueFunctionTypeLocal);
+
+        b.local_get(typeArgsLocal);
+        translator.convertType(
+            function, typeArgsLocal.type, typeCheckerFunInputs[1]);
+
+        b.local_get(positionalArgsLocal);
+        translator.convertType(
+            function, positionalArgsLocal.type, typeCheckerFunInputs[2]);
+
+        b.local_get(namedArgsLocal);
+        translator.convertType(
+            function, namedArgsLocal.type, typeCheckerFunInputs[3]);
+
+        // Type checker throws TypeError on failure.
+        b.call(typeCheckerFun);
+
+        // Type check passed. Call dynamic call entry of the closure.
+        b.local_get(receiverClosureBaseLocal);
+        b.local_get(typeArgsLocal);
+        b.local_get(positionalArgsLocal);
+        b.local_get(namedArgsLocal);
+
+        // Get vtable
+        b.local_get(receiverClosureBaseLocal);
+        b.struct_get(translator.closureLayouter.closureBaseStruct,
+            FieldIndex.closureVtable);
+
+        // Get entry function
+        b.struct_get(translator.closureLayouter.vtableBaseStruct,
+            FieldIndex.vtableDynamicCallEntry);
+
+        b.call_ref(translator.dynamicCallVtableEntryFunctionType);
+        b.return_();
+
+        b.end(); // class ID
+      }
+    }
+
+    b.end(); // noSuchMethodBlock
 
     // Unable to find a matching member, call `noSuchMethod`
     _generateNoSuchMethodCall(
@@ -576,9 +732,12 @@ void _generateNoSuchMethodCall(
 ) {
   final b = function.body;
 
-  SelectorInfo noSuchMethodSelector = translator.dispatchTable
+  final SelectorInfo noSuchMethodSelector = translator.dispatchTable
       .selectorForTarget(translator.objectNoSuchMethod.reference);
   translator.functions.activateSelector(noSuchMethodSelector);
+
+  final noSuchMethodParamInfo = noSuchMethodSelector.paramInfo;
+  final noSuchMethodWasmFunctionType = noSuchMethodSelector.signature;
 
   pushReceiver();
   pushInvocationObject();
@@ -587,6 +746,33 @@ void _generateNoSuchMethodCall(
       .getFunction(translator.invocationGenericMethodFactory.reference);
   translator.convertType(function, invocationFactory.type.outputs[0],
       noSuchMethodSelector.signature.inputs[1]);
+
+  // `noSuchMethod` can have extra parameters as long as they are optional.
+  // Push any optional positional parameters.
+  int wasmArgIdx = 2;
+  for (int positionalArgIdx = 1;
+      positionalArgIdx < noSuchMethodParamInfo.positional.length;
+      positionalArgIdx += 1) {
+    final positionalParameterValue =
+        noSuchMethodParamInfo.positional[positionalArgIdx]!;
+    translator.constants.instantiateConstant(
+        function,
+        b,
+        positionalParameterValue,
+        noSuchMethodWasmFunctionType.inputs[wasmArgIdx]);
+    wasmArgIdx += 1;
+  }
+
+  // Push any optional named parameters
+  for (String namedParameterName in noSuchMethodParamInfo.names) {
+    final namedParameterValue =
+        noSuchMethodParamInfo.named[namedParameterName]!;
+    translator.constants.instantiateConstant(function, b, namedParameterValue,
+        noSuchMethodWasmFunctionType.inputs[wasmArgIdx]);
+    wasmArgIdx += 1;
+  }
+
+  assert(wasmArgIdx == noSuchMethodWasmFunctionType.inputs.length);
 
   // Get class id for virtual call
   pushReceiver();
@@ -598,7 +784,8 @@ void _generateNoSuchMethodCall(
     b.i32_const(selectorOffset);
     b.i32_add();
   }
-  b.call_indirect(noSuchMethodSelector.signature);
+
+  b.call_indirect(noSuchMethodWasmFunctionType);
 }
 
 void _makeEmptyGrowableList(

@@ -27,5 +27,6 @@ class _Function implements Function {
   int get hashCode => runtimeType.hashCode;
 
   // Support dynamic tear-off of `.call` on functions
+  @pragma("wasm:entry-point")
   _Function get call => this;
 }

@@ -4,7 +4,6 @@
 
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/closures.dart';
-import 'package:dart2wasm/constants.dart';
 import 'package:dart2wasm/dispatch_table.dart';
 import 'package:dart2wasm/dynamic_forwarders.dart';
 import 'package:dart2wasm/intrinsics.dart';
@@ -1593,17 +1592,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitDynamicInvocation(
       DynamicInvocation node, w.ValueType expectedType) {
-    // Handle dynamic 'call' seperately.
-    if (node.name.text == "call") {
-      return _functionCall(node.receiver, node.arguments);
-    }
-
     // Call dynamic invocation forwarder
     final receiver = node.receiver;
     final typeArguments = node.arguments.types;
     final positionalArguments = node.arguments.positional;
     final namedArguments = node.arguments.named;
-    final forwarder = translator.dynamicForwarders.getMethodForwarder(node);
+    final forwarder = translator.dynamicForwarders
+        .getDynamicInvocationForwarder(node.name.text);
 
     final forwarderCallBlock = b.block([], [translator.topInfo.nullableType]);
 
@@ -1613,11 +1608,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         function.addLocal(translator.topInfo.nullableType);
     b.local_set(nullableReceiverLocal);
 
-    // Evaluate type arguments
+    // Evaluate type arguments. Type argument list is growable as we may want
+    // to add default bounds when the callee has type parameters but no type
+    // arguments are passed.
     makeList(InterfaceType(translator.typeClass, Nullability.nonNullable),
         typeArguments.length, (elementType, elementIdx) {
       translator.types.makeType(this, typeArguments[elementIdx]);
-    }, isGrowable: false);
+    }, isGrowable: true);
     final typeArgsLocal = function.addLocal(
         translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
     b.local_set(typeArgsLocal);
@@ -2065,7 +2062,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitDynamicGet(DynamicGet node, w.ValueType expectedType) {
     final receiver = node.receiver;
-    final forwarder = translator.dynamicForwarders.getGetterForwarder(node);
+    final forwarder =
+        translator.dynamicForwarders.getDynamicGetForwarder(node.name.text);
 
     // Call get forwarder
     final forwarderCallBlock = b.block([], [translator.topInfo.nullableType]);
@@ -2102,7 +2100,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType visitDynamicSet(DynamicSet node, w.ValueType expectedType) {
     final receiver = node.receiver;
     final value = node.value;
-    final forwarder = translator.dynamicForwarders.getSetterForwarder(node);
+    final forwarder =
+        translator.dynamicForwarders.getDynamicSetForwarder(node.name.text);
 
     // Call set forwarder
     final forwarderCallBlock = b.block([], [translator.topInfo.nullableType]);
@@ -2356,10 +2355,17 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         intrinsifier.generateFunctionCallIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
 
-    return _functionCall(node.receiver, node.arguments);
-  }
+    if (node.kind == FunctionAccessKind.Function) {
+      // Type of function is `Function`, without the argument types.
+      return visitDynamicInvocation(
+          DynamicInvocation(DynamicAccessKind.Dynamic, node.receiver, node.name,
+              node.arguments),
+          expectedType);
+    }
 
-  w.ValueType _functionCall(Expression receiver, Arguments arguments) {
+    final Expression receiver = node.receiver;
+    final Arguments arguments = node.arguments;
+
     int typeCount = arguments.types.length;
     int posArgCount = arguments.positional.length;
     List<String> argNames = arguments.named.map((a) => a.name).toList()..sort();
@@ -2658,43 +2664,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType makeList(DartType typeArg, int length,
       void Function(w.ValueType, int) generateItem,
       {bool isGrowable = false}) {
-    Class cls = isGrowable
-        ? translator.growableListClass
-        : translator.fixedLengthListClass;
-    ClassInfo info = translator.classInfo[cls]!;
-    translator.functions.allocateClass(info.classId);
-    w.ArrayType arrayType = translator.listArrayType;
-    w.ValueType elementType = arrayType.elementType.type.unpacked;
-
-    b.i32_const(info.classId);
-    b.i32_const(initialIdentityHash);
-    types.makeType(this, typeArg);
-    b.i64_const(length);
-    if (length > maxArrayNewFixedLength) {
-      // Too long for `array.new_fixed`. Set elements individually.
-      b.i32_const(length);
-      b.array_new_default(arrayType);
-      if (length > 0) {
-        w.Local arrayLocal =
-            addLocal(w.RefType.def(arrayType, nullable: false));
-        b.local_set(arrayLocal);
-        for (int i = 0; i < length; i++) {
-          b.local_get(arrayLocal);
-          b.i32_const(i);
-          generateItem(elementType, i);
-          b.array_set(arrayType);
-        }
-        b.local_get(arrayLocal);
-      }
-    } else {
-      for (int i = 0; i < length; i++) {
-        generateItem(elementType, i);
-      }
-      b.array_new_fixed(arrayType, length);
-    }
-    b.struct_new(info.struct);
-
-    return info.nonNullableType;
+    return translator.makeList(
+        function, (b) => types.makeType(this, typeArg), length, generateItem,
+        isGrowable: isGrowable);
   }
 
   w.ValueType makeListFromExpressions(

@@ -192,6 +192,10 @@ mixin KernelNodes {
   // dart:core type procedures
   late final Procedure isSubtype =
       index.getTopLevelProcedure("dart:core", "_isSubtype");
+  late final Procedure checkClosureShape =
+      index.getTopLevelProcedure("dart:core", "_checkClosureShape");
+  late final Procedure checkClosureType =
+      index.getTopLevelProcedure("dart:core", "_checkClosureType");
   late final Procedure typeAsNullable =
       index.getProcedure("dart:core", "_Type", "get:asNullable");
   late final Procedure createNormalizedFutureOrType = index.getProcedure(
