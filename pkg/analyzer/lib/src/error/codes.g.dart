@@ -5478,11 +5478,83 @@ class LanguageCode extends ErrorCode {
 }
 
 class StaticWarningCode extends AnalyzerErrorCode {
+  ///  Parameters:
+  ///  0: the name of the actual argument type
+  ///  1: the name of the expected function return type
+  static const StaticWarningCode ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER =
+      StaticWarningCode(
+    'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
+    "The argument type '{0}' can't be assigned to the parameter type '{1} "
+        "Function(Object)' or '{1} Function(Object, StackTrace)'.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the return type as derived by the type of the [Future].
+  static const StaticWarningCode BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR =
+      StaticWarningCode(
+    'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
+    "This 'onError' handler must return a value assignable to '{0}', but ends "
+        "without returning a value.",
+    correctionMessage: "Try adding a return statement.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the declared return type
+  static const StaticWarningCode BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE =
+      StaticWarningCode(
+    'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
+    "This function has a nullable return type of '{0}', but ends without "
+        "returning a value.",
+    correctionMessage:
+        "Try adding a return statement, or if no value is ever returned, try "
+        "changing the return type to 'void'.",
+  );
+
   ///  No parameters.
   static const StaticWarningCode DEAD_NULL_AWARE_EXPRESSION = StaticWarningCode(
     'DEAD_NULL_AWARE_EXPRESSION',
     "The left operand can't be null, so the right operand is never executed.",
     correctionMessage: "Try removing the operator and the right operand.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const StaticWarningCode DEPRECATED_EXTENDS_FUNCTION =
+      StaticWarningCode(
+    'DEPRECATED_SUBTYPE_OF_FUNCTION',
+    "Extending 'Function' is deprecated.",
+    correctionMessage: "Try removing 'Function' from the 'extends' clause.",
+    hasPublishedDocs: true,
+    uniqueName: 'DEPRECATED_EXTENDS_FUNCTION',
+  );
+
+  ///  No parameters.
+  static const StaticWarningCode DEPRECATED_IMPLEMENTS_FUNCTION =
+      StaticWarningCode(
+    'DEPRECATED_SUBTYPE_OF_FUNCTION',
+    "Implementing 'Function' has no effect.",
+    correctionMessage: "Try removing 'Function' from the 'implements' clause.",
+    hasPublishedDocs: true,
+    uniqueName: 'DEPRECATED_IMPLEMENTS_FUNCTION',
+  );
+
+  ///  No parameters.
+  static const StaticWarningCode DEPRECATED_MIXIN_FUNCTION = StaticWarningCode(
+    'DEPRECATED_SUBTYPE_OF_FUNCTION',
+    "Mixing in 'Function' is deprecated.",
+    correctionMessage: "Try removing 'Function' from the 'with' clause.",
+    hasPublishedDocs: true,
+    uniqueName: 'DEPRECATED_MIXIN_FUNCTION',
+  );
+
+  ///  No parameters.
+  static const StaticWarningCode DEPRECATED_NEW_IN_COMMENT_REFERENCE =
+      StaticWarningCode(
+    'DEPRECATED_NEW_IN_COMMENT_REFERENCE',
+    "Using the 'new' keyword in a comment reference is deprecated.",
+    correctionMessage: "Try referring to a constructor by its name.",
     hasPublishedDocs: true,
   );
 

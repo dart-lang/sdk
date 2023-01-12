@@ -1324,9 +1324,6 @@ class FixProcessor extends BaseProcessor {
     FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH: [
       RemoveNameFromDeclarationClause.new,
     ],
-    HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
-      AddReturnNull.new,
-    ],
     HintCode.CAN_BE_NULL_AFTER_NULL_AWARE: [
       ReplaceWithNullAware.inChain,
     ],
@@ -1345,12 +1342,6 @@ class FixProcessor extends BaseProcessor {
     ],
     HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE: [
       ReplaceColonWithEquals.new,
-    ],
-    HintCode.DEPRECATED_IMPLEMENTS_FUNCTION: [
-      RemoveNameFromDeclarationClause.new,
-    ],
-    HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
-      RemoveDeprecatedNewInCommentReference.new,
     ],
     HintCode.DIVISION_OPTIMIZATION: [
       UseEffectiveIntegerDivision.new,
@@ -1541,8 +1532,18 @@ class FixProcessor extends BaseProcessor {
     ParserErrorCode.VAR_RETURN_TYPE: [
       RemoveVar.new,
     ],
+
+    StaticWarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
+      AddReturnNull.new,
+    ],
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
       RemoveDeadIfNull.new,
+    ],
+    StaticWarningCode.DEPRECATED_IMPLEMENTS_FUNCTION: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    StaticWarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
+      RemoveDeprecatedNewInCommentReference.new,
     ],
     StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [
       ReplaceWithNotNullAware.new,

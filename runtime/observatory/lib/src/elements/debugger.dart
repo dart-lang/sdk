@@ -1583,7 +1583,7 @@ class ObservatoryDebugger extends Debugger {
       if (result.isSentinel) {
         // The isolate has gone away.  The IsolateExit event will
         // clear the isolate for the debugger page.
-        return;
+        return null;
       }
       stack = result;
       stackElement.updateStack(stack!, pauseEvent);
@@ -1593,6 +1593,7 @@ class ObservatoryDebugger extends Debugger {
         currentFrame = null;
       }
       input.focus();
+      return null;
     });
   }
 

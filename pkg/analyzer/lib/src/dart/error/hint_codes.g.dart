@@ -15,17 +15,6 @@ import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
 
 class HintCode extends AnalyzerErrorCode {
-  ///  Parameters:
-  ///  0: the name of the actual argument type
-  ///  1: the name of the expected function return type
-  static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER =
-      HintCode(
-    'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
-    "The argument type '{0}' can't be assigned to the parameter type '{1} "
-        "Function(Object)' or '{1} Function(Object, StackTrace)'.",
-    hasPublishedDocs: true,
-  );
-
   ///  Users should not assign values marked `@doNotStore`.
   ///
   ///  Parameters:
@@ -38,29 +27,10 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the return type as derived by the type of the [Future].
-  static const HintCode BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR = HintCode(
-    'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
-    "This 'onError' handler must return a value assignable to '{0}', but ends "
-        "without returning a value.",
-    correctionMessage: "Try adding a return statement.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the declared return type
-  static const HintCode BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE = HintCode(
-    'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
-    "This function has a nullable return type of '{0}', but ends without "
-        "returning a value.",
-    correctionMessage:
-        "Try adding a return statement, or if no value is ever returned, try "
-        "changing the return type to 'void'.",
-  );
-
   ///  When the target expression uses '?.' operator, it can be `null`, so all the
   ///  subsequent invocations should also use '?.' operator.
+  ///
+  ///  Note: This diagnostic is only generated in pre-null safe code.
   static const HintCode CAN_BE_NULL_AFTER_NULL_AWARE = HintCode(
     'CAN_BE_NULL_AFTER_NULL_AWARE',
     "The receiver uses '?.', so its value can be null.",
@@ -149,24 +119,6 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
-  static const HintCode DEPRECATED_EXTENDS_FUNCTION = HintCode(
-    'DEPRECATED_SUBTYPE_OF_FUNCTION',
-    "Extending 'Function' is deprecated.",
-    correctionMessage: "Try removing 'Function' from the 'extends' clause.",
-    hasPublishedDocs: true,
-    uniqueName: 'DEPRECATED_EXTENDS_FUNCTION',
-  );
-
-  ///  No parameters.
-  static const HintCode DEPRECATED_IMPLEMENTS_FUNCTION = HintCode(
-    'DEPRECATED_SUBTYPE_OF_FUNCTION',
-    "Implementing 'Function' has no effect.",
-    correctionMessage: "Try removing 'Function' from the 'implements' clause.",
-    hasPublishedDocs: true,
-    uniqueName: 'DEPRECATED_IMPLEMENTS_FUNCTION',
-  );
-
   ///  Parameters:
   ///  0: the name of the member
   static const HintCode DEPRECATED_MEMBER_USE = HintCode(
@@ -210,23 +162,6 @@ class HintCode extends AnalyzerErrorCode {
         "Try replacing the use of the deprecated member with the replacement.",
     hasPublishedDocs: true,
     uniqueName: 'DEPRECATED_MEMBER_USE_WITH_MESSAGE',
-  );
-
-  ///  No parameters.
-  static const HintCode DEPRECATED_MIXIN_FUNCTION = HintCode(
-    'DEPRECATED_SUBTYPE_OF_FUNCTION',
-    "Mixing in 'Function' is deprecated.",
-    correctionMessage: "Try removing 'Function' from the 'with' clause.",
-    hasPublishedDocs: true,
-    uniqueName: 'DEPRECATED_MIXIN_FUNCTION',
-  );
-
-  ///  No parameters.
-  static const HintCode DEPRECATED_NEW_IN_COMMENT_REFERENCE = HintCode(
-    'DEPRECATED_NEW_IN_COMMENT_REFERENCE',
-    "Using the 'new' keyword in a comment reference is deprecated.",
-    correctionMessage: "Try referring to a constructor by its name.",
-    hasPublishedDocs: true,
   );
 
   ///  No parameters.

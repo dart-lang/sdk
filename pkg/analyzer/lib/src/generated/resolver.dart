@@ -622,7 +622,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             returnTypeBase.isDartCoreNull) {
           return;
         } else {
-          errorCode = HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
+          errorCode = StaticWarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
         }
       }
       if (errorNode is ConstructorDeclaration) {
@@ -3539,7 +3539,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
 
         errorReporter.reportErrorForToken(
-          HintCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR,
+          StaticWarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR,
           errorNode.block.leftBracket,
           [returnTypeBase],
         );

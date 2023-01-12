@@ -1326,18 +1326,10 @@ FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_IMPLEMENTS:
   status: hasFix
 FfiCode.SUBTYPE_OF_STRUCT_CLASS_IN_WITH:
   status: hasFix
-HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
-  status: noFix
-  notes: |-
-    Fix depends on user's intent, which can't be known.
 HintCode.ASSIGNMENT_OF_DO_NOT_STORE:
   status: noFix
   notes: |-
     Fix depends on user's intent, which can't be known.
-HintCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
-  status: needsFix
-HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
-  status: hasFix
 HintCode.CAN_BE_NULL_AFTER_NULL_AWARE:
   status: hasFix
 HintCode.CAST_FROM_NULL_ALWAYS_FAILS:
@@ -1360,12 +1352,6 @@ HintCode.DEPRECATED_EXPORT_USE:
     The fix is to look for a non-deprected way to import the name and to add a
     new import for it. It might be possible to remove the old import if all of
     the names being imported through it are available through the new import.
-HintCode.DEPRECATED_EXTENDS_FUNCTION:
-  status: needsFix
-  notes: |-
-    The fix is to remove `Function` from where it's referenced.
-HintCode.DEPRECATED_IMPLEMENTS_FUNCTION:
-  status: hasFix
 HintCode.DEPRECATED_MEMBER_USE:
   status: hasFix
 HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE:
@@ -1377,12 +1363,6 @@ HintCode.DEPRECATED_MEMBER_USE_FROM_SAME_PACKAGE_WITH_MESSAGE:
   notes: |-
     Should probably be able to use `DataDriven`.
 HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE:
-  status: hasFix
-HintCode.DEPRECATED_MIXIN_FUNCTION:
-  status: needsFix
-  notes: |-
-    The fix is to remove `Function` from where it's referenced.
-HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
   status: hasFix
 HintCode.DIVISION_OPTIMIZATION:
   status: hasFix
@@ -2743,7 +2723,27 @@ ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT:
   status: needsEvaluation
 ScannerErrorCode.UNTERMINATED_STRING_LITERAL:
   status: needsEvaluation
+StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
+  status: noFix
+  notes: |-
+    Fix depends on user's intent, which can't be known.
+StaticWarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
+  status: needsFix
+StaticWarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
+  status: hasFix
 StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION:
+  status: hasFix
+StaticWarningCode.DEPRECATED_EXTENDS_FUNCTION:
+  status: needsFix
+  notes: |-
+    The fix is to remove `Function` from where it's referenced.
+StaticWarningCode.DEPRECATED_IMPLEMENTS_FUNCTION:
+  status: hasFix
+StaticWarningCode.DEPRECATED_MIXIN_FUNCTION:
+  status: needsFix
+  notes: |-
+    The fix is to remove `Function` from where it's referenced.
+StaticWarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
   status: hasFix
 StaticWarningCode.INVALID_NULL_AWARE_OPERATOR:
   status: hasFix

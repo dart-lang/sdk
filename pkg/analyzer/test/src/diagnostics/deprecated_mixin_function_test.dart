@@ -19,7 +19,7 @@ class DeprecatedMixinFunctionTest extends PubPackageResolutionTest {
     await assertErrorsInCode('''
 class A extends Object with Function {}
 ''', [
-      error(HintCode.DEPRECATED_MIXIN_FUNCTION, 28, 8),
+      error(StaticWarningCode.DEPRECATED_MIXIN_FUNCTION, 28, 8),
     ]);
   }
 
@@ -29,7 +29,7 @@ class Function {}
 class A extends Object with Function {}
 ''', [
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8),
-      error(HintCode.DEPRECATED_MIXIN_FUNCTION, 46, 8),
+      error(StaticWarningCode.DEPRECATED_MIXIN_FUNCTION, 46, 8),
     ]);
   }
 }

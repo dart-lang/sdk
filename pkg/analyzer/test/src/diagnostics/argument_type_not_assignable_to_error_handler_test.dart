@@ -51,7 +51,8 @@ void f(Future<void> future) {
   future.catchError((Object a, {required StackTrace b}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 38),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50,
+          38),
     ]);
   }
 
@@ -80,7 +81,8 @@ void f(Future<int> future, Future<int> Function({Object a}) callback) {
   future.catchError(callback);
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 8),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92,
+          8),
     ]);
   }
 
@@ -114,7 +116,8 @@ void f(Future<void> future) {
   future.catchError(({Object a = 1}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 19),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50,
+          19),
     ]);
   }
 
@@ -140,7 +143,8 @@ void f(Future<void> future) {
   future.catchError(() {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 5),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50,
+          5),
     ]);
   }
 
@@ -166,7 +170,8 @@ void f(Future<void> future) {
   future.catchError((Object a, {StackTrace b}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 29),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50,
+          29),
     ]);
   }
 
@@ -184,7 +189,8 @@ void f(Future<void> future) {
   future.catchError((a, b, c) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 12),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50,
+          12),
     ]);
   }
 
@@ -194,7 +200,8 @@ void f(Future<void> future) {
   future.catchError((String a) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 13),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50,
+          13),
     ]);
   }
 
@@ -204,7 +211,8 @@ void f(Future<void> future) {
   future.catchError((Object a, String b) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50, 23),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 50,
+          23),
     ]);
   }
 
@@ -214,7 +222,8 @@ void f(Future<int> future, Future<int> Function() callback) {
   future.catchError(callback);
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 82, 8),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 82,
+          8),
     ]);
   }
 
@@ -240,7 +249,8 @@ void f(Future<int> future, Future<int> Function(Object a, {StackTrace b}) callba
   future.catchError(callback);
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 106, 8),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          106, 8),
     ]);
   }
 
@@ -250,7 +260,8 @@ void f(Future<int> future, Future<int> Function(int, int, int) callback) {
   future.catchError(callback);
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 95, 8),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 95,
+          8),
     ]);
   }
 
@@ -260,7 +271,8 @@ void f(Future<int> future, Future<int> Function(String) callback) {
   future.catchError(callback);
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 88, 8),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 88,
+          8),
     ]);
   }
 
@@ -270,7 +282,8 @@ void f(Future<int> future, Future<int> Function(Object, String) callback) {
   future.catchError(callback);
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 96, 8),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 96,
+          8),
     ]);
   }
 }
@@ -301,7 +314,8 @@ void f(Future<void> future) {
   future.then((_) {}, onError: (Object a, {StackTrace? b}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52, 39),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52,
+          39),
     ]);
   }
 
@@ -330,7 +344,8 @@ void f(Future<void> future, Future<int> Function({Object a}) callback) {
   future.then((_) {}, onError: callback);
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 95, 17),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 95,
+          17),
     ]);
   }
 
@@ -340,7 +355,8 @@ void f(Future<void> future) {
   future.then((_) {}, onError: ({Object a = 1}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52, 28),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52,
+          28),
     ]);
   }
 
@@ -350,7 +366,8 @@ void f(Future<void> future) {
   future.then((_) {}, onError: () {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52, 14),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52,
+          14),
     ]);
   }
 
@@ -360,7 +377,8 @@ void f(Future<void> future) {
   future.then((_) {}, onError: (Object a, {StackTrace b}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52, 38),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52,
+          38),
     ]);
   }
 
@@ -370,7 +388,8 @@ void f(Future<void> future) {
   future.then((_) {}, onError: (String a) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52, 22),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 52,
+          22),
     ]);
   }
 
@@ -409,7 +428,8 @@ void f(Stream<void> stream) {
   stream.handleError((Object a, {StackTrace? b}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51, 30),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51,
+          30),
     ]);
   }
 
@@ -438,7 +458,8 @@ void f(Stream<void> stream, Future<int> Function({Object a}) callback) {
   stream.handleError(callback);
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 94, 8),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 94,
+          8),
     ]);
   }
 
@@ -448,7 +469,8 @@ void f(Stream<void> stream) {
   stream.handleError(({Object a = 1}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51, 19),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51,
+          19),
     ]);
   }
 
@@ -458,7 +480,8 @@ void f(Stream<void> stream) {
   stream.handleError(() {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51, 5),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51,
+          5),
     ]);
   }
 
@@ -468,7 +491,8 @@ void f(Stream<void> stream) {
   stream.handleError((Object a, {StackTrace b}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51, 29),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51,
+          29),
     ]);
   }
 
@@ -478,7 +502,8 @@ void f(Stream<void> stream) {
   stream.handleError((String a) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51, 13),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 51,
+          13),
     ]);
   }
 }
@@ -509,7 +534,8 @@ void f(Stream<void> stream) {
   stream.listen((_) {}, onError: (Object a, {StackTrace? b}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54, 39),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54,
+          39),
     ]);
   }
 
@@ -538,7 +564,8 @@ void f(Stream<void> stream, Future<int> Function({Object a}) callback) {
   stream.listen((_) {}, onError: callback);
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 97, 17),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 97,
+          17),
     ]);
   }
 
@@ -548,7 +575,8 @@ void f(Stream<void> stream) {
   stream.listen((_) {}, onError: ({Object a = 1}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54, 28),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54,
+          28),
     ]);
   }
 
@@ -558,7 +586,8 @@ void f(Stream<void> stream) {
   stream.listen((_) {}, onError: () {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54, 14),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54,
+          14),
     ]);
   }
 
@@ -568,7 +597,8 @@ void f(Stream<void> stream) {
   stream.listen((_) {}, onError: (Object a, {StackTrace b}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54, 38),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54,
+          38),
     ]);
   }
 
@@ -578,7 +608,8 @@ void f(Stream<void> stream) {
   stream.listen((_) {}, onError: (String a) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54, 22),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 54,
+          22),
     ]);
   }
 }
@@ -612,7 +643,8 @@ void f(StreamSubscription<void> subscription) {
   subscription.onError((Object a, {StackTrace? b}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 30),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92,
+          30),
     ]);
   }
 
@@ -647,7 +679,8 @@ void f(
   subscription.onError(callback);
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 144, 8),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+          144, 8),
     ]);
   }
 
@@ -658,7 +691,8 @@ void f(StreamSubscription<void> subscription) {
   subscription.onError(({Object a = 1}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 19),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92,
+          19),
     ]);
   }
 
@@ -669,7 +703,8 @@ void f(StreamSubscription<void> subscription) {
   subscription.onError(() {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 5),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92,
+          5),
     ]);
   }
 
@@ -680,7 +715,8 @@ void f(StreamSubscription<void> subscription) {
   subscription.onError((Object a, {StackTrace b}) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 29),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92,
+          29),
     ]);
   }
 
@@ -691,7 +727,8 @@ void f(StreamSubscription<void> subscription) {
   subscription.onError((String a) {});
 }
 ''', [
-      error(HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92, 13),
+      error(StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER, 92,
+          13),
     ]);
   }
 }
