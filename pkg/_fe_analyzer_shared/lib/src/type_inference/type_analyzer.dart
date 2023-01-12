@@ -1056,16 +1056,21 @@ mixin TypeAnalyzer<
     return new SimpleTypeAnalysisResult<Type>(type: rhsType);
   }
 
-  /// Analyzes a `pattern-for-in` statement of the form
-  /// `for (<keyword> <pattern> in <expression>) <statement>`.
+  /// Analyzes a `pattern-for-in` statement or element.
+  ///
+  /// Statement:
+  /// `for (<keyword> <pattern> in <expression>) <statement>`
+  ///
+  /// Element:
+  /// `for (<keyword> <pattern> in <expression>) <body>`
   ///
   /// Stack effect: pushes (Expression, Pattern).
-  void analyzePatternForInStatement({
-    required Statement node,
+  void analyzePatternForIn({
+    required Node node,
     required Pattern pattern,
     required Iterable<Variable> patternVariables,
     required Expression expression,
-    required Statement body,
+    required void Function() dispatchBody,
   }) {
     // Stack: ()
     Type expressionType = analyzeExpression(expression, unknownType);
@@ -1084,7 +1089,7 @@ mixin TypeAnalyzer<
         elementType = dynamicType;
       }
     }
-    flow.patternForInStatement_afterExpression(elementType);
+    flow.patternForIn_afterExpression(elementType);
 
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
@@ -1097,9 +1102,9 @@ mixin TypeAnalyzer<
     // Stack: (Expression, Pattern)
 
     flow.forEach_bodyBegin(node);
-    dispatchStatement(body);
+    dispatchBody();
     flow.forEach_end();
-    flow.patternForInStatement_end();
+    flow.patternForIn_end();
   }
 
   /// Analyzes a patternVariableDeclaration statement of the form
