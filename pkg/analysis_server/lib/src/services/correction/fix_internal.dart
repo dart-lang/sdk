@@ -1346,15 +1346,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.DIVISION_OPTIMIZATION: [
       UseEffectiveIntegerDivision.new,
     ],
-    HintCode.DUPLICATE_HIDDEN_NAME: [
-      RemoveNameFromCombinator.new,
-    ],
-    HintCode.DUPLICATE_IMPORT: [
-      RemoveUnusedImport.new,
-    ],
-    HintCode.DUPLICATE_SHOWN_NAME: [
-      RemoveNameFromCombinator.new,
-    ],
     // TODO(brianwilkerson) Add a fix to convert the path to a package: import.
 //    HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE: [],
     HintCode.INVALID_ANNOTATION_TARGET: [
@@ -1544,6 +1535,15 @@ class FixProcessor extends BaseProcessor {
     ],
     StaticWarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
       RemoveDeprecatedNewInCommentReference.new,
+    ],
+    StaticWarningCode.DUPLICATE_HIDDEN_NAME: [
+      RemoveNameFromCombinator.new,
+    ],
+    StaticWarningCode.DUPLICATE_IMPORT: [
+      RemoveUnusedImport.new,
+    ],
+    StaticWarningCode.DUPLICATE_SHOWN_NAME: [
+      RemoveNameFromCombinator.new,
     ],
     StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [
       ReplaceWithNotNullAware.new,

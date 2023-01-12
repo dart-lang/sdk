@@ -1366,20 +1366,6 @@ HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE:
   status: hasFix
 HintCode.DIVISION_OPTIMIZATION:
   status: hasFix
-HintCode.DUPLICATE_EXPORT:
-  status: needsFix
-  notes: |-
-    One fix is to remove the duplicated export.
-HintCode.DUPLICATE_HIDDEN_NAME:
-  status: hasFix
-HintCode.DUPLICATE_IGNORE:
-  status: needsFix
-  notes: |-
-    One fix is to remove the duplicated error code.
-HintCode.DUPLICATE_IMPORT:
-  status: hasFix
-HintCode.DUPLICATE_SHOWN_NAME:
-  status: hasFix
 HintCode.EQUAL_ELEMENTS_IN_SET:
   status: noFix
   notes: |-
@@ -2744,6 +2730,20 @@ StaticWarningCode.DEPRECATED_MIXIN_FUNCTION:
   notes: |-
     The fix is to remove `Function` from where it's referenced.
 StaticWarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
+  status: hasFix
+StaticWarningCode.DUPLICATE_EXPORT:
+  status: needsFix
+  notes: |-
+    One fix is to remove the duplicated export.
+StaticWarningCode.DUPLICATE_HIDDEN_NAME:
+  status: hasFix
+StaticWarningCode.DUPLICATE_IGNORE:
+  status: needsFix
+  notes: |-
+    One fix is to remove the duplicated error code.
+StaticWarningCode.DUPLICATE_IMPORT:
+  status: hasFix
+StaticWarningCode.DUPLICATE_SHOWN_NAME:
   status: hasFix
 StaticWarningCode.INVALID_NULL_AWARE_OPERATOR:
   status: hasFix
