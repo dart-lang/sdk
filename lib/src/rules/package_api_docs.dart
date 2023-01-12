@@ -58,12 +58,19 @@ Advice for writing good doc comments can be found in the
 ''';
 
 class PackageApiDocs extends LintRule {
+  static const LintCode code = LintCode(
+      'package_api_docs', 'Missing documentation for public API.',
+      correctionMessage: 'Try adding a documentation comment.');
+
   PackageApiDocs()
       : super(
             name: 'package_api_docs',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

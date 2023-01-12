@@ -34,6 +34,10 @@ string = 'hello\n'
 ''';
 
 class NoopPrimitiveOperations extends LintRule {
+  static const LintCode code = LintCode('noop_primitive_operations',
+      'The expression has no effect and can be removed.',
+      correctionMessage: 'Try removing the expression.');
+
   NoopPrimitiveOperations()
       : super(
           name: 'noop_primitive_operations',
@@ -41,6 +45,9 @@ class NoopPrimitiveOperations extends LintRule {
           details: _details,
           group: Group.style,
         );
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
@@ -55,10 +62,10 @@ class NoopPrimitiveOperations extends LintRule {
 }
 
 class _Visitor extends SimpleAstVisitor<void> {
-  _Visitor(this.rule, this.context);
-
   final LintRule rule;
+
   final LinterContext context;
+  _Visitor(this.rule, this.context);
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {

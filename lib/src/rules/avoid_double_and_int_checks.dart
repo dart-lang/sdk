@@ -42,12 +42,19 @@ f(dynamic x) {
 ''';
 
 class AvoidDoubleAndIntChecks extends LintRule {
+  static const LintCode code = LintCode(
+      'avoid_double_and_int_checks', 'Explicit check for double or int.',
+      correctionMessage: 'Try removing the check.');
+
   AvoidDoubleAndIntChecks()
       : super(
             name: 'avoid_double_and_int_checks',
             description: _desc,
             details: _details,
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(
