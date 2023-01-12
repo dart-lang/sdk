@@ -584,6 +584,35 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         .getClosureRepresentation(0, positionalCount, names)!;
     w.StructType struct = representation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
+
+    w.DefinedFunction makeDynamicCallEntry() {
+      final w.DefinedFunction function = m.addFunction(
+          translator.dynamicCallVtableEntryFunctionType, "dynamic call entry");
+
+      final w.Instructions b = function.body;
+
+      final closureLocal = function.locals[0];
+      final typeArgsListLocal = function.locals[1]; // empty
+      final posArgsListLocal = function.locals[2];
+      final namedArgsListLocal = function.locals[3];
+
+      b.local_get(closureLocal);
+      final ListConstant typeArgs = constants.makeTypeList(constant.types);
+      constants.instantiateConstant(
+          function, b, typeArgs, typeArgsListLocal.type);
+      b.local_get(posArgsListLocal);
+      b.local_get(namedArgsListLocal);
+      b.call(tearOffClosure.dynamicCallEntry);
+      b.end();
+
+      return function;
+    }
+
+    // Dynamic call entry needs to be created first (before `createConstant`)
+    // as it needs to create a constant for the type list, and we cannot create
+    // a constant while creating another one.
+    final w.DefinedFunction dynamicCallEntry = makeDynamicCallEntry();
+
     return createConstant(constant, type, (function, b) {
       ClassInfo info = translator.classInfo[translator.functionClass]!;
       translator.functions.allocateClass(info.classId);
@@ -626,6 +655,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       }
 
       void makeVtable() {
+        b.ref_func(dynamicCallEntry);
         if (representation.isGeneric) {
           b.ref_func(representation.instantiationFunction);
         }

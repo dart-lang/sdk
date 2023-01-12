@@ -23,12 +23,19 @@ class ClosureImplementation {
   final ClosureRepresentation representation;
 
   /// The functions pointed to by the function entries in the vtable.
+  ///
+  /// This list does not include the dynamic call entry and the instantiation
+  /// function.
   final List<w.DefinedFunction> functions;
+
+  /// The vtable entry used for dynamic calls.
+  final w.DefinedFunction dynamicCallEntry;
 
   /// The constant global variable pointing to the vtable.
   final w.Global vtable;
 
-  ClosureImplementation(this.representation, this.functions, this.vtable);
+  ClosureImplementation(
+      this.representation, this.functions, this.dynamicCallEntry, this.vtable);
 }
 
 /// Describes the representation of closures for a particular function
@@ -140,15 +147,27 @@ class ClosureLayouter extends RecursiveVisitor {
 
   Set<Constant> visitedConstants = Set.identity();
 
-  static const int vtableBaseIndexNonGeneric = 0;
-  static const int vtableBaseIndexGeneric = 1;
+  static const int vtableBaseIndexNonGeneric = 1;
+  static const int vtableBaseIndexGeneric = 2;
+
+  // Base struct for vtables without the dynamic call entry added. Referenced
+  // by [closureBaseStruct] instead of the fully initialized version
+  // ([vtableBaseStruct]) to break the type cycle.
+  late final w.StructType _vtableBaseStructBare =
+      m.addStructType("#VtableBase");
 
   // Base struct for vtables.
-  late final w.StructType vtableBaseStruct = m.addStructType("#VtableBase");
+  late final w.StructType vtableBaseStruct = _vtableBaseStructBare
+    ..fields.add(w.FieldType(
+        w.RefType.def(translator.dynamicCallVtableEntryFunctionType,
+            nullable: false),
+        mutable: false));
 
   // Base struct for closures.
-  late final w.StructType closureBaseStruct = _makeClosureStruct("#ClosureBase",
-      vtableBaseStruct, translator.classInfo[translator.functionClass]!.struct);
+  late final w.StructType closureBaseStruct = _makeClosureStruct(
+      "#ClosureBase",
+      _vtableBaseStructBare,
+      translator.classInfo[translator.functionClass]!.struct);
 
   late final w.RefType typeType =
       translator.classInfo[translator.typeClass]!.nonNullableType;
@@ -162,7 +181,7 @@ class ClosureLayouter extends RecursiveVisitor {
     //  - An identity hash
     //  - A context reference (used for `this` in tear-offs)
     //  - A vtable reference
-    //  - A type
+    //  - A `_FunctionType`
     return m.addStructType("#ClosureBase",
         fields: [
           w.FieldType(w.NumType.i32),
@@ -256,9 +275,9 @@ class ClosureLayouter extends RecursiveVisitor {
     List<String> nameTags = ["$typeCount", "$positionalCount", ...names];
     String vtableName = ["#Vtable", ...nameTags].join("-");
     String closureName = ["#Closure", ...nameTags].join("-");
+    w.StructType parentVtableStruct = parent?.vtableStruct ?? vtableBaseStruct;
     w.StructType vtableStruct = m.addStructType(vtableName,
-        fields: [...?parent?.vtableStruct.fields],
-        superType: parent?.vtableStruct ?? vtableBaseStruct);
+        fields: parentVtableStruct.fields, superType: parentVtableStruct);
     w.StructType closureStruct = _makeClosureStruct(
         closureName, vtableStruct, parent?.closureStruct ?? closureBaseStruct);
 
@@ -447,6 +466,68 @@ class ClosureLayouter extends RecursiveVisitor {
     return trampoline;
   }
 
+  w.DefinedFunction _createInstantiationDynamicCallEntry(
+      int typeCount, w.StructType instantiationContextStruct) {
+    w.DefinedFunction function = m.addFunction(
+        translator.dynamicCallVtableEntryFunctionType,
+        "instantiation dynamic call entry");
+    w.Instructions b = function.body;
+
+    final instantiatedClosureLocal = function.locals[0];
+    // First argument is the type list, which will always be empty. We'll pass
+    // the instantiation types to the original vtable entry.
+    final posArgsListLocal = function.locals[2];
+    final namedArgsListLocal = function.locals[3];
+
+    // Get instantiation context, which has the original closure and type
+    // arguments
+    final w.RefType instantiationContextType =
+        w.RefType.def(instantiationContextStruct, nullable: false);
+    final w.Local instantiationContextLocal =
+        function.addLocal(instantiationContextType);
+    b.local_get(instantiatedClosureLocal);
+    b.struct_get(closureBaseStruct, FieldIndex.closureContext);
+    b.ref_cast(instantiationContextStruct);
+    b.local_tee(instantiationContextLocal);
+
+    // Push original closure
+    b.struct_get(
+        instantiationContextStruct, FieldIndex.instantiationContextInner);
+
+    // Push types, as list
+    translator.makeList(
+        function,
+        (b) {
+          translator.constants.instantiateConstant(
+              function,
+              b,
+              TypeLiteralConstant(
+                  InterfaceType(translator.typeClass, Nullability.nonNullable)),
+              translator.types.nonNullableTypeType);
+        },
+        typeCount,
+        (elementType, elementIdx) {
+          b.local_get(instantiationContextLocal);
+          b.struct_get(instantiationContextStruct,
+              FieldIndex.instantiationContextTypeArgumentsBase + elementIdx);
+        },
+        isGrowable: true);
+
+    b.local_get(posArgsListLocal);
+    b.local_get(namedArgsListLocal);
+
+    // Call inner
+    b.local_get(instantiationContextLocal);
+    b.struct_get(
+        instantiationContextStruct, FieldIndex.instantiationContextInner);
+    b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
+    b.struct_get(vtableBaseStruct, FieldIndex.vtableDynamicCallEntry);
+    b.call_ref(translator.dynamicCallVtableEntryFunctionType);
+    b.end();
+
+    return function;
+  }
+
   w.DefinedFunction _createInstantiationFunction(
       int typeCount,
       ClosureRepresentation instantiatedRepresentation,
@@ -468,6 +549,7 @@ class ClosureLayouter extends RecursiveVisitor {
         w.RefType.def(instantiatedRepresentation.vtableStruct, nullable: false),
         mutable: false));
     w.Instructions ib = vtable.initializer;
+    ib.ref_func(_createInstantiationDynamicCallEntry(typeCount, contextStruct));
     for (w.DefinedFunction trampoline in instantiationTrampolines) {
       ib.ref_func(trampoline);
     }

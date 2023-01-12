@@ -85,7 +85,7 @@ class Translator with KernelNodes {
   final Map<TypeParameter, int> typeParameterIndex = {};
   final Map<Reference, ParameterInfo> staticParamInfo = {};
   final Map<Field, w.DefinedTable> declaredTables = {};
-  final List<_ClosureTrampolineGenerator> pendingClosureTrampolines = [];
+  final List<_FunctionGenerator> _pendingFunctions = [];
   late Procedure mainFunction;
   late final w.Module m;
   late final w.DefinedFunction initFunction;
@@ -139,6 +139,25 @@ class Translator with KernelNodes {
     w.NumType.i64: boxedIntClass,
     w.NumType.f64: boxedDoubleClass,
   };
+
+  /// Type for vtable entries for dynamic calls. These entries are used in
+  /// dynamic invocations and `Function.apply`.
+  late final w.FunctionType dynamicCallVtableEntryFunctionType =
+      m.addFunctionType([
+    // Closure
+    w.RefType.def(closureLayouter.closureBaseStruct, nullable: false),
+
+    // Type arguments
+    classInfo[fixedLengthListClass]!.nonNullableType,
+
+    // Positional arguments
+    classInfo[fixedLengthListClass]!.nonNullableType,
+
+    // Named arguments, represented as array of symbol and object pairs
+    classInfo[fixedLengthListClass]!.nonNullableType,
+  ], [
+    topInfo.nullableType
+  ]);
 
   /// Type of a dynamic invocation forwarder function.
   late final w.FunctionType dynamicInvocationForwarderFunctionType =
@@ -308,12 +327,13 @@ class Translator with KernelNodes {
                 .generateLambda(lambda, codeGen.closures);
         _printFunction(lambdaFunction, "$canonicalName (closure)");
       }
-    }
 
-    // Use an indexed loop to handle pending closure trampolines, since new
-    // entries might be added during iteration.
-    for (int i = 0; i < pendingClosureTrampolines.length; i++) {
-      pendingClosureTrampolines[i].generate(this);
+      // Use an indexed loop to handle pending closure trampolines, since new
+      // entries might be added during iteration.
+      for (int i = 0; i < _pendingFunctions.length; i++) {
+        _pendingFunctions[i].generate(this);
+      }
+      _pendingFunctions.clear();
     }
 
     dispatchTable.output();
@@ -626,18 +646,26 @@ class Translator with KernelNodes {
         w.FunctionType signature, int posArgCount, List<String> argNames) {
       w.DefinedFunction trampoline = m.addFunction(signature, name);
 
-      // Defer generation of the trampoline body to avoid cyclic dependency when
-      // a tear-off constant is used as default value in the torn-off function.
-      pendingClosureTrampolines.add(_ClosureTrampolineGenerator(
-          trampoline,
-          target,
-          typeCount,
-          posArgCount,
-          argNames,
-          paramInfo,
-          takesContextOrReceiver));
+      // Defer generation of the trampoline body to avoid cyclic dependency
+      // when a tear-off constant is used as default value in the torn-off
+      // function.
+      _pendingFunctions.add(_ClosureTrampolineGenerator(trampoline, target,
+          typeCount, posArgCount, argNames, paramInfo, takesContextOrReceiver));
 
       return trampoline;
+    }
+
+    w.DefinedFunction makeDynamicCallEntry() {
+      final w.DefinedFunction function = m.addFunction(
+          dynamicCallVtableEntryFunctionType, "dynamic call entry");
+
+      // Defer generation of the trampoline body to avoid cyclic dependency
+      // when a tear-off constant is used as default value in the torn-off
+      // function.
+      _pendingFunctions.add(_ClosureDynamicEntryGenerator(
+          functionNode, target, paramInfo, name, function));
+
+      return function;
     }
 
     void fillVtableEntry(
@@ -659,6 +687,8 @@ class Translator with KernelNodes {
         w.RefType.def(representation.vtableStruct, nullable: false),
         mutable: false));
     w.Instructions ib = vtable.initializer;
+    final dynamicCallEntry = makeDynamicCallEntry();
+    ib.ref_func(dynamicCallEntry);
     if (representation.isGeneric) {
       ib.ref_func(representation.instantiationFunction);
     }
@@ -671,7 +701,8 @@ class Translator with KernelNodes {
     ib.struct_new(representation.vtableStruct);
     ib.end();
 
-    return ClosureImplementation(representation, functions, vtable);
+    return ClosureImplementation(
+        representation, functions, dynamicCallEntry, vtable);
   }
 
   w.ValueType outputOrVoid(List<w.ValueType> outputs) {
@@ -866,6 +897,51 @@ class Translator with KernelNodes {
     return null;
   }
 
+  w.ValueType makeList(
+      w.DefinedFunction function,
+      void generateType(w.Instructions b),
+      int length,
+      void Function(w.ValueType, int) generateItem,
+      {bool isGrowable = false}) {
+    final w.Instructions b = function.body;
+
+    final Class cls = isGrowable ? growableListClass : fixedLengthListClass;
+    final ClassInfo info = classInfo[cls]!;
+    functions.allocateClass(info.classId);
+    final w.ArrayType arrayType = listArrayType;
+    final w.ValueType elementType = arrayType.elementType.type.unpacked;
+
+    b.i32_const(info.classId);
+    b.i32_const(initialIdentityHash);
+    generateType(b);
+    b.i64_const(length);
+    if (length > maxArrayNewFixedLength) {
+      // Too long for `array.new_fixed`. Set elements individually.
+      b.i32_const(length);
+      b.array_new_default(arrayType);
+      if (length > 0) {
+        final w.Local arrayLocal =
+            function.addLocal(w.RefType.def(arrayType, nullable: false));
+        b.local_set(arrayLocal);
+        for (int i = 0; i < length; i++) {
+          b.local_get(arrayLocal);
+          b.i32_const(i);
+          generateItem(elementType, i);
+          b.array_set(arrayType);
+        }
+        b.local_get(arrayLocal);
+      }
+    } else {
+      for (int i = 0; i < length; i++) {
+        generateItem(elementType, i);
+      }
+      b.array_new_fixed(arrayType, length);
+    }
+    b.struct_new(info.struct);
+
+    return info.nonNullableType;
+  }
+
   /// Indexes a Dart `List` on the stack.
   void indexList(w.Instructions b, void pushIndex(w.Instructions b)) {
     ClassInfo info = classInfo[listBaseClass]!;
@@ -885,7 +961,11 @@ class Translator with KernelNodes {
   }
 }
 
-class _ClosureTrampolineGenerator {
+abstract class _FunctionGenerator {
+  void generate(Translator translator);
+}
+
+class _ClosureTrampolineGenerator implements _FunctionGenerator {
   final w.DefinedFunction trampoline;
   final w.BaseFunction target;
   final int typeCount;
@@ -953,6 +1033,178 @@ class _ClosureTrampolineGenerator {
         translator.outputOrVoid(target.type.outputs),
         translator.outputOrVoid(trampoline.type.outputs));
     b.end();
+  }
+}
+
+/// Similar to [_ClosureTrampolineGenerator], but generates dynamic call
+/// entries.
+class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
+  final FunctionNode functionNode;
+  final w.BaseFunction target;
+  final ParameterInfo paramInfo;
+  final String name;
+  final w.DefinedFunction function;
+
+  _ClosureDynamicEntryGenerator(
+      this.functionNode, this.target, this.paramInfo, this.name, this.function);
+
+  void generate(Translator translator) {
+    final w.Instructions b = function.body;
+
+    final bool takesContextOrReceiver =
+        paramInfo.member == null || paramInfo.member!.isInstanceMember;
+
+    final int typeCount = functionNode.typeParameters.length;
+
+    final closureLocal = function.locals[0];
+    final typeArgsListLocal = function.locals[1];
+    final posArgsListLocal = function.locals[2];
+    final namedArgsListLocal = function.locals[3];
+
+    final positionalRequired =
+        paramInfo.positional.where((arg) => arg == null).length;
+    final positionalTotal = paramInfo.positional.length;
+
+    // At this point the shape and type checks passed. We have right number
+    // of type arguments in the list, but optional positional and named
+    // parameters may be missing.
+
+    final targetInputs = target.type.inputs;
+    int inputIdx = 0;
+
+    // Push context or receiver
+    if (takesContextOrReceiver) {
+      final closureBaseType = w.RefType.def(
+          translator.closureLayouter.closureBaseStruct,
+          nullable: false);
+      final closureContextType = w.RefType.data(nullable: false);
+
+      // Get context, downcast it to expected type
+      b.local_get(closureLocal);
+      translator.convertType(function, closureLocal.type, closureBaseType);
+      b.struct_get(translator.closureLayouter.closureBaseStruct, 2);
+      translator.convertType(
+          function, closureContextType, targetInputs[inputIdx]);
+      inputIdx += 1;
+    }
+
+    // Push type arguments
+    for (int typeIdx = 0; typeIdx < typeCount; typeIdx += 1) {
+      b.local_get(typeArgsListLocal);
+      translator.indexList(b, (b) => b.i32_const(typeIdx));
+      translator.convertType(
+          function, translator.topInfo.nullableType, targetInputs[inputIdx]);
+      inputIdx += 1;
+    }
+
+    // Push positional arguments
+    for (int posIdx = 0; posIdx < positionalTotal; posIdx += 1) {
+      if (posIdx < positionalRequired) {
+        // Shape check passed, argument must be passed
+        b.local_get(posArgsListLocal);
+        translator.indexList(b, (b) => b.i32_const(posIdx));
+      } else {
+        // Argument may be missing
+        b.i32_const(posIdx);
+        b.local_get(posArgsListLocal);
+        translator.getListLength(b);
+        b.i32_lt_u();
+        b.if_([], [translator.topInfo.nullableType]);
+        b.local_get(posArgsListLocal);
+        translator.indexList(b, (b) => b.i32_const(posIdx));
+        b.else_();
+        translator.constants.instantiateConstant(function, b,
+            paramInfo.positional[posIdx]!, translator.topInfo.nullableType);
+        b.end();
+      }
+      translator.convertType(
+          function, translator.topInfo.nullableType, targetInputs[inputIdx]);
+      inputIdx += 1;
+    }
+
+    // Push named arguments
+
+    Expression? initializerForNamedParamInMember(String paramName) {
+      for (int i = 0; i < functionNode.namedParameters.length; i += 1) {
+        if (functionNode.namedParameters[i].name == paramName) {
+          return functionNode.namedParameters[i].initializer;
+        }
+      }
+      return null;
+    }
+
+    final namedArgValueIndexLocal = function
+        .addLocal(translator.classInfo[translator.boxedIntClass]!.nullableType);
+
+    for (String paramName in paramInfo.names) {
+      final Constant? paramInfoDefaultValue = paramInfo.named[paramName]!;
+      final Expression? functionNodeDefaultValue =
+          initializerForNamedParamInMember(paramName);
+
+      // Get passed value
+      b.local_get(namedArgsListLocal);
+      translator.constants.instantiateConstant(
+          function,
+          b,
+          SymbolConstant(paramName, null),
+          translator.classInfo[translator.symbolClass]!.nonNullableType);
+      b.call(translator.functions
+          .getFunction(translator.getNamedParameterIndex.reference));
+      b.local_set(namedArgValueIndexLocal);
+
+      if (functionNodeDefaultValue == null && paramInfoDefaultValue == null) {
+        // Shape check passed, parameter must be passed
+        b.local_get(namedArgsListLocal);
+        translator.indexList(b, (b) {
+          b.local_get(namedArgValueIndexLocal);
+          translator.convertType(
+              function, namedArgValueIndexLocal.type, w.NumType.i64);
+          b.i32_wrap_i64();
+        });
+      } else {
+        // Parameter may not be passed.
+        b.local_get(namedArgValueIndexLocal);
+        b.ref_is_null();
+        b.if_([], [translator.topInfo.nullableType]);
+        if (functionNodeDefaultValue != null) {
+          // Used by the member, has a default value
+          translator.constants.instantiateConstant(
+              function,
+              b,
+              (functionNodeDefaultValue as ConstantExpression).constant,
+              translator.topInfo.nullableType);
+        } else {
+          // Not used by the member
+          translator.constants.instantiateConstant(
+            function,
+            b,
+            paramInfoDefaultValue!,
+            translator.topInfo.nullableType,
+          );
+        }
+        b.else_(); // value index not null
+        b.local_get(namedArgsListLocal);
+        translator.indexList(b, (b) {
+          b.local_get(namedArgValueIndexLocal);
+          translator.convertType(
+              function, namedArgValueIndexLocal.type, w.NumType.i64);
+          b.i32_wrap_i64();
+        });
+        b.end();
+        translator.convertType(
+            function, translator.topInfo.nullableType, targetInputs[inputIdx]);
+      }
+      inputIdx += 1;
+    }
+
+    b.call(target);
+
+    translator.convertType(
+        function,
+        translator.outputOrVoid(target.type.outputs),
+        translator.outputOrVoid(function.type.outputs));
+
+    b.end(); // end function
   }
 }
 

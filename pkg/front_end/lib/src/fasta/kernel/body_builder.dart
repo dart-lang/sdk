@@ -8632,9 +8632,21 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleRestPattern(Token dots, {required bool hasSubPattern}) {
     debugEvent("RestPattern");
+    assert(checkState(dots, [
+      if (hasSubPattern)
+        unionOfKinds([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+          ValueKinds.ProblemBuilder,
+          ValueKinds.Pattern,
+        ]),
+    ]));
 
-    // TODO(cstefantsova): Handle the case of a present sub-pattern.
-    push(new RestPattern(dots.charOffset));
+    Pattern? subPattern;
+    if (hasSubPattern) {
+      subPattern = toPattern(pop());
+    }
+    push(new RestPattern(dots.charOffset, subPattern));
   }
 
   @override

@@ -64,6 +64,8 @@ final Name tripleShiftName = new Name(">>>");
 
 final Name tildeName = new Name("~");
 
+final Name sublistName = new Name("sublist");
+
 final Name unaryMinusName = new Name("unary-");
 
 final Name hashCodeName = new Name("hashCode");
