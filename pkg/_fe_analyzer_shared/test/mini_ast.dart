@@ -3610,6 +3610,7 @@ class _MiniAstTypeAnalyzer
   @override
   void finishJoinedPatternVariable(
     covariant PatternVariableJoin variable, {
+    required JoinedPatternVariableLocation location,
     required bool isConsistent,
     required bool isFinal,
     required Type type,

@@ -423,7 +423,105 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_notConsistent_differentFinality() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  switch (x) {
+    case final int a when a < 0:
+    case int a when a > 0:
+      a;
+  }
+}
+''', [
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          101,
+          1),
+    ]);
+
+    final node = findNode.switchStatement('switch');
+    assertResolvedNodeText(node, r'''
+SwitchStatement
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  rightParenthesis: )
+  leftBracket: {
+  members
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: DeclaredVariablePattern
+          keyword: final
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          name: a
+          declaredElement: isFinal a@54
+            type: int
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: a
+              staticElement: a@54
+              staticType: int
+            operator: <
+            rightOperand: IntegerLiteral
+              literal: 0
+              parameter: dart:core::@class::num::@method::<::@parameter::other
+              staticType: int
+            staticElement: dart:core::@class::num::@method::<
+            staticInvokeType: bool Function(num)
+            staticType: bool
+      colon: :
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: DeclaredVariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          name: a
+          declaredElement: a@81
+            type: int
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: a
+              staticElement: a@81
+              staticType: int
+            operator: >
+            rightOperand: IntegerLiteral
+              literal: 0
+              parameter: dart:core::@class::num::@method::>::@parameter::other
+              staticType: int
+            staticElement: dart:core::@class::num::@method::>
+            staticInvokeType: bool Function(num)
+            staticType: bool
+      colon: :
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            staticElement: notConsistent a[a@54, a@81]
+            staticType: dynamic
+          semicolon: ;
+  rightBracket: }
+''');
+  }
+
+  test_variables_joinedCase_declareBoth_notConsistent_differentFinalityTypes() async {
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   switch (x) {
     case final int a when a < 0:
@@ -431,7 +529,12 @@ void f(Object? x) {
       a;
   }
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          101,
+          1),
+    ]);
 
     final node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -516,7 +619,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_notConsistent_differentTypes() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a < 0:
@@ -524,7 +627,12 @@ void f(Object? x) {
       a;
   }
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          95,
+          1),
+    ]);
 
     final node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -608,7 +716,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareFirst() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   switch (x) {
     case 0:
@@ -616,7 +724,12 @@ void f(Object? x) {
       a;
   }
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          80,
+          1),
+    ]);
 
     final node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -679,7 +792,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareSecond() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a > 0:
@@ -687,7 +800,12 @@ void f(Object? x) {
       a;
   }
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          80,
+          1),
+    ]);
 
     final node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -750,7 +868,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_hasDefault() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a > 0:
@@ -758,7 +876,12 @@ void f(Object? x) {
       a;
   }
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          81,
+          1),
+    ]);
 
     final node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -826,6 +949,10 @@ void f(Object? x) {
 }
 ''', [
       error(HintCode.UNUSED_LABEL, 39, 8),
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          81,
+          1),
     ]);
 
     final node = findNode.switchStatement('switch');

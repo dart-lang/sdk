@@ -582,6 +582,10 @@ CompileTimeErrorCode.INCONSISTENT_INHERITANCE_GETTER_AND_METHOD:
   status: needsEvaluation
 CompileTimeErrorCode.INCONSISTENT_LANGUAGE_VERSION_OVERRIDE:
   status: needsEvaluation
+CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE:
+  status: needsEvaluation
+CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR:
+  status: needsEvaluation
 CompileTimeErrorCode.INITIALIZER_FOR_NON_EXISTENT_FIELD:
   status: needsEvaluation
 CompileTimeErrorCode.INITIALIZER_FOR_STATIC_FIELD:
@@ -855,8 +859,6 @@ CompileTimeErrorCode.NOT_A_TYPE:
 CompileTimeErrorCode.NOT_ASSIGNED_POTENTIALLY_NON_NULLABLE_LOCAL_VARIABLE:
   status: needsEvaluation
 CompileTimeErrorCode.NOT_BINARY_OPERATOR:
-  status: needsEvaluation
-CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN:
   status: needsEvaluation
 CompileTimeErrorCode.NOT_ENOUGH_POSITIONAL_ARGUMENTS_NAME_PLURAL:
   status: hasFix

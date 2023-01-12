@@ -127,7 +127,7 @@ class SharedTypeAnalyzerErrors
     required PromotableElement component,
   }) {
     _errorReporter.reportErrorForElement(
-      CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN,
+      CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
       component,
       [variable.name],
     );

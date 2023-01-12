@@ -2066,6 +2066,30 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the name of the pattern variable
+  static const CompileTimeErrorCode INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR =
+      CompileTimeErrorCode(
+    'INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR',
+    "The variable '{0}' has a different type and/or finality in this branch of "
+        "the logical-or pattern.",
+    correctionMessage:
+        "Try declaring the variable pattern with the same type and finality in "
+        "both branches.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the pattern variable
+  static const CompileTimeErrorCode
+      INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE = CompileTimeErrorCode(
+    'INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE',
+    "The variable '{0}' doesn't have the same type and/or finality in all "
+        "cases that share this body.",
+    correctionMessage:
+        "Try declaring the variable pattern with the same type and finality in "
+        "all cases.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the initializing formal that is not an instance variable in
   ///     the immediately enclosing class
   static const CompileTimeErrorCode INITIALIZER_FOR_NON_EXISTENT_FIELD =
@@ -3463,18 +3487,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'NOT_BINARY_OPERATOR',
     "'{0}' isn't a binary operator.",
     hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the variable pattern
-  static const CompileTimeErrorCode NOT_CONSISTENT_VARIABLE_PATTERN =
-      CompileTimeErrorCode(
-    'NOT_CONSISTENT_VARIABLE_PATTERN',
-    "Variable pattern '{0}' has a different type or finality in this branch of "
-        "the logical-or pattern.",
-    correctionMessage:
-        "Try declaring the variable pattern with the same type and finality in "
-        "both branches.",
   );
 
   ///  Parameters:

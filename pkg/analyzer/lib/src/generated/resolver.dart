@@ -881,6 +881,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void finishJoinedPatternVariable(
     covariant VariablePatternJoinElementImpl variable, {
+    required JoinedPatternVariableLocation location,
     required bool isConsistent,
     required bool isFinal,
     required DartType type,
@@ -888,6 +889,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     variable.isConsistent &= isConsistent;
     variable.isFinal = isFinal;
     variable.type = type;
+
+    if (location == JoinedPatternVariableLocation.sharedCaseScope) {
+      for (var reference in variable.references) {
+        if (!variable.isConsistent) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+            reference,
+            [variable.name],
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -4793,6 +4807,9 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           _localVariableInfo.potentiallyMutatedInClosure.add(element);
         }
       }
+    }
+    if (element is VariablePatternJoinElementImpl) {
+      element.references.add(node);
     }
   }
 

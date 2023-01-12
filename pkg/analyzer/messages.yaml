@@ -6144,6 +6144,18 @@ CompileTimeErrorCode:
       compilation unit to be appropriate for the code in the part, or migrate
       the code in the [part file][] to be consistent with the new language
       version.
+  INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR:
+    problemMessage: "The variable '{0}' has a different type and/or finality in this branch of the logical-or pattern."
+    correctionMessage: Try declaring the variable pattern with the same type and finality in both branches.
+    comment: |-
+      Parameters:
+      0: the name of the pattern variable
+  INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE:
+    problemMessage: "The variable '{0}' doesn't have the same type and/or finality in all cases that share this body."
+    correctionMessage: Try declaring the variable pattern with the same type and finality in all cases.
+    comment: |-
+      Parameters:
+      0: the name of the pattern variable
   INITIALIZER_FOR_NON_EXISTENT_FIELD:
     problemMessage: "'{0}' isn't a field in the enclosing class."
     correctionMessage: "Try correcting the name to match an existing field, or defining a field named '{0}'."
@@ -10371,12 +10383,6 @@ CompileTimeErrorCode:
       #### Common fixes
 
       Replace the name with the name of a type.
-  NOT_CONSISTENT_VARIABLE_PATTERN:
-    problemMessage: "Variable pattern '{0}' has a different type or finality in this branch of the logical-or pattern."
-    correctionMessage: "Try declaring the variable pattern with the same type and finality in both branches."
-    comment: |-
-      Parameters:
-      0: the name of the variable pattern
   NOT_BINARY_OPERATOR:
     problemMessage: "'{0}' isn't a binary operator."
     hasPublishedDocs: true
