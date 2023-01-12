@@ -47,11 +47,17 @@ View(Style style, List children)
 appears in an initializer list at any other position than at the end so this
 rule is made redundant by the Dart analyzer's basic checks and is no longer
 necessary.
- 
+
 The rule will be removed in a future Linter release.
 ''';
 
 class SuperGoesLast extends LintRule {
+  static const LintCode code = LintCode('super_goes_last',
+      "Place the 'super' call last in an initialization list.",
+      correctionMessage:
+          "Try moving the 'super' invocation to the end of the initialization "
+          'list.');
+
   SuperGoesLast()
       : super(
             name: 'super_goes_last',
@@ -59,6 +65,9 @@ class SuperGoesLast extends LintRule {
             details: _details,
             state: State.deprecated(),
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

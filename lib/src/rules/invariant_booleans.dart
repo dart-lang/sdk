@@ -108,6 +108,12 @@ Iterable<Element?> _getElementsInExpression(Expression node) => node
     .where((e) => e != null);
 
 class InvariantBooleans extends LintRule {
+  static const LintCode code = LintCode(
+      'invariant_booleans', 'Condition always evaluates to the same value.',
+      correctionMessage:
+          'Try removing the condition or changing it to not produce the same '
+          'result.');
+
   InvariantBooleans()
       : super(
             name: 'invariant_booleans',
@@ -115,6 +121,9 @@ class InvariantBooleans extends LintRule {
             details: _details,
             state: State.deprecated(),
             group: Group.errors);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

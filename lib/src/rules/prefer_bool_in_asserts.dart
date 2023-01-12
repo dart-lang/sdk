@@ -35,11 +35,16 @@ assert(() {
 **DEPRECATED:** In Dart 2, `assert`s no longer accept  non-`bool` values so this
 rule is made redundant by the Dart analyzer's basic checks and is no longer
 necessary.
- 
+
 The rule will be removed in a future Linter release.
 ''';
 
 class PreferBoolInAsserts extends LintRule {
+  static const LintCode code = LintCode('prefer_bool_in_asserts',
+      "Use an expression that returns a 'bool' as the 'assert' condition.",
+      correctionMessage:
+          "Try rewriting the 'assert' condition to return a 'bool'.");
+
   PreferBoolInAsserts()
       : super(
             name: 'prefer_bool_in_asserts',
@@ -47,6 +52,9 @@ class PreferBoolInAsserts extends LintRule {
             details: _details,
             state: State.deprecated(),
             group: Group.style);
+
+  @override
+  LintCode get lintCode => code;
 
   @override
   void registerNodeProcessors(

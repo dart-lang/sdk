@@ -53,6 +53,9 @@ void main() {
             'a.dart:134:7',
             'a.dart:135:1',
           ]));
+      if (result.exitCode != 0) {
+        print(result.stdout);
+      }
       expect(result.exitCode, 0);
     });
   });
