@@ -244,7 +244,8 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     gn_args['bssl_use_clang_integrated_as'] = True
 
     # Use tcmalloc only when targeting Linux and when not using ASAN.
-    gn_args['dart_use_tcmalloc'] = ((gn_args['target_os'] == 'linux') and
+    gn_args['dart_use_tcmalloc'] = (args.use_tcmalloc and
+                                    (gn_args['target_os'] == 'linux') and
                                     (gn_args['target_cpu'] != 'riscv32') and
                                     sanitizer == 'none')
 
@@ -482,6 +483,13 @@ def AddCommonGnOptionArgs(parser):
                         default=False,
                         dest='use_crashpad',
                         action='store_true')
+    parser.add_argument('--use-tcmalloc',
+                        dest='use_tcmalloc',
+                        action='store_true')
+    parser.add_argument('--no-use-tcmalloc',
+                        dest='use_tcmalloc',
+                        action='store_false')
+    parser.set_defaults(use_tcmalloc=True)
     parser.add_argument('--use-qemu',
                         default=False,
                         dest='use_qemu',
