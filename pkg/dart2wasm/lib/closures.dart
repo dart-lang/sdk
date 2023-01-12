@@ -186,7 +186,7 @@ class ClosureLayouter extends RecursiveVisitor {
         fields: [
           w.FieldType(w.NumType.i32),
           w.FieldType(w.NumType.i32),
-          w.FieldType(w.RefType.data(nullable: false)),
+          w.FieldType(w.RefType.struct(nullable: false)),
           w.FieldType(w.RefType.def(vtableStruct, nullable: false),
               mutable: false),
           w.FieldType(functionTypeType, mutable: false)
@@ -322,7 +322,7 @@ class ClosureLayouter extends RecursiveVisitor {
     // Add vtable fields for additional entry points relative to the parent.
     for (int paramCount in paramCounts) {
       w.FunctionType entry = m.addFunctionType([
-        w.RefType.data(nullable: false),
+        w.RefType.struct(nullable: false),
         ...List.filled(typeCount, typeType),
         ...List.filled(paramCount, topType)
       ], [
@@ -436,7 +436,7 @@ class ClosureLayouter extends RecursiveVisitor {
     w.RefType contextType = w.RefType.def(contextStruct, nullable: false);
     w.Local contextLocal = trampoline.addLocal(contextType);
     b.local_get(trampoline.locals[0]);
-    b.ref_cast(contextStruct);
+    b.ref_cast(contextType);
     b.local_tee(contextLocal);
 
     // Push inner context
@@ -487,7 +487,7 @@ class ClosureLayouter extends RecursiveVisitor {
         function.addLocal(instantiationContextType);
     b.local_get(instantiatedClosureLocal);
     b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-    b.ref_cast(instantiationContextStruct);
+    b.ref_cast(instantiationContextType);
     b.local_tee(instantiationContextLocal);
 
     // Push original closure
@@ -573,7 +573,7 @@ class ClosureLayouter extends RecursiveVisitor {
     // Context for the instantiated closure, containing the original closure and
     // the type arguments
     b.local_get(closureParam);
-    b.ref_cast(genericClosureStruct);
+    b.ref_cast(genericClosureType);
     b.local_tee(preciseClosure);
     for (int i = 0; i < typeCount; i++) {
       b.local_get(typeParam(i));
@@ -1026,7 +1026,7 @@ class CaptureFinder extends RecursiveVisitor {
 
   void _visitLambda(FunctionNode node) {
     List<w.ValueType> inputs = [
-      w.RefType.data(nullable: false),
+      w.RefType.struct(nullable: false),
       ...List.filled(node.typeParameters.length, closures.typeType),
       for (VariableDeclaration param in node.positionalParameters)
         translator.translateType(param.type),

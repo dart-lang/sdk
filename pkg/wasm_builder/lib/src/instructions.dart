@@ -1055,12 +1055,10 @@ class Instructions with SerializerMixin {
   }
 
   /// Emit an `array.len` instruction.
-  void array_len(ArrayType arrayType) {
-    assert(_verifyTypes(
-        [RefType.def(arrayType, nullable: true)], const [NumType.i32],
-        trace: ['array.len', arrayType]));
-    writeBytes(const [0xFB, 0x17]);
-    writeUnsigned(arrayType.index);
+  void array_len() {
+    assert(_verifyTypes([RefType.array(nullable: true)], const [NumType.i32],
+        trace: ['array.len']));
+    writeBytes(const [0xFB, 0x19]);
   }
 
   /// Emit an `array.new_fixed` instruction.
@@ -1128,126 +1126,68 @@ class Instructions with SerializerMixin {
     writeBytes(const [0xFB, 0x22]);
   }
 
-  bool _verifyCast(List<ValueType> Function(List<ValueType>) outputsFun,
+  bool _verifyCast(RefType targetType, ValueType outputType,
       {List<Object>? trace}) {
-    if (!reachable) {
-      return _debugTrace(trace, reachableAfter: false);
+    ValueType inputType = _topOfStack;
+    _verifyTypes(const [RefType.common(nullable: true)], [outputType],
+        trace: trace);
+    if (reachable &&
+        (inputType as RefType).heapType.topType !=
+            targetType.heapType.topType) {
+      _reportError("Input type $inputType does not belong to the same hierarchy"
+          " as target type $targetType");
     }
-    final ValueType value = _topOfStack;
-    if (!value.isSubtypeOf(const RefType.data(nullable: true)) &&
-        !value.isSubtypeOf(const RefType.func(nullable: true))) {
-      _reportError("Expected [data or func], but stack contained [$value]");
-    }
-    return _verifyTypesFun([value], outputsFun, trace: trace);
+    return true;
   }
 
   /// Emit a `ref.test` instruction.
-  void ref_test(DefType targetType) {
-    assert(_verifyCast((_) => const [NumType.i32],
-        trace: ['ref.test', targetType]));
-    writeBytes(const [0xFB, 0x44]);
-    writeSigned(targetType.index);
+  void ref_test(RefType targetType) {
+    assert(_verifyCast(targetType, NumType.i32, trace: [
+      'ref.test',
+      if (targetType.nullable) 'null',
+      targetType.heapType
+    ]));
+    writeBytes(targetType.nullable ? const [0xFB, 0x48] : const [0xFB, 0x40]);
+    write(targetType.heapType);
   }
 
   /// Emit a `ref.cast` instruction.
-  void ref_cast(DefType targetType) {
-    assert(_verifyCast(
-        (inputs) => [RefType.def(targetType, nullable: inputs[0].nullable)],
-        trace: ['ref.cast', targetType]));
-    writeBytes(const [0xFB, 0x45]);
-    writeSigned(targetType.index);
+  void ref_cast(RefType targetType) {
+    assert(_verifyCast(targetType, targetType, trace: [
+      'ref.cast',
+      if (targetType.nullable) 'null',
+      targetType.heapType
+    ]));
+    writeBytes(targetType.nullable ? const [0xFB, 0x49] : const [0xFB, 0x41]);
+    write(targetType.heapType);
   }
 
   /// Emit a `br_on_cast` instruction.
-  void br_on_cast(Label label, DefType targetType) {
-    assert(_verifyCast((inputs) {
-      return [inputs[0]];
-    }, trace: ['br_on_cast', label, targetType]));
-    assert(_verifyBranchTypes(
-        label, 1, [RefType.def(targetType, nullable: false)]));
-    writeBytes(const [0xFB, 0x46]);
+  void br_on_cast(RefType targetType, Label label) {
+    assert(_verifyCast(targetType, _topOfStack, trace: [
+      'br_on_cast',
+      if (targetType.nullable) 'null',
+      targetType.heapType,
+      label
+    ]));
+    assert(_verifyBranchTypes(label, 1, [targetType]));
+    writeBytes(targetType.nullable ? const [0xFB, 0x4A] : const [0xFB, 0x42]);
     _writeLabel(label);
-    writeSigned(targetType.index);
+    write(targetType.heapType);
   }
 
   /// Emit a `br_on_cast_fail` instruction.
-  void br_on_cast_fail(Label label, DefType targetType) {
+  void br_on_cast_fail(RefType targetType, Label label) {
+    assert(_verifyCast(targetType, targetType, trace: [
+      'br_on_cast_fail',
+      if (targetType.nullable) 'null',
+      targetType.heapType,
+      label
+    ]));
     assert(_verifyBranchTypes(label, 1, [_topOfStack]));
-    assert(_verifyCast((inputs) => [RefType.def(targetType, nullable: false)],
-        trace: ['br_on_cast_fail', label, targetType]));
-    writeBytes(const [0xFB, 0x47]);
+    writeBytes(targetType.nullable ? const [0xFB, 0x4B] : const [0xFB, 0x43]);
     _writeLabel(label);
-    writeSigned(targetType.index);
-  }
-
-  /// Emit a `ref.is_data` instruction.
-  void ref_is_data() {
-    assert(_verifyTypes(
-        const [RefType.any(nullable: true)], const [NumType.i32],
-        trace: const ['ref.is_data']));
-    writeBytes(const [0xFB, 0x51]);
-  }
-
-  /// Emit a `ref.is_i31` instruction.
-  void ref_is_i31() {
-    assert(_verifyTypes(
-        const [RefType.any(nullable: true)], const [NumType.i32],
-        trace: const ['ref.is_i31']));
-    writeBytes(const [0xFB, 0x52]);
-  }
-
-  /// Emit a `ref.as_data` instruction.
-  void ref_as_data() {
-    assert(_verifyTypes(const [RefType.any(nullable: true)],
-        const [RefType.data(nullable: false)],
-        trace: const ['ref.as_data']));
-    writeBytes(const [0xFB, 0x59]);
-  }
-
-  /// Emit a `ref.as_i31` instruction.
-  void ref_as_i31() {
-    assert(_verifyTypes(const [RefType.any(nullable: true)],
-        const [RefType.i31(nullable: false)],
-        trace: const ['ref.as_i31']));
-    writeBytes(const [0xFB, 0x5A]);
-  }
-
-  /// Emit a `br_on_data` instruction.
-  void br_on_data(Label label) {
-    assert(_verifyTypes(const [RefType.any(nullable: true)], [_topOfStack],
-        trace: ['br_on_data', label]));
-    assert(_verifyBranchTypes(label, 1, const [RefType.data(nullable: false)]));
-    writeBytes(const [0xFB, 0x61]);
-    _writeLabel(label);
-  }
-
-  /// Emit a `br_on_i31` instruction.
-  void br_on_i31(Label label) {
-    assert(_verifyTypes(const [RefType.any(nullable: true)], [_topOfStack],
-        trace: ['br_on_i31', label]));
-    assert(_verifyBranchTypes(label, 1, const [RefType.i31(nullable: false)]));
-    writeBytes(const [0xFB, 0x62]);
-    _writeLabel(label);
-  }
-
-  /// Emit a `br_on_non_data` instruction.
-  void br_on_non_data(Label label) {
-    assert(_verifyBranchTypes(label, 1, [_topOfStack]));
-    assert(_verifyTypes(const [RefType.any(nullable: true)],
-        const [RefType.data(nullable: false)],
-        trace: ['br_on_non_data', label]));
-    writeBytes(const [0xFB, 0x64]);
-    _writeLabel(label);
-  }
-
-  /// Emit a `br_on_non_i31` instruction.
-  void br_on_non_i31(Label label) {
-    assert(_verifyBranchTypes(label, 1, [_topOfStack]));
-    assert(_verifyTypes(const [RefType.any(nullable: true)],
-        const [RefType.i31(nullable: false)],
-        trace: ['br_on_non_i31', label]));
-    writeBytes(const [0xFB, 0x65]);
-    _writeLabel(label);
+    write(targetType.heapType);
   }
 
   /// Emit an `extern.internalize` instruction.

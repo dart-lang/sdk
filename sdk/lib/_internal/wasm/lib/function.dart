@@ -7,7 +7,7 @@ part of "core_patch.dart";
 /// Base class for closure objects.
 class _Function implements Function {
   @pragma("wasm:entry-point")
-  WasmDataRef context;
+  WasmStructRef context;
 
   @pragma("wasm:entry-point")
   _Function._(this.context);

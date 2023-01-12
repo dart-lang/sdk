@@ -122,7 +122,6 @@ class Intrinsifier {
 
   w.ValueType? generateInstanceGetterIntrinsic(InstanceGet node) {
     Expression receiver = node.receiver;
-    DartType receiverType = dartTypeOf(receiver);
     String name = node.name.text;
     Member target = node.interfaceTarget;
     Class cls = target.enclosingClass!;
@@ -130,27 +129,16 @@ class Intrinsifier {
     // WasmAnyRef.isObject
     if (cls == translator.wasmAnyRefClass) {
       assert(name == "isObject");
-      w.Label succeed = b.block(const [], const [w.NumType.i32]);
-      w.Label fail = b.block(const [], const [w.RefType.any(nullable: false)]);
       codeGen.wrap(receiver, w.RefType.any(nullable: false));
-      b.br_on_non_data(fail);
-      b.ref_test(translator.topInfo.struct);
-      b.br(succeed);
-      b.end(); // fail
-      b.drop();
-      b.i32_const(0);
-      b.end(); // succeed
+      b.ref_test(translator.topInfo.nonNullableType);
       return w.NumType.i32;
     }
 
-    // _WasmArray.length
-    if (cls == translator.wasmArrayBaseClass) {
+    // WasmArrayRef.length
+    if (cls == translator.wasmArrayRefClass) {
       assert(name == 'length');
-      DartType elementType =
-          (receiverType as InterfaceType).typeArguments.single;
-      w.ArrayType arrayType = translator.arrayTypeForDartType(elementType);
-      codeGen.wrap(receiver, w.RefType.def(arrayType, nullable: true));
-      b.array_len(arrayType);
+      codeGen.wrap(receiver, w.RefType.array(nullable: false));
+      b.array_len();
       b.i64_extend_i32_u();
       return w.NumType.i64;
     }
@@ -185,7 +173,7 @@ class Intrinsifier {
     // _HashAbstractImmutableBase._indexNullable
     if (target == translator.hashImmutableIndexNullable) {
       ClassInfo info = translator.classInfo[translator.hashFieldBaseClass]!;
-      codeGen.wrap(receiver, info.nullableType);
+      codeGen.wrap(receiver, info.nonNullableType);
       b.struct_get(info.struct, FieldIndex.hashBaseIndex);
       return info.struct.fields[FieldIndex.hashBaseIndex].type.unpacked;
     }
@@ -239,7 +227,7 @@ class Intrinsifier {
         // Prepare array and offset
         w.Local array = codeGen.addLocal(arrayType);
         w.Local offset = codeGen.addLocal(w.NumType.i32);
-        codeGen.wrap(receiver, typedListInfo.nullableType);
+        codeGen.wrap(receiver, typedListInfo.nonNullableType);
         b.struct_get(typedListInfo.struct, FieldIndex.typedListArray);
         b.local_set(array);
         codeGen.wrap(node.arguments.positional[0], w.NumType.i64);
@@ -345,11 +333,8 @@ class Intrinsifier {
     // WasmAnyRef.toObject
     if (cls == translator.wasmAnyRefClass && name == "toObject") {
       w.Label succeed = b.block(const [], [translator.topInfo.nonNullableType]);
-      w.Label fail = b.block(const [], const [w.RefType.any(nullable: false)]);
-      codeGen.wrap(receiver, w.RefType.any(nullable: false));
-      b.br_on_non_data(fail);
-      b.br_on_cast(succeed, translator.topInfo.struct);
-      b.end(); // fail
+      codeGen.wrap(receiver, const w.RefType.any(nullable: false));
+      b.br_on_cast(translator.topInfo.nonNullableType, succeed);
       codeGen.throwWasmRefError("a Dart object");
       b.end(); // succeed
       return translator.topInfo.nonNullableType;
@@ -358,7 +343,7 @@ class Intrinsifier {
     // WasmIntArray.(readSigned|readUnsigned|write)
     // WasmFloatArray.(read|write)
     // WasmObjectArray.(read|write)
-    if (cls.superclass == translator.wasmArrayBaseClass) {
+    if (cls.superclass == translator.wasmArrayRefClass) {
       DartType elementType =
           (receiverType as InterfaceType).typeArguments.single;
       w.ArrayType arrayType = translator.arrayTypeForDartType(elementType);
@@ -374,7 +359,7 @@ class Intrinsifier {
           bool unsigned = name == 'readUnsigned';
           Expression array = receiver;
           Expression index = node.arguments.positional.single;
-          codeGen.wrap(array, w.RefType.def(arrayType, nullable: true));
+          codeGen.wrap(array, w.RefType.def(arrayType, nullable: false));
           codeGen.wrap(index, w.NumType.i64);
           b.i32_wrap_i64();
           if (innerExtend) {
@@ -404,7 +389,7 @@ class Intrinsifier {
           Expression array = receiver;
           Expression index = node.arguments.positional[0];
           Expression value = node.arguments.positional[1];
-          codeGen.wrap(array, w.RefType.def(arrayType, nullable: true));
+          codeGen.wrap(array, w.RefType.def(arrayType, nullable: false));
           codeGen.wrap(index, w.NumType.i64);
           b.i32_wrap_i64();
           codeGen.wrap(value, typeOfExp(value));
@@ -507,14 +492,13 @@ class Intrinsifier {
 
       // Access the underlying array directly.
       ClassInfo info = translator.classInfo[translator.listBaseClass]!;
-      w.RefType listType = info.nullableType;
       Field arrayField = translator.listBaseClass.fields
           .firstWhere((f) => f.name.text == '_data');
       int arrayFieldIndex = translator.fieldIndex[arrayField]!;
       w.ArrayType arrayType =
           (info.struct.fields[arrayFieldIndex].type as w.RefType).heapType
               as w.ArrayType;
-      codeGen.wrap(receiver, listType);
+      codeGen.wrap(receiver, info.nonNullableType);
       b.struct_get(info.struct, arrayFieldIndex);
       codeGen.wrap(arg, w.NumType.i64);
       b.i32_wrap_i64();
@@ -623,7 +607,7 @@ class Intrinsifier {
 
   w.ValueType getID(Expression node) {
     ClassInfo info = translator.topInfo;
-    codeGen.wrap(node, info.nullableType);
+    codeGen.wrap(node, info.nonNullableType);
     b.struct_get(info.struct, FieldIndex.classId);
     b.i64_extend_i32_u();
     return w.NumType.i64;
@@ -682,7 +666,7 @@ class Intrinsifier {
           break;
         case "_getHash":
           Expression arg = node.arguments.positional[0];
-          w.ValueType objectType = translator.objectInfo.nullableType;
+          w.ValueType objectType = translator.objectInfo.nonNullableType;
           codeGen.wrap(arg, objectType);
           b.struct_get(translator.objectInfo.struct, FieldIndex.identityHash);
           b.i64_extend_i32_u();
@@ -690,7 +674,7 @@ class Intrinsifier {
         case "_setHash":
           Expression arg = node.arguments.positional[0];
           Expression hash = node.arguments.positional[1];
-          w.ValueType objectType = translator.objectInfo.nullableType;
+          w.ValueType objectType = translator.objectInfo.nonNullableType;
           codeGen.wrap(arg, objectType);
           codeGen.wrap(hash, w.NumType.i64);
           b.i32_wrap_i64();
@@ -716,7 +700,7 @@ class Intrinsifier {
           Expression object = node.arguments.positional[0];
           w.StructType closureBase =
               translator.closureLayouter.closureBaseStruct;
-          codeGen.wrap(object, w.RefType.def(closureBase, nullable: true));
+          codeGen.wrap(object, w.RefType.def(closureBase, nullable: false));
           b.struct_get(closureBase, FieldIndex.closureRuntimeType);
           return translator.types.typeClassInfo.nonNullableType;
         case "_getInterfaceTypeRuntimeType":
@@ -956,7 +940,7 @@ class Intrinsifier {
 
     if (cls != null && translator.isWasmType(cls)) {
       // Wasm(Int|Float|Object)Array constructors
-      if (cls.superclass == translator.wasmArrayBaseClass) {
+      if (cls.superclass == translator.wasmArrayRefClass) {
         Expression length = node.arguments.positional[0];
         w.ArrayType arrayType =
             translator.arrayTypeForDartType(node.arguments.types.single);
@@ -972,7 +956,7 @@ class Intrinsifier {
         w.RefType resultType = typeOfExp(node) as w.RefType;
         w.Label succeed = b.block(const [], [resultType]);
         codeGen.wrap(ref, w.RefType.func(nullable: false));
-        b.br_on_cast(succeed, resultType.heapType as w.FunctionType);
+        b.br_on_cast(resultType, succeed);
         codeGen.throwWasmRefError("a function with the expected signature");
         b.end(); // succeed
         return resultType;
@@ -993,7 +977,7 @@ class Intrinsifier {
         return functionRef.type.type;
       }
 
-      // Wasm(AnyRef|FuncRef|EqRef|DataRef|I32|I64|F32|F64) constructors
+      // Wasm(AnyRef|FuncRef|EqRef|StructRef|I32|I64|F32|F64) constructors
       Expression value = node.arguments.positional[0];
       w.StorageType targetType = translator.builtinTypes[cls]!;
       switch (targetType) {
@@ -1209,10 +1193,10 @@ class Intrinsifier {
       b.i32_eq();
       b.if_();
       b.local_get(first);
-      b.ref_cast(boolInfo.struct);
+      b.ref_cast(boolInfo.nonNullableType);
       b.struct_get(boolInfo.struct, FieldIndex.boxValue);
       b.local_get(second);
-      b.ref_cast(boolInfo.struct);
+      b.ref_cast(boolInfo.nonNullableType);
       b.struct_get(boolInfo.struct, FieldIndex.boxValue);
       b.i32_eq();
       b.return_();
@@ -1224,10 +1208,10 @@ class Intrinsifier {
       b.i32_eq();
       b.if_();
       b.local_get(first);
-      b.ref_cast(intInfo.struct);
+      b.ref_cast(intInfo.nonNullableType);
       b.struct_get(intInfo.struct, FieldIndex.boxValue);
       b.local_get(second);
-      b.ref_cast(intInfo.struct);
+      b.ref_cast(intInfo.nonNullableType);
       b.struct_get(intInfo.struct, FieldIndex.boxValue);
       b.i64_eq();
       b.return_();
@@ -1239,11 +1223,11 @@ class Intrinsifier {
       b.i32_eq();
       b.if_();
       b.local_get(first);
-      b.ref_cast(doubleInfo.struct);
+      b.ref_cast(doubleInfo.nonNullableType);
       b.struct_get(doubleInfo.struct, FieldIndex.boxValue);
       b.i64_reinterpret_f64();
       b.local_get(second);
-      b.ref_cast(doubleInfo.struct);
+      b.ref_cast(doubleInfo.nonNullableType);
       b.struct_get(doubleInfo.struct, FieldIndex.boxValue);
       b.i64_reinterpret_f64();
       b.i64_eq();
@@ -1267,7 +1251,7 @@ class Intrinsifier {
         TypeParameter typeParameter = cls.typeParameters[i];
         int typeParameterIndex = translator.typeParameterIndex[typeParameter]!;
         b.local_get(object);
-        b.ref_cast(classInfo.struct);
+        b.ref_cast(classInfo.nonNullableType);
         b.struct_get(classInfo.struct, typeParameterIndex);
       });
       return true;
@@ -1352,7 +1336,7 @@ class Intrinsifier {
         Class cls = member.enclosingClass!;
         ClassInfo info = translator.classInfo[cls]!;
         b.local_get(paramLocals[0]);
-        b.ref_cast(info.struct);
+        b.ref_cast(info.nonNullableType);
         // TODO(joshualitt): Because we currently merge getters to support
         // dynamic calls, the return types of `.length` and `.offsetInBytes` can
         // change. Should we decide to stop merging getters, we should remove
@@ -1405,7 +1389,8 @@ class Intrinsifier {
       b.local_get(args);
       b.local_get(stack);
       b.local_get(args);
-      b.ref_cast(translator.functions.asyncStubBaseStruct);
+      b.ref_cast(w.RefType.def(translator.functions.asyncStubBaseStruct,
+          nullable: false));
       b.struct_get(translator.functions.asyncStubBaseStruct, stubFieldIndex);
       b.call_ref(translator.functions.asyncStubFunctionType);
       return true;
@@ -1448,7 +1433,7 @@ class Intrinsifier {
           ClassInfo intInfo = translator.classInfo[translator.boxedIntClass]!;
           w.Label intArg = b.block(const [], [intInfo.nonNullableType]);
           b.local_get(function.locals[1]);
-          b.br_on_cast(intArg, intInfo.struct);
+          b.br_on_cast(intInfo.nonNullableType, intArg);
           // double argument
           b.drop();
           b.local_get(function.locals[0]);
@@ -1579,14 +1564,14 @@ class Intrinsifier {
 
       // Compare context references. If context of a function has the top type
       // then the function is an instance tear-off. Otherwise it's a closure.
-      final contextCheckFail = b.block([], [w.RefType.data(nullable: false)]);
+      final contextCheckFail = b.block([], [w.RefType.struct(nullable: false)]);
       b.local_get(fun1);
       b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.br_on_cast_fail(contextCheckFail, translator.topInfo.struct);
+      b.br_on_cast_fail(translator.topInfo.nonNullableType, contextCheckFail);
 
       b.local_get(fun2);
       b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.br_on_cast_fail(contextCheckFail, translator.topInfo.struct);
+      b.br_on_cast_fail(translator.topInfo.nonNullableType, contextCheckFail);
 
       // Both contexts are objects, compare for equality with `identical`. This
       // handles identical `this` values in instance tear-offs.

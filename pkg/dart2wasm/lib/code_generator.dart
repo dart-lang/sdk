@@ -519,7 +519,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
               translator.isWasmType(cls))) {
         preciseThisLocal = addLocal(thisType);
         b.local_get(paramLocals[0]);
-        b.ref_cast(info.struct);
+        b.ref_cast(info.nonNullableType);
         b.local_set(preciseThisLocal!);
       } else {
         preciseThisLocal = paramLocals[0];
@@ -535,12 +535,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void _initializeContextLocals(FunctionNode functionNode) {
     Context? context = closures.contexts[functionNode]?.parent;
     if (context != null) {
+      w.RefType contextType = w.RefType.def(context.struct, nullable: false);
       b.local_get(paramLocals[0]);
-      b.ref_cast(context.struct);
+      b.ref_cast(contextType);
       while (true) {
-        w.Local contextLocal =
-            addLocal(w.RefType.def(context!.struct, nullable: false));
-        context.currentLocal = contextLocal;
+        w.Local contextLocal = addLocal(contextType);
+        context!.currentLocal = contextLocal;
         if (context.parent != null || context.containsThis) {
           b.local_tee(contextLocal);
         } else {
@@ -551,6 +551,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.struct_get(context.struct, context.parentFieldIndex);
         b.ref_as_non_null();
         context = context.parent!;
+        contextType = w.RefType.def(context.struct, nullable: false);
       }
       if (context.containsThis) {
         thisLocal = addLocal(context
@@ -2005,7 +2006,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       w.StructType closureStruct = _pushClosure(
           translator.getTearOffClosure(target),
           translator.getTearOffType(target),
-          () => visitThis(w.RefType.data(nullable: false)));
+          () => visitThis(w.RefType.struct(nullable: false)));
       return w.RefType.def(closureStruct, nullable: false);
     }
     return _directGet(target, ThisExpression(), () => null);
@@ -2150,7 +2151,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (target is Field) {
       ClassInfo info = translator.classInfo[target.enclosingClass]!;
       int fieldIndex = translator.fieldIndex[target]!;
-      w.ValueType receiverType = info.nullableType;
+      w.ValueType receiverType = info.nonNullableType;
       w.ValueType fieldType = info.struct.fields[fieldIndex].type.unpacked;
       wrap(receiver, receiverType);
       b.struct_get(info.struct, fieldIndex);
@@ -2248,7 +2249,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (target is Field) {
       ClassInfo info = translator.classInfo[target.enclosingClass]!;
       int fieldIndex = translator.fieldIndex[target]!;
-      w.ValueType receiverType = info.nullableType;
+      w.ValueType receiverType = info.nonNullableType;
       w.ValueType fieldType = info.struct.fields[fieldIndex].type.unpacked;
       wrap(receiver, receiverType);
       wrap(value, fieldType);
@@ -2344,7 +2345,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.local_get(context.currentLocal);
       assert(!context.currentLocal.type.nullable);
     } else {
-      b.global_get(translator.globals.dummyGlobal); // Dummy context
+      b.global_get(translator.globals.dummyStructGlobal); // Dummy context
     }
   }
 
@@ -2851,7 +2852,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (member_ is Field) {
       int fieldIndex = translator.fieldIndex[member_]!;
       b.local_get(receiverLocal);
-      translator.convertType(function, receiverLocal.type, info.nullableType);
+      translator.convertType(
+          function, receiverLocal.type, info.nonNullableType);
       b.local_get(argLocal);
       translator.convertType(function, argLocal.type,
           info.struct.fields[fieldIndex].type.unpacked);
@@ -3001,8 +3003,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     final List<w.ValueType> memberWasmInputs = memberWasmFunction.type.inputs;
 
     b.local_get(receiverLocal);
-    translator.convertType(
-        function, translator.topInfo.nullableType, memberWasmInputs[0]);
+    translator.convertType(function, receiverLocal.type, memberWasmInputs[0]);
 
     for (final typeParam in memberTypeParams) {
       b.local_get(typeLocals[typeParam]!);

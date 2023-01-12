@@ -130,7 +130,8 @@ class Translator with KernelNodes {
     wasmExternRefClass: const w.RefType.extern(nullable: false),
     wasmFuncRefClass: const w.RefType.func(nullable: false),
     wasmEqRefClass: const w.RefType.eq(nullable: false),
-    wasmDataRefClass: const w.RefType.data(nullable: false),
+    wasmStructRefClass: const w.RefType.struct(nullable: false),
+    wasmArrayRefClass: const w.RefType.array(nullable: false),
   };
 
   /// The box classes corresponding to each of the value types.
@@ -472,7 +473,7 @@ class Translator with KernelNodes {
 
   w.StorageType translateStorageType(DartType type) {
     if (type is InterfaceType) {
-      if (type.classNode.superclass == wasmArrayBaseClass) {
+      if (type.classNode.superclass == wasmArrayRefClass) {
         DartType elementType = type.typeArguments.single;
         return w.RefType.def(arrayTypeForDartType(elementType),
             nullable: false);
@@ -742,7 +743,15 @@ class Translator with KernelNodes {
     }
 
     if (!from.isSubtypeOf(to)) {
-      if (from is! w.RefType && to is w.RefType) {
+      if (from is w.RefType && to is w.RefType) {
+        if (from.withNullability(false).isSubtypeOf(to)) {
+          // Null check
+          b.ref_as_non_null();
+        } else {
+          // Downcast
+          b.ref_cast(to);
+        }
+      } else if (to is w.RefType) {
         // Boxing
         ClassInfo info = classInfo[boxedClasses[from]!]!;
         assert(info.struct.isSubtypeOf(to.heapType));
@@ -751,58 +760,16 @@ class Translator with KernelNodes {
         b.i32_const(info.classId);
         b.local_get(temp);
         b.struct_new(info.struct);
-      } else if (from is w.RefType && to is! w.RefType) {
+      } else if (from is w.RefType) {
         // Unboxing
         ClassInfo info = classInfo[boxedClasses[to]!]!;
         if (!from.heapType.isSubtypeOf(info.struct)) {
           // Cast to box type
-          if (!from.heapType.isSubtypeOf(w.HeapType.data)) {
-            b.ref_as_data();
-          }
-          b.ref_cast(info.struct);
+          b.ref_cast(info.nonNullableType);
         }
         b.struct_get(info.struct, FieldIndex.boxValue);
-      } else if (from.withNullability(false).isSubtypeOf(to)) {
-        // Null check
-        b.ref_as_non_null();
       } else {
-        // Downcast
-        if (from.nullable && !to.nullable) {
-          b.ref_as_non_null();
-        }
-        var heapType = (to as w.RefType).heapType;
-        if (heapType is w.FunctionType) {
-          b.ref_cast(heapType);
-        } else if (heapType == w.HeapType.none) {
-          assert(to.nullable);
-          b.drop();
-          b.ref_null(w.HeapType.none);
-        } else {
-          w.Label? nullLabel = null;
-          if (!(from as w.RefType).heapType.isSubtypeOf(w.HeapType.data)) {
-            if (from.nullable && to.nullable) {
-              // Nullable cast from above dataref. Since ref.as_data is not
-              // null-polymorphic, we need to check explicitly for null.
-              w.Local temp = function.addLocal(from);
-              b.local_set(temp);
-              nullLabel = b.block(const [], [to]);
-              w.Label nonNullLabel =
-                  b.block(const [], [from.withNullability(false)]);
-              b.local_get(temp);
-              b.br_on_non_null(nonNullLabel);
-              b.ref_null(w.HeapType.none);
-              b.br(nullLabel);
-              b.end(); // nonNullLabel
-            }
-            b.ref_as_data();
-          }
-          if (heapType is w.DefType) {
-            b.ref_cast(heapType);
-          }
-          if (nullLabel != null) {
-            b.end(); // nullLabel
-          }
-        }
+        throw "Conversion between non-reference types";
       }
     }
 
@@ -1077,12 +1044,13 @@ class _ClosureDynamicEntryGenerator implements _FunctionGenerator {
       final closureBaseType = w.RefType.def(
           translator.closureLayouter.closureBaseStruct,
           nullable: false);
-      final closureContextType = w.RefType.data(nullable: false);
+      final closureContextType = w.RefType.struct(nullable: false);
 
       // Get context, downcast it to expected type
       b.local_get(closureLocal);
       translator.convertType(function, closureLocal.type, closureBaseType);
-      b.struct_get(translator.closureLayouter.closureBaseStruct, 2);
+      b.struct_get(translator.closureLayouter.closureBaseStruct,
+          FieldIndex.closureContext);
       translator.convertType(
           function, closureContextType, targetInputs[inputIdx]);
       inputIdx += 1;

@@ -31,7 +31,7 @@ class FunctionCollector {
   final w.ValueType asyncStackType = const w.RefType.extern(nullable: true);
 
   late final w.FunctionType asyncStubFunctionType = m.addFunctionType(
-      [const w.RefType.data(nullable: false), asyncStackType],
+      [const w.RefType.struct(nullable: false), asyncStackType],
       [translator.topInfo.nullableType]);
 
   late final w.StructType asyncStubBaseStruct = m.addStructType("#AsyncStub",
