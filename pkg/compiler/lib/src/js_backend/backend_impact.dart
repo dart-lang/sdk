@@ -634,4 +634,10 @@ class BackendImpacts {
       _commonElements.throwLateFieldADI,
     ],
   );
+
+  late final BackendImpact recordInstantiation = BackendImpact(
+    globalUses: [
+      _commonElements.recordImpactModel,
+    ],
+  );
 }

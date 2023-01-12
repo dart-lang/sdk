@@ -1410,6 +1410,18 @@ abstract class StaticTypeVisitor extends StaticTypeBase {
     return const ir.VoidType();
   }
 
+  void handleRecordLiteral(ir.RecordLiteral node) {}
+
+  @override
+  ir.DartType visitRecordLiteral(ir.RecordLiteral node) {
+    visitNodes(node.positional);
+    for (final namedExpression in node.named) {
+      visitNode(namedExpression.value);
+    }
+    handleRecordLiteral(node);
+    return super.visitRecordLiteral(node);
+  }
+
   void handleFunctionExpression(ir.FunctionExpression node) {}
 
   @override

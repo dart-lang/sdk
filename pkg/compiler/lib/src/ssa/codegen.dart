@@ -33,6 +33,7 @@ import '../js_backend/type_reference.dart' show TypeReference;
 import '../js_emitter/js_emitter.dart' show ModularEmitter;
 import '../js_model/elements.dart' show JGeneratorBody;
 import '../js_model/js_world.dart' show JClosedWorld;
+import '../js_model/records.dart' show JRecordClass;
 import '../js_model/type_recipe.dart';
 import '../native/behavior.dart';
 import '../options.dart';
@@ -2410,6 +2411,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // function expressions. We have to register their use here, as otherwise
     // code for them might not be emitted.
     if (node.element.isClosure) {
+      _registry
+          // ignore:deprecated_member_use_from_same_package
+          .registerInstantiatedClass(node.element);
+    }
+    if (node.element is JRecordClass) {
       _registry
           // ignore:deprecated_member_use_from_same_package
           .registerInstantiatedClass(node.element);

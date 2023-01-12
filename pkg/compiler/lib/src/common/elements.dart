@@ -629,6 +629,23 @@ abstract class CommonElements {
   // impacts + constant emitter accordingly.
   late final ClassEntity constSetLiteralClass = unmodifiableSetClass;
 
+  /// Base class for all records.
+  late final ClassEntity recordBaseClass = _findHelperClass('_Record');
+
+  /// A function that is used to model the back-end impacts of record lowering
+  /// in the front-end.
+  late final FunctionEntity recordImpactModel =
+      _findHelperFunction('_RecordImpactModel');
+
+  /// Base class for records with N fields. Can be a fixed-arity class or a
+  /// general class that works for any arity.
+  ClassEntity recordArityClass(int n) {
+    return _findClassOrNull(jsHelperLibrary, '_Record$n') ??
+        recordGeneralBaseClass;
+  }
+
+  late final ClassEntity recordGeneralBaseClass = _findHelperClass('_RecordN');
+
   late final ClassEntity jsInvocationMirrorClass =
       _findHelperClass('JSInvocationMirror');
 

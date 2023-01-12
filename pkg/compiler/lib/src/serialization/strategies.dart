@@ -240,7 +240,8 @@ class ObjectsInMemorySerializationStrategy
           DataSourceIndices indices,
           List<Object> globalTypeInferenceResultsData) {
     DataSourceReader globalTypeInferenceResultsSource = DataSourceReader(
-        ObjectDataSource(globalTypeInferenceResultsData), options);
+        ObjectDataSource(globalTypeInferenceResultsData), options,
+        useDataKinds: useDataKinds);
     return DataAndIndices(
         deserializeGlobalTypeInferenceResultsFromSource(
             options,
