@@ -465,6 +465,18 @@ class BrowserCommandOutput extends CommandOutput
 
 /// A parsed analyzer error diagnostic.
 class AnalyzerError implements Comparable<AnalyzerError> {
+  /// The set of static warnings which must be expected in a test. Any warning
+  /// not specified here which is reported by the analyzer does not need to be
+  /// expected, and never causes a test to fail.
+  static const Set<String> _specifiedWarnings = {
+    'dead_null_aware_expression',
+    'invalid_null_aware_operator',
+    'missing_enum_constant_in_switch',
+    'unnecessary_non_null_assertion',
+    'unnecessary_null_assert_pattern',
+    'unnecessary_null_check_pattern',
+  };
+
   /// Parses all errors from analyzer [stdout] output.
   static List<AnalyzerError> parseStdout(String stdout) {
     var result = <AnalyzerError>[];
@@ -510,17 +522,6 @@ class AnalyzerError implements Comparable<AnalyzerError> {
 
     return result;
   }
-
-  /// The set of static warnings which must be expected in a test. Any warning
-  /// not specified here which is reported by the analyzer does not need to be
-  /// expected, and never causes a test to fail.
-  static Set<String> _specifiedWarnings = {
-    'dead_null_aware_expression',
-    'invalid_null_aware_operator',
-    'missing_enum_constant_in_switch',
-    'unnecessary_non_null_assertion',
-    'unnecessary_null_assert_pattern',
-  };
 
   static AnalyzerError _parse(Map<String, dynamic> diagnostic, String message,
       [String? errorCode]) {
