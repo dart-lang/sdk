@@ -44,6 +44,7 @@ import '../js_model/js_strategy.dart';
 import '../js_model/js_world.dart' show JClosedWorld;
 import '../js_model/locals.dart' show GlobalLocalsMap, JumpVisitor;
 import '../js_model/type_recipe.dart';
+import '../js_model/records.dart' show RecordData;
 import '../kernel/invocation_mirror_constants.dart';
 import '../native/behavior.dart';
 import '../native/js.dart';
@@ -51,6 +52,7 @@ import '../options.dart';
 import '../tracer.dart';
 import '../universe/call_structure.dart';
 import '../universe/feature.dart';
+import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 import '../universe/target_checks.dart' show TargetChecks;
 import '../universe/use.dart' show ConstantUse, StaticUse, TypeUse;
@@ -122,6 +124,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   final JClosedWorld closedWorld;
   final CodegenRegistry registry;
   final ClosureData _closureDataLookup;
+  final RecordData _recordData;
   final Tracer _tracer;
 
   /// A stack of [InterfaceType]s that have been seen during inlining of
@@ -180,6 +183,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       this._inlineDataCache)
       : this.targetElement = _effectiveTargetElementFor(_initialTargetElement),
         this._closureDataLookup = closedWorld.closureDataLookup,
+        this._recordData = closedWorld.recordData,
         _memberContextNode =
             _elementMap.getMemberContextNode(_initialTargetElement) {
     _enterFrame(targetElement, null);
@@ -1733,7 +1737,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   @override
   void defaultNode(ir.Node node) {
-    throw UnsupportedError("Unhandled node $node (${node.runtimeType})");
+    throw UnsupportedError('Unhandled node $node (${node.runtimeType})');
   }
 
   /// Returns the current source element. This is used by the type builder.
@@ -3383,6 +3387,99 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   void visitMapLiteralEntry(ir.MapLiteralEntry node) {
     failedAt(CURRENT_ELEMENT_SPANNABLE,
         'ir.MapEntry should be handled in visitMapLiteral');
+  }
+
+  @override
+  void visitRecordLiteral(ir.RecordLiteral node) {
+    SourceInformation? sourceInformation =
+        _sourceInformationBuilder.buildCreate(node);
+    assert(!node.isConst);
+
+    List<HInstruction> inputs = [];
+    for (ir.Expression expression in node.positional) {
+      expression.accept(this);
+      inputs.add(pop());
+    }
+    for (ir.NamedExpression namedExpression in node.named) {
+      namedExpression.value.accept(this);
+      inputs.add(pop());
+    }
+
+    // TODO(50701): Choose class depending in inferred type of record fields
+    // which might be better than the static type.
+    RecordType dartType =
+        _elementMap.getDartType(node.recordType) as RecordType;
+    if (dartType.containsTypeVariables) {
+      dartType = localsHandler.substInContext(dartType) as RecordType;
+    }
+
+    final recordRepresentation =
+        _recordData.representationForStaticType(dartType);
+    ClassEntity recordClass = recordRepresentation.cls;
+
+    if (recordRepresentation.usesList) {
+      // TODO(50081): Can we use `.constListType`?
+      push(HLiteralList(inputs, _abstractValueDomain.fixedListType));
+      inputs = [pop()];
+    }
+
+    AbstractValue type = _abstractValueDomain.createNonNullExact(recordClass);
+
+    final allocation = HCreate(recordClass, inputs, type, sourceInformation);
+
+    // TODO(50701): With traced record types there might be a better type.
+    //     AbstractValue type =
+    //        _typeInferenceMap.typeOfRecordLiteral(node, _abstractValueDomain);
+    //     if (_abstractValueDomain.containsAll(type).isDefinitelyFalse) {
+    //       allocation.instructionType = type;
+    //     }
+    push(allocation);
+  }
+
+  @override
+  void visitRecordIndexGet(ir.RecordIndexGet node) {
+    final shape = recordShapeOfRecordType(node.receiverType);
+    return _handleRecordFieldGet(node, node.receiver, shape, node.index);
+  }
+
+  @override
+  void visitRecordNameGet(ir.RecordNameGet node) {
+    final shape = recordShapeOfRecordType(node.receiverType);
+    int index = shape.indexOfName(node.name);
+    return _handleRecordFieldGet(node, node.receiver, shape, index);
+  }
+
+  void _handleRecordFieldGet(ir.Expression node, ir.TreeNode receiverNode,
+      RecordShape shape, int indexInShape) {
+    receiverNode.accept(this);
+    HInstruction receiver = pop();
+
+    SourceInformation? sourceInformation =
+        _sourceInformationBuilder.buildGet(node);
+
+    // TODO(50701): Type inference should improve on the static type.
+    //     AbstractValue type =
+    //         _typeInferenceMap.typeOfRecordGet(node, _abstractValueDomain);
+    StaticType staticType = _getStaticType(node);
+    AbstractValue type = _abstractValueDomain
+        .createFromStaticType(staticType.type,
+            classRelation: staticType.relation, nullable: true)
+        .abstractValue;
+
+    final path = _recordData.pathForAccess(shape, indexInShape);
+    if (path.index == null) {
+      HFieldGet fieldGet = HFieldGet(
+          path.field, receiver, type, sourceInformation,
+          isAssignable: false);
+      push(fieldGet);
+    } else {
+      HFieldGet fieldGet = HFieldGet(path.field, receiver,
+          _abstractValueDomain.constListType, sourceInformation,
+          isAssignable: false);
+      push(fieldGet);
+      final list = pop();
+      push(HIndex(list, graph.addConstantInt(indexInShape, closedWorld), type));
+    }
   }
 
   @override

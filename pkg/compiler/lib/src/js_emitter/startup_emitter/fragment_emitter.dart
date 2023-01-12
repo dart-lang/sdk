@@ -1107,6 +1107,16 @@ class FragmentEmitter {
           js.string(_namer.fixedNames.defaultValuesField), js.LiteralNull()));
     }
 
+    // `prototype` properties for record classes.
+    if (cls.recordShapeRecipe != null) {
+      properties.add(js.Property(js.string(_namer.fixedNames.recordShapeRecipe),
+          cls.recordShapeRecipe!));
+    }
+    if (cls.recordShapeTag != null) {
+      properties.add(js.Property(js.string(_namer.fixedNames.recordShapeTag),
+          js.number(cls.recordShapeTag!)));
+    }
+
     return js.ObjectInitializer(properties);
   }
 

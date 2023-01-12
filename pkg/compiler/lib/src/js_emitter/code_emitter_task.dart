@@ -119,6 +119,7 @@ class CodeEmitterTask extends CompilerTask {
           this,
           closedWorld,
           closedWorld.fieldAnalysis,
+          closedWorld.recordData,
           inferredData,
           _backendStrategy.sourceInformationStrategy,
           closedWorld.sorter,

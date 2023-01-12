@@ -1943,6 +1943,10 @@ abstract class ModularNamer {
         return instanceFieldPropertyName(_commonElements.rtiAsField);
       case JsGetName.RTI_FIELD_IS:
         return instanceFieldPropertyName(_commonElements.rtiIsField);
+      case JsGetName.RECORD_SHAPE_TAG_PROPERTY:
+        return asName(fixedNames.recordShapeTag);
+      case JsGetName.RECORD_SHAPE_TYPE_PROPERTY:
+        return asName(fixedNames.recordShapeRecipe);
       default:
         throw failedAt(spannable ?? CURRENT_ELEMENT_SPANNABLE,
             'Error: Namer has no name for "$name".');
@@ -2147,6 +2151,9 @@ class FixedNames {
   String get operatorSignature => r'$signature';
   String get requiredParameterField => r'$requiredArgCount';
   String get rtiName => r'$ti';
+
+  String get recordShapeRecipe => r'$recipe';
+  String get recordShapeTag => r'$shape';
 }
 
 /// Minified version of the fixed names usage by the namer.
@@ -2171,6 +2178,11 @@ class MinifiedFixedNames extends FixedNames {
   String get defaultValuesField => r'$D';
   @override
   String get operatorSignature => r'$S';
+
+  @override
+  String get recordShapeRecipe => r'$r';
+  @override
+  String get recordShapeTag => r'$s';
 }
 
 String? operatorNameToIdentifier(String? name) {

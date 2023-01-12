@@ -65,6 +65,12 @@ enum JsGetName {
 
   /// Property name for Rti._is field.
   RTI_FIELD_IS,
+
+  /// Property name for shape tag property in record class prototype.
+  RECORD_SHAPE_TAG_PROPERTY,
+
+  /// Property name for shape recipe property in record class prototype.
+  RECORD_SHAPE_TYPE_PROPERTY,
 }
 
 enum JsBuiltin {
