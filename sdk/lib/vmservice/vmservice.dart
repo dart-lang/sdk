@@ -181,6 +181,9 @@ typedef Future<Uri?> WebServerControlCallback(bool enable, bool? silenceOutput);
 /// server.
 typedef void WebServerAcceptNewWebSocketConnectionsCallback(bool enable);
 
+/// Called when a client wants the service to serve Observatory.
+typedef void ServeObservatoryCallback();
+
 /// Hooks that are setup by the embedder.
 class VMServiceEmbedderHooks {
   static ServerStartCallback? serverStart;
@@ -198,6 +201,7 @@ class VMServiceEmbedderHooks {
   static WebServerControlCallback? webServerControl;
   static WebServerAcceptNewWebSocketConnectionsCallback?
       acceptNewWebSocketConnections;
+  static ServeObservatoryCallback? serveObservatory;
 }
 
 class _ClientResumePermissions {
@@ -773,6 +777,10 @@ class VMService extends MessageRouter {
     try {
       if (message.completed) {
         return await message.response;
+      }
+      if (message.method == '_serveObservatory') {
+        VMServiceEmbedderHooks.serveObservatory?.call();
+        return encodeSuccess(message);
       }
       if (message.method == '_yieldControlToDDS') {
         return await _yieldControlToDDS(message);
