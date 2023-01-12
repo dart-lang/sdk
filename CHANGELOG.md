@@ -1,3 +1,12 @@
+## 2.18.7 - 2022-01-12
+
+This is a patch release that:
+
+- Fixes an AOT compiler crash that occured when returning an uninitialized late
+  local variable from an async function (issue [#50894][]).
+
+[#50894]: https://github.com/dart-lang/sdk/issues/50389
+
 ## 2.18.6 - 2022-12-14
 
 This is a patch release that:
