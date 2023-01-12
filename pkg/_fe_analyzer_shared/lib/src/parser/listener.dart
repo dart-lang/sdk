@@ -139,6 +139,8 @@ class Listener implements UnescapeErrorListener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {}
@@ -200,8 +202,13 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Handle the beginning of a mixin declaration.
-  void beginMixinDeclaration(Token? augmentToken, Token? sealedToken,
-      Token mixinKeyword, Token name) {}
+  void beginMixinDeclaration(
+      Token? augmentToken,
+      Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token mixinKeyword,
+      Token name) {}
 
   /// Handle an on clause in a mixin declaration. Substructures:
   /// - implemented types
@@ -785,6 +792,8 @@ class Listener implements UnescapeErrorListener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {}

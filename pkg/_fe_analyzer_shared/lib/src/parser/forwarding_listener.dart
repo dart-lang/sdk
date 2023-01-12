@@ -73,11 +73,22 @@ class ForwardingListener implements Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
-    listener?.beginClassDeclaration(begin, abstractToken, macroToken,
-        inlineToken, sealedToken, augmentToken, mixinToken, name);
+    listener?.beginClassDeclaration(
+        begin,
+        abstractToken,
+        macroToken,
+        inlineToken,
+        sealedToken,
+        baseToken,
+        interfaceToken,
+        augmentToken,
+        mixinToken,
+        name);
   }
 
   @override
@@ -386,10 +397,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
-    listener?.beginMixinDeclaration(
-        augmentToken, sealedToken, mixinKeyword, name);
+  void beginMixinDeclaration(Token? augmentToken, Token? sealedToken,
+      Token? baseToken, Token? interfaceToken, Token mixinKeyword, Token name) {
+    listener?.beginMixinDeclaration(augmentToken, sealedToken, baseToken,
+        interfaceToken, mixinKeyword, name);
   }
 
   @override
@@ -404,11 +415,22 @@ class ForwardingListener implements Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
-    listener?.beginNamedMixinApplication(begin, abstractToken, macroToken,
-        inlineToken, sealedToken, augmentToken, mixinToken, name);
+    listener?.beginNamedMixinApplication(
+        begin,
+        abstractToken,
+        macroToken,
+        inlineToken,
+        sealedToken,
+        baseToken,
+        interfaceToken,
+        augmentToken,
+        mixinToken,
+        name);
   }
 
   @override

@@ -185,6 +185,8 @@ class TestParser extends Parser {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       DirectiveContext? directiveState) {
     doPrint('parseTopLevelKeywordDeclaration('
         '$start, '
@@ -192,10 +194,19 @@ class TestParser extends Parser {
         '$macroToken, '
         '$inlineToken, '
         '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
         '$directiveState)');
     indent++;
     var result = super.parseTopLevelKeywordDeclaration(
-        start, keyword, macroToken, inlineToken, sealedToken, directiveState);
+        start,
+        keyword,
+        macroToken,
+        inlineToken,
+        sealedToken,
+        baseToken,
+        interfaceToken,
+        directiveState);
     indent--;
     return result;
   }
@@ -655,6 +666,8 @@ class TestParser extends Parser {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       Token? augmentToken,
       Token? mixinToken,
       Token classKeyword) {
@@ -663,6 +676,8 @@ class TestParser extends Parser {
         '$macroToken, '
         '$inlineToken, '
         '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
         '$augmentToken, '
         '$mixinToken, '
         '$classKeyword)');
@@ -672,6 +687,8 @@ class TestParser extends Parser {
         macroToken,
         inlineToken,
         sealedToken,
+        baseToken,
+        interfaceToken,
         augmentToken,
         mixinToken,
         classKeyword);
@@ -749,11 +766,17 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseMixin(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword) {
-    doPrint('parseMixin(' '$augmentToken, ' '$sealedToken, ' '$mixinKeyword)');
+  Token parseMixin(Token? augmentToken, Token? sealedToken, Token? baseToken,
+      Token? interfaceToken, Token mixinKeyword) {
+    doPrint('parseMixin('
+        '$augmentToken, '
+        '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
+        '$mixinKeyword)');
     indent++;
-    var result = super.parseMixin(augmentToken, sealedToken, mixinKeyword);
+    var result = super.parseMixin(
+        augmentToken, sealedToken, baseToken, interfaceToken, mixinKeyword);
     indent--;
     return result;
   }

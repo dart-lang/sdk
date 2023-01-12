@@ -216,6 +216,8 @@ class ParserTestListener implements Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -224,6 +226,8 @@ class ParserTestListener implements Listener {
     seen(macroToken);
     seen(inlineToken);
     seen(sealedToken);
+    seen(baseToken);
+    seen(interfaceToken);
     seen(augmentToken);
     seen(mixinToken);
     seen(name);
@@ -233,6 +237,8 @@ class ParserTestListener implements Listener {
         '$macroToken, '
         '$inlineToken, '
         '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
         '$augmentToken, '
         '$mixinToken, '
         '$name)');
@@ -285,15 +291,19 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(Token? augmentToken, Token? sealedToken,
+      Token? baseToken, Token? interfaceToken, Token mixinKeyword, Token name) {
     seen(augmentToken);
     seen(sealedToken);
+    seen(baseToken);
+    seen(interfaceToken);
     seen(mixinKeyword);
     seen(name);
     doPrint('beginMixinDeclaration('
         '$augmentToken, '
         '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
         '$mixinKeyword, '
         '$name)');
     indent++;
@@ -1085,6 +1095,8 @@ class ParserTestListener implements Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -1093,6 +1105,8 @@ class ParserTestListener implements Listener {
     seen(macroToken);
     seen(inlineToken);
     seen(sealedToken);
+    seen(baseToken);
+    seen(interfaceToken);
     seen(augmentToken);
     seen(mixinToken);
     seen(name);
@@ -1102,6 +1116,8 @@ class ParserTestListener implements Listener {
         '$macroToken, '
         '$inlineToken, '
         '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
         '$augmentToken, '
         '$mixinToken, '
         '$name)');

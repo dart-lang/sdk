@@ -92,11 +92,22 @@ class ForwardingTestListener extends ForwardingListener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
-    super.beginClassDeclaration(beginToken, abstractToken, macroToken,
-        inlineToken, sealedToken, augmentToken, mixinToken, name);
+    super.beginClassDeclaration(
+        beginToken,
+        abstractToken,
+        macroToken,
+        inlineToken,
+        sealedToken,
+        baseToken,
+        interfaceToken,
+        augmentToken,
+        mixinToken,
+        name);
     begin('ClassDeclaration');
   }
 
@@ -388,9 +399,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
-    super.beginMixinDeclaration(augmentToken, sealedToken, mixinKeyword, name);
+  void beginMixinDeclaration(Token? augmentToken, Token? sealedToken,
+      Token? baseToken, Token? interfaceToken, Token mixinKeyword, Token name) {
+    super.beginMixinDeclaration(augmentToken, sealedToken, baseToken,
+        interfaceToken, mixinKeyword, name);
     begin('MixinDeclaration');
   }
 
@@ -407,11 +419,22 @@ class ForwardingTestListener extends ForwardingListener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
-    super.beginNamedMixinApplication(beginToken, abstractToken, macroToken,
-        inlineToken, sealedToken, augmentToken, mixinToken, name);
+    super.beginNamedMixinApplication(
+        beginToken,
+        abstractToken,
+        macroToken,
+        inlineToken,
+        sealedToken,
+        baseToken,
+        interfaceToken,
+        augmentToken,
+        mixinToken,
+        name);
     begin('NamedMixinApplication');
   }
 
