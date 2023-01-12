@@ -622,7 +622,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             returnTypeBase.isDartCoreNull) {
           return;
         } else {
-          errorCode = HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
+          errorCode = StaticWarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
         }
       }
       if (errorNode is ConstructorDeclaration) {
@@ -881,6 +881,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   void finishJoinedPatternVariable(
     covariant VariablePatternJoinElementImpl variable, {
+    required JoinedPatternVariableLocation location,
     required bool isConsistent,
     required bool isFinal,
     required DartType type,
@@ -888,6 +889,19 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     variable.isConsistent &= isConsistent;
     variable.isFinal = isFinal;
     variable.type = type;
+
+    if (location == JoinedPatternVariableLocation.sharedCaseScope) {
+      for (var reference in variable.references) {
+        if (!variable.isConsistent) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+            reference,
+            [variable.name],
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -3525,7 +3539,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
 
         errorReporter.reportErrorForToken(
-          HintCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR,
+          StaticWarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR,
           errorNode.block.leftBracket,
           [returnTypeBase],
         );
@@ -4793,6 +4807,9 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           _localVariableInfo.potentiallyMutatedInClosure.add(element);
         }
       }
+    }
+    if (element is VariablePatternJoinElementImpl) {
+      element.references.add(node);
     }
   }
 

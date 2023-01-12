@@ -6578,6 +6578,9 @@ class VariablePatternJoinElementImpl extends VariablePatternElementImpl
   @override
   bool isConsistent;
 
+  /// The identifiers that reference this element.
+  final List<SimpleIdentifier> references = [];
+
   VariablePatternJoinElementImpl(
     super.name,
     super.offset,

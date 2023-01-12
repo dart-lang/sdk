@@ -573,10 +573,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// the pattern or body.
   ///
   /// [elementType] is the element type of the `Iterable`, or `dynamic`.
-  void patternForInStatement_afterExpression(Type elementType);
+  void patternForIn_afterExpression(Type elementType);
 
   /// Call this method after visiting the body.
-  void patternForInStatement_end();
+  void patternForIn_end();
 
   /// Call this method just after visiting the initializer of a pattern variable
   /// declaration, and before visiting the pattern.
@@ -1380,17 +1380,16 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void patternForInStatement_afterExpression(Type elementType) {
+  void patternForIn_afterExpression(Type elementType) {
     _wrap(
-      'patternForInStatement_afterExpression($elementType)',
-      () => _wrapped.patternForInStatement_afterExpression(elementType),
+      'patternForIn_afterExpression($elementType)',
+      () => _wrapped.patternForIn_afterExpression(elementType),
     );
   }
 
   @override
-  void patternForInStatement_end() {
-    _wrap('patternForInStatement_end()',
-        () => _wrapped.patternForInStatement_end());
+  void patternForIn_end() {
+    _wrap('patternForIn_end()', () => _wrapped.patternForIn_end());
   }
 
   @override
@@ -4182,13 +4181,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void patternForInStatement_afterExpression(Type elementType) {
+  void patternForIn_afterExpression(Type elementType) {
     _pushScrutinee(null, elementType);
     _pushPattern();
   }
 
   @override
-  void patternForInStatement_end() {
+  void patternForIn_end() {
     _popPattern(null);
     _popScrutinee();
   }
@@ -5286,10 +5285,10 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void patternAssignment_end() {}
 
   @override
-  void patternForInStatement_afterExpression(Type elementType) {}
+  void patternForIn_afterExpression(Type elementType) {}
 
   @override
-  void patternForInStatement_end() {}
+  void patternForIn_end() {}
 
   @override
   void patternVariableDeclaration_afterInitializer(

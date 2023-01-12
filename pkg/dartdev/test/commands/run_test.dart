@@ -615,13 +615,20 @@ void main(List<String> args) => print("$b $args");
               completer.complete();
             }
           });
+
           // Wait for process to start.
           await completer.future;
           final client = HttpClient();
-          var request = await client.getUrl(Uri.parse(uri));
-          var response = await request.close();
-          var content = await response.transform(utf8.decoder).join();
-          expect(content.contains('Dart VM Observatory'), serve);
+
+          Future<String> makeServiceHttpRequest({String method = ''}) async {
+            var request = await client.getUrl(Uri.parse('$uri$method'));
+            var response = await request.close();
+            return await response.transform(utf8.decoder).join();
+          }
+
+          var content = await makeServiceHttpRequest();
+          const observatoryText = 'Dart VM Observatory';
+          expect(content.contains(observatoryText), serve);
           if (!serve) {
             if (withDds) {
               expect(content.contains('DevTools'), true);
@@ -636,10 +643,18 @@ void main(List<String> args) => print("$b $args");
           }
 
           // Ensure we can always make VM service requests via HTTP.
-          request = await client.getUrl(Uri.parse('${uri}getVM'));
-          response = await request.close();
-          content = await response.transform(utf8.decoder).join();
+          content = await makeServiceHttpRequest(method: 'getVM');
           expect(content.contains('"jsonrpc":"2.0"'), true);
+
+          // If Observatory isn't being served, ensure we can enable it.
+          if (!serve) {
+            content = await makeServiceHttpRequest(method: '_serveObservatory');
+            expect(content.contains('"type":"Success"'), true);
+
+            // Ensure Observatory is now being served.
+            content = await makeServiceHttpRequest();
+            expect(content.contains(observatoryText), true);
+          }
 
           process.kill();
         },

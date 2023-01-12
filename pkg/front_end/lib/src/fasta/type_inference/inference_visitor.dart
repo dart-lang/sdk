@@ -9906,6 +9906,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   void finishJoinedPatternVariable(
     VariableDeclaration variable, {
+    required JoinedPatternVariableLocation location,
     required bool isConsistent,
     required bool isFinal,
     required DartType type,

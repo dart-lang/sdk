@@ -82,8 +82,6 @@ main() {
   Foo();
   Foo.bar();
   Foo.bar.baz();
-//^^^^^^^
-// [analyzer] STATIC_WARNING.SDK_VERSION_CONSTRUCTOR_TEAROFFS
 //    ^
 // [cfe] Member not found: 'bar'.
 //        ^^^
@@ -104,17 +102,11 @@ main() {
   //     ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   Foo.bar<int>.baz();
-//^^^^^^^
-// [analyzer] STATIC_WARNING.SDK_VERSION_CONSTRUCTOR_TEAROFFS
-//^^^^^^^^^^^^^^^^^^
-// [analyzer] STATIC_WARNING.SDK_VERSION_CONSTRUCTOR_TEAROFFS
 //    ^
 // [cfe] Couldn't find constructor 'bar'.
 //       ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.WRONG_NUMBER_OF_TYPE_ARGUMENTS_CONSTRUCTOR
   Foo.bar.baz<int>();
-//^^^^^^^
-// [analyzer] STATIC_WARNING.SDK_VERSION_CONSTRUCTOR_TEAROFFS
 //    ^
 // [cfe] Member not found: 'bar'.
 //        ^^^

@@ -34,6 +34,14 @@ class ForResolver {
 
     if (forLoopParts is ForPartsImpl) {
       _forParts(node, forLoopParts, visitBody);
+    } else if (forLoopParts is ForEachPartsWithPatternImpl) {
+      _analyzePatternForIn(
+        node: node,
+        forLoopParts: forLoopParts,
+        dispatchBody: () {
+          _resolver.dispatchCollectionElement(node.body, context);
+        },
+      );
     } else if (forLoopParts is ForEachPartsImpl) {
       _forEachParts(node, node.awaitKeyword != null, forLoopParts, visitBody);
     }
@@ -48,17 +56,31 @@ class ForResolver {
     if (forLoopParts is ForPartsImpl) {
       _forParts(node, forLoopParts, visitBody);
     } else if (forLoopParts is ForEachPartsWithPatternImpl) {
-      _resolver.analyzePatternForInStatement(
+      _analyzePatternForIn(
         node: node,
-        pattern: forLoopParts.pattern,
-        patternVariables: forLoopParts.variables,
-        expression: forLoopParts.iterable,
-        body: node.body,
+        forLoopParts: forLoopParts,
+        dispatchBody: () {
+          _resolver.dispatchStatement(node.body);
+        },
       );
-      _resolver.popRewrite();
     } else if (forLoopParts is ForEachPartsImpl) {
       _forEachParts(node, node.awaitKeyword != null, forLoopParts, visitBody);
     }
+  }
+
+  void _analyzePatternForIn({
+    required AstNodeImpl node,
+    required ForEachPartsWithPatternImpl forLoopParts,
+    required void Function() dispatchBody,
+  }) {
+    _resolver.analyzePatternForIn(
+      node: node,
+      pattern: forLoopParts.pattern,
+      patternVariables: forLoopParts.variables,
+      expression: forLoopParts.iterable,
+      dispatchBody: dispatchBody,
+    );
+    _resolver.popRewrite();
   }
 
   /// Given an iterable expression from a foreach loop, attempt to infer

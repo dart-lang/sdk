@@ -19,7 +19,7 @@ class DeprecatedImplementsFunctionTest extends PubPackageResolutionTest {
     await assertErrorsInCode('''
 class A implements Function {}
 ''', [
-      error(HintCode.DEPRECATED_IMPLEMENTS_FUNCTION, 19, 8),
+      error(StaticWarningCode.DEPRECATED_IMPLEMENTS_FUNCTION, 19, 8),
     ]);
   }
 
@@ -27,7 +27,7 @@ class A implements Function {}
     await assertErrorsInCode('''
 class A implements Function, Function {}
 ''', [
-      error(HintCode.DEPRECATED_IMPLEMENTS_FUNCTION, 19, 8),
+      error(StaticWarningCode.DEPRECATED_IMPLEMENTS_FUNCTION, 19, 8),
       error(CompileTimeErrorCode.IMPLEMENTS_REPEATED, 29, 8),
     ]);
   }

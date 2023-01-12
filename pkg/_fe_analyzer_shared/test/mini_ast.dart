@@ -320,6 +320,19 @@ Statement patternForIn(
       location: location);
 }
 
+/// Creates a "pattern-for-in" element.
+///
+/// This models code like:
+///     void f(Iterable<(int, String)> iterable) {
+///       [for (var (a, b) in iterable) '$a $b']
+///     }
+CollectionElement patternForInElement(
+    Pattern pattern, Expression expression, CollectionElement body) {
+  var location = computeLocation();
+  return new _PatternForInElement(pattern, expression, body,
+      location: location);
+}
+
 Pattern recordPattern(List<RecordPatternField> fields) =>
     _RecordPattern(fields, location: computeLocation());
 
@@ -3610,6 +3623,7 @@ class _MiniAstTypeAnalyzer
   @override
   void finishJoinedPatternVariable(
     covariant PatternVariableJoin variable, {
+    required JoinedPatternVariableLocation location,
     required bool isConsistent,
     required bool isFinal,
     required Type type,
@@ -4221,17 +4235,61 @@ class _PatternForIn extends Statement {
 
   @override
   void visit(Harness h) {
-    h.typeAnalyzer.analyzePatternForInStatement(
-      node: this,
-      pattern: pattern,
-      patternVariables: variables.values,
-      expression: expression,
-      body: body,
-    );
+    h.typeAnalyzer.analyzePatternForIn(
+        node: this,
+        pattern: pattern,
+        patternVariables: variables.values,
+        expression: expression,
+        dispatchBody: () {
+          h.typeAnalyzer.dispatchStatement(body);
+        });
     h.irBuilder.apply(
       'forEach',
       [Kind.expression, Kind.pattern, Kind.statement],
       Kind.statement,
+      location: location,
+    );
+  }
+}
+
+class _PatternForInElement extends CollectionElement {
+  final Pattern pattern;
+  final Expression expression;
+  final CollectionElement body;
+  late final Map<String, Var> variables;
+
+  _PatternForInElement(this.pattern, this.expression, this.body,
+      {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    expression.preVisit(visitor);
+
+    var variableBinder = _VariableBinder(errors: visitor.errors);
+    variableBinder.casePatternStart();
+    pattern.preVisit(visitor, variableBinder, isInAssignment: false);
+    variables = variableBinder.casePatternFinish();
+    variableBinder.finish();
+
+    visitor._assignedVariables.beginNode();
+    body.preVisit(visitor);
+    visitor._assignedVariables.endNode(this);
+  }
+
+  @override
+  void visit(Harness h, covariant _CollectionElementContext context) {
+    h.typeAnalyzer.analyzePatternForIn(
+        node: this,
+        pattern: pattern,
+        patternVariables: variables.values,
+        expression: expression,
+        dispatchBody: () {
+          h.typeAnalyzer.dispatchCollectionElement(body, context);
+        });
+    h.irBuilder.apply(
+      'forEach',
+      [Kind.expression, Kind.pattern, Kind.collectionElement],
+      Kind.collectionElement,
       location: location,
     );
   }

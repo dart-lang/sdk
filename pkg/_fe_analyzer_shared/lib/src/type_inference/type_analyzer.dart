@@ -33,6 +33,15 @@ class CaseHeadOrDefaultInfo<Node extends Object, Expression extends Node,
   });
 }
 
+/// The location where the join of a pattern variable happens.
+enum JoinedPatternVariableLocation {
+  /// A single pattern, from `logical-or` patterns.
+  singlePattern,
+
+  /// A shared `case` scope, when multiple `case`s share the same body.
+  sharedCaseScope,
+}
+
 class MapPatternEntry<Expression extends Object, Pattern extends Object> {
   final Expression key;
   final Pattern value;
@@ -518,7 +527,10 @@ mixin TypeAnalyzer<
       pattern,
     );
 
-    _finishJoinedVariables(variables, reportErrors: true);
+    _finishJoinedPatternVariables(
+      variables,
+      location: JoinedPatternVariableLocation.singlePattern,
+    );
 
     handle_ifCaseStatement_afterPattern(
       node: node,
@@ -1044,16 +1056,21 @@ mixin TypeAnalyzer<
     return new SimpleTypeAnalysisResult<Type>(type: rhsType);
   }
 
-  /// Analyzes a `pattern-for-in` statement of the form
-  /// `for (<keyword> <pattern> in <expression>) <statement>`.
+  /// Analyzes a `pattern-for-in` statement or element.
+  ///
+  /// Statement:
+  /// `for (<keyword> <pattern> in <expression>) <statement>`
+  ///
+  /// Element:
+  /// `for (<keyword> <pattern> in <expression>) <body>`
   ///
   /// Stack effect: pushes (Expression, Pattern).
-  void analyzePatternForInStatement({
-    required Statement node,
+  void analyzePatternForIn({
+    required Node node,
     required Pattern pattern,
     required Iterable<Variable> patternVariables,
     required Expression expression,
-    required Statement body,
+    required void Function() dispatchBody,
   }) {
     // Stack: ()
     Type expressionType = analyzeExpression(expression, unknownType);
@@ -1072,7 +1089,7 @@ mixin TypeAnalyzer<
         elementType = dynamicType;
       }
     }
-    flow.patternForInStatement_afterExpression(elementType);
+    flow.patternForIn_afterExpression(elementType);
 
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
@@ -1085,9 +1102,9 @@ mixin TypeAnalyzer<
     // Stack: (Expression, Pattern)
 
     flow.forEach_bodyBegin(node);
-    dispatchStatement(body);
+    dispatchBody();
     flow.forEach_end();
-    flow.patternForInStatement_end();
+    flow.patternForIn_end();
   }
 
   /// Analyzes a patternVariableDeclaration statement of the form
@@ -1324,9 +1341,9 @@ mixin TypeAnalyzer<
           ),
           pattern,
         );
-        _finishJoinedVariables(
+        _finishJoinedPatternVariables(
           memberInfo.head.variables,
-          reportErrors: true,
+          location: JoinedPatternVariableLocation.singlePattern,
         );
         // Stack: (Expression, i * ExpressionCase, Pattern)
         guard = memberInfo.head.guard;
@@ -1398,9 +1415,9 @@ mixin TypeAnalyzer<
             ),
             pattern,
           );
-          _finishJoinedVariables(
+          _finishJoinedPatternVariables(
             head.variables,
-            reportErrors: true,
+            location: JoinedPatternVariableLocation.singlePattern,
           );
           // Stack: (Expression, numExecutionPaths * StatementCase,
           //         numHeads * CaseHead, Pattern),
@@ -1427,7 +1444,10 @@ mixin TypeAnalyzer<
           hasLabels: memberInfo.hasLabels);
       Map<String, Variable> variables = memberInfo.variables;
       if (memberInfo.hasLabels || heads.length > 1) {
-        _finishJoinedVariables(variables, reportErrors: false);
+        _finishJoinedPatternVariables(
+          variables,
+          location: JoinedPatternVariableLocation.sharedCaseScope,
+        );
       }
       handleCase_afterCaseHeads(node, caseIndex, variables.values);
       // Stack: (Expression, numExecutionPaths * StatementCase, CaseHeads)
@@ -1597,6 +1617,7 @@ mixin TypeAnalyzer<
 
   void finishJoinedPatternVariable(
     Variable variable, {
+    required JoinedPatternVariableLocation location,
     required bool isConsistent,
     required bool isFinal,
     required Type type,
@@ -1872,9 +1893,9 @@ mixin TypeAnalyzer<
     }
   }
 
-  void _finishJoinedVariables(
+  void _finishJoinedPatternVariables(
     Map<String, Variable> variables, {
-    required bool reportErrors,
+    required JoinedPatternVariableLocation location,
   }) {
     for (MapEntry<String, Variable> entry in variables.entries) {
       Variable variable = entry.value;
@@ -1894,7 +1915,7 @@ mixin TypeAnalyzer<
             bool sameType =
                 _structurallyEqualAfterNormTypes(resultType, componentType);
             if (!sameFinality || !sameType) {
-              if (reportErrors) {
+              if (location == JoinedPatternVariableLocation.singlePattern) {
                 errors?.inconsistentJoinedPatternVariable(
                   variable: variable,
                   component: component,
@@ -1911,6 +1932,7 @@ mixin TypeAnalyzer<
         resultType ??= dynamicType;
         finishJoinedPatternVariable(
           variable,
+          location: location,
           isConsistent: isConsistent,
           isFinal: resultIsFinal,
           type: resultType,

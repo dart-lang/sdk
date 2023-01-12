@@ -6144,6 +6144,18 @@ CompileTimeErrorCode:
       compilation unit to be appropriate for the code in the part, or migrate
       the code in the [part file][] to be consistent with the new language
       version.
+  INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR:
+    problemMessage: "The variable '{0}' has a different type and/or finality in this branch of the logical-or pattern."
+    correctionMessage: Try declaring the variable pattern with the same type and finality in both branches.
+    comment: |-
+      Parameters:
+      0: the name of the pattern variable
+  INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE:
+    problemMessage: "The variable '{0}' doesn't have the same type and/or finality in all cases that share this body."
+    correctionMessage: Try declaring the variable pattern with the same type and finality in all cases.
+    comment: |-
+      Parameters:
+      0: the name of the pattern variable
   INITIALIZER_FOR_NON_EXISTENT_FIELD:
     problemMessage: "'{0}' isn't a field in the enclosing class."
     correctionMessage: "Try correcting the name to match an existing field, or defining a field named '{0}'."
@@ -10371,12 +10383,6 @@ CompileTimeErrorCode:
       #### Common fixes
 
       Replace the name with the name of a type.
-  NOT_CONSISTENT_VARIABLE_PATTERN:
-    problemMessage: "Variable pattern '{0}' has a different type or finality in this branch of the logical-or pattern."
-    correctionMessage: "Try declaring the variable pattern with the same type and finality in both branches."
-    comment: |-
-      Parameters:
-      0: the name of the variable pattern
   NOT_BINARY_OPERATOR:
     problemMessage: "'{0}' isn't a binary operator."
     hasPublishedDocs: true
@@ -17700,66 +17706,6 @@ FfiCode:
       1: the name of the class being extended, implemented, or mixed in
     hasPublishedDocs: true
 HintCode:
-  ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
-    problemMessage: "The argument type '{0}' can't be assigned to the parameter type '{1} Function(Object)' or '{1} Function(Object, StackTrace)'."
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the actual argument type
-      1: the name of the expected function return type
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an invocation of
-      `Future.catchError` has an argument that is a function whose parameters
-      aren't compatible with the arguments that will be passed to the function
-      when it's invoked. The static type of the first argument to `catchError`
-      is just `Function`, even though the function that is passed in is expected
-      to have either a single parameter of type `Object` or two parameters of
-      type `Object` and `StackTrace`.
-
-      #### Examples
-
-      The following code produces this diagnostic because the closure being
-      passed to `catchError` doesn't take any parameters, but the function is
-      required to take at least one parameter:
-
-      ```dart
-      void f(Future<int> f) {
-        f.catchError([!() => 0!]);
-      }
-      ```
-
-      The following code produces this diagnostic because the closure being
-      passed to `catchError` takes three parameters, but it can't have more than
-      two required parameters:
-
-      ```dart
-      void f(Future<int> f) {
-        f.catchError([!(one, two, three) => 0!]);
-      }
-      ```
-
-      The following code produces this diagnostic because even though the closure
-      being passed to `catchError` takes one parameter, the closure doesn't have
-      a type that is compatible with `Object`:
-
-      ```dart
-      void f(Future<int> f) {
-        f.catchError([!(String error) => 0!]);
-      }
-      ```
-
-      #### Common fixes
-
-      Change the function being passed to `catchError` so that it has either one
-      or two required parameters, and the parameters have the required types:
-
-      ```dart
-      void f(Future<int> f) {
-        f.catchError((Object error) => 0);
-      }
-      ```
   ASSIGNMENT_OF_DO_NOT_STORE:
     problemMessage: "'{0}' is marked 'doNotStore' and shouldn't be assigned to a field or top-level variable."
     correctionMessage: Try removing the assignment.
@@ -17795,101 +17741,14 @@ HintCode:
 
       Replace references to the field or variable with invocations of the
       function producing the value.
-  BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
-    problemMessage: "This 'onError' handler must return a value assignable to '{0}', but ends without returning a value."
-    correctionMessage: Try adding a return statement.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the return type as derived by the type of the [Future].
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the closure passed to the
-      `onError` parameter of the `Future.catchError` method is required to
-      return a non-`null` value (because of the `Future`s type argument) but can
-      implicitly return `null`.
-
-      #### Example
-
-      The following code produces this diagnostic because the closure passed to
-      the `catchError` method is required to return an `int` but doesn't end
-      with an explicit `return`, causing it to implicitly return `null`:
-
-      ```dart
-      void g(Future<int> f) {
-        f.catchError((e, st) [!{!]});
-      }
-      ```
-
-      #### Common fixes
-
-      If the closure should sometimes return a non-`null` value, then add an
-      explicit return to the closure:
-
-      ```dart
-      void g(Future<int> f) {
-        f.catchError((e, st) {
-          return -1;
-        });
-      }
-      ```
-
-      If the closure should always return `null`, then change the type argument
-      of the `Future` to be either `void` or `Null`:
-
-      ```dart
-      void g(Future<void> f) {
-        f.catchError((e, st) {});
-      }
-      ```
-  BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
-    problemMessage: "This function has a nullable return type of '{0}', but ends without returning a value."
-    correctionMessage: "Try adding a return statement, or if no value is ever returned, try changing the return type to 'void'."
-    hasPublishedDocs: false
-    comment: |-
-      Parameters:
-      0: the name of the declared return type
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a method or function can
-      implicitly return `null` by falling off the end. While this is valid Dart
-      code, it's better for the return of `null` to be explicit.
-
-      #### Example
-
-      The following code produces this diagnostic because the function `f`
-      implicitly returns `null`:
-
-      ```dart
-      String? [!f!]() {}
-      ```
-
-      #### Common fixes
-
-      If the return of `null` is intentional, then make it explicit:
-
-      ```dart
-      String? f() {
-        return null;
-      }
-      ```
-
-      If the function should return a non-null value along that path, then add
-      the missing return statement:
-
-      ```dart
-      String? f() {
-        return '';
-      }
-      ```
   CAN_BE_NULL_AFTER_NULL_AWARE:
     problemMessage: "The receiver uses '?.', so its value can be null."
     correctionMessage: "Replace the '.' with a '?.' in the invocation."
     comment: |-
       When the target expression uses '?.' operator, it can be `null`, so all the
       subsequent invocations should also use '?.' operator.
+
+      Note: This diagnostic is only generated in pre-null safe code.
   DEAD_CODE:
     problemMessage: Dead code.
     correctionMessage: Try removing the code, or fixing the code before it so that it can be reached.
@@ -18219,103 +18078,6 @@ HintCode:
       Parameters:
       0: the name of the member
       1: message details
-  DEPRECATED_NEW_IN_COMMENT_REFERENCE:
-    problemMessage: "Using the 'new' keyword in a comment reference is deprecated."
-    correctionMessage: Try referring to a constructor by its name.
-    comment: No parameters.
-    hasPublishedDocs: true
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a comment reference (the name
-      of a declaration enclosed in square brackets in a documentation comment)
-      uses the keyword `new` to refer to a constructor. This form is deprecated.
-
-      #### Examples
-
-      The following code produces this diagnostic because the unnamed
-      constructor is being referenced using `new C`:
-
-      ```dart
-      /// See [[!new!] C].
-      class C {
-        C();
-      }
-      ```
-
-      The following code produces this diagnostic because the constructor named
-      `c` is being referenced using `new C.c`:
-
-      ```dart
-      /// See [[!new!] C.c].
-      class C {
-        C.c();
-      }
-      ```
-
-      #### Common fixes
-
-      If you're referencing a named constructor, then remove the keyword `new`:
-
-      ```dart
-      /// See [C.c].
-      class C {
-        C.c();
-      }
-      ```
-
-      If you're referencing the unnamed constructor, then remove the keyword
-      `new` and append `.new` after the class name:
-
-      ```dart
-      /// See [C.new].
-      class C {
-        C.c();
-      }
-      ```
-  DEPRECATED_MIXIN_FUNCTION:
-    sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
-    problemMessage: "Mixing in 'Function' is deprecated."
-    correctionMessage: "Try removing 'Function' from the 'with' clause."
-    hasPublishedDocs: true
-    comment: No parameters.
-  DEPRECATED_IMPLEMENTS_FUNCTION:
-    sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
-    problemMessage: "Implementing 'Function' has no effect."
-    correctionMessage: "Try removing 'Function' from the 'implements' clause."
-    hasPublishedDocs: true
-    comment: No parameters.
-  DEPRECATED_EXTENDS_FUNCTION:
-    sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
-    problemMessage: "Extending 'Function' is deprecated."
-    correctionMessage: "Try removing 'Function' from the 'extends' clause."
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when the class `Function` is used in
-      either the `extends`, `implements`, or `with` clause of a class or mixin.
-      Using the class `Function` in this way has no semantic value, so it's
-      effectively dead code.
-
-      #### Example
-
-      The following code produces this diagnostic because `Function` is used as
-      the superclass of `F`:
-
-      ```dart
-      class F extends [!Function!] {}
-      ```
-
-      #### Common fixes
-
-      Remove the class `Function` from whichever clause it's in, and remove the
-      whole clause if `Function` is the only type in the clause:
-
-      ```dart
-      class F {}
-      ```
   DIVISION_OPTIMIZATION:
     problemMessage: The operator x ~/ y is more efficient than (x / y).toInt().
     correctionMessage: "Try re-writing the expression to use the '~/' operator."
@@ -22549,6 +22311,155 @@ PubspecWarningCode:
         meta: ^1.0.2
       ```
 StaticWarningCode:
+  ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
+    problemMessage: "The argument type '{0}' can't be assigned to the parameter type '{1} Function(Object)' or '{1} Function(Object, StackTrace)'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the actual argument type
+      1: the name of the expected function return type
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an invocation of
+      `Future.catchError` has an argument that is a function whose parameters
+      aren't compatible with the arguments that will be passed to the function
+      when it's invoked. The static type of the first argument to `catchError`
+      is just `Function`, even though the function that is passed in is expected
+      to have either a single parameter of type `Object` or two parameters of
+      type `Object` and `StackTrace`.
+
+      #### Examples
+
+      The following code produces this diagnostic because the closure being
+      passed to `catchError` doesn't take any parameters, but the function is
+      required to take at least one parameter:
+
+      ```dart
+      void f(Future<int> f) {
+        f.catchError([!() => 0!]);
+      }
+      ```
+
+      The following code produces this diagnostic because the closure being
+      passed to `catchError` takes three parameters, but it can't have more than
+      two required parameters:
+
+      ```dart
+      void f(Future<int> f) {
+        f.catchError([!(one, two, three) => 0!]);
+      }
+      ```
+
+      The following code produces this diagnostic because even though the closure
+      being passed to `catchError` takes one parameter, the closure doesn't have
+      a type that is compatible with `Object`:
+
+      ```dart
+      void f(Future<int> f) {
+        f.catchError([!(String error) => 0!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Change the function being passed to `catchError` so that it has either one
+      or two required parameters, and the parameters have the required types:
+
+      ```dart
+      void f(Future<int> f) {
+        f.catchError((Object error) => 0);
+      }
+      ```
+  BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
+    problemMessage: "This 'onError' handler must return a value assignable to '{0}', but ends without returning a value."
+    correctionMessage: Try adding a return statement.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the return type as derived by the type of the [Future].
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the closure passed to the
+      `onError` parameter of the `Future.catchError` method is required to
+      return a non-`null` value (because of the `Future`s type argument) but can
+      implicitly return `null`.
+
+      #### Example
+
+      The following code produces this diagnostic because the closure passed to
+      the `catchError` method is required to return an `int` but doesn't end
+      with an explicit `return`, causing it to implicitly return `null`:
+
+      ```dart
+      void g(Future<int> f) {
+        f.catchError((e, st) [!{!]});
+      }
+      ```
+
+      #### Common fixes
+
+      If the closure should sometimes return a non-`null` value, then add an
+      explicit return to the closure:
+
+      ```dart
+      void g(Future<int> f) {
+        f.catchError((e, st) {
+          return -1;
+        });
+      }
+      ```
+
+      If the closure should always return `null`, then change the type argument
+      of the `Future` to be either `void` or `Null`:
+
+      ```dart
+      void g(Future<void> f) {
+        f.catchError((e, st) {});
+      }
+      ```
+  BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
+    problemMessage: "This function has a nullable return type of '{0}', but ends without returning a value."
+    correctionMessage: "Try adding a return statement, or if no value is ever returned, try changing the return type to 'void'."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the name of the declared return type
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a method or function can
+      implicitly return `null` by falling off the end. While this is valid Dart
+      code, it's better for the return of `null` to be explicit.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f`
+      implicitly returns `null`:
+
+      ```dart
+      String? [!f!]() {}
+      ```
+
+      #### Common fixes
+
+      If the return of `null` is intentional, then make it explicit:
+
+      ```dart
+      String? f() {
+        return null;
+      }
+      ```
+
+      If the function should return a non-null value along that path, then add
+      the missing return statement:
+
+      ```dart
+      String? f() {
+        return '';
+      }
+      ```
   DEAD_NULL_AWARE_EXPRESSION:
     problemMessage: "The left operand can't be null, so the right operand is never executed."
     correctionMessage: Try removing the operator and the right operand.
@@ -22626,6 +22537,103 @@ StaticWarningCode:
             f = x;
           }
         }
+      }
+      ```
+  DEPRECATED_EXTENDS_FUNCTION:
+    sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
+    problemMessage: "Extending 'Function' is deprecated."
+    correctionMessage: "Try removing 'Function' from the 'extends' clause."
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the class `Function` is used in
+      either the `extends`, `implements`, or `with` clause of a class or mixin.
+      Using the class `Function` in this way has no semantic value, so it's
+      effectively dead code.
+
+      #### Example
+
+      The following code produces this diagnostic because `Function` is used as
+      the superclass of `F`:
+
+      ```dart
+      class F extends [!Function!] {}
+      ```
+
+      #### Common fixes
+
+      Remove the class `Function` from whichever clause it's in, and remove the
+      whole clause if `Function` is the only type in the clause:
+
+      ```dart
+      class F {}
+      ```
+  DEPRECATED_IMPLEMENTS_FUNCTION:
+    sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
+    problemMessage: "Implementing 'Function' has no effect."
+    correctionMessage: "Try removing 'Function' from the 'implements' clause."
+    hasPublishedDocs: true
+    comment: No parameters.
+  DEPRECATED_MIXIN_FUNCTION:
+    sharedName: DEPRECATED_SUBTYPE_OF_FUNCTION
+    problemMessage: "Mixing in 'Function' is deprecated."
+    correctionMessage: "Try removing 'Function' from the 'with' clause."
+    hasPublishedDocs: true
+    comment: No parameters.
+  DEPRECATED_NEW_IN_COMMENT_REFERENCE:
+    problemMessage: "Using the 'new' keyword in a comment reference is deprecated."
+    correctionMessage: Try referring to a constructor by its name.
+    comment: No parameters.
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a comment reference (the name
+      of a declaration enclosed in square brackets in a documentation comment)
+      uses the keyword `new` to refer to a constructor. This form is deprecated.
+
+      #### Examples
+
+      The following code produces this diagnostic because the unnamed
+      constructor is being referenced using `new C`:
+
+      ```dart
+      /// See [[!new!] C].
+      class C {
+        C();
+      }
+      ```
+
+      The following code produces this diagnostic because the constructor named
+      `c` is being referenced using `new C.c`:
+
+      ```dart
+      /// See [[!new!] C.c].
+      class C {
+        C.c();
+      }
+      ```
+
+      #### Common fixes
+
+      If you're referencing a named constructor, then remove the keyword `new`:
+
+      ```dart
+      /// See [C.c].
+      class C {
+        C.c();
+      }
+      ```
+
+      If you're referencing the unnamed constructor, then remove the keyword
+      `new` and append `.new` after the class name:
+
+      ```dart
+      /// See [C.new].
+      class C {
+        C.c();
       }
       ```
   INVALID_NULL_AWARE_OPERATOR:

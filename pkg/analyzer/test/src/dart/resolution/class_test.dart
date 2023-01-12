@@ -100,7 +100,7 @@ class X extends A {}
     await assertErrorsInCode(r'''
 class A extends Function {}
 ''', [
-      error(HintCode.DEPRECATED_EXTENDS_FUNCTION, 16, 8),
+      error(StaticWarningCode.DEPRECATED_EXTENDS_FUNCTION, 16, 8),
     ]);
     var a = findElement.class_('A');
     assertType(a.supertype, 'Object');
@@ -112,7 +112,7 @@ class A {}
 class B {}
 class C extends Object with A, Function, B {}
 ''', [
-      error(HintCode.DEPRECATED_MIXIN_FUNCTION, 53, 8),
+      error(StaticWarningCode.DEPRECATED_MIXIN_FUNCTION, 53, 8),
     ]);
 
     assertElementTypes(

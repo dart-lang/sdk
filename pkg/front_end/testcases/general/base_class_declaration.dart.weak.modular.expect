@@ -1,0 +1,44 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/base_class_declaration.dart:7:1: Error: This requires the experimental 'class-modifiers' language feature to be enabled.
+// Try passing the '--enable-experiment=class-modifiers' command line option.
+// base class A {}
+// ^^^^
+//
+// pkg/front_end/testcases/general/base_class_declaration.dart:9:10: Error: This requires the experimental 'class-modifiers' language feature to be enabled.
+// Try passing the '--enable-experiment=class-modifiers' command line option.
+// abstract base class B {}
+//          ^^^^
+//
+// pkg/front_end/testcases/general/base_class_declaration.dart:11:1: Error: This requires the experimental 'class-modifiers' language feature to be enabled.
+// Try passing the '--enable-experiment=class-modifiers' command line option.
+// base mixin M {}
+// ^^^^
+//
+// pkg/front_end/testcases/general/base_class_declaration.dart:12:1: Error: This requires the experimental 'class-modifiers' language feature to be enabled.
+// Try passing the '--enable-experiment=class-modifiers' command line option.
+// base class C = Object with M;
+// ^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+abstract class B extends core::Object {
+  synthetic constructor •() → self::B
+    : super core::Object::•()
+    ;
+}
+abstract class M extends core::Object /*isMixinDeclaration*/  {
+}
+class C = core::Object with self::M /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::C
+    : super core::Object::•()
+    ;
+}

@@ -491,6 +491,9 @@ class AnalyzerError implements Comparable<AnalyzerError> {
       }
 
       var code = diagnosticMap['code'] as String;
+      if (type == 'STATIC_WARNING' && !_specifiedWarnings.contains(code)) {
+        continue;
+      }
       var errorCode = '$type.${code.toUpperCase()}';
 
       var error = _parse(
@@ -507,6 +510,17 @@ class AnalyzerError implements Comparable<AnalyzerError> {
 
     return result;
   }
+
+  /// The set of static warnings which must be expected in a test. Any warning
+  /// not specified here which is reported by the analyzer does not need to be
+  /// expected, and never causes a test to fail.
+  static Set<String> _specifiedWarnings = {
+    'dead_null_aware_expression',
+    'invalid_null_aware_operator',
+    'missing_enum_constant_in_switch',
+    'unnecessary_non_null_assertion',
+    'unnecessary_null_assert_pattern',
+  };
 
   static AnalyzerError _parse(Map<String, dynamic> diagnostic, String message,
       [String? errorCode]) {

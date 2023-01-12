@@ -1822,7 +1822,9 @@ class ChildEntity {
 ///        [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
 ///
-///    classModifiers ::= 'sealed' | 'abstract'
+///    classModifiers ::= 'sealed'
+///      | 'abstract' ('base' | 'interface')?
+///      | 'abstract'? 'base'? 'mixin'
 ///
 class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements ClassDeclaration {
@@ -1839,6 +1841,12 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   /// The 'sealed' keyword, or `null` if the keyword was absent.
   @override
   final Token? sealedKeyword;
+
+  /// The 'base' keyword, or `null` if the keyword was absent.
+  final Token? baseKeyword;
+
+  /// The 'interface' keyword, or `null` if the keyword was absent.
+  final Token? interfaceKeyword;
 
   /// The 'augment' keyword, or `null` if the keyword was absent.
   final Token? augmentKeyword;
@@ -1899,6 +1907,8 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.macroKeyword,
     required this.inlineKeyword,
     required this.sealedKeyword,
+    required this.baseKeyword,
+    required this.interfaceKeyword,
     required this.augmentKeyword,
     required this.mixinKeyword,
     required this.classKeyword,
@@ -1944,6 +1954,8 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
         macroKeyword ??
         inlineKeyword ??
         sealedKeyword ??
+        baseKeyword ??
+        interfaceKeyword ??
         augmentKeyword ??
         mixinKeyword ??
         classKeyword;
@@ -1986,6 +1998,8 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..addToken('macroKeyword', macroKeyword)
     ..addToken('inlineKeyword', inlineKeyword)
     ..addToken('sealedKeyword', sealedKeyword)
+    ..addToken('baseKeyword', baseKeyword)
+    ..addToken('interfaceKeyword', interfaceKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('mixinKeyword', mixinKeyword)
     ..addToken('classKeyword', classKeyword)
@@ -2028,8 +2042,12 @@ abstract class ClassMemberImpl extends DeclarationImpl implements ClassMember {
 /// A class type alias.
 ///
 ///    classTypeAlias ::=
-///        [SimpleIdentifier] [TypeParameterList]? '=' 'abstract'?
+///        [SimpleIdentifier] [TypeParameterList]? '=' classModifiers?
 ///        mixinApplication
+///
+///    classModifiers ::= 'sealed'
+///      | 'abstract' ('base' | 'interface')?
+///      | 'abstract'? 'base'? 'mixin'
 ///
 ///    mixinApplication ::=
 ///        [TypeName] [WithClause] [ImplementsClause]? ';'
@@ -2059,6 +2077,14 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   /// sealed class.
   @override
   final Token? sealedKeyword;
+
+  /// The token for the 'base' keyword, or `null` if this is not defining a base
+  /// class.
+  final Token? baseKeyword;
+
+  /// The token for the 'interface' keyword, or `null` if this is not defining
+  /// an interface class.
+  final Token? interfaceKeyword;
 
   /// The token for the 'augment' keyword, or `null` if this is not defining an
   /// augmentation class.
@@ -2098,6 +2124,8 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     required this.macroKeyword,
     required this.inlineKeyword,
     required this.sealedKeyword,
+    required this.baseKeyword,
+    required this.interfaceKeyword,
     required this.augmentKeyword,
     required this.mixinKeyword,
     required NamedTypeImpl superclass,
@@ -2124,6 +2152,8 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
         macroKeyword ??
         inlineKeyword ??
         sealedKeyword ??
+        baseKeyword ??
+        interfaceKeyword ??
         augmentKeyword ??
         mixinKeyword ??
         typedefKeyword;
@@ -2167,6 +2197,8 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     ..addToken('inlineKeyword', inlineKeyword)
     ..addToken('macroKeyword', macroKeyword)
     ..addToken('sealedKeyword', sealedKeyword)
+    ..addToken('baseKeyword', baseKeyword)
+    ..addToken('interfaceKeyword', interfaceKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('mixinKeyword', mixinKeyword)
     ..addNode('superclass', superclass)
@@ -8987,8 +9019,11 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 /// The declaration of a mixin.
 ///
 ///    mixinDeclaration ::=
-///        'sealed'? metadata? 'mixin' [SimpleIdentifier] [TypeParameterList]?
-///        [RequiresClause]? [ImplementsClause]? '{' [ClassMember]* '}'
+///        metadata? mixinModifiers? 'mixin' [SimpleIdentifier]
+///        [TypeParameterList]? [RequiresClause]? [ImplementsClause]?
+///        '{' [ClassMember]* '}'
+///
+///    mixinModifiers ::= 'sealed' | 'base' | 'interface'
 class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements MixinDeclaration {
   /// Return the 'augment' keyword, or `null` if the keyword was absent.
@@ -8997,6 +9032,12 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   /// Return the 'sealed' keyword, or `null` if the keyword was absent.
   @override
   final Token? sealedKeyword;
+
+  /// Return the 'base' keyword, or `null` if the keyword was absent.
+  final Token? baseKeyword;
+
+  /// Return the 'interface' keyword, or `null` if the keyword was absent.
+  final Token? interfaceKeyword;
 
   @override
   final Token mixinKeyword;
@@ -9039,6 +9080,8 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     required super.metadata,
     required this.augmentKeyword,
     required this.sealedKeyword,
+    required this.baseKeyword,
+    required this.interfaceKeyword,
     required this.mixinKeyword,
     required super.name,
     required TypeParameterListImpl? typeParameters,
@@ -9065,7 +9108,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    return sealedKeyword ?? mixinKeyword;
+    return sealedKeyword ?? baseKeyword ?? interfaceKeyword ?? mixinKeyword;
   }
 
   @override
@@ -9095,6 +9138,8 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('sealedKeyword', sealedKeyword)
+    ..addToken('baseKeyword', baseKeyword)
+    ..addToken('interfaceKeyword', interfaceKeyword)
     ..addToken('mixinKeyword', mixinKeyword)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)

@@ -151,6 +151,91 @@ main() {
         });
       });
     });
+
+    group('Pattern-for-in:', () {
+      group('Expression type:', () {
+        test('Iterable', () {
+          var x = Var('x');
+          h.run([
+            patternForInElement(
+              x.pattern(),
+              expr('Iterable<int>'),
+              expr('Object').asCollectionElement,
+            )
+                .checkIr('forEach(expr(Iterable<int>), varPattern(x, '
+                    'matchedType: int, staticType: int), celt(expr(Object)))')
+                .inContextElementType('Object'),
+          ]);
+        });
+        test('dynamic', () {
+          var x = Var('x');
+          h.run([
+            patternForInElement(
+              x.pattern(),
+              expr('dynamic'),
+              expr('Object').asCollectionElement,
+            )
+                .checkIr('forEach(expr(dynamic), varPattern(x, '
+                    'matchedType: dynamic, staticType: dynamic), '
+                    'celt(expr(Object)))')
+                .inContextElementType('Object'),
+          ]);
+        });
+        test('Object', () {
+          var x = Var('x');
+          h.run([
+            (patternForInElement(
+              x.pattern(),
+              expr('Object')..errorId = 'EXPRESSION',
+              expr('Object').asCollectionElement,
+            )..errorId = 'FOR')
+                .checkIr('forEach(expr(Object), varPattern(x, '
+                    'matchedType: dynamic, staticType: dynamic), '
+                    'celt(expr(Object)))')
+                .inContextElementType('Object'),
+          ], expectedErrors: {
+            'patternForInExpressionIsNotIterable(node: FOR, '
+                'expression: EXPRESSION, expressionType: Object)'
+          });
+        });
+      });
+
+      group('Refutability:', () {
+        test('When a refutable pattern', () {
+          var x = Var('x');
+          h.run([
+            (patternForInElement(
+              x.pattern().nullCheck..errorId = 'PATTERN',
+              expr('Iterable<int?>'),
+              expr('Object').asCollectionElement,
+            )..errorId = 'FOR')
+                .checkIr('forEach(expr(Iterable<int?>), nullCheckPattern('
+                    'varPattern(x, matchedType: int, staticType: int), '
+                    'matchedType: int?), celt(expr(Object)))')
+                .inContextElementType('Object'),
+          ], expectedErrors: {
+            'refutablePatternInIrrefutableContext(PATTERN, FOR)',
+          });
+        });
+        test('When the variable type is not a subtype of the matched type', () {
+          var x = Var('x');
+          h.run([
+            (patternForInElement(
+              x.pattern(type: 'String')..errorId = 'PATTERN',
+              expr('Iterable<int>'),
+              expr('Object').asCollectionElement,
+            )..errorId = 'FOR')
+                .checkIr('forEach(expr(Iterable<int>), varPattern(x, '
+                    'matchedType: int, staticType: String), '
+                    'celt(expr(Object)))')
+                .inContextElementType('Object'),
+          ], expectedErrors: {
+            'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
+                'context: FOR, matchedType: int, requiredType: String)',
+          });
+        });
+      });
+    });
   });
 
   group('Expressions:', () {
