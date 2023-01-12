@@ -777,6 +777,9 @@ class FixProcessor extends BaseProcessor {
     CompileTimeErrorCode.INVALID_OVERRIDE: [
       DataDriven.new,
     ],
+    CompileTimeErrorCode.INVALID_OVERRIDE_SETTER: [
+      DataDriven.new,
+    ],
     CompileTimeErrorCode.MIXIN_OF_NON_CLASS: [
       DataDriven.new,
       ImportLibrary.forType,

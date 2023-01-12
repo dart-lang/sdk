@@ -644,6 +644,8 @@ CompileTimeErrorCode.INVALID_FIELD_NAME_POSITIONAL:
   status: needsEvaluation
 CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE:
   status: needsEvaluation
+CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER:
+  status: needsEvaluation
 CompileTimeErrorCode.INVALID_INLINE_FUNCTION_TYPE:
   status: needsEvaluation
 CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR:
@@ -651,6 +653,8 @@ CompileTimeErrorCode.INVALID_MODIFIER_ON_CONSTRUCTOR:
 CompileTimeErrorCode.INVALID_MODIFIER_ON_SETTER:
   status: needsEvaluation
 CompileTimeErrorCode.INVALID_OVERRIDE:
+  status: hasFix
+CompileTimeErrorCode.INVALID_OVERRIDE_SETTER:
   status: hasFix
 CompileTimeErrorCode.INVALID_REFERENCE_TO_GENERATIVE_ENUM_CONSTRUCTOR:
   status: noFix
