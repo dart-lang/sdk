@@ -47,18 +47,14 @@ f() {
   }
 
   test_equal_legacyLibrary() async {
-    try {
-      noSoundNullSafety = false;
-      await assertNoErrorsInCode('''
+    noSoundNullSafety = false;
+    await assertNoErrorsInCode('''
 // @dart = 2.5
 f(int a) {
   a == null;
   null == a;
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_equal_notNullable() async {
@@ -115,18 +111,14 @@ f() {
   }
 
   test_notEqual_legacyLibrary() async {
-    try {
-      noSoundNullSafety = false;
-      await assertNoErrorsInCode('''
+    noSoundNullSafety = false;
+    await assertNoErrorsInCode('''
 // @dart = 2.5
 f(int a) {
   a != null;
   null != a;
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_notEqual_notNullable() async {

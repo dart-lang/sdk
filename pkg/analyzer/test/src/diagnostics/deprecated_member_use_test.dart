@@ -40,15 +40,14 @@ class DeprecatedMemberUse_BasicWorkspace_WithoutNullSafetyTest
 class DeprecatedMemberUse_BasicWorkspaceTest extends PubPackageResolutionTest
     with DeprecatedMemberUse_BasicWorkspaceTestCases {
   test_instanceCreation_namedParameter_fromLegacy() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   A({@deprecated int a}) {}
 }
 ''');
 
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 // @dart = 2.9
 import 'package:aaa/a.dart';
 
@@ -56,21 +55,17 @@ void f() {
   A(a: 0);
 }
 ''', [
-        error(HintCode.DEPRECATED_MEMBER_USE, 60, 1),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(HintCode.DEPRECATED_MEMBER_USE, 60, 1),
+    ]);
   }
 
   test_methodInvocation_namedParameter_ofFunction_fromLegacy() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 void foo({@deprecated int a}) {}
 ''');
 
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 // @dart = 2.9
 import 'package:aaa/a.dart';
 
@@ -78,23 +73,19 @@ void f() {
   foo(a: 0);
 }
 ''', [
-        error(HintCode.DEPRECATED_MEMBER_USE, 62, 1),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(HintCode.DEPRECATED_MEMBER_USE, 62, 1),
+    ]);
   }
 
   test_methodInvocation_namedParameter_ofMethod_fromLegacy() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   void foo({@deprecated int a}) {}
 }
 ''');
 
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 // @dart = 2.9
 import 'package:aaa/a.dart';
 
@@ -102,23 +93,19 @@ void f(A a) {
   a.foo(a: 0);
 }
 ''', [
-        error(HintCode.DEPRECATED_MEMBER_USE, 67, 1),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(HintCode.DEPRECATED_MEMBER_USE, 67, 1),
+    ]);
   }
 
   test_superConstructorInvocation_namedParameter_fromLegacy() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
 class A {
   A({@deprecated int a}) {}
 }
 ''');
 
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 // @dart = 2.9
 import 'package:aaa/a.dart';
 
@@ -126,11 +113,8 @@ class B extends A {
   B() : super(a: 0);
 }
 ''', [
-        error(HintCode.DEPRECATED_MEMBER_USE, 79, 1),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(HintCode.DEPRECATED_MEMBER_USE, 79, 1),
+    ]);
   }
 }
 

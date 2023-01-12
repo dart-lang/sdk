@@ -27,8 +27,12 @@ void main() {
 @reflectiveTest
 class AnalysisNotificationHighlightsTest extends HighlightsTestSupport {
   @override
-  List<String> get experiments =>
-      [...super.experiments, EnableString.sealed_class];
+  List<String> get experiments => [
+        ...super.experiments,
+        EnableString.class_modifiers,
+        EnableString.patterns,
+        EnableString.sealed_class
+      ];
 
   void assertHighlightText(TestCode testCode, int index, String expected) {
     var actual = _getHighlightText(testCode, index);
@@ -475,6 +479,29 @@ void f() async* {
     assertHasStringRegion(HighlightRegionType.BUILT_IN, 'yield*');
   }
 
+  Future<void> test_caseClause_case() async {
+    addTestFile('''
+void f(Object o) {
+  if (o case 0) {}
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'case');
+  }
+
+  Future<void> test_castPattern_as() async {
+    addTestFile('''
+void f(Object o) {
+  switch (o) {
+    case var x as int:
+      return;
+  }
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'as int');
+  }
+
   Future<void> test_CLASS() async {
     addTestFile('''
 class AAA {}
@@ -562,6 +589,19 @@ void my_function(String a) {
     assertHasRegion(HighlightRegionType.COMMENT_BLOCK, '/* b', 19);
   }
 
+  Future<void> test_constantPattern_const() async {
+    addTestFile('''
+void f(Object o) {
+  switch (o) {
+    case (const [0]):
+      return;
+  }
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'const');
+  }
+
   Future<void> test_CONSTRUCTOR_explicitNew() async {
     addTestFile('''
 class AAA<T> {
@@ -642,6 +682,32 @@ void f() {
     assertHasRegion(HighlightRegionType.CLASS, 'A<int');
     assertHasRegion(HighlightRegionType.CLASS, 'int>');
     assertHasRegion(HighlightRegionType.CONSTRUCTOR_TEAR_OFF, 'new;');
+  }
+
+  Future<void> test_declaredVariablePattern_final() async {
+    addTestFile('''
+void f(Object o) {
+  switch (o) {
+    case (final x as int):
+      return;
+  }
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'final');
+  }
+
+  Future<void> test_declaredVariablePattern_var() async {
+    addTestFile('''
+void f(Object o) {
+  switch (o) {
+    case (var x as int):
+      return;
+  }
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'var');
   }
 
   Future<void> test_DIRECTIVE() async {
@@ -971,6 +1037,26 @@ void f() {
     await prepareHighlights();
     assertHasRegion(HighlightRegionType.EXTENSION, 'E on int');
     assertHasRegion(HighlightRegionType.EXTENSION, 'E(0)');
+  }
+
+  Future<void> test_forEachPartsWithPattern_final() async {
+    addTestFile('''
+void f(List<Object> l) {
+  for (final i as int in l) {}
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'final');
+  }
+
+  Future<void> test_forEachPartsWithPattern_var() async {
+    addTestFile('''
+void f(List<Object> l) {
+  for (var i as int in l) {}
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'var');
   }
 
   Future<void> test_forPartsWithDeclarations() async {
@@ -1540,6 +1626,26 @@ class B extends A {
     assertHasRegion(HighlightRegionType.PARAMETER_DECLARATION, 'aaa /*0*/');
   }
 
+  Future<void> test_patternVariableDeclaration_final() async {
+    addTestFile('''
+void f(Object o) {
+  final i as int = o;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'final');
+  }
+
+  Future<void> test_patternVariableDeclaration_var() async {
+    addTestFile('''
+void f(Object o) {
+  var i as int = o;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'var');
+  }
+
   Future<void> test_recordTypeAnnotation_named() async {
     addTestFile('''
 ({int f1, String f2})? r;
@@ -1615,6 +1721,18 @@ void f() {
     assertHasRegion(HighlightRegionType.STATIC_SETTER_REFERENCE, 'aaa = 2');
     assertHasRegion(HighlightRegionType.STATIC_GETTER_REFERENCE, 'bbb;');
     assertHasRegion(HighlightRegionType.STATIC_SETTER_REFERENCE, 'ccc = 3');
+  }
+
+  Future<void> test_switchExpression_switch() async {
+    addTestFile('''
+String f(Object o) {
+  return switch (o) {
+    3 => '3';
+  };
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'switch');
   }
 
   Future<void> test_TOP_LEVEL_FUNCTION() async {
@@ -1862,6 +1980,45 @@ class A {
     assertHasRegion(type, 'unresolved(3)');
   }
 
+  Future<void> test_whenClause_when() async {
+    addTestFile('''
+void f(Object o) {
+  switch (o) {
+    case [int a, int n] when n > 0:
+      return;
+  }
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'when');
+  }
+
+  Future<void> test_wildcardPattern_final() async {
+    addTestFile('''
+void f(Object o) {
+  switch (o) {
+    case (final _ as int):
+      return;
+  }
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'final');
+  }
+
+  Future<void> test_wildcardPattern_var() async {
+    addTestFile('''
+void f(Object o) {
+  switch (o) {
+    case (var _ as int):
+      return;
+  }
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.KEYWORD, 'var');
+  }
+
   /// Returns the textual dump of the highlight regions that intersect with
   /// the [index]th range in [testCode] (or all code if `-1`).
   String _getHighlightText(TestCode testCode, int index) {
@@ -1899,6 +2056,15 @@ class HighlightsTestSupport extends PubPackageAnalysisServerTest {
         return;
       }
     }
+    // Attempt to figure out what's wrong with the expectation.
+    for (var region in regions) {
+      if (region.offset == offset && region.length == length) {
+        fail('Expected a type of $type, but found a type of ${region.type} at '
+            'offset=$offset; length=$length.');
+      }
+    }
+    // Fall back to a general failure message.
+    regions.sort((first, second) => first.offset.compareTo(second.offset));
     fail('Expected to find (offset=$offset; length=$length; type=$type) in\n'
         '${regions.join('\n')}');
   }

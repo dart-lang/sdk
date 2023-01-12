@@ -18,15 +18,14 @@ main() {
 class ForEachElementTest extends PubPackageResolutionTest
     with WithoutNullSafetyMixin {
   test_optIn_fromOptOut() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A implements Iterable<int> {
   Iterator<int> iterator => throw 0;
 }
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
@@ -36,9 +35,6 @@ f(A a) {
   }
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_withDeclaration_scope() async {

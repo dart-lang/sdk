@@ -124,15 +124,14 @@ class B extends A<int> {
   }
 
   Future<void> test_method_nullSafety_optIn_fromOptOut() async {
-    try {
-      noSoundNullSafety = false;
-      createAnalysisOptionsFile(lints: [lintCode]);
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    createAnalysisOptionsFile(lints: [lintCode]);
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo() => 0;
 }
 ''');
-      await resolveTestCode('''
+    await resolveTestCode('''
 // @dart = 2.7
 import 'a.dart';
 
@@ -141,16 +140,13 @@ class B extends A {
   int foo() => super.foo();
 }
 ''');
-      await assertHasFix('''
+    await assertHasFix('''
 // @dart = 2.7
 import 'a.dart';
 
 class B extends A {
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   Future<void> test_method_toString() async {

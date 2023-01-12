@@ -399,7 +399,7 @@ class Server {
         ddsUri.replace(scheme: 'ws', path: '${path}ws').toString(),
       );
       path.writeAll([
-        'devtools/#/',
+        'devtools/',
         '?uri=$queryComponent',
       ]);
       final redirectUri = Uri.parse(

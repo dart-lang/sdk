@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns
+// SharedOptions=--enable-experiment=patterns,records
 
 import "package:expect/expect.dart";
 
@@ -28,7 +28,7 @@ main() {
 
   Expect.equals('0: 0: list', sharedDifferentContext([0, true]));
   Expect.equals('1: 1: map', sharedDifferentContext({'a': 1, 'b': true}));
-  Expect.equals('2: 2: record', sharedDifferentContext((a: 2, b: true));
+  Expect.equals('2: 2: record', sharedDifferentContext((a: 2, b: true)));
   Expect.equals('3: 3: nested', sharedDifferentContext((a: 3, b: [true])));
 }
 

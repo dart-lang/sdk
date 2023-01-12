@@ -154,17 +154,13 @@ class C {
   }
 
   test_leastUpperBoundWithNull() async {
-    try {
-      noSoundNullSafety = false;
-      await assertErrorsInCode('''
+    noSoundNullSafety = false;
+    await assertErrorsInCode('''
 // @dart = 2.9
 f(bool b, int i) => (b ? null : i).foo();
 ''', [
-        error(CompileTimeErrorCode.UNDEFINED_METHOD, 50, 3),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 50, 3),
+    ]);
   }
 
   test_method_undefined() async {
@@ -222,20 +218,16 @@ f(M m) {
   }
 
   test_method_undefined_onNull() async {
-    try {
-      noSoundNullSafety = false;
-      await assertErrorsInCode(r'''
+    noSoundNullSafety = false;
+    await assertErrorsInCode(r'''
 // @dart = 2.9
 Null f(int x) => null;
 main() {
   f(42).abs();
 }
 ''', [
-        error(CompileTimeErrorCode.UNDEFINED_METHOD, 55, 3),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 55, 3),
+    ]);
   }
 
   test_static_conditionalAccess_defined() async {

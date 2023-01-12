@@ -19,13 +19,12 @@ main() {
 class PrefixedIdentifierResolutionTest extends PubPackageResolutionTest
     with PrefixedIdentifierResolutionTestCases {
   test_deferredImportPrefix_loadLibrary_optIn_fromOptOut() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart' deferred as a;
 
@@ -33,22 +32,19 @@ main() {
   a.loadLibrary;
 }
 ''', [
-        error(HintCode.UNUSED_IMPORT, 22, 8),
-      ]);
+      error(HintCode.UNUSED_IMPORT, 22, 8),
+    ]);
 
-      var import = findElement.importFind('package:test/a.dart');
+    var import = findElement.importFind('package:test/a.dart');
 
-      assertPrefixedIdentifier(
-        findNode.prefixed('a.loadLibrary'),
-        element: elementMatcher(
-          import.importedLibrary.loadLibraryFunction,
-          isLegacy: true,
-        ),
-        type: 'Future<dynamic>* Function()*',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertPrefixedIdentifier(
+      findNode.prefixed('a.loadLibrary'),
+      element: elementMatcher(
+        import.importedLibrary.loadLibraryFunction,
+        isLegacy: true,
+      ),
+      type: 'Future<dynamic>* Function()*',
+    );
   }
 
   test_enum_read() async {

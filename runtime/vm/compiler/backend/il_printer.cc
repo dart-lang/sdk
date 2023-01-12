@@ -36,7 +36,7 @@ static bool IsRedundant(Instruction* instr) {
   } else if (auto move = instr->AsParallelMove()) {
     return move->IsRedundant();
   } else {
-    return true;
+    return false;
   }
 }
 
@@ -121,11 +121,15 @@ class IlTestPrinter : public AllStatic {
     writer->OpenArray("is");
     if (auto join = block->AsJoinEntry()) {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
-        PrintInstruction(writer, it.Current());
+        if (ShouldPrintInstruction(it.Current())) {
+          PrintInstruction(writer, it.Current());
+        }
       }
     }
     for (auto instr : block->instructions()) {
-      PrintInstruction(writer, instr);
+      if (ShouldPrintInstruction(instr)) {
+        PrintInstruction(writer, instr);
+      }
     }
     writer->CloseArray();
     writer->CloseObject();

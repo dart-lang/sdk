@@ -37,14 +37,13 @@ dynamic f() {}
   }
 
   test_function_sync_block_Never() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 Never foo() {
   throw 0;
 }
 ''');
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.8
 import 'a.dart';
 
@@ -52,9 +51,6 @@ int f() {
   foo();
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_function_sync_block_Null() async {

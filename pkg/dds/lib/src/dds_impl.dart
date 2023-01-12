@@ -390,16 +390,6 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
 
   @visibleForTesting
   Uri? toDevTools(Uri? uri) {
-    // The DevTools URI is a bit strange as the query parameters appear after
-    // the fragment. There's no nice way to encode the query parameters
-    // properly, so we create another Uri just to grab the formatted query.
-    // The result will need to have '/?' prepended when being used as the
-    // fragment to get the correct format.
-    final query = Uri(
-      queryParameters: {
-        'uri': wsUri.toString(),
-      },
-    ).query;
     return Uri(
       scheme: 'http',
       host: uri!.host,
@@ -409,9 +399,8 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
           (e) => e.isNotEmpty,
         ),
         'devtools',
-        '',
       ],
-      fragment: '/?$query',
+      query: 'uri=$wsUri',
     );
   }
 

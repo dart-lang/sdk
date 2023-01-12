@@ -25,423 +25,359 @@ class TypeNameResolutionTest extends PubPackageResolutionTest
   }
 
   test_optIn_fromOptOut_class() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
 f(A a) {}
 ''');
 
-      assertNamedType(
-        findNode.namedType('A a'),
-        import_a.class_('A'),
-        'A*',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('A a'),
+      import_a.class_('A'),
+      'A*',
+    );
   }
 
   test_optIn_fromOptOut_class_generic_toBounds() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T extends num> {}
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
 f(A a) {}
 ''');
 
-      assertNamedType(
-        findNode.namedType('A a'),
-        import_a.class_('A'),
-        'A<num*>*',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('A a'),
+      import_a.class_('A'),
+      'A<num*>*',
+    );
   }
 
   test_optIn_fromOptOut_class_generic_toBounds_dynamic() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
 f(A a) {}
 ''');
 
-      assertNamedType(
-        findNode.namedType('A a'),
-        import_a.class_('A'),
-        'A<dynamic>*',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('A a'),
+      import_a.class_('A'),
+      'A<dynamic>*',
+    );
   }
 
   test_optIn_fromOptOut_class_generic_typeArguments() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
 f(A<int> a) {}
 ''');
 
-      assertNamedType(
-        findNode.namedType('A<int> a'),
-        import_a.class_('A'),
-        'A<int*>*',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('A<int> a'),
+      import_a.class_('A'),
+      'A<int*>*',
+    );
   }
 
   test_optIn_fromOptOut_functionTypeAlias() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef F = int Function(bool);
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
 f(F a) {}
 ''');
 
-      var element = import_a.typeAlias('F');
+    var element = import_a.typeAlias('F');
 
-      var typeName = findNode.namedType('F a');
-      assertNamedType(typeName, element, 'int* Function(bool*)*');
+    var typeName = findNode.namedType('F a');
+    assertNamedType(typeName, element, 'int* Function(bool*)*');
 
-      assertTypeAlias(
-        typeName.typeOrThrow,
-        element: element,
-        typeArguments: [],
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertTypeAlias(
+      typeName.typeOrThrow,
+      element: element,
+      typeArguments: [],
+    );
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_dynamic() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef F<T> = T Function(bool);
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
 f(F a) {}
 ''');
 
-      var element = import_a.typeAlias('F');
+    var element = import_a.typeAlias('F');
 
-      var typeName = findNode.namedType('F a');
-      assertNamedType(typeName, element, 'dynamic Function(bool*)*');
+    var typeName = findNode.namedType('F a');
+    assertNamedType(typeName, element, 'dynamic Function(bool*)*');
 
-      assertTypeAlias(
-        typeName.typeOrThrow,
-        element: element,
-        typeArguments: ['dynamic'],
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertTypeAlias(
+      typeName.typeOrThrow,
+      element: element,
+      typeArguments: ['dynamic'],
+    );
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_toBounds() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef F<T extends num> = T Function(bool);
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
 f(F a) {}
 ''');
 
-      var element = import_a.typeAlias('F');
+    var element = import_a.typeAlias('F');
 
-      var typeName = findNode.namedType('F a');
-      assertNamedType(typeName, element, 'num* Function(bool*)*');
+    var typeName = findNode.namedType('F a');
+    assertNamedType(typeName, element, 'num* Function(bool*)*');
 
-      assertTypeAlias(
-        typeName.typeOrThrow,
-        element: element,
-        typeArguments: ['num*'],
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertTypeAlias(
+      typeName.typeOrThrow,
+      element: element,
+      typeArguments: ['num*'],
+    );
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_typeArguments() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef F<T> = T Function(bool);
 ''');
 
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.7
 import 'a.dart';
 
 f(F<int> a) {}
 ''');
 
-      var element = import_a.typeAlias('F');
+    var element = import_a.typeAlias('F');
 
-      var typeName = findNode.namedType('F<int> a');
-      assertNamedType(typeName, element, 'int* Function(bool*)*');
+    var typeName = findNode.namedType('F<int> a');
+    assertNamedType(typeName, element, 'int* Function(bool*)*');
 
-      assertTypeAlias(
-        typeName.typeOrThrow,
-        element: element,
-        typeArguments: ['int*'],
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertTypeAlias(
+      typeName.typeOrThrow,
+      element: element,
+      typeArguments: ['int*'],
+    );
   }
 
   test_optOut_fromOptIn_class() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A {}
 ''');
 
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(A a) {}
 ''', [
-        error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-      ]);
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
-      assertNamedType(
-        findNode.namedType('A a'),
-        import_a.class_('A'),
-        'A',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('A a'),
+      import_a.class_('A'),
+      'A',
+    );
   }
 
   test_optOut_fromOptIn_class_generic_toBounds() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A<T extends num> {}
 ''');
 
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(A a) {}
 ''', [
-        error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-      ]);
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
-      assertNamedType(
-        findNode.namedType('A a'),
-        import_a.class_('A'),
-        'A<num*>',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('A a'),
+      import_a.class_('A'),
+      'A<num*>',
+    );
   }
 
   test_optOut_fromOptIn_class_generic_toBounds_dynamic() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A<T> {}
 ''');
 
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(A a) {}
 ''', [
-        error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-      ]);
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
-      assertNamedType(
-        findNode.namedType('A a'),
-        import_a.class_('A'),
-        'A<dynamic>',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('A a'),
+      import_a.class_('A'),
+      'A<dynamic>',
+    );
   }
 
   test_optOut_fromOptIn_class_generic_typeArguments() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A<T> {}
 ''');
 
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(A<int> a) {}
 ''', [
-        error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-      ]);
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
-      assertNamedType(
-        findNode.namedType('A<int> a'),
-        import_a.class_('A'),
-        'A<int>',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('A<int> a'),
+      import_a.class_('A'),
+      'A<int>',
+    );
   }
 
   test_optOut_fromOptIn_functionTypeAlias() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F = int Function();
 ''');
 
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(F a) {}
 ''', [
-        error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-      ]);
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
-      assertNamedType(
-        findNode.namedType('F a'),
-        import_a.typeAlias('F'),
-        'int* Function()',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('F a'),
+      import_a.typeAlias('F'),
+      'int* Function()',
+    );
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_toBounds() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F<T extends num> = T Function();
 ''');
 
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(F a) {}
 ''', [
-        error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-      ]);
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
-      assertNamedType(
-        findNode.namedType('F a'),
-        import_a.typeAlias('F'),
-        'num* Function()',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('F a'),
+      import_a.typeAlias('F'),
+      'num* Function()',
+    );
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_toBounds_dynamic() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F<T> = T Function();
 ''');
 
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(F a) {}
 ''', [
-        error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-      ]);
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
-      assertNamedType(
-        findNode.namedType('F a'),
-        import_a.typeAlias('F'),
-        'dynamic Function()',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('F a'),
+      import_a.typeAlias('F'),
+      'dynamic Function()',
+    );
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_typeArguments() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F<T> = T Function();
 ''');
 
-      await assertErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 import 'a.dart';
 
 f(F<int> a) {}
 ''', [
-        error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
-      ]);
+      error(HintCode.IMPORT_OF_LEGACY_LIBRARY_INTO_NULL_SAFE, 7, 8),
+    ]);
 
-      assertNamedType(
-        findNode.namedType('F<int> a'),
-        import_a.typeAlias('F'),
-        'int* Function()',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('F<int> a'),
+      import_a.typeAlias('F'),
+      'int* Function()',
+    );
   }
 
   test_typeAlias_asInstanceCreation_explicitNew_typeArguments_interfaceType_none() async {
@@ -518,25 +454,21 @@ void f(X<String> a, X<String?> b) {}
   }
 
   test_typeAlias_asParameterType_interfaceType_none_inLegacy() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef X<T> = Map<int, T>;
 ''');
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.9
 import 'a.dart';
 void f(X<String> a) {}
 ''');
 
-      assertNamedType(
-        findNode.namedType('X<String>'),
-        findElement.importFind('package:test/a.dart').typeAlias('X'),
-        'Map<int*, String*>*',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('X<String>'),
+      findElement.importFind('package:test/a.dart').typeAlias('X'),
+      'Map<int*, String*>*',
+    );
   }
 
   test_typeAlias_asParameterType_interfaceType_question() async {
@@ -559,25 +491,21 @@ void f(X<int> a, X<int?> b) {}
   }
 
   test_typeAlias_asParameterType_interfaceType_question_inLegacy() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef X<T> = List<T?>;
 ''');
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.9
 import 'a.dart';
 void f(X<int> a) {}
 ''');
 
-      assertNamedType(
-        findNode.namedType('X<int>'),
-        findElement.importFind('package:test/a.dart').typeAlias('X'),
-        'List<int*>*',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('X<int>'),
+      findElement.importFind('package:test/a.dart').typeAlias('X'),
+      'List<int*>*',
+    );
   }
 
   test_typeAlias_asParameterType_Never_none() async {
@@ -600,25 +528,21 @@ void f(X a, X? b) {}
   }
 
   test_typeAlias_asParameterType_Never_none_inLegacy() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 typedef X = Never;
 ''');
-      await assertNoErrorsInCode(r'''
+    await assertNoErrorsInCode(r'''
 // @dart = 2.9
 import 'a.dart';
 void f(X a) {}
 ''');
 
-      assertNamedType(
-        findNode.namedType('X a'),
-        findElement.importFind('package:test/a.dart').typeAlias('X'),
-        'Null*',
-      );
-    } finally {
-      noSoundNullSafety = true;
-    }
+    assertNamedType(
+      findNode.namedType('X a'),
+      findElement.importFind('package:test/a.dart').typeAlias('X'),
+      'Null*',
+    );
   }
 
   test_typeAlias_asParameterType_Never_question() async {

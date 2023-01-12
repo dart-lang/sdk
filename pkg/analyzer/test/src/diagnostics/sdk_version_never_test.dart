@@ -25,17 +25,13 @@ Never foo = (throw 42);
   }
 
   test_experimentEnabled_libraryOptedOut() async {
-    try {
-      noSoundNullSafety = false;
-      await verifyVersion('2.7.0', r'''
+    noSoundNullSafety = false;
+    await verifyVersion('2.7.0', r'''
 // @dart = 2.7
 Never foo = (throw 42);
 ''', expectedErrors: [
-        error(StaticWarningCode.SDK_VERSION_NEVER, 15, 5),
-      ]);
-    } finally {
-      noSoundNullSafety = true;
-    }
+      error(StaticWarningCode.SDK_VERSION_NEVER, 15, 5),
+    ]);
   }
 }
 

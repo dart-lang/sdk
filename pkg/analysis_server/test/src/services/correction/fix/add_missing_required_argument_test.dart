@@ -289,16 +289,15 @@ void f() {
   }
 
   Future<void> test_constructor_single_closure_nnbd_into_legacy() async {
-    try {
-      noSoundNullSafety = false;
-      addSource('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    addSource('$testPackageLibPath/a.dart', r'''
 typedef int Callback(int? a);
 
 class A {
   A({required Callback callback}) {}
 }
 ''');
-      await resolveTestCode('''
+    await resolveTestCode('''
 // @dart = 2.8
 import 'package:test/a.dart';
 
@@ -307,7 +306,7 @@ void f() {
   print(a);
 }
 ''');
-      await assertHasFix('''
+    await assertHasFix('''
 // @dart = 2.8
 import 'package:test/a.dart';
 
@@ -316,9 +315,6 @@ void f() {
   print(a);
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   Future<void> test_constructor_single_list() async {

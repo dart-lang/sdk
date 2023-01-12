@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns
+// SharedOptions=--enable-experiment=patterns,records
 
 import "package:expect/expect.dart";
 
@@ -41,7 +41,7 @@ void unsharedPatternVariableShadows() {
   var local = 'local';
 
   switch (('pat', 'tern')) {
-    case (int topLevel, int local):
+    case (String topLevel, String local):
       Expect.equals('pat tern', '$topLevel $local');
 
       // Assign to pattern variable.
@@ -59,8 +59,8 @@ void sharedPatternVariableShadows(Object value) {
   var local = 'local';
 
   switch (('pat', 'tern')) {
-    case (int topLevel, int local) when value == 0:
-    case (int topLevel, int local) when value == 1:
+    case (String topLevel, String local) when value == 0:
+    case (String topLevel, String local) when value == 1:
       Expect.equals('pat tern', '$topLevel $local');
 
       // Assign to pattern variable.

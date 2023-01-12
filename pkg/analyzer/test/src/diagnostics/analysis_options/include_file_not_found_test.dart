@@ -25,7 +25,7 @@ include: package:pedantic/analysis_options.yaml
         74,
         38,
         text: "The include file 'package:pedantic/analysis_options.yaml'"
-            " in '/test.dart' can't be found when analyzing '/'.",
+            " in '${convertPath('/analysis_options.yaml')}' can't be found when analyzing '/'.",
       )
     ]);
   }

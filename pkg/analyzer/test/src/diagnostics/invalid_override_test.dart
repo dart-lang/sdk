@@ -216,15 +216,14 @@ class B implements A {
   }
 
   test_method_parameter_functionTyped_optOut_extends_optIn() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 abstract class A {
   A catchError(void Function(Object) a);
 }
 ''');
 
-      await assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 // @dart=2.6
 import 'a.dart';
 
@@ -232,21 +231,17 @@ class B implements A {
   A catchError(void Function(dynamic) a) => this;
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_method_parameter_interfaceOptOut_concreteOptIn() async {
-    try {
-      noSoundNullSafety = false;
-      newFile('$testPackageLibPath/a.dart', r'''
+    noSoundNullSafety = false;
+    newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void foo(Object a) {}
 }
 ''');
 
-      await assertNoErrorsInCode('''
+    await assertNoErrorsInCode('''
 // @dart=2.6
 import 'a.dart';
 
@@ -254,9 +249,6 @@ class B extends A {
   void foo(dynamic a);
 }
 ''');
-    } finally {
-      noSoundNullSafety = true;
-    }
   }
 
   test_mixedInheritance_1() async {
