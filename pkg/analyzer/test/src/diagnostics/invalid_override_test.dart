@@ -352,8 +352,9 @@ abstract class B implements A {
   void set x(int value);
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 95, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 34, 1)]),
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 95, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 34, 1)],
+          messageContains: ["'B.x'"]),
     ]);
   }
 
@@ -402,7 +403,7 @@ abstract class B implements A {
   void set x(int value);
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 86, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 86, 1,
           contextMessages: [message('/home/test/lib/test.dart', 25, 1)]),
     ]);
   }
@@ -525,7 +526,7 @@ class B extends A {
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 50, 1,
           contextMessages: [message('/home/test/lib/test.dart', 19, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 50, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 50, 1,
           contextMessages: [message('/home/test/lib/test.dart', 19, 1)]),
     ]);
   }
@@ -993,7 +994,7 @@ mixin M on A {
 ''', [
       error(CompileTimeErrorCode.INVALID_OVERRIDE, 53, 3,
           contextMessages: [message('/home/test/lib/test.dart', 19, 3)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 53, 3,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 53, 3,
           contextMessages: [message('/home/test/lib/test.dart', 19, 3)]),
     ]);
   }
@@ -1038,7 +1039,7 @@ mixin M on A {
   set foo(int _) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 57, 3,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 57, 3,
           contextMessages: [message('/home/test/lib/test.dart', 16, 3)]),
     ]);
   }
@@ -1052,7 +1053,7 @@ class B extends A {
   void set s(String v) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 66, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 66, 1,
           contextMessages: [message('/home/test/lib/test.dart', 21, 1)]),
     ]);
   }
@@ -1070,7 +1071,7 @@ class B extends A {
   set setter14(String _) => null;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 173, 8,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 173, 8,
           contextMessages: [message('/home/test/lib/test.dart', 77, 8)]),
     ]);
   }
@@ -1089,7 +1090,7 @@ class B extends A {
   set setter14(String _) => null;
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 166, 8,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 166, 8,
           contextMessages: [message('/home/test/lib/test.dart', 77, 8)]),
     ]);
   }
@@ -1106,9 +1107,9 @@ class B implements I<int>, J<String> {
   set s(double d) {}
 }
 ''', [
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 125, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 125, 1,
           contextMessages: [message('/home/test/lib/test.dart', 28, 1)]),
-      error(CompileTimeErrorCode.INVALID_OVERRIDE, 125, 1,
+      error(CompileTimeErrorCode.INVALID_OVERRIDE_SETTER, 125, 1,
           contextMessages: [message('/home/test/lib/test.dart', 68, 1)]),
     ]);
   }

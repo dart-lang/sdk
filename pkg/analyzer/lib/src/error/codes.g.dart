@@ -2417,6 +2417,24 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the declared setter that is not a valid override.
+  ///  1: the name of the interface that declares the setter.
+  ///  2: the type of the declared setter in the interface.
+  ///  3: the name of the interface with the overridden setter.
+  ///  4: the type of the overridden setter.
+  ///
+  ///  These parameters must be kept in sync with those of
+  ///  [CompileTimeErrorCode.INVALID_OVERRIDE].
+  static const CompileTimeErrorCode INVALID_IMPLEMENTATION_OVERRIDE_SETTER =
+      CompileTimeErrorCode(
+    'INVALID_IMPLEMENTATION_OVERRIDE',
+    "The setter '{1}.{0}' ('{2}') isn't a valid concrete implementation of "
+        "'{3}.{0}' ('{4}').",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_IMPLEMENTATION_OVERRIDE_SETTER',
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode INVALID_INLINE_FUNCTION_TYPE =
       CompileTimeErrorCode(
@@ -2458,6 +2476,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_OVERRIDE',
     "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the declared setter that is not a valid override.
+  ///  1: the name of the interface that declares the setter.
+  ///  2: the type of the declared setter in the interface.
+  ///  3: the name of the interface with the overridden setter.
+  ///  4: the type of the overridden setter.
+  static const CompileTimeErrorCode INVALID_OVERRIDE_SETTER =
+      CompileTimeErrorCode(
+    'INVALID_OVERRIDE',
+    "The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_OVERRIDE_SETTER',
   );
 
   static const CompileTimeErrorCode

@@ -8794,6 +8794,9 @@ class C extends Struct {
 
 _'{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}' ('{4}')._
 
+_The setter '{1}.{0}' ('{2}') isn't a valid concrete implementation of '{3}.{0}'
+('{4}')._
+
 #### Description
 
 The analyzer produces this diagnostic when all of the following are true:
@@ -9309,6 +9312,8 @@ not be appropriate in some cases.)
 ### invalid_override
 
 _'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}')._
+
+_The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}')._
 
 #### Description
 

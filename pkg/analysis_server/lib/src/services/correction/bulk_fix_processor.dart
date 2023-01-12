@@ -69,6 +69,9 @@ class BulkFixProcessor {
     CompileTimeErrorCode.INVALID_OVERRIDE: [
       DataDriven.new,
     ],
+    CompileTimeErrorCode.INVALID_OVERRIDE_SETTER: [
+      DataDriven.new,
+    ],
     CompileTimeErrorCode.MISSING_REQUIRED_ARGUMENT: [
       DataDriven.new,
     ],
