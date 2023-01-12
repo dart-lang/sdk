@@ -540,11 +540,12 @@ class Forwarder {
         b.end();
 
         // Value is a closure, cast it to `#ClosureBase`
-        final receiverClosureBaseLocal = function.addLocal(w.RefType.def(
+        final closureBaseType = w.RefType.def(
             translator.closureLayouter.closureBaseStruct,
-            nullable: false));
+            nullable: false);
+        final receiverClosureBaseLocal = function.addLocal(closureBaseType);
         b.local_get(receiverLocal);
-        b.ref_cast(translator.closureLayouter.closureBaseStruct);
+        b.ref_cast(closureBaseType);
         b.local_tee(receiverClosureBaseLocal);
 
         // Read the `_FunctionType` field

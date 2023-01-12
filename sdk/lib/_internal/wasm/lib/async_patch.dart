@@ -55,18 +55,19 @@ import 'dart:wasm';
 part 'timer_patch.dart';
 
 @pragma("wasm:entry-point")
-Future<T> _asyncHelper<T>(WasmDataRef args) {
+Future<T> _asyncHelper<T>(WasmStructRef args) {
   Completer<T> completer = Completer();
   _callAsyncBridge(args, completer);
   return completer.future;
 }
 
 @pragma("wasm:import", "dart2wasm.callAsyncBridge")
-external void _callAsyncBridge(WasmDataRef args, Completer<Object?> completer);
+external void _callAsyncBridge(
+    WasmStructRef args, Completer<Object?> completer);
 
 @pragma("wasm:export", "\$asyncBridge")
 WasmAnyRef? _asyncBridge(
-    WasmExternRef? stack, WasmDataRef args, Completer<Object?> completer) {
+    WasmExternRef? stack, WasmStructRef args, Completer<Object?> completer) {
   try {
     Object? result = _asyncBridge2(args, stack);
     completer.complete(result);
@@ -75,7 +76,7 @@ WasmAnyRef? _asyncBridge(
   }
 }
 
-external Object? _asyncBridge2(WasmDataRef args, WasmExternRef? stack);
+external Object? _asyncBridge2(WasmStructRef args, WasmExternRef? stack);
 
 class _FutureError {
   final Object exception;
