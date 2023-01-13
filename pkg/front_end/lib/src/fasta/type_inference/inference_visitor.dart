@@ -7731,8 +7731,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // matchedExpressionVariable: dynamic MVAR = `node.expression`;
     VariableDeclaration matchedExpressionVariable = engine.forest
-        .createVariableDeclarationForValue(node.expression,
-            type: scrutineeType);
+        .createVariableDeclarationForValue(expression, type: scrutineeType);
 
     // matchResultVariable: int RVAR = -1;
     VariableDeclaration matchResultVariable = engine.forest
