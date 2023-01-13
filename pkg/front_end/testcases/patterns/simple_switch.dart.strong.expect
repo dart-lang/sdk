@@ -50,9 +50,12 @@ static method test(dynamic x) → dynamic {
           }
         }
       #L4:
+      case #C3:
       default:
         {
-          return null;
+          {
+            return null;
+          }
         }
     }
   }
@@ -72,4 +75,5 @@ static method expectEquals(dynamic x, dynamic y) → dynamic {
 constants  {
   #C1 = 0
   #C2 = 1
+  #C3 = 2
 }

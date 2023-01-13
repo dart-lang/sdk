@@ -7958,7 +7958,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     for (int i = node.cases.length - 1; i >= 0; i--) {
       Node? rewrite = popRewrite();
       if (!identical(rewrite, node.cases[i])) {
-        node.cases[i] = (rewrite as SwitchCase)..parent = node;
+        node.cases[i] = (rewrite as PatternSwitchCase)..parent = node;
       }
     }
     // Stack: (Expression, Type)
@@ -7997,166 +7997,156 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<VariableDeclaration> declaredVariableHelpers = [];
 
     for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
-      SwitchCase switchCase = node.cases[caseIndex];
-      if (switchCase is PatternSwitchCase) {
-        Statement body = switchCase.body;
+      PatternSwitchCase switchCase = node.cases[caseIndex];
+      Statement body = switchCase.body;
 
-        if (switchCase.patternGuards.isEmpty) continue;
+      // TODO(cstefantsova): Make sure an error is reported if the variables
+      // declared in the heads aren't compatible to each other.
+      Map<String, VariableDeclaration> caseDeclaredVariableHelpersByName = {
+        for (VariableDeclaration variable in switchCase.jointVariables)
+          variable.name!: engine.forest.createVariableDeclaration(
+              node.fileOffset, null,
+              type: const DynamicType())
+      };
 
-        // TODO(cstefantsova): Make sure an error is reported if the variables
-        // declared in the heads aren't compatible to each other.
-        Map<String, VariableDeclaration> caseDeclaredVariableHelpersByName = {
-          for (VariableDeclaration variable in switchCase.jointVariables)
-            variable.name!: engine.forest.createVariableDeclaration(
-                node.fileOffset, null,
-                type: const DynamicType())
+      for (int headIndex = 0;
+          headIndex < switchCase.patternGuards.length;
+          headIndex++) {
+        Pattern pattern = switchCase.patternGuards[headIndex].pattern;
+        Expression? guard = switchCase.patternGuards[headIndex].guard;
+
+        Map<String, DartType> inferredVariableTypes = {
+          for (VariableDeclaration variable in pattern.declaredVariables)
+            variable.name!: variable.type
         };
-
-        for (int headIndex = 0;
-            headIndex < switchCase.patternGuards.length;
-            headIndex++) {
-          Pattern pattern = switchCase.patternGuards[headIndex].pattern;
-          Expression? guard = switchCase.patternGuards[headIndex].guard;
-
-          Map<String, DartType> inferredVariableTypes = {
-            for (VariableDeclaration variable in pattern.declaredVariables)
-              variable.name!: variable.type
-          };
-          if (headIndex == 0) {
-            for (VariableDeclaration jointVariable
-                in switchCase.jointVariables) {
-              jointVariable.type = inferredVariableTypes[jointVariable.name!]!;
-            }
-          } else {
-            for (VariableDeclaration jointVariable
-                in switchCase.jointVariables) {
-              if (jointVariable.type !=
-                  inferredVariableTypes[jointVariable.name!]!) {
-                jointVariable.initializer = helper.buildProblem(
-                    templateVariablePatternTypeMismatchInSwitchHeads
-                        .withArguments(jointVariable.name!),
-                    jointVariable.fileOffset,
-                    noLength)
-                  ..parent = jointVariable;
-              }
+        if (headIndex == 0) {
+          for (VariableDeclaration jointVariable in switchCase.jointVariables) {
+            jointVariable.type = inferredVariableTypes[jointVariable.name!]!;
+          }
+        } else {
+          for (VariableDeclaration jointVariable in switchCase.jointVariables) {
+            if (jointVariable.type !=
+                inferredVariableTypes[jointVariable.name!]!) {
+              jointVariable.initializer = helper.buildProblem(
+                  templateVariablePatternTypeMismatchInSwitchHeads
+                      .withArguments(jointVariable.name!),
+                  jointVariable.fileOffset,
+                  noLength)
+                ..parent = jointVariable;
             }
           }
-
-          // setMatchResult: `matchResultVariable` = `caseIndex`;
-          //   ==> RVAR = `caseIndex`;
-          Statement setMatchResult = engine.forest.createExpressionStatement(
-              node.fileOffset,
-              engine.forest.createVariableSet(
-                  node.fileOffset,
-                  matchResultVariable,
-                  engine.forest.createIntLiteral(node.fileOffset, caseIndex)));
-
-          // setMatchSucceeded: `matchSucceeded` = true;
-          //   ==> SVAR = true;
-          Statement setMatchSucceeded = engine.forest.createExpressionStatement(
-              node.fileOffset,
-              engine.forest.createVariableSet(node.fileOffset, matchSucceeded,
-                  engine.forest.createBoolLiteral(node.fileOffset, true)));
-
-          PatternTransformationResult transformationResult = pattern.transform(
-              this,
-              matchedExpression: engine.forest.createVariableGet(
-                  node.fileOffset, matchedExpressionVariable),
-              matchedType: scrutineeType,
-              variableInitializingContext: engine.forest.createVariableGet(
-                  node.fileOffset, matchedExpressionVariable));
-          transformationResult = transformationResult.combine(
-              new PatternTransformationResult([
-                new PatternTransformationElement(
-                    kind: PatternTransformationElementKind.regular,
-                    condition: null,
-                    variableInitializers: pattern.declaredVariables),
-                new PatternTransformationElement(
-                    kind: PatternTransformationElementKind.regular,
-                    condition: guard,
-                    variableInitializers: [])
-              ]),
-              this);
-
-          // condition: `matchSucceeded`!
-          //   ==> SVAR!
-          transformationResult = transformationResult.prependElement(
-              new PatternTransformationElement(
-                  condition: engine.forest.createNot(
-                      node.fileOffset,
-                      engine.forest
-                          .createVariableGet(node.fileOffset, matchSucceeded)),
-                  variableInitializers: [],
-                  kind: PatternTransformationElementKind.regular),
-              this);
-
-          List<Statement> caseDeclaredVariableHelperInitializers = [];
-          for (VariableDeclaration declaredVariable
-              in pattern.declaredVariables) {
-            String variableName = declaredVariable.name!;
-
-            VariableDeclaration? variableHelper =
-                caseDeclaredVariableHelpersByName[variableName];
-            if (variableHelper != null) {
-              // initializer:
-              //     `declaredVariableHelper` = `declaredVariable`;
-              //   ==> HVAR = `declaredVariable`;
-              caseDeclaredVariableHelperInitializers.add(engine.forest
-                  .createExpressionStatement(
-                      node.fileOffset,
-                      engine.forest.createVariableSet(
-                          node.fileOffset,
-                          variableHelper,
-                          engine.forest.createVariableGet(
-                              node.fileOffset, declaredVariable))));
-            }
-          }
-
-          List<Statement> caseReplacementStatements = [
-            setMatchResult,
-            setMatchSucceeded,
-            ...caseDeclaredVariableHelperInitializers
-          ];
-
-          caseReplacementStatements = _transformationResultToStatements(
-              node.fileOffset, transformationResult, caseReplacementStatements);
-
-          replacementStatements.addAll(caseReplacementStatements);
         }
 
-        declaredVariableHelpers
-            .addAll(caseDeclaredVariableHelpersByName.values);
-
-        for (VariableDeclaration jointVariable in switchCase.jointVariables) {
-          // In case of [InvalidExpression], there's an error associated with
-          // the variable, and it shouldn't be initialized.
-          if (jointVariable.initializer is! InvalidExpression) {
-            // `jointVariable`:
-            //     `jointVariable` =
-            //         `declaredVariableHelper`{`declaredVariable.type`}
-            //   ==> `jointVariable` = HVAR{`declaredVariable.type`}
-            jointVariable.initializer = engine.forest.createVariableGet(
+        // setMatchResult: `matchResultVariable` = `caseIndex`;
+        //   ==> RVAR = `caseIndex`;
+        Statement setMatchResult = engine.forest.createExpressionStatement(
+            node.fileOffset,
+            engine.forest.createVariableSet(
                 node.fileOffset,
-                caseDeclaredVariableHelpersByName[jointVariable.name!]!)
-              ..promotedType = jointVariable.type
-              ..parent = jointVariable;
+                matchResultVariable,
+                engine.forest.createIntLiteral(node.fileOffset, caseIndex)));
+
+        // setMatchSucceeded: `matchSucceeded` = true;
+        //   ==> SVAR = true;
+        Statement setMatchSucceeded = engine.forest.createExpressionStatement(
+            node.fileOffset,
+            engine.forest.createVariableSet(node.fileOffset, matchSucceeded,
+                engine.forest.createBoolLiteral(node.fileOffset, true)));
+
+        PatternTransformationResult transformationResult = pattern.transform(
+            this,
+            matchedExpression: engine.forest
+                .createVariableGet(node.fileOffset, matchedExpressionVariable),
+            matchedType: scrutineeType,
+            variableInitializingContext: engine.forest
+                .createVariableGet(node.fileOffset, matchedExpressionVariable));
+        transformationResult = transformationResult.combine(
+            new PatternTransformationResult([
+              new PatternTransformationElement(
+                  kind: PatternTransformationElementKind.regular,
+                  condition: null,
+                  variableInitializers: pattern.declaredVariables),
+              new PatternTransformationElement(
+                  kind: PatternTransformationElementKind.regular,
+                  condition: guard,
+                  variableInitializers: [])
+            ]),
+            this);
+
+        // condition: `matchSucceeded`!
+        //   ==> SVAR!
+        transformationResult = transformationResult.prependElement(
+            new PatternTransformationElement(
+                condition: engine.forest.createNot(
+                    node.fileOffset,
+                    engine.forest
+                        .createVariableGet(node.fileOffset, matchSucceeded)),
+                variableInitializers: [],
+                kind: PatternTransformationElementKind.regular),
+            this);
+
+        List<Statement> caseDeclaredVariableHelperInitializers = [];
+        for (VariableDeclaration declaredVariable
+            in pattern.declaredVariables) {
+          String variableName = declaredVariable.name!;
+
+          VariableDeclaration? variableHelper =
+              caseDeclaredVariableHelpersByName[variableName];
+          if (variableHelper != null) {
+            // initializer:
+            //     `declaredVariableHelper` = `declaredVariable`;
+            //   ==> HVAR = `declaredVariable`;
+            caseDeclaredVariableHelperInitializers.add(engine.forest
+                .createExpressionStatement(
+                    node.fileOffset,
+                    engine.forest.createVariableSet(
+                        node.fileOffset,
+                        variableHelper,
+                        engine.forest.createVariableGet(
+                            node.fileOffset, declaredVariable))));
           }
         }
 
-        replacementCases.add(new SwitchCaseImpl(
-            [engine.forest.createIntLiteral(node.fileOffset, caseIndex)],
-            [node.fileOffset],
-            engine.forest
-                .createBlock(node.fileOffset, node.fileOffset, <Statement>[
-              ...switchCase.jointVariables,
-              if (body is! Block || body.statements.isNotEmpty) body
-            ]),
-            hasLabel: false));
-      } else if (switchCase is SwitchCaseImpl && switchCase.isDefault) {
-        replacementCases.add(switchCase);
-      } else {
-        // TODO(cstefantsova): Report an internal or compile-time error.
+        List<Statement> caseReplacementStatements = [
+          setMatchResult,
+          setMatchSucceeded,
+          ...caseDeclaredVariableHelperInitializers
+        ];
+
+        caseReplacementStatements = _transformationResultToStatements(
+            node.fileOffset, transformationResult, caseReplacementStatements);
+
+        replacementStatements.addAll(caseReplacementStatements);
       }
+
+      declaredVariableHelpers.addAll(caseDeclaredVariableHelpersByName.values);
+
+      for (VariableDeclaration jointVariable in switchCase.jointVariables) {
+        // In case of [InvalidExpression], there's an error associated with
+        // the variable, and it shouldn't be initialized.
+        if (jointVariable.initializer is! InvalidExpression) {
+          // `jointVariable`:
+          //     `jointVariable` =
+          //         `declaredVariableHelper`{`declaredVariable.type`}
+          //   ==> `jointVariable` = HVAR{`declaredVariable.type`}
+          jointVariable.initializer = engine.forest.createVariableGet(
+              node.fileOffset,
+              caseDeclaredVariableHelpersByName[jointVariable.name!]!)
+            ..promotedType = jointVariable.type
+            ..parent = jointVariable;
+        }
+      }
+
+      replacementCases.add(new SwitchCaseImpl(
+          [engine.forest.createIntLiteral(node.fileOffset, caseIndex)],
+          [node.fileOffset],
+          engine.forest
+              .createBlock(node.fileOffset, node.fileOffset, <Statement>[
+            ...switchCase.jointVariables,
+            if (body is! Block || body.statements.isNotEmpty) body
+          ]),
+          hasLabel: false,
+          isDefault: switchCase.isDefault));
     }
 
     replacementStatements = [
@@ -9392,17 +9382,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Statement node, int caseIndex, Iterable<VariableDeclaration> variables) {}
 
   @override
-  void handleDefault(Node node, int caseIndex) {
-    if (node is PatternSwitchStatement) {
-      SwitchCase switchCase = node.cases[caseIndex];
-      assert(switchCase.isDefault);
-      // Multi-head cases are handled elsewhere.
-      if (switchCase is! PatternSwitchCase ||
-          switchCase.patternGuards.isEmpty) {
-        pushRewrite(switchCase);
-      }
-    }
-  }
+  void handleDefault(Node node, int caseIndex) {}
 
   @override
   void handleNoStatement(Statement node) {

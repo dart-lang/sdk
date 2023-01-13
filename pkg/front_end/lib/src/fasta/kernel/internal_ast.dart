@@ -436,7 +436,7 @@ class PatternSwitchStatement extends InternalStatement
   Expression expression;
 
   @override
-  final List<SwitchCase> cases;
+  final List<PatternSwitchCase> cases;
 
   @override
   bool isExplicitlyExhaustive = false;

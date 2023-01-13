@@ -7529,8 +7529,26 @@ class BodyBuilder extends StackListenerImpl
     Expression expression = condition.expression;
     Statement switchStatement;
     if (containsPatterns) {
+      List<PatternSwitchCase> patternSwitchCases =
+          new List<PatternSwitchCase>.generate(cases.length, (int index) {
+        SwitchCase switchCase = cases[index];
+        if (switchCase is PatternSwitchCase) {
+          return switchCase;
+        } else {
+          List<PatternGuard> patterns = new List<PatternGuard>.generate(
+              switchCase.expressions.length, (int index) {
+            return new PatternGuard(
+                new ExpressionPattern(switchCase.expressions[index]));
+          });
+          return new PatternSwitchCase(
+              switchCase.fileOffset, patterns, switchCase.body,
+              isDefault: switchCase.isDefault,
+              hasLabel: (switchCase as SwitchCaseImpl).hasLabel,
+              jointVariables: []);
+        }
+      });
       switchStatement = new PatternSwitchStatement(
-          switchKeyword.charOffset, expression, cases);
+          switchKeyword.charOffset, expression, patternSwitchCases);
     } else {
       switchStatement = new SwitchStatement(expression, cases)
         ..fileOffset = switchKeyword.charOffset;

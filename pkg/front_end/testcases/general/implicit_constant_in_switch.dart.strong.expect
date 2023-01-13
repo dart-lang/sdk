@@ -201,10 +201,13 @@ static method test(dynamic value, core::bool expected) → void {
           }
         }
       #L8:
+      case #C15:
       default:
         {
-          matched = false;
-          break #L1;
+          {
+            matched = false;
+            break #L1;
+          }
         }
     }
   }
@@ -228,6 +231,7 @@ constants  {
   #C12 = 3
   #C13 = 4
   #C14 = 5
+  #C15 = 6
 }
 
 
