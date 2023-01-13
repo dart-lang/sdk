@@ -7031,6 +7031,28 @@ main() {
           ]),
         ]);
       });
+
+      test('synthetic break inserted even in unreachable cases', () {
+        // In this example, the second case is unreachable, so technically it
+        // doesn't matter whether it ends in a synthetic break.  However, to
+        // avoid confusion on the part of the CFE and back-end developers, we go
+        // ahead and put in the synthetic break anyhow.
+        h.run([
+          switch_(expr('Object'), [
+            wildcard().then([
+              intLiteral(0).stmt,
+            ]),
+            wildcard().then([
+              intLiteral(1).stmt,
+            ]),
+          ]).checkIr('switch(expr(Object), '
+              'case(heads(head(wildcardPattern(matchedType: Object), true, '
+              'variables()), variables()), block(stmt(0), synthetic-break())), '
+              'case(heads(head(wildcardPattern(matchedType: Object), true, '
+              'variables()), variables()), '
+              'block(stmt(1), synthetic-break())))'),
+        ]);
+      });
     });
 
     group('Variable pattern:', () {

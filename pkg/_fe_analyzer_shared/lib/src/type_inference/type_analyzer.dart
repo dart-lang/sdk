@@ -1457,14 +1457,13 @@ mixin TypeAnalyzer<
       }
       // Stack: (Expression, numExecutionPaths * StatementCase, CaseHeads,
       //         n * Statement), where n = body.length
-      lastCaseTerminates = !flow.isReachable;
+      lastCaseTerminates = !flow.switchStatement_afterCase();
       if (caseIndex < numCases - 1 &&
           options.nullSafetyEnabled &&
           !options.patternsEnabled &&
           !lastCaseTerminates) {
         errors?.switchCaseCompletesNormally(node, caseIndex, 1);
       }
-      flow.switchStatement_afterCase();
       handleMergedStatementCase(node,
           caseIndex: caseIndex, isTerminating: lastCaseTerminates);
       // Stack: (Expression, (numExecutionPaths + 1) * StatementCase)
