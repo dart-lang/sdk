@@ -75,7 +75,6 @@ class ForwardingListener implements Listener {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
-      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -87,7 +86,6 @@ class ForwardingListener implements Listener {
         sealedToken,
         baseToken,
         interfaceToken,
-        finalToken,
         augmentToken,
         mixinToken,
         name);
@@ -399,16 +397,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
+  void beginMixinDeclaration(Token? augmentToken, Token? sealedToken,
+      Token? baseToken, Token? interfaceToken, Token mixinKeyword, Token name) {
     listener?.beginMixinDeclaration(augmentToken, sealedToken, baseToken,
-        interfaceToken, finalToken, mixinKeyword, name);
+        interfaceToken, mixinKeyword, name);
   }
 
   @override
@@ -425,7 +417,6 @@ class ForwardingListener implements Listener {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
-      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -437,7 +428,6 @@ class ForwardingListener implements Listener {
         sealedToken,
         baseToken,
         interfaceToken,
-        finalToken,
         augmentToken,
         mixinToken,
         name);

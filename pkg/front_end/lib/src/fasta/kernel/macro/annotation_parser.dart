@@ -496,7 +496,6 @@ class _MacroListener implements Listener {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
-      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -805,14 +804,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
+  void beginMixinDeclaration(Token? augmentToken, Token? sealedToken,
+      Token? baseToken, Token? interfaceToken, Token mixinKeyword, Token name) {
     _unexpected();
   }
 
@@ -830,7 +823,6 @@ class _MacroListener implements Listener {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
-      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {

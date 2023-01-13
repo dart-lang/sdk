@@ -113,7 +113,6 @@ class ParserCreatorListener extends Listener {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
-      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {

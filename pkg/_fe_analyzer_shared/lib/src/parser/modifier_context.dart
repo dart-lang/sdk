@@ -128,6 +128,7 @@ class ModifierContext {
       reportTopLevelModifierError(externalToken!, keyword);
     }
     reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(finalToken);
     reportExtraneousModifier(lateToken);
     reportExtraneousModifier(requiredToken);
     reportExtraneousModifier(staticToken);
@@ -159,6 +160,7 @@ class ModifierContext {
     reportTopLevelModifierError(externalToken, keyword);
     reportExtraneousModifier(abstractToken);
     reportExtraneousModifier(covariantToken);
+    reportExtraneousModifier(finalToken);
     reportExtraneousModifier(lateToken);
     reportExtraneousModifier(requiredToken);
     reportExtraneousModifier(staticToken);

@@ -94,7 +94,6 @@ class ForwardingTestListener extends ForwardingListener {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
-      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -106,7 +105,6 @@ class ForwardingTestListener extends ForwardingListener {
         sealedToken,
         baseToken,
         interfaceToken,
-        finalToken,
         augmentToken,
         mixinToken,
         name);
@@ -401,16 +399,10 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
+  void beginMixinDeclaration(Token? augmentToken, Token? sealedToken,
+      Token? baseToken, Token? interfaceToken, Token mixinKeyword, Token name) {
     super.beginMixinDeclaration(augmentToken, sealedToken, baseToken,
-        interfaceToken, finalToken, mixinKeyword, name);
+        interfaceToken, mixinKeyword, name);
     begin('MixinDeclaration');
   }
 
@@ -429,7 +421,6 @@ class ForwardingTestListener extends ForwardingListener {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
-      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -441,7 +432,6 @@ class ForwardingTestListener extends ForwardingListener {
         sealedToken,
         baseToken,
         interfaceToken,
-        finalToken,
         augmentToken,
         mixinToken,
         name);

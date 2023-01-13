@@ -870,7 +870,6 @@ class OutlineBuilder extends StackListenerImpl {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
-      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -911,12 +910,6 @@ class OutlineBuilder extends StackListenerImpl {
         interfaceToken = null;
       }
     }
-    if (finalToken != null) {
-      if (reportIfNotEnabled(libraryFeatures.classModifiers,
-          finalToken.charOffset, finalToken.length)) {
-        finalToken = null;
-      }
-    }
     if (mixinToken != null) {
       if (reportIfNotEnabled(libraryFeatures.classModifiers,
           mixinToken.charOffset, mixinToken.length)) {
@@ -939,20 +932,13 @@ class OutlineBuilder extends StackListenerImpl {
     push(sealedToken ?? NullValue.Token);
     push(baseToken ?? NullValue.Token);
     push(interfaceToken ?? NullValue.Token);
-    push(finalToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
     push(mixinToken ?? NullValue.Token);
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken,
-      Token? sealedToken,
-      Token? baseToken,
-      Token? interfaceToken,
-      Token? finalToken,
-      Token mixinKeyword,
-      Token name) {
+  void beginMixinDeclaration(Token? augmentToken, Token? sealedToken,
+      Token? baseToken, Token? interfaceToken, Token mixinKeyword, Token name) {
     debugEvent("beginMixinDeclaration");
     popDeclarationContext(
         DeclarationContext.ClassOrMixinOrNamedMixinApplication);
@@ -977,17 +963,10 @@ class OutlineBuilder extends StackListenerImpl {
         interfaceToken = null;
       }
     }
-    if (finalToken != null) {
-      if (reportIfNotEnabled(libraryFeatures.classModifiers,
-          finalToken.charOffset, finalToken.length)) {
-        finalToken = null;
-      }
-    }
     push(augmentToken ?? NullValue.Token);
     push(sealedToken ?? NullValue.Token);
     push(baseToken ?? NullValue.Token);
     push(interfaceToken ?? NullValue.Token);
-    push(finalToken ?? NullValue.Token);
     push(typeVariables ?? NullValue.TypeVariables);
     libraryBuilder.currentTypeParameterScopeBuilder
         .markAsMixinDeclaration(name.lexeme, name.charOffset, typeVariables);
@@ -1057,7 +1036,6 @@ class OutlineBuilder extends StackListenerImpl {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
-      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -1101,12 +1079,6 @@ class OutlineBuilder extends StackListenerImpl {
         interfaceToken = null;
       }
     }
-    if (finalToken != null) {
-      if (reportIfNotEnabled(libraryFeatures.classModifiers,
-          finalToken.charOffset, finalToken.length)) {
-        finalToken = null;
-      }
-    }
     if (mixinToken != null) {
       if (reportIfNotEnabled(libraryFeatures.classModifiers,
           mixinToken.charOffset, mixinToken.length)) {
@@ -1118,7 +1090,6 @@ class OutlineBuilder extends StackListenerImpl {
     push(sealedToken ?? NullValue.Token);
     push(baseToken ?? NullValue.Token);
     push(interfaceToken ?? NullValue.Token);
-    push(finalToken ?? NullValue.Token);
     push(augmentToken ?? NullValue.Token);
     push(mixinToken ?? NullValue.Token);
   }
@@ -1275,7 +1246,6 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
       /* mixin token */ ValueKinds.TokenOrNull,
       /* augment token */ ValueKinds.TokenOrNull,
-      /* final token */ ValueKinds.TokenOrNull,
       /* interface token */ ValueKinds.TokenOrNull,
       /* base token */ ValueKinds.TokenOrNull,
       /* sealed token */ ValueKinds.TokenOrNull,
@@ -1298,8 +1268,6 @@ class OutlineBuilder extends StackListenerImpl {
     Token? mixinToken = pop(NullValue.Token) as Token?;
     Token? augmentToken = pop(NullValue.Token) as Token?;
     // TODO(kallentu): AST work for class modifiers.
-    // ignore: unused_local_variable
-    Token? finalToken = pop(NullValue.Token) as Token?;
     // ignore: unused_local_variable
     Token? interfaceToken = pop(NullValue.Token) as Token?;
     // ignore: unused_local_variable
@@ -1425,7 +1393,6 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.ParserRecovery,
       ]),
       /* type variables */ ValueKinds.TypeVariableListOrNull,
-      /* final token */ ValueKinds.TokenOrNull,
       /* interface token */ ValueKinds.TokenOrNull,
       /* base token */ ValueKinds.TokenOrNull,
       /* sealed token */ ValueKinds.TokenOrNull,
@@ -1442,8 +1409,6 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeVariableBuilder>? typeVariables =
         pop(NullValue.TypeVariables) as List<TypeVariableBuilder>?;
     // TODO(kallentu): Add AST support for mixin modifiers
-    // ignore: unused_local_variable
-    Token? finalToken = pop(NullValue.Token) as Token?;
     // ignore: unused_local_variable
     Token? interfaceToken = pop(NullValue.Token) as Token?;
     // ignore: unused_local_variable
@@ -2273,7 +2238,6 @@ class OutlineBuilder extends StackListenerImpl {
       ]),
       /* mixin token */ ValueKinds.TokenOrNull,
       /* augment token */ ValueKinds.TokenOrNull,
-      /* final token */ ValueKinds.TokenOrNull,
       /* interface token */ ValueKinds.TokenOrNull,
       /* base token */ ValueKinds.TokenOrNull,
       /* sealed token */ ValueKinds.TokenOrNull,
@@ -2294,8 +2258,6 @@ class OutlineBuilder extends StackListenerImpl {
     Token? mixinToken = pop(NullValue.Token) as Token?;
     Token? augmentToken = pop(NullValue.Token) as Token?;
     // TODO(kallentu): AST work for class modifiers.
-    // ignore: unused_local_variable
-    Token? finalToken = pop(NullValue.Token) as Token?;
     // ignore: unused_local_variable
     Token? interfaceToken = pop(NullValue.Token) as Token?;
     // ignore: unused_local_variable
