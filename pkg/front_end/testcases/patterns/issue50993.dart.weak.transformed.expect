@@ -1,0 +1,246 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test1(core::int value) → core::String {
+  #L1:
+  {
+    final core::int #t1 = value;
+    final core::int #t2 = -1;
+    final core::bool #t3 = false;
+    if(!#t3 && #t1.{core::num::<}(2){(core::num) → core::bool}) {
+      #t2 = 0;
+      #t3 = true;
+    }
+    if(!#t3 && #t1 =={core::num::==}{(core::Object) → core::bool} 2) {
+      #t2 = 1;
+      #t3 = true;
+    }
+    switch(#t2) {
+      #L2:
+      case #C1:
+        {
+          {
+            return "case <2";
+          }
+        }
+      #L3:
+      case #C2:
+        {
+          {
+            return "case 2";
+          }
+        }
+    }
+  }
+  return "not matched";
+}
+static method test2(core::int value) → core::String {
+  #L4:
+  {
+    final core::int #t4 = value;
+    final core::int #t5 = -1;
+    final core::bool #t6 = false;
+    if(!#t6 && #t4.{core::num::<}(2){(core::num) → core::bool}) {
+      #t5 = 0;
+      #t6 = true;
+    }
+    if(!#t6 && #t4 =={core::num::==}{(core::Object) → core::bool} 2) {
+      #t5 = 1;
+      #t6 = true;
+    }
+    switch(#t5) {
+      #L5:
+      case #C1:
+        {
+          {
+            return "case <2";
+          }
+        }
+      #L6:
+      case #C2:
+      default:
+        {
+          {
+            return "case 2";
+          }
+        }
+    }
+  }
+  return "not matched";
+}
+static method test3(core::int value) → core::String {
+  #L7:
+  {
+    final core::int #t7 = value;
+    final core::int #t8 = -1;
+    final core::bool #t9 = false;
+    if(!#t9 && #t7 =={core::num::==}{(core::Object) → core::bool} 2) {
+      #t8 = 0;
+      #t9 = true;
+    }
+    if(!#t9 && #t7.{core::num::<}(2){(core::num) → core::bool}) {
+      #t8 = 1;
+      #t9 = true;
+    }
+    switch(#t8) {
+      #L8:
+      case #C1:
+        {
+          {
+            return "case 2";
+          }
+        }
+      #L9:
+      case #C2:
+      default:
+        {
+          {
+            return "case <2";
+          }
+        }
+    }
+  }
+  return "not matched";
+}
+static method test4(core::int value) → core::String {
+  #L10:
+  {
+    final core::int #t10 = value;
+    final core::int #t11 = -1;
+    final core::bool #t12 = false;
+    if(!#t12 && #t10 =={core::num::==}{(core::Object) → core::bool} 2) {
+      #t11 = 0;
+      #t12 = true;
+    }
+    if(!#t12 && #t10.{core::num::<}(2){(core::num) → core::bool}) {
+      #t11 = 1;
+      #t12 = true;
+    }
+    switch(#t11) {
+      #L11:
+      case #C1:
+        {
+          {
+            return "case 2";
+          }
+        }
+      #L12:
+      case #C2:
+        {
+          {
+            return "case <2";
+          }
+        }
+      #L13:
+      case #C3:
+      default:
+        {
+          {
+            return "default";
+          }
+        }
+    }
+  }
+}
+static method test5(core::int value) → core::String {
+  #L14:
+  {
+    final core::int #t13 = value;
+    final core::int #t14 = -1;
+    final core::bool #t15 = false;
+    if(!#t15 && #t13 =={core::num::==}{(core::Object) → core::bool} 2) {
+      #t14 = 0;
+      #t15 = true;
+    }
+    if(!#t15 && #t13.{core::num::<}(2){(core::num) → core::bool}) {
+      #t14 = 1;
+      #t15 = true;
+    }
+    if(!#t15 && #t13.{core::num::>}(3){(core::num) → core::bool}) {
+      #t14 = 1;
+      #t15 = true;
+    }
+    switch(#t14) {
+      #L15:
+      case #C1:
+        {
+          {
+            return "case 2";
+          }
+        }
+      #L16:
+      case #C2:
+        {
+          {
+            return "case <2 >3";
+          }
+        }
+      #L17:
+      case #C3:
+      default:
+        {
+          {
+            return "default";
+          }
+        }
+    }
+  }
+}
+static method test6(core::int value) → core::String {
+  #L18:
+  switch(value) {
+    #L19:
+    case #C3:
+      {
+        return "case 2";
+      }
+    #L20:
+    case #C2:
+    case #C4:
+      {
+        return "case 1/4";
+      }
+    #L21:
+    default:
+      {
+        return "default";
+      }
+  }
+}
+static method main() → dynamic {
+  self::expect("case <2", self::test1(1));
+  self::expect("case 2", self::test1(2));
+  self::expect("not matched", self::test1(3));
+  self::expect("case <2", self::test2(1));
+  self::expect("case 2", self::test2(2));
+  self::expect("case 2", self::test2(3));
+  self::expect("case <2", self::test3(1));
+  self::expect("case 2", self::test3(2));
+  self::expect("case <2", self::test3(3));
+  self::expect("case <2", self::test4(1));
+  self::expect("case 2", self::test4(2));
+  self::expect("default", self::test4(3));
+  self::expect("case <2", self::test4(1));
+  self::expect("case 2", self::test4(2));
+  self::expect("default", self::test4(3));
+  self::expect("case <2 >3", self::test5(1));
+  self::expect("case 2", self::test5(2));
+  self::expect("default", self::test5(3));
+  self::expect("case <2 >3", self::test5(4));
+  self::expect("case 1/4", self::test6(1));
+  self::expect("case 2", self::test6(2));
+  self::expect("default", self::test6(3));
+  self::expect("case 1/4", self::test6(4));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+constants  {
+  #C1 = 0
+  #C2 = 1
+  #C3 = 2
+  #C4 = 4
+}
