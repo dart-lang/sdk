@@ -228,11 +228,11 @@ class TypeInferrerImpl implements TypeInferrer {
       namedArguments.add(new NamedExpression(parameter.name!,
           new VariableGetImpl(parameter, forNullGuardedAccess: false)));
     }
-    // If arguments are created using [Forest.createArguments], and the
+    // If arguments are created using [ArgumentsImpl], and the
     // type arguments are omitted, they are to be inferred.
-    ArgumentsImpl targetInvocationArguments = engine.forest.createArguments(
-        fileOffset, positionalArguments,
-        named: namedArguments);
+    ArgumentsImpl targetInvocationArguments =
+        new ArgumentsImpl(positionalArguments, named: namedArguments)
+          ..fileOffset = fileOffset;
 
     InvocationInferenceResult result = visitor.inferInvocation(
         visitor, typeContext, fileOffset, targetType, targetInvocationArguments,

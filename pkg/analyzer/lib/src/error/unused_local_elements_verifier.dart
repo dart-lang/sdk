@@ -207,8 +207,16 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRecordPatternField(RecordPatternField node) {
+    usedElements.addMember(node.fieldElement);
+    usedElements.addReadMember(node.fieldElement);
+    super.visitRecordPatternField(node);
+  }
+
+  @override
   void visitRelationalPattern(RelationalPattern node) {
     usedElements.addMember(node.element);
+    usedElements.addReadMember(node.element);
     super.visitRelationalPattern(node);
   }
 
@@ -1010,6 +1018,11 @@ class UsedLocalElements {
   }
 
   void addReadMember(Element? element) {
+    // Store un-parameterized members.
+    if (element is ExecutableMember) {
+      element = element.declaration;
+    }
+
     if (element != null) {
       readMembers.add(element);
     }

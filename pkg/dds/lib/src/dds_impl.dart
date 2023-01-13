@@ -27,6 +27,7 @@ import 'devtools/handler.dart';
 import 'expression_evaluator.dart';
 import 'isolate_manager.dart';
 import 'package_uri_converter.dart';
+import 'rpc_error_codes.dart';
 import 'stream_manager.dart';
 
 @visibleForTesting
@@ -482,4 +483,19 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
   late json_rpc.Peer vmServiceClient;
   late WebSocketChannel _vmServiceSocket;
   late HttpServer _server;
+}
+
+extension PeerExtension on json_rpc.Peer {
+  Future<dynamic> sendRequestAndIgnoreMethodNotFound(
+    String method, [
+    dynamic parameters,
+  ]) async {
+    try {
+      await sendRequest(method, parameters);
+    } on json_rpc.RpcException catch (e) {
+      if (e.code != RpcErrorCodes.kMethodNotFound) {
+        rethrow;
+      }
+    }
+  }
 }

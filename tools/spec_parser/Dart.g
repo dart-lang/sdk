@@ -4,6 +4,9 @@
 
 // CHANGES:
 //
+// v0.28 Add support for `new` in `enumEntry`, e.g., `enum E { x.new(); }`.
+// Add `identifierOrNew` non-terminal to simplify the grammar.
+//
 // v0.27 Remove unused non-terminals; make handling of interpolation in URIs
 // consistent with the language specification. Make `partDeclaration` a
 // start symbol in addition to `libraryDefinition` (such that no special
@@ -472,11 +475,17 @@ constructorSignature
     ;
 
 constructorName
-    :    typeIdentifier ('.' (identifier | NEW))?
+    :    typeIdentifier ('.' identifierOrNew)?
+    ;
+
+// TODO: Add this in the language specification, use it in grammar rules.
+identifierOrNew
+    :    identifier
+    |    NEW
     ;
 
 redirection
-    :    ':' THIS ('.' (identifier | NEW))? arguments
+    :    ':' THIS ('.' identifierOrNew)? arguments
     ;
 
 initializers
@@ -485,7 +494,7 @@ initializers
 
 initializerListEntry
     :    SUPER arguments
-    |    SUPER '.' (identifier | NEW) arguments
+    |    SUPER '.' identifierOrNew arguments
     |    fieldInitializer
     |    assertion
     ;
@@ -525,7 +534,7 @@ enumType
 
 enumEntry
     :    metadata identifier argumentPart?
-    |    metadata identifier typeArguments? '.' identifier arguments
+    |    metadata identifier typeArguments? '.' identifierOrNew arguments
     ;
 
 typeParameter
@@ -976,8 +985,8 @@ identifier
     ;
 
 qualifiedName
-    :    typeIdentifier '.' (identifier | NEW)
-    |    typeIdentifier '.' typeIdentifier '.' (identifier | NEW)
+    :    typeIdentifier '.' identifierOrNew
+    |    typeIdentifier '.' typeIdentifier '.' identifierOrNew
     ;
 
 typeIdentifier
@@ -1494,7 +1503,7 @@ typedIdentifier
 constructorDesignation
     :    typeIdentifier
     |    qualifiedName
-    |    typeName typeArguments ('.' (identifier | NEW))?
+    |    typeName typeArguments ('.' identifierOrNew)?
     ;
 
 symbolLiteral

@@ -21,8 +21,7 @@ DEFINE_FLAG(bool,
             "Print integer IR selection optimization pass.");
 DECLARE_FLAG(bool, trace_constant_propagation);
 
-// Quick access to the locally defined isolate() and zone() methods.
-#define I (isolate())
+// Quick access to the locally defined zone() method.
 #define Z (zone())
 
 void RangeAnalysis::Analyze() {

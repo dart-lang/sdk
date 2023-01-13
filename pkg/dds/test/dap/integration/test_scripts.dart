@@ -199,5 +199,21 @@ const simpleThrowingProgram = r'''
   }
 ''';
 
+/// A simple Dart script that sends a `navigate` event to the `ToolEvent`
+/// stream.
+const simpleToolEventProgram = r'''
+  import 'dart:developer';
+
+  void main(List<String> args) async {
+    postEvent(
+      'navigate',
+      {
+        'file': 'x.dart',
+      },
+      stream: 'ToolEvent',
+    );
+  }
+''';
+
 /// A marker used in some test scripts/tests for where to expected steps.
 const stepMarker = '// STEP';

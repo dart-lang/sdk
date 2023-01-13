@@ -94,7 +94,7 @@ final summaryArgsParser = new ArgParser()
       help: 'Enable a language experiment when invoking the CFE.')
   ..addMultiOption('define', abbr: 'D')
   ..addFlag('verbose', defaultsTo: false)
-  ..addFlag('sound-null-safety', defaultsTo: false)
+  ..addFlag('sound-null-safety', defaultsTo: true)
   ..addFlag('null-environment', defaultsTo: false, negatable: false)
   ..addOption('verbosity',
       defaultsTo: fe.Verbosity.defaultValue,

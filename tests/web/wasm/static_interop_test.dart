@@ -4,6 +4,7 @@
 
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';
+import 'static_interop_library.dart';
 
 @JS()
 external void eval(String code);
@@ -12,6 +13,9 @@ external void eval(String code);
 @staticInterop
 class StaticJSClass {
   external factory StaticJSClass.factory(String foo);
+
+  external static String externalStaticMethod();
+  static String staticMethod() => 'bar';
 }
 
 extension StaticJSClassMethods on StaticJSClass {
@@ -78,7 +82,22 @@ void createClassTest() {
         return a + b;
       }
     }
+    globalThis.JSClass.externalStaticMethod = function() {
+      return 'foo';
+    }
+
+    globalThis.library = function() {}
+    globalThis.library.libraryTopLevelGetter = 'foo';
+    globalThis.library.jsedLibraryTopLevelGetter = 'foo';
+    globalThis.library.NamespacedClass = function() {
+      this.member = function() {
+        return 'foo';
+      }
+    }
   ''');
+  Expect.equals('foo', StaticJSClass.externalStaticMethod());
+  Expect.equals('bar', StaticJSClass.staticMethod());
+
   final foo = StaticJSClass.factory('foo');
   Expect.equals('foo', foo.foo);
   foo.foo = 'bar';
@@ -113,6 +132,10 @@ void createClassTest() {
   Expect.equals('foo', foo.nameInDartGetter);
   foo.nameInDartSetter = 'boo';
   Expect.equals('boo', foo.nameInJSSetter);
+
+  Expect.equals('foo', NamespacedClass().member());
+  Expect.equals('foo', libraryTopLevelGetter);
+  Expect.equals('foo', libraryOtherTopLevelGetter);
 }
 
 @JS('JSClass.NestedJSClass')

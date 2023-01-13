@@ -28,7 +28,7 @@ extension E on String {
   test_instance_sameKind() async {
     await assertErrorsInCode('''
 extension E on String {
-  bool operator==(_) => false;
+  bool operator==(Object _) => false;
   int get hashCode => 0;
   String toString() => '';
   dynamic get runtimeType => null;
@@ -36,10 +36,10 @@ extension E on String {
 }
 ''', [
       error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 39, 2),
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 65, 8),
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 89, 8),
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 121, 11),
-      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 152, 12),
+      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 72, 8),
+      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 96, 8),
+      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 128, 11),
+      error(CompileTimeErrorCode.EXTENSION_DECLARES_MEMBER_OF_OBJECT, 159, 12),
     ]);
   }
 

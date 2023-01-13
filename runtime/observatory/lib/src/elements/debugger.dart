@@ -1687,7 +1687,6 @@ class ObservatoryDebugger extends Debugger {
   }
 
   Future _reportBreakpointEvent(S.ServiceEvent event) async {
-    var bpt = event.breakpoint;
     var verb = null;
     switch (event.kind) {
       case S.ServiceEvent.kBreakpointAdded:
@@ -1702,11 +1701,13 @@ class ObservatoryDebugger extends Debugger {
       default:
         break;
     }
-    var script = bpt!.location!.script;
+    var bpt = event.breakpoint!;
+    var location = bpt.location!;
+    var script = location.script!;
     await script.load();
 
     var bpId = bpt.number;
-    var locString = await bpt.location!.toUserString();
+    var locString = await location.toUserString();
     if (bpt.resolved!) {
       console.print('Breakpoint ${bpId} ${verb} at ${locString}');
     } else {

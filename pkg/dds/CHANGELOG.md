@@ -1,6 +1,11 @@
+# 2.7.2
+- Update DDS protocol version to 1.4.
+- [DAP] Forward any events from the VM Service's `ToolEvent` stream as `dart.toolEvent` DAP events.
+
 # 2.7.1
-- Updated `vm_service` version to ^10.0.0.
+- Updated `vm_service` version to >=9.0.0 <11.0.0.
 - Simplified the DevTools URI composed by DDS.
+- Fix issue where DDS was invoking an unimplemented RPC against a non-VM target.
 
 # 2.7.0
 - Added `DartDevelopmentService.setExternalDevToolsUri(Uri uri)`, adding support for registering an external DevTools server with DDS.

@@ -39,8 +39,6 @@ class TranslationHelper {
 
   Zone* zone() { return zone_; }
 
-  Isolate* isolate() { return isolate_; }
-
   IsolateGroup* isolate_group() { return isolate_group_; }
 
   Heap::Space allocation_space() { return allocation_space_; }
@@ -248,7 +246,6 @@ class TranslationHelper {
 
   Thread* thread_;
   Zone* zone_;
-  Isolate* isolate_;
   IsolateGroup* isolate_group_;
   Heap::Space allocation_space_;
 

@@ -40,11 +40,11 @@ TEMPDIR="$(mktemp -d)"
 TEMPFILE="$(mktemp -p "$TEMPDIR" --suffix=.wasm)"
 
 "$DART2WASM" "$1" "$TEMPFILE"
-"$BINARYEN" -all -g --closed-world --nominal -tnh -O3 --gufa -O3 "$TEMPFILE" -o "$2"
+"$BINARYEN" -all -g --closed-world -tnh -O3 --type-ssa --gufa -O3 --type-merging "$TEMPFILE" -o "$2"
 
 # Locate JS runtime and copy it to the same directory as "$2". We also rename it
 # using the basename of "$2".
-cp "${TEMPFILE%.*}.mjs" "$(dirname "$2")"/"${2%.*}.mjs"
+cp "${TEMPFILE%.*}.mjs" "$(dirname "$2")"/"$(basename ${2%.*}.mjs)"
 
 # Clean up temporary files.
 rm -r "$TEMPDIR"

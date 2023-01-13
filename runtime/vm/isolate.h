@@ -1840,8 +1840,8 @@ class EnterIsolateGroupScope {
 
 // Ensure that isolate is not available for the duration of this scope.
 //
-// This can be used in code (e.g. GC, Kernel Loader) that should not operate on
-// an individual isolate.
+// This can be used in code (e.g. GC, Kernel Loader, Compiler) that should not
+// operate on an individual isolate.
 class NoActiveIsolateScope : public StackResource {
  public:
   NoActiveIsolateScope() : NoActiveIsolateScope(Thread::Current()) {}

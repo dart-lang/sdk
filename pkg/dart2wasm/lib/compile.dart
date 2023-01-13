@@ -19,6 +19,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         Severity;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
@@ -87,6 +88,9 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
   }
   Component component = compilerResult.component!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
+  ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
+
+  String jsRuntime = generateJSRuntime(component, coreTypes, classHierarchy);
 
   globalTypeFlow.transformComponent(target, coreTypes, component,
       treeShakeSignatures: true,
@@ -111,6 +115,5 @@ Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
         options.outputFile, depFile);
   }
 
-  return CompilerOutput(
-      translator.translate(), generateJSRuntime(component, coreTypes));
+  return CompilerOutput(translator.translate(), jsRuntime);
 }

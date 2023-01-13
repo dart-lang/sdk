@@ -154,7 +154,7 @@ class FieldViewElement extends CustomElement implements Renderable {
             ..children = _field.location == null
                 ? const []
                 : [
-                    new ScriptInsetElement(_isolate, _field.location!.script,
+                    new ScriptInsetElement(_isolate, _field.location!.script!,
                             _scripts, _objects, _events,
                             startPos: field.location!.tokenPos,
                             endPos: field.location!.tokenPos,

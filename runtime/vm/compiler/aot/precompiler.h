@@ -279,7 +279,6 @@ class Precompiler : public ValueObject {
 
   Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
-  Isolate* isolate() const { return isolate_; }
 
  private:
   static Precompiler* singleton_;
@@ -371,7 +370,6 @@ class Precompiler : public ValueObject {
 
   Thread* thread_;
   Zone* zone_;
-  Isolate* isolate_;
 
   bool changed_;
   bool retain_root_library_caches_;

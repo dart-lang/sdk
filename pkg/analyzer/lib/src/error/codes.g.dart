@@ -5645,6 +5645,14 @@ class StaticWarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const StaticWarningCode NON_NULLABLE_EQUALS_PARAMETER =
+      StaticWarningCode(
+    'NON_NULLABLE_EQUALS_PARAMETER',
+    "The parameter type of '==' operators should be non-nullable.",
+    correctionMessage: "Try using a non-nullable type.",
+  );
+
   ///  Parameters:
   ///  0: the name of the class
   static const StaticWarningCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE =

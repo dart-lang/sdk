@@ -26,7 +26,6 @@ namespace kernel {
 TranslationHelper::TranslationHelper(Thread* thread)
     : thread_(thread),
       zone_(thread->zone()),
-      isolate_(thread->isolate()),
       isolate_group_(thread->isolate_group()),
       allocation_space_(Heap::kNew),
       string_offsets_(TypedData::Handle(Z)),
@@ -42,7 +41,6 @@ TranslationHelper::TranslationHelper(Thread* thread)
 TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
     : thread_(thread),
       zone_(thread->zone()),
-      isolate_(thread->isolate()),
       isolate_group_(thread->isolate_group()),
       allocation_space_(space),
       string_offsets_(TypedData::Handle(Z)),

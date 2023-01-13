@@ -5635,7 +5635,7 @@ CompileTimeErrorCode:
 
       ```dart
       mixin M on Enum {
-        bool operator [!==!](Object? other) => false;
+        bool operator [!==!](Object other) => false;
       }
       ```
 
@@ -22789,6 +22789,11 @@ StaticWarningCode:
       ```
       TODO(brianwilkerson) This documentation will need to be updated when NNBD
        ships.
+  NON_NULLABLE_EQUALS_PARAMETER:
+    problemMessage: "The parameter type of '==' operators should be non-nullable."
+    correctionMessage: Try using a non-nullable type.
+    hasPublishedDocs: false
+    comment: No parameters.
   SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
     problemMessage: "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but this code is required to be able to run on earlier versions."
     correctionMessage: "Try either importing 'dart:async' or updating the SDK constraints."

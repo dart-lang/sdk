@@ -7,8 +7,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/js_interop.dart' as jsInteropHelper;
 import 'package:_js_interop_checks/src/transformations/export_creator.dart';
-import 'package:_js_interop_checks/src/transformations/js_util_wasm_optimizer.dart';
-import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -112,19 +110,8 @@ class WasmTarget extends Target {
     }
     final exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
         diagnosticReporter, jsInteropChecks.exportChecker);
-    final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
     for (Library library in interopDependentLibraries) {
       exportCreator.visitLibrary(library);
-      jsUtilOptimizer.visitLibrary(library);
-    }
-    // Do the erasure after any possible mock creation to avoid erasing types
-    // that need to be used during mock conformance checking.
-    final staticInteropClassEraser = StaticInteropClassEraser(
-        coreTypes, referenceFromIndex,
-        libraryForJavaScriptObject: 'dart:_js_helper',
-        classNameOfJavaScriptObject: 'JSValue');
-    for (Library library in interopDependentLibraries) {
-      staticInteropClassEraser.visitLibrary(library);
     }
   }
 

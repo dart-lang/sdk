@@ -238,19 +238,13 @@ class StreamManager {
         if (streamListeners[stream]!.contains(client)) {
           throw kStreamAlreadySubscribedException;
         } else if (!streamNewlySubscribed && includePrivates != null) {
-          try {
-            await dds.vmServiceClient.sendRequest(
-                '_setStreamIncludePrivateMembers',
-                {'streamId': stream, 'includePrivateMembers': includePrivates});
-          } on json_rpc.RpcException catch (e) {
-            // This private RPC might not be present. If it's not, we're communicating with an older
-            // VM that doesn't support filtering private members, so they will always be included in
-            // responses. Handle the method not found exception so the streamListen call doesn't
-            // fail for older VMs.
-            if (e.code != RpcErrorCodes.kMethodNotFound) {
-              rethrow;
-            }
-          }
+          // This private RPC might not be present. If it's not, we're communicating with an older
+          // VM that doesn't support filtering private members, so they will always be included in
+          // responses. Handle the method not found exception so the streamListen call doesn't
+          // fail for older VMs.
+          await dds.vmServiceClient.sendRequestAndIgnoreMethodNotFound(
+              '_setStreamIncludePrivateMembers',
+              {'streamId': stream, 'includePrivateMembers': includePrivates});
         }
         if (client != null) {
           streamListeners[stream]!.add(client);
@@ -352,9 +346,12 @@ class StreamManager {
           _profilerUserTagSubscriptions.remove(subscribedTag);
         }
       }
-      await dds.vmServiceClient.sendRequest('streamCpuSamplesWithUserTag', {
-        'userTags': _profilerUserTagSubscriptions.toList(),
-      });
+      await dds.vmServiceClient.sendRequestAndIgnoreMethodNotFound(
+        'streamCpuSamplesWithUserTag',
+        {
+          'userTags': _profilerUserTagSubscriptions.toList(),
+        },
+      );
     });
   }
 
