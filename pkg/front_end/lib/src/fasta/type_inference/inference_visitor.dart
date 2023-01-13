@@ -47,6 +47,7 @@ import '../source/constructor_declaration.dart';
 import '../source/source_library_builder.dart';
 import '../uri_offset.dart';
 import 'closure_context.dart';
+import 'external_ast_helper.dart';
 import 'for_in.dart';
 import 'inference_helper.dart';
 import 'inference_results.dart';
@@ -1776,35 +1777,29 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       node.expression = (rewrite as Expression)..parent = node;
     }
 
-    VariableDeclaration matchedExpressionVariable = engine.forest
-        .createVariableDeclarationForValue(node.expression,
-            type: scrutineeType);
+    VariableDeclaration matchedExpressionVariable =
+        createVariableCache(node.expression, scrutineeType);
 
     // isPatternMatchingFailed: bool VAR = true;
-    VariableDeclaration isPatternMatchingFailed = engine.forest
-        .createVariableDeclarationForValue(
-            engine.forest.createBoolLiteral(node.fileOffset, true),
-            type: coreTypes.boolNonNullableRawType);
+    VariableDeclaration isPatternMatchingFailed = createInitializedVariable(
+        createBoolLiteral(true, fileOffset: node.fileOffset),
+        coreTypes.boolNonNullableRawType,
+        fileOffset: node.fileOffset);
 
     // patternMatchedSet: `isPatternMatchingFailed` = false;
     //   ==> VAR = true;
-    Statement patternMatchedSet = engine.forest.createExpressionStatement(
-        node.fileOffset,
-        engine.forest.createVariableSet(
-            node.fileOffset,
-            isPatternMatchingFailed,
-            engine.forest.createBoolLiteral(node.fileOffset, false)));
+    Statement patternMatchedSet = createExpressionStatement(createVariableSet(
+        isPatternMatchingFailed,
+        createBoolLiteral(false, fileOffset: node.fileOffset),
+        fileOffset: node.fileOffset));
 
     Statement? otherwiseBranchAsStatement;
     if (otherwise != null) {
       // otherwiseBranchAsStatement: if (`isPatternMatchingFailed`) `otherwise`
       //   ==> if (VAR) `otherwise`
-      otherwiseBranchAsStatement = engine.forest.createIfStatement(
-          node.fileOffset,
-          engine.forest
-              .createVariableGet(node.fileOffset, isPatternMatchingFailed),
-          otherwise,
-          null);
+      otherwiseBranchAsStatement = createIfStatement(
+          createVariableGet(isPatternMatchingFailed), otherwise,
+          fileOffset: node.fileOffset);
     }
 
     List<Statement> replacementStatements = [
@@ -1814,11 +1809,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     PatternTransformationResult transformationResult = node.patternGuard.pattern
         .transform(this,
-            matchedExpression: engine.forest
-                .createVariableGet(node.fileOffset, matchedExpressionVariable),
+            matchedExpression: createVariableGet(matchedExpressionVariable),
             matchedType: scrutineeType,
-            variableInitializingContext: engine.forest
-                .createVariableGet(node.fileOffset, matchedExpressionVariable));
+            variableInitializingContext:
+                createVariableGet(matchedExpressionVariable));
     transformationResult = transformationResult.combine(
         new PatternTransformationResult([
           new PatternTransformationElement(
@@ -1865,12 +1859,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           Expression? condition = transformationElement.condition;
           if (condition != null) {
             replacementStatements = [
-              engine.forest.createIfStatement(
-                  fileOffset,
-                  condition,
-                  engine.forest.createBlock(
-                      fileOffset, fileOffset, replacementStatements),
-                  null)
+              createIfStatement(condition,
+                  createBlock(replacementStatements, fileOffset: fileOffset),
+                  fileOffset: fileOffset)
             ];
           }
           break;
@@ -7730,24 +7721,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     // matchedExpressionVariable: dynamic MVAR = `node.expression`;
-    VariableDeclaration matchedExpressionVariable = engine.forest
-        .createVariableDeclarationForValue(expression, type: scrutineeType);
+    VariableDeclaration matchedExpressionVariable =
+        createVariableCache(expression, scrutineeType);
 
     // matchResultVariable: int RVAR = -1;
-    VariableDeclaration matchResultVariable = engine.forest
-        .createVariableDeclarationForValue(
-            engine.forest.createIntLiteral(node.fileOffset, -1),
-            type: coreTypes.intNonNullableRawType);
+    VariableDeclaration matchResultVariable = createInitializedVariable(
+        createIntLiteral(-1, fileOffset: node.fileOffset),
+        coreTypes.intNonNullableRawType,
+        fileOffset: node.fileOffset);
 
     // matchSucceeded: bool SVAR = false;
-    VariableDeclaration matchSucceeded = engine.forest
-        .createVariableDeclarationForValue(
-            engine.forest.createBoolLiteral(node.fileOffset, false),
-            type: coreTypes.boolNonNullableRawType);
+    VariableDeclaration matchSucceeded = createInitializedVariable(
+        createBoolLiteral(false, fileOffset: node.fileOffset),
+        coreTypes.boolNonNullableRawType,
+        fileOffset: node.fileOffset);
 
     // valueVariable: `valueType` valueVariable;
-    VariableDeclaration valueVariable = engine.forest
-        .createVariableDeclaration(node.fileOffset, null, type: valueType);
+    VariableDeclaration valueVariable =
+        createUninitializedVariable(valueType, fileOffset: node.fileOffset);
 
     List<Statement> replacementStatements = [
       matchedExpressionVariable,
@@ -7758,7 +7749,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<SwitchCase> replacementCases = [];
 
     LabeledStatement switchLabel =
-        engine.forest.createLabeledStatement(dummyStatement);
+        createLabeledStatement(dummyStatement, fileOffset: node.fileOffset);
     for (int caseIndex = 0; caseIndex < node.cases.length; caseIndex++) {
       SwitchExpressionCase switchExpressionCase = node.cases[caseIndex];
       Pattern pattern = switchExpressionCase.patternGuard.pattern;
@@ -7767,31 +7758,31 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       // setMatchResult: `matchResultVariable` = `caseIndex`;
       //   ==> RVAR = `caseIndex`;
-      Statement setMatchResult = engine.forest.createExpressionStatement(
-          node.fileOffset,
-          engine.forest.createVariableSet(node.fileOffset, matchResultVariable,
-              engine.forest.createIntLiteral(node.fileOffset, caseIndex)));
+      Statement setMatchResult = createExpressionStatement(createVariableSet(
+          matchResultVariable,
+          createIntLiteral(caseIndex, fileOffset: node.fileOffset),
+          fileOffset: node.fileOffset));
 
       // setMatchSucceeded: `matchSucceeded` = true;
       //   ==> SVAR = true;
-      Statement setMatchSucceeded = engine.forest.createExpressionStatement(
-          node.fileOffset,
-          engine.forest.createVariableSet(node.fileOffset, matchSucceeded,
-              engine.forest.createBoolLiteral(node.fileOffset, true)));
+      Statement setMatchSucceeded = createExpressionStatement(createVariableSet(
+          matchSucceeded, createBoolLiteral(true, fileOffset: node.fileOffset),
+          fileOffset: node.fileOffset));
 
       PatternTransformationResult transformationResult = pattern.transform(this,
-          matchedExpression: engine.forest
-              .createVariableGet(node.fileOffset, matchedExpressionVariable),
+          matchedExpression: createVariableGet(matchedExpressionVariable),
           matchedType: scrutineeType,
-          variableInitializingContext: engine.forest
-              .createVariableGet(node.fileOffset, matchedExpressionVariable));
+          variableInitializingContext:
+              createVariableGet(matchedExpressionVariable));
 
       List<Statement> variableInitializers = [];
       for (VariableDeclaration variable in pattern.declaredVariables) {
-        variableInitializers.add(engine.forest.createExpressionStatement(
-            node.fileOffset,
-            engine.forest.createVariableSet(
-                node.fileOffset, variable, variable.initializer!)));
+        // TODO(johnniwinther): Can the variable be const?
+        // TODO(johnniwinther): Re-enable this:
+        //variable.isFinal = false;
+        variableInitializers.add(createExpressionStatement(createVariableSet(
+            variable, variable.initializer!,
+            fileOffset: node.fileOffset)));
         variable.initializer = null;
       }
 
@@ -7812,10 +7803,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       //   ==> SVAR!
       transformationResult = transformationResult.prependElement(
           new PatternTransformationElement(
-              condition: engine.forest.createNot(
-                  node.fileOffset,
-                  engine.forest
-                      .createVariableGet(node.fileOffset, matchSucceeded)),
+              condition: createNot(createVariableGet(matchSucceeded)),
               variableInitializers: [],
               kind: PatternTransformationElementKind.regular),
           this);
@@ -7830,29 +7818,25 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       replacementStatements.addAll(caseReplacementStatements);
 
-      replacementCases.add(new SwitchCaseImpl(
-          [engine.forest.createIntLiteral(node.fileOffset, caseIndex)],
+      replacementCases.add(createSwitchCase(
+          [createIntLiteral(caseIndex, fileOffset: node.fileOffset)],
           [node.fileOffset],
-          engine.forest.createBlock(node.fileOffset, node.fileOffset, [
-            engine.forest.createExpressionStatement(
-                node.fileOffset,
-                engine.forest
-                    .createVariableSet(node.fileOffset, valueVariable, body)),
-            engine.forest.createBreakStatement(node.fileOffset, switchLabel)
-          ]),
-          hasLabel: false));
+          createBlock([
+            createExpressionStatement(createVariableSet(valueVariable, body,
+                fileOffset: node.fileOffset)),
+            createBreakStatement(switchLabel, fileOffset: node.fileOffset)
+          ], fileOffset: node.fileOffset),
+          isDefault: false,
+          fileOffset: node.fileOffset));
     }
 
     replacementStatements = [
       ...replacementStatements,
       switchLabel
-        ..body = (engine.forest.createSwitchStatement(
-            node.fileOffset,
-            engine.forest
-                .createVariableGet(node.fileOffset, matchResultVariable),
-            replacementCases)
+        ..body = (createSwitchStatement(
+            createVariableGet(matchResultVariable), replacementCases,
+            isExplicitlyExhaustive: false, fileOffset: node.fileOffset)
           ..parent = switchLabel)
-        ..fileOffset = node.fileOffset
     ];
 
     // Wrapping variable declarations into block is a workaround for the VM
@@ -7863,19 +7847,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           switchExpressionCase.patternGuard.pattern.declaredVariables;
       if (patternVariables.isNotEmpty) {
         replacementStatements = [
-          engine.forest.createBlock(node.fileOffset, node.fileOffset,
-              [...patternVariables, ...replacementStatements])
+          createBlock([...patternVariables, ...replacementStatements],
+              fileOffset: node.fileOffset)
         ];
       }
     }
 
     replacementStatements = [valueVariable, ...replacementStatements];
 
-    Expression replacement = engine.forest.createBlockExpression(
-        node.fileOffset,
-        engine.forest.createBlock(
-            node.fileOffset, node.fileOffset, replacementStatements),
-        engine.forest.createVariableGet(node.fileOffset, valueVariable));
+    Expression replacement = createBlockExpression(
+        createBlock(replacementStatements, fileOffset: node.fileOffset),
+        createVariableGet(valueVariable),
+        fileOffset: node.fileOffset);
 
     return new ExpressionInferenceResult(valueType, replacement);
   }
@@ -7969,21 +7952,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     // matchedExpressionVariable: `scrutineeType` MVAR = `node.expression`;
-    VariableDeclaration matchedExpressionVariable = engine.forest
-        .createVariableDeclarationForValue(node.expression,
-            type: scrutineeType);
+    VariableDeclaration matchedExpressionVariable =
+        createVariableCache(node.expression, scrutineeType);
 
     // matchResultVariable: int RVAR = -1;
-    VariableDeclaration matchResultVariable = engine.forest
-        .createVariableDeclarationForValue(
-            engine.forest.createIntLiteral(node.fileOffset, -1),
-            type: coreTypes.intNonNullableRawType);
+    VariableDeclaration matchResultVariable = createInitializedVariable(
+        createIntLiteral(-1, fileOffset: node.fileOffset),
+        coreTypes.intNonNullableRawType,
+        fileOffset: node.fileOffset);
 
     // matchSucceeded: bool SVAR = false;
-    VariableDeclaration matchSucceeded = engine.forest
-        .createVariableDeclarationForValue(
-            engine.forest.createBoolLiteral(node.fileOffset, false),
-            type: coreTypes.boolNonNullableRawType);
+    VariableDeclaration matchSucceeded = createInitializedVariable(
+        createBoolLiteral(false, fileOffset: node.fileOffset),
+        coreTypes.boolNonNullableRawType,
+        fileOffset: node.fileOffset);
 
     List<Statement> replacementStatements = [
       matchedExpressionVariable,
@@ -8003,9 +7985,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // declared in the heads aren't compatible to each other.
       Map<String, VariableDeclaration> caseDeclaredVariableHelpersByName = {
         for (VariableDeclaration variable in switchCase.jointVariables)
-          variable.name!: engine.forest.createVariableDeclaration(
-              node.fileOffset, null,
-              type: const DynamicType())
+          variable.name!: createUninitializedVariable(const DynamicType(),
+              fileOffset: node.fileOffset)
       };
 
       for (int headIndex = 0;
@@ -8038,27 +8019,24 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
         // setMatchResult: `matchResultVariable` = `caseIndex`;
         //   ==> RVAR = `caseIndex`;
-        Statement setMatchResult = engine.forest.createExpressionStatement(
-            node.fileOffset,
-            engine.forest.createVariableSet(
-                node.fileOffset,
-                matchResultVariable,
-                engine.forest.createIntLiteral(node.fileOffset, caseIndex)));
+        Statement setMatchResult = createExpressionStatement(createVariableSet(
+            matchResultVariable,
+            createIntLiteral(caseIndex, fileOffset: node.fileOffset),
+            fileOffset: node.fileOffset));
 
         // setMatchSucceeded: `matchSucceeded` = true;
         //   ==> SVAR = true;
-        Statement setMatchSucceeded = engine.forest.createExpressionStatement(
-            node.fileOffset,
-            engine.forest.createVariableSet(node.fileOffset, matchSucceeded,
-                engine.forest.createBoolLiteral(node.fileOffset, true)));
+        Statement setMatchSucceeded = createExpressionStatement(
+            createVariableSet(matchSucceeded,
+                createBoolLiteral(true, fileOffset: node.fileOffset),
+                fileOffset: node.fileOffset));
 
         PatternTransformationResult transformationResult = pattern.transform(
             this,
-            matchedExpression: engine.forest
-                .createVariableGet(node.fileOffset, matchedExpressionVariable),
+            matchedExpression: createVariableGet(matchedExpressionVariable),
             matchedType: scrutineeType,
-            variableInitializingContext: engine.forest
-                .createVariableGet(node.fileOffset, matchedExpressionVariable));
+            variableInitializingContext:
+                createVariableGet(matchedExpressionVariable));
         transformationResult = transformationResult.combine(
             new PatternTransformationResult([
               new PatternTransformationElement(
@@ -8076,10 +8054,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         //   ==> SVAR!
         transformationResult = transformationResult.prependElement(
             new PatternTransformationElement(
-                condition: engine.forest.createNot(
-                    node.fileOffset,
-                    engine.forest
-                        .createVariableGet(node.fileOffset, matchSucceeded)),
+                condition: createNot(createVariableGet(matchSucceeded)),
                 variableInitializers: [],
                 kind: PatternTransformationElementKind.regular),
             this);
@@ -8095,14 +8070,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             // initializer:
             //     `declaredVariableHelper` = `declaredVariable`;
             //   ==> HVAR = `declaredVariable`;
-            caseDeclaredVariableHelperInitializers.add(engine.forest
-                .createExpressionStatement(
-                    node.fileOffset,
-                    engine.forest.createVariableSet(
-                        node.fileOffset,
-                        variableHelper,
-                        engine.forest.createVariableGet(
-                            node.fileOffset, declaredVariable))));
+            caseDeclaredVariableHelperInitializers.add(
+                createExpressionStatement(createVariableSet(
+                    variableHelper, createVariableGet(declaredVariable),
+                    fileOffset: node.fileOffset)));
           }
         }
 
@@ -8128,33 +8099,30 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           //     `jointVariable` =
           //         `declaredVariableHelper`{`declaredVariable.type`}
           //   ==> `jointVariable` = HVAR{`declaredVariable.type`}
-          jointVariable.initializer = engine.forest.createVariableGet(
-              node.fileOffset,
-              caseDeclaredVariableHelpersByName[jointVariable.name!]!)
-            ..promotedType = jointVariable.type
+          jointVariable.initializer = createVariableGet(
+              caseDeclaredVariableHelpersByName[jointVariable.name!]!,
+              promotedType: jointVariable.type)
             ..parent = jointVariable;
         }
       }
 
-      replacementCases.add(new SwitchCaseImpl(
-          [engine.forest.createIntLiteral(node.fileOffset, caseIndex)],
+      replacementCases.add(createSwitchCase(
+          [createIntLiteral(caseIndex, fileOffset: node.fileOffset)],
           [node.fileOffset],
-          engine.forest
-              .createBlock(node.fileOffset, node.fileOffset, <Statement>[
+          createBlock([
             ...switchCase.jointVariables,
             if (body is! Block || body.statements.isNotEmpty) body
-          ]),
-          hasLabel: false,
-          isDefault: switchCase.isDefault));
+          ], fileOffset: node.fileOffset),
+          isDefault: switchCase.isDefault,
+          fileOffset: node.fileOffset));
     }
 
     replacementStatements = [
       ...declaredVariableHelpers,
       ...replacementStatements,
-      engine.forest.createSwitchStatement(
-          node.fileOffset,
-          engine.forest.createVariableGet(node.fileOffset, matchResultVariable),
-          replacementCases)
+      createSwitchStatement(
+          createVariableGet(matchResultVariable), replacementCases,
+          isExplicitlyExhaustive: false, fileOffset: node.fileOffset)
     ];
 
     return new StatementInferenceResult.multiple(
@@ -8560,46 +8528,40 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     // TODO(cstefantsova): Do we need a more precise type for the variable?
-    VariableDeclaration matchedExpressionVariable = engine.forest
-        .createVariableDeclarationForValue(initializer,
-            type: const DynamicType());
+    VariableDeclaration matchedExpressionVariable =
+        createVariableCache(initializer, const DynamicType());
 
     // isPatternMatchingFailed: bool VAR = true;
-    VariableDeclaration isPatternMatchingFailed = engine.forest
-        .createVariableDeclarationForValue(
-            engine.forest.createBoolLiteral(node.fileOffset, true),
-            type: coreTypes.boolNonNullableRawType);
+    VariableDeclaration isPatternMatchingFailed = createInitializedVariable(
+        createBoolLiteral(true, fileOffset: node.fileOffset),
+        coreTypes.boolNonNullableRawType,
+        fileOffset: node.fileOffset);
 
     // patternMatchedSet: `isPatternMatchingFailed` = false;
     //   ==> VAR = true;
-    Statement patternMatchedSet = engine.forest.createExpressionStatement(
-        node.fileOffset,
-        engine.forest.createVariableSet(
-            node.fileOffset,
-            isPatternMatchingFailed,
-            engine.forest.createBoolLiteral(node.fileOffset, false)));
+    Statement patternMatchedSet = createExpressionStatement(createVariableSet(
+        isPatternMatchingFailed,
+        createBoolLiteral(false, fileOffset: node.fileOffset),
+        fileOffset: node.fileOffset));
 
     PatternTransformationResult transformationResult = pattern.transform(this,
-        matchedExpression: engine.forest
-            .createVariableGet(node.fileOffset, matchedExpressionVariable),
+        matchedExpression: createVariableGet(matchedExpressionVariable),
         matchedType: const DynamicType(),
-        variableInitializingContext: engine.forest
-            .createVariableGet(node.fileOffset, matchedExpressionVariable));
+        variableInitializingContext:
+            createVariableGet(matchedExpressionVariable));
 
     List<VariableDeclaration> declaredVariableHelpers = [];
     List<Statement> replacementStatements = [];
     for (VariableDeclaration declaredVariable
         in node.pattern.declaredVariables) {
-      VariableDeclaration declaredVariableHelper = engine.forest
-          .createVariableDeclaration(node.fileOffset, null,
-              type: const DynamicType());
-      replacementStatements.add(engine.forest.createExpressionStatement(
-          node.fileOffset,
-          engine.forest.createVariableSet(node.fileOffset,
-              declaredVariableHelper, declaredVariable.initializer!)));
-      declaredVariable.initializer = engine.forest
-          .createVariableGet(node.fileOffset, declaredVariableHelper)
-        ..promotedType = declaredVariable.type
+      VariableDeclaration declaredVariableHelper = createUninitializedVariable(
+          const DynamicType(),
+          fileOffset: node.fileOffset);
+      replacementStatements.add(createExpressionStatement(createVariableSet(
+          declaredVariableHelper, declaredVariable.initializer!,
+          fileOffset: node.fileOffset)));
+      declaredVariable.initializer = createVariableGet(declaredVariableHelper,
+          promotedType: declaredVariable.type)
         ..parent = declaredVariable;
       declaredVariableHelpers.add(declaredVariableHelper);
     }
@@ -8614,19 +8576,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       ...declaredVariableHelpers,
       ...replacementStatements,
       // TODO(cstefantsova): Figure out the right exception to throw.
-      engine.forest.createIfStatement(
-          node.fileOffset,
-          engine.forest
-              .createVariableGet(node.fileOffset, isPatternMatchingFailed),
-          engine.forest.createExpressionStatement(
-              node.fileOffset,
-              new Throw(
-                  new ConstructorInvocation(
-                      coreTypes.reachabilityErrorConstructor,
-                      engine.forest.createArguments(node.fileOffset, []))
-                    ..fileOffset = node.fileOffset)
-                ..fileOffset = node.fileOffset),
-          null),
+      createIfStatement(
+          createVariableGet(isPatternMatchingFailed),
+          createExpressionStatement(new Throw(createConstructorInvocation(
+              coreTypes.reachabilityErrorConstructor,
+              createArguments([], fileOffset: node.fileOffset),
+              fileOffset: node.fileOffset))),
+          fileOffset: node.fileOffset),
       ...pattern.declaredVariables
     ];
 
@@ -9731,29 +9687,25 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // Stack: ()
 
     // TODO(cstefantsova): Do we need a more precise type for the variable?
-    VariableDeclaration matchedExpressionVariable = engine.forest
-        .createVariableDeclarationForValue(expression,
-            type: const DynamicType());
-    VariableDeclaration isPatternMatchingFailed = engine.forest
-        .createVariableDeclarationForValue(
-            engine.forest.createBoolLiteral(node.fileOffset, true),
-            type: coreTypes.boolNonNullableRawType);
+    VariableDeclaration matchedExpressionVariable =
+        createVariableCache(expression, const DynamicType());
+    VariableDeclaration isPatternMatchingFailed = createInitializedVariable(
+        createBoolLiteral(true, fileOffset: node.fileOffset),
+        coreTypes.boolNonNullableRawType,
+        fileOffset: node.fileOffset);
 
     // patternMatchedSet: `isPatternMatchingFailed` = false;
     //   ==> VAR = true;
-    Statement patternMatchedSet = engine.forest.createExpressionStatement(
-        node.fileOffset,
-        engine.forest.createVariableSet(
-            node.fileOffset,
-            isPatternMatchingFailed,
-            engine.forest.createBoolLiteral(node.fileOffset, false)));
+    Statement patternMatchedSet = createExpressionStatement(createVariableSet(
+        isPatternMatchingFailed,
+        createBoolLiteral(false, fileOffset: node.fileOffset),
+        fileOffset: node.fileOffset));
 
     PatternTransformationResult transformationResult = pattern.transform(this,
-        matchedExpression: engine.forest
-            .createVariableGet(node.fileOffset, matchedExpressionVariable),
+        matchedExpression: createVariableGet(matchedExpressionVariable),
         matchedType: const DynamicType(),
-        variableInitializingContext: engine.forest
-            .createVariableGet(node.fileOffset, matchedExpressionVariable));
+        variableInitializingContext:
+            createVariableGet(matchedExpressionVariable));
 
     List<Statement> replacementStatements = _transformationResultToStatements(
         node.fileOffset, transformationResult, [patternMatchedSet]);
@@ -9763,27 +9715,19 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isPatternMatchingFailed,
       ...replacementStatements,
       // TODO(cstefantsova): Figure out the right exception to throw.
-      engine.forest.createIfStatement(
-          node.fileOffset,
-          engine.forest
-              .createVariableGet(node.fileOffset, isPatternMatchingFailed),
-          engine.forest.createExpressionStatement(
-              node.fileOffset,
-              new Throw(
-                  new ConstructorInvocation(
-                      coreTypes.reachabilityErrorConstructor,
-                      engine.forest.createArguments(node.fileOffset, []))
-                    ..fileOffset = node.fileOffset)
-                ..fileOffset = node.fileOffset),
-          null),
+      createIfStatement(
+          createVariableGet(isPatternMatchingFailed),
+          createExpressionStatement(createThrow(createConstructorInvocation(
+              coreTypes.reachabilityErrorConstructor,
+              createArguments([], fileOffset: node.fileOffset),
+              fileOffset: node.fileOffset))),
+          fileOffset: node.fileOffset),
     ];
 
-    Expression replacement = engine.forest.createBlockExpression(
-        node.fileOffset,
-        engine.forest.createBlock(
-            node.fileOffset, node.fileOffset, replacementStatements),
-        engine.forest
-            .createVariableGet(node.fileOffset, matchedExpressionVariable));
+    Expression replacement = createBlockExpression(
+        createBlock(replacementStatements, fileOffset: node.fileOffset),
+        createVariableGet(matchedExpressionVariable),
+        fileOffset: node.fileOffset);
     return new ExpressionInferenceResult(
         analysisResult.resolveShorting(), replacement);
   }

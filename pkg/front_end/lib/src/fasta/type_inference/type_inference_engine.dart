@@ -14,7 +14,6 @@ import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
 import '../kernel/benchmarker.dart' show Benchmarker;
-import '../kernel/forest.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart' show ClassHierarchyBuilder;
 import '../kernel/hierarchy/members_builder.dart' show ClassMembersBuilder;
 import '../kernel/implicit_field_type.dart';
@@ -141,9 +140,6 @@ abstract class TypeInferenceEngine {
   late ClassMembersBuilder membersBuilder;
 
   late CoreTypes coreTypes;
-
-  // TODO(johnniwinther): Shared this with the BodyBuilder.
-  final Forest forest = const Forest();
 
   /// Indicates whether the "prepare" phase of type inference is complete.
   bool isTypeInferencePrepared = false;

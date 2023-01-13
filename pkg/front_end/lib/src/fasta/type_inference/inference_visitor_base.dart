@@ -42,6 +42,7 @@ import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../util/helpers.dart';
 import 'closure_context.dart';
+import 'external_ast_helper.dart';
 import 'inference_helper.dart' show InferenceHelper;
 import 'inference_results.dart';
 import 'inference_visitor.dart';
@@ -1542,9 +1543,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         typeParameters: calleeType.typeParameters
             .take(extensionTypeParameterCount)
             .toList());
-    ArgumentsImpl extensionArguments = engine.forest.createArguments(
-        arguments.fileOffset, [arguments.positional.first],
-        types: getExplicitExtensionTypeArguments(arguments));
+    ArgumentsImpl extensionArguments = new ArgumentsImpl(
+        [arguments.positional.first],
+        types: getExplicitExtensionTypeArguments(arguments))
+      ..fileOffset = arguments.fileOffset;
     _inferInvocation(visitor, const UnknownType(), offset,
         extensionFunctionType, extensionArguments, hoistedExpressions,
         skipTypeArgumentInference: skipTypeArgumentInference,
@@ -1570,9 +1572,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         typeParameters: targetTypeParameters);
     targetFunctionType = extensionSubstitution
         .substituteType(targetFunctionType) as FunctionType;
-    ArgumentsImpl targetArguments = engine.forest.createArguments(
-        arguments.fileOffset, arguments.positional.skip(1).toList(),
-        named: arguments.named, types: getExplicitTypeArguments(arguments));
+    ArgumentsImpl targetArguments = new ArgumentsImpl(
+        arguments.positional.skip(1).toList(),
+        named: arguments.named,
+        types: getExplicitTypeArguments(arguments))
+      ..fileOffset = arguments.fileOffset;
     InvocationInferenceResult result = _inferInvocation(visitor, typeContext,
         offset, targetFunctionType, targetArguments, hoistedExpressions,
         isSpecialCasedBinaryOperator: isSpecialCasedBinaryOperator,
@@ -2273,11 +2277,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         target.isInlineClassMember ||
         target.isNullableInlineClassMember);
     Procedure procedure = target.member as Procedure;
-    return engine.forest.createStaticInvocation(
-        fileOffset,
+    return createStaticInvocation(
         procedure,
-        engine.forest.createArgumentsForExtensionMethod(
-            arguments.fileOffset,
+        new ArgumentsImpl.forExtensionMethod(
             target.receiverTypeArguments.length,
             procedure.function.typeParameters.length -
                 target.receiverTypeArguments.length,
@@ -2285,7 +2287,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             extensionTypeArguments: target.receiverTypeArguments,
             positionalArguments: arguments.positional,
             namedArguments: arguments.named,
-            typeArguments: arguments.types));
+            typeArguments: arguments.types)
+          ..fileOffset = arguments.fileOffset,
+        fileOffset: fileOffset);
   }
 
   ExpressionInferenceResult _inferDynamicInvocation(
