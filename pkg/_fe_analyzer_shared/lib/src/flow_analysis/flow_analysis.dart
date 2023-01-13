@@ -667,7 +667,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Call this method just after visiting a `case` or `default` body.  See
   /// [switchStatement_expressionEnd] for details.
-  void switchStatement_afterCase();
+  ///
+  /// This method returns a boolean indicating whether the end of the case body
+  /// is "locally reachable" (i.e. reachable from its start).
+  bool switchStatement_afterCase();
 
   /// Call this method just before visiting a `case` or `default` clause.  See
   /// [switchStatement_expressionEnd] for details.
@@ -1459,9 +1462,10 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_afterCase() {
-    _wrap('switchStatement_afterCase()',
-        () => _wrapped.switchStatement_afterCase());
+  bool switchStatement_afterCase() {
+    return _wrap('switchStatement_afterCase()',
+        () => _wrapped.switchStatement_afterCase(),
+        isPure: false, isQuery: true);
   }
 
   @override
@@ -4249,10 +4253,15 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       .variableInfo[promotionKeyStore.keyForVariable(variable)]?.ssaNode;
 
   @override
-  void switchStatement_afterCase() {
+  bool switchStatement_afterCase() {
     _SwitchStatementContext<Type> context =
         _stack.last as _SwitchStatementContext<Type>;
-    context._breakModel = _join(context._breakModel, _current);
+    bool isLocallyReachable = _current.reachable.locallyReachable;
+    _current = _current.unsplit();
+    if (isLocallyReachable) {
+      context._breakModel = _join(context._breakModel, _current);
+    }
+    return isLocallyReachable;
   }
 
   @override
@@ -4320,9 +4329,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     } else {
       _current = alternativesContext._combinedModel ?? switchContext._unmatched;
     }
-    // TODO(paulberry): consider doing a split here if unreachable, and a join
-    // later, so that one case matching everything won't prevent promotion in
-    // cases that follow
+    // Do a control flow split so that in switchStatement_afterCase, we'll be
+    // able to tell whether the end of the case body was reachable from its
+    // start.
+    _current = _current.split();
   }
 
   @override
@@ -5325,7 +5335,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_afterCase() {}
+  bool switchStatement_afterCase() => true;
 
   @override
   void switchStatement_beginAlternative() {}
