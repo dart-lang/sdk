@@ -1847,6 +1847,10 @@ class Class : public Object {
   void MarkFieldBoxedDuringReload(ClassTable* class_table,
                                   const Field& field) const;
 
+#if !defined(PRODUCT)
+  void SetUserVisibleNameInClassTable();
+#endif  // !defined(PRODUCT)
+
  private:
   TypePtr declaration_type() const {
     return untag()->declaration_type<std::memory_order_acquire>();

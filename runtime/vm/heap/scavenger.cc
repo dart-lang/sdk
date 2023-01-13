@@ -1581,9 +1581,10 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
   // can reset the heap sampling offset in the new TLAB.
   intptr_t remaining = thread->true_end() - thread->top();
   const bool heap_sampling_enabled = thread->end() != thread->true_end();
+  const bool is_first_tlab = thread->true_end() == 0;
   if (heap_sampling_enabled && remaining > min_size) {
     // This is a sampling point and the TLAB isn't actually full.
-    thread->heap_sampler().SampleSize(min_size);
+    thread->heap_sampler().SampleNewSpaceAllocation(min_size);
     return;
   }
 #endif
@@ -1602,7 +1603,7 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
     if (available >= min_size) {
       page->Acquire(thread);
 #if !defined(PRODUCT)
-      thread->heap_sampler().HandleNewTLAB(remaining);
+      thread->heap_sampler().HandleNewTLAB(remaining, /*is_first_tlab=*/false);
 #endif
       return;
     }
@@ -1614,7 +1615,7 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
   }
   page->Acquire(thread);
 #if !defined(PRODUCT)
-  thread->heap_sampler().HandleNewTLAB(remaining);
+  thread->heap_sampler().HandleNewTLAB(remaining, is_first_tlab);
 #endif
 }
 
