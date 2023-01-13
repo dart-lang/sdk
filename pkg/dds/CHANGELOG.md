@@ -1,5 +1,5 @@
 # 2.7.1
-- Updated `vm_service` version to ^10.0.0.
+- Updated `vm_service` version to >=9.0.0 <11.0.0.
 - Simplified the DevTools URI composed by DDS.
 
 # 2.7.0
