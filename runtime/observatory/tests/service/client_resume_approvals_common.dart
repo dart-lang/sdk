@@ -71,7 +71,7 @@ Future<bool> isPausedPostRequest(Isolate isolate) async {
 }
 
 Future<void> waitForResume(Isolate isolate) async {
-  final completer = Completer<bool>();
+  final completer = Completer<void>();
   isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
     var subscription;
     subscription = stream.listen((ServiceEvent event) {

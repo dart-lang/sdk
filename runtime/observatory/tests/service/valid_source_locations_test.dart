@@ -17,13 +17,13 @@ void testFunction() {
 Future validateLocation(Location? location, Object object) async {
   if (location == null) return;
   if (location.tokenPos! < 0) return;
-  if (location.script.uri == 'dart:_internal-patch/class_id_fasta.dart') {
+  if (location.script!.uri == 'dart:_internal-patch/class_id_fasta.dart') {
     // Injected fields from this script cannot be reloaded.
     return;
   }
 
   // Ensure the script is loaded.
-  final Script script = await location.script.load() as Script;
+  final Script script = await location.script!.load() as Script;
 
   // Use the more low-level functions.
   final line = script.tokenToLine(location.tokenPos);

@@ -85,7 +85,7 @@ var tests = <IsolateTest>[
     // Full script
     var params = {
       'reports': ['Coverage'],
-      'scriptId': func.location.script.id
+      'scriptId': func.location.script!.id
     };
     var coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
     final numRanges = coverage['ranges'].length;
@@ -101,7 +101,7 @@ var tests = <IsolateTest>[
     // Force compilation.
     params = {
       'reports': ['Coverage'],
-      'scriptId': func.location.script.id,
+      'scriptId': func.location.script!.id,
       'forceCompile': true
     };
     coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
@@ -112,7 +112,7 @@ var tests = <IsolateTest>[
     // One function
     params = {
       'reports': ['Coverage'],
-      'scriptId': func.location.script.id,
+      'scriptId': func.location.script!.id,
       'tokenPos': func.location.tokenPos,
       'endTokenPos': func.location.endTokenPos
     };
@@ -146,7 +146,7 @@ var tests = <IsolateTest>[
     // Multiple reports (make sure enum list parameter parsing works).
     params = {
       'reports': ['_CallSites', 'Coverage', 'PossibleBreakpoints'],
-      'scriptId': func.location.script.id,
+      'scriptId': func.location.script!.id,
       'tokenPos': func.location.tokenPos,
       'endTokenPos': func.location.endTokenPos
     };
