@@ -5,6 +5,7 @@
 # 2.7.1
 - Updated `vm_service` version to >=9.0.0 <11.0.0.
 - Simplified the DevTools URI composed by DDS.
+- Fix issue where DDS was invoking an unimplemented RPC against a non-VM target.
 
 # 2.7.0
 - Added `DartDevelopmentService.setExternalDevToolsUri(Uri uri)`, adding support for registering an external DevTools server with DDS.
