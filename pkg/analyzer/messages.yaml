@@ -18106,205 +18106,6 @@ HintCode:
       ```dart
       int divide(num x, num y) => x ~/ y;
       ```
-  DUPLICATE_HIDDEN_NAME:
-    problemMessage: Duplicate hidden name.
-    correctionMessage: Try removing the repeated name from the list of hidden members.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a name occurs multiple times in
-      a `hide` clause. Repeating the name is unnecessary.
-
-      #### Example
-
-      The following code produces this diagnostic because the name `min` is
-      hidden more than once:
-
-      ```dart
-      import 'dart:math' hide min, [!min!];
-
-      var x = pi;
-      ```
-
-      #### Common fixes
-
-      If the name was mistyped in one or more places, then correct the mistyped
-      names:
-
-      ```dart
-      import 'dart:math' hide max, min;
-
-      var x = pi;
-      ```
-
-      If the name wasn't mistyped, then remove the unnecessary name from the
-      list:
-
-      ```dart
-      import 'dart:math' hide min;
-
-      var x = pi;
-      ```
-  DUPLICATE_EXPORT:
-    problemMessage: Duplicate export.
-    correctionMessage: Try removing all but one export of the library.
-    hasPublishedDocs: true
-    comment: |-
-      Duplicate exports.
-
-      No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an export directive is found
-      that is the same as an export before it in the file. The second export
-      doesn't add value and should be removed.
-
-      #### Example
-
-      The following code produces this diagnostic because the same library is
-      being exported twice:
-
-      ```dart
-      export 'package:meta/meta.dart';
-      export [!'package:meta/meta.dart'!];
-      ```
-
-      #### Common fixes
-
-      Remove the unnecessary export:
-
-      ```dart
-      export 'package:meta/meta.dart';
-      ```
-  DUPLICATE_IGNORE:
-    problemMessage: "The diagnostic '{0}' doesn't need to be ignored here because it's already being ignored."
-    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the diagnostic being ignored
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a diagnostic name appears in an
-      `ignore` comment, but the diagnostic is already being ignored, either
-      because it's already included in the same `ignore` comment or because it
-      appears in an `ignore-in-file` comment.
-
-      #### Examples
-
-      The following code produces this diagnostic because the diagnostic named
-      `unused_local_variable` is already being ignored for the whole file so it
-      doesn't need to be ignored on a specific line:
-
-      ```dart
-      // ignore_for_file: unused_local_variable
-      void f() {
-        // ignore: [!unused_local_variable!]
-        var x = 0;
-      }
-      ```
-
-      The following code produces this diagnostic because the diagnostic named
-      `unused_local_variable` is being ignored twice on the same line:
-
-      ```dart
-      void f() {
-        // ignore: unused_local_variable, [!unused_local_variable!]
-        var x = 0;
-      }
-      ```
-
-      #### Common fixes
-
-      Remove the ignore comment, or remove the unnecessary diagnostic name if the
-      ignore comment is ignoring more than one diagnostic:
-
-      ```dart
-      // ignore_for_file: unused_local_variable
-      void f() {
-        var x = 0;
-      }
-      ```
-  DUPLICATE_IMPORT:
-    problemMessage: Duplicate import.
-    correctionMessage: Try removing all but one import of the library.
-    hasPublishedDocs: true
-    comment: |-
-      Duplicate imports.
-
-      No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an import directive is found
-      that is the same as an import before it in the file. The second import
-      doesn't add value and should be removed.
-
-      #### Example
-
-      The following code produces this diagnostic:
-
-      ```dart
-      import 'package:meta/meta.dart';
-      import [!'package:meta/meta.dart'!];
-
-      @sealed class C {}
-      ```
-
-      #### Common fixes
-
-      Remove the unnecessary import:
-
-      ```dart
-      import 'package:meta/meta.dart';
-
-      @sealed class C {}
-      ```
-  DUPLICATE_SHOWN_NAME:
-    problemMessage: Duplicate shown name.
-    correctionMessage: Try removing the repeated name from the list of shown members.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a name occurs multiple times in
-      a `show` clause. Repeating the name is unnecessary.
-
-      #### Example
-
-      The following code produces this diagnostic because the name `min` is shown
-      more than once:
-
-      ```dart
-      import 'dart:math' show min, [!min!];
-
-      var x = min(2, min(0, 1));
-      ```
-
-      #### Common fixes
-
-      If the name was mistyped in one or more places, then correct the mistyped
-      names:
-
-      ```dart
-      import 'dart:math' show max, min;
-
-      var x = max(2, min(0, 1));
-      ```
-
-      If the name wasn't mistyped, then remove the unnecessary name from the
-      list:
-
-      ```dart
-      import 'dart:math' show min;
-
-      var x = min(2, min(0, 1));
-      ```
   EQUAL_ELEMENTS_IN_SET:
     problemMessage: "Two elements in a set literal shouldn't be equal."
     correctionMessage: Change or remove the duplicate element.
@@ -22635,6 +22436,205 @@ StaticWarningCode:
       class C {
         C.c();
       }
+      ```
+  DUPLICATE_EXPORT:
+    problemMessage: Duplicate export.
+    correctionMessage: Try removing all but one export of the library.
+    hasPublishedDocs: true
+    comment: |-
+      Duplicate exports.
+
+      No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an export directive is found
+      that is the same as an export before it in the file. The second export
+      doesn't add value and should be removed.
+
+      #### Example
+
+      The following code produces this diagnostic because the same library is
+      being exported twice:
+
+      ```dart
+      export 'package:meta/meta.dart';
+      export [!'package:meta/meta.dart'!];
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary export:
+
+      ```dart
+      export 'package:meta/meta.dart';
+      ```
+  DUPLICATE_HIDDEN_NAME:
+    problemMessage: Duplicate hidden name.
+    correctionMessage: Try removing the repeated name from the list of hidden members.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a name occurs multiple times in
+      a `hide` clause. Repeating the name is unnecessary.
+
+      #### Example
+
+      The following code produces this diagnostic because the name `min` is
+      hidden more than once:
+
+      ```dart
+      import 'dart:math' hide min, [!min!];
+
+      var x = pi;
+      ```
+
+      #### Common fixes
+
+      If the name was mistyped in one or more places, then correct the mistyped
+      names:
+
+      ```dart
+      import 'dart:math' hide max, min;
+
+      var x = pi;
+      ```
+
+      If the name wasn't mistyped, then remove the unnecessary name from the
+      list:
+
+      ```dart
+      import 'dart:math' hide min;
+
+      var x = pi;
+      ```
+  DUPLICATE_IGNORE:
+    problemMessage: "The diagnostic '{0}' doesn't need to be ignored here because it's already being ignored."
+    correctionMessage: Try removing the name from the list, or removing the whole comment if this is the only name in the list.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the diagnostic being ignored
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a diagnostic name appears in an
+      `ignore` comment, but the diagnostic is already being ignored, either
+      because it's already included in the same `ignore` comment or because it
+      appears in an `ignore-in-file` comment.
+
+      #### Examples
+
+      The following code produces this diagnostic because the diagnostic named
+      `unused_local_variable` is already being ignored for the whole file so it
+      doesn't need to be ignored on a specific line:
+
+      ```dart
+      // ignore_for_file: unused_local_variable
+      void f() {
+        // ignore: [!unused_local_variable!]
+        var x = 0;
+      }
+      ```
+
+      The following code produces this diagnostic because the diagnostic named
+      `unused_local_variable` is being ignored twice on the same line:
+
+      ```dart
+      void f() {
+        // ignore: unused_local_variable, [!unused_local_variable!]
+        var x = 0;
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the ignore comment, or remove the unnecessary diagnostic name if the
+      ignore comment is ignoring more than one diagnostic:
+
+      ```dart
+      // ignore_for_file: unused_local_variable
+      void f() {
+        var x = 0;
+      }
+      ```
+  DUPLICATE_IMPORT:
+    problemMessage: Duplicate import.
+    correctionMessage: Try removing all but one import of the library.
+    hasPublishedDocs: true
+    comment: |-
+      Duplicate imports.
+
+      No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an import directive is found
+      that is the same as an import before it in the file. The second import
+      doesn't add value and should be removed.
+
+      #### Example
+
+      The following code produces this diagnostic:
+
+      ```dart
+      import 'package:meta/meta.dart';
+      import [!'package:meta/meta.dart'!];
+
+      @sealed class C {}
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary import:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @sealed class C {}
+      ```
+  DUPLICATE_SHOWN_NAME:
+    problemMessage: Duplicate shown name.
+    correctionMessage: Try removing the repeated name from the list of shown members.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a name occurs multiple times in
+      a `show` clause. Repeating the name is unnecessary.
+
+      #### Example
+
+      The following code produces this diagnostic because the name `min` is shown
+      more than once:
+
+      ```dart
+      import 'dart:math' show min, [!min!];
+
+      var x = min(2, min(0, 1));
+      ```
+
+      #### Common fixes
+
+      If the name was mistyped in one or more places, then correct the mistyped
+      names:
+
+      ```dart
+      import 'dart:math' show max, min;
+
+      var x = max(2, min(0, 1));
+      ```
+
+      If the name wasn't mistyped, then remove the unnecessary name from the
+      list:
+
+      ```dart
+      import 'dart:math' show min;
+
+      var x = min(2, min(0, 1));
       ```
   INVALID_NULL_AWARE_OPERATOR:
     problemMessage: "The receiver can't be null, so the null-aware operator '{0}' is unnecessary."

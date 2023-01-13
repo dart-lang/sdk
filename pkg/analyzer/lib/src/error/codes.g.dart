@@ -5558,6 +5558,56 @@ class StaticWarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Duplicate exports.
+  ///
+  ///  No parameters.
+  static const StaticWarningCode DUPLICATE_EXPORT = StaticWarningCode(
+    'DUPLICATE_EXPORT',
+    "Duplicate export.",
+    correctionMessage: "Try removing all but one export of the library.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const StaticWarningCode DUPLICATE_HIDDEN_NAME = StaticWarningCode(
+    'DUPLICATE_HIDDEN_NAME',
+    "Duplicate hidden name.",
+    correctionMessage:
+        "Try removing the repeated name from the list of hidden members.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the diagnostic being ignored
+  static const StaticWarningCode DUPLICATE_IGNORE = StaticWarningCode(
+    'DUPLICATE_IGNORE',
+    "The diagnostic '{0}' doesn't need to be ignored here because it's already "
+        "being ignored.",
+    correctionMessage:
+        "Try removing the name from the list, or removing the whole comment if "
+        "this is the only name in the list.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Duplicate imports.
+  ///
+  ///  No parameters.
+  static const StaticWarningCode DUPLICATE_IMPORT = StaticWarningCode(
+    'DUPLICATE_IMPORT',
+    "Duplicate import.",
+    correctionMessage: "Try removing all but one import of the library.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const StaticWarningCode DUPLICATE_SHOWN_NAME = StaticWarningCode(
+    'DUPLICATE_SHOWN_NAME',
+    "Duplicate shown name.",
+    correctionMessage:
+        "Try removing the repeated name from the list of shown members.",
+    hasPublishedDocs: true,
+  );
+
   ///  Parameters:
   ///  0: the null-aware operator that is invalid
   ///  1: the non-null-aware operator that can replace the invalid operator

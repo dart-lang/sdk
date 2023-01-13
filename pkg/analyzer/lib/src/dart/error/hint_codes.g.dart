@@ -173,56 +173,6 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Duplicate exports.
-  ///
-  ///  No parameters.
-  static const HintCode DUPLICATE_EXPORT = HintCode(
-    'DUPLICATE_EXPORT',
-    "Duplicate export.",
-    correctionMessage: "Try removing all but one export of the library.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const HintCode DUPLICATE_HIDDEN_NAME = HintCode(
-    'DUPLICATE_HIDDEN_NAME',
-    "Duplicate hidden name.",
-    correctionMessage:
-        "Try removing the repeated name from the list of hidden members.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the diagnostic being ignored
-  static const HintCode DUPLICATE_IGNORE = HintCode(
-    'DUPLICATE_IGNORE',
-    "The diagnostic '{0}' doesn't need to be ignored here because it's already "
-        "being ignored.",
-    correctionMessage:
-        "Try removing the name from the list, or removing the whole comment if "
-        "this is the only name in the list.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Duplicate imports.
-  ///
-  ///  No parameters.
-  static const HintCode DUPLICATE_IMPORT = HintCode(
-    'DUPLICATE_IMPORT',
-    "Duplicate import.",
-    correctionMessage: "Try removing all but one import of the library.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const HintCode DUPLICATE_SHOWN_NAME = HintCode(
-    'DUPLICATE_SHOWN_NAME',
-    "Duplicate shown name.",
-    correctionMessage:
-        "Try removing the repeated name from the list of shown members.",
-    hasPublishedDocs: true,
-  );
-
   ///  No parameters.
   static const HintCode EQUAL_ELEMENTS_IN_SET = HintCode(
     'EQUAL_ELEMENTS_IN_SET',
