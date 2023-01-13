@@ -400,6 +400,52 @@ testSendReceive(InternetAddress bindAddress, int dataSize) {
   });
 }
 
+void testTooLarge(InternetAddress bindAddress, int dataSize) {
+  asyncStart();
+  Future.wait([
+    RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false),
+    RawDatagramSocket.bind(bindAddress, 0, reuseAddress: false)
+  ]).then((values) {
+    var sender = values[0];
+    var receiver = values[1];
+
+    if (bindAddress.isMulticast) {
+      sender.multicastLoopback = true;
+      receiver.multicastLoopback = true;
+      sender.joinMulticast(bindAddress);
+      receiver.joinMulticast(bindAddress);
+    }
+
+    var data = new Uint8List(dataSize);
+    sender.listen((event) {
+      switch (event) {
+        case RawSocketEvent.write:
+          final numBytes = sender.send(data, bindAddress, receiver.port);
+          Expect.isTrue(numBytes == 0 || numBytes == data.length,
+              "Unexpected send() result: $numBytes");
+
+          break;
+        case RawSocketEvent.closed:
+          break;
+        default:
+          throw "Unexpected event $event";
+      }
+    }, onError: (e) {
+      sender.close();
+      receiver.close();
+
+      Expect.type<SocketException>(e);
+      final osError = (e as SocketException).osError;
+      if (Platform.isMacOS) {
+        Expect.equals(40, osError.errorCode); // EMSGSIZE
+      } else if (Platform.isWindows) {
+        Expect.equals(1784, osError.errorCode); // ERROR_INVALID_USER_BUFFER
+      }
+      asyncEnd();
+    });
+  });
+}
+
 main() {
   testDatagramBroadcastOptions();
   testDatagramMulticastOptions();
@@ -411,10 +457,22 @@ main() {
   testLoopbackMulticastError();
   testSendReceive(InternetAddress.loopbackIPv4, 1000);
   testSendReceive(InternetAddress.loopbackIPv6, 1000);
+  // On the latest macOS (13.1) the maximum datagram size is <10K:
+  // $ sysctl net.inet.udp.maxdgram
+  // net.inet.udp.maxdgram: 9216
   if (!Platform.isMacOS) {
     testSendReceive(InternetAddress.loopbackIPv4, 32 * 1024);
     testSendReceive(InternetAddress.loopbackIPv6, 32 * 1024);
     testSendReceive(InternetAddress.loopbackIPv4, 64 * 1024 - 32);
     testSendReceive(InternetAddress.loopbackIPv6, 64 * 1024 - 32);
   }
+
+  // Tests data sizes that won't fit in a UDP datagram.
+  testTooLarge(InternetAddress.loopbackIPv4, 64 * 1024 - 1);
+  testTooLarge(InternetAddress.loopbackIPv6, 64 * 1024 - 1);
+
+  // The Windows UDP implementation has a fixed sized buffer. Test the case
+  // where the data does not fit in that buffer.
+  testTooLarge(InternetAddress.loopbackIPv4, 1000000);
+  testTooLarge(InternetAddress.loopbackIPv6, 1000000);
 }

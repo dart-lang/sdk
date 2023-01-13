@@ -1044,7 +1044,6 @@ class SocketMessage {
 ///       0);
 ///   final ntpQuery = Uint8List(48);
 ///   ntpQuery[0] = 0x23; // See RFC 5905 7.3
-///   clientSocket.send(ntpQuery, serverAddress, 123);
 ///
 ///   clientSocket.listen((event) {
 ///     switch (event) {
@@ -1054,6 +1053,9 @@ class SocketMessage {
 ///         clientSocket.close();
 ///         break;
 ///       case RawSocketEvent.write:
+///         if (clientSocket.send(ntpQuery, serverAddress, 123) > 0) {
+///           clientSocket.writeEventsEnabled = false;
+///         }
 ///         break;
 ///       case RawSocketEvent.closed:
 ///         break;
@@ -1143,10 +1145,25 @@ abstract class RawDatagramSocket extends Stream<RawSocketEvent> {
   /// Closes the datagram socket.
   void close();
 
-  /// Sends a datagram.
+  /// Asynchronously sends a datagram.
   ///
   /// Returns the number of bytes written. This will always be either
   /// the size of [buffer] or `0`.
+  ///
+  /// A return value of `0` indicates that sending the datagram would block and
+  /// that the [send] call can be tried again.
+  ///
+  /// A return value of the size of [buffer] indicates that a request to
+  /// transmit the datagram was made to the operating system. It does not
+  /// indicate that the operating system successfully sent the datagram. If a
+  /// local failure to send the datagram occurs then a an error event will be
+  /// added to the [Stream]. If a networking or remote failure occurs then it
+  /// will not be reported.
+  ///
+  /// The maximum size of a UDP datagram is 65535 byes (including both data
+  /// and headers) but the practical maximum size is likely to be much lower
+  /// due to operating system limits and the network's maximum transmission
+  /// unit (MTU).
   int send(List<int> buffer, InternetAddress address, int port);
 
   /// Receives a datagram.
