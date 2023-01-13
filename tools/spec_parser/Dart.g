@@ -4,6 +4,12 @@
 
 // CHANGES:
 //
+// v0.27 Remove unused non-terminals; make handling of interpolation in URIs
+// consistent with the language specification. Make `partDeclaration` a
+// start symbol in addition to `libraryDefinition` (such that no special
+// precautions are needed in order to parse a part file). Corrected spacing
+// in several rules.
+//
 // v0.26 Add missing `metadata` in `partDeclaration`.
 //
 // v0.25 Update pattern rules following changes to the patterns feature
@@ -112,7 +118,7 @@ import java.util.Stack;
   public boolean parseLibrary(String filePath) throws RecognitionException {
     this.filePath = filePath;
     errorHasOccurred = false;
-    libraryDefinition();
+    startSymbol();
     return !errorHasOccurred;
   }
 
@@ -129,7 +135,7 @@ import java.util.Stack;
   // neither `async`, `async*`, nor `sync*`.
   void startNonAsyncFunction() { asyncEtcAreKeywords.push(false); }
 
-  // Use this to indicate that we are now leaving any funciton.
+  // Use this to indicate that we are now leaving any function.
   void endFunction() { asyncEtcAreKeywords.pop(); }
 
   // Whether we can recognize AWAIT/YIELD as an identifier/typeIdentifier.
@@ -198,6 +204,11 @@ import java.util.Stack;
 
 // ---------------------------------------- Grammar rules.
 
+startSymbol
+    :    libraryDefinition
+    |    partDeclaration
+    ;
+
 libraryDefinition
     :    FEFF? SCRIPT_TAG?
          libraryName?
@@ -256,11 +267,6 @@ initializedIdentifierList
 
 functionSignature
     :    type? identifierNotFUNCTION formalParameterPart
-    ;
-
-functionBodyPrefix
-    :    ASYNC? '=>'
-    |    (ASYNC | ASYNC '*' | SYNC '*')? LBRACE
     ;
 
 functionBody
@@ -608,11 +614,6 @@ stringLiteral
     :    (multiLineString | singleLineString)+
     ;
 
-// Not used in the specification (needed here for <uri>).
-stringLiteralWithoutInterpolation
-    :    singleStringWithoutInterpolation+
-    ;
-
 setOrMapLiteral
     :    CONST? typeArguments? LBRACE elements? RBRACE
     ;
@@ -637,35 +638,35 @@ recordField
     ;
 
 elements
-    : element (',' element)* ','?
+    :    element (',' element)* ','?
     ;
 
 element
-    : expressionElement
-    | mapElement
-    | spreadElement
-    | ifElement
-    | forElement
+    :    expressionElement
+    |    mapElement
+    |    spreadElement
+    |    ifElement
+    |    forElement
     ;
 
 expressionElement
-    : expression
+    :    expression
     ;
 
 mapElement
-    : expression ':' expression
+    :    expression ':' expression
     ;
 
 spreadElement
-    : ('...' | '...?') expression
+    :    ('...' | '...?') expression
     ;
 
 ifElement
-    : ifCondition element (ELSE element)?
+    :    ifCondition element (ELSE element)?
     ;
 
 forElement
-    : AWAIT? FOR '(' forLoopParts ')' element
+    :    AWAIT? FOR '(' forLoopParts ')' element
     ;
 
 constructorTearoff
@@ -698,10 +699,6 @@ functionExpressionBody
     |    ASYNC '=>' { startAsyncFunction(); } expression { endFunction(); }
     ;
 
-functionExpressionBodyPrefix
-    :    ASYNC? '=>'
-    ;
-
 functionExpressionWithoutCascade
     :    formalParameterPart functionExpressionWithoutCascadeBody
     ;
@@ -721,10 +718,6 @@ functionPrimaryBody
     :    { startNonAsyncFunction(); } block { endFunction(); }
     |    (ASYNC | ASYNC '*' | SYNC '*')
          { startAsyncFunction(); } block { endFunction(); }
-    ;
-
-functionPrimaryBodyPrefix
-    : (ASYNC | ASYNC '*' | SYNC '*')? LBRACE
     ;
 
 thisExpression
@@ -1146,7 +1139,7 @@ outerPattern
     ;
 
 patternAssignment
-    : outerPattern '=' expression
+    :    outerPattern '=' expression
     ;
 
 statements
@@ -1353,13 +1346,11 @@ partHeader
     ;
 
 partDeclaration
-    :    partHeader (metadata topLevelDefinition)* EOF
+    :    FEFF? partHeader (metadata topLevelDefinition)* EOF
     ;
 
-// In the specification a plain <stringLiteral> is used.
-// TODO(eernst): Check whether it creates ambiguities to do that.
 uri
-    :    stringLiteralWithoutInterpolation
+    :    stringLiteral
     ;
 
 configurableUri
@@ -1508,16 +1499,6 @@ constructorDesignation
 
 symbolLiteral
     :    '#' (operator | (identifier ('.' identifier)*) | VOID)
-    ;
-
-// Not used in the specification (needed here for <uri>).
-singleStringWithoutInterpolation
-    :    RAW_SINGLE_LINE_STRING
-    |    RAW_MULTI_LINE_STRING
-    |    SINGLE_LINE_STRING_DQ_BEGIN_END
-    |    SINGLE_LINE_STRING_SQ_BEGIN_END
-    |    MULTI_LINE_STRING_DQ_BEGIN_END
-    |    MULTI_LINE_STRING_SQ_BEGIN_END
     ;
 
 singleLineString
