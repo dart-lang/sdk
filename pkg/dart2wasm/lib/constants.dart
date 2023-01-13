@@ -643,8 +643,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
             .fieldIndexForSignature(posArgCount, argNames);
 
         w.FunctionType signature =
-            (representation.vtableStruct.fields[fieldIndex].type as w.RefType)
-                .heapType as w.FunctionType;
+            representation.getVtableFieldType(fieldIndex);
         w.DefinedFunction tearOffFunction = tearOffClosure.functions[
             tearOffFieldIndex - tearOffClosure.representation.vtableBaseIndex];
         w.DefinedFunction function =

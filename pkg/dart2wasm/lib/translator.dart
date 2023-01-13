@@ -674,9 +674,7 @@ class Translator with KernelNodes {
       int fieldIndex = representation.vtableBaseIndex + functions.length;
       assert(fieldIndex ==
           representation.fieldIndexForSignature(posArgCount, argNames));
-      w.FunctionType signature =
-          (representation.vtableStruct.fields[fieldIndex].type as w.RefType)
-              .heapType as w.FunctionType;
+      w.FunctionType signature = representation.getVtableFieldType(fieldIndex);
       w.DefinedFunction function = canBeCalledWith(posArgCount, argNames)
           ? makeTrampoline(signature, posArgCount, argNames)
           : globals.getDummyFunction(signature);
