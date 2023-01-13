@@ -439,6 +439,16 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// preserve order.
   Future? _lastOutputEvent;
 
+  /// Capabilities of the DDS instance available in the connected VM Service.
+  ///
+  /// If the VM Service is not yet connected, does not have a DDS instance, or
+  /// the version has not been been fetched, all capabilities will be false.
+  _DdsCapabilities _ddsCapabilities = _DdsCapabilities.empty;
+
+  /// The ID of the custom VM Service stream that emits events intended for
+  /// tools/IDEs.
+  static final toolEventStreamId = 'ToolEvent';
+
   /// Removes any breakpoints or pause behaviour and resumes any paused
   /// isolates.
   ///
@@ -621,6 +631,18 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     final vmService = await _vmServiceConnectUri(uri.toString());
     logger?.call('Connected to debugger at $uri!');
 
+    // Fetch DDS capabilities.
+    final supportedProtocols = await vmService.getSupportedProtocols();
+    final ddsProtocol = supportedProtocols.protocols
+        ?.firstWhereOrNull((protocol) => protocol.protocolName == 'DDS');
+    if (ddsProtocol != null) {
+      _ddsCapabilities = _DdsCapabilities(
+        major: ddsProtocol.major ?? 0,
+        minor: ddsProtocol.minor ?? 0,
+      );
+    }
+    final supportsCustomStreams = _ddsCapabilities.supportsCustomStreams;
+
     // Send debugger URI to the client.
     sendDebuggerUris(uri);
 
@@ -637,10 +659,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       vmService.onLoggingEvent.listen(wrap(handleLoggingEvent)),
       vmService.onExtensionEvent.listen(wrap(handleExtensionEvent)),
       vmService.onServiceEvent.listen(wrap(handleServiceEvent)),
-      if (_subscribeToOutputStreams)
+      if (supportsCustomStreams)
+        vmService.onEvent(toolEventStreamId).listen(wrap(handleToolEvent)),
+      if (_subscribeToOutputStreams) ...[
         vmService.onStdoutEvent.listen(wrap(_handleStdoutEvent)),
-      if (_subscribeToOutputStreams)
         vmService.onStderrEvent.listen(wrap(_handleStderrEvent)),
+      ],
     ]);
     await Future.wait([
       vmService.streamListen(vm.EventStreams.kIsolate),
@@ -648,8 +672,11 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       vmService.streamListen(vm.EventStreams.kLogging),
       vmService.streamListen(vm.EventStreams.kExtension),
       vmService.streamListen(vm.EventStreams.kService),
-      vmService.streamListen(vm.EventStreams.kStdout),
-      vmService.streamListen(vm.EventStreams.kStderr),
+      if (supportsCustomStreams) vmService.streamListen(toolEventStreamId),
+      if (_subscribeToOutputStreams) ...[
+        vmService.streamListen(vm.EventStreams.kStdout),
+        vmService.streamListen(vm.EventStreams.kStderr),
+      ],
     ]);
 
     final vmInfo = await vmService.getVM();
@@ -2028,6 +2055,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
+  @protected
+  @mustCallSuper
+  Future<void> handleToolEvent(vm.Event event) async {
+    await debuggerInitialized;
+
+    sendEvent(
+      RawEventBody({
+        'kind': event.extensionKind,
+        'data': event.extensionData?.data,
+      }),
+      eventType: 'dart.toolEvent',
+    );
+  }
+
   void _handleStderrEvent(vm.Event event) {
     _sendOutputStreamEvent('stderr', event);
   }
@@ -2338,4 +2379,29 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
 
   static DartLaunchRequestArguments fromJson(Map<String, Object?> obj) =>
       DartLaunchRequestArguments.fromMap(obj);
+}
+
+/// A helper for checking whether the available DDS instance has specific
+/// capabilities.
+class _DdsCapabilities {
+  final int major;
+  final int minor;
+
+  static const empty = _DdsCapabilities(major: 0, minor: 0);
+
+  const _DdsCapabilities({required this.major, required this.minor});
+
+  /// Whether the DDS instance supports custom streams via `dart:developer`'s
+  /// `postEvent`.
+  bool get supportsCustomStreams => _isAtLeast(major: 1, minor: 4);
+
+  bool _isAtLeast({required major, required minor}) {
+    if (this.major > major) {
+      return true;
+    } else if (this.major == major && this.minor >= minor) {
+      return true;
+    } else {
+      return false;
+    }
+  }
 }
