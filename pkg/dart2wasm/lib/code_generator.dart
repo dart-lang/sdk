@@ -2409,14 +2409,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
 
     // Call entry point in vtable
-    int vtableIndex =
+    int vtableFieldIndex =
         representation.fieldIndexForSignature(posArgCount, argNames);
     w.FunctionType functionType =
-        (representation.vtableStruct.fields[vtableIndex].type as w.RefType)
-            .heapType as w.FunctionType;
+        representation.getVtableFieldType(vtableFieldIndex);
     b.local_get(temp);
     b.struct_get(struct, FieldIndex.closureVtable);
-    b.struct_get(representation.vtableStruct, vtableIndex);
+    b.struct_get(representation.vtableStruct, vtableFieldIndex);
     b.call_ref(functionType);
     return translator.topInfo.nullableType;
   }

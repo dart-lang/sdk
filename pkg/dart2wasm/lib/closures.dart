@@ -72,16 +72,21 @@ class ClosureRepresentation {
   w.DefinedFunction Function()? _instantiationFunctionThunk;
 
   /// The signature of the function that instantiates this generic closure.
-  w.FunctionType get instantiationFunctionType =>
-      (vtableStruct.fields[FieldIndex.vtableInstantiationFunction].type
-              as w.RefType)
-          .heapType as w.FunctionType;
+  w.FunctionType get instantiationFunctionType {
+    assert(isGeneric);
+    return getVtableFieldType(FieldIndex.vtableInstantiationFunction);
+  }
+
+  /// The type of the vtable function at given index.
+  w.FunctionType getVtableFieldType(int index) =>
+      (vtableStruct.fields[index].type as w.RefType).heapType as w.FunctionType;
 
   ClosureRepresentation(this.typeCount, this.vtableStruct, this.closureStruct,
       this._indexOfCombination, this.instantiationContextStruct);
 
   bool get isGeneric => typeCount > 0;
 
+  /// Where the vtable entries for function calls start in the vtable struct.
   int get vtableBaseIndex => isGeneric
       ? ClosureLayouter.vtableBaseIndexGeneric
       : ClosureLayouter.vtableBaseIndexNonGeneric;
