@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -119,14 +120,15 @@ PostfixPattern
 ''');
   }
 
-  /// TODO(scheglov) finish
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/50066')
   test_nullCheck_variableDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int? x) {
   var (a?) = x;
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT, 24, 2),
+    ]);
     final node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -134,11 +136,11 @@ PatternVariableDeclaration
   pattern: ParenthesizedPattern
     leftParenthesis: (
     pattern: PostfixPattern
-      operand: VariablePattern
+      operand: DeclaredVariablePattern
         name: a
         declaredElement: hasImplicitType a@24
           type: int
-      operator: !
+      operator: ?
     rightParenthesis: )
   equals: =
   expression: SimpleIdentifier
