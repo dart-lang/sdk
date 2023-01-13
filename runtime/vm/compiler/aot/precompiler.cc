@@ -345,7 +345,6 @@ class PrecompileParsedFunctionHelper : public ValueObject {
   ParsedFunction* parsed_function() const { return parsed_function_; }
   bool optimized() const { return optimized_; }
   Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return thread_->isolate(); }
 
   void FinalizeCompilation(compiler::Assembler* assembler,
                            FlowGraphCompiler* graph_compiler,
@@ -387,7 +386,6 @@ void Precompiler::ReportStats() {
 Precompiler::Precompiler(Thread* thread)
     : thread_(thread),
       zone_(NULL),
-      isolate_(thread->isolate()),
       changed_(false),
       retain_root_library_caches_(false),
       function_count_(0),
@@ -403,7 +401,7 @@ Precompiler::Precompiler(Thread* thread)
       dropped_library_count_(0),
       dropped_constants_arrays_entries_count_(0),
       libraries_(GrowableObjectArray::Handle(
-          isolate_->group()->object_store()->libraries())),
+          thread->isolate_group()->object_store()->libraries())),
       pending_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New())),
       sent_selectors_(),
