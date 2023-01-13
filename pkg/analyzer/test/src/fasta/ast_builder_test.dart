@@ -267,6 +267,23 @@ ClassDeclaration
         withOffsets: true);
   }
 
+  void test_class_final() {
+    var parseResult = parseStringWithErrors(r'''
+final class A {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classDeclaration('class A {}');
+    assertParsedNodeText(node, r'''
+ClassDeclaration
+  finalKeyword: final
+  classKeyword: class
+  name: A
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   void test_class_implementsClause_recordType() {
     var parseResult = parseStringWithErrors(r'''
 class C implements A, (int, int), B {}
@@ -522,6 +539,33 @@ ClassTypeAlias
   name: A
   equals: =
   baseKeyword: base
+  superclass: NamedType
+    name: SimpleIdentifier
+      token: Object
+  withClause: WithClause
+    withKeyword: with
+    mixinTypes
+      NamedType
+        name: SimpleIdentifier
+          token: M
+  semicolon: ;
+''');
+  }
+
+  void test_classTypeAlias_final() {
+    var parseResult = parseStringWithErrors(r'''
+mixin M {}
+final class A = Object with M;
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.classTypeAlias('class A');
+    assertParsedNodeText(node, r'''
+ClassTypeAlias
+  typedefKeyword: class
+  name: A
+  equals: =
+  finalKeyword: final
   superclass: NamedType
     name: SimpleIdentifier
       token: Object
@@ -1052,6 +1096,23 @@ base mixin M {}
     assertParsedNodeText(node, r'''
 MixinDeclaration
   baseKeyword: base
+  mixinKeyword: mixin
+  name: M
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  void test_mixin_final() {
+    var parseResult = parseStringWithErrors(r'''
+final mixin M {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.mixinDeclaration('mixin M');
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  finalKeyword: final
   mixinKeyword: mixin
   name: M
   leftBracket: {

@@ -128,10 +128,13 @@ class TopLevelVariableTest extends PartialCodeTest {
             "final _s_;",
             failing: [
               'class',
+              'enum',
               'functionVoid',
               'functionNonVoid',
               'getter',
-              'setter'
+              'mixin',
+              'setter',
+              'typedef'
             ],
             expectedErrorsInValidCode: [
               CompileTimeErrorCode.FINAL_NOT_INITIALIZED

@@ -1168,11 +1168,6 @@ class Foo {
     listener.assertErrors([expectedError(ParserErrorCode.FINAL_AND_VAR, 6, 3)]);
   }
 
-  void test_finalClass() {
-    parseCompilationUnit("final class C {}",
-        errors: [expectedError(ParserErrorCode.FINAL_CLASS, 0, 5)]);
-  }
-
   void test_finalClassMember_modifierOnly() {
     createParser('final');
     ClassMember member = parser.parseClassMember('C');
@@ -1193,10 +1188,7 @@ class Foo {
 
   void test_finalEnum() {
     parseCompilationUnit("final enum E {ONE}", errors: [
-      // Fasta interprets the `final` as a malformed top level final
-      // and `enum` as the start of a enum declaration.
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 5),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 4),
+      expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 5),
     ]);
   }
 
@@ -1210,10 +1202,7 @@ class Foo {
 
   void test_finalTypedef() {
     parseCompilationUnit("final typedef F();", errors: [
-      // Fasta interprets the `final` as a malformed top level final
-      // and `typedef` as the start of an typedef declaration.
-      expectedError(ParserErrorCode.EXPECTED_TOKEN, 0, 5),
-      expectedError(ParserErrorCode.MISSING_IDENTIFIER, 6, 7),
+      expectedError(ParserErrorCode.EXTRANEOUS_MODIFIER, 0, 5),
     ]);
   }
 

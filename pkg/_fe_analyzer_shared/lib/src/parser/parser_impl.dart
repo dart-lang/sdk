@@ -528,19 +528,25 @@ class Parser {
           /* sealedToken = */ null,
           /* baseToken = */ null,
           /* interfaceToken = */ null,
+          /* finalToken = */ null,
           directiveState);
     }
     Token start = token;
+    Token? finalToken;
     // Skip modifiers to find a top level keyword or identifier
     if (next.isModifier) {
       if (optional('var', next) ||
           optional('late', next) ||
-          ((optional('const', next) || optional('final', next)) &&
-              // Ignore `const class` and `final class` so that it is reported
-              // below as an invalid modifier on a class.
+          (optional('const', next) &&
+              // Ignore `const class` so that it is reported below as an invalid
+              // modifier on a class.
               !optional('class', next.next!))) {
         directiveState?.checkDeclaration();
         return parseTopLevelMemberImpl(token);
+      } else if (optional('final', next) &&
+          (optional('class', next.next!) || optional('mixin', next.next!))) {
+        // Take note of the final class modifier while parsing modifiers.
+        finalToken = next;
       }
       while (token.next!.isModifier) {
         token = token.next!;
@@ -594,6 +600,7 @@ class Parser {
           /* sealedToken = */ sealedToken,
           /* baseToken = */ baseToken,
           /* interfaceToken = */ interfaceToken,
+          /* finalToken = */ finalToken,
           directiveState);
     } else if (next.isKeywordOrIdentifier) {
       // TODO(danrubel): improve parseTopLevelMember
@@ -634,6 +641,7 @@ class Parser {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
+      Token? finalToken,
       DirectiveContext? directiveState) {
     assert(keyword.isTopLevelKeyword);
     final String? value = keyword.stringValue;
@@ -646,6 +654,7 @@ class Parser {
           sealedToken,
           baseToken,
           interfaceToken,
+          finalToken,
           null,
           directiveState);
     } else if (identical(value, 'enum')) {
@@ -716,13 +725,14 @@ class Parser {
                 sealedToken,
                 baseToken,
                 null,
+                null,
                 keyword,
                 directiveState);
           }
           context.parseMixinModifiers(start, keyword);
           directiveState?.checkDeclaration();
           return parseMixin(context.augmentToken, sealedToken, baseToken,
-              interfaceToken, keyword);
+              interfaceToken, finalToken, keyword);
         } else if (identical(value, 'extension')) {
           context.parseTopLevelKeywordModifiers(start, keyword);
           directiveState?.checkDeclaration();
@@ -755,6 +765,7 @@ class Parser {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
+      Token? finalToken,
       Token? mixinToken,
       DirectiveContext? directiveState) {
     directiveState?.checkDeclaration();
@@ -773,6 +784,7 @@ class Parser {
         sealedToken,
         baseToken,
         interfaceToken,
+        finalToken,
         augmentToken,
         mixinToken,
         classKeyword);
@@ -2534,6 +2546,7 @@ class Parser {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token classKeyword) {
@@ -2557,6 +2570,7 @@ class Parser {
           sealedToken,
           baseToken,
           interfaceToken,
+          finalToken,
           augmentToken,
           mixinToken,
           name);
@@ -2570,6 +2584,7 @@ class Parser {
           sealedToken,
           baseToken,
           interfaceToken,
+          finalToken,
           augmentToken,
           mixinToken,
           name);
@@ -2791,10 +2806,10 @@ class Parser {
   ///        '{' [ClassMember]* '}'
   /// ;
   ///
-  /// mixinModifiers: 'sealed' | 'base' | 'interface'
+  /// mixinModifiers: 'sealed' | 'base' | 'interface' | 'final'
   /// ```
   Token parseMixin(Token? augmentToken, Token? sealedToken, Token? baseToken,
-      Token? interfaceToken, Token mixinKeyword) {
+      Token? interfaceToken, Token? finalToken, Token mixinKeyword) {
     assert(optional('mixin', mixinKeyword));
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(mixinKeyword);
     Token name = ensureIdentifier(
@@ -2803,7 +2818,7 @@ class Parser {
             name, /* inDeclaration = */ true, /* allowsVariance = */ true)
         .parseVariables(name, this);
     listener.beginMixinDeclaration(augmentToken, sealedToken, baseToken,
-        interfaceToken, mixinKeyword, name);
+        interfaceToken, finalToken, mixinKeyword, name);
     Token token = parseMixinHeaderOpt(headerStart, mixinKeyword);
     if (!optional('{', token.next!)) {
       // Recovery
