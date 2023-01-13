@@ -27,7 +27,7 @@
 # - 655 "needsEvaluation"
 #   - 282 for CompileTimeErrorCodes
 #   - 220 for ParserErrorCodes
-# -  92 "needsFix"
+# -  93 "needsFix"
 # - 310 "hasFix"
 # -  94 "noFix"
 
@@ -2751,6 +2751,11 @@ StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT:
   status: hasFix
 StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH:
   status: hasFix
+StaticWarningCode.NON_NULLABLE_EQUALS_PARAMETER:
+  status: needsFix
+  notes: |-
+    The fix is to remove the question mark if the parameter has one (if the
+    written type is an alias, it may not).
 StaticWarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:
   status: hasFix
 StaticWarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:

@@ -260,7 +260,7 @@ class ArgumentsTypes extends IterableMixin<TypeInformation> {
   String toString() => "{ positional = $positional, named = $named }";
 
   @override
-  bool operator ==(Object? other) {
+  bool operator ==(Object other) {
     if (other is! ArgumentsTypes) return false;
     if (positional.length != other.positional.length) return false;
     if (named.length != other.named.length) return false;

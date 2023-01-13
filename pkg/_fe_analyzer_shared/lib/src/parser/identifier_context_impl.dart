@@ -447,7 +447,7 @@ class ExtensionShowHideElementIdentifierContext extends IdentifierContext {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return other is ExtensionShowHideElementIdentifierContext &&
         _kind == other._kind;
   }
