@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-const jsRuntimeBlob = r'''
+const jsRuntimeBlobPart1 = r'''
 // `modulePromise` is a promise to the `WebAssembly.module` object to be
 //   instantiated.
 // `importObjectPromise` is a promise to an object that contains any additional
@@ -387,6 +387,11 @@ export const instantiate = async (modulePromise, importObjectPromise) => {
         instanceofTrampoline: function(object, type) {
             return object instanceof type;
         },
+''';
+
+// We break inside the 'dart2wasm' object to enable injection of methods. We
+// could use interpolation, but then we'd have to escape characters.
+const jsRuntimeBlobPart2 = r'''
     };
 
     const baseImports = {
