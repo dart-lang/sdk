@@ -8,11 +8,12 @@
 @JS('library1.library2')
 library external_static_member_lowerings_with_namespaces_test;
 
-import 'dart:_js_annotations';
+// ignore: IMPORT_INTERNAL_LIBRARY
+import 'dart:_js_interop';
 import 'dart:js_util' as js_util;
 
 import 'package:expect/minitest.dart';
-import 'package:js/js.dart' show trustTypes;
+import 'package:js/js.dart' show trustTypes, staticInterop;
 
 @JS('library3.ExternalStatic')
 @staticInterop
