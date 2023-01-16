@@ -10,6 +10,7 @@ import 'package:kernel/type_environment.dart';
 import '../js_interop.dart'
     show
         getJSName,
+        hasAnonymousAnnotation,
         hasInternalJSInteropAnnotation,
         hasStaticInteropAnnotation,
         hasTrustTypesAnnotation;
@@ -26,9 +27,12 @@ class JsUtilOptimizer extends Transformer {
   final Procedure _getPropertyTarget;
   final Procedure _getPropertyTrustTypeTarget;
   final Procedure _globalThisTarget;
+  final Procedure _jsifyTarget;
+  final InterfaceType _objectNullableType;
   final InterfaceType _objectType;
   final Procedure _setPropertyTarget;
   final Procedure _setPropertyUncheckedTarget;
+  final InterfaceType _stringType;
 
   /// Dynamic members in js_util that interop allowed.
   static final Iterable<String> _allowedInteropJsUtilMembers = <String>[
@@ -74,11 +78,15 @@ class JsUtilOptimizer extends Transformer {
             .getTopLevelProcedure('dart:js_util', '_getPropertyTrustType'),
         _globalThisTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'get:globalThis'),
+        _jsifyTarget =
+            _coreTypes.index.getTopLevelProcedure('dart:js_util', 'jsify'),
+        _objectNullableType = hierarchy.coreTypes.objectNullableRawType,
         _objectType = hierarchy.coreTypes.objectNonNullableRawType,
         _setPropertyTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'setProperty'),
         _setPropertyUncheckedTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', '_setPropertyUnchecked'),
+        _stringType = hierarchy.coreTypes.stringNonNullableRawType,
         _jsTarget =
             _coreTypes.index.getTopLevelProcedure('dart:_foreign_helper', 'JS'),
         _allowInteropTarget =
@@ -128,52 +136,30 @@ class JsUtilOptimizer extends Transformer {
             transformedBody = _getExternalMethodBody(node, shouldTrustType);
           }
         }
-      } else if (node.isStatic &&
-          ((node.enclosingClass != null &&
-                  hasStaticInteropAnnotation(node.enclosingClass!)) ||
-              // We only lower top-levels if we're using the
-              // `dart:_js_annotations`' `@JS` annotation to avoid a breaking
-              // change for `package:js` users. The one exception is `dart:ui`,
-              // since it's already using `dart:_js_annotations`. Whenever
-              // `dart:ui` is ready to migrate to the sound semantics, we should
-              // remove the exception.
-              ((hasInternalJSInteropAnnotation(node) ||
-                      hasInternalJSInteropAnnotation(node.enclosingLibrary)) &&
-                  node.enclosingLibrary.importUri.toString() != 'dart:ui'))) {
-        // Fetch the dotted prefix of the member.
-        var libraryName = getJSName(node.enclosingLibrary);
-        var dottedPrefix = libraryName;
-        var enclosingClass = node.enclosingClass;
-        var shouldTrustType = false;
-        if (enclosingClass == null) {
-          // Top-level. If the `@JS` value of the node has any '.'s, we take the
-          // entries before the last '.' to determine the dotted prefix name.
-          var jsName = getJSName(node);
-          if (jsName.isNotEmpty) {
-            var lastDotIndex = jsName.lastIndexOf('.');
-            if (lastDotIndex >= 0) {
-              dottedPrefix = _getCombinedJSName(
-                  dottedPrefix, jsName.substring(0, lastDotIndex));
+      } else {
+        // Do the lowerings for top-levels, static class members, and factories.
+        var dottedPrefix = _getDottedPrefixForNonInstanceMember(node);
+        if (dottedPrefix != null) {
+          var receiver = _getObjectOffGlobalThis(
+              node, dottedPrefix.isEmpty ? [] : dottedPrefix.split('.'));
+          var shouldTrustType = node.enclosingClass != null &&
+              hasTrustTypesAnnotation(node.enclosingClass!);
+          if (node.kind == ProcedureKind.Getter) {
+            transformedBody =
+                _getExternalGetterBody(node, shouldTrustType, receiver);
+          } else if (node.kind == ProcedureKind.Setter) {
+            transformedBody = _getExternalSetterBody(node, receiver);
+          } else if (node.kind == ProcedureKind.Method) {
+            transformedBody =
+                _getExternalMethodBody(node, shouldTrustType, receiver);
+          } else if (node.kind == ProcedureKind.Factory) {
+            if (!hasAnonymousAnnotation(node.enclosingClass!)) {
+              transformedBody = _getExternalConstructorBody(
+                  node,
+                  // Get the constructor object using the class name.
+                  _getObjectOffGlobalThis(node, dottedPrefix.split('.')));
             }
           }
-        } else if (hasStaticInteropAnnotation(enclosingClass)) {
-          // Class static member, use the class name as part of the dotted
-          // prefix.
-          var className = getJSName(enclosingClass);
-          if (className.isEmpty) className = enclosingClass.name;
-          dottedPrefix = _getCombinedJSName(dottedPrefix, className);
-          shouldTrustType = hasTrustTypesAnnotation(enclosingClass);
-        }
-        var receiver = _getObjectOffGlobalThis(
-            node, dottedPrefix.isEmpty ? [] : dottedPrefix.split('.'));
-        if (node.kind == ProcedureKind.Getter) {
-          transformedBody =
-              _getExternalGetterBody(node, shouldTrustType, receiver);
-        } else if (node.kind == ProcedureKind.Setter) {
-          transformedBody = _getExternalSetterBody(node, receiver);
-        } else if (node.kind == ProcedureKind.Method) {
-          transformedBody =
-              _getExternalMethodBody(node, shouldTrustType, receiver);
         }
       }
     }
@@ -188,10 +174,53 @@ class JsUtilOptimizer extends Transformer {
     return node;
   }
 
-  /// Given two `@JS` values, combines them into a qualified name using '.'.
+  /// Returns the prefixed JS name for the given [node] using the enclosing
+  /// library's, enclosing class' (if any), and member's `@JS` values.
+  ///
+  /// Returns null if [node] is not external and a top-level member, a
+  /// `@staticInterop` factory, or a `@staticInterop` static member.
+  String? _getDottedPrefixForNonInstanceMember(Procedure node) {
+    if (!node.isExternal || (!node.isFactory && !node.isStatic)) return null;
+    var enclosingClass = node.enclosingClass;
+    var dottedPrefix = getJSName(node.enclosingLibrary);
+
+    if (enclosingClass == null &&
+        ((hasInternalJSInteropAnnotation(node) ||
+                hasInternalJSInteropAnnotation(node.enclosingLibrary)) &&
+            node.enclosingLibrary.importUri.toString() != 'dart:ui')) {
+      // Top-level external member. We only lower top-levels if we're using the
+      // `dart:_js_annotations`' `@JS` annotation to avoid a breaking change for
+      // `package:js` users. The one exception is `dart:ui`, since it's already
+      // using `dart:_js_annotations`. Whenever `dart:ui` is ready to migrate to
+      // the sound semantics, we should remove the exception.
+
+      // If the `@JS` value of the node has any '.'s, we take the entries
+      // before the last '.' to determine the dotted prefix name.
+      var jsName = getJSName(node);
+      if (jsName.isNotEmpty) {
+        var lastDotIndex = jsName.lastIndexOf('.');
+        if (lastDotIndex != -1) {
+          dottedPrefix = _concatenateJSNames(
+              dottedPrefix, jsName.substring(0, lastDotIndex));
+        }
+      }
+    } else if (enclosingClass != null &&
+        hasStaticInteropAnnotation(enclosingClass)) {
+      // `@staticInterop` factory or static member, use the class name as part
+      // of the dotted prefix.
+      var className = getJSName(enclosingClass);
+      if (className.isEmpty) className = enclosingClass.name;
+      dottedPrefix = _concatenateJSNames(dottedPrefix, className);
+    } else {
+      return null;
+    }
+    return dottedPrefix;
+  }
+
+  /// Given two `@JS` values, combines them into a concatenated name using '.'.
   ///
   /// If either parameters are empty, returns the other.
-  String _getCombinedJSName(String prefix, String suffix) {
+  String _concatenateJSNames(String prefix, String suffix) {
     if (prefix.isEmpty) return suffix;
     if (suffix.isEmpty) return prefix;
     return '$prefix.$suffix';
@@ -320,6 +349,30 @@ class JsUtilOptimizer extends Transformer {
         shouldTrustType: shouldTrustType));
   }
 
+  /// Returns a new function body for the given [node] external non-object
+  /// literal factory.
+  ///
+  /// The new function body will call the optimized version of
+  /// `js_util.callConstructor` using the given [constructor] and the arguments
+  /// of the provided external factory.
+  ReturnStatement _getExternalConstructorBody(
+      Procedure node, Expression constructor) {
+    var function = node.function;
+    assert(function.namedParameters.isEmpty);
+    var callConstructorInvocation = StaticInvocation(
+        _callConstructorTarget,
+        Arguments([
+          constructor,
+          ListLiteral(function.positionalParameters
+              .map<Expression>((argument) => VariableGet(argument))
+              .toList())
+        ], types: [
+          function.returnType
+        ]))
+      ..fileOffset = node.fileOffset;
+    return ReturnStatement(_lowerCallConstructor(callConstructorInvocation));
+  }
+
   /// Return whether [node] is an extension member that's declared as
   /// non-`static`.
   bool _isInstanceExtensionMember(Member node) =>
@@ -362,6 +415,21 @@ class JsUtilOptimizer extends Transformer {
       node = _lowerCallMethod(node, shouldTrustType: false);
     } else if (node.target == _callConstructorTarget) {
       node = _lowerCallConstructor(node);
+    } else if (node.target.isExternal &&
+        node.target.isFactory &&
+        hasAnonymousAnnotation(node.target.enclosingClass!) &&
+        hasStaticInteropAnnotation(node.target.enclosingClass!)) {
+      // Only do this lowering for `@staticInterop` `@anonymous` classes.
+      assert(node.arguments.positional.isEmpty);
+      var entries = <MapLiteralEntry>[];
+      for (var namedArg in node.arguments.named) {
+        entries
+            .add(MapLiteralEntry(StringLiteral(namedArg.name), namedArg.value));
+      }
+      var literal = MapLiteral(entries,
+          keyType: _stringType, valueType: _objectNullableType);
+      node = StaticInvocation(_jsifyTarget, Arguments([literal]))
+        ..fileOffset = node.fileOffset;
     }
     node.transformChildren(this);
     return node;
