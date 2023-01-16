@@ -196,6 +196,7 @@ class WasmTarget extends Target {
       return StaticInvocation(invocationSetter,
           Arguments([SymbolLiteral(name), arguments.positional.single]));
     } else if (name.startsWith("get:")) {
+      name = name.substring(4);
       Procedure invocationGetter = coreTypes.invocationClass.procedures
           .firstWhere((c) => c.name.text == "getter");
       return StaticInvocation(
