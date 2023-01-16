@@ -1768,7 +1768,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     return uri;
   }
 
-  /// Fixes up an Observatory [uri] to a WebSocket URI with a trailing /ws
+  /// Fixes up a VM Service [uri] to a WebSocket URI with a trailing /ws
   /// for connecting when not using DDS.
   ///
   /// DDS does its own cleaning up of the URI.
