@@ -73,7 +73,7 @@ _injectJs() {
     getA: function() { return this.a;}
   };
 
-  var selection = ["a", "b", "c", foo, bar];
+  var list = ["a", "b", "c", foo, bar];
 
   function returnNumArgs() { return arguments.length; };
   function returnLastArg() { return arguments[arguments.length-1]; };
@@ -174,7 +174,7 @@ class Bar {
 external Foo get foo;
 external Foob get foob;
 external Bar get bar;
-external Selection get selection;
+external Object get list;
 
 addWithDefault(a, [b = 100]) => a + b;
 
@@ -433,7 +433,7 @@ main() {
       expect(dartObject is Foo, isFalse);
       expect(dartObject is ExampleLiteral, isFalse);
 
-      expect(selection is List, isTrue);
+      expect(list is List, isTrue);
 
       // We do know at runtime whether something is a JsArray or not.
       expect(foo is List, isFalse);
@@ -441,7 +441,7 @@ main() {
 
     test('dart interfaces', () {
       expect(foo is Function, isFalse);
-      expect(selection is List, isTrue);
+      expect(list is List, isTrue);
     });
   });
 

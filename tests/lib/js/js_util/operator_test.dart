@@ -15,7 +15,7 @@ import 'package:expect/minitest.dart';
 external void eval(String code);
 
 @JS()
-external Object get undefinedObject;
+external Object? get undefinedObject;
 
 @JS()
 class Foo {
