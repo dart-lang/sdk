@@ -215,9 +215,6 @@ bool ClassFinalizer::ProcessPendingClasses() {
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
       FinalizeTypesInClass(cls);
-#if !defined(PRODUCT)
-      cls.SetUserVisibleNameInClassTable();
-#endif
     }
 
     // Clear pending classes array.
