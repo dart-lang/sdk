@@ -2826,7 +2826,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
   if (heap_sampler.HasOutstandingSample()) {
     IsolateGroup* isolate_group = thread->isolate_group();
     Api::Scope api_scope(thread);
-    PersistentHandle* type_name = class_table->UserVisibleNameFor(cls_id);
+    const char* type_name = class_table->UserVisibleNameFor(cls_id);
     if (type_name == nullptr) {
       // Try the vm-isolate's class table for core types.
       type_name =
@@ -2840,7 +2840,7 @@ ObjectPtr Object::Allocate(intptr_t cls_id,
       auto weak_obj = FinalizablePersistentHandle::New(
           isolate_group, obj, nullptr, NoopFinalizer, 0, /*auto_delete=*/false);
       heap_sampler.InvokeCallbackForLastSample(
-          type_name->apiHandle(), weak_obj->ApiWeakPersistentHandle());
+          type_name, weak_obj->ApiWeakPersistentHandle());
       thread->DecrementNoCallbackScopeDepth();
     }
   }
@@ -5145,11 +5145,6 @@ void Class::set_name(const String& value) const {
     const String& user_name = String::Handle(
         Symbols::New(Thread::Current(), GenerateUserVisibleName()));
     set_user_name(user_name);
-    IsolateGroup* isolate_group = IsolateGroup::Current();
-    PersistentHandle* type_name =
-        isolate_group->api_state()->AllocatePersistentHandle();
-    type_name->set_ptr(UserVisibleName());
-    isolate_group->class_table()->SetUserVisibleNameFor(id(), type_name);
   }
 #endif  // !defined(PRODUCT)
 }
@@ -5157,6 +5152,15 @@ void Class::set_name(const String& value) const {
 #if !defined(PRODUCT)
 void Class::set_user_name(const String& value) const {
   untag()->set_user_name(value.ptr());
+}
+
+void Class::SetUserVisibleNameInClassTable() {
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  auto class_table = isolate_group->class_table();
+  if (class_table->UserVisibleNameFor(id()) == nullptr) {
+    String& name = String::Handle(UserVisibleName());
+    class_table->SetUserVisibleNameFor(id(), name.ToMallocCString());
+  }
 }
 #endif  // !defined(PRODUCT)
 

@@ -95,6 +95,13 @@ uword Heap::AllocateNew(Thread* thread, intptr_t size) {
 
 uword Heap::AllocateOld(Thread* thread, intptr_t size, Page::PageType type) {
   ASSERT(thread->no_safepoint_scope_depth() == 0);
+
+#if !defined(PRODUCT)
+  if (HeapProfileSampler::enabled()) {
+    thread->heap_sampler().SampleOldSpaceAllocation(size);
+  }
+#endif
+
   if (!thread->force_growth()) {
     CollectForDebugging(thread);
     uword addr = old_space_.TryAllocate(size, type);
