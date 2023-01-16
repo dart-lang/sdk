@@ -8577,7 +8577,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // TODO(cstefantsova): Figure out the right exception to throw.
       createIfStatement(
           createVariableGet(isPatternMatchingFailed),
-          createExpressionStatement(new Throw(createConstructorInvocation(
+          createExpressionStatement(createThrow(createConstructorInvocation(
               coreTypes.reachabilityErrorConstructor,
               createArguments([], fileOffset: node.fileOffset),
               fileOffset: node.fileOffset))),

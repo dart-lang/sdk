@@ -1629,18 +1629,31 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
     b.local_set(positionalArgsLocal);
 
-    // Evaluate named arguments
+    // Evaluate named arguments. The arguments need to be evaluated in the
+    // order they appear in the AST, but need to be sorted based on names in
+    // the argument list passed to the dynamic forwarder. Create a local for
+    // each argument to allow adding values to the list in expected order.
+    final List<MapEntry<String, w.Local>> namedArgumentLocals = [];
+    for (final namedArgument in namedArguments) {
+      wrap(namedArgument.value, translator.topInfo.nullableType);
+      final argumentLocal = function.addLocal(translator.topInfo.nullableType);
+      b.local_set(argumentLocal);
+      namedArgumentLocals.add(MapEntry(namedArgument.name, argumentLocal));
+    }
+    namedArgumentLocals.sort((e1, e2) => e1.key.compareTo(e2.key));
+
+    // Create named argument list
     makeList(DynamicType(), namedArguments.length * 2,
         (elementType, elementIdx) {
       if (elementIdx % 2 == 0) {
-        final name = namedArguments[elementIdx ~/ 2].name;
+        final name = namedArgumentLocals[elementIdx ~/ 2].key;
         final w.ValueType symbolValueType =
             translator.classInfo[translator.symbolClass]!.nonNullableType;
         translator.constants.instantiateConstant(
             function, b, SymbolConstant(name, null), symbolValueType);
       } else {
-        final value = namedArguments[elementIdx ~/ 2].value;
-        wrap(value, elementType);
+        final local = namedArgumentLocals[elementIdx ~/ 2].value;
+        b.local_get(local);
       }
     }, isGrowable: false);
     final namedArgsLocal = function.addLocal(

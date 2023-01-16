@@ -984,6 +984,8 @@ VariableCouldBeNullDueToWrite/example: Fail
 VariablePatternTypeMismatchInSwitchHeads/analyzerCode: Fail
 VariablePatternTypeMismatchInSwitchHeads/part_wrapped_script: Crash
 VariablePatternTypeMismatchInSwitchHeads/script: Crash
+WasmSyncStar/analyzerCode: Fail
+WasmSyncStar/example: Fail
 WeakWithStrongDillLibrary/analyzerCode: Fail
 WeakWithStrongDillLibrary/example: Fail
 WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail

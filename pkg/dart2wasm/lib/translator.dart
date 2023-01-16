@@ -602,8 +602,10 @@ class Translator with KernelNodes {
     // Look up the closure representation for the signature.
     int typeCount = functionNode.typeParameters.length;
     int positionalCount = functionNode.positionalParameters.length;
-    List<String> names =
-        functionNode.namedParameters.map((p) => p.name!).toList();
+    final List<VariableDeclaration> namedParamsSorted =
+        functionNode.namedParameters.toList()
+          ..sort((p1, p2) => p1.name!.compareTo(p2.name!));
+    List<String> names = namedParamsSorted.map((p) => p.name!).toList();
     assert(typeCount == paramInfo.typeParamCount);
     assert(positionalCount <= paramInfo.positional.length);
     assert(names.length <= paramInfo.named.length);
@@ -625,21 +627,43 @@ class Translator with KernelNodes {
       if (posArgCount < functionNode.requiredParameterCount) {
         return false;
       }
-      int i = 0, j = 0;
-      while (i < argNames.length && j < functionNode.namedParameters.length) {
-        int comp = argNames[i].compareTo(functionNode.namedParameters[j].name!);
-        if (comp < 0) return false;
-        if (comp > 0) {
-          if (functionNode.namedParameters[j++].isRequired) return false;
-          continue;
+
+      int namedArgIdx = 0, namedParamIdx = 0;
+      while (namedArgIdx < argNames.length &&
+          namedParamIdx < namedParamsSorted.length) {
+        int comp = argNames[namedArgIdx]
+            .compareTo(namedParamsSorted[namedParamIdx].name!);
+        if (comp < 0) {
+          // Unexpected named argument passed
+          return false;
+        } else if (comp > 0) {
+          if (namedParamsSorted[namedParamIdx].isRequired) {
+            // Required named parameter not passed
+            return false;
+          } else {
+            // Optional named parameter not passed
+            namedParamIdx++;
+            continue;
+          }
+        } else {
+          // Expected required or optional named parameter passed
+          namedArgIdx++;
+          namedParamIdx++;
         }
-        i++;
-        j++;
       }
-      if (i < argNames.length) return false;
-      while (j < functionNode.namedParameters.length) {
-        if (functionNode.namedParameters[j++].isRequired) return false;
+
+      if (namedArgIdx < argNames.length) {
+        // Unexpected named argument(s) passed
+        return false;
       }
+
+      while (namedParamIdx < namedParamsSorted.length) {
+        if (namedParamsSorted[namedParamIdx++].isRequired) {
+          // Required named parameter not passed
+          return false;
+        }
+      }
+
       return true;
     }
 

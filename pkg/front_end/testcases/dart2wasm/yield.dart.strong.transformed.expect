@@ -1,3 +1,8 @@
+//
+// Problems outside component:
+//
+// pkg/front_end/testcases/dart2wasm/yield.dart: Warning: Compilation to Wasm does not support 'sync*'.
+//
 library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;

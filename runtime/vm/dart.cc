@@ -907,9 +907,6 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return ApiError::New(message);
     }
   }
-#if !defined(PRODUCT)
-  I->group()->class_table()->PopulateUserVisibleNames();
-#endif
 
   return Error::null();
 }

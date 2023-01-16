@@ -425,16 +425,11 @@ class ClassTable : public MallocAllocated {
         classes_.GetColumn<kAllocationTracingStateIndex>());
   }
 
-  void PopulateUserVisibleNames();
-
-  const char* UserVisibleNameFor(intptr_t cid) {
-    if (!classes_.IsValidIndex(cid)) {
-      return nullptr;
-    }
+  PersistentHandle* UserVisibleNameFor(intptr_t cid) {
     return classes_.At<kClassNameIndex>(cid);
   }
 
-  void SetUserVisibleNameFor(intptr_t cid, const char* name) {
+  void SetUserVisibleNameFor(intptr_t cid, PersistentHandle* name) {
     classes_.At<kClassNameIndex>(cid) = name;
   }
 #else
@@ -527,20 +522,6 @@ class ClassTable : public MallocAllocated {
         classes_(original.allocator_),
         top_level_classes_(original.allocator_) {
     classes_.CopyFrom(original.classes_);
-
-#if !defined(PRODUCT)
-    // Copying classes_ doesn't perform a deep copy. Ensure we duplicate
-    // the class names to avoid double free crashes at shutdown.
-    for (intptr_t cid = 1; cid < classes_.num_cids(); ++cid) {
-      if (classes_.IsValidIndex(cid)) {
-        const char* cls_name = classes_.At<kClassNameIndex>(cid);
-        if (cls_name != nullptr) {
-          classes_.At<kClassNameIndex>(cid) = Utils::StrDup(cls_name);
-        }
-      }
-    }
-#endif  // !defined(PRODUCT)
-
     top_level_classes_.CopyFrom(original.top_level_classes_);
     UpdateCachedAllocationTracingStateTablePointer();
   }
@@ -580,7 +561,7 @@ class ClassTable : public MallocAllocated {
                   uint32_t,
                   UnboxedFieldBitmap,
                   uint8_t,
-                  const char*>
+                  PersistentHandle*>
       classes_;
 #else
   CidIndexedTable<ClassIdTagType, ClassPtr, uint32_t, UnboxedFieldBitmap>
