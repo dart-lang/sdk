@@ -138,9 +138,7 @@ VariableDeclaration createInitializedVariable(
     Expression expression, DartType type,
     {required int fileOffset}) {
   return new VariableDeclaration(null, initializer: expression, type: type)
-    ..fileOffset = fileOffset
-    // TODO(johnniwinther): Remove this.
-    ..isFinal = true;
+    ..fileOffset = fileOffset;
 }
 
 /// Creates a [VariableDeclaration] for [expression] with the static [type]
@@ -170,8 +168,7 @@ VariableGet createVariableGet(VariableDeclaration variable,
 /// Creates a [VariableSet] of [variable] with the [value].
 VariableSet createVariableSet(VariableDeclaration variable, Expression value,
     {required int fileOffset}) {
-  // TODO(johnniwinther): Enable this.
-  //assert(variable.isAssignable, "Cannot assign to variable $variable");
+  assert(variable.isAssignable, "Cannot assign to variable $variable");
   return new VariableSet(variable, value)..fileOffset = fileOffset;
 }
 

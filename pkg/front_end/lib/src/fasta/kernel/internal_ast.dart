@@ -3939,8 +3939,7 @@ class OrPattern extends Pattern {
     List<Statement> leftVariableInitializers = [setLeftConditionIsTrue];
     for (VariableDeclaration variable in left.declaredVariables) {
       // TODO(johnniwinther): Can the variable be const?
-      // TODO(johnniwinther): Re-enable this:
-      //variable.isFinal = false;
+      variable.isFinal = false;
       leftVariableInitializers.add(createExpressionStatement(createVariableSet(
           variable, variable.initializer!,
           fileOffset: fileOffset)));
@@ -3993,8 +3992,7 @@ class OrPattern extends Pattern {
     List<Statement> rightVariableInitializers = [setRightConditionIsTrue];
     for (VariableDeclaration variable in right.declaredVariables) {
       // TODO(johnniwinther): Can the variable be const?
-      // TODO(johnniwinther): Re-enable this:
-      //variable.isFinal = false;
+      variable.isFinal = false;
       rightVariableInitializers.add(createExpressionStatement(createVariableSet(
           variable, variable.initializer!,
           fileOffset: fileOffset)));
@@ -4328,17 +4326,9 @@ class ListPattern extends Pattern {
           fileOffset: fileOffset);
     } else {
       // lengthCheck: `lengthGet` == `patterns.length`
-      lengthCheck = createInstanceInvocation(
-          base,
-          base.coreTypes.intNonNullableRawType,
-          lengthGet,
-          equalsName,
-          [createIntLiteral(patterns.length, fileOffset: fileOffset)],
-          fileOffset: fileOffset);
-      // TODO(johnniwinther): Call createEqualsCall instead.
-      /*createEqualsCall(base, base.coreTypes.intNonNullableRawType,
+      lengthCheck = createEqualsCall(base, base.coreTypes.intNonNullableRawType,
           lengthGet, createIntLiteral(patterns.length, fileOffset: fileOffset),
-          fileOffset: fileOffset);*/
+          fileOffset: fileOffset);
     }
 
     // typeAndLengthCheck: `listVariable` is `targetListType`
@@ -4444,10 +4434,8 @@ class ListPattern extends Pattern {
         listElement = createOperatorInvocation(
             base,
             targetListType,
-            createVariableGet(listVariable, promotedType: targetListType
-                // TODO(johnniwinther): Use this instead:
-                //listVariablePromotedType
-                ),
+            createVariableGet(listVariable,
+                promotedType: listVariablePromotedType),
             indexGetName,
             elementIndex,
             fileOffset: fileOffset);

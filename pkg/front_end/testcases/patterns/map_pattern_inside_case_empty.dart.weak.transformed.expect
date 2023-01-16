@@ -6,8 +6,8 @@ static method test(dynamic x) → dynamic {
   #L1:
   {
     final dynamic #t1 = x;
-    final core::int #t2 = -1;
-    final core::bool #t3 = false;
+    core::int #t2 = -1;
+    core::bool #t3 = false;
     if(!#t3) {
       final dynamic #t4 = #t1;
       if(#t4 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #t4{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 0) {

@@ -35,7 +35,7 @@ static method errors(self::Class c) → dynamic {
   ^^^^^^^^^";
   block {
     final dynamic #t1 = 42;
-    final core::bool #t2 = true;
+    core::bool #t2 = true;
     #t2 = false;
     if(#t2)
       throw new _in::ReachabilityError::•();

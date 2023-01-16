@@ -7,8 +7,8 @@ static method test(dynamic x) → dynamic {
   {
     dynamic #t1;
     final dynamic #t2 = x;
-    final core::int #t3 = -1;
-    final core::bool #t4 = false;
+    core::int #t3 = -1;
+    core::bool #t4 = false;
     if(!#t4) {
       final core::Object #t5 = #t2;
       final core::Object #t6 = #t5;

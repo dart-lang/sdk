@@ -8,8 +8,8 @@ static method test1(core::List<dynamic> list) → core::String {
     {
       dynamic r1;
       final core::List<dynamic> #t2 = list;
-      final core::int #t3 = -1;
-      final core::bool #t4 = false;
+      core::int #t3 = -1;
+      core::bool #t4 = false;
       if(!#t4) {
         final core::List<dynamic> #t5 = #t2;
         if(#t5 is core::List<core::int> && #t5{core::List<core::int>}.{core::List::length}{core::int}.{core::num::>=}(4){(core::num) → core::bool}) {

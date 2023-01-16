@@ -5,7 +5,7 @@ import "dart:core" as core;
 static method test(dynamic x) → dynamic {
   final dynamic #t1 = x;
   final dynamic #t2 = #t1;
-  if(#t2 is core::List<dynamic> && #t2{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(1){(core::Object) → core::bool}) {
+  if(#t2 is core::List<dynamic> && #t2{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
     final dynamic #t3 = #t2{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     final dynamic #t4 = #t3;
     if(#t4 is core::int) {

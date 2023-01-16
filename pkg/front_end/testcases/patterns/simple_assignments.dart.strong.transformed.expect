@@ -7,9 +7,9 @@ static method test1(dynamic x) → dynamic {
   core::int a;
   block {
     final dynamic #t1 = x;
-    final core::bool #t2 = true;
+    core::bool #t2 = true;
     final dynamic #t3 = #t1;
-    if(#t3 is core::List<dynamic> && #t3{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(1){(core::Object) → core::bool}) {
+    if(#t3 is core::List<dynamic> && #t3{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
       final dynamic #t4 = #t3{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
       if(let final dynamic #t5 = a = #t4 in true) {
         #t2 = false;
@@ -27,7 +27,7 @@ static method test2(dynamic x) → dynamic {
   block {
     final dynamic #t6 = block {
       final dynamic #t7 = x;
-      final core::bool #t8 = true;
+      core::bool #t8 = true;
       final dynamic #t9 = #t7;
       if(#t9 is core::List<dynamic> && #t9{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
         final dynamic #t10 = #t9{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
@@ -39,7 +39,7 @@ static method test2(dynamic x) → dynamic {
       if(#t8)
         throw new _in::ReachabilityError::•();
     } =>#t7;
-    final core::bool #t14 = true;
+    core::bool #t14 = true;
     final dynamic #t15 = #t6;
     if(#t15 is core::List<dynamic> && #t15{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
       final dynamic #t16 = #t15{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};

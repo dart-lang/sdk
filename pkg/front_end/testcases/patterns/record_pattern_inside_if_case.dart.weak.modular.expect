@@ -36,7 +36,7 @@ static method test(dynamic x) → dynamic {
     }
   }
   final dynamic #t17 = x;
-  final core::bool #t18 = true;
+  core::bool #t18 = true;
   final dynamic #t19 = #t17;
   if(#t19 is{ForNonNullableByDefault} (core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})) {
     final core::Object? #t20 = #t19{(core::Object?, core::Object?, {bar: core::Object?, foo: core::Object?})}.$0{core::Object?};

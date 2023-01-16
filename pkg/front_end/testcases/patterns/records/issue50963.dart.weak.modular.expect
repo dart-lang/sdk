@@ -7,8 +7,8 @@ static method test() → dynamic {
   core::print( block {
     core::int #t1;
     final(core::int, core::int) #t2 = x;
-    final core::int #t3 = -1;
-    final core::bool #t4 = false;
+    core::int #t3 = -1;
+    core::bool #t4 = false;
     if(!#t4) {
       #t3 = 0;
       #t4 = true;
@@ -26,8 +26,8 @@ static method test() → dynamic {
   core::print( block {
     core::int #t5;
     final(core::int, core::int) #t6 = (1, 2);
-    final core::int #t7 = -1;
-    final core::bool #t8 = false;
+    core::int #t7 = -1;
+    core::bool #t8 = false;
     if(!#t8) {
       #t7 = 0;
       #t8 = true;

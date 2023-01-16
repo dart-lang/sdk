@@ -95,11 +95,11 @@ static method test(dynamic value, core::bool expected) → void {
   #L1:
   {
     final dynamic #t1 = value;
-    final core::int #t2 = -1;
-    final core::bool #t3 = false;
+    core::int #t2 = -1;
+    core::bool #t3 = false;
     if(!#t3) {
       final dynamic #t4 = #t1;
-      if(#t4 is core::List<dynamic> && #t4{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(1){(core::Object) → core::bool}) {
+      if(#t4 is core::List<dynamic> && #t4{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
         final dynamic #t5 = #t4{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
         if(#t5 =={core::Object::==}{(core::Object) → core::bool} 42) {
           #t2 = 0;
@@ -109,7 +109,7 @@ static method test(dynamic value, core::bool expected) → void {
     }
     if(!#t3) {
       final dynamic #t6 = #t1;
-      if(#t6 is core::List<core::num> && #t6{core::List<core::num>}.{core::List::length}{core::int}.{core::num::==}(1){(core::Object) → core::bool}) {
+      if(#t6 is core::List<core::num> && #t6{core::List<core::num>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
         final core::num #t7 = #t6{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num};
         if(#t7 =={core::num::==}{(core::Object) → core::bool} 42) {
           #t2 = 1;

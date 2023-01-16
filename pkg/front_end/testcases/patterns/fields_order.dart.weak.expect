@@ -13,7 +13,7 @@ class A extends core::Object {
 }
 static method test(dynamic x) → dynamic {
   final dynamic #t1 = x;
-  final core::bool #t2 = true;
+  core::bool #t2 = true;
   final dynamic #t3 = #t1;
   if(#t3 is self::A) {
     final core::String #t4 = #t3{self::A}.{self::A::foo}{core::String};
