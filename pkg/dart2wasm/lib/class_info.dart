@@ -183,89 +183,88 @@ class ClassInfoCollector {
 
   void initialize(Class cls) {
     ClassInfo? info = translator.classInfo[cls];
-    if (info == null) {
-      Class? superclass = cls.superclass;
-      if (superclass == null) {
-        ClassInfo superInfo = topInfo;
-        final w.StructType struct =
-            m.addStructType(cls.name, superType: superInfo.struct);
-        info = ClassInfo(
-            cls, _nextClassId++, superInfo.depth + 1, struct, superInfo);
-        // Mark Top type as implementing Object to force the representation
-        // type of Object to be Top.
-        info.implementedBy.add(topInfo);
-      } else {
-        // Recursively initialize all supertypes before initializing this class.
-        initialize(superclass);
-        for (Supertype interface in cls.implementedTypes) {
-          initialize(interface.classNode);
-        }
+    if (info != null) return;
 
-        // In the Wasm type hierarchy, Object, bool and num sit directly below
-        // the Top type. The implementation classes _StringBase and _Type sit
-        // directly below the public classes they implement.
-        // All other classes sit below their superclass.
-        ClassInfo superInfo = cls == translator.coreTypes.boolClass ||
-                cls == translator.coreTypes.numClass
-            ? topInfo
-            : cls == translator.stringBaseClass || cls == translator.typeClass
-                ? translator.classInfo[cls.implementedTypes.single.classNode]!
-                : translator.classInfo[superclass]!;
+    Class? superclass = cls.superclass;
+    if (superclass == null) {
+      ClassInfo superInfo = topInfo;
+      final w.StructType struct =
+          m.addStructType(cls.name, superType: superInfo.struct);
+      info = ClassInfo(
+          cls, _nextClassId++, superInfo.depth + 1, struct, superInfo);
+      // Mark Top type as implementing Object to force the representation
+      // type of Object to be Top.
+      info.implementedBy.add(topInfo);
+    } else {
+      // Recursively initialize all supertypes before initializing this class.
+      initialize(superclass);
+      for (Supertype interface in cls.implementedTypes) {
+        initialize(interface.classNode);
+      }
 
-        // Figure out which type parameters can reuse a type parameter field of
-        // the superclass.
-        Map<TypeParameter, TypeParameter> typeParameterMatch = {};
-        if (cls.typeParameters.isNotEmpty) {
-          Supertype supertype = cls.superclass == superInfo.cls
-              ? cls.supertype!
-              : cls.implementedTypes.single;
-          for (TypeParameter parameter in cls.typeParameters) {
-            for (int i = 0; i < supertype.typeArguments.length; i++) {
-              DartType arg = supertype.typeArguments[i];
-              if (arg is TypeParameterType && arg.parameter == parameter) {
-                typeParameterMatch[parameter] =
-                    superInfo.cls!.typeParameters[i];
-                break;
-              }
+      // In the Wasm type hierarchy, Object, bool and num sit directly below
+      // the Top type. The implementation classes _StringBase and _Type sit
+      // directly below the public classes they implement.
+      // All other classes sit below their superclass.
+      ClassInfo superInfo = cls == translator.coreTypes.boolClass ||
+              cls == translator.coreTypes.numClass
+          ? topInfo
+          : cls == translator.stringBaseClass || cls == translator.typeClass
+              ? translator.classInfo[cls.implementedTypes.single.classNode]!
+              : translator.classInfo[superclass]!;
+
+      // Figure out which type parameters can reuse a type parameter field of
+      // the superclass.
+      Map<TypeParameter, TypeParameter> typeParameterMatch = {};
+      if (cls.typeParameters.isNotEmpty) {
+        Supertype supertype = cls.superclass == superInfo.cls
+            ? cls.supertype!
+            : cls.implementedTypes.single;
+        for (TypeParameter parameter in cls.typeParameters) {
+          for (int i = 0; i < supertype.typeArguments.length; i++) {
+            DartType arg = supertype.typeArguments[i];
+            if (arg is TypeParameterType && arg.parameter == parameter) {
+              typeParameterMatch[parameter] = superInfo.cls!.typeParameters[i];
+              break;
             }
           }
         }
+      }
 
-        // A class can reuse the Wasm struct of the superclass if it doesn't
-        // declare any Wasm fields of its own. This is the case when three
-        // conditions are met:
-        //   1. All type parameters can reuse a type parameter field of the
-        //      superclass.
-        //   2. The class declares no Dart fields of its own.
-        //   3. The class is not a special class that contains hidden fields.
-        bool canReuseSuperStruct =
-            typeParameterMatch.length == cls.typeParameters.length &&
-                cls.fields.where((f) => f.isInstanceMember).isEmpty &&
-                cls != translator.typedListBaseClass &&
-                cls != translator.typedListClass &&
-                cls != translator.typedListViewClass &&
-                cls != translator.byteDataViewClass;
-        w.StructType struct = canReuseSuperStruct
-            ? superInfo.struct
-            : m.addStructType(cls.name, superType: superInfo.struct);
-        info = ClassInfo(
-            cls, _nextClassId++, superInfo.depth + 1, struct, superInfo,
-            typeParameterMatch: typeParameterMatch);
+      // A class can reuse the Wasm struct of the superclass if it doesn't
+      // declare any Wasm fields of its own. This is the case when three
+      // conditions are met:
+      //   1. All type parameters can reuse a type parameter field of the
+      //      superclass.
+      //   2. The class declares no Dart fields of its own.
+      //   3. The class is not a special class that contains hidden fields.
+      bool canReuseSuperStruct =
+          typeParameterMatch.length == cls.typeParameters.length &&
+              cls.fields.where((f) => f.isInstanceMember).isEmpty &&
+              cls != translator.typedListBaseClass &&
+              cls != translator.typedListClass &&
+              cls != translator.typedListViewClass &&
+              cls != translator.byteDataViewClass;
+      w.StructType struct = canReuseSuperStruct
+          ? superInfo.struct
+          : m.addStructType(cls.name, superType: superInfo.struct);
+      info = ClassInfo(
+          cls, _nextClassId++, superInfo.depth + 1, struct, superInfo,
+          typeParameterMatch: typeParameterMatch);
 
-        // Mark all interfaces as being implemented by this class. This is
-        // needed to calculate representation types.
-        for (Supertype interface in cls.implementedTypes) {
-          ClassInfo? interfaceInfo = translator.classInfo[interface.classNode];
-          while (interfaceInfo != null) {
-            interfaceInfo.implementedBy.add(info);
-            interfaceInfo = interfaceInfo.superInfo;
-          }
+      // Mark all interfaces as being implemented by this class. This is
+      // needed to calculate representation types.
+      for (Supertype interface in cls.implementedTypes) {
+        ClassInfo? interfaceInfo = translator.classInfo[interface.classNode];
+        while (interfaceInfo != null) {
+          interfaceInfo.implementedBy.add(info);
+          interfaceInfo = interfaceInfo.superInfo;
         }
       }
-      translator.classes.add(info);
-      translator.classInfo[cls] = info;
-      translator.classForHeapType.putIfAbsent(info.struct, () => info!);
     }
+    translator.classes.add(info);
+    translator.classInfo[cls] = info;
+    translator.classForHeapType.putIfAbsent(info.struct, () => info!);
   }
 
   void _computeRepresentation(ClassInfo info) {
