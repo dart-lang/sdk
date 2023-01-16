@@ -12366,6 +12366,14 @@ const MessageCode messageVoidWithTypeArguments = const MessageCode(
     correctionMessage: r"""Try removing the type arguments.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWasmSyncStar = messageWasmSyncStar;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWasmSyncStar = const MessageCode("WasmSyncStar",
+    severity: Severity.warning,
+    problemMessage: r"""Compilation to Wasm does not support 'sync*'.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeWeakWithStrongDillLibrary =
     messageWeakWithStrongDillLibrary;
 

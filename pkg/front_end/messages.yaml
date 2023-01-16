@@ -1675,6 +1675,10 @@ YieldNotGenerator:
   problemMessage: "'yield' can only be used in 'sync*' or 'async*' methods."
   analyzerCode: YIELD_IN_NON_GENERATOR
 
+WasmSyncStar:
+  problemMessage: "Compilation to Wasm does not support 'sync*'."
+  severity: WARNING
+
 OnlyTry:
   index: 20
   problemMessage: "A try block must be followed by an 'on', 'catch', or 'finally' clause."
