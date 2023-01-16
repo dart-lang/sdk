@@ -6,7 +6,7 @@ import "dart:_internal" as _in;
 static method main() → dynamic {
   block {
     final has-declared-initializer dynamic #t1 = null;
-    final core::bool #t2 = true;
+    core::bool #t2 = true;
     if(#t1 == null) {
       #t2 = false;
     }

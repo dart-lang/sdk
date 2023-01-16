@@ -149,9 +149,9 @@ static method main() → dynamic {
   self::A a = new self::A::•();
   final self::A #t1 = a;
   final self::A #t2 = #t1;
-  if(#t2.{core::List::length}{core::int}.{core::num::==}(2){(core::Object) → core::bool}) {
-    final dynamic #t3 = #t2{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    final dynamic #t4 = #t2{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+  if(#t2.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
+    final dynamic #t3 = #t2.{core::List::[]}(0){(core::int) → dynamic};
+    final dynamic #t4 = #t2.{core::List::[]}(1){(core::int) → dynamic};
     final dynamic #t5 = #t3;
     if(#t5 is core::int) {
       final dynamic #t6 = #t4;

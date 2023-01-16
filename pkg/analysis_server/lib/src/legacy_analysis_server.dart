@@ -84,6 +84,7 @@ import 'package:analysis_server/src/server/detachable_filesystem_manager.dart';
 import 'package:analysis_server/src/server/diagnostic_server.dart';
 import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/server/features.dart';
+import 'package:analysis_server/src/server/performance.dart';
 import 'package:analysis_server/src/server/sdk_configuration.dart';
 import 'package:analysis_server/src/services/completion/completion_state.dart';
 import 'package:analysis_server/src/services/execution/execution_context.dart';
@@ -104,6 +105,7 @@ import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
@@ -116,7 +118,7 @@ import 'package:watcher/watcher.dart';
 
 /// A function that can be executed to create a handler for a request.
 typedef HandlerGenerator = LegacyHandler Function(
-    LegacyAnalysisServer, Request, CancellationToken);
+    LegacyAnalysisServer, Request, CancellationToken, OperationPerformanceImpl);
 
 typedef OptionUpdater = void Function(AnalysisOptionsImpl options);
 
@@ -452,18 +454,31 @@ class LegacyAnalysisServer extends AnalysisServer {
     analyticsManager.startedRequest(
         request: request, startTime: DateTime.now());
     performance.logRequestTiming(request.clientRequestTime);
+
     // Because we don't `await` the execution of the handlers, we wrap the
     // execution in order to have one central place to handle exceptions.
-    runZonedGuarded(() {
-      var cancellationToken = CancelableToken();
-      cancellationTokens[request.id] = cancellationToken;
-      var generator = handlerGenerators[request.method];
-      if (generator != null) {
-        var handler = generator(this, request, cancellationToken);
-        handler.handle();
-      } else {
-        sendResponse(Response.unknownRequest(request));
-      }
+    runZonedGuarded(() async {
+      // Record performance information for the request.
+      final performance = OperationPerformanceImpl('<root>');
+      await performance.runAsync('request', (performance) async {
+        final requestPerformance = RequestPerformance(
+          operation: request.method,
+          performance: performance,
+          requestLatency: request.timeSinceRequest,
+        );
+        recentPerformance.requests.add(requestPerformance);
+
+        var cancellationToken = CancelableToken();
+        cancellationTokens[request.id] = cancellationToken;
+        var generator = handlerGenerators[request.method];
+        if (generator != null) {
+          var handler =
+              generator(this, request, cancellationToken, performance);
+          await handler.handle();
+        } else {
+          sendResponse(Response.unknownRequest(request));
+        }
+      });
     }, (exception, stackTrace) {
       if (exception is InconsistentAnalysisException) {
         sendResponse(Response.contentModified(request));

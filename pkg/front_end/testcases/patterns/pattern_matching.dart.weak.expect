@@ -34,8 +34,8 @@ static method calculateArea(self::Shape shape) → core::double
       {
         core::double l;
         final self::Shape #t2 = shape;
-        final core::int #t3 = -1;
-        final core::bool #t4 = false;
+        core::int #t3 = -1;
+        core::bool #t4 = false;
         if(!#t4) {
           final self::Shape #t5 = #t2;
           if(#t5 is self::Square) {

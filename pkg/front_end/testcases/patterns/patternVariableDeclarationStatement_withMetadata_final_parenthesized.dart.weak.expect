@@ -6,7 +6,7 @@ import "dart:_internal" as _in;
 static const field core::int annotation = #C1;
 static method f(dynamic x) → dynamic {
   final dynamic #t1 = x;
-  final core::bool #t2 = true;
+  core::bool #t2 = true;
   dynamic #t3;
   #t3 = #t1;
   #t2 = false;

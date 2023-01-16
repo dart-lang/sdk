@@ -6,8 +6,8 @@ static method test1(core::int value) → core::String {
   #L1:
   {
     final core::int #t1 = value;
-    final core::int #t2 = -1;
-    final core::bool #t3 = false;
+    core::int #t2 = -1;
+    core::bool #t3 = false;
     if(!#t3 && #t1.{core::num::<}(2){(core::num) → core::bool}) {
       #t2 = 0;
       #t3 = true;
@@ -39,8 +39,8 @@ static method test2(core::int value) → core::String {
   #L4:
   {
     final core::int #t4 = value;
-    final core::int #t5 = -1;
-    final core::bool #t6 = false;
+    core::int #t5 = -1;
+    core::bool #t6 = false;
     if(!#t6 && #t4.{core::num::<}(2){(core::num) → core::bool}) {
       #t5 = 0;
       #t6 = true;
@@ -73,8 +73,8 @@ static method test3(core::int value) → core::String {
   #L7:
   {
     final core::int #t7 = value;
-    final core::int #t8 = -1;
-    final core::bool #t9 = false;
+    core::int #t8 = -1;
+    core::bool #t9 = false;
     if(!#t9 && #t7 =={core::num::==}{(core::Object) → core::bool} 2) {
       #t8 = 0;
       #t9 = true;
@@ -107,8 +107,8 @@ static method test4(core::int value) → core::String {
   #L10:
   {
     final core::int #t10 = value;
-    final core::int #t11 = -1;
-    final core::bool #t12 = false;
+    core::int #t11 = -1;
+    core::bool #t12 = false;
     if(!#t12 && #t10 =={core::num::==}{(core::Object) → core::bool} 2) {
       #t11 = 0;
       #t12 = true;
@@ -147,8 +147,8 @@ static method test5(core::int value) → core::String {
   #L14:
   {
     final core::int #t13 = value;
-    final core::int #t14 = -1;
-    final core::bool #t15 = false;
+    core::int #t14 = -1;
+    core::bool #t15 = false;
     if(!#t15 && #t13 =={core::num::==}{(core::Object) → core::bool} 2) {
       #t14 = 0;
       #t15 = true;

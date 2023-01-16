@@ -7778,8 +7778,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       List<Statement> variableInitializers = [];
       for (VariableDeclaration variable in pattern.declaredVariables) {
         // TODO(johnniwinther): Can the variable be const?
-        // TODO(johnniwinther): Re-enable this:
-        //variable.isFinal = false;
+        variable.isFinal = false;
         variableInitializers.add(createExpressionStatement(createVariableSet(
             variable, variable.initializer!,
             fileOffset: node.fileOffset)));

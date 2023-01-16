@@ -10,8 +10,8 @@ static method test(dynamic o, [dynamic expectedRest = #C1]) → dynamic {
     dynamic #t3;
     dynamic #t4;
     final dynamic #t5 = o;
-    final core::int #t6 = -1;
-    final core::bool #t7 = false;
+    core::int #t6 = -1;
+    core::bool #t7 = false;
     if(!#t7) {
       final dynamic #t8 = #t5;
       if(#t8 is core::List<dynamic> && #t8{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool}) {

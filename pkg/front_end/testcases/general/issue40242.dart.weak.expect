@@ -49,7 +49,7 @@ static method errors() → dynamic {
   self::C c2;
   block {
     final dynamic #t1 = new self::C::•();
-    final core::bool #t2 = true;
+    core::bool #t2 = true;
     if(let final dynamic #t3 = c2 = #t1 in true) {
       #t2 = false;
     }

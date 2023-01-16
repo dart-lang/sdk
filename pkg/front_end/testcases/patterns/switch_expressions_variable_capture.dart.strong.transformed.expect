@@ -17,8 +17,8 @@ static method test1(dynamic x) → dynamic
     {
       core::double r;
       final dynamic #t2 = x;
-      final core::int #t3 = -1;
-      final core::bool #t4 = false;
+      core::int #t3 = -1;
+      core::bool #t4 = false;
       if(!#t4) {
         final dynamic #t5 = #t2;
         if(#t5 is self::Circle) {
@@ -61,11 +61,11 @@ static method test2(dynamic x) → dynamic
         core::int a;
         core::int b;
         final dynamic #t8 = x;
-        final core::int #t9 = -1;
-        final core::bool #t10 = false;
+        core::int #t9 = -1;
+        core::bool #t10 = false;
         if(!#t10) {
           final dynamic #t11 = #t8;
-          if(#t11 is core::List<dynamic> && #t11{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(2){(core::Object) → core::bool}) {
+          if(#t11 is core::List<dynamic> && #t11{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
             final dynamic #t12 = #t11{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
             final dynamic #t13 = #t11{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
             final dynamic #t14 = #t12;
@@ -86,7 +86,7 @@ static method test2(dynamic x) → dynamic
         }
         if(!#t10) {
           final dynamic #t16 = #t8;
-          if(#t16 is core::List<dynamic> && #t16{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(2){(core::Object) → core::bool}) {
+          if(#t16 is core::List<dynamic> && #t16{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
             final dynamic #t17 = #t16{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
             final dynamic #t18 = #t16{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
             final dynamic #t19 = #t17;

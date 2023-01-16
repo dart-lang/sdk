@@ -32,7 +32,7 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   CompletionGetSuggestions2Handler(
-      super.server, super.request, super.cancellationToken);
+      super.server, super.request, super.cancellationToken, super.performance);
 
   /// Compute completion results for the given request and append them to the
   /// stream. Clients should not call this method directly as it is
