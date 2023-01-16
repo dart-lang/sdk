@@ -32,7 +32,8 @@ class EditGetFixesHandler extends LegacyHandler
     with RequestHandlerMixin<LegacyAnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  EditGetFixesHandler(super.server, super.request, super.cancellationToken);
+  EditGetFixesHandler(
+      super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {

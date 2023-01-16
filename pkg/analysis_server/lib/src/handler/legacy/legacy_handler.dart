@@ -11,13 +11,15 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.g.dart';
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 
 /// A request handler for the completion domain.
 abstract class CompletionHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  CompletionHandler(super.server, super.request, super.cancellationToken);
+  CompletionHandler(
+      super.server, super.request, super.cancellationToken, super.performance);
 
   /// Return `true` if completion is disabled and the handler should return. If
   /// `true` is returned then a response will already have been returned, so
@@ -47,9 +49,12 @@ abstract class LegacyHandler {
   /// handlers support cancelling a request.
   final CancellationToken cancellationToken;
 
+  final OperationPerformanceImpl performance;
+
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  LegacyHandler(this.server, this.request, this.cancellationToken);
+  LegacyHandler(
+      this.server, this.request, this.cancellationToken, this.performance);
 
   /// Handle the [request].
   Future<void> handle();

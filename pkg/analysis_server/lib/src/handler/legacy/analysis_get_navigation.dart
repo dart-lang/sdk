@@ -21,7 +21,7 @@ class AnalysisGetNavigationHandler extends LegacyHandler
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   AnalysisGetNavigationHandler(
-      super.server, super.request, super.cancellationToken);
+      super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {
