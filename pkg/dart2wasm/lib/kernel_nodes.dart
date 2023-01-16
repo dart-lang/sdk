@@ -208,6 +208,9 @@ mixin KernelNodes {
       index.getTopLevelProcedure("dart:core", "_getNamedParameterIndex");
   late final Procedure namedParameterListToMap =
       index.getTopLevelProcedure("dart:core", "_namedParameterListToMap");
+  late final Procedure namedParameterMapToList =
+      index.getTopLevelProcedure("dart:core", "_namedParameterMapToList");
+  late final Procedure listOf = index.getProcedure("dart:core", "_List", "of");
 
   // dart:wasm procedures
   late final Procedure wasmFunctionCall =
