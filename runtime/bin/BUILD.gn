@@ -821,6 +821,7 @@ dart_executable("dart") {
     "loader.cc",
     "loader.h",
     "main.cc",
+    "main_impl.cc",
   ]
   if (dart_runtime_mode == "release") {
     extra_sources += [ "observatory_assets_empty.cc" ]
@@ -849,6 +850,7 @@ dart_executable("dart_precompiled_runtime") {
     "loader.cc",
     "loader.h",
     "main.cc",
+    "main_impl.cc",
     "snapshot_empty.cc",
   ]
 
@@ -880,6 +882,7 @@ dart_executable("dart_precompiled_runtime_product") {
     "loader.cc",
     "loader.h",
     "main.cc",
+    "main_impl.cc",
     "observatory_assets_empty.cc",
     "snapshot_empty.cc",
   ]
