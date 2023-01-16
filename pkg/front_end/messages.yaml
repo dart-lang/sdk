@@ -5312,6 +5312,10 @@ JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
 
+JsInteropStaticInteropAnonymousFactoryTearoff:
+  problemMessage: "Factories of `@anonymous` `@staticInterop` classes can not be torn off."
+  correctionMessage: "Declare a closure that forwards to this factory instead."
+
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
   problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
   correctionMessage: "Try using a Dart extension member if you need type parameters instead."
