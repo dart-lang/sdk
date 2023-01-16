@@ -152,6 +152,9 @@ class ClosureLayouter extends RecursiveVisitor {
 
   Set<Constant> visitedConstants = Set.identity();
 
+  // The member currently being visited while collecting function signatures.
+  Member? currentMember;
+
   static const int vtableBaseIndexNonGeneric = 1;
   static const int vtableBaseIndexGeneric = 2;
 
@@ -660,12 +663,18 @@ class ClosureLayouter extends RecursiveVisitor {
   @override
   void visitFunctionExpression(FunctionExpression node) {
     _visitFunctionNode(node.function);
+    if (currentMember != null) {
+      translator.membersContainingInnerFunctions.add(currentMember!);
+    }
     super.visitFunctionExpression(node);
   }
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _visitFunctionNode(node.function);
+    if (currentMember != null) {
+      translator.membersContainingInnerFunctions.add(currentMember!);
+    }
     super.visitFunctionDeclaration(node);
   }
 
@@ -677,7 +686,16 @@ class ClosureLayouter extends RecursiveVisitor {
         _visitFunctionNode(node.function);
       }
     }
+    currentMember = node;
     super.visitProcedure(node);
+    currentMember = null;
+  }
+
+  @override
+  void visitConstructor(Constructor node) {
+    currentMember = node;
+    super.visitConstructor(node);
+    currentMember = null;
   }
 
   @override

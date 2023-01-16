@@ -89,8 +89,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   Member get member => reference.asMember;
 
-  w.ValueType get returnType => translator
-      .outputOrVoid(returnLabel?.targetTypes ?? function.type.outputs);
+  List<w.ValueType> get outputs =>
+      returnLabel?.targetTypes ?? function.type.outputs;
+
+  w.ValueType get returnType => translator.outputOrVoid(outputs);
 
   TranslatorOptions get options => translator.options;
 
@@ -191,7 +193,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return generateAsyncWrapper(procedure.function, inner, parameterOffset);
     }
 
-    return generateBody(member);
+    translator.membersBeingGenerated.add(member);
+    generateBody(member);
+    translator.membersBeingGenerated.remove(member);
   }
 
   void generateTearOffGetter(Procedure procedure) {
@@ -228,8 +232,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.global_set(flag);
     }
     b.global_get(global);
-    translator.convertType(
-        function, global.type.type, function.type.outputs.single);
+    translator.convertType(function, global.type.type, outputs.single);
     b.end();
   }
 
@@ -329,8 +332,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     // Call async helper
     b.call(asyncHelper);
-    translator.convertType(function, asyncHelper.type.outputs.single,
-        function.type.outputs.single);
+    translator.convertType(
+        function, asyncHelper.type.outputs.single, outputs.single);
     b.end();
 
     // Call inner function from stub
@@ -566,15 +569,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   void _implicitReturn() {
-    if (function.type.outputs.isNotEmpty) {
-      w.ValueType returnType = function.type.outputs[0];
+    if (outputs.isNotEmpty) {
+      w.ValueType returnType = outputs.single;
       if (returnType is w.RefType && returnType.nullable) {
         // Dart body may have an implicit return null.
         b.ref_null(returnType.heapType.bottomType);
       } else {
         // This point is unreachable, but the Wasm validator still expects the
         // stack to contain a value matching the Wasm function return type.
-        b.block(const [], function.type.outputs);
+        b.block(const [], outputs);
         b.comment("Unreachable implicit return");
         b.unreachable();
         b.end();
@@ -673,25 +676,28 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   w.ValueType call(Reference target) {
-    w.BaseFunction targetFunction = translator.functions.getFunction(target);
     if (translator.shouldInline(target)) {
+      w.FunctionType targetFunctionType =
+          translator.functions.getFunctionType(target);
       List<w.Local> inlinedLocals =
-          targetFunction.type.inputs.map((t) => addLocal(t)).toList();
+          targetFunctionType.inputs.map((t) => addLocal(t)).toList();
       for (w.Local local in inlinedLocals.reversed) {
         b.local_set(local);
       }
-      w.Label block = b.block(const [], targetFunction.type.outputs);
+      w.Label block = b.block(const [], targetFunctionType.outputs);
       b.comment("Inlined ${target.asMember}");
       CodeGenerator(translator, function, target,
               paramLocals: inlinedLocals, returnLabel: block)
           .generate();
+      return translator.outputOrVoid(targetFunctionType.outputs);
     } else {
+      w.BaseFunction targetFunction = translator.functions.getFunction(target);
       String access =
           target.isGetter ? "get" : (target.isSetter ? "set" : "call");
       b.comment("Direct $access of '${target.asMember}'");
       b.call(targetFunction);
+      return translator.outputOrVoid(targetFunction.type.outputs);
     }
-    return translator.outputOrVoid(targetFunction.type.outputs);
   }
 
   @override
