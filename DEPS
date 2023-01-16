@@ -53,7 +53,7 @@ vars = {
   # hashes.
   "co19_rev": "81c67290340c13298079fd571f78834fccbb2fed",
   # This line prevents conflicts when both packages are rolled simultaneously.
-  "co19_2_rev": "8ba5eb65399044d20370c8cfd115e1f6bc51acb1",
+  "co19_2_rev": "014bec6f349af4d48739c6bfed1fc2013dbd13c4",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "599aa474a03c37be146f82dfbad85f34f25ffa47",
