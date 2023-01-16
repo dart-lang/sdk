@@ -8,10 +8,11 @@
 @JS('library1.library2')
 library external_static_member_lowerings_with_namespaces_test;
 
+import 'dart:_js_annotations';
 import 'dart:js_util' as js_util;
 
 import 'package:expect/minitest.dart';
-import 'package:js/js.dart';
+import 'package:js/js.dart' show trustTypes;
 
 @JS('library3.ExternalStatic')
 @staticInterop
@@ -63,10 +64,48 @@ void main() {
     library3.ExternalStatic.field = 'field';
     library3.ExternalStatic.finalField = 'finalField';
     library3.ExternalStatic.getSet = 'getSet';
+
+    library2.field = 'field';
+    library2.getSet = 'getSet';
+    library2.method = function() {
+      return 'method';
+    }
+    library2.differentArgsMethod = function(a, b) {
+      return a + b;
+    }
+    library3.namespacedField = 'namespacedField';
+    library3.namespacedGetSet = 'namespacedGetSet';
+    library3.namespacedMethod = function() {
+      return 'namespacedMethod';
+    }
+
   '''
   ]);
   testClassStaticMembers();
+  testTopLevelMembers();
 }
+
+// Top-level fields.
+@JS()
+external String field;
+@JS('library3.namespacedField')
+external String namespacedField;
+@JS('field')
+external final String finalField;
+
+// Top-level getters and setters.
+external String get getSet;
+external set getSet(String val);
+@JS('library3.namespacedGetSet')
+external String get namespacedGetSet;
+@JS('library3.namespacedGetSet')
+external set namespacedGetSet(String val);
+
+// Top-level methods.
+external String method();
+external String differentArgsMethod(String a, [String b = '']);
+@JS('library3.namespacedMethod')
+external String namespacedMethod();
 
 void testClassStaticMembers() {
   // Fields.
@@ -102,4 +141,33 @@ void testClassStaticMembers() {
 
   expect(ExternalStaticTrustType.method(), 'method');
   expect((ExternalStaticTrustType.method)(), 'method');
+}
+
+void testTopLevelMembers() {
+  // Test a variety of renaming and namespacing to make sure we're handling '.'
+  // correctly.
+  // Fields.
+  expect(field, 'field');
+  field = 'modified';
+  expect(field, 'modified');
+  expect(namespacedField, 'namespacedField');
+  namespacedField = 'modified';
+  expect(namespacedField, 'modified');
+  expect(finalField, 'modified');
+
+  // Getters and setters.
+  expect(getSet, 'getSet');
+  getSet = 'modified';
+  expect(getSet, 'modified');
+  expect(namespacedGetSet, 'namespacedGetSet');
+  namespacedGetSet = 'modified';
+  expect(namespacedGetSet, 'modified');
+
+  // Methods and tear-offs.
+  expect(method(), 'method');
+  expect((method)(), 'method');
+  expect(differentArgsMethod('method'), 'method');
+  expect((differentArgsMethod)('optional', 'method'), 'optionalmethod');
+  expect(namespacedMethod(), 'namespacedMethod');
+  expect((namespacedMethod)(), 'namespacedMethod');
 }

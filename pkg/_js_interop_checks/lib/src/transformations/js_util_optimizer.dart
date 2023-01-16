@@ -8,7 +8,11 @@ import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../js_interop.dart'
-    show getJSName, hasStaticInteropAnnotation, hasTrustTypesAnnotation;
+    show
+        getJSName,
+        hasInternalJSInteropAnnotation,
+        hasStaticInteropAnnotation,
+        hasTrustTypesAnnotation;
 
 /// Replaces js_util methods with inline calls to foreign_helper JS which
 /// emits the code as a JavaScript code fragment.
@@ -124,31 +128,52 @@ class JsUtilOptimizer extends Transformer {
             transformedBody = _getExternalMethodBody(node, shouldTrustType);
           }
         }
-      } else if (node.isStatic) {
+      } else if (node.isStatic &&
+          ((node.enclosingClass != null &&
+                  hasStaticInteropAnnotation(node.enclosingClass!)) ||
+              // We only lower top-levels if we're using the
+              // `dart:_js_annotations`' `@JS` annotation to avoid a breaking
+              // change for `package:js` users. The one exception is `dart:ui`,
+              // since it's already using `dart:_js_annotations`. Whenever
+              // `dart:ui` is ready to migrate to the sound semantics, we should
+              // remove the exception.
+              ((hasInternalJSInteropAnnotation(node) ||
+                      hasInternalJSInteropAnnotation(node.enclosingLibrary)) &&
+                  node.enclosingLibrary.importUri.toString() != 'dart:ui'))) {
         // Fetch the dotted prefix of the member.
         var libraryName = getJSName(node.enclosingLibrary);
         var dottedPrefix = libraryName;
         var enclosingClass = node.enclosingClass;
-        if (enclosingClass != null &&
-            hasStaticInteropAnnotation(enclosingClass)) {
+        var shouldTrustType = false;
+        if (enclosingClass == null) {
+          // Top-level. If the `@JS` value of the node has any '.'s, we take the
+          // entries before the last '.' to determine the dotted prefix name.
+          var jsName = getJSName(node);
+          if (jsName.isNotEmpty) {
+            var lastDotIndex = jsName.lastIndexOf('.');
+            if (lastDotIndex >= 0) {
+              dottedPrefix = _getCombinedJSName(
+                  dottedPrefix, jsName.substring(0, lastDotIndex));
+            }
+          }
+        } else if (hasStaticInteropAnnotation(enclosingClass)) {
+          // Class static member, use the class name as part of the dotted
+          // prefix.
           var className = getJSName(enclosingClass);
           if (className.isEmpty) className = enclosingClass.name;
-          if (dottedPrefix.isNotEmpty) {
-            dottedPrefix = '$dottedPrefix.$className';
-          } else {
-            dottedPrefix = className;
-          }
-          var shouldTrustType = hasTrustTypesAnnotation(enclosingClass);
-          var receiver = _getObjectOffGlobalThis(node, dottedPrefix.split('.'));
-          if (node.kind == ProcedureKind.Getter) {
-            transformedBody =
-                _getExternalGetterBody(node, shouldTrustType, receiver);
-          } else if (node.kind == ProcedureKind.Setter) {
-            transformedBody = _getExternalSetterBody(node, receiver);
-          } else if (node.kind == ProcedureKind.Method) {
-            transformedBody =
-                _getExternalMethodBody(node, shouldTrustType, receiver);
-          }
+          dottedPrefix = _getCombinedJSName(dottedPrefix, className);
+          shouldTrustType = hasTrustTypesAnnotation(enclosingClass);
+        }
+        var receiver = _getObjectOffGlobalThis(
+            node, dottedPrefix.isEmpty ? [] : dottedPrefix.split('.'));
+        if (node.kind == ProcedureKind.Getter) {
+          transformedBody =
+              _getExternalGetterBody(node, shouldTrustType, receiver);
+        } else if (node.kind == ProcedureKind.Setter) {
+          transformedBody = _getExternalSetterBody(node, receiver);
+        } else if (node.kind == ProcedureKind.Method) {
+          transformedBody =
+              _getExternalMethodBody(node, shouldTrustType, receiver);
         }
       }
     }
@@ -161,6 +186,15 @@ class JsUtilOptimizer extends Transformer {
     }
     _staticTypeContext.leaveMember(node);
     return node;
+  }
+
+  /// Given two `@JS` values, combines them into a qualified name using '.'.
+  ///
+  /// If either parameters are empty, returns the other.
+  String _getCombinedJSName(String prefix, String suffix) {
+    if (prefix.isEmpty) return suffix;
+    if (suffix.isEmpty) return prefix;
+    return '$prefix.$suffix';
   }
 
   /// Given a list of strings, [selectors], recursively fetches the property
@@ -300,7 +334,10 @@ class JsUtilOptimizer extends Transformer {
   String _getMemberJSName(Procedure node) {
     var jsAnnotationName = getJSName(node);
     if (jsAnnotationName.isNotEmpty) {
-      return jsAnnotationName;
+      // In the case of top-level external members, this may contain '.'. The
+      // namespacing before the last '.' should be resolved when we provide a
+      // receiver to the lowerings. Here, we just take the final identifier.
+      return jsAnnotationName.split('.').last;
     }
     if (node.isExtensionMember) {
       return _extensionMemberIndex![node.reference]!.name.text;

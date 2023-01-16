@@ -67,6 +67,7 @@ class DevCompilerTarget extends Target {
         'dart:_interceptors',
         'dart:_internal',
         'dart:_isolate_helper',
+        'dart:_js_annotations',
         'dart:_js_helper',
         'dart:_js_names',
         'dart:_js_primitives',
@@ -459,6 +460,10 @@ class _CovarianceTransformer extends RecursiveVisitor {
 
 List<Pattern> _allowedNativeTestPatterns = [
   'tests/dartdevc',
+  // TODO(srujzs): This is so we can use `dart:_js_annotations` until we get
+  // `dart:js_interop`. Remove once we export `@JS` through the latter.
+  'tests/lib/js/static_interop_test',
+  'tests/lib_2/js/static_interop_test',
   'tests/web/native',
   'tests/web_2/native',
   'tests/web/internal',

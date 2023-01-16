@@ -39,6 +39,10 @@ const Iterable<String> _allowedDartSchemePaths = [
 ];
 
 List<Pattern> _allowedNativeTestPatterns = [
+  // TODO(srujzs): This is so we can use `dart:_js_annotations` until we get
+  // `dart:js_interop`. Remove once we export `@JS` through the latter.
+  RegExp(r'(?<!generated_)tests/lib/js/static_interop_test'),
+  RegExp(r'(?<!generated_)tests/lib_2/js/static_interop_test'),
   RegExp(r'(?<!generated_)tests/web/native'),
   RegExp(r'(?<!generated_)tests/web/internal'),
   'generated_tests/web/native/native_test',

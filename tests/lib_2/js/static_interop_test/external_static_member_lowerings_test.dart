@@ -5,8 +5,10 @@
 @JS()
 library external_static_member_lowerings_test;
 
+import 'dart:_js_annotations';
+
 import 'package:expect/minitest.dart';
-import 'package:js/js.dart';
+import 'package:js/js.dart' show trustTypes;
 
 @JS()
 external dynamic eval(String code);
@@ -41,6 +43,26 @@ class ExternalStaticTrustType {
   external static double method();
 }
 
+// Top-level fields.
+external String field;
+@JS('field')
+external String renamedField;
+external final String finalField;
+
+// Top-level getters and setters.
+external String get getSet;
+external set getSet(String val);
+@JS('getSet')
+external String get renamedGetSet;
+@JS('getSet')
+external set renamedGetSet(String val);
+
+// Top-level methods.
+external String method();
+external String differentArgsMethod(String a, [String b = '']);
+@JS('method')
+external String renamedMethod();
+
 void main() {
   eval('''
     globalThis.ExternalStatic = function ExternalStatic() {}
@@ -53,8 +75,19 @@ void main() {
     globalThis.ExternalStatic.field = 'field';
     globalThis.ExternalStatic.finalField = 'finalField';
     globalThis.ExternalStatic.getSet = 'getSet';
+
+    globalThis.field = 'field';
+    globalThis.finalField = 'finalField';
+    globalThis.getSet = 'getSet';
+    globalThis.method = function() {
+      return 'method';
+    }
+    globalThis.differentArgsMethod = function(a, b) {
+      return a + b;
+    }
   ''');
   testClassStaticMembers();
+  testTopLevelMembers();
 }
 
 void testClassStaticMembers() {
@@ -91,4 +124,31 @@ void testClassStaticMembers() {
 
   expect(ExternalStaticTrustType.method(), 'method');
   expect((ExternalStaticTrustType.method)(), 'method');
+}
+
+void testTopLevelMembers() {
+  // Fields.
+  expect(field, 'field');
+  field = 'modified';
+  expect(field, 'modified');
+  expect(renamedField, 'modified');
+  renamedField = 'renamedField';
+  expect(renamedField, 'renamedField');
+  expect(finalField, 'finalField');
+
+  // Getters and setters.
+  expect(getSet, 'getSet');
+  getSet = 'modified';
+  expect(getSet, 'modified');
+  expect(renamedGetSet, 'modified');
+  renamedGetSet = 'renamedGetSet';
+  expect(renamedGetSet, 'renamedGetSet');
+
+  // Methods and tear-offs.
+  expect(method(), 'method');
+  expect((method)(), 'method');
+  expect(differentArgsMethod('method'), 'method');
+  expect((differentArgsMethod)('optional', 'method'), 'optionalmethod');
+  expect(renamedMethod(), 'method');
+  expect((renamedMethod)(), 'method');
 }
