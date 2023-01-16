@@ -31,8 +31,8 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 class TranslatorOptions {
   bool exportAll = false;
   bool importSharedMemory = false;
-  bool inlining = false;
-  int inliningLimit = 3;
+  bool inlining = true;
+  int inliningLimit = 0;
   bool nameSection = true;
   bool polymorphicSpecialization = false;
   bool printKernel = false;
@@ -85,6 +85,8 @@ class Translator with KernelNodes {
   final Map<TypeParameter, int> typeParameterIndex = {};
   final Map<Reference, ParameterInfo> staticParamInfo = {};
   final Map<Field, w.DefinedTable> declaredTables = {};
+  final Set<Member> membersContainingInnerFunctions = {};
+  final Set<Member> membersBeingGenerated = {};
   final List<_FunctionGenerator> _pendingFunctions = [];
   late Procedure mainFunction;
   late final w.Module m;
@@ -857,7 +859,10 @@ class Translator with KernelNodes {
   bool shouldInline(Reference target) {
     if (!options.inlining) return false;
     Member member = target.asMember;
+    if (membersContainingInnerFunctions.contains(member)) return false;
+    if (membersBeingGenerated.contains(member)) return false;
     if (member is Field) return true;
+    if (getPragma<Constant>(member, "wasm:prefer-inline") != null) return true;
     Statement? body = member.function!.body;
     return body != null &&
         NodeCounter().countNodes(body) <= options.inliningLimit;
@@ -872,7 +877,7 @@ class Translator with KernelNodes {
             Constant? nameConstant =
                 constant.fieldValues[coreTypes.pragmaName.fieldReference];
             if (nameConstant is StringConstant && nameConstant.value == name) {
-              Object? value =
+              Constant? value =
                   constant.fieldValues[coreTypes.pragmaOptions.fieldReference];
               if (value is PrimitiveConstant<T>) {
                 return value.value;

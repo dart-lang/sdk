@@ -141,7 +141,7 @@ class Forwarder {
       }
     }
 
-    _generateNoSuchMethodCall(
+    generateNoSuchMethodCall(
         translator,
         function,
         () => b.local_get(receiverLocal),
@@ -183,7 +183,7 @@ class Forwarder {
       }
     }
 
-    _generateNoSuchMethodCall(
+    generateNoSuchMethodCall(
         translator,
         function,
         () => b.local_get(receiverLocal),
@@ -199,10 +199,10 @@ class Forwarder {
   void _generateMethodCode(Translator translator) {
     final w.Instructions b = function.body;
 
-    final receiverLocal = function.locals[0];
-    final typeArgsLocal = function.locals[1];
-    final positionalArgsLocal = function.locals[2];
-    final namedArgsLocal = function.locals[3];
+    final receiverLocal = function.locals[0]; // ref #Top
+    final typeArgsLocal = function.locals[1]; // ref _ListBase
+    final positionalArgsLocal = function.locals[2]; // ref _ListBase
+    final namedArgsLocal = function.locals[3]; // ref _ListBase
 
     // Continuation of this block calls `noSuchMethod` on the receiver.
     final noSuchMethodBlock = b.block();
@@ -539,82 +539,8 @@ class Forwarder {
         b.return_();
         b.end();
 
-        // Value is a closure, cast it to `#ClosureBase`
-        final closureBaseType = w.RefType.def(
-            translator.closureLayouter.closureBaseStruct,
-            nullable: false);
-        final receiverClosureBaseLocal = function.addLocal(closureBaseType);
-        b.local_get(receiverLocal);
-        b.ref_cast(closureBaseType);
-        b.local_tee(receiverClosureBaseLocal);
-
-        // Read the `_FunctionType` field
-        final getterValueFunctionTypeLocal =
-            function.addLocal(translator.closureLayouter.functionTypeType);
-        b.struct_get(translator.closureLayouter.closureBaseStruct,
-            FieldIndex.closureRuntimeType);
-        b.local_tee(getterValueFunctionTypeLocal);
-
-        // Check closure shape
-        final shapeCheckerFunction = translator.functions
-            .getFunction(translator.checkClosureShape.reference);
-        final shapeCheckerFunctionInputs = shapeCheckerFunction.type.inputs;
-
-        b.local_get(typeArgsLocal);
-        translator.convertType(
-            function, typeArgsLocal.type, shapeCheckerFunctionInputs[1]);
-
-        b.local_get(positionalArgsLocal);
-        translator.convertType(
-            function, positionalArgsLocal.type, shapeCheckerFunctionInputs[2]);
-
-        b.local_get(namedArgsLocal);
-        translator.convertType(
-            function, namedArgsLocal.type, shapeCheckerFunctionInputs[3]);
-
-        b.call(shapeCheckerFunction);
-
-        b.i32_eqz();
-        b.br_if(noSuchMethodBlock);
-
-        // Shape check passed, check types.
-        final typeCheckerFun = translator.functions
-            .getFunction(translator.checkClosureType.reference);
-        final typeCheckerFunInputs = typeCheckerFun.type.inputs;
-
-        b.local_get(getterValueFunctionTypeLocal);
-
-        b.local_get(typeArgsLocal);
-        translator.convertType(
-            function, typeArgsLocal.type, typeCheckerFunInputs[1]);
-
-        b.local_get(positionalArgsLocal);
-        translator.convertType(
-            function, positionalArgsLocal.type, typeCheckerFunInputs[2]);
-
-        b.local_get(namedArgsLocal);
-        translator.convertType(
-            function, namedArgsLocal.type, typeCheckerFunInputs[3]);
-
-        // Type checker throws TypeError on failure.
-        b.call(typeCheckerFun);
-
-        // Type check passed. Call dynamic call entry of the closure.
-        b.local_get(receiverClosureBaseLocal);
-        b.local_get(typeArgsLocal);
-        b.local_get(positionalArgsLocal);
-        b.local_get(namedArgsLocal);
-
-        // Get vtable
-        b.local_get(receiverClosureBaseLocal);
-        b.struct_get(translator.closureLayouter.closureBaseStruct,
-            FieldIndex.closureVtable);
-
-        // Get entry function
-        b.struct_get(translator.closureLayouter.vtableBaseStruct,
-            FieldIndex.vtableDynamicCallEntry);
-
-        b.call_ref(translator.dynamicCallVtableEntryFunctionType);
+        generateDynamicCall(translator, function, receiverLocal, typeArgsLocal,
+            positionalArgsLocal, namedArgsLocal, noSuchMethodBlock);
         b.return_();
 
         b.end(); // class ID
@@ -624,7 +550,7 @@ class Forwarder {
     b.end(); // noSuchMethodBlock
 
     // Unable to find a matching member, call `noSuchMethod`
-    _generateNoSuchMethodCall(
+    generateNoSuchMethodCall(
         translator,
         function,
         () => b.local_get(receiverLocal),
@@ -661,6 +587,86 @@ enum _ForwarderKind {
         return translator.dynamicInvocationForwarderFunctionType;
     }
   }
+}
+
+/// Generate code that checks shape and type of the closure and generate a call
+/// to its dynamic call vtable entry.
+///
+/// [closureLocal] should be a local with a closure value. Type of the local
+/// does not matter as long as it can be cast to `ref #ClosureBase`.
+///
+/// [typeArgsLocal], [posArgsLocal], [namedArgsLocal] are the locals for type,
+/// positional, and named arguments, respectively. Types of these locals must
+/// be `ref _ListBase`.
+///
+/// [noSuchMethodBlock] is used as the `br` target when the shape check fails.
+void generateDynamicCall(
+  Translator translator,
+  w.DefinedFunction function,
+  w.Local closureLocal,
+  w.Local typeArgsLocal,
+  w.Local posArgsLocal,
+  w.Local namedArgsLocal,
+  w.Label noSuchMethodBlock,
+) {
+  final listArgumentType =
+      translator.classInfo[translator.listBaseClass]!.nonNullableType;
+  assert(typeArgsLocal.type == listArgumentType);
+  assert(posArgsLocal.type == listArgumentType);
+  assert(namedArgsLocal.type == listArgumentType);
+
+  final b = function.body;
+
+  // Cast the closure to `#ClosureBase`
+  final closureBaseType = w.RefType.def(
+      translator.closureLayouter.closureBaseStruct,
+      nullable: false);
+  final closureBaseLocal = function.addLocal(closureBaseType);
+  b.local_get(closureLocal);
+  b.ref_cast(closureBaseType);
+  b.local_set(closureBaseLocal);
+
+  // Read the `_FunctionType` field
+  final functionTypeLocal =
+      function.addLocal(translator.closureLayouter.functionTypeType);
+  b.local_get(closureBaseLocal);
+  b.struct_get(translator.closureLayouter.closureBaseStruct,
+      FieldIndex.closureRuntimeType);
+  b.local_tee(functionTypeLocal);
+
+  // Check closure shape
+  b.local_get(typeArgsLocal);
+  b.local_get(posArgsLocal);
+  b.local_get(namedArgsLocal);
+  b.call(
+      translator.functions.getFunction(translator.checkClosureShape.reference));
+
+  b.i32_eqz();
+  b.br_if(noSuchMethodBlock);
+
+  // Shape check passed, check types
+  b.local_get(functionTypeLocal);
+  b.local_get(typeArgsLocal);
+  b.local_get(posArgsLocal);
+  b.local_get(namedArgsLocal);
+  b.call(
+      translator.functions.getFunction(translator.checkClosureType.reference));
+
+  // Type check passed, call vtable entry
+  b.local_get(closureBaseLocal);
+  b.local_get(typeArgsLocal);
+  b.local_get(posArgsLocal);
+  b.local_get(namedArgsLocal);
+
+  // Get vtable
+  b.local_get(closureBaseLocal);
+  b.struct_get(
+      translator.closureLayouter.closureBaseStruct, FieldIndex.closureVtable);
+
+  // Get entry function
+  b.struct_get(translator.closureLayouter.vtableBaseStruct, 0);
+
+  b.call_ref(translator.dynamicCallVtableEntryFunctionType);
 }
 
 void createInvocationObject(
@@ -725,7 +731,7 @@ void createSetterInvocationObject(
       .getFunction(translator.invocationSetterFactory.reference));
 }
 
-void _generateNoSuchMethodCall(
+void generateNoSuchMethodCall(
   Translator translator,
   w.DefinedFunction function,
   void Function() pushReceiver,

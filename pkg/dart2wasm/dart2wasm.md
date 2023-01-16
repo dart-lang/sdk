@@ -15,7 +15,8 @@ where *options* include:
 | `--depfile=`*path*                      | none    | Write a Ninja depfile listing the input sources for the compilation.
 | `--`[`no-`]`export-all`                 | no      | Export all functions; otherwise, just export `main`.
 | `--`[`no-`]`import-shared-memory`       | no      | Import a shared memory buffer. If this is on, `--shared-memory-max-pages` must also be specified.
-| `--`[`no-`]`inlining`                   | no      | Inline small functions.
+| `--`[`no-`]`inlining`                   | yes     | Enable function inlining.
+| `--inlining-limit` *size*               | 0       | Always inline functions no larger than this number of AST nodes, if inlining is enabled.
 | `--`[`no-`]`name-section`               | yes     | Emit Name Section with function names.
 | `--`[`no-`]`polymorphic-specialization` | no      | Do virtual calls by switching on the class ID instead of using `call_indirect`.
 | `--`[`no-`]`print-kernel`               | no      | Print IR for each function before compiling it.

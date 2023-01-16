@@ -27,3 +27,28 @@ Map<Symbol, Object?> _namedParameterListToMap(List<Object?> namedArguments) {
   }
   return map;
 }
+
+/// Converts a named parameter map passed to `Function.apply` to a list that
+/// can be passed to dynamic call vtable entries.
+///
+/// This is the opposite of [_namedParameterListToMap].
+@pragma("wasm:entry-point")
+List<Object?> _namedParameterMapToList(Map<Symbol, Object?>? namedArguments) {
+  if (namedArguments == null || namedArguments.isEmpty) {
+    return const [];
+  }
+
+  final List<MapEntry<Symbol, Object?>> entries = namedArguments.entries
+      .toList()
+    ..sort((entry1, entry2) =>
+        _symbolToString(entry1.key).compareTo(_symbolToString(entry2.key)));
+
+  final List<Object?> list = [];
+
+  for (final entry in entries) {
+    list.add(entry.key);
+    list.add(entry.value);
+  }
+
+  return list;
+}

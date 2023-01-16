@@ -4,6 +4,7 @@
 
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/code_generator.dart';
+import 'package:dart2wasm/dynamic_forwarders.dart';
 import 'package:dart2wasm/translator.dart';
 
 import 'package:kernel/ast.dart';
@@ -1586,6 +1587,85 @@ class Intrinsifier {
       b.end(); // fun1.vtable == fun2.vtable
 
       b.i32_const(0); // false
+
+      return true;
+    }
+
+    if (member.enclosingClass == translator.coreTypes.functionClass &&
+        name == "apply") {
+      assert(function.type.inputs.length == 3);
+
+      final closureLocal = function.locals[0]; // ref Object
+      final posArgsNullableLocal = function.locals[1]; // ref null Object,
+      final namedArgsLocal = function.locals[2]; // ref null Object
+
+      final listArgumentType =
+          translator.classInfo[translator.listBaseClass]!.nonNullableType;
+
+      // Create type argument list. It will be initialized as empty and it
+      // needs to be growable as `_checkClosureShape` updates it with default
+      // bounds if the function being invokes has type parameters.
+      final typeArgsLocal = function.addLocal(listArgumentType);
+      translator.makeList(function, (b) {
+        translator.constants.instantiateConstant(
+            function,
+            b,
+            TypeLiteralConstant(
+                InterfaceType(translator.typeClass, Nullability.nonNullable)),
+            translator.types.nonNullableTypeType);
+      }, 0, (elementType, elementIndex) {}, isGrowable: true);
+      b.local_set(typeArgsLocal);
+
+      // Create empty list for positional args if the argument is null
+      final posArgsLocal = function.addLocal(listArgumentType);
+      b.local_get(posArgsNullableLocal);
+      b.ref_is_null();
+      b.if_([], [listArgumentType]);
+      translator.constants.instantiateConstant(
+          function,
+          b,
+          ListConstant(
+              InterfaceType(translator.objectInfo.cls!, Nullability.nullable),
+              []),
+          translator.objectInfo.nonNullableType);
+      b.else_();
+      // List argument may be a custom list type, convert it to `_ListBase`
+      // with `_List.of`.
+      translator.constants.instantiateConstant(
+        function,
+        b,
+        TypeLiteralConstant(DynamicType()),
+        translator.types.nonNullableTypeType,
+      );
+      b.local_get(posArgsNullableLocal);
+      b.ref_as_non_null();
+      b.call(translator.functions.getFunction(translator.listOf.reference));
+      b.end();
+      b.local_set(posArgsLocal);
+
+      // Convert named argument map to list, to be passed to shape and type
+      // checkers and the dynamic call entry.
+      final namedArgsListLocal = function.addLocal(listArgumentType);
+      b.local_get(namedArgsLocal);
+      b.call(translator.functions
+          .getFunction(translator.namedParameterMapToList.reference));
+      b.ref_cast(listArgumentType); // ref Object -> ref _ListBase
+      b.local_set(namedArgsListLocal);
+
+      final noSuchMethodBlock = b.block();
+
+      generateDynamicCall(translator, function, closureLocal, typeArgsLocal,
+          posArgsLocal, namedArgsListLocal, noSuchMethodBlock);
+      b.return_();
+
+      b.end(); // noSuchMethodBlock
+
+      generateNoSuchMethodCall(
+          translator,
+          function,
+          () => b.local_get(closureLocal),
+          () => createInvocationObject(translator, function, "call",
+              typeArgsLocal, posArgsLocal, namedArgsListLocal));
 
       return true;
     }
