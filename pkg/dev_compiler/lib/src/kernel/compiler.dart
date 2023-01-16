@@ -6094,6 +6094,58 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (_isDebuggerCall(target)) {
       return _emitDebuggerCall(node) as js_ast.Expression;
     }
+    if (target.enclosingLibrary.importUri.toString() == 'dart:js_util') {
+      // We try and do further inlining here for the unchecked/trusted-type
+      // variants of js_util methods. Note that we only lower the methods that
+      // are used in transformations and are private. Also note that this
+      // inlining ignores `sdk/lib/_internal/js_shared/lib/js_util_patch.dart`'s
+      // implementations for the lowered methods.
+      //
+      // If you update the code there, you should update the code here.
+      // Long-term, we'll need a better IR to lower interop methods to, or a DDC
+      // inliner to do the inlining for us.
+      var name = target.name.text;
+      if (name == '_getPropertyTrustType') {
+        return js_ast.PropertyAccess(
+            _visitExpression(node.arguments.positional[0]),
+            _visitExpression(node.arguments.positional[1]));
+      } else if (name == '_setPropertyUnchecked') {
+        return _visitExpression(node.arguments.positional[2])
+            .toAssignExpression(js_ast.PropertyAccess(
+                _visitExpression(node.arguments.positional[0]),
+                _visitExpression(node.arguments.positional[1])));
+      } else if (RegExp(r'^\_callMethodUnchecked(TrustType)?[0-4]')
+          .hasMatch(name)) {
+        // Note that we don't lower `_callMethodTrustType`. This is because it
+        // uses `assertInterop` checks.
+        var trustType = name.contains('TrustType');
+        var args = <js_ast.Expression>[];
+        assert(node.arguments.named.isEmpty);
+        // Ignore the receiver and name of the method.
+        for (var i = 2; i < node.arguments.positional.length; i++) {
+          args.add(_visitExpression(node.arguments.positional[i]));
+        }
+        js_ast.Expression call = js_ast.Call(
+            js_ast.PropertyAccess(
+                _visitExpression(node.arguments.positional[0]),
+                _visitExpression(node.arguments.positional[1])),
+            args);
+        if (!trustType) {
+          call = _emitCast(call, node.arguments.types[0]);
+        }
+        return call;
+      } else if (RegExp(r'^\_callConstructorUnchecked[0-4]').hasMatch(name)) {
+        var args = <js_ast.Expression>[];
+        assert(node.arguments.named.isEmpty);
+        // Ignore the constructor.
+        for (var i = 1; i < node.arguments.positional.length; i++) {
+          args.add(_visitExpression(node.arguments.positional[i]));
+        }
+        return _emitCast(
+            js_ast.New(_visitExpression(node.arguments.positional[0]), args),
+            node.arguments.types[0]);
+      }
+    }
 
     var fn = _emitStaticTarget(target);
     var args = _emitArgumentList(node.arguments, target: target);
