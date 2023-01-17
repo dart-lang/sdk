@@ -519,7 +519,7 @@ class _TypeUniverse {
 
   static bool isFunctionType(_Type t) =>
       isSpecificInterfaceType(t, ClassID.cidFunction) ||
-      isSpecificInterfaceType(t, ClassID.cid_Function);
+      isSpecificInterfaceType(t, ClassID.cid_Closure);
 
   static _Type substituteInterfaceTypeParameter(
       _InterfaceTypeParameterType typeParameter, List<_Type> substitutions) {

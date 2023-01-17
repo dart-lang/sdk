@@ -524,7 +524,7 @@ class Forwarder {
 
         // Invoke "call" if the value is not a closure
         b.struct_get(translator.topInfo.struct, FieldIndex.classId);
-        b.i32_const(translator.classInfo[translator.functionClass]!.classId);
+        b.i32_const(translator.closureInfo.classId);
         b.i32_ne();
         b.if_();
         // Value is not a closure
@@ -539,8 +539,23 @@ class Forwarder {
         b.return_();
         b.end();
 
-        generateDynamicCall(translator, function, receiverLocal, typeArgsLocal,
-            positionalArgsLocal, namedArgsLocal, noSuchMethodBlock);
+        // Cast the closure to `#ClosureBase`
+        final closureBaseType = w.RefType.def(
+            translator.closureLayouter.closureBaseStruct,
+            nullable: false);
+        final closureLocal = function.addLocal(closureBaseType);
+        b.local_get(receiverLocal);
+        b.ref_cast(closureBaseType);
+        b.local_set(closureLocal);
+
+        generateDynamicFunctionCall(
+            translator,
+            function,
+            closureLocal,
+            typeArgsLocal,
+            positionalArgsLocal,
+            namedArgsLocal,
+            noSuchMethodBlock);
         b.return_();
 
         b.end(); // class ID
@@ -592,15 +607,15 @@ enum _ForwarderKind {
 /// Generate code that checks shape and type of the closure and generate a call
 /// to its dynamic call vtable entry.
 ///
-/// [closureLocal] should be a local with a closure value. Type of the local
-/// does not matter as long as it can be cast to `ref #ClosureBase`.
+/// [closureLocal] should be a local of type `ref #ClosureBase` containing a
+/// closure value.
 ///
 /// [typeArgsLocal], [posArgsLocal], [namedArgsLocal] are the locals for type,
 /// positional, and named arguments, respectively. Types of these locals must
 /// be `ref _ListBase`.
 ///
 /// [noSuchMethodBlock] is used as the `br` target when the shape check fails.
-void generateDynamicCall(
+void generateDynamicFunctionCall(
   Translator translator,
   w.DefinedFunction function,
   w.Local closureLocal,
@@ -617,19 +632,10 @@ void generateDynamicCall(
 
   final b = function.body;
 
-  // Cast the closure to `#ClosureBase`
-  final closureBaseType = w.RefType.def(
-      translator.closureLayouter.closureBaseStruct,
-      nullable: false);
-  final closureBaseLocal = function.addLocal(closureBaseType);
-  b.local_get(closureLocal);
-  b.ref_cast(closureBaseType);
-  b.local_set(closureBaseLocal);
-
   // Read the `_FunctionType` field
   final functionTypeLocal =
       function.addLocal(translator.closureLayouter.functionTypeType);
-  b.local_get(closureBaseLocal);
+  b.local_get(closureLocal);
   b.struct_get(translator.closureLayouter.closureBaseStruct,
       FieldIndex.closureRuntimeType);
   b.local_tee(functionTypeLocal);
@@ -653,13 +659,13 @@ void generateDynamicCall(
       translator.functions.getFunction(translator.checkClosureType.reference));
 
   // Type check passed, call vtable entry
-  b.local_get(closureBaseLocal);
+  b.local_get(closureLocal);
   b.local_get(typeArgsLocal);
   b.local_get(posArgsLocal);
   b.local_get(namedArgsLocal);
 
   // Get vtable
-  b.local_get(closureBaseLocal);
+  b.local_get(closureLocal);
   b.struct_get(
       translator.closureLayouter.closureBaseStruct, FieldIndex.closureVtable);
 

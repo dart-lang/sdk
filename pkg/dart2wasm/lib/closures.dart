@@ -173,9 +173,7 @@ class ClosureLayouter extends RecursiveVisitor {
 
   // Base struct for closures.
   late final w.StructType closureBaseStruct = _makeClosureStruct(
-      "#ClosureBase",
-      _vtableBaseStructBare,
-      translator.classInfo[translator.functionClass]!.struct);
+      "#ClosureBase", _vtableBaseStructBare, translator.closureInfo.struct);
 
   late final w.RefType typeType =
       translator.classInfo[translator.typeClass]!.nonNullableType;
@@ -185,12 +183,12 @@ class ClosureLayouter extends RecursiveVisitor {
   w.StructType _makeClosureStruct(
       String name, w.StructType vtableStruct, w.StructType superType) {
     // A closure contains:
-    //  - A class ID (always the `_Function` class ID)
+    //  - A class ID (always the `_Closure` class ID)
     //  - An identity hash
     //  - A context reference (used for `this` in tear-offs)
     //  - A vtable reference
     //  - A `_FunctionType`
-    return m.addStructType("#ClosureBase",
+    return m.addStructType(name,
         fields: [
           w.FieldType(w.NumType.i32),
           w.FieldType(w.NumType.i32),
@@ -564,8 +562,6 @@ class ClosureLayouter extends RecursiveVisitor {
     ib.struct_new(instantiatedRepresentation.vtableStruct);
     ib.end();
 
-    ClassInfo info = translator.classInfo[translator.functionClass]!;
-
     w.DefinedFunction instantiationFunction = m.addFunction(functionType, name);
     w.Local preciseClosure = instantiationFunction.addLocal(genericClosureType);
     w.Instructions b = instantiationFunction.body;
@@ -575,7 +571,7 @@ class ClosureLayouter extends RecursiveVisitor {
     w.Local typeParam(int i) => instantiationFunction.locals[1 + i];
 
     // Header for the closure struct
-    b.i32_const(info.classId);
+    b.i32_const(translator.closureInfo.classId);
     b.i32_const(initialIdentityHash);
 
     // Context for the instantiated closure, containing the original closure and

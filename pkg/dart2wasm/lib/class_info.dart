@@ -61,7 +61,7 @@ class FieldIndex {
     check(translator.listBaseClass, "_data", FieldIndex.listArray);
     check(translator.hashFieldBaseClass, "_index", FieldIndex.hashBaseIndex);
     check(translator.hashFieldBaseClass, "_data", FieldIndex.hashBaseData);
-    check(translator.functionClass, "context", FieldIndex.closureContext);
+    check(translator.closureClass, "context", FieldIndex.closureContext);
     check(translator.typeClass, "isDeclaredNullable",
         FieldIndex.typeIsDeclaredNullable);
     check(translator.interfaceTypeClass, "typeArguments",
@@ -322,10 +322,10 @@ class ClassInfoCollector {
   void collect() {
     initializeTop();
 
-    // Subclasses of the `_Function` class are generated on the fly as fields
-    // with function types are encountered. Therefore, `_Function` class must
+    // Subclasses of the `_Closure` class are generated on the fly as fields
+    // with function types are encountered. Therefore, `_Closure` class must
     // be early in the initialization order.
-    initialize(translator.functionClass);
+    initialize(translator.closureClass);
 
     // Similarly `_Type` is needed for type parameter fields in classes and
     // needs to be initialized before we encounter a class with type

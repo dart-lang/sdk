@@ -545,7 +545,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     w.StructType struct = closure.representation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
     return createConstant(constant, type, (function, b) {
-      ClassInfo info = translator.classInfo[translator.functionClass]!;
+      ClassInfo info = translator.closureInfo;
       translator.functions.allocateClass(info.classId);
 
       b.i32_const(info.classId);
@@ -614,7 +614,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     final w.DefinedFunction dynamicCallEntry = makeDynamicCallEntry();
 
     return createConstant(constant, type, (function, b) {
-      ClassInfo info = translator.classInfo[translator.functionClass]!;
+      ClassInfo info = translator.closureInfo;
       translator.functions.allocateClass(info.classId);
 
       w.DefinedFunction makeTrampoline(
