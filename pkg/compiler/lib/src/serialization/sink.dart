@@ -988,6 +988,11 @@ class DataSinkWriter {
         writeMemberMap(constant.fields,
             (MemberEntity member, ConstantValue value) => writeConstant(value));
         break;
+      case ConstantValueKind.RECORD:
+        final constant = value as RecordConstantValue;
+        constant.shape.writeToDataSink(this);
+        writeConstants(constant.values);
+        break;
       case ConstantValueKind.TYPE:
         final constant = value as TypeConstantValue;
         writeDartType(constant.representedType);

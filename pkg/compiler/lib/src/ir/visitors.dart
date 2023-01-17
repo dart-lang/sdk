@@ -309,7 +309,12 @@ class ConstantValuefier extends ir.ComputeOnceConstantVisitor<ConstantValue> {
 
   @override
   ConstantValue visitRecordConstant(ir.RecordConstant node) {
-    return defaultConstant(node);
+    final shape = recordShapeOfRecordType(node.recordType);
+    final fieldValues = [
+      for (final value in node.positional) visitConstant(value),
+      for (final value in node.named.values) visitConstant(value)
+    ];
+    return RecordConstantValue(shape, fieldValues);
   }
 
   @override

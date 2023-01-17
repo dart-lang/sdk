@@ -271,6 +271,7 @@ class JsBackendStrategy {
             impacts,
             closedWorld.backendUsage,
             closedWorld.rtiNeed,
+            closedWorld.recordData,
             customElementsCodegenAnalysis,
             nativeCodegenEnqueuer),
         closedWorld.annotationsData);

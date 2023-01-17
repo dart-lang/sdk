@@ -823,6 +823,18 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   }
 
   @override
+  ConstantValue visitRecord(RecordConstantValue constant, _) {
+    // TODO(50081): An alternative is to lower the record to
+    // ConstructedConstantValue with possible a ListConstantValue argument. One
+    // way to do this would be to have two constant_systems - a K-system and a
+    // J-system. The K-system would produce a RecordConstantValue, the J-system
+    // the lowered form.
+    List<ConstantValue> values = _handleValues(constant.values);
+    if (identical(values, constant.values)) return constant;
+    return RecordConstantValue(constant.shape, values);
+  }
+
+  @override
   ConstantValue visitType(TypeConstantValue constant, _) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
     DartType representedType =

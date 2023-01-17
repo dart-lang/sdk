@@ -170,6 +170,7 @@ class ModelEmitter {
         _closedWorld.rtiNeed,
         rtiRecipeEncoder,
         _closedWorld.fieldAnalysis,
+        _closedWorld.recordData,
         _emitter,
         this.generateConstantReference,
         constantListGenerator);
