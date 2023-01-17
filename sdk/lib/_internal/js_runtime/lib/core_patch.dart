@@ -582,6 +582,18 @@ class String {
 class bool {
   @patch
   int get hashCode => super.hashCode;
+  
+  @patch
+  static bool parse(String source) {
+    bool? value = tryParse(source);
+    if (value != null) return value;    
+    throw new FormatException(source);
+  }
+
+  @patch
+  static bool? tryParse(String source) {
+    return Primitives.parseBool(source);
+  }
 }
 
 @patch

@@ -722,6 +722,18 @@ class bool {
   }
 
   @patch
+  static bool parse(String source) {
+    var value = tryParse(source);
+    if (value != null) return value;
+    throw new FormatException(source);
+  }
+
+  @patch
+  static bool? tryParse(String source) {
+    return Primitives.parseBool(source);
+  }
+
+  @patch
   int get hashCode => super.hashCode;
 
   @JSExportName('is')

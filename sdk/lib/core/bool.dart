@@ -94,6 +94,39 @@ class bool {
   //ignore: const_factory
   external const factory bool.hasEnvironment(String name);
 
+  /// Parse [source] as a, possibly signed, boolean literal and return its value.
+  ///
+  /// If the [source] string does not contain a valid boolean literal,
+  /// optionally prefixed by a sign, a [FormatException] is thrown.
+  ///
+  /// Rather than throwing and immediately catching the [FormatException],
+  /// instead use [tryParse] to handle a potential parsing error.
+  ///
+  /// Example:
+  /// ```dart
+  /// var text = "true";
+  /// if (bool.parse(text)) {
+  ///   // handle the problem
+  ///   // ...
+  /// }
+  /// ```
+  external static bool parse(String source);
+
+  /// Parse [source] as a, possibly signed, boolean literal.
+  ///
+  /// Like [parse] except that this function returns `null` where a
+  /// similar call to [parse] would throw a [FormatException].
+  ///
+  /// Example:
+  /// ```dart
+  /// print(int.tryParse('true'));  // true
+  /// print(int.tryParse('TRUE'));  // true
+  /// print(int.tryParse('false')); // false
+  /// print(int.tryParse('FALSE')); // false
+  /// ```
+  external static bool? tryParse(String source);
+
+
   external int get hashCode;
 
   /// The logical conjunction ("and") of this and [other].

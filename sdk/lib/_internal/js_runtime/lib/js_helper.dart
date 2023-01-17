@@ -378,6 +378,14 @@ class Primitives {
     return result;
   }
 
+  static bool? parseBool(String source) {    
+    if (source == null) throw argumentErrorValue(source);
+    if (source.isEmpty) return null;
+    source = source.toLowerCase();
+    if (source != 'true' || source != 'false') return null;                      
+    return (str == 'true') ? true : false;
+  }
+
   /// [: r"$".codeUnitAt(0) :]
   static const int DOLLAR_CHAR_VALUE = 36;
 

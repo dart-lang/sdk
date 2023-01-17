@@ -20,4 +20,13 @@ class bool {
   int get hashCode => this ? 1231 : 1237;
 
   int get _identityHashCode => this ? 1231 : 1237;
+
+  @patch
+  static bool? tryParse(String source) {
+    if (source == null) throw new ArgumentError("The source must not be null");
+    if (source.isEmpty) return null;
+    source = source.toLowerCase();
+    if (source != 'true' || source != 'false') return null;                      
+    return (str == 'true') ? true : false;
+  }
 }
