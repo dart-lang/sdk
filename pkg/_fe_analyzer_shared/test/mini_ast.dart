@@ -759,34 +759,38 @@ class Harness {
   /// they contain.
   void run(List<Statement> statements,
       {bool errorRecoveryOk = false, Set<String> expectedErrors = const {}}) {
-    _started = true;
-    if (_operations.legacy && patternsEnabled) {
-      fail('Patterns cannot be enabled in legacy mode');
-    }
-    var visitor = PreVisitor(typeAnalyzer.errors);
-    var b = _Block(statements, location: computeLocation());
-    b.preVisit(visitor);
-    flow = _operations.legacy
-        ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
-            _operations, visitor._assignedVariables)
-        : FlowAnalysis<Node, Statement, Expression, Var, Type>(
-            _operations, visitor._assignedVariables,
-            respectImplicitlyTypedVarInitializers:
-                _respectImplicitlyTypedVarInitializers);
-    typeAnalyzer.dispatchStatement(b);
-    typeAnalyzer.finish();
-    expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
-    var assertInErrorRecoveryStack =
-        typeAnalyzer.errors._assertInErrorRecoveryStack;
-    if (!errorRecoveryOk && assertInErrorRecoveryStack != null) {
-      fail('assertInErrorRecovery called but no errors reported: '
-          '$assertInErrorRecoveryStack');
-    }
-    if (Node._nodesWithUnusedErrorIds.isNotEmpty) {
-      var ids = [for (var node in Node._nodesWithUnusedErrorIds) node._errorId]
-          .join(', ');
+    try {
+      _started = true;
+      if (_operations.legacy && patternsEnabled) {
+        fail('Patterns cannot be enabled in legacy mode');
+      }
+      var visitor = PreVisitor(typeAnalyzer.errors);
+      var b = _Block(statements, location: computeLocation());
+      b.preVisit(visitor);
+      flow = _operations.legacy
+          ? FlowAnalysis<Node, Statement, Expression, Var, Type>.legacy(
+              _operations, visitor._assignedVariables)
+          : FlowAnalysis<Node, Statement, Expression, Var, Type>(
+              _operations, visitor._assignedVariables,
+              respectImplicitlyTypedVarInitializers:
+                  _respectImplicitlyTypedVarInitializers);
+      typeAnalyzer.dispatchStatement(b);
+      typeAnalyzer.finish();
+      expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
+      var assertInErrorRecoveryStack =
+          typeAnalyzer.errors._assertInErrorRecoveryStack;
+      if (!errorRecoveryOk && assertInErrorRecoveryStack != null) {
+        fail('assertInErrorRecovery called but no errors reported: '
+            '$assertInErrorRecoveryStack');
+      }
+      if (Node._nodesWithUnusedErrorIds.isNotEmpty) {
+        var ids = [
+          for (var node in Node._nodesWithUnusedErrorIds) node._errorId
+        ].join(', ');
+        fail('Unused error ids: $ids');
+      }
+    } finally {
       Node._nodesWithUnusedErrorIds.clear();
-      fail('Unused error ids: $ids');
     }
   }
 
