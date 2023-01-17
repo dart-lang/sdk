@@ -189,6 +189,10 @@ class ForResolver {
       forParts.variables.accept(_resolver);
     } else if (forParts is ForPartsWithExpression) {
       forParts.initialization?.accept(_resolver);
+    } else if (forParts is ForPartsWithPattern) {
+      forParts.variables.accept(_resolver);
+    } else {
+      throw StateError('Unrecognized for loop parts');
     }
 
     _resolver.flowAnalysis.for_conditionBegin(node);

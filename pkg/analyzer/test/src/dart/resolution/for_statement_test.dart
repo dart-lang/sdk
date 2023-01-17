@@ -11,17 +11,18 @@ import 'context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(
-        ForStatement_ForEachPartsWithDeclaration_ResolutionTest);
+        ForStatementResolutionTest_ForEachPartsWithDeclaration);
     defineReflectiveTests(
-        ForStatement_ForEachPartsWithIdentifier_ResolutionTest);
-    defineReflectiveTests(ForStatement_ForEachPartsWithPattern_ResolutionTest);
-    defineReflectiveTests(ForStatement_ForParts_ResolutionTest);
+        ForStatementResolutionTest_ForEachPartsWithIdentifier);
+    defineReflectiveTests(ForStatementResolutionTest_ForEachPartsWithPattern);
+    defineReflectiveTests(ForStatementResolutionTest_ForPartsWithExpression);
+    defineReflectiveTests(ForStatementResolutionTest_ForPartsWithPattern);
   });
 }
 
 /// TODO(scheglov) Move other for-in tests here.
 @reflectiveTest
-class ForStatement_ForEachPartsWithDeclaration_ResolutionTest
+class ForStatementResolutionTest_ForEachPartsWithDeclaration
     extends PubPackageResolutionTest {
   test_iterable_contextType() async {
     await assertNoErrorsInCode(r'''
@@ -363,7 +364,7 @@ void f() {
 }
 
 @reflectiveTest
-class ForStatement_ForEachPartsWithIdentifier_ResolutionTest
+class ForStatementResolutionTest_ForEachPartsWithIdentifier
     extends PubPackageResolutionTest {
   test_identifier_dynamic() async {
     await resolveTestCode(r'''
@@ -404,7 +405,7 @@ ForStatement
 }
 
 @reflectiveTest
-class ForStatement_ForEachPartsWithPattern_ResolutionTest
+class ForStatementResolutionTest_ForEachPartsWithPattern
     extends PubPackageResolutionTest {
   test_iterable_dynamic() async {
     await assertNoErrorsInCode(r'''
@@ -621,29 +622,120 @@ ForStatement
 }
 
 @reflectiveTest
-class ForStatement_ForParts_ResolutionTest extends PubPackageResolutionTest {
+class ForStatementResolutionTest_ForPartsWithExpression
+    extends PubPackageResolutionTest {
   test_condition_rewrite() async {
     await assertNoErrorsInCode(r'''
-f(bool Function() b) {
-  for (; b(); ) {
-    print(0);
+void f(bool Function() b) {
+  for (; b(); ) {}
+}
+''');
+
+    final node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithExpression
+    leftSeparator: ;
+    condition: FunctionExpressionInvocation
+      function: SimpleIdentifier
+        token: b
+        staticElement: self::@function::f::@parameter::b
+        staticType: bool Function()
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
+      staticElement: <null>
+      staticInvokeType: bool Function()
+      staticType: bool
+    rightSeparator: ;
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+}
+
+@reflectiveTest
+class ForStatementResolutionTest_ForPartsWithPattern
+    extends PubPackageResolutionTest {
+  test_it() async {
+    await assertNoErrorsInCode(r'''
+void f((int, bool) x) {
+  for (var (a, b) = x; b; a--) {
+    a;
+    b;
   }
 }
 ''');
 
-    final node = findNode.functionExpressionInvocation('b()');
+    final node = findNode.singleForStatement;
     assertResolvedNodeText(node, r'''
-FunctionExpressionInvocation
-  function: SimpleIdentifier
-    token: b
-    staticElement: self::@function::f::@parameter::b
-    staticType: bool Function()
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
-  staticElement: <null>
-  staticInvokeType: bool Function()
-  staticType: bool
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithPattern
+    variables: PatternVariableDeclaration
+      keyword: var
+      pattern: RecordPattern
+        leftParenthesis: (
+        fields
+          RecordPatternField
+            pattern: DeclaredVariablePattern
+              name: a
+              declaredElement: hasImplicitType a@36
+                type: int
+            fieldElement: <null>
+          RecordPatternField
+            pattern: DeclaredVariablePattern
+              name: b
+              declaredElement: hasImplicitType b@39
+                type: bool
+            fieldElement: <null>
+        rightParenthesis: )
+      equals: =
+      expression: SimpleIdentifier
+        token: x
+        staticElement: self::@function::f::@parameter::x
+        staticType: (int, bool)
+    leftSeparator: ;
+    condition: SimpleIdentifier
+      token: b
+      staticElement: b@39
+      staticType: bool
+    rightSeparator: ;
+    updaters
+      PostfixExpression
+        operand: SimpleIdentifier
+          token: a
+          staticElement: a@36
+          staticType: null
+        operator: --
+        readElement: a@36
+        readType: int
+        writeElement: a@36
+        writeType: int
+        staticElement: dart:core::@class::num::@method::-
+        staticType: int
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@36
+          staticType: int
+        semicolon: ;
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: b
+          staticElement: b@39
+          staticType: bool
+        semicolon: ;
+    rightBracket: }
 ''');
   }
 }

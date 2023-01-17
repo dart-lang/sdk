@@ -13,6 +13,7 @@ main() {
     defineReflectiveTests(ForElementResolutionTest_ForEachPartsWithDeclaration);
     defineReflectiveTests(ForElementResolutionTest_ForEachPartsWithPattern);
     defineReflectiveTests(ForElementResolutionTest_ForPartsWithDeclarations);
+    defineReflectiveTests(ForElementResolutionTest_ForPartsWithPattern);
   });
 }
 
@@ -290,5 +291,71 @@ main() {
       findNode.simple('i]; // 2'),
       findNode.variableDeclaration('i = 1.1;').declaredElement!,
     );
+  }
+}
+
+@reflectiveTest
+class ForElementResolutionTest_ForPartsWithPattern
+    extends PubPackageResolutionTest {
+  test_it() async {
+    await assertNoErrorsInCode(r'''
+void f((int, bool) x) {
+  [for (var (a, b) = x; b; a--) 0];
+}
+''');
+
+    final node = findNode.singleForElement;
+    assertResolvedNodeText(node, r'''
+ForElement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithPattern
+    variables: PatternVariableDeclaration
+      keyword: var
+      pattern: RecordPattern
+        leftParenthesis: (
+        fields
+          RecordPatternField
+            pattern: DeclaredVariablePattern
+              name: a
+              declaredElement: hasImplicitType a@37
+                type: int
+            fieldElement: <null>
+          RecordPatternField
+            pattern: DeclaredVariablePattern
+              name: b
+              declaredElement: hasImplicitType b@40
+                type: bool
+            fieldElement: <null>
+        rightParenthesis: )
+      equals: =
+      expression: SimpleIdentifier
+        token: x
+        staticElement: self::@function::f::@parameter::x
+        staticType: (int, bool)
+    leftSeparator: ;
+    condition: SimpleIdentifier
+      token: b
+      staticElement: b@40
+      staticType: bool
+    rightSeparator: ;
+    updaters
+      PostfixExpression
+        operand: SimpleIdentifier
+          token: a
+          staticElement: a@37
+          staticType: null
+        operator: --
+        readElement: a@37
+        readType: int
+        writeElement: a@37
+        writeType: int
+        staticElement: dart:core::@class::num::@method::-
+        staticType: int
+  rightParenthesis: )
+  body: IntegerLiteral
+    literal: 0
+    staticType: int
+''');
   }
 }

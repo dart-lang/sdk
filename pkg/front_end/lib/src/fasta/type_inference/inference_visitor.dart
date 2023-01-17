@@ -8508,8 +8508,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult visitPatternVariableDeclaration(
       PatternVariableDeclaration node) {
     // TODO(cstefantsova): Support late variables.
-    analyzePatternVariableDeclarationStatement(
-        node, node.pattern, node.initializer,
+    analyzePatternVariableDeclaration(node, node.pattern, node.initializer,
         isFinal: node.isFinal, isLate: false);
 
     Pattern pattern = node.pattern;

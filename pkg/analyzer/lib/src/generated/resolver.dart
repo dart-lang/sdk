@@ -3032,15 +3032,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    // TODO(scheglov) Support for `late` was removed.
+    analyzePatternVariableDeclaration(node, node.pattern, node.expression,
+        isFinal: node.keyword.keyword == Keyword.FINAL, isLate: false);
+    popRewrite(); // expression
+  }
+
+  @override
   void visitPatternVariableDeclarationStatement(
       PatternVariableDeclarationStatement node) {
     checkUnreachableNode(node);
-    var declaration = node.declaration;
-    // TODO(scheglov) Support for `late` was removed.
-    analyzePatternVariableDeclarationStatement(
-        node, declaration.pattern, declaration.expression,
-        isFinal: declaration.keyword.keyword == Keyword.FINAL, isLate: false);
-    popRewrite(); // expression
+    node.declaration.accept(this);
   }
 
   @override
@@ -4743,6 +4746,17 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     // But there might be type arguments with Expression(s), such as
     // annotations on formal parameters of GenericFunctionType(s).
     node.typeArguments?.accept(this);
+  }
+
+  @override
+  void visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
+  ) {
+    for (var variable in node.elements) {
+      _define(variable);
+    }
+
+    super.visitPatternVariableDeclaration(node);
   }
 
   @override
