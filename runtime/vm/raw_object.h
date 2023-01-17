@@ -1713,6 +1713,28 @@ class UntaggedWeakSerializationReference : public UntaggedObject {
   VISIT_TO(replacement)
 };
 
+class UntaggedWeakArray : public UntaggedObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(WeakArray);
+
+  COMPRESSED_POINTER_FIELD(WeakArrayPtr, next_seen_by_gc)
+
+  COMPRESSED_SMI_FIELD(SmiPtr, length)
+  VISIT_FROM(length)
+  // Variable length data follows here.
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
+
+  template <typename Table, bool kAllCanonicalObjectsAreIncludedIntoSet>
+  friend class CanonicalSetDeserializationCluster;
+  template <typename Type, typename PtrType>
+  friend class GCLinkedList;
+  friend class GCMarker;
+  template <bool>
+  friend class MarkingVisitorBase;
+  friend class Scavenger;
+  template <bool>
+  friend class ScavengerVisitorBase;
+};
+
 class UntaggedCode : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 

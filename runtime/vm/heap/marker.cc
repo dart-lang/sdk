@@ -123,14 +123,13 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
 
         intptr_t size;
         if (class_id == kWeakPropertyCid) {
-          WeakPropertyPtr raw_weak = static_cast<WeakPropertyPtr>(raw_obj);
-          size = ProcessWeakProperty(raw_weak);
+          size = ProcessWeakProperty(static_cast<WeakPropertyPtr>(raw_obj));
         } else if (class_id == kWeakReferenceCid) {
-          WeakReferencePtr raw_weak = static_cast<WeakReferencePtr>(raw_obj);
-          size = ProcessWeakReference(raw_weak);
+          size = ProcessWeakReference(static_cast<WeakReferencePtr>(raw_obj));
+        } else if (class_id == kWeakArrayCid) {
+          size = ProcessWeakArray(static_cast<WeakArrayPtr>(raw_obj));
         } else if (class_id == kFinalizerEntryCid) {
-          FinalizerEntryPtr raw_weak = static_cast<FinalizerEntryPtr>(raw_obj);
-          size = ProcessFinalizerEntry(raw_weak);
+          size = ProcessFinalizerEntry(static_cast<FinalizerEntryPtr>(raw_obj));
         } else {
           if ((class_id == kArrayCid) || (class_id == kImmutableArrayCid)) {
             size = raw_obj->untag()->HeapSize();
@@ -232,6 +231,11 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     return raw_weak->untag()->HeapSize();
   }
 
+  intptr_t ProcessWeakArray(WeakArrayPtr raw_weak) {
+    delayed_.weak_arrays.Enqueue(raw_weak);
+    return raw_weak->untag()->HeapSize();
+  }
+
   intptr_t ProcessFinalizerEntry(FinalizerEntryPtr raw_entry) {
     ASSERT(IsMarked(raw_entry));
     delayed_.finalizer_entries.Enqueue(raw_entry);
@@ -310,6 +314,23 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       // then the target is dead and we should clear it.
       ForwardOrSetNullIfCollected(cur_weak->heap_base(),
                                   &cur_weak->untag()->target_);
+
+      cur_weak = next_weak;
+    }
+  }
+
+  void MournWeakArrays() {
+    WeakArrayPtr cur_weak = delayed_.weak_arrays.Release();
+    while (cur_weak != WeakArray::null()) {
+      WeakArrayPtr next_weak =
+          cur_weak->untag()->next_seen_by_gc_.Decompress(cur_weak->heap_base());
+      cur_weak->untag()->next_seen_by_gc_ = WeakArray::null();
+
+      intptr_t length = Smi::Value(cur_weak->untag()->length());
+      for (intptr_t i = 0; i < length; i++) {
+        ForwardOrSetNullIfCollected(cur_weak->heap_base(),
+                                    &cur_weak->untag()->data()[i]);
+      }
 
       cur_weak = next_weak;
     }
@@ -742,6 +763,7 @@ class ParallelMarkTask : public ThreadPool::Task {
       // Phase 3: Weak processing and statistics.
       visitor_->MournWeakProperties();
       visitor_->MournWeakReferences();
+      visitor_->MournWeakArrays();
       // Don't MournFinalized here, do it on main thread, so that we don't have
       // to coordinate workers.
 
@@ -1044,6 +1066,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       visitor.FinalizeMarking();
       visitor.MournWeakProperties();
       visitor.MournWeakReferences();
+      visitor.MournWeakArrays();
       MournFinalized(&visitor);
       IterateWeakRoots(thread);
       // All marking done; detach code, etc.

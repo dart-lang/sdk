@@ -865,6 +865,8 @@ ISOLATE_UNIT_TEST_CASE(WeakSmi) {
       WeakReference::Handle(WeakReference::New(Heap::kNew));
   WeakReference& old_weakref =
       WeakReference::Handle(WeakReference::New(Heap::kOld));
+  WeakArray& new_weakarray = WeakArray::Handle(WeakArray::New(1, Heap::kNew));
+  WeakArray& old_weakarray = WeakArray::Handle(WeakArray::New(1, Heap::kOld));
   FinalizerEntry& new_finalizer = FinalizerEntry::Handle(
       FinalizerEntry::New(FinalizerBase::Handle(), Heap::kNew));
   FinalizerEntry& old_finalizer = FinalizerEntry::Handle(
@@ -877,6 +879,8 @@ ISOLATE_UNIT_TEST_CASE(WeakSmi) {
     old_ephemeron.set_key(smi);
     new_weakref.set_target(smi);
     old_weakref.set_target(smi);
+    new_weakarray.SetAt(0, smi);
+    old_weakarray.SetAt(0, smi);
     new_finalizer.set_value(smi);
     old_finalizer.set_value(smi);
   }
@@ -888,6 +892,8 @@ ISOLATE_UNIT_TEST_CASE(WeakSmi) {
   EXPECT(old_ephemeron.key() == Smi::New(42));
   EXPECT(new_weakref.target() == Smi::New(42));
   EXPECT(old_weakref.target() == Smi::New(42));
+  EXPECT(new_weakarray.At(0) == Smi::New(42));
+  EXPECT(old_weakarray.At(0) == Smi::New(42));
   EXPECT(new_finalizer.value() == Smi::New(42));
   EXPECT(old_finalizer.value() == Smi::New(42));
 }

@@ -309,7 +309,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       }
 
       MournWeakProperties();
-      MournOrUpdateWeakReferences();
+      MournWeakReferences();
+      MournWeakArrays();
       MournFinalized(this);
     }
     page_space_->ReleaseLock(freelist_);
@@ -539,7 +540,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   }
 
   void MournWeakProperties();
-  void MournOrUpdateWeakReferences();
+  void MournWeakReferences();
+  void MournWeakArrays();
 
   Thread* thread_;
   Scavenger* scavenger_;
@@ -1351,6 +1353,10 @@ intptr_t ScavengerVisitorBase<parallel>::ProcessCopied(ObjectPtr raw_obj) {
         return raw_weak->untag()->HeapSize();
       }
     }
+  } else if (UNLIKELY(class_id == kWeakArrayCid)) {
+    WeakArrayPtr raw_weak = static_cast<WeakArrayPtr>(raw_obj);
+    delayed_.weak_arrays.Enqueue(raw_weak);
+    return raw_weak->untag()->HeapSize();
   } else if (UNLIKELY(class_id == kFinalizerEntryCid)) {
     FinalizerEntryPtr raw_entry = static_cast<FinalizerEntryPtr>(raw_obj);
     ASSERT(IsNotForwarding(raw_entry));
@@ -1484,7 +1490,7 @@ void ScavengerVisitorBase<parallel>::MournWeakProperties() {
 }
 
 template <bool parallel>
-void ScavengerVisitorBase<parallel>::MournOrUpdateWeakReferences() {
+void ScavengerVisitorBase<parallel>::MournWeakReferences() {
   ASSERT(!scavenger_->abort_);
 
   // The queued weak references at this point either should have their target
@@ -1500,6 +1506,27 @@ void ScavengerVisitorBase<parallel>::MournOrUpdateWeakReferences() {
     // then the target is dead and we should clear it.
     ForwardOrSetNullIfCollected(cur_weak->heap_base(),
                                 &cur_weak->untag()->target_);
+
+    // Advance to next weak reference in the queue.
+    cur_weak = next_weak;
+  }
+}
+
+template <bool parallel>
+void ScavengerVisitorBase<parallel>::MournWeakArrays() {
+  ASSERT(!scavenger_->abort_);
+  WeakArrayPtr cur_weak = delayed_.weak_arrays.Release();
+  while (cur_weak != WeakArray::null()) {
+    WeakArrayPtr next_weak =
+        cur_weak->untag()->next_seen_by_gc_.Decompress(cur_weak->heap_base());
+    // Reset the next pointer in the weak reference.
+    cur_weak->untag()->next_seen_by_gc_ = WeakArray::null();
+
+    intptr_t length = Smi::Value(cur_weak->untag()->length());
+    for (intptr_t i = 0; i < length; i++) {
+      ForwardOrSetNullIfCollected(cur_weak->heap_base(),
+                                  &(cur_weak->untag()->data()[i]));
+    }
 
     // Advance to next weak reference in the queue.
     cur_weak = next_weak;

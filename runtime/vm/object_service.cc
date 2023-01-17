@@ -705,6 +705,35 @@ void WeakSerializationReference::PrintJSONImpl(JSONStream* stream,
   jsobj.AddProperty("target", obj);
 }
 
+void WeakArray::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  intptr_t limit = offset + count;
+  ASSERT(limit <= Length());
+  {
+    JSONArray jsarr(&jsobj, "elements");
+    Object& element = Object::Handle();
+    for (intptr_t index = offset; index < limit; index++) {
+      element = At(index);
+      jsarr.AddValue(element);
+    }
+  }
+}
+
 void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);

@@ -524,7 +524,6 @@ class Object {
   static ClassPtr exception_handlers_class() {
     return exception_handlers_class_;
   }
-  static ClassPtr deopt_info_class() { return deopt_info_class_; }
   static ClassPtr context_class() { return context_class_; }
   static ClassPtr context_scope_class() { return context_scope_class_; }
   static ClassPtr sentinel_class() { return sentinel_class_; }
@@ -546,6 +545,7 @@ class Object {
   static ClassPtr weak_serialization_reference_class() {
     return weak_serialization_reference_class_;
   }
+  static ClassPtr weak_array_class() { return weak_array_class_; }
 
   // Initialize the VM isolate.
   static void InitNullAndBool(IsolateGroup* isolate_group);
@@ -839,51 +839,46 @@ class Object {
   static BoolPtr true_;
   static BoolPtr false_;
 
-  static ClassPtr class_class_;            // Class of the Class vm object.
-  static ClassPtr dynamic_class_;          // Class of the 'dynamic' type.
-  static ClassPtr void_class_;             // Class of the 'void' type.
-  static ClassPtr type_parameters_class_;  // Class of TypeParameters vm object.
-  static ClassPtr type_arguments_class_;   // Class of TypeArguments vm object.
-  static ClassPtr patch_class_class_;      // Class of the PatchClass vm object.
-  static ClassPtr function_class_;         // Class of the Function vm object.
-  static ClassPtr closure_data_class_;     // Class of ClosureData vm obj.
-  static ClassPtr ffi_trampoline_data_class_;  // Class of FfiTrampolineData
-                                               // vm obj.
-  static ClassPtr field_class_;                // Class of the Field vm object.
-  static ClassPtr script_class_;               // Class of the Script vm object.
-  static ClassPtr library_class_;    // Class of the Library vm object.
-  static ClassPtr namespace_class_;  // Class of Namespace vm object.
-  static ClassPtr kernel_program_info_class_;  // Class of KernelProgramInfo vm
-                                               // object.
-  static ClassPtr code_class_;                 // Class of the Code vm object.
-
-  static ClassPtr instructions_class_;  // Class of the Instructions vm object.
-  static ClassPtr instructions_section_class_;  // Class of InstructionsSection.
-  static ClassPtr instructions_table_class_;    // Class of InstructionsTable.
-  static ClassPtr object_pool_class_;      // Class of the ObjectPool vm object.
-  static ClassPtr pc_descriptors_class_;   // Class of PcDescriptors vm object.
-  static ClassPtr code_source_map_class_;  // Class of CodeSourceMap vm object.
-  static ClassPtr compressed_stackmaps_class_;  // Class of CompressedStackMaps.
-  static ClassPtr var_descriptors_class_;       // Class of LocalVarDescriptors.
-  static ClassPtr exception_handlers_class_;    // Class of ExceptionHandlers.
-  static ClassPtr deopt_info_class_;            // Class of DeoptInfo.
-  static ClassPtr context_class_;            // Class of the Context vm object.
-  static ClassPtr context_scope_class_;      // Class of ContextScope vm object.
-  static ClassPtr sentinel_class_;           // Class of Sentinel vm object.
-  static ClassPtr singletargetcache_class_;  // Class of SingleTargetCache.
-  static ClassPtr unlinkedcall_class_;       // Class of UnlinkedCall.
-  static ClassPtr
-      monomorphicsmiablecall_class_;         // Class of MonomorphicSmiableCall.
-  static ClassPtr icdata_class_;             // Class of ICData.
-  static ClassPtr megamorphic_cache_class_;  // Class of MegamorphiCache.
-  static ClassPtr subtypetestcache_class_;   // Class of SubtypeTestCache.
-  static ClassPtr loadingunit_class_;        // Class of LoadingUnit.
-  static ClassPtr api_error_class_;          // Class of ApiError.
-  static ClassPtr language_error_class_;     // Class of LanguageError.
-  static ClassPtr unhandled_exception_class_;  // Class of UnhandledException.
-  static ClassPtr unwind_error_class_;         // Class of UnwindError.
-  // Class of WeakSerializationReference.
+  static ClassPtr class_class_;
+  static ClassPtr dynamic_class_;
+  static ClassPtr void_class_;
+  static ClassPtr type_parameters_class_;
+  static ClassPtr type_arguments_class_;
+  static ClassPtr patch_class_class_;
+  static ClassPtr function_class_;
+  static ClassPtr closure_data_class_;
+  static ClassPtr ffi_trampoline_data_class_;
+  static ClassPtr field_class_;
+  static ClassPtr script_class_;
+  static ClassPtr library_class_;
+  static ClassPtr namespace_class_;
+  static ClassPtr kernel_program_info_class_;
+  static ClassPtr code_class_;
+  static ClassPtr instructions_class_;
+  static ClassPtr instructions_section_class_;
+  static ClassPtr instructions_table_class_;
+  static ClassPtr object_pool_class_;
+  static ClassPtr pc_descriptors_class_;
+  static ClassPtr code_source_map_class_;
+  static ClassPtr compressed_stackmaps_class_;
+  static ClassPtr var_descriptors_class_;
+  static ClassPtr exception_handlers_class_;
+  static ClassPtr context_class_;
+  static ClassPtr context_scope_class_;
+  static ClassPtr sentinel_class_;
+  static ClassPtr singletargetcache_class_;
+  static ClassPtr unlinkedcall_class_;
+  static ClassPtr monomorphicsmiablecall_class_;
+  static ClassPtr icdata_class_;
+  static ClassPtr megamorphic_cache_class_;
+  static ClassPtr subtypetestcache_class_;
+  static ClassPtr loadingunit_class_;
+  static ClassPtr api_error_class_;
+  static ClassPtr language_error_class_;
+  static ClassPtr unhandled_exception_class_;
+  static ClassPtr unwind_error_class_;
   static ClassPtr weak_serialization_reference_class_;
+  static ClassPtr weak_array_class_;
 
 #define DECLARE_SHARED_READONLY_HANDLE(Type, name) static Type* name##_;
   SHARED_READONLY_HANDLES_LIST(DECLARE_SHARED_READONLY_HANDLE)
@@ -6359,6 +6354,72 @@ class WeakSerializationReference : public Object {
   ObjectPtr replacement() const { return untag()->replacement(); }
 
   friend class Class;
+};
+
+class WeakArray : public Object {
+ public:
+  intptr_t Length() const { return LengthOf(ptr()); }
+  static inline intptr_t LengthOf(const WeakArrayPtr array);
+
+  static intptr_t length_offset() {
+    return OFFSET_OF(UntaggedWeakArray, length_);
+  }
+  static intptr_t data_offset() {
+    return OFFSET_OF_RETURNED_VALUE(UntaggedWeakArray, data);
+  }
+  static intptr_t element_offset(intptr_t index) {
+    return OFFSET_OF_RETURNED_VALUE(UntaggedWeakArray, data) +
+           kBytesPerElement * index;
+  }
+  static intptr_t index_at_offset(intptr_t offset_in_bytes) {
+    intptr_t index = (offset_in_bytes - data_offset()) / kBytesPerElement;
+    ASSERT(index >= 0);
+    return index;
+  }
+
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() { return WeakArray::data_offset(); }
+
+    static constexpr intptr_t kElementSize = kCompressedWordSize;
+  };
+
+  ObjectPtr At(intptr_t index) const { return untag()->element(index); }
+  void SetAt(intptr_t index, const Object& value) const {
+    untag()->set_element(index, value.ptr());
+  }
+
+  // Access to the array with acquire release semantics.
+  ObjectPtr AtAcquire(intptr_t index) const {
+    return untag()->element<std::memory_order_acquire>(index);
+  }
+  void SetAtRelease(intptr_t index, const Object& value) const {
+    untag()->set_element<std::memory_order_release>(index, value.ptr());
+  }
+
+  static const intptr_t kBytesPerElement = kCompressedWordSize;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  static constexpr bool IsValidLength(intptr_t length) {
+    return 0 <= length && length <= kMaxElements;
+  }
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(UntaggedWeakArray) ==
+           OFFSET_OF_RETURNED_VALUE(UntaggedWeakArray, data));
+    return 0;
+  }
+
+  static constexpr intptr_t InstanceSize(intptr_t len) {
+    return RoundedAllocationSize(sizeof(UntaggedWeakArray) +
+                                 (len * kBytesPerElement));
+  }
+
+  static WeakArrayPtr New(intptr_t length, Heap::Space space = Heap::kNew);
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakArray, Object);
+  friend class Class;
+  friend class Object;
 };
 
 class Code : public Object {
@@ -12961,6 +13022,10 @@ void Field::set_field_id(intptr_t field_id) const {
 void Field::set_field_id_unsafe(intptr_t field_id) const {
   ASSERT(is_static());
   untag()->set_host_offset_or_field_id(Smi::New(field_id));
+}
+
+intptr_t WeakArray::LengthOf(const WeakArrayPtr array) {
+  return Smi::Value(array->untag()->length());
 }
 
 void Context::SetAt(intptr_t index, const Object& value) const {
