@@ -147,7 +147,6 @@ class CompletionGetSuggestions2Handler extends CompletionHandler
       return;
     }
 
-    var performance = OperationPerformanceImpl('<root>');
     await performance.runAsync(
       'request',
       (performance) async {

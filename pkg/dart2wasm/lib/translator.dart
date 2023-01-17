@@ -106,6 +106,7 @@ class Translator with KernelNodes {
   // Some convenience accessors for commonly used values.
   late final ClassInfo topInfo = classes[0];
   late final ClassInfo objectInfo = classInfo[coreTypes.objectClass]!;
+  late final ClassInfo closureInfo = classInfo[closureClass]!;
   late final ClassInfo stackTraceInfo = classInfo[stackTraceClass]!;
   late final w.ArrayType listArrayType = (classInfo[listBaseClass]!
           .struct
@@ -468,6 +469,9 @@ class Translator with KernelNodes {
       } else if (isFfiCompound(cls)) {
         if (nullable) throw "FFI types can't be nullable";
         return w.NumType.i32;
+      } else if (cls == coreTypes.functionClass) {
+        return w.RefType.def(closureLayouter.closureBaseStruct,
+            nullable: nullable);
       }
     }
     return w.RefType.def(info.repr.struct, nullable: nullable);

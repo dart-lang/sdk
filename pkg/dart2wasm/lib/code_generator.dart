@@ -204,7 +204,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     ClosureImplementation closure = translator.getTearOffClosure(procedure);
     w.StructType struct = closure.representation.closureStruct;
 
-    ClassInfo info = translator.classInfo[translator.functionClass]!;
+    ClassInfo info = translator.closureInfo;
     translator.functions.allocateClass(info.classId);
 
     b.i32_const(info.classId);
@@ -2345,7 +2345,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       DartType functionType, void pushContext()) {
     w.StructType struct = closure.representation.closureStruct;
 
-    ClassInfo info = translator.classInfo[translator.functionClass]!;
+    ClassInfo info = translator.closureInfo;
     translator.functions.allocateClass(info.classId);
 
     b.i32_const(info.classId);

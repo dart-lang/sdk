@@ -1486,8 +1486,7 @@ class Intrinsifier {
       }
     }
 
-    if (member.enclosingClass == translator.functionClass &&
-        name == "_equals") {
+    if (member.enclosingClass == translator.closureClass && name == "_equals") {
       // Function equality works like this:
       //
       // - Function literals and local functions are only equal if they're the
@@ -1595,7 +1594,7 @@ class Intrinsifier {
         name == "apply") {
       assert(function.type.inputs.length == 3);
 
-      final closureLocal = function.locals[0]; // ref Object
+      final closureLocal = function.locals[0]; // ref #ClosureBase
       final posArgsNullableLocal = function.locals[1]; // ref null Object,
       final namedArgsLocal = function.locals[2]; // ref null Object
 
@@ -1654,8 +1653,8 @@ class Intrinsifier {
 
       final noSuchMethodBlock = b.block();
 
-      generateDynamicCall(translator, function, closureLocal, typeArgsLocal,
-          posArgsLocal, namedArgsListLocal, noSuchMethodBlock);
+      generateDynamicFunctionCall(translator, function, closureLocal,
+          typeArgsLocal, posArgsLocal, namedArgsListLocal, noSuchMethodBlock);
       b.return_();
 
       b.end(); // noSuchMethodBlock

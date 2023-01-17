@@ -4,6 +4,11 @@
 
 // CHANGES:
 //
+// v0.29 Add an alternative in the `primary` rule to enable method invocations
+// of the form `super(...)` and `super<...>(...)`. This was added to the
+// language specification in May 21, b26e7287c318c0112610fe8b7e175289792dfde2,
+// but the correspanding update here wasn't done here at the time.
+//
 // v0.28 Add support for `new` in `enumEntry`, e.g., `enum E { x.new(); }`.
 // Add `identifierOrNew` non-terminal to simplify the grammar.
 //
@@ -578,13 +583,14 @@ expressionList
 primary
     :    thisExpression
     |    SUPER unconditionalAssignableSelector
-    |    constObjectExpression
-    |    newExpression
-    |    constructorInvocation
+    |    SUPER argumentPart
     |    functionPrimary
-    |    '(' expression ')'
     |    literal
     |    identifier
+    |    newExpression
+    |    constObjectExpression
+    |    constructorInvocation
+    |    '(' expression ')'
     |    constructorTearoff
     |    switchExpression
     ;

@@ -1,26 +1,26 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 part of "core_patch.dart";
 
 /// Base class for closure objects.
-class _Function implements Function {
+class _Closure implements Function {
   @pragma("wasm:entry-point")
   WasmStructRef context;
 
   @pragma("wasm:entry-point")
-  _Function._(this.context);
+  _Closure._(this.context);
 
   @override
   bool operator ==(Object other) {
-    if (other is! _Function) {
+    if (other is! _Closure) {
       return false;
     }
     return _equals(this, other);
   }
 
-  external static bool _equals(_Function a, _Function b);
+  external static bool _equals(_Closure a, _Closure b);
 
   // Simple hash code for now, we can optimize later
   @override
@@ -28,5 +28,5 @@ class _Function implements Function {
 
   // Support dynamic tear-off of `.call` on functions
   @pragma("wasm:entry-point")
-  _Function get call => this;
+  _Closure get call => this;
 }
