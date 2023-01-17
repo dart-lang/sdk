@@ -18,11 +18,6 @@ import 'package:js/js.dart' show trustTypes, staticInterop;
 @JS('library3.ExternalStatic')
 @staticInterop
 class ExternalStatic {
-  external factory ExternalStatic(String initialValue);
-  external factory ExternalStatic.named(
-      [String initialValue = 'uninitialized']);
-  // External redirecting factories are not allowed.
-
   external static String field;
   @JS('field')
   external static String renamedField;
@@ -39,10 +34,6 @@ class ExternalStatic {
   external static String differentArgsMethod(String a, [String b = '']);
   @JS('method')
   external static String renamedMethod();
-}
-
-extension on ExternalStatic {
-  external String get initialValue;
 }
 
 @JS('library3.ExternalStatic')
@@ -64,9 +55,7 @@ void main() {
     var library1 = {library2: library2};
     globalThis.library1 = library1;
 
-    library3.ExternalStatic = function ExternalStatic(initialValue) {
-      this.initialValue = initialValue;
-    }
+    library3.ExternalStatic = function ExternalStatic() {}
     library3.ExternalStatic.method = function() {
       return 'method';
     }
@@ -95,7 +84,6 @@ void main() {
   ]);
   testClassStaticMembers();
   testTopLevelMembers();
-  testFactories();
 }
 
 // Top-level fields.
@@ -183,20 +171,4 @@ void testTopLevelMembers() {
   expect((differentArgsMethod)('optional', 'method'), 'optionalmethod');
   expect(namespacedMethod(), 'namespacedMethod');
   expect((namespacedMethod)(), 'namespacedMethod');
-}
-
-void testFactories() {
-  // Non-object literal factories and their tear-offs.
-  var initialized = 'initialized';
-  var uninitialized = 'uninitialized';
-
-  var externalStatic = ExternalStatic(initialized);
-  expect(externalStatic.initialValue, initialized);
-  externalStatic = ExternalStatic.named();
-  expect(externalStatic.initialValue, uninitialized);
-
-  externalStatic = (ExternalStatic.new)(initialized);
-  expect(externalStatic.initialValue, initialized);
-  externalStatic = (ExternalStatic.named)(initialized);
-  expect(externalStatic.initialValue, initialized);
 }

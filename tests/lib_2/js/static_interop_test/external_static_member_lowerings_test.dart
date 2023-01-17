@@ -18,11 +18,6 @@ external dynamic eval(String code);
 @JS()
 @staticInterop
 class ExternalStatic {
-  external factory ExternalStatic(String initialValue);
-  external factory ExternalStatic.named(
-      [String initialValue = 'uninitialized']);
-  // External redirecting factories are not allowed.
-
   external static String field;
   @JS('field')
   external static String renamedField;
@@ -39,10 +34,6 @@ class ExternalStatic {
   external static String differentArgsMethod(String a, [String b = '']);
   @JS('method')
   external static String renamedMethod();
-}
-
-extension on ExternalStatic {
-  external String get initialValue;
 }
 
 @JS('ExternalStatic')
@@ -74,21 +65,9 @@ external String differentArgsMethod(String a, [String b = '']);
 @JS('method')
 external String renamedMethod();
 
-@JS()
-@staticInterop
-@anonymous
-class Anonymous {
-  external factory Anonymous({bool? a, bool b = true, bool? c = null});
-  external factory Anonymous.named({bool? a, bool b = true, bool? c = null});
-  external factory Anonymous.map({Map<String, String>? map});
-  external factory Anonymous.nestedAnonymous({Anonymous? anonymous});
-}
-
 void main() {
   eval('''
-    globalThis.ExternalStatic = function ExternalStatic(initialValue) {
-      this.initialValue = initialValue;
-    }
+    globalThis.ExternalStatic = function ExternalStatic() {}
     globalThis.ExternalStatic.method = function() {
       return 'method';
     }
@@ -111,7 +90,6 @@ void main() {
   ''');
   testClassStaticMembers();
   testTopLevelMembers();
-  testFactories();
 }
 
 void testClassStaticMembers() {
@@ -175,55 +153,4 @@ void testTopLevelMembers() {
   expect((differentArgsMethod)('optional', 'method'), 'optionalmethod');
   expect(renamedMethod(), 'method');
   expect((renamedMethod)(), 'method');
-}
-
-void testFactories() {
-  // Non-object literal factories and their tear-offs.
-  var initialized = 'initialized';
-  var uninitialized = 'uninitialized';
-
-  var externalStatic = ExternalStatic(initialized);
-  expect(externalStatic.initialValue, initialized);
-  externalStatic = ExternalStatic.named();
-  expect(externalStatic.initialValue, uninitialized);
-
-  externalStatic = (ExternalStatic.new)(initialized);
-  expect(externalStatic.initialValue, initialized);
-  externalStatic = (ExternalStatic.named)(initialized);
-  expect(externalStatic.initialValue, initialized);
-
-  // Object literal factories.
-  void testHasProps(Anonymous obj,
-      {bool a = false, bool b = false, bool c = false}) {
-    expect(js_util.hasProperty(obj, 'a'), a);
-    expect(js_util.hasProperty(obj, 'b'), b);
-    expect(js_util.hasProperty(obj, 'c'), c);
-  }
-
-  testHasProps(Anonymous());
-  testHasProps(Anonymous(a: true), a: true);
-  testHasProps(Anonymous(b: true), b: true);
-  testHasProps(Anonymous(c: true), c: true);
-  testHasProps(Anonymous(a: true, b: true), a: true, b: true);
-  testHasProps(Anonymous(a: true, c: true), a: true, c: true);
-  testHasProps(Anonymous(b: true, c: true), b: true, c: true);
-  testHasProps(Anonymous(a: true, b: true, c: true), a: true, b: true, c: true);
-
-  testHasProps(Anonymous.named());
-  testHasProps(Anonymous.named(a: true), a: true);
-  testHasProps(Anonymous.named(b: true), b: true);
-  testHasProps(Anonymous.named(c: true), c: true);
-  testHasProps(Anonymous.named(a: true, b: true), a: true, b: true);
-  testHasProps(Anonymous.named(a: true, c: true), a: true, c: true);
-  testHasProps(Anonymous.named(b: true, c: true), b: true, c: true);
-  testHasProps(Anonymous.named(a: true, b: true, c: true),
-      a: true, b: true, c: true);
-
-  // Test that `jsify` is called by checking to see if Map is converted to an
-  // object literal and that we transform subnodes.
-  var nested =
-      Anonymous.nestedAnonymous(anonymous: Anonymous.map(map: {'key': 'val'}));
-  var anonymous = js_util.getProperty(nested, 'anonymous');
-  expect(anonymous is Anonymous, true);
-  expect(js_util.getProperty(anonymous, 'map') is Map<String, String>, false);
 }
