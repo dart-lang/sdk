@@ -27,12 +27,12 @@ import 'package:_fe_analyzer_shared/src/parser/quote.dart'
         unescapeLastStringPart,
         unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
-    show FixedNullableList, GrowableList, NullValue, ParserRecovery;
-import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
+    show FixedNullableList, GrowableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart'
     show isBinaryOperator, isMinusOperator, isUserDefinableOperator;
 import 'package:_fe_analyzer_shared/src/util/link.dart';
+import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/fasta/kernel/benchmarker.dart' show Benchmarker;
 import 'package:kernel/ast.dart';
@@ -465,12 +465,12 @@ class BodyBuilder extends StackListenerImpl
   }
 
   void enterBreakTarget(int charOffset, [JumpTarget? target]) {
-    push(breakTarget ?? NullValue.BreakTarget);
+    push(breakTarget ?? NullValues.BreakTarget);
     breakTarget = target ?? createBreakTarget(charOffset);
   }
 
   void enterContinueTarget(int charOffset, [JumpTarget? target]) {
-    push(continueTarget ?? NullValue.ContinueTarget);
+    push(continueTarget ?? NullValues.ContinueTarget);
     continueTarget = target ?? createContinueTarget(charOffset);
   }
 
@@ -712,7 +712,7 @@ class BodyBuilder extends StackListenerImpl
   Statement popStatement() => forest.wrapVariables(pop() as Statement);
 
   Statement? popNullableStatement() {
-    Statement? statement = pop(NullValue.Block) as Statement?;
+    Statement? statement = pop(NullValues.Block) as Statement?;
     if (statement != null) {
       statement = forest.wrapVariables(statement);
     }
@@ -720,7 +720,7 @@ class BodyBuilder extends StackListenerImpl
   }
 
   void enterSwitchScope() {
-    push(switchScope ?? NullValue.SwitchScope);
+    push(switchScope ?? NullValues.SwitchScope);
     switchScope = scope;
   }
 
@@ -888,11 +888,11 @@ class BodyBuilder extends StackListenerImpl
     assert(checkState(null, repeatedKind(ValueKinds.Expression, count)));
     debugEvent("MetadataStar");
     if (count == 0) {
-      push(NullValue.Metadata);
+      push(NullValues.Metadata);
     } else {
       push(const GrowableList<Expression>()
               .popNonNullable(stack, count, dummyExpression) ??
-          NullValue.Metadata /* Ignore parser recovery */);
+          NullValues.Metadata /* Ignore parser recovery */);
     }
     assert(checkState(null, [ValueKinds.AnnotationListOrNull]));
   }
@@ -1079,7 +1079,7 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("BlockFunctionBody");
     if (openBrace == null) {
       assert(count == 0);
-      push(NullValue.Block);
+      push(NullValues.Block);
     } else {
       Statement block = popBlock(count, openBrace, closeBrace);
       exitLocalScope();
@@ -3680,7 +3680,7 @@ class BodyBuilder extends StackListenerImpl
       // Creating a null value to prevent the Dart VM from crashing.
       push(forest.createNullLiteral(offsetForToken(token)));
     } else {
-      push(NullValue.FieldInitializer);
+      push(NullValues.FieldInitializer);
     }
     constantContext = ConstantContext.none;
   }
@@ -3707,7 +3707,7 @@ class BodyBuilder extends StackListenerImpl
     if (!libraryBuilder.isNonNullableByDefault) {
       reportNonNullableModifierError(lateToken);
     }
-    TypeBuilder? unresolvedType = pop(NullValue.TypeBuilder) as TypeBuilder?;
+    TypeBuilder? unresolvedType = pop(NullValues.TypeBuilder) as TypeBuilder?;
     DartType? type = unresolvedType != null
         ? buildDartType(unresolvedType, TypeUse.variableType,
             allowPotentiallyConstantType: false)
@@ -3716,7 +3716,7 @@ class BodyBuilder extends StackListenerImpl
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme);
     _enterLocalState(inLateLocalInitializer: lateToken != null);
     super.push(currentLocalVariableModifiers);
-    super.push(currentLocalVariableType ?? NullValue.Type);
+    super.push(currentLocalVariableType ?? NullValues.Type);
     currentLocalVariableType = type;
     currentLocalVariableModifiers = modifiers;
     super.push(constantContext);
@@ -3731,7 +3731,7 @@ class BodyBuilder extends StackListenerImpl
     if (count == 1) {
       Object? node = pop();
       constantContext = pop() as ConstantContext;
-      currentLocalVariableType = pop(NullValue.Type) as DartType?;
+      currentLocalVariableType = pop(NullValues.Type) as DartType?;
       currentLocalVariableModifiers = pop() as int;
       List<Expression>? annotations = pop() as List<Expression>?;
       if (node is ParserRecovery) {
@@ -3751,7 +3751,7 @@ class BodyBuilder extends StackListenerImpl
           const FixedNullableList<VariableDeclaration>()
               .popNonNullable(stack, count, dummyVariableDeclaration);
       constantContext = pop() as ConstantContext;
-      currentLocalVariableType = pop(NullValue.Type) as DartType?;
+      currentLocalVariableType = pop(NullValues.Type) as DartType?;
       currentLocalVariableModifiers = pop() as int;
       List<Expression>? annotations = pop() as List<Expression>?;
       if (variables == null) {
@@ -3900,7 +3900,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleForInitializerEmptyStatement(Token token) {
     debugEvent("ForInitializerEmptyStatement");
-    push(NullValue.Expression);
+    push(NullValues.Expression);
     // This is matched by the call to [deferNode] in [endForStatement] or
     // [endForControlFlow].
     typeInferrer.assignedVariables.beginNode();
@@ -4777,7 +4777,7 @@ class BodyBuilder extends StackListenerImpl
     List<RecordTypeFieldBuilder>? namedFields;
     if (hasNamedFields) {
       namedFields =
-          pop(NullValue.RecordTypeFieldList) as List<RecordTypeFieldBuilder>?;
+          pop(NullValues.RecordTypeFieldList) as List<RecordTypeFieldBuilder>?;
     }
     List<RecordTypeFieldBuilder>? positionalFields =
         const FixedNullableList<RecordTypeFieldBuilder>().popNonNullable(stack,
@@ -4812,7 +4812,7 @@ class BodyBuilder extends StackListenerImpl
     Object? name = pop();
     Object? type = pop();
     // TODO(johnniwinther): How should we handle annotations?
-    pop(NullValue.Metadata); // Annotations.
+    pop(NullValues.Metadata); // Annotations.
     push(new RecordTypeFieldBuilder(
         [],
         type is ParserRecovery
@@ -4831,7 +4831,7 @@ class BodyBuilder extends StackListenerImpl
     List<RecordTypeFieldBuilder>? fields =
         const FixedNullableList<RecordTypeFieldBuilder>()
             .popNonNullable(stack, count, dummyRecordTypeFieldBuilder);
-    push(fields ?? NullValue.RecordTypeFieldList);
+    push(fields ?? NullValues.RecordTypeFieldList);
   }
 
   @override
@@ -5025,7 +5025,7 @@ class BodyBuilder extends StackListenerImpl
     push((covariantToken != null ? covariantMask : 0) |
         (requiredToken != null ? requiredMask : 0) |
         Modifier.validateVarFinalOrConst(varFinalOrConst?.lexeme));
-    push(varFinalOrConst ?? NullValue.Token);
+    push(varFinalOrConst ?? NullValues.Token);
   }
 
   @override
@@ -5057,7 +5057,7 @@ class BodyBuilder extends StackListenerImpl
     }
     Object? nameNode = pop();
     TypeBuilder? type = pop() as TypeBuilder?;
-    Token? varOrFinalOrConst = pop(NullValue.Token) as Token?;
+    Token? varOrFinalOrConst = pop(NullValues.Token) as Token?;
     if (superKeyword != null &&
         varOrFinalOrConst != null &&
         optional('var', varOrFinalOrConst)) {
@@ -5316,7 +5316,7 @@ class BodyBuilder extends StackListenerImpl
         coreTypes.stackTraceRawType(libraryBuilder.nonNullable),
         body));
     if (compileTimeErrors == null) {
-      push(NullValue.Block);
+      push(NullValues.Block);
     } else {
       push(forest.createBlock(noLocation, noLocation, compileTimeErrors));
     }
@@ -5580,9 +5580,9 @@ class BodyBuilder extends StackListenerImpl
     // TODO(johnniwinther): Provide sufficient offsets for pointing correctly
     //  to prefix, class name and suffix.
     push(type);
-    push(typeArguments ?? NullValue.TypeArguments);
+    push(typeArguments ?? NullValues.TypeArguments);
     push(name);
-    push(suffix ?? identifier ?? NullValue.Identifier);
+    push(suffix ?? identifier ?? NullValues.Identifier);
 
     assert(checkState(start, [
       /*constructor name identifier*/ ValueKinds.IdentifierOrNull,
@@ -5922,7 +5922,7 @@ class BodyBuilder extends StackListenerImpl
       /*previous constant context*/ ValueKinds.ConstantContext,
     ]));
     Arguments arguments = pop() as Arguments;
-    Identifier? nameLastIdentifier = pop(NullValue.Identifier) as Identifier?;
+    Identifier? nameLastIdentifier = pop(NullValues.Identifier) as Identifier?;
     Token nameLastToken = nameLastIdentifier?.token ?? nameToken;
     String name = pop() as String;
     List<TypeBuilder>? typeArguments = pop() as List<TypeBuilder>?;
@@ -6496,13 +6496,13 @@ class BodyBuilder extends StackListenerImpl
     debugEvent("TypeArguments");
     push(const FixedNullableList<TypeBuilder>()
             .popNonNullable(stack, count, dummyTypeBuilder) ??
-        NullValue.TypeArguments);
+        NullValues.TypeArguments);
   }
 
   @override
   void handleInvalidTypeArguments(Token token) {
     debugEvent("InvalidTypeArguments");
-    pop(NullValue.TypeArguments);
+    pop(NullValues.TypeArguments);
   }
 
   @override
@@ -6614,7 +6614,7 @@ class BodyBuilder extends StackListenerImpl
     _enterLocalState();
     debugEvent("enterFunction");
     functionNestingLevel++;
-    push(switchScope ?? NullValue.SwitchScope);
+    push(switchScope ?? NullValues.SwitchScope);
     switchScope = null;
     push(inCatchBlock);
     inCatchBlock = false;
@@ -6641,7 +6641,7 @@ class BodyBuilder extends StackListenerImpl
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     exitLocalScope();
-    push(typeVariables ?? NullValue.TypeVariables);
+    push(typeVariables ?? NullValues.TypeVariables);
     _exitLocalState();
     assert(checkState(null, [
       ValueKinds.TypeVariableListOrNull,
@@ -6662,7 +6662,7 @@ class BodyBuilder extends StackListenerImpl
     // Create an additional scope in which the named function expression is
     // declared.
     enterLocalScope("named function");
-    push(typeVariables ?? NullValue.TypeVariables);
+    push(typeVariables ?? NullValues.TypeVariables);
     enterFunction();
   }
 
@@ -6871,7 +6871,7 @@ class BodyBuilder extends StackListenerImpl
       throw new UnimplementedError(
           'TODO(paulberry): handle pattern in for-in loop');
     }
-    push(awaitToken ?? NullValue.AwaitToken);
+    push(awaitToken ?? NullValues.AwaitToken);
     push(forToken);
     push(inKeyword);
     // This is matched by the call to [deferNode] in [endForIn] or
@@ -6885,7 +6885,7 @@ class BodyBuilder extends StackListenerImpl
     Object? entry = pop();
     Token inToken = pop() as Token;
     Token forToken = pop() as Token;
-    Token? awaitToken = pop(NullValue.AwaitToken) as Token?;
+    Token? awaitToken = pop(NullValues.AwaitToken) as Token?;
 
     if (constantContext != ConstantContext.none) {
       popForValue(); // Pop iterable
@@ -7014,7 +7014,7 @@ class BodyBuilder extends StackListenerImpl
 
     Token inKeyword = pop() as Token;
     Token forToken = pop() as Token;
-    Token? awaitToken = pop(NullValue.AwaitToken) as Token?;
+    Token? awaitToken = pop(NullValues.AwaitToken) as Token?;
 
     // This is matched by the call to [beginNode] in [handleForInLoopParts].
     AssignedVariablesNodeInfo assignedVariablesNodeInfo =
@@ -7350,7 +7350,7 @@ class BodyBuilder extends StackListenerImpl
     }
     push(expressionOrPatterns);
     push(containsPatterns);
-    push(labels ?? NullValue.Labels);
+    push(labels ?? NullValues.Labels);
     enterLocalScope("switch case");
 
     List<VariableDeclaration>? jointPatternVariables;
@@ -7393,7 +7393,7 @@ class BodyBuilder extends StackListenerImpl
         }
       }
     }
-    push(jointPatternVariables ?? NullValue.VariableDeclarationList);
+    push(jointPatternVariables ?? NullValues.VariableDeclarationList);
 
     assert(checkState(firstToken, [
       ValueKinds.VariableDeclarationListOrNull,
@@ -7500,7 +7500,7 @@ class BodyBuilder extends StackListenerImpl
           isDefault: defaultKeyword != null, hasLabel: labels != null)
         ..fileOffset = firstToken.charOffset);
     }
-    push(labels ?? NullValue.Labels);
+    push(labels ?? NullValues.Labels);
     assert(checkState(firstToken, [
       ValueKinds.LabelListOrNull,
       ValueKinds.SwitchCase,
@@ -7930,7 +7930,7 @@ class BodyBuilder extends StackListenerImpl
   void handleNoTypeVariables(Token token) {
     debugEvent("NoTypeVariables");
     enterFunctionTypeScope(null);
-    push(NullValue.TypeVariables);
+    push(NullValues.TypeVariables);
   }
 
   List<TypeParameter>? typeVariableBuildersToKernel(
@@ -8203,7 +8203,7 @@ class BodyBuilder extends StackListenerImpl
   @override
   void handleInvalidFunctionBody(Token token) {
     if (member.isNative) {
-      push(NullValue.FunctionBody);
+      push(NullValues.FunctionBody);
     } else {
       push(forest.createBlock(offsetForToken(token), noLocation, <Statement>[
         buildProblemStatement(
@@ -8561,7 +8561,7 @@ class BodyBuilder extends StackListenerImpl
         fields[j] = field;
       }
     }
-    push(fields ?? NullValue.PatternList);
+    push(fields ?? NullValues.PatternList);
   }
 
   @override
@@ -8758,7 +8758,7 @@ class BodyBuilder extends StackListenerImpl
     reportIfNotEnabled(
         libraryFeatures.patterns, variable.charOffset, variable.charCount);
     // ignore: unused_local_variable
-    TypeBuilder? type = pop(NullValue.TypeBuilder) as TypeBuilder?;
+    TypeBuilder? type = pop(NullValues.TypeBuilder) as TypeBuilder?;
     DartType? patternType = type?.build(libraryBuilder, TypeUse.variableType);
     Pattern pattern;
     if (variable.lexeme == "_") {
@@ -8838,7 +8838,7 @@ class BodyBuilder extends StackListenerImpl
       typeInferrer.assignedVariables.declare(variable);
     }
     // TODO(johnniwinther,cstefantsova): Handle metadata.
-    pop(NullValue.Metadata) as List<Expression>?;
+    pop(NullValues.Metadata) as List<Expression>?;
     push(new PatternVariableDeclaration(pattern, initializer,
         fileOffset: keyword.charOffset, isFinal: isFinal));
   }

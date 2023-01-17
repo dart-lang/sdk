@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'stack_listener.dart' show NullValue;
+import 'null_value.dart' show NullValue;
 
 /// [ValueKind] is used in [StackListener.checkState] to document and check the
 /// expected values of the stack.
@@ -13,13 +13,14 @@ abstract class ValueKind {
   const ValueKind();
 
   /// Checks the [value] an returns `true` if the value is of the expected kind.
-  bool check(Object ?value);
+  bool check(Object? value);
 }
 
 /// A [ValueKind] for a particular type [T], optionally with a recognized
 /// [NullValue].
 class SingleValueKind<T> implements ValueKind {
-  final NullValue? nullValue;
+  // TODO(johnniwinther): Type this as `NullValue<T>?`.
+  final NullValue<Object>? nullValue;
 
   const SingleValueKind([this.nullValue]);
 

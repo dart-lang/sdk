@@ -23,9 +23,17 @@ import 'parser.dart' show Listener, MemberKind, lengthOfSpan;
 
 import 'quote.dart' show unescapeString;
 
-import 'value_kind.dart';
+import '../util/null_value.dart';
+import '../util/value_kind.dart';
 
-enum NullValue {
+/// Sentinel values used for typed `null` values on a stack.
+///
+/// This is used to avoid mixing `null` values between different kinds. For
+/// instance a stack entry is meant to contain an expression or null, the
+/// `NullValues.Expression` is pushed on the stack instead of `null` and when
+/// popping the entry `NullValues.Expression` is passed show how `null` is
+/// represented.
+enum NullValues implements NullValue<Object> {
   Arguments,
   As,
   AwaitToken,
@@ -295,7 +303,7 @@ abstract class StackListener extends Listener {
   @override
   void handleNoName(Token token) {
     debugEvent("NoName");
-    push(NullValue.Identifier);
+    push(NullValues.Identifier);
   }
 
   @override
@@ -369,13 +377,13 @@ abstract class StackListener extends Listener {
   @override
   void handleNoTypeArguments(Token token) {
     debugEvent("NoTypeArguments");
-    push(NullValue.TypeArguments);
+    push(NullValues.TypeArguments);
   }
 
   @override
   void handleNoTypeVariables(Token token) {
     debugEvent("NoTypeVariables");
-    push(NullValue.TypeVariables);
+    push(NullValues.TypeVariables);
   }
 
   @override
@@ -386,25 +394,25 @@ abstract class StackListener extends Listener {
   @override
   void handleNoType(Token lastConsumed) {
     debugEvent("NoType");
-    push(NullValue.TypeBuilder);
+    push(NullValues.TypeBuilder);
   }
 
   @override
   void handleNoFormalParameters(Token token, MemberKind kind) {
     debugEvent("NoFormalParameters");
-    push(NullValue.FormalParameters);
+    push(NullValues.FormalParameters);
   }
 
   @override
   void handleNoArguments(Token token) {
     debugEvent("NoArguments");
-    push(NullValue.Arguments);
+    push(NullValues.Arguments);
   }
 
   @override
   void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
     debugEvent("NativeFunctionBody");
-    push(NullValue.FunctionBody);
+    push(NullValues.FunctionBody);
   }
 
   @override
@@ -420,13 +428,13 @@ abstract class StackListener extends Listener {
   @override
   void handleNoFunctionBody(Token token) {
     debugEvent("NoFunctionBody");
-    push(NullValue.FunctionBody);
+    push(NullValues.FunctionBody);
   }
 
   @override
   void handleNoInitializers() {
     debugEvent("NoInitializers");
-    push(NullValue.Initializers);
+    push(NullValues.Initializers);
   }
 
   @override
