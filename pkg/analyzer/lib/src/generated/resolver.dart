@@ -880,7 +880,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void finishJoinedPatternVariable(
-    covariant VariablePatternJoinElementImpl variable, {
+    covariant JoinPatternVariableElementImpl variable, {
     required JoinedPatternVariableLocation location,
     required bool isConsistent,
     required bool isFinal,
@@ -907,8 +907,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   List<PromotableElement>? getJoinedVariableComponents(
       PromotableElement variable) {
-    if (variable is VariablePatternJoinElementImpl) {
-      return variable.components;
+    if (variable is JoinPatternVariableElementImpl) {
+      return variable.variables;
     }
     return null;
   }
@@ -4808,7 +4808,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     if (kind == ElementKind.LOCAL_VARIABLE || kind == ElementKind.PARAMETER) {
       node.staticElement = element;
       if (node.inSetterContext()) {
-        if (element is VariablePatternElementImpl &&
+        if (element is PatternVariableElementImpl &&
             element.isVisitingWhenClause) {
           errorReporter.reportErrorForNode(
             CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
@@ -4822,7 +4822,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         }
       }
     }
-    if (element is VariablePatternJoinElementImpl) {
+    if (element is JoinPatternVariableElementImpl) {
       element.references.add(node);
     }
   }

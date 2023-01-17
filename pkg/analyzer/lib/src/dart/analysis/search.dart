@@ -317,6 +317,8 @@ class Search {
       return _searchReferences_Function(element, searchedFiles);
     } else if (element is LibraryImportElement) {
       return _searchReferences_Import(element, searchedFiles);
+    } else if (element is PatternVariableElementImpl) {
+      return _searchReferences_PatternVariable(element, searchedFiles);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
       return _searchReferences_Local(element, (n) => n is Block, searchedFiles);
@@ -708,8 +710,7 @@ class Search {
     }
 
     // Find the matches.
-    _LocalReferencesVisitor visitor =
-        _LocalReferencesVisitor(element, unit.declaredElement!);
+    var visitor = _LocalReferencesVisitor({element}, unit.declaredElement!);
     enclosingNode.accept(visitor);
     return visitor.results;
   }
@@ -733,6 +734,49 @@ class Search {
     return results;
   }
 
+  Future<List<SearchResult>> _searchReferences_PatternVariable(
+    PatternVariableElementImpl element,
+    SearchedFiles searchedFiles,
+  ) async {
+    var rootElement = element;
+    while (true) {
+      var componentOf = rootElement.join;
+      if (componentOf != null) {
+        rootElement = componentOf;
+      } else {
+        break;
+      }
+    }
+
+    var transitiveVariables = rootElement is JoinPatternVariableElementImpl
+        ? rootElement.transitiveVariables
+        : [rootElement];
+
+    // Prepare a binding element for the variable.
+    var bindElement = transitiveVariables
+        .whereType<BindPatternVariableElementImpl>()
+        .firstOrNull;
+    if (bindElement == null) {
+      return const <SearchResult>[];
+    }
+
+    // Prepare the root node for search.
+    var rootNode = bindElement.node.thisOrAncestorMatching(
+      (node) => node is SwitchExpression || node is Block,
+    );
+    if (rootNode == null) {
+      return const <SearchResult>[];
+    }
+
+    // Find the matches.
+    var visitor = _LocalReferencesVisitor(
+      transitiveVariables.toSet(),
+      bindElement.enclosingUnit,
+    );
+    rootNode.accept(visitor);
+    return visitor.results;
+  }
+
   Future<List<SearchResult>> _searchReferences_Prefix(
       PrefixElement element, SearchedFiles searchedFiles) async {
     String path = element.source.fullName;
@@ -746,7 +790,7 @@ class Search {
       String unitPath = unitElement.source.fullName;
       var unitResult = await _driver.getResult(unitPath);
       if (unitResult is ResolvedUnitResult) {
-        var visitor = _LocalReferencesVisitor(element, unitElement);
+        var visitor = _LocalReferencesVisitor({element}, unitElement);
         unitResult.unit.accept(visitor);
         results.addAll(visitor.results);
       }
@@ -1376,17 +1420,18 @@ class _IndexRequest {
 class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   final List<SearchResult> results = <SearchResult>[];
 
-  final Element element;
+  final Set<Element> elements;
   final CompilationUnitElement enclosingUnitElement;
 
-  _LocalReferencesVisitor(this.element, this.enclosingUnitElement);
+  _LocalReferencesVisitor(this.elements, this.enclosingUnitElement);
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     if (node.inDeclarationContext()) {
       return;
     }
-    if (node.staticElement == element) {
+    var element = node.staticElement;
+    if (elements.contains(element)) {
       var parent = node.parent;
       SearchResultKind kind = SearchResultKind.REFERENCE;
       if (element is FunctionElement) {

@@ -161,6 +161,12 @@ abstract class AugmentedMixinElement extends AugmentedInterfaceElement {
   List<InterfaceType> get superclassConstraints;
 }
 
+/// A pattern variable that is explicitly declared.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class BindPatternVariableElement implements PatternVariableElement {}
+
 /// A class augmentation, defined by a class augmentation declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1627,6 +1633,20 @@ abstract class InterfaceOrAugmentationElement
   String get name;
 }
 
+/// A pattern variable that is a join of other pattern variables, created
+/// for a logical-or patterns, or shared `case` bodies in `switch` statements.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class JoinPatternVariableElement implements PatternVariableElement {
+  /// Returns `true` if [variables] are consistent, present in all branches,
+  /// and have the same type and finality.
+  bool get isConsistent;
+
+  /// Returns the variables that join into this variable.
+  List<PatternVariableElement> get variables;
+}
+
 /// A label associated with a statement.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -2072,6 +2092,17 @@ abstract class PartElement implements _ExistingElement {
   DirectiveUri get uri;
 }
 
+/// A pattern variable.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class PatternVariableElement implements LocalVariableElement {
+  /// Returns the variable in which this variable joins with other pattern
+  /// variables with the same name, in a logical-or pattern, or shared case
+  /// scope.
+  JoinPatternVariableElement? get join;
+}
+
 /// A prefix used to import one or more libraries into another library.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -2427,33 +2458,6 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
   /// this variable was not declared with the 'const' modifier or if the value
   /// of this variable could not be computed because of errors.
   DartObject? computeConstantValue();
-}
-
-/// A pattern variable that is explicitly declared.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class VariablePatternBindElement implements VariablePatternElement {}
-
-/// A pattern variable.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class VariablePatternElement implements LocalVariableElement {}
-
-/// A pattern variable that is a join of other pattern variables, created
-/// for a logical-or patterns, or shared `case` bodies in `switch` statements
-/// or expressions.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class VariablePatternJoinElement implements VariablePatternElement {
-  /// Returns the variables that join into this variable.
-  List<VariablePatternElement> get components;
-
-  /// Returns `true` if [components] are consistent, present in all branches,
-  /// and have the same type and finality.
-  bool get isConsistent;
 }
 
 /// This class exists to provide non-nullable overrides for existing elements,

@@ -564,6 +564,13 @@ class AugmentationImportElementImpl extends _ExistingElementImpl
       visitor.visitAugmentationImportElement(this);
 }
 
+class BindPatternVariableElementImpl extends PatternVariableElementImpl
+    implements BindPatternVariableElement {
+  final DeclaredVariablePatternImpl node;
+
+  BindPatternVariableElementImpl(this.node, super.name, super.offset);
+}
+
 /// An [AbstractClassElementImpl] which is a class.
 class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   /// Initialize a newly created class element to have the given [name] at the
@@ -3748,6 +3755,52 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
   });
 }
 
+class JoinPatternVariableElementImpl extends PatternVariableElementImpl
+    implements JoinPatternVariableElement {
+  @override
+  final List<PatternVariableElementImpl> variables;
+
+  @override
+  bool isConsistent;
+
+  /// The identifiers that reference this element.
+  final List<SimpleIdentifier> references = [];
+
+  JoinPatternVariableElementImpl(
+    super.name,
+    super.offset,
+    this.variables,
+    this.isConsistent,
+  ) {
+    for (var component in variables) {
+      component.join = this;
+    }
+  }
+
+  @override
+  int get hashCode => identityHashCode(this);
+
+  /// Returns this variable, and variables that join into it.
+  List<PatternVariableElementImpl> get transitiveVariables {
+    var result = <PatternVariableElementImpl>[];
+
+    void append(PatternVariableElementImpl variable) {
+      result.add(variable);
+      if (variable is JoinPatternVariableElementImpl) {
+        for (var variable in variable.variables) {
+          append(variable);
+        }
+      }
+    }
+
+    append(this);
+    return result;
+  }
+
+  @override
+  bool operator ==(Object other) => identical(other, this);
+}
+
 /// A concrete implementation of a [LabelElement].
 class LabelElementImpl extends ElementImpl implements LabelElement {
   /// A flag indicating whether this label is associated with a `switch`
@@ -5482,6 +5535,18 @@ class PartElementImpl extends _ExistingElementImpl implements PartElement {
   }
 }
 
+class PatternVariableElementImpl extends LocalVariableElementImpl
+    implements PatternVariableElement {
+  @override
+  JoinPatternVariableElementImpl? join;
+
+  /// This flag is set to `true` while we are visiting the [WhenClause] of
+  /// the [GuardedPattern] that declares this variable.
+  bool isVisitingWhenClause = false;
+
+  PatternVariableElementImpl(super.name, super.offset);
+}
+
 /// A concrete implementation of a [PrefixElement].
 class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   /// The scope of this prefix, `null` if it has not been created yet.
@@ -6552,41 +6617,6 @@ abstract class VariableElementImpl extends ElementImpl
 
   @override
   DartObject? computeConstantValue() => null;
-}
-
-class VariablePatternBindElementImpl extends VariablePatternElementImpl
-    implements VariablePatternBindElement {
-  final DeclaredVariablePatternImpl node;
-
-  VariablePatternBindElementImpl(this.node, super.name, super.offset);
-}
-
-class VariablePatternElementImpl extends LocalVariableElementImpl
-    implements VariablePatternElement {
-  /// This flag is set to `true` while we are visiting the [WhenClause] of
-  /// the [GuardedPattern] that declares this variable.
-  bool isVisitingWhenClause = false;
-
-  VariablePatternElementImpl(super.name, super.offset);
-}
-
-class VariablePatternJoinElementImpl extends VariablePatternElementImpl
-    implements VariablePatternJoinElement {
-  @override
-  final List<VariablePatternElementImpl> components;
-
-  @override
-  bool isConsistent;
-
-  /// The identifiers that reference this element.
-  final List<SimpleIdentifier> references = [];
-
-  VariablePatternJoinElementImpl(
-    super.name,
-    super.offset,
-    this.components,
-    this.isConsistent,
-  );
 }
 
 abstract class _ExistingElementImpl extends ElementImpl with _HasLibraryMixin {
