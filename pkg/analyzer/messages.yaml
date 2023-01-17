@@ -111,6 +111,14 @@ AnalysisOptionsWarningCode:
 
       Parameters:
       0: the section name
+  MULTIPLE_PLUGINS:
+    problemMessage: "Multiple plugins can't be enabled."
+    correctionMessage: "Remove all plugins following the first, '{0}'."
+    comment: |-
+      An error code indicating multiple plugins have been specified as enabled.
+
+      Parameters:
+      0: the name of the first plugin
   REMOVED_LINT:
     problemMessage: "'{0}' was removed in Dart '{1}'"
     correctionMessage: "Remove the reference to '{0}'."

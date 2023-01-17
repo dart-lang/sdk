@@ -67,6 +67,10 @@ AnalysisOptionsWarningCode.INVALID_OPTION:
     replace the invalid option with the selected replacement.
 AnalysisOptionsWarningCode.INVALID_SECTION_FORMAT:
   status: needsEvaluation
+AnalysisOptionsWarningCode.MULTIPLE_PLUGINS:
+  status: needsFix
+  notes: |-
+    The fix is to remove the plugin name.
 AnalysisOptionsWarningCode.REMOVED_LINT:
   status: needsFix
 AnalysisOptionsWarningCode.REPLACED_LINT:

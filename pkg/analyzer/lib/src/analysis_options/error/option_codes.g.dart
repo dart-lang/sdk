@@ -161,6 +161,17 @@ class AnalysisOptionsWarningCode extends ErrorCode {
     "Invalid format for the '{0}' section.",
   );
 
+  ///  An error code indicating multiple plugins have been specified as enabled.
+  ///
+  ///  Parameters:
+  ///  0: the name of the first plugin
+  static const AnalysisOptionsWarningCode MULTIPLE_PLUGINS =
+      AnalysisOptionsWarningCode(
+    'MULTIPLE_PLUGINS',
+    "Multiple plugins can't be enabled.",
+    correctionMessage: "Remove all plugins following the first, '{0}'.",
+  );
+
   ///  An error code indicating a removed lint rule.
   ///
   ///  Parameters:
