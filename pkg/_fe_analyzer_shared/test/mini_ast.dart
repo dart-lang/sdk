@@ -3065,11 +3065,11 @@ class _MiniAstErrors
     required Type argumentType,
     required Type parameterType,
   }) {
-    _recordError(
-      'argumentTypeNotAssignable(argument: ${argument.errorId}, '
-      'argumentType: ${argumentType.type}, '
-      'parameterType: ${parameterType.type})',
-    );
+    _recordError('argumentTypeNotAssignable', {
+      'argument': argument,
+      'argumentType': argumentType,
+      'parameterType': parameterType,
+    });
   }
 
   @override
@@ -3086,11 +3086,13 @@ class _MiniAstErrors
       required Type scrutineeType,
       required Type caseExpressionType,
       required bool nullSafetyEnabled}) {
-    _recordError('caseExpressionTypeMismatch(scrutinee: ${scrutinee.errorId}, '
-        'caseExpression: ${caseExpression.errorId}, '
-        'scrutineeType: ${scrutineeType.type}, '
-        'caseExpressionType: ${caseExpressionType.type}, '
-        'nullSafetyEnabled: $nullSafetyEnabled)');
+    _recordError('caseExpressionTypeMismatch', {
+      'scrutinee': scrutinee,
+      'caseExpression': caseExpression,
+      'scrutineeType': scrutineeType,
+      'caseExpressionType': caseExpressionType,
+      'nullSafetyEnabled': nullSafetyEnabled,
+    });
   }
 
   @override
@@ -3099,10 +3101,11 @@ class _MiniAstErrors
     required Pattern original,
     required Pattern duplicate,
   }) {
-    _recordError(
-      'duplicateAssignmentPatternVariable(name: ${variable.errorId}, '
-      'original: ${original.errorId}, duplicate: ${duplicate.errorId})',
-    );
+    _recordError('duplicateAssignmentPatternVariable', {
+      'variable': variable,
+      'original': original,
+      'duplicate': duplicate,
+    });
   }
 
   @override
@@ -3111,10 +3114,11 @@ class _MiniAstErrors
     required covariant RecordPatternField original,
     required covariant RecordPatternField duplicate,
   }) {
-    _recordError(
-      'duplicateRecordPatternField(name: $name, '
-      'original: ${original.errorId}, duplicate: ${duplicate.errorId})',
-    );
+    _recordError('duplicateRecordPatternField', {
+      'name': name,
+      'original': original,
+      'duplicate': duplicate,
+    });
   }
 
   @override
@@ -3123,12 +3127,11 @@ class _MiniAstErrors
     required Node original,
     required Node duplicate,
   }) {
-    _recordError(
-      'duplicateRestPattern('
-      'node: ${node.errorId}, '
-      'original: ${original.errorId}, '
-      'duplicate: ${duplicate.errorId})',
-    );
+    _recordError('duplicateRestPattern', {
+      'node': node,
+      'original': original,
+      'duplicate': duplicate,
+    });
   }
 
   @override
@@ -3137,10 +3140,11 @@ class _MiniAstErrors
     required Var original,
     required Var duplicate,
   }) {
-    _recordError(
-      'duplicateVariablePattern(name: $name, original: ${original.errorId}, '
-      'duplicate: ${duplicate.errorId})',
-    );
+    _recordError('duplicateVariablePattern', {
+      'name': name,
+      'original': original,
+      'duplicate': duplicate,
+    });
   }
 
   @override
@@ -3148,10 +3152,10 @@ class _MiniAstErrors
     required covariant PatternVariableJoin variable,
     required Var component,
   }) {
-    _recordError(
-      'inconsistentJoinedPatternVariable(variable: $variable, '
-      'component: ${component.errorId})',
-    );
+    _recordError('inconsistentJoinedPatternVariable', {
+      'variable': '$variable',
+      'component': component,
+    });
   }
 
   @override
@@ -3161,10 +3165,12 @@ class _MiniAstErrors
     required String name,
     required Var variable,
   }) {
-    _recordError(
-      'logicalOrPatternBranchMissingVariable(node: ${node.errorId}, '
-      'hasInLeft: $hasInLeft, name: $name, variable: ${variable.errorId})',
-    );
+    _recordError('logicalOrPatternBranchMissingVariable', {
+      'node': node,
+      'hasInLeft': hasInLeft,
+      'name': name,
+      'variable': variable,
+    });
   }
 
   @override
@@ -3172,19 +3178,20 @@ class _MiniAstErrors
     required Pattern pattern,
     required Type matchedType,
   }) {
-    _recordError(
-        'matchedTypeIsStrictlyNonNullable(pattern: ${pattern.errorId}, '
-        'matchedType: ${matchedType.type})');
+    _recordError('matchedTypeIsStrictlyNonNullable', {
+      'pattern': pattern,
+      'matchedType': matchedType,
+    });
   }
 
   @override
   void nonBooleanCondition(Expression node) {
-    _recordError('nonBooleanCondition(${node.errorId})');
+    _recordError('nonBooleanCondition', {}, unnamed: [node]);
   }
 
   @override
   void patternDoesNotAllowLate(Node pattern) {
-    _recordError('patternDoesNotAllowLate(${pattern.errorId})');
+    _recordError('patternDoesNotAllowLate', {}, unnamed: [pattern]);
   }
 
   @override
@@ -3193,9 +3200,11 @@ class _MiniAstErrors
     required Expression expression,
     required Type expressionType,
   }) {
-    _recordError('patternForInExpressionIsNotIterable(node: ${node.errorId}, '
-        'expression: ${expression.errorId}, '
-        'expressionType: ${expressionType.type})');
+    _recordError('patternForInExpressionIsNotIterable', {
+      'node': node,
+      'expression': expression,
+      'expressionType': expressionType,
+    });
   }
 
   @override
@@ -3204,16 +3213,21 @@ class _MiniAstErrors
       required Node context,
       required Type matchedType,
       required Type requiredType}) {
-    _recordError(
-        'patternTypeMismatchInIrrefutableContext(pattern: ${pattern.errorId}, '
-        'context: ${context.errorId}, matchedType: ${matchedType.type}, '
-        'requiredType: ${requiredType.type})');
+    _recordError('patternTypeMismatchInIrrefutableContext', {
+      'pattern': pattern,
+      'context': context,
+      'matchedType': matchedType,
+      'requiredType': requiredType,
+    });
   }
 
   @override
   void refutablePatternInIrrefutableContext(Node pattern, Node context) {
-    _recordError('refutablePatternInIrrefutableContext(${pattern.errorId}, '
-        '${context.errorId})');
+    _recordError(
+      'refutablePatternInIrrefutableContext',
+      const {},
+      unnamed: [pattern, context],
+    );
   }
 
   @override
@@ -3221,33 +3235,70 @@ class _MiniAstErrors
     required Node node,
     required Type returnType,
   }) {
-    _recordError(
-      'relationalPatternOperatorReturnTypeNotAssignableToBool('
-      'node: ${node.errorId}, '
-      'returnType: ${returnType.type})',
-    );
+    _recordError('relationalPatternOperatorReturnTypeNotAssignableToBool', {
+      'node': node,
+      'returnType': returnType,
+    });
   }
 
   @override
   void restPatternNotLastInMap(Pattern node, Node element) {
     _recordError(
-        'restPatternNotLastInMap(${node.errorId}, ${element.errorId})');
+      'restPatternNotLastInMap',
+      const {},
+      unnamed: [node, element],
+    );
   }
 
   @override
   void restPatternWithSubPatternInMap(Pattern node, Node element) {
     _recordError(
-        'restPatternWithSubPatternInMap(${node.errorId}, ${element.errorId})');
+      'restPatternWithSubPatternInMap',
+      const {},
+      unnamed: [node, element],
+    );
   }
 
   @override
   void switchCaseCompletesNormally(
       covariant _SwitchStatement node, int caseIndex, int numHeads) {
     _recordError(
-        'switchCaseCompletesNormally(${node.errorId}, $caseIndex, $numHeads)');
+      'switchCaseCompletesNormally',
+      const {},
+      unnamed: [node, caseIndex, numHeads],
+    );
   }
 
-  void _recordError(String errorText) {
+  void _recordError(
+    String name,
+    Map<String, Object?> namedArguments, {
+    List<Object?>? unnamed,
+  }) {
+    String argumentStr(Object? argument) {
+      if (argument is bool) {
+        return '$argument';
+      } else if (argument is int) {
+        return '$argument';
+      } else if (argument is Node) {
+        return argument.errorId;
+      } else if (argument is Type) {
+        return argument.type;
+      } else {
+        return argument as String;
+      }
+    }
+
+    String argumentsStr;
+    if (unnamed != null) {
+      argumentsStr = unnamed.map(argumentStr).join(', ');
+    } else {
+      argumentsStr = namedArguments.entries.map((entry) {
+        return '${entry.key}: ${argumentStr(entry.value)}';
+      }).join(', ');
+    }
+
+    var errorText = '$name($argumentsStr)';
+
     _assertInErrorRecoveryStack = null;
     if (!_accumulatedErrors.add(errorText)) {
       fail('Same error reported twice: $errorText');

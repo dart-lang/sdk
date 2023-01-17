@@ -2879,7 +2879,7 @@ main() {
             (x.pattern()..errorId = 'x2').recordField(),
           ]).assign(expr('(int, int)')).stmt,
         ], expectedErrors: {
-          'duplicateAssignmentPatternVariable(name: x, original: x1, '
+          'duplicateAssignmentPatternVariable(variable: x, original: x1, '
               'duplicate: x2)',
         });
       });
