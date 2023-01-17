@@ -42,8 +42,12 @@ class ScopeOffsetValidator extends Visitor<void> with VisitorVoidMixin {
   static void validate(Library library) {
     var validator = ScopeOffsetValidator._();
     validator.visitLibrary(library);
-    expect(validator.classCount + validator.memberCount, greaterThan(0),
-        reason: 'Validation was not empty');
+    // TODO(srujzs): Currently, there's nothing in `dart:_js_interop` besides an
+    // export. Remove this when we add things in there.
+    if (library.importUri.toString() != 'dart:_js_interop') {
+      expect(validator.classCount + validator.memberCount, greaterThan(0),
+          reason: 'Validation was not empty');
+    }
     expect(validator.blockCount, equals(0),
         reason: 'SDK dill only contains outlines');
   }

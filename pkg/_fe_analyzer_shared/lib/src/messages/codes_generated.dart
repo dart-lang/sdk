@@ -7433,6 +7433,18 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     correctionMessage: r"""Try replacing this with a normal method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropStaticInteropAnonymousFactoryTearoff =
+    messageJsInteropStaticInteropAnonymousFactoryTearoff;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropStaticInteropAnonymousFactoryTearoff =
+    const MessageCode("JsInteropStaticInteropAnonymousFactoryTearoff",
+        problemMessage:
+            r"""Factories of `@anonymous` `@staticInterop` classes can not be torn off.""",
+        correctionMessage:
+            r"""Declare a closure that forwards to this factory instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null>
     codeJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
     messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters;

@@ -6,6 +6,7 @@ import 'package:kernel/ast.dart';
 import '../fasta/kernel/late_lowering.dart';
 export '../fasta/kernel/constructor_tearoff_lowering.dart'
     show
+        extractConstructorNameFromTearOff,
         isConstructorTearOffLowering,
         isTearOffLowering,
         isTypedefTearOffLowering;

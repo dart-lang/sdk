@@ -593,6 +593,8 @@ JsInteropNonStaticWithStaticInteropSupertype/analyzerCode: Fail # Web compiler s
 JsInteropNonStaticWithStaticInteropSupertype/example: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
+JsInteropStaticInteropAnonymousFactoryTearoff/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropAnonymousFactoryTearoff/example: Fail # Web compiler specific
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific

@@ -57,6 +57,7 @@ class WasmTarget extends Target {
         'dart:_internal',
         'dart:_http',
         'dart:_js_helper',
+        'dart:_js_interop',
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:io',
@@ -75,6 +76,23 @@ class WasmTarget extends Target {
         'dart:js_util',
         'dart:wasm',
       ];
+
+  @override
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
+      super.allowPlatformPrivateLibraryAccess(importer, imported) ||
+      _allowedTestLibrary(importer, imported);
+
+  /// Returns whether [importer] is a script that is allowed to import
+  /// [imported] for testing purposes.
+  bool _allowedTestLibrary(Uri importer, Uri imported) {
+    // TODO(srujzs): This enables using `dart:_js_interop` in these tests.
+    // Remove `allowPlatformPrivateLibraryAccess` once we make it public.
+    return imported.toString() == 'dart:_js_interop' &&
+        [
+          'tests/lib/js/static_interop_test',
+          'tests/lib_2/js/static_interop_test',
+        ].any((pattern) => importer.path.contains(pattern));
+  }
 
   void _patchHostEndian(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of
