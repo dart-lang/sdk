@@ -7309,12 +7309,7 @@ extension on FlowModel<Type> {
           Var variable,
           Type writtenType,
           SsaNode<Type> newSsaNode) =>
-      write(
-          h,
-          nonPromotionReason,
-          variable,
-          h.promotionKeyStore.keyForVariable(variable),
-          writtenType,
-          newSsaNode,
-          h.typeOperations);
+      write(h, nonPromotionReason, h.promotionKeyStore.keyForVariable(variable),
+          writtenType, newSsaNode, h.typeOperations,
+          unpromotedType: variable.type);
 }
