@@ -1076,6 +1076,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
       assert(
           _elementMap.getClass(constructor.enclosingClass) ==
                   _elementMap.commonElements.objectClass ||
+              constructor.isExternal ||
               constructor.initializers.any(_ErroneousInitializerVisitor.check),
           'All constructors should have super- or redirecting- initializers,'
           ' except Object()'
@@ -1222,7 +1223,9 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
         functionNode: constructor.function,
         parameterStructure: constructorBody.parameterStructure,
         checks: TargetChecks.none);
-    constructor.function.body!.accept(this);
+    if (!constructorBody.isExternal) {
+      constructor.function.body!.accept(this);
+    }
     _closeFunction();
   }
 

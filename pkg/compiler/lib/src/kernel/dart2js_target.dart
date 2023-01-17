@@ -51,6 +51,7 @@ List<Pattern> _allowedNativeTestPatterns = [
   RegExp(r'(?<!generated_)tests/web_2/internal'),
   'generated_tests/web_2/native/native_test',
   'generated_tests/web_2/internal/deferred_url_test',
+  'pkg/front_end/testcases/dart2js/native',
 ];
 
 bool allowedNativeTest(Uri uri) {
