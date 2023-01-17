@@ -46,7 +46,7 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         Parser;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
-    show NullValue, StackListener;
+    show NullValues, StackListener;
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
@@ -216,7 +216,7 @@ class AstBuilder extends StackListener {
         ),
       );
     }
-    push(NullValue.CascadeReceiver);
+    push(NullValues.CascadeReceiver);
   }
 
   @override
@@ -290,13 +290,13 @@ class AstBuilder extends StackListener {
         mixinToken = null;
       }
     }
-    push(macroToken ?? NullValue.Token);
-    push(inlineToken ?? NullValue.Token);
-    push(sealedToken ?? NullValue.Token);
-    push(baseToken ?? NullValue.Token);
-    push(interfaceToken ?? NullValue.Token);
-    push(augmentToken ?? NullValue.Token);
-    push(mixinToken ?? NullValue.Token);
+    push(macroToken ?? NullValues.Token);
+    push(inlineToken ?? NullValues.Token);
+    push(sealedToken ?? NullValues.Token);
+    push(baseToken ?? NullValues.Token);
+    push(interfaceToken ?? NullValues.Token);
+    push(augmentToken ?? NullValues.Token);
+    push(mixinToken ?? NullValues.Token);
   }
 
   @override
@@ -451,10 +451,10 @@ class AstBuilder extends StackListener {
         interfaceToken = null;
       }
     }
-    push(augmentToken ?? NullValue.Token);
-    push(sealedToken ?? NullValue.Token);
-    push(baseToken ?? NullValue.Token);
-    push(interfaceToken ?? NullValue.Token);
+    push(augmentToken ?? NullValues.Token);
+    push(sealedToken ?? NullValues.Token);
+    push(baseToken ?? NullValues.Token);
+    push(interfaceToken ?? NullValues.Token);
   }
 
   @override
@@ -527,13 +527,13 @@ class AstBuilder extends StackListener {
         mixinToken = null;
       }
     }
-    push(macroToken ?? NullValue.Token);
-    push(inlineToken ?? NullValue.Token);
-    push(sealedToken ?? NullValue.Token);
-    push(baseToken ?? NullValue.Token);
-    push(interfaceToken ?? NullValue.Token);
-    push(augmentToken ?? NullValue.Token);
-    push(mixinToken ?? NullValue.Token);
+    push(macroToken ?? NullValues.Token);
+    push(inlineToken ?? NullValues.Token);
+    push(sealedToken ?? NullValues.Token);
+    push(baseToken ?? NullValues.Token);
+    push(interfaceToken ?? NullValues.Token);
+    push(augmentToken ?? NullValues.Token);
+    push(mixinToken ?? NullValues.Token);
   }
 
   @override
@@ -580,7 +580,7 @@ class AstBuilder extends StackListener {
         ..finalConstOrVarKeyword = varFinalOrConst
         ..lateToken = lateToken);
     } else {
-      push(NullValue.Modifiers);
+      push(NullValues.Modifiers);
     }
   }
 
@@ -1466,7 +1466,7 @@ class AstBuilder extends StackListener {
   @override
   void endCombinators(int count) {
     debugEvent("Combinators");
-    push(popTypedList<CombinatorImpl>(count) ?? NullValue.Combinators);
+    push(popTypedList<CombinatorImpl>(count) ?? NullValues.Combinators);
   }
 
   @override
@@ -1547,7 +1547,7 @@ class AstBuilder extends StackListener {
   void endConditionalUris(int count) {
     debugEvent("ConditionalUris");
 
-    push(popTypedList<ConfigurationImpl>(count) ?? NullValue.ConditionalUris);
+    push(popTypedList<ConfigurationImpl>(count) ?? NullValues.ConditionalUris);
   }
 
   @override
@@ -1865,7 +1865,7 @@ class AstBuilder extends StackListener {
     var forLoopParts = pop() as ForEachPartsImpl;
     var leftParenthesis = pop() as Token;
     var forToken = pop() as Token;
-    var awaitToken = pop(NullValue.AwaitToken) as Token?;
+    var awaitToken = pop(NullValues.AwaitToken) as Token?;
 
     push(
       ForStatementImpl(
@@ -1892,7 +1892,7 @@ class AstBuilder extends StackListener {
     var forLoopParts = pop() as ForEachPartsImpl;
     var leftParenthesis = pop() as Token;
     var forToken = pop() as Token;
-    var awaitToken = pop(NullValue.AwaitToken) as Token?;
+    var awaitToken = pop(NullValues.AwaitToken) as Token?;
 
     push(
       ForElementImpl(
@@ -2308,9 +2308,9 @@ class AstBuilder extends StackListener {
     debugEvent("Import");
 
     var combinators = pop() as List<CombinatorImpl>?;
-    var deferredKeyword = pop(NullValue.Deferred) as Token?;
-    var asKeyword = pop(NullValue.As) as Token?;
-    var prefix = pop(NullValue.Prefix) as SimpleIdentifierImpl?;
+    var deferredKeyword = pop(NullValues.Deferred) as Token?;
+    var asKeyword = pop(NullValues.As) as Token?;
+    var prefix = pop(NullValues.Prefix) as SimpleIdentifierImpl?;
     var configurations = pop() as List<ConfigurationImpl>?;
     var uri = pop() as StringLiteralImpl;
     var metadata = pop() as List<AnnotationImpl>?;
@@ -2583,7 +2583,7 @@ class AstBuilder extends StackListener {
     var name = pop() as SimpleIdentifierImpl;
     var returnType = pop() as TypeAnnotationImpl?;
     var typeParameters = pop() as TypeParameterListImpl?;
-    var metadata = pop(NullValue.Metadata) as List<AnnotationImpl>?;
+    var metadata = pop(NullValues.Metadata) as List<AnnotationImpl>?;
     final functionExpression = FunctionExpressionImpl(
       typeParameters: typeParameters,
       parameters: parameters,
@@ -2645,7 +2645,7 @@ class AstBuilder extends StackListener {
   void endMetadataStar(int count) {
     debugEvent("MetadataStar");
 
-    push(popTypedList<AnnotationImpl>(count) ?? NullValue.Metadata);
+    push(popTypedList<AnnotationImpl>(count) ?? NullValues.Metadata);
   }
 
   @override
@@ -2751,7 +2751,7 @@ class AstBuilder extends StackListener {
         interfaces: interfaces,
       );
     }
-    var withClause = pop(NullValue.WithClause) as WithClauseImpl;
+    var withClause = pop(NullValues.WithClause) as WithClauseImpl;
     var superclass = pop() as TypeAnnotationImpl;
     if (superclass is! NamedTypeImpl) {
       errorReporter.errorReporter?.reportErrorForNode(
@@ -2771,13 +2771,13 @@ class AstBuilder extends StackListener {
           typeArguments: null,
           question: null);
     }
-    var mixinKeyword = pop(NullValue.Token) as Token?;
-    var augmentKeyword = pop(NullValue.Token) as Token?;
-    var interfaceKeyword = pop(NullValue.Token) as Token?;
-    var baseKeyword = pop(NullValue.Token) as Token?;
-    var sealedKeyword = pop(NullValue.Token) as Token?;
-    var inlineKeyword = pop(NullValue.Token) as Token?;
-    var macroKeyword = pop(NullValue.Token) as Token?;
+    var mixinKeyword = pop(NullValues.Token) as Token?;
+    var augmentKeyword = pop(NullValues.Token) as Token?;
+    var interfaceKeyword = pop(NullValues.Token) as Token?;
+    var baseKeyword = pop(NullValues.Token) as Token?;
+    var sealedKeyword = pop(NullValues.Token) as Token?;
+    var inlineKeyword = pop(NullValues.Token) as Token?;
+    var macroKeyword = pop(NullValues.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
@@ -3457,7 +3457,7 @@ class AstBuilder extends StackListener {
   @override
   void endTypeList(int count) {
     debugEvent("TypeList");
-    push(popTypedList<TypeAnnotationImpl>(count) ?? NullValue.TypeList);
+    push(popTypedList<TypeAnnotationImpl>(count) ?? NullValues.TypeList);
   }
 
   @override
@@ -3527,7 +3527,7 @@ class AstBuilder extends StackListener {
     debugEvent("VariablesDeclaration");
 
     var variables = popTypedList2<VariableDeclarationImpl>(count);
-    var modifiers = pop(NullValue.Modifiers) as _Modifiers?;
+    var modifiers = pop(NullValues.Modifiers) as _Modifiers?;
     var type = pop() as TypeAnnotationImpl?;
     var keyword = modifiers?.finalConstOrVarKeyword;
     var metadata = pop() as List<AnnotationImpl>?;
@@ -3641,8 +3641,8 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull('*', starToken));
     debugEvent("AsyncModifier");
 
-    push(asyncToken ?? NullValue.FunctionBodyAsyncToken);
-    push(starToken ?? NullValue.FunctionBodyStarToken);
+    push(asyncToken ?? NullValues.FunctionBodyAsyncToken);
+    push(starToken ?? NullValues.FunctionBodyStarToken);
   }
 
   @override
@@ -3746,7 +3746,7 @@ class AstBuilder extends StackListener {
         ),
       );
     } else {
-      push(NullValue.ExtendsClause);
+      push(NullValues.ExtendsClause);
       // TODO(brianwilkerson) Consider (a) extending `ExtendsClause` to accept
       //  any type annotation for recovery purposes, and (b) extending the
       //  parser to parse a generic function type at this location.
@@ -3774,16 +3774,16 @@ class AstBuilder extends StackListener {
       );
     }
     var implementsClause =
-        pop(NullValue.IdentifierList) as ImplementsClauseImpl?;
-    var withClause = pop(NullValue.WithClause) as WithClauseImpl?;
-    var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClauseImpl?;
-    var mixinKeyword = pop(NullValue.Token) as Token?;
-    var augmentKeyword = pop(NullValue.Token) as Token?;
-    var interfaceKeyword = pop(NullValue.Token) as Token?;
-    var baseKeyword = pop(NullValue.Token) as Token?;
-    var sealedKeyword = pop(NullValue.Token) as Token?;
-    var inlineKeyword = pop(NullValue.Token) as Token?;
-    var macroKeyword = pop(NullValue.Token) as Token?;
+        pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
+    var withClause = pop(NullValues.WithClause) as WithClauseImpl?;
+    var extendsClause = pop(NullValues.ExtendsClause) as ExtendsClauseImpl?;
+    var mixinKeyword = pop(NullValues.Token) as Token?;
+    var augmentKeyword = pop(NullValues.Token) as Token?;
+    var interfaceKeyword = pop(NullValues.Token) as Token?;
+    var baseKeyword = pop(NullValues.Token) as Token?;
+    var sealedKeyword = pop(NullValues.Token) as Token?;
+    var inlineKeyword = pop(NullValues.Token) as Token?;
+    var macroKeyword = pop(NullValues.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
@@ -3817,7 +3817,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleClassNoWithClause() {
-    push(NullValue.WithClause);
+    push(NullValues.WithClause);
   }
 
   @override
@@ -4039,8 +4039,8 @@ class AstBuilder extends StackListener {
     debugEvent("EnumHeader");
 
     var implementsClause =
-        pop(NullValue.IdentifierList) as ImplementsClauseImpl?;
-    var withClause = pop(NullValue.WithClause) as WithClauseImpl?;
+        pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
+    var withClause = pop(NullValues.WithClause) as WithClauseImpl?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
     var metadata = pop() as List<AnnotationImpl>?;
@@ -4077,7 +4077,7 @@ class AstBuilder extends StackListener {
 
   @override
   void handleEnumNoWithClause() {
-    push(NullValue.WithClause);
+    push(NullValues.WithClause);
   }
 
   @override
@@ -4163,7 +4163,7 @@ class AstBuilder extends StackListener {
   @override
   void handleForInitializerEmptyStatement(Token token) {
     debugEvent("ForInitializerEmptyStatement");
-    push(NullValue.Expression);
+    push(NullValues.Expression);
   }
 
   @override
@@ -4239,7 +4239,7 @@ class AstBuilder extends StackListener {
       );
     }
 
-    push(awaitToken ?? NullValue.AwaitToken);
+    push(awaitToken ?? NullValues.AwaitToken);
     push(forToken);
     push(leftParenthesis);
     push(forLoopParts);
@@ -4301,7 +4301,7 @@ class AstBuilder extends StackListener {
   void handleFormalParameterWithoutValue(Token token) {
     debugEvent("FormalParameterWithoutValue");
 
-    push(NullValue.ParameterDefaultValue);
+    push(NullValues.ParameterDefaultValue);
   }
 
   @override
@@ -4342,7 +4342,8 @@ class AstBuilder extends StackListener {
   void handleIdentifierList(int count) {
     debugEvent("IdentifierList");
 
-    push(popTypedList<SimpleIdentifierImpl>(count) ?? NullValue.IdentifierList);
+    push(
+        popTypedList<SimpleIdentifierImpl>(count) ?? NullValues.IdentifierList);
   }
 
   @override
@@ -4362,7 +4363,7 @@ class AstBuilder extends StackListener {
         ),
       );
     } else {
-      push(NullValue.IdentifierList);
+      push(NullValues.IdentifierList);
     }
   }
 
@@ -4375,12 +4376,12 @@ class AstBuilder extends StackListener {
     if (asKeyword == null) {
       // If asKeyword is null, then no prefix has been pushed on the stack.
       // Push a placeholder indicating that there is no prefix.
-      push(NullValue.Prefix);
-      push(NullValue.As);
+      push(NullValues.Prefix);
+      push(NullValues.As);
     } else {
       push(asKeyword);
     }
-    push(deferredKeyword ?? NullValue.Deferred);
+    push(deferredKeyword ?? NullValues.Deferred);
   }
 
   @override
@@ -4703,12 +4704,12 @@ class AstBuilder extends StackListener {
     debugEvent("MixinHeader");
 
     var implementsClause =
-        pop(NullValue.IdentifierList) as ImplementsClauseImpl?;
-    var onClause = pop(NullValue.IdentifierList) as OnClauseImpl?;
-    var interfaceKeyword = pop(NullValue.Token) as Token?;
-    var baseKeyword = pop(NullValue.Token) as Token?;
-    var sealedKeyword = pop(NullValue.Token) as Token?;
-    var augmentKeyword = pop(NullValue.Token) as Token?;
+        pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
+    var onClause = pop(NullValues.IdentifierList) as OnClauseImpl?;
+    var interfaceKeyword = pop(NullValues.Token) as Token?;
+    var baseKeyword = pop(NullValues.Token) as Token?;
+    var sealedKeyword = pop(NullValues.Token) as Token?;
+    var augmentKeyword = pop(NullValues.Token) as Token?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
     var metadata = pop() as List<AnnotationImpl>?;
@@ -4748,7 +4749,7 @@ class AstBuilder extends StackListener {
         ),
       );
     } else {
-      push(NullValue.IdentifierList);
+      push(NullValues.IdentifierList);
     }
   }
 
@@ -4830,7 +4831,7 @@ class AstBuilder extends StackListener {
   void handleNoConstructorReferenceContinuationAfterTypeArguments(Token token) {
     debugEvent("NoConstructorReferenceContinuationAfterTypeArguments");
 
-    push(NullValue.ConstructorReferenceContinuationAfterTypeArguments);
+    push(NullValues.ConstructorReferenceContinuationAfterTypeArguments);
   }
 
   @override
@@ -4852,8 +4853,8 @@ class AstBuilder extends StackListener {
     debugEvent("NoInitializers");
 
     if (!isFullAst) return;
-    push(NullValue.ConstructorInitializerSeparator);
-    push(NullValue.ConstructorInitializers);
+    push(NullValues.ConstructorInitializerSeparator);
+    push(NullValues.ConstructorInitializers);
   }
 
   @override
@@ -5095,9 +5096,9 @@ class AstBuilder extends StackListener {
     debugEvent("RecoverClassHeader");
 
     var implementsClause =
-        pop(NullValue.IdentifierList) as ImplementsClauseImpl?;
-    var withClause = pop(NullValue.WithClause) as WithClauseImpl?;
-    var extendsClause = pop(NullValue.ExtendsClause) as ExtendsClauseImpl?;
+        pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
+    var withClause = pop(NullValues.WithClause) as WithClauseImpl?;
+    var extendsClause = pop(NullValues.ExtendsClause) as ExtendsClauseImpl?;
     var declaration = _classLikeBuilder as _ClassDeclarationBuilder;
     if (extendsClause != null) {
       if (declaration.extendsClause?.superclass == null) {
@@ -5140,9 +5141,9 @@ class AstBuilder extends StackListener {
     debugEvent("RecoverImport");
 
     var combinators = pop() as List<CombinatorImpl>?;
-    var deferredKeyword = pop(NullValue.Deferred) as Token?;
-    var asKeyword = pop(NullValue.As) as Token?;
-    var prefix = pop(NullValue.Prefix) as SimpleIdentifierImpl?;
+    var deferredKeyword = pop(NullValues.Deferred) as Token?;
+    var asKeyword = pop(NullValues.As) as Token?;
+    var prefix = pop(NullValues.Prefix) as SimpleIdentifierImpl?;
     var configurations = pop() as List<ConfigurationImpl>?;
 
     final directive = directives.last as ImportDirectiveImpl;
@@ -5179,8 +5180,8 @@ class AstBuilder extends StackListener {
   void handleRecoverMixinHeader() {
     final builder = _classLikeBuilder as _MixinDeclarationBuilder;
     var implementsClause =
-        pop(NullValue.IdentifierList) as ImplementsClauseImpl?;
-    var onClause = pop(NullValue.IdentifierList) as OnClauseImpl?;
+        pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
+    var onClause = pop(NullValues.IdentifierList) as OnClauseImpl?;
 
     if (onClause != null) {
       final existingClause = builder.onClause;

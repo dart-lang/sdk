@@ -16,10 +16,10 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         optional;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
-    show FixedNullableList, NullValue, ParserRecovery;
-import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
+    show FixedNullableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/link.dart';
+import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart'
     show AsyncMarker, InvalidType, Nullability, ProcedureKind, Variance;
 
@@ -512,7 +512,7 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("MetadataStar");
     push(const FixedNullableList<MetadataBuilder>()
             .popNonNullable(stack, count, dummyMetadataBuilder) ??
-        NullValue.Metadata);
+        NullValues.Metadata);
   }
 
   @override
@@ -550,7 +550,7 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("Combinators");
     push(const FixedNullableList<CombinatorBuilder>()
             .popNonNullable(stack, count, dummyCombinator) ??
-        NullValue.Combinators);
+        NullValues.Combinators);
   }
 
   @override
@@ -572,7 +572,7 @@ class OutlineBuilder extends StackListenerImpl {
     if (asKeyword == null) {
       // If asKeyword is null, then no prefix has been pushed on the stack.
       // Push a placeholder indicating that there is no prefix.
-      push(NullValue.Prefix);
+      push(NullValues.Prefix);
       push(-1);
     }
     push(deferredKeyword != null);
@@ -584,7 +584,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<CombinatorBuilder>? combinators = pop() as List<CombinatorBuilder>?;
     bool isDeferred = pop() as bool;
     int prefixOffset = popCharOffset();
-    Object? prefix = pop(NullValue.Prefix);
+    Object? prefix = pop(NullValues.Prefix);
     List<Configuration>? configurations = pop() as List<Configuration>?;
     int uriOffset = popCharOffset();
     String uri =
@@ -619,7 +619,7 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("EndConditionalUris");
     push(const FixedNullableList<Configuration>()
             .popNonNullable(stack, count, dummyConfiguration) ??
-        NullValue.ConditionalUris);
+        NullValues.ConditionalUris);
   }
 
   @override
@@ -652,9 +652,9 @@ class OutlineBuilder extends StackListenerImpl {
   void handleRecoverImport(Token? semicolon) {
     debugEvent("RecoverImport");
     pop(); // combinators
-    pop(NullValue.Deferred); // deferredKeyword
+    pop(NullValues.Deferred); // deferredKeyword
     pop(); // prefixOffset
-    pop(NullValue.Prefix); // prefix
+    pop(NullValues.Prefix); // prefix
     pop(); // conditionalUris
   }
 
@@ -800,7 +800,7 @@ class OutlineBuilder extends StackListenerImpl {
   void handleIdentifierList(int count) {
     debugEvent("endIdentifierList");
     push(popIdentifierList(count) ??
-        (count == 0 ? NullValue.IdentifierList : new ParserRecovery(-1)));
+        (count == 0 ? NullValues.IdentifierList : new ParserRecovery(-1)));
   }
 
   @override
@@ -879,7 +879,7 @@ class OutlineBuilder extends StackListenerImpl {
     pushDeclarationContext(DeclarationContext.Class);
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
-    push(typeVariables ?? NullValue.TypeVariables);
+    push(typeVariables ?? NullValues.TypeVariables);
     if (macroToken != null) {
       if (reportIfNotEnabled(
           libraryFeatures.macros, macroToken.charOffset, macroToken.length)) {
@@ -927,13 +927,13 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.setCurrentClassName(name.lexeme);
     inAbstractClass = abstractToken != null;
     push(abstractToken != null ? abstractMask : 0);
-    push(macroToken ?? NullValue.Token);
-    push(inlineToken ?? NullValue.Token);
-    push(sealedToken ?? NullValue.Token);
-    push(baseToken ?? NullValue.Token);
-    push(interfaceToken ?? NullValue.Token);
-    push(augmentToken ?? NullValue.Token);
-    push(mixinToken ?? NullValue.Token);
+    push(macroToken ?? NullValues.Token);
+    push(inlineToken ?? NullValues.Token);
+    push(sealedToken ?? NullValues.Token);
+    push(baseToken ?? NullValues.Token);
+    push(interfaceToken ?? NullValues.Token);
+    push(augmentToken ?? NullValues.Token);
+    push(mixinToken ?? NullValues.Token);
   }
 
   @override
@@ -963,11 +963,11 @@ class OutlineBuilder extends StackListenerImpl {
         interfaceToken = null;
       }
     }
-    push(augmentToken ?? NullValue.Token);
-    push(sealedToken ?? NullValue.Token);
-    push(baseToken ?? NullValue.Token);
-    push(interfaceToken ?? NullValue.Token);
-    push(typeVariables ?? NullValue.TypeVariables);
+    push(augmentToken ?? NullValues.Token);
+    push(sealedToken ?? NullValues.Token);
+    push(baseToken ?? NullValues.Token);
+    push(interfaceToken ?? NullValues.Token);
+    push(typeVariables ?? NullValues.TypeVariables);
     libraryBuilder.currentTypeParameterScopeBuilder
         .markAsMixinDeclaration(name.lexeme, name.charOffset, typeVariables);
     libraryBuilder.setCurrentClassName(name.lexeme);
@@ -1045,7 +1045,7 @@ class OutlineBuilder extends StackListenerImpl {
     pushDeclarationContext(DeclarationContext.NamedMixinApplication);
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
-    push(typeVariables ?? NullValue.TypeVariables);
+    push(typeVariables ?? NullValues.TypeVariables);
     libraryBuilder.currentTypeParameterScopeBuilder.markAsNamedMixinApplication(
         name.lexeme, name.charOffset, typeVariables);
     push(abstractToken != null ? abstractMask : 0);
@@ -1085,13 +1085,13 @@ class OutlineBuilder extends StackListenerImpl {
         mixinToken = null;
       }
     }
-    push(macroToken ?? NullValue.Token);
-    push(inlineToken ?? NullValue.Token);
-    push(sealedToken ?? NullValue.Token);
-    push(baseToken ?? NullValue.Token);
-    push(interfaceToken ?? NullValue.Token);
-    push(augmentToken ?? NullValue.Token);
-    push(mixinToken ?? NullValue.Token);
+    push(macroToken ?? NullValues.Token);
+    push(inlineToken ?? NullValues.Token);
+    push(sealedToken ?? NullValues.Token);
+    push(baseToken ?? NullValues.Token);
+    push(interfaceToken ?? NullValues.Token);
+    push(augmentToken ?? NullValues.Token);
+    push(mixinToken ?? NullValues.Token);
   }
 
   @override
@@ -1099,7 +1099,7 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("Implements");
     push(const FixedNullableList<TypeBuilder>()
             .popNonNullable(stack, interfacesCount, dummyTypeBuilder) ??
-        NullValue.TypeBuilderList);
+        NullValues.TypeBuilderList);
 
     if (implementsKeyword != null &&
         declarationContext == DeclarationContext.Enum) {
@@ -1116,11 +1116,11 @@ class OutlineBuilder extends StackListenerImpl {
     List<dynamic> toBePushed = <dynamic>[];
     void handleShowHideElements(int elementCount) {
       if (elementCount == 0) {
-        toBePushed.add(NullValue.TypeBuilderList);
-        toBePushed.add(NullValue.IdentifierList);
-        toBePushed.add(NullValue.IdentifierList);
-        toBePushed.add(NullValue.IdentifierList);
-        toBePushed.add(NullValue.OperatorList);
+        toBePushed.add(NullValues.TypeBuilderList);
+        toBePushed.add(NullValues.IdentifierList);
+        toBePushed.add(NullValues.IdentifierList);
+        toBePushed.add(NullValues.IdentifierList);
+        toBePushed.add(NullValues.OperatorList);
       } else {
         List<TypeBuilder> typeElements = <TypeBuilder>[];
         List<String> getElements = <String>[];
@@ -1197,10 +1197,10 @@ class OutlineBuilder extends StackListenerImpl {
     // Also Analyzer actually merges the information meaning that the two could
     // give different errors (if, say, one later assigns
     // A to a variable of type B).
-    pop(NullValue.TypeBuilderList); // Interfaces.
-    pop(NullValue.MixinApplicationBuilder); // Mixin applications.
+    pop(NullValues.TypeBuilderList); // Interfaces.
+    pop(NullValues.MixinApplicationBuilder); // Mixin applications.
     pop(); // Supertype offset.
-    pop(NullValue.TypeBuilder); // Supertype.
+    pop(NullValues.TypeBuilder); // Supertype.
   }
 
   @override
@@ -1208,8 +1208,8 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("handleRecoverMixinHeader");
     // TODO(jensj): Possibly use these instead...
     // See also handleRecoverClassHeader
-    pop(NullValue.TypeBuilderList); // Interfaces.
-    pop(NullValue.TypeBuilderList); // Supertype constraints.
+    pop(NullValues.TypeBuilderList); // Interfaces.
+    pop(NullValues.TypeBuilderList); // Supertype constraints.
   }
 
   @override
@@ -1259,24 +1259,24 @@ class OutlineBuilder extends StackListenerImpl {
     ]));
 
     List<TypeBuilder>? interfaces =
-        pop(NullValue.TypeBuilderList) as List<TypeBuilder>?;
+        pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
     MixinApplicationBuilder? mixinApplication =
-        nullIfParserRecovery(pop(NullValue.MixinApplicationBuilder))
+        nullIfParserRecovery(pop(NullValues.MixinApplicationBuilder))
             as MixinApplicationBuilder?;
     int supertypeOffset = popCharOffset();
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
-    Token? mixinToken = pop(NullValue.Token) as Token?;
-    Token? augmentToken = pop(NullValue.Token) as Token?;
+    Token? mixinToken = pop(NullValues.Token) as Token?;
+    Token? augmentToken = pop(NullValues.Token) as Token?;
     // TODO(kallentu): AST work for class modifiers.
     // ignore: unused_local_variable
-    Token? interfaceToken = pop(NullValue.Token) as Token?;
+    Token? interfaceToken = pop(NullValues.Token) as Token?;
     // ignore: unused_local_variable
-    Token? baseToken = pop(NullValue.Token) as Token?;
-    Token? sealedToken = pop(NullValue.Token) as Token?;
+    Token? baseToken = pop(NullValues.Token) as Token?;
+    Token? sealedToken = pop(NullValues.Token) as Token?;
     // TODO(johnniwinther): Create builder for inline.
     // ignore: unused_local_variable
-    Token? inlineToken = pop(NullValue.Token) as Token?;
-    Token? macroToken = pop(NullValue.Token) as Token?;
+    Token? inlineToken = pop(NullValues.Token) as Token?;
+    Token? macroToken = pop(NullValues.Token) as Token?;
     int modifiers = pop() as int;
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
@@ -1403,22 +1403,22 @@ class OutlineBuilder extends StackListenerImpl {
     ]));
 
     List<TypeBuilder>? interfaces =
-        pop(NullValue.TypeBuilderList) as List<TypeBuilder>?;
+        pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
     List<TypeBuilder>? supertypeConstraints =
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
     List<TypeVariableBuilder>? typeVariables =
-        pop(NullValue.TypeVariables) as List<TypeVariableBuilder>?;
+        pop(NullValues.TypeVariables) as List<TypeVariableBuilder>?;
     // TODO(kallentu): Add AST support for mixin modifiers
     // ignore: unused_local_variable
-    Token? interfaceToken = pop(NullValue.Token) as Token?;
+    Token? interfaceToken = pop(NullValues.Token) as Token?;
     // ignore: unused_local_variable
-    Token? baseToken = pop(NullValue.Token) as Token?;
-    Token? sealedToken = pop(NullValue.Token) as Token?;
-    Token? augmentToken = pop(NullValue.Token) as Token?;
+    Token? baseToken = pop(NullValues.Token) as Token?;
+    Token? sealedToken = pop(NullValues.Token) as Token?;
+    Token? augmentToken = pop(NullValues.Token) as Token?;
     int nameOffset = popCharOffset();
     Object? name = pop();
     List<MetadataBuilder>? metadata =
-        pop(NullValue.Metadata) as List<MetadataBuilder>?;
+        pop(NullValues.Metadata) as List<MetadataBuilder>?;
     checkEmpty(mixinToken.charOffset);
     if (name is ParserRecovery) {
       libraryBuilder
@@ -1493,9 +1493,9 @@ class OutlineBuilder extends StackListenerImpl {
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     int offset = nameToken?.charOffset ?? extensionKeyword.charOffset;
-    push(nameToken?.lexeme ?? NullValue.Name);
+    push(nameToken?.lexeme ?? NullValues.Name);
     push(offset);
-    push(typeVariables ?? NullValue.TypeVariables);
+    push(typeVariables ?? NullValues.TypeVariables);
     libraryBuilder.currentTypeParameterScopeBuilder
         .markAsExtensionDeclaration(nameToken?.lexeme, offset, typeVariables);
   }
@@ -1558,14 +1558,14 @@ class OutlineBuilder extends StackListenerImpl {
           const InvalidType(), uri, parserRecovery.charOffset);
     }
     List<TypeVariableBuilder>? typeVariables =
-        pop(NullValue.TypeVariables) as List<TypeVariableBuilder>?;
+        pop(NullValues.TypeVariables) as List<TypeVariableBuilder>?;
     int nameOffset = popCharOffset();
-    String? name = pop(NullValue.Name) as String?;
+    String? name = pop(NullValues.Name) as String?;
     if (name == null) {
       nameOffset = extensionKeyword.charOffset;
     }
     List<MetadataBuilder>? metadata =
-        pop(NullValue.Metadata) as List<MetadataBuilder>?;
+        pop(NullValues.Metadata) as List<MetadataBuilder>?;
     checkEmpty(extensionKeyword.charOffset);
     int startOffset = metadata == null
         ? extensionKeyword.charOffset
@@ -1821,7 +1821,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
     push(varFinalOrConst?.charOffset ?? -1);
-    push(modifiers ?? NullValue.Modifiers);
+    push(modifiers ?? NullValues.Modifiers);
     TypeParameterScopeKind kind;
     if (inConstructor) {
       kind = TypeParameterScopeKind.constructor;
@@ -2255,19 +2255,19 @@ class OutlineBuilder extends StackListenerImpl {
             as List<TypeBuilder>?;
     Object? mixinApplication = pop();
     Object? supertype = pop();
-    Token? mixinToken = pop(NullValue.Token) as Token?;
-    Token? augmentToken = pop(NullValue.Token) as Token?;
+    Token? mixinToken = pop(NullValues.Token) as Token?;
+    Token? augmentToken = pop(NullValues.Token) as Token?;
     // TODO(kallentu): AST work for class modifiers.
     // ignore: unused_local_variable
-    Token? interfaceToken = pop(NullValue.Token) as Token?;
+    Token? interfaceToken = pop(NullValues.Token) as Token?;
     // ignore: unused_local_variable
-    Token? baseToken = pop(NullValue.Token) as Token?;
-    Token? sealedToken = pop(NullValue.Token) as Token?;
+    Token? baseToken = pop(NullValues.Token) as Token?;
+    Token? sealedToken = pop(NullValues.Token) as Token?;
     // TODO(johnniwinther): Report error on 'inline' here; it can't be used on
     // named mixin applications.
     // ignore: unused_local_variable
-    Token? inlineToken = pop(NullValue.Token) as Token?;
-    Token? macroToken = pop(NullValue.Token) as Token?;
+    Token? inlineToken = pop(NullValues.Token) as Token?;
+    Token? macroToken = pop(NullValues.Token) as Token?;
     int modifiers = pop() as int;
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
@@ -2354,7 +2354,7 @@ class OutlineBuilder extends StackListenerImpl {
     debugEvent("TypeArguments");
     push(const FixedNullableList<TypeBuilder>()
             .popNonNullable(stack, count, dummyTypeBuilder) ??
-        NullValue.TypeArguments);
+        NullValues.TypeArguments);
   }
 
   @override
@@ -2366,7 +2366,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleInvalidTypeArguments(Token token) {
     debugEvent("InvalidTypeArguments");
-    pop(NullValue.TypeArguments);
+    pop(NullValues.TypeArguments);
   }
 
   @override
@@ -2415,7 +2415,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleNoArguments(Token token) {
     debugEvent("NoArguments");
-    push(NullValue.Arguments);
+    push(NullValues.Arguments);
   }
 
   @override
@@ -2427,13 +2427,13 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleNoTypeArguments(Token token) {
     debugEvent("NoTypeArguments");
-    push(NullValue.TypeArguments);
+    push(NullValues.TypeArguments);
   }
 
   @override
   void handleNoTypeNameInConstructorReference(Token token) {
     debugEvent("NoTypeNameInConstructorReference");
-    push(NullValue.Name);
+    push(NullValues.Name);
     push(token.charOffset);
   }
 
@@ -2616,7 +2616,7 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
     push(beginToken.charOffset);
-    push(formals ?? NullValue.FormalParameters);
+    push(formals ?? NullValues.FormalParameters);
   }
 
   @override
@@ -2667,7 +2667,7 @@ class OutlineBuilder extends StackListenerImpl {
         ..argumentsBeginToken = argumentsBeginToken);
     } else {
       assert(enumConstantInfo is ParserRecovery);
-      push(NullValue.EnumConstantInfo);
+      push(NullValues.EnumConstantInfo);
     }
   }
 
@@ -2686,11 +2686,11 @@ class OutlineBuilder extends StackListenerImpl {
     libraryBuilder.currentTypeParameterScopeBuilder.markAsEnumDeclaration(
         name is String ? name : "<syntax-error>", charOffset, typeVariables);
 
-    push(name ?? NullValue.Name);
+    push(name ?? NullValues.Name);
     push(charOffset);
-    push(typeVariables ?? NullValue.TypeVariables);
-    push(mixins ?? NullValue.TypeBuilder);
-    push(interfaces ?? NullValue.TypeBuilderList);
+    push(typeVariables ?? NullValues.TypeVariables);
+    push(mixins ?? NullValues.TypeBuilder);
+    push(interfaces ?? NullValues.TypeBuilderList);
 
     push(enumKeyword.charOffset); // start char offset.
     push(leftBrace.endGroup!.charOffset); // end char offset.
@@ -2828,7 +2828,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<RecordTypeFieldBuilder>? namedFields;
     if (hasNamedFields) {
       namedFields =
-          pop(NullValue.RecordTypeFieldList) as List<RecordTypeFieldBuilder>?;
+          pop(NullValues.RecordTypeFieldList) as List<RecordTypeFieldBuilder>?;
     }
     List<RecordTypeFieldBuilder>? positionalFields =
         const FixedNullableList<RecordTypeFieldBuilder>().popNonNullable(stack,
@@ -2862,10 +2862,10 @@ class OutlineBuilder extends StackListenerImpl {
 
     // Offset of name of field (or next token if there's no name).
     int nameOffset = pop() as int;
-    Object? name = pop(NullValue.Identifier);
+    Object? name = pop(NullValues.Identifier);
     Object? type = pop();
     List<MetadataBuilder>? metadata =
-        pop(NullValue.Metadata) as List<MetadataBuilder>?;
+        pop(NullValues.Metadata) as List<MetadataBuilder>?;
     push(new RecordTypeFieldBuilder(
         metadata,
         type is ParserRecovery
@@ -2883,7 +2883,7 @@ class OutlineBuilder extends StackListenerImpl {
     List<RecordTypeFieldBuilder>? fields =
         const FixedNullableList<RecordTypeFieldBuilder>()
             .popNonNullable(stack, count, dummyRecordTypeFieldBuilder);
-    push(fields ?? NullValue.RecordTypeFieldList);
+    push(fields ?? NullValues.RecordTypeFieldList);
   }
 
   @override
@@ -3219,7 +3219,7 @@ class OutlineBuilder extends StackListenerImpl {
       Token? beforeLast = pop() as Token?;
       Token? initializerTokenForInference = pop() as Token?;
       int charOffset = popCharOffset();
-      Object? name = pop(NullValue.Identifier);
+      Object? name = pop(NullValues.Identifier);
       if (name is ParserRecovery) {
         isParserRecovery = true;
       } else {
@@ -3251,7 +3251,7 @@ class OutlineBuilder extends StackListenerImpl {
     assert(count > 0);
     push(const FixedNullableList<TypeVariableBuilder>()
             .popNonNullable(stack, count, dummyTypeVariableBuilder) ??
-        NullValue.TypeVariables);
+        NullValues.TypeVariables);
   }
 
   @override
@@ -3400,7 +3400,7 @@ class OutlineBuilder extends StackListenerImpl {
             libraryBuilder.reportFeatureNotEnabled(
                 libraryFeatures.enhancedEnums, uri, charOffset, noLength);
           }
-          push(NullValue.ConstructorReference);
+          push(NullValues.ConstructorReference);
         }
       } else {
         internalProblem(
@@ -3600,8 +3600,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleNoFieldInitializer(Token token) {
     debugEvent("NoFieldInitializer");
-    push(NullValue.FieldInitializer);
-    push(NullValue.FieldInitializer);
+    push(NullValues.FieldInitializer);
+    push(NullValues.FieldInitializer);
     push(token.charOffset);
   }
 
@@ -3677,7 +3677,7 @@ class OutlineBuilder extends StackListenerImpl {
         ValueKinds.ParserRecovery,
       ]),
     ]));
-    push(NullValue.MixinApplicationBuilder);
+    push(NullValues.MixinApplicationBuilder);
     assert(checkState(null, [
       /* mixins */ ValueKinds.MixinApplicationBuilderOrNull,
       /* supertype offset */ ValueKinds.Integer,
@@ -3719,7 +3719,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleEnumNoWithClause() {
     debugEvent("EnumNoWithClause");
-    push(NullValue.MixinApplicationBuilder);
+    push(NullValues.MixinApplicationBuilder);
   }
 
   @override

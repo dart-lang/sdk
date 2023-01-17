@@ -14,9 +14,9 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
         optional;
 import 'package:_fe_analyzer_shared/src/parser/quote.dart' show unescapeString;
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
-    show FixedNullableList, NullValue, ParserRecovery;
-import 'package:_fe_analyzer_shared/src/parser/value_kind.dart';
+    show FixedNullableList, NullValues, ParserRecovery;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
+import 'package:_fe_analyzer_shared/src/util/value_kind.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -119,9 +119,9 @@ class DietListener extends StackListenerImpl {
     debugEvent("MetadataStar");
     if (count > 0) {
       discard(count - 1);
-      push(pop(NullValue.Token) ?? NullValue.Token);
+      push(pop(NullValues.Token) ?? NullValues.Token);
     } else {
-      push(NullValue.Token);
+      push(NullValues.Token);
     }
   }
 
@@ -530,13 +530,13 @@ class DietListener extends StackListenerImpl {
   @override
   void handleImportPrefix(Token? deferredKeyword, Token? asKeyword) {
     debugEvent("ImportPrefix");
-    pushIfNull(asKeyword, NullValue.Prefix);
+    pushIfNull(asKeyword, NullValues.Prefix);
   }
 
   @override
   void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
     debugEvent("Import");
-    Object? name = pop(NullValue.Prefix);
+    Object? name = pop(NullValues.Prefix);
 
     Token? metadata = pop() as Token?;
     checkEmpty(importKeyword.charOffset);
@@ -557,7 +557,7 @@ class DietListener extends StackListenerImpl {
 
   @override
   void handleRecoverImport(Token? semicolon) {
-    pop(NullValue.Prefix);
+    pop(NullValues.Prefix);
   }
 
   @override
@@ -971,7 +971,7 @@ class DietListener extends StackListenerImpl {
   @override
   void beginExtensionDeclaration(Token extensionKeyword, Token? nameToken) {
     debugEvent("beginExtensionDeclaration");
-    push(nameToken?.lexeme ?? NullValue.Name);
+    push(nameToken?.lexeme ?? NullValues.Name);
     push(extensionKeyword);
   }
 
