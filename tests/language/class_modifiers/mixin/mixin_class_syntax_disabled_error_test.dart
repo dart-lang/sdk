@@ -1,9 +1,9 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // Make sure errors are emitted when trying to use mixin classes without
-// the `sealed` experiment enabled.
+// the `class-modifiers` experiment enabled.
 
 mixin class MixinClass {}
 // [error column 1, length 5]
