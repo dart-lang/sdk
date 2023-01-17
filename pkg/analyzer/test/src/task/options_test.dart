@@ -15,6 +15,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
@@ -155,6 +156,8 @@ analyzer:
   }
 
   test_analyzer_plugins_list() {
+    // TODO(srawlins): Test plugins as a list of non-scalar values
+    // (`- angular2: yes`).
     configureContext('''
 analyzer:
   plugins:
@@ -163,10 +166,11 @@ analyzer:
 ''');
 
     var names = analysisOptions.enabledPluginNames;
-    expect(names, ['angular2', 'intl']);
+    expect(names, ['angular2']);
   }
 
   test_analyzer_plugins_map() {
+    // TODO(srawlins): Test plugins as a map of scalar values (`angular2: yes`).
     configureContext('''
 analyzer:
   plugins:
@@ -621,24 +625,103 @@ linter:
 }
 
 @reflectiveTest
-class OptionsProviderTest {
+class OptionsProviderTest with ResourceProviderMixin {
   late final TestPathTranslator pathTranslator;
-  late final ResourceProvider resourceProvider;
+  late final SourceFactory sourceFactory;
 
   late final AnalysisOptionsProvider provider;
 
   String get optionsFilePath => '/analysis_options.yaml';
 
-  void setUp() {
-    var rawProvider = MemoryResourceProvider();
-    resourceProvider = TestResourceProvider(rawProvider);
-    pathTranslator = TestPathTranslator(rawProvider);
-    provider = AnalysisOptionsProvider(SourceFactory([
-      ResourceUriResolver(rawProvider),
-    ]));
+  void assertErrorsInList(
+    List<AnalysisError> errors,
+    List<ExpectedError> expectedErrors,
+  ) {
+    GatheringErrorListener errorListener = GatheringErrorListener();
+    errorListener.addAll(errors);
+    errorListener.assertErrors(expectedErrors);
   }
 
-  test_perform_include_merge() {
+  void assertErrorsInOptionsFile(
+      String code, List<ExpectedError> expectedErrors) async {
+    pathTranslator.newFile(optionsFilePath, code);
+    var errors = analyzeAnalysisOptions(
+      sourceFactory.forUri('file://$optionsFilePath')!,
+      code,
+      sourceFactory,
+      '/',
+      null /*sdkVersionConstraint*/,
+    );
+
+    assertErrorsInList(errors, expectedErrors);
+  }
+
+  ExpectedError error(
+    ErrorCode code,
+    int offset,
+    int length, {
+    Pattern? correctionContains,
+    String? text,
+    List<Pattern> messageContains = const [],
+    List<ExpectedContextMessage> contextMessages =
+        const <ExpectedContextMessage>[],
+  }) =>
+      ExpectedError(
+        code,
+        offset,
+        length,
+        correctionContains: correctionContains,
+        message: text,
+        messageContains: messageContains,
+        expectedContextMessages: contextMessages,
+      );
+
+  void setUp() {
+    resourceProvider = MemoryResourceProvider();
+    pathTranslator = TestPathTranslator(resourceProvider);
+    sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
+    provider = AnalysisOptionsProvider(sourceFactory);
+  }
+
+  test_chooseFirstPlugin() {
+    pathTranslator.newFile('/more_options.yaml', '''
+analyzer:
+  plugins:
+    - plugin_ddd
+    - plugin_ggg
+    - plugin_aaa
+''');
+    pathTranslator.newFile('/other_options.yaml', '''
+include: more_options.yaml
+analyzer:
+  plugins:
+    - plugin_eee
+    - plugin_hhh
+    - plugin_bbb
+''');
+    String code = r'''
+include: other_options.yaml
+analyzer:
+  plugins:
+    - plugin_fff
+    - plugin_iii
+    - plugin_ccc
+''';
+    pathTranslator.newFile(optionsFilePath, code);
+
+    final options = _getOptionsObject('/');
+    expect(options.enabledPluginNames, unorderedEquals(['plugin_ddd']));
+  }
+
+  test_mergeIncludedOptions() {
+    // TODO(https://github.com/dart-lang/sdk/issues/50978): add tests for
+    // INCLUDED_FILE_WARNING.
+    // TODO(https://github.com/dart-lang/sdk/issues/50979): add tests for cyclic
+    // includes.
+    // TODO(srawlins): add tests for multiple includes.
+    // TODO(https://github.com/dart-lang/sdk/issues/50980): add tests with
+    // duplicate plugin names.
+
     pathTranslator.newFile('/other_options.yaml', '''
 analyzer:
   exclude:
@@ -657,9 +740,6 @@ include: other_options.yaml
 analyzer:
   exclude:
     - lowlevelexclude.dart
-  plugins:
-    lowlevelplugin:
-      enabled: true
   errors:
     lowlevelerror: warning
 linter:
@@ -675,8 +755,7 @@ linter:
     final options = _getOptionsObject('/');
 
     expect(options.lintRules, unorderedEquals([toplevellint, lowlevellint]));
-    expect(options.enabledPluginNames,
-        unorderedEquals(['toplevelplugin', 'lowlevelplugin']));
+    expect(options.enabledPluginNames, unorderedEquals(['toplevelplugin']));
     expect(options.excludePatterns,
         unorderedEquals(['toplevelexclude.dart', 'lowlevelexclude.dart']));
     expect(
@@ -687,6 +766,161 @@ linter:
           ErrorProcessorMatcher(
               ErrorProcessor('lowlevelerror', ErrorSeverity.WARNING))
         ]));
+  }
+
+  test_multiplePlugins_firstIsDirectlyIncluded_secondIsDirect_listForm() {
+    pathTranslator.newFile('/other_options.yaml', '''
+analyzer:
+  plugins:
+    - plugin_one
+''');
+    assertErrorsInOptionsFile(r'''
+include: other_options.yaml
+analyzer:
+  plugins:
+    - plugin_two
+''', [
+      error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 55, 10),
+    ]);
+  }
+
+  test_multiplePlugins_firstIsDirectlyIncluded_secondIsDirect_mapForm() {
+    pathTranslator.newFile('/other_options.yaml', '''
+analyzer:
+  plugins:
+    - plugin_one
+''');
+    assertErrorsInOptionsFile(r'''
+include: other_options.yaml
+analyzer:
+  plugins:
+    plugin_two:
+      foo: bar
+''', [
+      error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 53, 10),
+    ]);
+  }
+
+  test_multiplePlugins_firstIsDirectlyIncluded_secondIsDirect_scalarForm() {
+    pathTranslator.newFile('/other_options.yaml', '''
+analyzer:
+  plugins:
+    - plugin_one
+''');
+    assertErrorsInOptionsFile(r'''
+include: other_options.yaml
+analyzer:
+  plugins: plugin_two
+''', [
+      error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 49, 10),
+    ]);
+  }
+
+  test_multiplePlugins_firstIsIndirectlyIncluded_secondIsDirect() {
+    pathTranslator.newFile('/more_options.yaml', '''
+analyzer:
+  plugins:
+    - plugin_one
+''');
+    pathTranslator.newFile('/other_options.yaml', '''
+include: more_options.yaml
+''');
+    assertErrorsInOptionsFile(r'''
+include: other_options.yaml
+analyzer:
+  plugins:
+    - plugin_two
+''', [
+      error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 55, 10),
+    ]);
+  }
+
+  test_multiplePlugins_firstIsIndirectlyIncluded_secondIsDirectlyIncluded() {
+    pathTranslator.newFile('/more_options.yaml', '''
+analyzer:
+  plugins:
+    - plugin_one
+''');
+    pathTranslator.newFile('/other_options.yaml', '''
+include: more_options.yaml
+analyzer:
+  plugins:
+    - plugin_two
+''');
+    assertErrorsInOptionsFile(r'''
+include: other_options.yaml
+''', [
+      error(AnalysisOptionsWarningCode.INCLUDED_FILE_WARNING, 9, 18),
+    ]);
+  }
+
+  test_multiplePlugins_multipleDirect_listForm() {
+    assertErrorsInOptionsFile(r'''
+analyzer:
+  plugins:
+    - plugin_one
+    - plugin_two
+    - plugin_three
+''', [
+      error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 44, 10),
+      error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 61, 12),
+    ]);
+  }
+
+  test_multiplePlugins_multipleDirect_listForm_nonString() {
+    assertErrorsInOptionsFile(r'''
+analyzer:
+  plugins:
+    - 7
+    - plugin_one
+''', []);
+  }
+
+  test_multiplePlugins_multipleDirect_listForm_sameName() {
+    assertErrorsInOptionsFile(r'''
+analyzer:
+  plugins:
+    - plugin_one
+    - plugin_one
+''', []);
+  }
+
+  test_multiplePlugins_multipleDirect_mapForm() {
+    assertErrorsInOptionsFile(r'''
+analyzer:
+  plugins:
+    plugin_one: yes
+    plugin_two: sure
+''', [
+      error(AnalysisOptionsWarningCode.MULTIPLE_PLUGINS, 45, 10),
+    ]);
+  }
+
+  test_multiplePlugins_multipleDirect_mapForm_sameName() {
+    assertErrorsInOptionsFile(r'''
+analyzer:
+  plugins:
+    plugin_one: yes
+    plugin_one: sure
+''', [
+      error(AnalysisOptionsErrorCode.PARSE_ERROR, 45, 10),
+    ]);
+  }
+
+  List<AnalysisError> validate(String code, List<ErrorCode> expected) {
+    pathTranslator.newFile(optionsFilePath, code);
+    var errors = analyzeAnalysisOptions(
+      sourceFactory.forUri('file://$optionsFilePath')!,
+      code,
+      sourceFactory,
+      '/',
+      null /*sdkVersionConstraint*/,
+    );
+    expect(
+      errors.map((AnalysisError e) => e.errorCode),
+      unorderedEquals(expected),
+    );
+    return errors;
   }
 
   YamlMap _getOptions(String posixPath) {
