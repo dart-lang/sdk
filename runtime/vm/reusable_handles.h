@@ -112,8 +112,6 @@ REUSABLE_HANDLE_LIST(REUSABLE_SCOPE)
   ReusableTypeArgumentsHandleScope reused_type_arguments_handle(thread);
 #define REUSABLE_TYPE_PARAMETER_HANDLESCOPE(thread)                            \
   ReusableTypeParameterHandleScope reused_type_parameter(thread);
-#define REUSABLE_WEAK_ARRAY_HANDLESCOPE(thread)                                \
-  ReusableWeakArrayHandleScope reused_weak_array(thread);
 
 }  // namespace dart
 

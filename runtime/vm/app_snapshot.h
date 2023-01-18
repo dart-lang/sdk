@@ -233,7 +233,6 @@ class Serializer : public ThreadStackResource {
   intptr_t GetCodeIndex(CodePtr code);
 
   void Push(ObjectPtr object, intptr_t cid_override = kIllegalCid);
-  void PushWeak(ObjectPtr object);
 
   void AddUntracedRef() { num_written_objects_++; }
 

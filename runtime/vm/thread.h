@@ -93,8 +93,7 @@ class Thread;
   V(String)                                                                    \
   V(TypeParameters)                                                            \
   V(TypeArguments)                                                             \
-  V(TypeParameter)                                                             \
-  V(WeakArray)
+  V(TypeParameter)
 
 #define CACHED_VM_STUBS_LIST(V)                                                \
   V(CodePtr, fix_callers_target_code_, StubCode::FixCallersTarget().ptr(),     \
