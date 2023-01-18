@@ -337,7 +337,7 @@ bool Debugger::NeedsDebugEvents() {
     // E.g., NoActiveIsolateScope.
     return false;
   }
-  ASSERT(isolate_ == Isolate::Current());
+  RELEASE_ASSERT(isolate_ == Isolate::Current());
   ASSERT(!Isolate::IsSystemIsolate(isolate_));
   return FLAG_warn_on_pause_with_no_debugger || Service::debug_stream.enabled();
 }
@@ -3192,6 +3192,13 @@ void GroupDebugger::NotifyCompilation(const Function& function) {
   for (intptr_t i = 0; i < breakpoint_locations_.length(); i++) {
     BreakpointLocation* location = breakpoint_locations_.At(i);
     if (EnsureLocationIsInFunction(zone, resolved_function, location)) {
+      // All mutators are stopped (see RELEASE_ASSERT above). We temporarily
+      // enter the isolate for which the breakpoint was registered.
+      // The code path below may issue service events which will use the active
+      // isolate's object-id ring for naming VM objects.
+      ActiveIsolateScope active_isolate(thread,
+                                        location->debugger()->isolate());
+
       // Ensure the location is resolved for the original function.
       location->EnsureIsResolved(function, location->token_pos());
       if (FLAG_verbose_debug) {

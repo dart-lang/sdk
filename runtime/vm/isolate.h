@@ -1847,12 +1847,40 @@ class NoActiveIsolateScope : public StackResource {
   NoActiveIsolateScope() : NoActiveIsolateScope(Thread::Current()) {}
   explicit NoActiveIsolateScope(Thread* thread)
       : StackResource(thread), thread_(thread) {
+    outer_ = thread_->no_active_isolate_scope_;
     saved_isolate_ = thread_->isolate_;
+
+    thread_->no_active_isolate_scope_ = this;
     thread_->isolate_ = nullptr;
   }
   ~NoActiveIsolateScope() {
     ASSERT(thread_->isolate_ == nullptr);
     thread_->isolate_ = saved_isolate_;
+    thread_->no_active_isolate_scope_ = outer_;
+  }
+
+ private:
+  friend class ActiveIsolateScope;
+
+  Thread* thread_;
+  Isolate* saved_isolate_;
+  NoActiveIsolateScope* outer_;
+};
+
+class ActiveIsolateScope : public StackResource {
+ public:
+  explicit ActiveIsolateScope(Thread* thread)
+      : ActiveIsolateScope(thread,
+                           thread->no_active_isolate_scope_->saved_isolate_) {}
+
+  ActiveIsolateScope(Thread* thread, Isolate* isolate)
+      : StackResource(thread), thread_(thread) {
+    RELEASE_ASSERT(thread->isolate() == nullptr);
+    thread_->isolate_ = isolate;
+  }
+  ~ActiveIsolateScope() {
+    ASSERT(thread_->isolate_ != nullptr);
+    thread_->isolate_ = nullptr;
   }
 
  private:
