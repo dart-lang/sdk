@@ -896,10 +896,11 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
                   script.ToCString());
           }
           // resolved_url is never obfuscated, so just convert the prefix.
-          auto const converted_cstr = ConvertResolvedURI(uri.ToCString());
+          auto const orig_cstr = uri.ToCString();
+          auto const converted_cstr = ConvertResolvedURI(orig_cstr);
           // Strictly enforce this to catch inconvertible cases.
           if (converted_cstr == nullptr) {
-            FATAL("cannot convert resolved URI %s", uri_cstr);
+            FATAL("cannot convert resolved URI %s", orig_cstr);
           }
           uri_cstr = converted_cstr;
         } else {
