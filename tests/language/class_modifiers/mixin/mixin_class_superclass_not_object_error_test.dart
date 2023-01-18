@@ -14,12 +14,14 @@ class AlsoNotObject {}
 mixin class MixinClass extends NotObject {}
 //                             ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
-// [cfe] unspecified
+//          ^
+// [cfe] The class 'MixinClass' can't be used as a mixin because it extends a class other than 'Object'.
 
 abstract mixin class AbstractMixinClass extends NotObject {}
 //                                              ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
-// [cfe] unspecified
+//                   ^
+// [cfe] The class 'AbstractMixinClass' can't be used as a mixin because it extends a class other than 'Object'.
 
 class SubclassNotObject with MixinClass {}
 //                           ^^^^^^^^^^
@@ -34,4 +36,5 @@ class AbstractSubclassNotObject with AbstractMixinClass {}
 mixin class TypeAliasWithTwo = Object with AlsoNotObject, NotObject;
 //                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.MIXIN_INHERITS_FROM_NOT_OBJECT
-// [cfe] unspecified
+//          ^
+// [cfe] The class 'TypeAliasWithTwo' can't be used as a mixin because it extends a class other than 'Object'.
