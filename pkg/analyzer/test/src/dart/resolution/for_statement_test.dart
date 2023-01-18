@@ -656,6 +656,50 @@ ForStatement
     rightBracket: }
 ''');
   }
+
+  test_initialization_patternAssignment() async {
+    await assertNoErrorsInCode(r'''
+void f() {
+  int a;
+  for ((a) = 0;;) {
+    a;
+  }
+}
+''');
+
+    final node = findNode.singleForStatement;
+    assertResolvedNodeText(node, r'''
+ForStatement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForPartsWithExpression
+    initialization: PatternAssignment
+      pattern: ParenthesizedPattern
+        leftParenthesis: (
+        pattern: AssignedVariablePattern
+          name: a
+          element: a@17
+        rightParenthesis: )
+      equals: =
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+      staticType: int
+    leftSeparator: ;
+    rightSeparator: ;
+  rightParenthesis: )
+  body: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a@17
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
 }
 
 @reflectiveTest
