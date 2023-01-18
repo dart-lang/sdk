@@ -27,7 +27,12 @@ import '../builder/type_variable_builder.dart' as type;
 import '../identifiers.dart' as type;
 
 import '../kernel/body_builder.dart' as type
-    show Condition, FormalParameters, JumpTarget, Label;
+    show
+        Condition,
+        ExpressionOrPatternGuardCase,
+        FormalParameters,
+        JumpTarget,
+        Label;
 import '../kernel/expression_generator.dart' as type;
 import '../kernel/internal_ast.dart' as type;
 
@@ -64,8 +69,10 @@ class ValueKinds {
   static const ValueKind ContinueTarget =
       const SingleValueKind<type.JumpTarget>(NullValues.ContinueTarget);
   static const ValueKind Expression = const SingleValueKind<type.Expression>();
-  static const ValueKind ExpressionOrPatternGuardList =
-      const SingleValueKind<List<Object>>();
+  static const ValueKind ExpressionOrPatternGuardCase =
+      const SingleValueKind<type.ExpressionOrPatternGuardCase>();
+  static const ValueKind ExpressionOrPatternGuardCaseList =
+      const SingleValueKind<List<type.ExpressionOrPatternGuardCase>>();
   static const ValueKind ExpressionOrNull =
       const SingleValueKind<type.Expression>(NullValues.Expression);
   static const ValueKind FieldInitializerOrNull =

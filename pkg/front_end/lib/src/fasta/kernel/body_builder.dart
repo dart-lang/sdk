@@ -2538,19 +2538,17 @@ class BodyBuilder extends StackListenerImpl
     Object? value = pop();
     constantContext = pop() as ConstantContext;
     if (value is Pattern) {
-      super.push(new PatternGuard(value, guard));
+      super.push(new ExpressionOrPatternGuardCase.patternGuard(
+          caseKeyword.charOffset, new PatternGuard(value, guard)));
     } else if (guard != null) {
-      super.push(new PatternGuard(toPattern(value), guard));
+      super.push(new ExpressionOrPatternGuardCase.patternGuard(
+          caseKeyword.charOffset, new PatternGuard(toPattern(value), guard)));
     } else {
       Expression expression = toValue(value);
-      super.push(expression);
+      super.push(new ExpressionOrPatternGuardCase.expression(
+          caseKeyword.charOffset, expression));
     }
-    assert(checkState(colon, [
-      unionOfKinds([
-        ValueKinds.Expression,
-        ValueKinds.PatternGuard,
-      ])
-    ]));
+    assert(checkState(colon, [ValueKinds.ExpressionOrPatternGuardCase]));
   }
 
   @override
@@ -7300,8 +7298,7 @@ class BodyBuilder extends StackListenerImpl
         repeatedKind(
             unionOfKinds([
               ValueKinds.Label,
-              ValueKinds.Expression,
-              ValueKinds.PatternGuard,
+              ValueKinds.ExpressionOrPatternGuardCase,
             ]),
             count)));
     List<Object>? labelsExpressionsAndPatterns =
@@ -7310,22 +7307,22 @@ class BodyBuilder extends StackListenerImpl
     List<Label>? labels =
         labelCount == 0 ? null : new List<Label>.filled(labelCount, dummyLabel);
     bool containsPatterns = false;
-    List<Object> expressionOrPatterns = new List<Object>.filled(
-        expressionCount, dummyExpression,
-        growable: true);
+    List<ExpressionOrPatternGuardCase> expressionOrPatterns =
+        new List<ExpressionOrPatternGuardCase>.filled(
+            expressionCount, dummyExpressionOrPatternGuardCase,
+            growable: true);
     int labelIndex = 0;
     int expressionOrPatternIndex = 0;
     if (labelsExpressionsAndPatterns != null) {
       for (Object labelExpressionOrPattern in labelsExpressionsAndPatterns) {
         if (labelExpressionOrPattern is Label) {
           labels![labelIndex++] = labelExpressionOrPattern;
-        } else if (labelExpressionOrPattern is PatternGuard) {
-          expressionOrPatterns[expressionOrPatternIndex++] =
-              labelExpressionOrPattern;
-          containsPatterns = true;
         } else {
           expressionOrPatterns[expressionOrPatternIndex++] =
-              labelExpressionOrPattern as Expression;
+              labelExpressionOrPattern as ExpressionOrPatternGuardCase;
+          if (labelExpressionOrPattern.patternGuard != null) {
+            containsPatterns = true;
+          }
         }
       }
     }
@@ -7354,8 +7351,10 @@ class BodyBuilder extends StackListenerImpl
     enterLocalScope("switch case");
 
     List<VariableDeclaration>? jointPatternVariables;
-    for (Object patternGuard in expressionOrPatterns) {
-      if (patternGuard is PatternGuard) {
+    for (ExpressionOrPatternGuardCase expressionOrPattern
+        in expressionOrPatterns) {
+      PatternGuard? patternGuard = expressionOrPattern.patternGuard;
+      if (patternGuard != null) {
         if (jointPatternVariables == null) {
           jointPatternVariables = [
             for (VariableDeclaration variable
@@ -7400,7 +7399,7 @@ class BodyBuilder extends StackListenerImpl
       ValueKinds.Scope,
       ValueKinds.LabelListOrNull,
       ValueKinds.Bool,
-      ValueKinds.ExpressionOrPatternGuardList,
+      ValueKinds.ExpressionOrPatternGuardCaseList,
     ]));
   }
 
@@ -7461,7 +7460,7 @@ class BodyBuilder extends StackListenerImpl
       ValueKinds.Scope,
       ValueKinds.LabelListOrNull,
       ValueKinds.Bool,
-      ValueKinds.ExpressionOrPatternGuardList,
+      ValueKinds.ExpressionOrPatternGuardCaseList,
     ]));
     // We always create a block here so that we later know that there's always
     // one synthetic block when we finish compiling the switch statement and
@@ -7473,30 +7472,39 @@ class BodyBuilder extends StackListenerImpl
     List<Label>? labels = pop() as List<Label>?;
     assert(labels == null || labels.isNotEmpty);
     bool containsPatterns = pop() as bool;
-    List<Object> expressionsOrPatternGuards = pop() as List<Object>;
+    List<ExpressionOrPatternGuardCase> expressionsOrPatternGuards =
+        pop() as List<ExpressionOrPatternGuardCase>;
     if (containsPatterns) {
+      List<int> caseOffsets = [];
       List<PatternGuard> patternGuards = <PatternGuard>[];
-      for (Object expressionOrPatternGuard in expressionsOrPatternGuards) {
-        if (expressionOrPatternGuard is PatternGuard) {
-          patternGuards.add(expressionOrPatternGuard);
+      for (ExpressionOrPatternGuardCase expressionOrPatternGuard
+          in expressionsOrPatternGuards) {
+        caseOffsets.add(expressionOrPatternGuard.caseOffset);
+        if (expressionOrPatternGuard.patternGuard != null) {
+          patternGuards.add(expressionOrPatternGuard.patternGuard!);
         } else {
-          patternGuards
-              .add(new PatternGuard(toPattern(expressionOrPatternGuard)));
+          patternGuards.add(new PatternGuard(
+              toPattern(expressionOrPatternGuard.expression!)));
         }
       }
-      push(new PatternSwitchCase(firstToken.charOffset, patternGuards, block,
+      push(new PatternSwitchCase(
+          firstToken.charOffset, caseOffsets, patternGuards, block,
           isDefault: defaultKeyword != null,
           hasLabel: labels != null,
           jointVariables: jointPatternVariables ?? []));
     } else {
       List<Expression> expressions = <Expression>[];
+      List<int> caseOffsets = [];
       List<int> expressionOffsets = <int>[];
-      for (Object expressionOrPatternGuard in expressionsOrPatternGuards) {
-        Expression expression = expressionOrPatternGuard as Expression;
+      for (ExpressionOrPatternGuardCase expressionOrPatternGuard
+          in expressionsOrPatternGuards) {
+        Expression expression = expressionOrPatternGuard.expression!;
         expressions.add(expression);
+        caseOffsets.add(expressionOrPatternGuard.caseOffset);
         expressionOffsets.add(expression.fileOffset);
       }
-      push(new SwitchCaseImpl(expressions, expressionOffsets, block,
+      push(new SwitchCaseImpl(
+          caseOffsets, expressions, expressionOffsets, block,
           isDefault: defaultKeyword != null, hasLabel: labels != null)
         ..fileOffset = firstToken.charOffset);
     }
@@ -7541,9 +7549,12 @@ class BodyBuilder extends StackListenerImpl
                 new ExpressionPattern(switchCase.expressions[index]));
           });
           return new PatternSwitchCase(
-              switchCase.fileOffset, patterns, switchCase.body,
+              switchCase.fileOffset,
+              (switchCase as SwitchCaseImpl).caseOffsets,
+              patterns,
+              switchCase.body,
               isDefault: switchCase.isDefault,
-              hasLabel: (switchCase as SwitchCaseImpl).hasLabel,
+              hasLabel: switchCase.hasLabel,
               jointVariables: []);
         }
       });
@@ -9310,4 +9321,22 @@ class Condition {
   @override
   String toString() => 'Condition($expression'
       '${patternGuard != null ? ',$patternGuard' : ''})';
+}
+
+final ExpressionOrPatternGuardCase dummyExpressionOrPatternGuardCase =
+    new ExpressionOrPatternGuardCase.expression(
+        TreeNode.noOffset, dummyExpression);
+
+class ExpressionOrPatternGuardCase {
+  final int caseOffset;
+  final Expression? expression;
+  final PatternGuard? patternGuard;
+
+  ExpressionOrPatternGuardCase.expression(
+      this.caseOffset, Expression this.expression)
+      : patternGuard = null;
+
+  ExpressionOrPatternGuardCase.patternGuard(
+      this.caseOffset, PatternGuard this.patternGuard)
+      : expression = null;
 }

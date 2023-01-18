@@ -325,10 +325,11 @@ class TryStatement extends InternalStatement {
 }
 
 class SwitchCaseImpl extends SwitchCase {
+  final List<int> caseOffsets;
   final bool hasLabel;
 
-  SwitchCaseImpl(
-      List<Expression> expressions, List<int> expressionOffsets, Statement body,
+  SwitchCaseImpl(this.caseOffsets, List<Expression> expressions,
+      List<int> expressionOffsets, Statement body,
       {bool isDefault = false, required this.hasLabel})
       // ignore: unnecessary_null_comparison
       : assert(hasLabel != null),
@@ -368,7 +369,9 @@ class PatternGuard extends TreeNode with InternalTreeNode {
 class PatternSwitchCase extends TreeNode
     with InternalTreeNode
     implements SwitchCase {
+  final List<int> caseOffsets;
   final List<PatternGuard> patternGuards;
+
   @override
   Statement body;
 
@@ -379,7 +382,8 @@ class PatternSwitchCase extends TreeNode
 
   final List<VariableDeclaration> jointVariables;
 
-  PatternSwitchCase(int fileOffset, this.patternGuards, this.body,
+  PatternSwitchCase(
+      int fileOffset, this.caseOffsets, this.patternGuards, this.body,
       {required this.isDefault,
       required this.hasLabel,
       required this.jointVariables}) {
