@@ -7,14 +7,14 @@ library /*isNonNullableByDefault*/;
 //     continue L;
 //     ^^^^^^^^
 //
+// pkg/front_end/testcases/rasta/try_label.dart:9:5: Error: A 'continue' label must be on a loop or a switch member.
+//     continue L;
+//     ^^^^^^^^
+//
 import self as self;
 
 static method main() → dynamic {
-  #L1:
-  try {
-    break #L1;
-  }
-  finally {
-    break #L1;
-  }
+  invalid-expression "pkg/front_end/testcases/rasta/try_label.dart:9:5: Error: A 'continue' label must be on a loop or a switch member.
+    continue L;
+    ^^^^^^^^";
 }

@@ -904,8 +904,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    bool onSwitchStatement = node.statement is SwitchStatement;
-    _buildLabelElements(node.labels, onSwitchStatement, false);
+    _buildLabelElements(node.labels, false);
 
     var outerScope = _labelScope;
     try {
@@ -1233,7 +1232,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     for (var group in node.memberGroups) {
       _patternVariables.switchStatementSharedCaseScopeStart(node);
       for (var member in group.members) {
-        _buildLabelElements(member.labels, false, true);
+        _buildLabelElements(member.labels, true);
         if (member is SwitchCaseImpl) {
           member.expression.accept(this);
         } else if (member is SwitchDefaultImpl) {
@@ -1337,15 +1336,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   /// Builds the label elements associated with [labels] and stores them in the
   /// element holder.
-  void _buildLabelElements(
-      List<Label> labels, bool onSwitchStatement, bool onSwitchMember) {
+  void _buildLabelElements(List<Label> labels, bool onSwitchMember) {
     for (var label in labels) {
       label as LabelImpl;
       var labelName = label.label;
       var element = LabelElementImpl(
         labelName.name,
         labelName.offset,
-        onSwitchStatement,
         onSwitchMember,
       );
       labelName.staticElement = element;

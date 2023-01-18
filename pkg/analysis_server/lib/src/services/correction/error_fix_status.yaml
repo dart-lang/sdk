@@ -346,7 +346,7 @@ CompileTimeErrorCode.CONST_WITH_UNDEFINED_CONSTRUCTOR_DEFAULT:
   status: needsEvaluation
 CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION:
   status: needsEvaluation
-CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH:
+CompileTimeErrorCode.CONTINUE_LABEL_INVALID:
   status: needsEvaluation
 CompileTimeErrorCode.COULD_NOT_INFER:
   status: needsEvaluation

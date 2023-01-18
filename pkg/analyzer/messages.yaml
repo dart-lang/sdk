@@ -2923,9 +2923,11 @@ CompileTimeErrorCode:
     problemMessage: The expression of a constant pattern must be a valid constant.
     correctionMessage: Try making the expression a valid constant.
     comment: No parameters.
-  CONTINUE_LABEL_ON_SWITCH:
-    problemMessage: A `continue` label resolves to a `switch` statement, but the label must be on a loop or a switch member.
+  CONTINUE_LABEL_INVALID:
+    previousName: CONTINUE_LABEL_ON_SWITCH
     hasPublishedDocs: true
+    problemMessage: The label used in a 'continue' statement must be defined on either a loop or a switch member.
+    comment: No parameters.
     documentation: |-
       #### Description
 
@@ -2941,7 +2943,7 @@ CompileTimeErrorCode:
       void f(int i) {
         l: switch (i) {
           case 0:
-            continue [!l!];
+            [!continue l;!]
         }
       }
       ```

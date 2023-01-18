@@ -1021,11 +1021,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try calling a different constructor.",
   );
 
-  static const CompileTimeErrorCode CONTINUE_LABEL_ON_SWITCH =
+  ///  No parameters.
+  static const CompileTimeErrorCode CONTINUE_LABEL_INVALID =
       CompileTimeErrorCode(
-    'CONTINUE_LABEL_ON_SWITCH',
-    "A `continue` label resolves to a `switch` statement, but the label must "
-        "be on a loop or a switch member.",
+    'CONTINUE_LABEL_INVALID',
+    "The label used in a 'continue' statement must be defined on either a loop "
+        "or a switch member.",
     hasPublishedDocs: true,
   );
 

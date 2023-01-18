@@ -1225,6 +1225,12 @@ AnonymousBreakTargetOutsideFunction:
       }
     }
 
+ContinueLabelInvalid:
+  problemMessage: "A 'continue' label must be on a loop or a switch member."
+  analyzerCode: CONTINUE_LABEL_INVALID
+  statement:
+    - "L: { for (var i in [ ]) { continue L; } }"
+
 ContinueOutsideOfLoop:
   index: 2
   problemMessage: "A continue statement can't be used outside of a loop or switch statement."

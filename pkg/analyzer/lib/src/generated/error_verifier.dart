@@ -560,19 +560,6 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitContinueStatement(ContinueStatement node) {
-    var labelNode = node.label;
-    if (labelNode != null) {
-      var labelElement = labelNode.staticElement;
-      if (labelElement is LabelElementImpl &&
-          labelElement.isOnSwitchStatement) {
-        errorReporter.reportErrorForNode(
-            CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH, labelNode);
-      }
-    }
-  }
-
-  @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
     final defaultValue = node.defaultValue;
     if (defaultValue != null) {

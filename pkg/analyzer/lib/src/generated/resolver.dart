@@ -4979,7 +4979,16 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
             labelNode,
             [labelNode.name]);
       }
-      return definingScope.node;
+      var node = definingScope.node;
+      if (isContinue &&
+          node is! DoStatement &&
+          node is! ForStatement &&
+          node is! SwitchMember &&
+          node is! WhileStatement) {
+        errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONTINUE_LABEL_INVALID, parentNode);
+      }
+      return node;
     }
   }
 
