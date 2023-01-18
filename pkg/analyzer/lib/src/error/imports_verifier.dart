@@ -322,7 +322,7 @@ class ImportsVerifier {
     var length = _duplicateExports.length;
     for (var i = 0; i < length; i++) {
       errorReporter.reportErrorForNode(
-          StaticWarningCode.DUPLICATE_EXPORT, _duplicateExports[i].uri);
+          WarningCode.DUPLICATE_EXPORT, _duplicateExports[i].uri);
     }
   }
 
@@ -334,7 +334,7 @@ class ImportsVerifier {
     var length = _duplicateImports.length;
     for (var i = 0; i < length; i++) {
       errorReporter.reportErrorForNode(
-          StaticWarningCode.DUPLICATE_IMPORT, _duplicateImports[i].uri);
+          WarningCode.DUPLICATE_IMPORT, _duplicateImports[i].uri);
     }
   }
 
@@ -351,7 +351,7 @@ class ImportsVerifier {
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
         reporter.reportErrorForNode(
-            StaticWarningCode.DUPLICATE_HIDDEN_NAME, identifier);
+            WarningCode.DUPLICATE_HIDDEN_NAME, identifier);
       }
     });
     _duplicateShownNamesMap.forEach(
@@ -360,7 +360,7 @@ class ImportsVerifier {
       for (int i = 0; i < length; i++) {
         Identifier identifier = identifiers[i];
         reporter.reportErrorForNode(
-            StaticWarningCode.DUPLICATE_SHOWN_NAME, identifier);
+            WarningCode.DUPLICATE_SHOWN_NAME, identifier);
       }
     });
   }

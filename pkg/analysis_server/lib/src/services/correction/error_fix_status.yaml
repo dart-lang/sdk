@@ -2713,41 +2713,7 @@ ScannerErrorCode.UNTERMINATED_MULTI_LINE_COMMENT:
   status: needsEvaluation
 ScannerErrorCode.UNTERMINATED_STRING_LITERAL:
   status: needsEvaluation
-StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
-  status: noFix
-  notes: |-
-    Fix depends on user's intent, which can't be known.
-StaticWarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
-  status: needsFix
-StaticWarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
-  status: hasFix
 StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION:
-  status: hasFix
-StaticWarningCode.DEPRECATED_EXTENDS_FUNCTION:
-  status: needsFix
-  notes: |-
-    The fix is to remove `Function` from where it's referenced.
-StaticWarningCode.DEPRECATED_IMPLEMENTS_FUNCTION:
-  status: hasFix
-StaticWarningCode.DEPRECATED_MIXIN_FUNCTION:
-  status: needsFix
-  notes: |-
-    The fix is to remove `Function` from where it's referenced.
-StaticWarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
-  status: hasFix
-StaticWarningCode.DUPLICATE_EXPORT:
-  status: needsFix
-  notes: |-
-    One fix is to remove the duplicated export.
-StaticWarningCode.DUPLICATE_HIDDEN_NAME:
-  status: hasFix
-StaticWarningCode.DUPLICATE_IGNORE:
-  status: needsFix
-  notes: |-
-    One fix is to remove the duplicated error code.
-StaticWarningCode.DUPLICATE_IMPORT:
-  status: hasFix
-StaticWarningCode.DUPLICATE_SHOWN_NAME:
   status: hasFix
 StaticWarningCode.INVALID_NULL_AWARE_OPERATOR:
   status: hasFix
@@ -2755,36 +2721,70 @@ StaticWarningCode.INVALID_NULL_AWARE_OPERATOR_AFTER_SHORT_CIRCUIT:
   status: hasFix
 StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH:
   status: hasFix
-StaticWarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:
-  status: hasFix
-StaticWarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
-  status: hasFix
-StaticWarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT:
-  status: hasFix
-StaticWarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS:
-  status: needsFix
-  since: 2.15
-StaticWarningCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT:
-  status: hasFix
-StaticWarningCode.SDK_VERSION_EXTENSION_METHODS:
-  status: hasFix
-StaticWarningCode.SDK_VERSION_GT_GT_GT_OPERATOR:
-  status: hasFix
-StaticWarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT:
-  status: hasFix
-StaticWarningCode.SDK_VERSION_NEVER:
-  status: noFix
-  notes: Deprecated
-StaticWarningCode.SDK_VERSION_SET_LITERAL:
-  status: hasFix
-StaticWarningCode.SDK_VERSION_UI_AS_CODE:
-  status: hasFix
-StaticWarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
-  status: noFix
-  notes: Deprecated
 StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION:
   status: hasFix
 StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN:
   status: needsFix
 StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN:
   status: needsFix
+WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
+  status: noFix
+  notes: |-
+    Fix depends on user's intent, which can't be known.
+WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR:
+  status: needsFix
+WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE:
+  status: hasFix
+WarningCode.DEPRECATED_EXTENDS_FUNCTION:
+  status: needsFix
+  notes: |-
+    The fix is to remove `Function` from where it's referenced.
+WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION:
+  status: hasFix
+WarningCode.DEPRECATED_MIXIN_FUNCTION:
+  status: needsFix
+  notes: |-
+    The fix is to remove `Function` from where it's referenced.
+WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE:
+  status: hasFix
+WarningCode.DUPLICATE_EXPORT:
+  status: needsFix
+  notes: |-
+    One fix is to remove the duplicated export.
+WarningCode.DUPLICATE_HIDDEN_NAME:
+  status: hasFix
+WarningCode.DUPLICATE_IGNORE:
+  status: needsFix
+  notes: |-
+    One fix is to remove the duplicated error code.
+WarningCode.DUPLICATE_IMPORT:
+  status: hasFix
+WarningCode.DUPLICATE_SHOWN_NAME:
+  status: hasFix
+WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
+  status: hasFix
+WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:
+  status: hasFix
+WarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT:
+  status: hasFix
+WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS:
+  status: needsFix
+  since: 2.15
+WarningCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT:
+  status: hasFix
+WarningCode.SDK_VERSION_EXTENSION_METHODS:
+  status: hasFix
+WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR:
+  status: hasFix
+WarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT:
+  status: hasFix
+WarningCode.SDK_VERSION_NEVER:
+  status: noFix
+  notes: Deprecated
+WarningCode.SDK_VERSION_SET_LITERAL:
+  status: hasFix
+WarningCode.SDK_VERSION_UI_AS_CODE:
+  status: hasFix
+WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
+  status: noFix
+  notes: Deprecated

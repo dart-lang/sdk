@@ -31,7 +31,7 @@ const a = 42 >>> 3;
     await verifyVersion('2.13.0', '''
 const a = 42 >>> 3;
 ''', expectedErrors: [
-      error(StaticWarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, 13, 3),
+      error(WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, 13, 3),
     ]);
   }
 
@@ -49,7 +49,7 @@ class A {
   A operator >>>(A a) => this;
 }
 ''', expectedErrors: [
-      error(StaticWarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, 23, 3),
+      error(WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, 23, 3),
     ]);
   }
 
@@ -63,7 +63,7 @@ var a = 42 >>> 3;
     await verifyVersion('2.13.0', '''
 var a = 42 >>> 3;
 ''', expectedErrors: [
-      error(StaticWarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, 11, 3),
+      error(WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, 11, 3),
     ]);
   }
 }

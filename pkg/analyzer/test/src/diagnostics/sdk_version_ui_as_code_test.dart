@@ -31,7 +31,7 @@ List<int> zero() => [...[0]];
     await verifyVersion('2.2.1', '''
 List<int> zero() => [if (0 < 1) 0];
 ''', expectedErrors: [
-      error(StaticWarningCode.SDK_VERSION_UI_AS_CODE, 21, 12),
+      error(WarningCode.SDK_VERSION_UI_AS_CODE, 21, 12),
     ]);
   }
 }

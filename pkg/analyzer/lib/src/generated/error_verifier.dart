@@ -1696,8 +1696,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var superElement = extendsClause.superclass.name.staticElement;
       if (superElement != null && superElement.name == "Function") {
         errorReporter.reportErrorForNode(
-            StaticWarningCode.DEPRECATED_EXTENDS_FUNCTION,
-            extendsClause.superclass);
+            WarningCode.DEPRECATED_EXTENDS_FUNCTION, extendsClause.superclass);
       }
     }
 
@@ -1706,7 +1705,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var type = interface.type;
         if (type != null && type.isDartCoreFunction) {
           errorReporter.reportErrorForNode(
-            StaticWarningCode.DEPRECATED_IMPLEMENTS_FUNCTION,
+            WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION,
             interface,
           );
           break;
@@ -1719,7 +1718,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         var mixinElement = type.name.staticElement;
         if (mixinElement != null && mixinElement.name == "Function") {
           errorReporter.reportErrorForNode(
-              StaticWarningCode.DEPRECATED_MIXIN_FUNCTION, type);
+              WarningCode.DEPRECATED_MIXIN_FUNCTION, type);
         }
       }
     }

@@ -212,7 +212,7 @@ library L;
 export 'lib.dart';
 export 'lib.dart';
 ''', [
-      error(StaticWarningCode.DUPLICATE_EXPORT, 37, 10),
+      error(WarningCode.DUPLICATE_EXPORT, 37, 10),
     ]);
   }
 
@@ -1649,7 +1649,7 @@ import 'lib.dart';
 ''', [
       error(HintCode.UNUSED_IMPORT, 21, 10),
       error(HintCode.UNUSED_IMPORT, 40, 10),
-      error(StaticWarningCode.DUPLICATE_IMPORT, 40, 10),
+      error(WarningCode.DUPLICATE_IMPORT, 40, 10),
     ]);
   }
 

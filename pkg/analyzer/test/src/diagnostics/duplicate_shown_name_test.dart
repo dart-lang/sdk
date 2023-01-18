@@ -23,7 +23,7 @@ class B {}
     await assertErrorsInCode('''
 export 'lib1.dart' show A, B, A;
 ''', [
-      error(StaticWarningCode.DUPLICATE_SHOWN_NAME, 30, 1),
+      error(WarningCode.DUPLICATE_SHOWN_NAME, 30, 1),
     ]);
   }
 }

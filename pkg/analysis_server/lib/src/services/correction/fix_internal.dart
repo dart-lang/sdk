@@ -897,7 +897,7 @@ class FixProcessor extends BaseProcessor {
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
       DataDriven.new,
     ],
-    StaticWarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
+    WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
       ImportLibrary.dartAsync,
     ],
   };
@@ -1524,26 +1524,8 @@ class FixProcessor extends BaseProcessor {
       RemoveVar.new,
     ],
 
-    StaticWarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
-      AddReturnNull.new,
-    ],
     StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION: [
       RemoveDeadIfNull.new,
-    ],
-    StaticWarningCode.DEPRECATED_IMPLEMENTS_FUNCTION: [
-      RemoveNameFromDeclarationClause.new,
-    ],
-    StaticWarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
-      RemoveDeprecatedNewInCommentReference.new,
-    ],
-    StaticWarningCode.DUPLICATE_HIDDEN_NAME: [
-      RemoveNameFromCombinator.new,
-    ],
-    StaticWarningCode.DUPLICATE_IMPORT: [
-      RemoveUnusedImport.new,
-    ],
-    StaticWarningCode.DUPLICATE_SHOWN_NAME: [
-      RemoveNameFromCombinator.new,
     ],
     StaticWarningCode.INVALID_NULL_AWARE_OPERATOR: [
       ReplaceWithNotNullAware.new,
@@ -1554,35 +1536,54 @@ class FixProcessor extends BaseProcessor {
     StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH: [
       AddMissingEnumCaseClauses.new,
     ],
-    StaticWarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    StaticWarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
-      UpdateSdkConstraints.version_2_1_0,
-    ],
-    StaticWarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    StaticWarningCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    StaticWarningCode.SDK_VERSION_EXTENSION_METHODS: [
-      UpdateSdkConstraints.version_2_6_0,
-    ],
-    StaticWarningCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
-      UpdateSdkConstraints.version_2_14_0,
-    ],
-    StaticWarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
-    StaticWarningCode.SDK_VERSION_SET_LITERAL: [
-      UpdateSdkConstraints.version_2_2_0,
-    ],
-    StaticWarningCode.SDK_VERSION_UI_AS_CODE: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
     StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION: [
       RemoveNonNullAssertion.new,
+    ],
+
+    WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
+      AddReturnNull.new,
+    ],
+    WarningCode.DEPRECATED_IMPLEMENTS_FUNCTION: [
+      RemoveNameFromDeclarationClause.new,
+    ],
+    WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE: [
+      RemoveDeprecatedNewInCommentReference.new,
+    ],
+    WarningCode.DUPLICATE_HIDDEN_NAME: [
+      RemoveNameFromCombinator.new,
+    ],
+    WarningCode.DUPLICATE_IMPORT: [
+      RemoveUnusedImport.new,
+    ],
+    WarningCode.DUPLICATE_SHOWN_NAME: [
+      RemoveNameFromCombinator.new,
+    ],
+    WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
+      UpdateSdkConstraints.version_2_1_0,
+    ],
+    WarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    WarningCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    WarningCode.SDK_VERSION_EXTENSION_METHODS: [
+      UpdateSdkConstraints.version_2_6_0,
+    ],
+    WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
+      UpdateSdkConstraints.version_2_14_0,
+    ],
+    WarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT: [
+      UpdateSdkConstraints.version_2_2_2,
+    ],
+    WarningCode.SDK_VERSION_SET_LITERAL: [
+      UpdateSdkConstraints.version_2_2_0,
+    ],
+    WarningCode.SDK_VERSION_UI_AS_CODE: [
+      UpdateSdkConstraints.version_2_2_2,
     ],
   };
 

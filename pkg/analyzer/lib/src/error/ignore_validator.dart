@@ -128,12 +128,12 @@ class IgnoreValidator {
     for (var ignoredElement in duplicated) {
       if (ignoredElement is DiagnosticName) {
         var name = ignoredElement.name;
-        _errorReporter.reportErrorForOffset(StaticWarningCode.DUPLICATE_IGNORE,
+        _errorReporter.reportErrorForOffset(WarningCode.DUPLICATE_IGNORE,
             ignoredElement.offset, name.length, [name]);
         list.remove(ignoredElement);
       } else if (ignoredElement is DiagnosticType) {
         _errorReporter.reportErrorForOffset(
-          StaticWarningCode.DUPLICATE_IGNORE,
+          WarningCode.DUPLICATE_IGNORE,
           ignoredElement.offset,
           ignoredElement.length,
           [ignoredElement.type],

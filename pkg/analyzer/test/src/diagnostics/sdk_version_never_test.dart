@@ -30,7 +30,7 @@ Never foo = (throw 42);
 // @dart = 2.7
 Never foo = (throw 42);
 ''', expectedErrors: [
-      error(StaticWarningCode.SDK_VERSION_NEVER, 15, 5),
+      error(WarningCode.SDK_VERSION_NEVER, 15, 5),
     ]);
   }
 }
@@ -42,7 +42,7 @@ class SdkVersionNeverWithoutNullSafetyTest extends SdkConstraintVerifierTest
     await verifyVersion('2.7.0', r'''
 Never foo;
 ''', expectedErrors: [
-      error(StaticWarningCode.SDK_VERSION_NEVER, 0, 5),
+      error(WarningCode.SDK_VERSION_NEVER, 0, 5),
     ]);
   }
 }
