@@ -4017,7 +4017,9 @@ bool Library::FindPragma(Thread* T,
   auto Z = T->zone();
   auto& lib = Library::Handle(Z);
 
-  if (obj.IsClass()) {
+  if (obj.IsLibrary()) {
+    lib = Library::Cast(obj).ptr();
+  } else if (obj.IsClass()) {
     auto& klass = Class::Cast(obj);
     if (!klass.has_pragma()) return false;
     lib = klass.library();

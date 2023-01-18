@@ -1027,7 +1027,9 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
     FinishTopLevelClassLoading(toplevel_class, library, library_index);
   }
 
-  if (FLAG_enable_mirrors && annotation_count > 0) {
+  // Used for mirrors and allows VM to recognize @pragma annotations on
+  // libraries.
+  if (annotation_count > 0) {
     ASSERT(annotations_kernel_offset > 0);
     library.AddMetadata(library, annotations_kernel_offset);
   }
