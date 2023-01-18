@@ -1885,7 +1885,6 @@ class ActiveIsolateScope : public StackResource {
 
  private:
   Thread* thread_;
-  Isolate* saved_isolate_;
 };
 
 }  // namespace dart
