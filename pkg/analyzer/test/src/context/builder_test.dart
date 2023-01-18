@@ -19,7 +19,7 @@ main() {
 class EmbedderYamlLocatorTest extends EmbedderRelatedTest {
   void test_empty() {
     EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[pathTranslator.getResource(emptyPath) as Folder]
+      'fox': <Folder>[getFolder(emptyPath)]
     });
     expect(locator.embedderYamls, hasLength(0));
   }
@@ -27,7 +27,7 @@ class EmbedderYamlLocatorTest extends EmbedderRelatedTest {
   void test_invalid() {
     EmbedderYamlLocator locator = EmbedderYamlLocator(null);
     locator.addEmbedderYaml(
-      pathTranslator.getResource(foxLib) as Folder,
+      getFolder(foxLib),
       r'''{{{,{{}}},}}''',
     );
     expect(locator.embedderYamls, hasLength(0));
@@ -35,7 +35,7 @@ class EmbedderYamlLocatorTest extends EmbedderRelatedTest {
 
   void test_valid() {
     EmbedderYamlLocator locator = EmbedderYamlLocator({
-      'fox': <Folder>[pathTranslator.getResource(foxLib) as Folder]
+      'fox': <Folder>[getFolder(foxLib)]
     });
     expect(locator.embedderYamls, hasLength(1));
   }
