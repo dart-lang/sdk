@@ -173,7 +173,7 @@ void Symbols::SetupSymbolTable(IsolateGroup* isolate_group) {
   const intptr_t initial_size = (isolate_group == Dart::vm_isolate_group())
                                     ? kInitialVMIsolateSymtabSize
                                     : kInitialSymtabSize;
-  Array& array = Array::Handle(
+  class WeakArray& array = WeakArray::Handle(
       HashTables::New<CanonicalStringSet>(initial_size, Heap::kOld));
   isolate_group->object_store()->set_symbol_table(array);
 }
@@ -341,7 +341,7 @@ StringPtr Symbols::NewSymbol(Thread* thread, const StringType& str) {
   String& symbol = String::Handle(thread->zone());
   dart::Object& key = thread->ObjectHandle();
   Smi& value = thread->SmiHandle();
-  Array& data = thread->ArrayHandle();
+  class WeakArray& data = thread->WeakArrayHandle();
   {
     auto vm_isolate_group = Dart::vm_isolate_group();
     data = vm_isolate_group->object_store()->symbol_table();
@@ -386,7 +386,7 @@ StringPtr Symbols::Lookup(Thread* thread, const StringType& str) {
   String& symbol = String::Handle(thread->zone());
   dart::Object& key = thread->ObjectHandle();
   Smi& value = thread->SmiHandle();
-  Array& data = thread->ArrayHandle();
+  class WeakArray& data = thread->WeakArrayHandle();
   {
     auto vm_isolate_group = Dart::vm_isolate_group();
     data = vm_isolate_group->object_store()->symbol_table();

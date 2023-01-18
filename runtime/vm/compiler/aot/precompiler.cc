@@ -1719,12 +1719,8 @@ void Precompiler::CheckForNewDynamicFunctions() {
             functions_called_dynamically_.Insert(function2);
           }
         } else if (function.kind() == UntaggedFunction::kRegularFunction) {
-          selector2 = Field::LookupGetterSymbol(selector);
-          selector3 = String::null();
-          if (!selector2.IsNull()) {
-            selector3 =
-                Function::CreateDynamicInvocationForwarderName(selector2);
-          }
+          selector2 = Field::GetterSymbol(selector);
+          selector3 = Function::CreateDynamicInvocationForwarderName(selector2);
           if (IsSent(selector2) || IsSent(selector3)) {
             metadata = kernel::ProcedureAttributesOf(function, Z);
             found_metadata = true;

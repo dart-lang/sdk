@@ -2847,6 +2847,7 @@ void MessageSerializer::Trace(Object* object) {
     ILLEGAL(UserTag)
     ILLEGAL(WeakProperty)
     ILLEGAL(WeakReference)
+    ILLEGAL(WeakArray)
 
     // From "dart:ffi" we handle only Pointer/DynamicLibrary specially, since
     // those are the only non-abstract classes (so we avoid checking more cids
