@@ -188,6 +188,8 @@ mixin KernelNodes {
       index.getProcedure("dart:core", "AssertionError", "_throwWithMessage");
   late final Procedure javaScriptErrorFactory =
       index.getProcedure("dart:core", "_JavaScriptError", "_");
+  late final Procedure rangeErrorCheckValueInInterval =
+      index.getProcedure("dart:core", "RangeError", "checkValueInInterval");
 
   // dart:core type procedures
   late final Procedure isSubtype =

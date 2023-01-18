@@ -1264,11 +1264,13 @@ class Intrinsifier {
       if (member.isFactory) {
         String className = member.enclosingClass!.name;
 
-        Match? match =
-            RegExp("^(Int|Uint|Float)(8|16|32|64|32x4|64x2)(Clamped)?List\$")
-                .matchAsPrefix(className);
+        Match? match = RegExp("^(Int|Uint|Float)(8|16|32|64)(Clamped)?List\$")
+            .matchAsPrefix(className);
         if (match != null) {
-          int shift = int.parse(match.group(2)!).bitLength - 4;
+          int elementSize = int.parse(match.group(2)!);
+          int elementSizeInBytes = elementSize ~/ 8;
+          int maxNumberOfElements = ((1 << 32) - 1) ~/ elementSizeInBytes;
+          int shift = elementSizeInBytes.bitLength - 1;
           Class cls = member.enclosingLibrary.classes
               .firstWhere((c) => c.name == "_$className");
           ClassInfo info = translator.classInfo[cls]!;
@@ -1277,6 +1279,27 @@ class Intrinsifier {
               translator.wasmArrayType(w.PackedType.i8, "i8");
 
           w.Local length = paramLocals[0];
+
+          // Check array size
+          b.local_get(length);
+          b.i64_const(maxNumberOfElements);
+          b.i64_gt_u();
+          b.if_();
+          // int value
+          b.local_get(length);
+          // int minValue
+          b.i64_const(0);
+          // int maxValue
+          b.i64_const(maxNumberOfElements);
+          // String? name
+          b.ref_null(translator.objectInfo.struct);
+          // String? message
+          b.ref_null(translator.objectInfo.struct);
+          b.call(translator.functions.getFunction(
+              translator.rangeErrorCheckValueInInterval.reference));
+          b.drop(); // call returns first argument (value)
+          b.end();
+
           b.i32_const(info.classId);
           b.i32_const(initialIdentityHash);
           b.local_get(length);
