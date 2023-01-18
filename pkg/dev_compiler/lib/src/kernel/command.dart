@@ -832,7 +832,8 @@ Map<String, String> parseAndRemoveDeclaredVariables(List<String> args) {
 /// The default path of the kernel summary for the Dart SDK given the
 /// [soundNullSafety] mode.
 String defaultSdkSummaryPath({required bool soundNullSafety}) {
-  var outlineDill = soundNullSafety ? 'ddc_outline_sound.dill' : 'ddc_sdk.dill';
+  var outlineDill =
+      soundNullSafety ? 'ddc_outline.dill' : 'ddc_outline_unsound.dill';
   return p.join(getSdkPath(), 'lib', '_internal', outlineDill);
 }
 

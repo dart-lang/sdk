@@ -55,9 +55,9 @@ class DevelopmentIncrementalCompiler extends fe.IncrementalCompiler {
 class SetupCompilerOptions {
   static final sdkRoot = fe.computePlatformBinariesLocation();
   static final sdkUnsoundSummaryPath =
-      p.join(sdkRoot.toFilePath(), 'ddc_sdk.dill');
+      p.join(sdkRoot.toFilePath(), 'ddc_outline_unsound.dill');
   static final sdkSoundSummaryPath =
-      p.join(sdkRoot.toFilePath(), 'ddc_outline_sound.dill');
+      p.join(sdkRoot.toFilePath(), 'ddc_outline.dill');
   static final librariesSpecificationUri =
       p.join(p.dirname(p.dirname(getSdkPath())), 'libraries.json');
 

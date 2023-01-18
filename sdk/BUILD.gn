@@ -512,31 +512,19 @@ copy("copy_dart2wasm_snapshot") {
       [ "$root_out_dir/$dart_sdk_output/bin/snapshots/{{source_file_part}}" ]
 }
 
-# Copies DDC's SDK weak outline .dill to lib/_internal
-# TODO(nshahan) Fix the outline to be consistent and merge with below as a
-# breaking change.
-copy("copy_dev_compiler_weak_outline") {
-  visibility = [ ":copy_dev_compiler_sdk" ]
-  deps = [
-    ":copy_libraries",
-    "../utils/dartdevc:dartdevc_platform",
-  ]
-  sources = [ "$root_out_dir/ddc_outline.dill" ]
-  outputs = [ "$root_out_dir/$dart_sdk_output/lib/_internal/ddc_sdk.dill" ]
-}
-
 # Copies DDC's SDK full and outline .dill files to lib/_internal.
 copy("copy_dev_compiler_dills") {
   visibility = [ ":copy_dev_compiler_sdk" ]
   deps = [
     ":copy_libraries",
-    "../utils/dartdevc:dartdevc_platform",
     "../utils/dartdevc:dartdevc_platform_sound",
+    "../utils/dartdevc:dartdevc_platform_unsound",
   ]
   sources = [
-    "$root_out_dir/ddc_outline_sound.dill",
+    "$root_out_dir/ddc_outline.dill",
+    "$root_out_dir/ddc_outline_unsound.dill",
     "$root_out_dir/ddc_platform.dill",
-    "$root_out_dir/ddc_platform_sound.dill",
+    "$root_out_dir/ddc_platform_unsound.dill",
   ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]
@@ -618,7 +606,6 @@ group("copy_dev_compiler_sdk") {
     ":copy_dev_compiler_dills",
     ":copy_dev_compiler_js",
     ":copy_dev_compiler_tools",
-    ":copy_dev_compiler_weak_outline",
   ]
 }
 

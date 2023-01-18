@@ -632,8 +632,8 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.
       var sdkSummaryFile = _configuration.nnbdMode == NnbdMode.strong
-          ? 'ddc_outline_sound.dill'
-          : 'ddc_outline.dill';
+          ? 'ddc_outline.dill'
+          : 'ddc_outline_unsound.dill';
       var sdkSummary = Path(_configuration.buildDirectory)
           .append(sdkSummaryFile)
           .absolute
