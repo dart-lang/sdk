@@ -5545,6 +5545,11 @@ class PatternVariableElementImpl extends LocalVariableElementImpl
   bool isVisitingWhenClause = false;
 
   PatternVariableElementImpl(super.name, super.offset);
+
+  /// Return the root [join], or self.
+  PatternVariableElementImpl get rootVariable {
+    return join?.rootVariable ?? this;
+  }
 }
 
 /// A concrete implementation of a [PrefixElement].

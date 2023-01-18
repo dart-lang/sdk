@@ -1445,6 +1445,7 @@ void f() {
       error(HintCode.UNUSED_LOCAL_VARIABLE, 17, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 31, 1,
           contextMessages: [message('/home/test/lib/test.dart', 17, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 31, 1),
     ]);
   }
 
@@ -1455,6 +1456,7 @@ void f() {
   var a = 0;
 }
 ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 32, 1,
           contextMessages: [message('/home/test/lib/test.dart', 18, 1)]),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
@@ -1468,8 +1470,10 @@ void f() {
   var (a) = 1;
 }
 ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 33, 1,
           contextMessages: [message('/home/test/lib/test.dart', 18, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
     ]);
   }
 

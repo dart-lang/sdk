@@ -21,16 +21,19 @@ void f(int x) {
   if (x case var a?) {}
 }
 ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
       error(StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN, 34, 1),
     ]);
   }
 
   test_interfaceType_nullable() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 void f(int? x) {
   if (x case var a?) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
+    ]);
   }
 
   test_typeParameter_nonNullable() async {
@@ -41,17 +44,20 @@ class A<T extends num> {
   }
 }
 ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
       error(StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN, 61, 1),
     ]);
   }
 
   test_typeParameter_nullable() async {
-    await assertNoErrorsInCode('''
+    await assertErrorsInCode('''
 class A<T> {
   void f(T x) {
     if (x case var a?) {}
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 48, 1),
+    ]);
   }
 }

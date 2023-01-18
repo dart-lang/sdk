@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -15,14 +16,16 @@ main() {
 @reflectiveTest
 class DeclaredVariablePatternResolutionTest extends PubPackageResolutionTest {
   test_final_switchCase() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case final y:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
@@ -34,14 +37,16 @@ DeclaredVariablePattern
   }
 
   test_final_typed_switchCase() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(x) {
   switch (x) {
     case final int y:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
@@ -201,14 +206,16 @@ RecordPattern
   }
 
   test_typed_switchCase() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(x) {
   switch (x) {
     case int y:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
@@ -225,13 +232,15 @@ DeclaredVariablePattern
   }
 
   test_var_demoteType() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f<T>(T x) {
   if (x is int) {
     if (x case var y) {}
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
+    ]);
 
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -248,13 +257,15 @@ DeclaredVariablePattern
 // @dart = 2.10
 final x = <int>[];
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 // ignore:import_of_legacy_library_into_null_safe
 import 'a.dart';
 void f() {
   if (x case var y) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 95, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
@@ -266,11 +277,13 @@ DeclaredVariablePattern
   }
 
   test_var_ifCase() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   if (x case var y) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
@@ -282,11 +295,13 @@ DeclaredVariablePattern
   }
 
   test_var_nullOrEquivalent_neverQuestion() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Never? x) {
   if (x case var y) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
@@ -298,11 +313,13 @@ DeclaredVariablePattern
   }
 
   test_var_nullOrEquivalent_nullNone() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Null x) {
   if (x case var y) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
@@ -318,13 +335,15 @@ DeclaredVariablePattern
 // @dart = 2.10
 Null x = null;
 ''');
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 // ignore:import_of_legacy_library_into_null_safe
 import 'a.dart';
 void f() {
   if (x case var y) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 95, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
@@ -336,14 +355,16 @@ DeclaredVariablePattern
   }
 
   test_var_switchCase() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case var y:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 DeclaredVariablePattern
@@ -355,14 +376,16 @@ DeclaredVariablePattern
   }
 
   test_var_switchCase_cast() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case var y as Object:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 CastPattern

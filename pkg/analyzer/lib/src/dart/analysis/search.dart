@@ -738,19 +738,10 @@ class Search {
     PatternVariableElementImpl element,
     SearchedFiles searchedFiles,
   ) async {
-    var rootElement = element;
-    while (true) {
-      var componentOf = rootElement.join;
-      if (componentOf != null) {
-        rootElement = componentOf;
-      } else {
-        break;
-      }
-    }
-
-    var transitiveVariables = rootElement is JoinPatternVariableElementImpl
-        ? rootElement.transitiveVariables
-        : [rootElement];
+    var rootVariable = element.rootVariable;
+    var transitiveVariables = rootVariable is JoinPatternVariableElementImpl
+        ? rootVariable.transitiveVariables
+        : [rootVariable];
 
     // Prepare a binding element for the variable.
     var bindElement = transitiveVariables

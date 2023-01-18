@@ -16,11 +16,13 @@ main() {
 @reflectiveTest
 class PostfixPatternResolutionTest extends PubPackageResolutionTest {
   test_nullAssert_ifCase() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int? x) {
   if (x case var y!) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
@@ -34,14 +36,16 @@ PostfixPattern
   }
 
   test_nullAssert_switchCase() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int? x) {
   switch (x) {
     case var y!:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
@@ -55,11 +59,13 @@ PostfixPattern
   }
 
   test_nullAssert_variableDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int? x) {
   var (a!) = x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 24, 1),
+    ]);
     final node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -82,11 +88,13 @@ PatternVariableDeclaration
   }
 
   test_nullCheck_ifCase() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int? x) {
   if (x case var y?) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 34, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
@@ -100,14 +108,16 @@ PostfixPattern
   }
 
   test_nullCheck_switchCase() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int? x) {
   switch (x) {
     case var y?:
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 PostfixPattern
@@ -128,6 +138,7 @@ void f(int? x) {
 ''', [
       error(
           CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT, 24, 2),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 24, 1),
     ]);
     final node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
