@@ -12,12 +12,12 @@ static method test(dynamic x) → dynamic {
       final dynamic #t4 = #t1;
       core::bool #t5 = false;
       core::bool #t6 = false;
-      if(#t4 =={core::Object::==}{(core::Object) → core::bool} 1) {
+      if(#t4 =={core::Object::==}{(core::Object) → core::bool} #C1) {
         #t5 = true;
       }
       if(!#t5) {
         final dynamic #t7 = #t4!;
-        if(#t7 =={core::Object::==}{(core::Object) → core::bool} 2) {
+        if(#t7 =={core::Object::==}{(core::Object) → core::bool} #C2) {
           #t6 = true;
         }
       }
@@ -28,7 +28,7 @@ static method test(dynamic x) → dynamic {
     }
     switch(#t2) {
       #L2:
-      case #C1:
+      case #C3:
         {
           {
             break #L1;
@@ -39,5 +39,7 @@ static method test(dynamic x) → dynamic {
 }
 
 constants  {
-  #C1 = 0
+  #C1 = 1
+  #C2 = 2
+  #C3 = 0
 }

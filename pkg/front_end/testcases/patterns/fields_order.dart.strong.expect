@@ -18,7 +18,7 @@ static method test(dynamic x) → dynamic {
   if(#t3 is self::A) {
     final core::String #t4 = #t3{self::A}.{self::A::foo}{core::String};
     final core::Object? #t5 = #t3{self::A}.{self::A::bar}{core::Object?};
-    if(#t4 =={core::String::==}{(core::Object) → core::bool} "") {
+    if(#t4 =={core::String::==}{(core::Object) → core::bool} #C1) {
       final core::String #t6 = #t5 as{ForNonNullableByDefault} core::String;
       final core::String #t7 = #t6;
       if(#t7 is core::String) {
@@ -33,4 +33,8 @@ static method test(dynamic x) → dynamic {
   if(#t2) {
     return null;
   }
+}
+
+constants  {
+  #C1 = ""
 }

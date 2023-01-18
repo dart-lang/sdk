@@ -3743,6 +3743,11 @@ class DummyPattern extends Pattern {
 class ExpressionPattern extends Pattern {
   Expression expression;
 
+  /// Static type of the expression as computed during inference.
+  // TODO(johnniwinther): Use UnknownType instead to flag when this type has
+  // not been computed.
+  DartType expressionType = const DynamicType();
+
   ExpressionPattern(this.expression) : super(expression.fileOffset) {
     expression.parent = this;
   }
@@ -3763,14 +3768,16 @@ class ExpressionPattern extends Pattern {
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
+    VariableDeclaration constVariable =
+        createVariableCache(expression, expressionType)..isConst = true;
     Expression result = createEqualsCall(
-        base, matchedType, matchedExpression, expression,
+        base, matchedType, matchedExpression, createVariableGet(constVariable),
         fileOffset: fileOffset);
     return new PatternTransformationResult([
       new PatternTransformationElement(
           kind: PatternTransformationElementKind.regular,
           condition: result,
-          variableInitializers: [])
+          variableInitializers: [constVariable])
     ]);
   }
 

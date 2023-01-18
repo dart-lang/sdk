@@ -17,9 +17,11 @@ static method test(dynamic o, [dynamic expectedRest = #C1]) → dynamic {
       if(#t8 is core::List<dynamic> && #t8{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool}) {
         final dynamic #t9 = #t8{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
         final dynamic #t10 = #t8{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
-        if(#t9 =={core::Object::==}{(core::Object) → core::bool} 0 && #t10 =={core::Object::==}{(core::Object) → core::bool} 1) {
-          #t6 = 0;
-          #t7 = true;
+        if(#t9 =={core::Object::==}{(core::Object) → core::bool} #C2) {
+          if(#t10 =={core::Object::==}{(core::Object) → core::bool} #C3) {
+            #t6 = 0;
+            #t7 = true;
+          }
         }
       }
     }
@@ -28,9 +30,11 @@ static method test(dynamic o, [dynamic expectedRest = #C1]) → dynamic {
       if(#t11 is core::List<dynamic> && #t11{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool}) {
         final dynamic #t12 = #t11{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
         final dynamic #t13 = #t11{core::List<dynamic>}.{core::List::[]}(#t11{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::num}){(core::int) → dynamic};
-        if(#t12 =={core::Object::==}{(core::Object) → core::bool} 0 && #t13 =={core::Object::==}{(core::Object) → core::bool} 1) {
-          #t6 = 1;
-          #t7 = true;
+        if(#t12 =={core::Object::==}{(core::Object) → core::bool} #C2) {
+          if(#t13 =={core::Object::==}{(core::Object) → core::bool} #C3) {
+            #t6 = 1;
+            #t7 = true;
+          }
         }
       }
     }
@@ -40,11 +44,13 @@ static method test(dynamic o, [dynamic expectedRest = #C1]) → dynamic {
         final dynamic #t15 = #t14{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
         final dynamic #t16 = #t14{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
         final core::List<dynamic> #t17 = #t14{core::List<dynamic>}.{core::List::sublist}(2){(core::int, [core::int?]) → core::List<dynamic>};
-        if(#t15 =={core::Object::==}{(core::Object) → core::bool} 0 && #t16 =={core::Object::==}{(core::Object) → core::bool} 2) {
-          dynamic rest = #t17;
-          #t6 = 2;
-          #t7 = true;
-          #t1 = rest;
+        if(#t15 =={core::Object::==}{(core::Object) → core::bool} #C2) {
+          if(#t16 =={core::Object::==}{(core::Object) → core::bool} #C4) {
+            dynamic rest = #t17;
+            #t6 = 2;
+            #t7 = true;
+            #t1 = rest;
+          }
         }
       }
     }
@@ -54,11 +60,13 @@ static method test(dynamic o, [dynamic expectedRest = #C1]) → dynamic {
         final dynamic #t19 = #t18{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
         final core::List<dynamic> #t20 = #t18{core::List<dynamic>}.{core::List::sublist}(1, #t18{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::num}){(core::int, [core::int?]) → core::List<dynamic>};
         final dynamic #t21 = #t18{core::List<dynamic>}.{core::List::[]}(#t18{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::num}){(core::int) → dynamic};
-        if(#t19 =={core::Object::==}{(core::Object) → core::bool} 0 && #t21 =={core::Object::==}{(core::Object) → core::bool} 2) {
-          dynamic rest = #t20;
-          #t6 = 3;
-          #t7 = true;
-          #t2 = rest;
+        if(#t19 =={core::Object::==}{(core::Object) → core::bool} #C2) {
+          if(#t21 =={core::Object::==}{(core::Object) → core::bool} #C4) {
+            dynamic rest = #t20;
+            #t6 = 3;
+            #t7 = true;
+            #t2 = rest;
+          }
         }
       }
     }
@@ -70,11 +78,17 @@ static method test(dynamic o, [dynamic expectedRest = #C1]) → dynamic {
         final core::List<dynamic> #t25 = #t22{core::List<dynamic>}.{core::List::sublist}(2, #t22{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(2){(core::num) → core::num}){(core::int, [core::int?]) → core::List<dynamic>};
         final dynamic #t26 = #t22{core::List<dynamic>}.{core::List::[]}(#t22{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(2){(core::num) → core::num}){(core::int) → dynamic};
         final dynamic #t27 = #t22{core::List<dynamic>}.{core::List::[]}(#t22{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::num}){(core::int) → dynamic};
-        if(#t23 =={core::Object::==}{(core::Object) → core::bool} 0 && #t24 =={core::Object::==}{(core::Object) → core::bool} 4 && #t26 =={core::Object::==}{(core::Object) → core::bool} 2 && #t27 =={core::Object::==}{(core::Object) → core::bool} 3) {
-          dynamic rest = #t25;
-          #t6 = 4;
-          #t7 = true;
-          #t3 = rest;
+        if(#t23 =={core::Object::==}{(core::Object) → core::bool} #C2) {
+          if(#t24 =={core::Object::==}{(core::Object) → core::bool} #C5) {
+            if(#t26 =={core::Object::==}{(core::Object) → core::bool} #C4) {
+              if(#t27 =={core::Object::==}{(core::Object) → core::bool} #C6) {
+                dynamic rest = #t25;
+                #t6 = 4;
+                #t7 = true;
+                #t3 = rest;
+              }
+            }
+          }
         }
       }
     }
@@ -86,17 +100,25 @@ static method test(dynamic o, [dynamic expectedRest = #C1]) → dynamic {
         final core::List<dynamic> #t31 = #t28{core::List<dynamic>}.{core::List::sublist}(2, #t28{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(2){(core::num) → core::num}){(core::int, [core::int?]) → core::List<dynamic>};
         final dynamic #t32 = #t28{core::List<dynamic>}.{core::List::[]}(#t28{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(2){(core::num) → core::num}){(core::int) → dynamic};
         final dynamic #t33 = #t28{core::List<dynamic>}.{core::List::[]}(#t28{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::num}){(core::int) → dynamic};
-        if(#t29 =={core::Object::==}{(core::Object) → core::bool} 0 && #t30 =={core::Object::==}{(core::Object) → core::bool} 5) {
-          final dynamic #t34 = #t31;
-          if(#t34 is core::List<dynamic> && #t34{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool}) {
-            final dynamic #t35 = #t34{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-            final core::List<dynamic> #t36 = #t34{core::List<dynamic>}.{core::List::sublist}(1, #t34{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::num}){(core::int, [core::int?]) → core::List<dynamic>};
-            final dynamic #t37 = #t34{core::List<dynamic>}.{core::List::[]}(#t34{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::num}){(core::int) → dynamic};
-            if(#t35 =={core::Object::==}{(core::Object) → core::bool} 1 && #t37 =={core::Object::==}{(core::Object) → core::bool} 2 && #t32 =={core::Object::==}{(core::Object) → core::bool} 2 && #t33 =={core::Object::==}{(core::Object) → core::bool} 3) {
-              dynamic rest = #t36;
-              #t6 = 5;
-              #t7 = true;
-              #t4 = rest;
+        if(#t29 =={core::Object::==}{(core::Object) → core::bool} #C2) {
+          if(#t30 =={core::Object::==}{(core::Object) → core::bool} #C7) {
+            final dynamic #t34 = #t31;
+            if(#t34 is core::List<dynamic> && #t34{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool}) {
+              final dynamic #t35 = #t34{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+              final core::List<dynamic> #t36 = #t34{core::List<dynamic>}.{core::List::sublist}(1, #t34{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::num}){(core::int, [core::int?]) → core::List<dynamic>};
+              final dynamic #t37 = #t34{core::List<dynamic>}.{core::List::[]}(#t34{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::num}){(core::int) → dynamic};
+              if(#t35 =={core::Object::==}{(core::Object) → core::bool} #C3) {
+                if(#t37 =={core::Object::==}{(core::Object) → core::bool} #C4) {
+                  if(#t32 =={core::Object::==}{(core::Object) → core::bool} #C4) {
+                    if(#t33 =={core::Object::==}{(core::Object) → core::bool} #C6) {
+                      dynamic rest = #t36;
+                      #t6 = 5;
+                      #t7 = true;
+                      #t4 = rest;
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -127,7 +149,7 @@ static method test(dynamic o, [dynamic expectedRest = #C1]) → dynamic {
           }
         }
       #L5:
-      case #C5:
+      case #C6:
         {
           dynamic rest = #t2{dynamic};
           {
@@ -136,7 +158,7 @@ static method test(dynamic o, [dynamic expectedRest = #C1]) → dynamic {
           }
         }
       #L6:
-      case #C6:
+      case #C5:
         {
           dynamic rest = #t3{dynamic};
           {
@@ -196,7 +218,7 @@ constants  {
   #C2 = 0
   #C3 = 1
   #C4 = 2
-  #C5 = 3
-  #C6 = 4
+  #C5 = 4
+  #C6 = 3
   #C7 = 5
 }

@@ -15,7 +15,7 @@ static method test(dynamic x) → dynamic {
         final core::Object? #t6 = #t5{(core::Object?, {n: core::Object?})}.n{core::Object?};
         final core::Object? #t7 = #t5{(core::Object?, {n: core::Object?})}.$0{core::Object?};
         final core::Object? #t8 = #t6;
-        if(#t8 is core::int && #t7 =={core::Object::==}{(core::Object) → core::bool} 2) {
+        if(#t8 is core::int && #t7 =={core::Object::==}{(core::Object) → core::bool} #C1) {
           core::int as = #t8{core::int};
           #t3 = 0;
           #t4 = true;
@@ -25,7 +25,7 @@ static method test(dynamic x) → dynamic {
     }
     switch(#t3) {
       #L2:
-      case #C1:
+      case #C2:
         {
           core::int as = #t1{core::int};
           {
@@ -37,5 +37,6 @@ static method test(dynamic x) → dynamic {
 }
 
 constants  {
-  #C1 = 0
+  #C1 = 2
+  #C2 = 0
 }

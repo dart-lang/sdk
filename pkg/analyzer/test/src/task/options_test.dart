@@ -21,7 +21,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../generated/test_support.dart';
-import '../../resource_utils.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -626,7 +625,6 @@ linter:
 
 @reflectiveTest
 class OptionsProviderTest with ResourceProviderMixin {
-  late final TestPathTranslator pathTranslator;
   late final SourceFactory sourceFactory;
 
   late final AnalysisOptionsProvider provider;
@@ -644,9 +642,9 @@ class OptionsProviderTest with ResourceProviderMixin {
 
   void assertErrorsInOptionsFile(
       String code, List<ExpectedError> expectedErrors) async {
-    pathTranslator.newFile(optionsFilePath, code);
+    newFile(optionsFilePath, code);
     var errors = analyzeAnalysisOptions(
-      sourceFactory.forUri('file://$optionsFilePath')!,
+      sourceFactory.forUri2(toUri(optionsFilePath))!,
       code,
       sourceFactory,
       '/',
@@ -678,20 +676,19 @@ class OptionsProviderTest with ResourceProviderMixin {
 
   void setUp() {
     resourceProvider = MemoryResourceProvider();
-    pathTranslator = TestPathTranslator(resourceProvider);
     sourceFactory = SourceFactory([ResourceUriResolver(resourceProvider)]);
     provider = AnalysisOptionsProvider(sourceFactory);
   }
 
   test_chooseFirstPlugin() {
-    pathTranslator.newFile('/more_options.yaml', '''
+    newFile('/more_options.yaml', '''
 analyzer:
   plugins:
     - plugin_ddd
     - plugin_ggg
     - plugin_aaa
 ''');
-    pathTranslator.newFile('/other_options.yaml', '''
+    newFile('/other_options.yaml', '''
 include: more_options.yaml
 analyzer:
   plugins:
@@ -707,7 +704,7 @@ analyzer:
     - plugin_iii
     - plugin_ccc
 ''';
-    pathTranslator.newFile(optionsFilePath, code);
+    newFile(optionsFilePath, code);
 
     final options = _getOptionsObject('/');
     expect(options.enabledPluginNames, unorderedEquals(['plugin_ddd']));
@@ -722,7 +719,7 @@ analyzer:
     // TODO(https://github.com/dart-lang/sdk/issues/50980): add tests with
     // duplicate plugin names.
 
-    pathTranslator.newFile('/other_options.yaml', '''
+    newFile('/other_options.yaml', '''
 analyzer:
   exclude:
     - toplevelexclude.dart
@@ -746,7 +743,7 @@ linter:
   rules:
     - lowlevellint
 ''';
-    pathTranslator.newFile(optionsFilePath, code);
+    newFile(optionsFilePath, code);
 
     final lowlevellint = TestRule.withName('lowlevellint');
     final toplevellint = TestRule.withName('toplevellint');
@@ -769,7 +766,7 @@ linter:
   }
 
   test_multiplePlugins_firstIsDirectlyIncluded_secondIsDirect_listForm() {
-    pathTranslator.newFile('/other_options.yaml', '''
+    newFile(convertPath('/other_options.yaml'), '''
 analyzer:
   plugins:
     - plugin_one
@@ -785,7 +782,7 @@ analyzer:
   }
 
   test_multiplePlugins_firstIsDirectlyIncluded_secondIsDirect_mapForm() {
-    pathTranslator.newFile('/other_options.yaml', '''
+    newFile('/other_options.yaml', '''
 analyzer:
   plugins:
     - plugin_one
@@ -802,7 +799,7 @@ analyzer:
   }
 
   test_multiplePlugins_firstIsDirectlyIncluded_secondIsDirect_scalarForm() {
-    pathTranslator.newFile('/other_options.yaml', '''
+    newFile('/other_options.yaml', '''
 analyzer:
   plugins:
     - plugin_one
@@ -817,12 +814,12 @@ analyzer:
   }
 
   test_multiplePlugins_firstIsIndirectlyIncluded_secondIsDirect() {
-    pathTranslator.newFile('/more_options.yaml', '''
+    newFile('/more_options.yaml', '''
 analyzer:
   plugins:
     - plugin_one
 ''');
-    pathTranslator.newFile('/other_options.yaml', '''
+    newFile('/other_options.yaml', '''
 include: more_options.yaml
 ''');
     assertErrorsInOptionsFile(r'''
@@ -836,12 +833,12 @@ analyzer:
   }
 
   test_multiplePlugins_firstIsIndirectlyIncluded_secondIsDirectlyIncluded() {
-    pathTranslator.newFile('/more_options.yaml', '''
+    newFile('/more_options.yaml', '''
 analyzer:
   plugins:
     - plugin_one
 ''');
-    pathTranslator.newFile('/other_options.yaml', '''
+    newFile('/other_options.yaml', '''
 include: more_options.yaml
 analyzer:
   plugins:
@@ -908,7 +905,7 @@ analyzer:
   }
 
   List<AnalysisError> validate(String code, List<ErrorCode> expected) {
-    pathTranslator.newFile(optionsFilePath, code);
+    newFile(optionsFilePath, code);
     var errors = analyzeAnalysisOptions(
       sourceFactory.forUri('file://$optionsFilePath')!,
       code,
@@ -924,7 +921,7 @@ analyzer:
   }
 
   YamlMap _getOptions(String posixPath) {
-    var resource = pathTranslator.getResource(posixPath) as Folder;
+    var resource = getFolder(posixPath);
     return provider.getOptions(resource);
   }
 

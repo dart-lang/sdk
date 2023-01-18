@@ -18,10 +18,16 @@ static method test1(core::List<dynamic> list) → core::String {
           final core::int #t8 = #t5{core::List<core::int>}.{core::List::[]}(2){(core::int) → core::int};
           final core::int #t9 = #t5{core::List<core::int>}.{core::List::[]}(3){(core::int) → core::int};
           final core::List<core::int> #t10 = #t5{core::List<core::int>}.{core::List::sublist}(4){(core::int, [core::int?]) → core::List<core::int>};
-          if(#t6 =={core::num::==}{(core::Object) → core::bool} 1 && #t7 =={core::num::==}{(core::Object) → core::bool} 2 && #t8 =={core::num::==}{(core::Object) → core::bool} 3 && #t9 =={core::num::==}{(core::Object) → core::bool} 4) {
-            r1 = #t10;
-            #t3 = 0;
-            #t4 = true;
+          if(#t6 =={core::num::==}{(core::Object) → core::bool} #C1) {
+            if(#t7 =={core::num::==}{(core::Object) → core::bool} #C2) {
+              if(#t8 =={core::num::==}{(core::Object) → core::bool} #C3) {
+                if(#t9 =={core::num::==}{(core::Object) → core::bool} #C4) {
+                  r1 = #t10;
+                  #t3 = 0;
+                  #t4 = true;
+                }
+              }
+            }
           }
         }
       }
@@ -32,13 +38,13 @@ static method test1(core::List<dynamic> list) → core::String {
       #L1:
       switch(#t3) {
         #L2:
-        case #C1:
+        case #C5:
           {
             #t1 = r1.{core::Object::toString}(){() → core::String};
             break #L1;
           }
         #L3:
-        case #C2:
+        case #C1:
           {
             #t1 = "default";
             break #L1;
@@ -52,6 +58,9 @@ static method main() → dynamic {
 }
 
 constants  {
-  #C1 = 0
-  #C2 = 1
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+  #C4 = 4
+  #C5 = 0
 }

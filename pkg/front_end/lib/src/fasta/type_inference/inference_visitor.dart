@@ -9450,7 +9450,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }) {
     DartType matchedType = flow.getMatchedValueType();
     // Stack: ()
-    analyzeExpression(pattern.expression, matchedType);
+    pattern.expressionType = analyzeExpression(pattern.expression, matchedType);
     // Stack: (Expression)
 
     Node? rewrite = popRewrite();
