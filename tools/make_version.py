@@ -54,7 +54,8 @@ def FormatVersionString(version,
                         no_git_hash,
                         no_sdk_hash,
                         version_file=None,
-                        git_revision_file=None):
+                        git_revision_file=None,
+                        git_timestamp_file=None):
     semantic_sdk_version = utils.GetSemanticSDKVersion(no_git_hash,
                                                        version_file,
                                                        git_revision_file)
@@ -79,7 +80,7 @@ def FormatVersionString(version,
 
     version_time = None
     if not no_git_hash:
-        version_time = utils.GetGitTimestamp()
+        version_time = utils.GetGitTimestamp(git_timestamp_file)
     if version_time == None:
         version_time = 'Unknown timestamp'
     version = version.replace('{{COMMIT_TIME}}', version_time)
@@ -115,6 +116,8 @@ def main():
         parser.add_argument('--version-file', help='Path to the VERSION file.')
         parser.add_argument('--git-revision-file',
                             help='Path to the GIT_REVISION file.')
+        parser.add_argument('--git-timestamp-file',
+                            help='Path to the GIT_TIMESTAMP file.')
         parser.add_argument(
             '--format',
             default='{{VERSION_STR}}',
@@ -136,7 +139,8 @@ def main():
 
         version = FormatVersionString(version_template, args.no_git_hash,
                                       args.no_sdk_hash, args.version_file,
-                                      args.git_revision_file)
+                                      args.git_revision_file,
+                                      args.git_timestamp_file)
 
         if args.output:
             with open(args.output, 'w') as fh:
