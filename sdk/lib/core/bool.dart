@@ -94,7 +94,10 @@ class bool {
   //ignore: const_factory
   external const factory bool.hasEnvironment(String name);
 
-  /// Parse [source] as a, possibly signed, boolean literal and return its value.
+  /// Parse [source] as a, optionally case-insensitive, boolean literal and return its value.
+  ///
+  /// The [caseSensitive] only accepted inputs are the ASCII letter sequences "true" and "false"
+  /// optionally allowing upper case letters as well as lower case, in any combination.
   ///
   /// If the [source] string does not contain a valid boolean literal,
   /// optionally prefixed by a sign, a [FormatException] is thrown.
@@ -110,9 +113,9 @@ class bool {
   ///   // ...
   /// }
   /// ```
-  external static bool parse(String source);
+  external static bool parse(String source, {bool? caseSensitive});
 
-  /// Parse [source] as a, possibly signed, boolean literal.
+  /// Parse [source] as a, optionally case-insensitive, boolean literal.
   ///
   /// Like [parse] except that this function returns `null` where a
   /// similar call to [parse] would throw a [FormatException].
@@ -123,8 +126,12 @@ class bool {
   /// print(int.tryParse('TRUE'));  // true
   /// print(int.tryParse('false')); // false
   /// print(int.tryParse('FALSE')); // false
+  /// print(int.tryParse('NO')); // FormatException
+  /// print(int.tryParse('YES')); // FormatException
+  /// print(int.tryParse('0')); // FormatException
+  /// print(int.tryParse('1')); // FormatException
   /// ```
-  external static bool? tryParse(String source);
+  external static bool? tryParse(String source, {bool? caseSensitive});
 
 
   external int get hashCode;

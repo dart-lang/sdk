@@ -584,15 +584,15 @@ class bool {
   int get hashCode => super.hashCode;
   
   @patch
-  static bool parse(String source) {
-    bool? value = tryParse(source);
-    if (value != null) return value;    
+  static bool parse(String source, {bool? caseSensitive}) {
+    var value = tryParse(source, caseSensitive: caseSensitive);
+    if (value != null) return value;
     throw new FormatException(source);
   }
 
   @patch
-  static bool? tryParse(String source) {
-    return Primitives.parseBool(source);
+  static bool? tryParse(String source, {bool? caseSensitive}) {
+    return Primitives.parseBool(source, caseSensitive);
   }
 }
 

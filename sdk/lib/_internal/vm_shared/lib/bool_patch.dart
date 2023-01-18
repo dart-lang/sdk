@@ -22,11 +22,32 @@ class bool {
   int get _identityHashCode => this ? 1231 : 1237;
 
   @patch
-  static bool? tryParse(String source) {
+  static bool parse(String source, {bool? caseSensitive}) {
     if (source == null) throw new ArgumentError("The source must not be null");
-    if (source.isEmpty) return null;
-    source = source.toLowerCase();
-    if (source != 'true' || source != 'false') return null;                      
-    return (str == 'true') ? true : false;
+    if (source.isEmpty) throw new ArgumentError("The source must not be empty");
+    //The caseSensitive defaults to true.
+    if (caseSensitive == null || caseSensitive == true) return source == "true" ? true : source == "false" ? false : throw ArgumentError(source);     
+    //Ignore case-sensitive when caseSensitive is false.                                      
+    return _compareIgnoreCase(source, "true")? true : _compareIgnoreCase(source, "false")? false : throw ArgumentError(source);
+  }
+
+  @patch
+  static bool? tryParse(String source, {bool? caseSensitive}) {
+    if (source == null) throw new ArgumentError("The source must not be null");
+    if (source.isEmpty) throw new ArgumentError("The source must not be empty");
+    //The caseSensitive defaults to true.
+    if (caseSensitive == null || caseSensitive == true) return source == "true" ? true : source == "false" ? false : null;     
+    //Ignore case-sensitive when caseSensitive is false.                                      
+    return _compareIgnoreCase(source, "true")? true : _compareIgnoreCase(source, "false")? false : null;
+  }
+
+  static bool _compareIgnoreCase(String input, String lowerCaseTarget) {
+   if (input.length != lowerCaseTarget.length) return false;
+   for (var i = 0; i < input.length; i++) {
+     if (input.codeUnitAt(i) | 0x20 != lowerCaseTarget.codeUnitAt(i)) {
+       return false;
+     }
+   }
+   return true;
   }
 }
