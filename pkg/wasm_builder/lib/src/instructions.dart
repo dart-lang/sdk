@@ -268,8 +268,13 @@ class Instructions with SerializerMixin {
     if (!reachable) {
       return _debugTrace(trace, reachableAfter: false);
     }
-    if (_stackTypes.length - inputs.length < _topOfLabelStack.baseStackHeight) {
-      _reportError("Underflowing base stack of innermost block");
+    final int baseStackHeight = _topOfLabelStack.baseStackHeight;
+    if (_stackTypes.length - inputs.length < baseStackHeight) {
+      final String expected = inputs.join(', ');
+      final String got = _stackTypes.sublist(baseStackHeight).join(', ');
+      _reportError(
+          "Underflowing base stack of innermost block: expected [$expected], "
+          "but stack contained [$got]");
     }
     final List<ValueType> stack = _checkStackTypes(inputs);
     _stackTypes.length -= inputs.length;
