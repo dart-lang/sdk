@@ -167,7 +167,6 @@ final Map<String, String> typeToLibraryMethodsListName = () {
     abstractClassInstantiationErrorEncoding:
         abstractClassInstantiationErrorLibs,
     argumentErrorEncoding: argumentErrorLibs,
-    assertionErrorEncoding: assertionErrorLibs,
     boolEncoding: boolLibs,
     byteDataEncoding: byteDataLibs,
     castErrorEncoding: castErrorLibs,
