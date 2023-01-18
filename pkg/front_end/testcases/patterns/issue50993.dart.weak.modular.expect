@@ -12,20 +12,20 @@ static method test1(core::int value) → core::String {
       #t2 = 0;
       #t3 = true;
     }
-    if(!#t3 && #t1 =={core::num::==}{(core::Object) → core::bool} 2) {
+    if(!#t3 && #t1 =={core::num::==}{(core::Object) → core::bool} #C1) {
       #t2 = 1;
       #t3 = true;
     }
     switch(#t2) {
       #L2:
-      case #C1:
+      case #C2:
         {
           {
             return "case <2";
           }
         }
       #L3:
-      case #C2:
+      case #C3:
         {
           {
             return "case 2";
@@ -45,20 +45,20 @@ static method test2(core::int value) → core::String {
       #t5 = 0;
       #t6 = true;
     }
-    if(!#t6 && #t4 =={core::num::==}{(core::Object) → core::bool} 2) {
+    if(!#t6 && #t4 =={core::num::==}{(core::Object) → core::bool} #C1) {
       #t5 = 1;
       #t6 = true;
     }
     switch(#t5) {
       #L5:
-      case #C1:
+      case #C2:
         {
           {
             return "case <2";
           }
         }
       #L6:
-      case #C2:
+      case #C3:
       default:
         {
           {
@@ -75,7 +75,7 @@ static method test3(core::int value) → core::String {
     final core::int #t7 = value;
     core::int #t8 = -1;
     core::bool #t9 = false;
-    if(!#t9 && #t7 =={core::num::==}{(core::Object) → core::bool} 2) {
+    if(!#t9 && #t7 =={core::num::==}{(core::Object) → core::bool} #C1) {
       #t8 = 0;
       #t9 = true;
     }
@@ -85,14 +85,14 @@ static method test3(core::int value) → core::String {
     }
     switch(#t8) {
       #L8:
-      case #C1:
+      case #C2:
         {
           {
             return "case 2";
           }
         }
       #L9:
-      case #C2:
+      case #C3:
       default:
         {
           {
@@ -109,7 +109,7 @@ static method test4(core::int value) → core::String {
     final core::int #t10 = value;
     core::int #t11 = -1;
     core::bool #t12 = false;
-    if(!#t12 && #t10 =={core::num::==}{(core::Object) → core::bool} 2) {
+    if(!#t12 && #t10 =={core::num::==}{(core::Object) → core::bool} #C1) {
       #t11 = 0;
       #t12 = true;
     }
@@ -119,21 +119,21 @@ static method test4(core::int value) → core::String {
     }
     switch(#t11) {
       #L11:
-      case #C1:
+      case #C2:
         {
           {
             return "case 2";
           }
         }
       #L12:
-      case #C2:
+      case #C3:
         {
           {
             return "case <2";
           }
         }
       #L13:
-      case #C3:
+      case #C1:
       default:
         {
           {
@@ -149,7 +149,7 @@ static method test5(core::int value) → core::String {
     final core::int #t13 = value;
     core::int #t14 = -1;
     core::bool #t15 = false;
-    if(!#t15 && #t13 =={core::num::==}{(core::Object) → core::bool} 2) {
+    if(!#t15 && #t13 =={core::num::==}{(core::Object) → core::bool} #C1) {
       #t14 = 0;
       #t15 = true;
     }
@@ -163,21 +163,21 @@ static method test5(core::int value) → core::String {
     }
     switch(#t14) {
       #L15:
-      case #C1:
+      case #C2:
         {
           {
             return "case 2";
           }
         }
       #L16:
-      case #C2:
+      case #C3:
         {
           {
             return "case <2 >3";
           }
         }
       #L17:
-      case #C3:
+      case #C1:
       default:
         {
           {
@@ -191,12 +191,12 @@ static method test6(core::int value) → core::String {
   #L18:
   switch(value) {
     #L19:
-    case #C3:
+    case #C1:
       {
         return "case 2";
       }
     #L20:
-    case #C2:
+    case #C3:
     case #C4:
       {
         return "case 1/4";
@@ -239,8 +239,8 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 }
 
 constants  {
-  #C1 = 0
-  #C2 = 1
-  #C3 = 2
+  #C1 = 2
+  #C2 = 0
+  #C3 = 1
   #C4 = 4
 }

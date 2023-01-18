@@ -10,14 +10,14 @@ static method test(dynamic x) → dynamic {
     core::bool #t3 = false;
     if(!#t3) {
       final core::int #t4 = #t1 as{ForNonNullableByDefault} core::int;
-      if(#t4 =={core::num::==}{(core::Object) → core::bool} 1) {
+      if(#t4 =={core::num::==}{(core::Object) → core::bool} #C1) {
         #t2 = 0;
         #t3 = true;
       }
     }
     switch(#t2) {
       #L2:
-      case #C1:
+      case #C2:
         {
           {
             break #L1;
@@ -28,5 +28,6 @@ static method test(dynamic x) → dynamic {
 }
 
 constants  {
-  #C1 = 0
+  #C1 = 1
+  #C2 = 0
 }

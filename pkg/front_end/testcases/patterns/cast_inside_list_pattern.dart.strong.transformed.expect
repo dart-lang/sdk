@@ -13,7 +13,7 @@ static method test(dynamic x) → dynamic {
       if(#t4 is core::List<dynamic> && #t4{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
         final dynamic #t5 = #t4{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
         final core::int #t6 = #t5 as{ForNonNullableByDefault} core::int;
-        if(#t6 =={core::num::==}{(core::Object) → core::bool} 1) {
+        if(#t6 =={core::num::==}{(core::Object) → core::bool} #C1) {
           #t2 = 0;
           #t3 = true;
         }
@@ -21,7 +21,7 @@ static method test(dynamic x) → dynamic {
     }
     switch(#t2) {
       #L2:
-      case #C1:
+      case #C2:
         {
           {
             break #L1;
@@ -32,5 +32,6 @@ static method test(dynamic x) → dynamic {
 }
 
 constants  {
-  #C1 = 0
+  #C1 = 1
+  #C2 = 0
 }

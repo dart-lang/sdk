@@ -8,7 +8,7 @@ static method f(dynamic x) → void {
     final dynamic #t1 = x;
     core::int #t2 = -1;
     core::bool #t3 = false;
-    if(!#t3 && #t1 =={core::Object::==}{(core::Object) → core::bool} 0) {
+    if(!#t3 && #t1 =={core::Object::==}{(core::Object) → core::bool} #C1) {
       if(true) {
         #t2 = 0;
         #t3 = true;

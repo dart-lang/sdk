@@ -13,15 +13,17 @@ static method test(dynamic x) → dynamic {
       if(#t4 is core::List<core::int> && #t4{core::List<core::int>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
         final core::int #t5 = #t4{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int};
         final core::int #t6 = #t4{core::List<core::int>}.{core::List::[]}(1){(core::int) → core::int};
-        if(#t5 =={core::num::==}{(core::Object) → core::bool} 1 && #t6 =={core::num::==}{(core::Object) → core::bool} 2) {
-          #t2 = 0;
-          #t3 = true;
+        if(#t5 =={core::num::==}{(core::Object) → core::bool} #C1) {
+          if(#t6 =={core::num::==}{(core::Object) → core::bool} #C2) {
+            #t2 = 0;
+            #t3 = true;
+          }
         }
       }
     }
     switch(#t2) {
       #L2:
-      case #C1:
+      case #C3:
         {
           {
             break #L1;
@@ -32,5 +34,7 @@ static method test(dynamic x) → dynamic {
 }
 
 constants  {
-  #C1 = 0
+  #C1 = 1
+  #C2 = 2
+  #C3 = 0
 }
