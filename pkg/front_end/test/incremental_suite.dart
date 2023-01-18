@@ -97,6 +97,7 @@ import "package:yaml/yaml.dart" show YamlMap, loadYamlNode;
 
 import 'binary_md_dill_reader.dart' show DillComparer;
 
+import 'fasta/testing/suite.dart';
 import "incremental_utils.dart" as util;
 
 import 'test_utils.dart';
@@ -492,7 +493,7 @@ final Expectation ConstantCoverageReferenceWithoutNode =
 
 Future<Context> createContext(Chain suite, Map<String, String> environment) {
   const Set<String> knownEnvironmentKeys = {
-    "updateExpectations",
+    UPDATE_EXPECTATIONS,
     "addDebugBreaks",
     "skipTests",
   };
@@ -503,7 +504,7 @@ Future<Context> createContext(Chain suite, Map<String, String> environment) {
   colors.enableColors = false;
   Set<String> skipTests = environment["skipTests"]?.split(",").toSet() ?? {};
   return new Future.value(new Context(
-    environment["updateExpectations"] == "true",
+    environment[UPDATE_EXPECTATIONS] == "true",
     environment["addDebugBreaks"] == "true",
     skipTests,
   ));
@@ -1920,7 +1921,7 @@ Result<TestData>? checkExpectFile(TestData data, int worldNum,
   if (file.existsSync()) {
     expected = file.readAsStringSync();
   }
-  if (expected != actualSerialized) {
+  if (expected?.replaceAll("\r\n", "\n") != actualSerialized) {
     if (context.updateExpectations) {
       file.writeAsStringSync(actualSerialized);
     } else {
