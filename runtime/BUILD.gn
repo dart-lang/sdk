@@ -6,6 +6,8 @@ import("../sdk_args.gni")
 import("configs.gni")
 import("runtime_args.gni")
 
+import("//build/config/sysroot.gni")
+
 if (is_fuchsia) {
   import("//build/fuchsia/sdk.gni")
 }
@@ -211,7 +213,6 @@ config("dart_config") {
     }
   } else {
     cflags = [
-      "-Werror",
       "-Wall",
       "-Wextra",  # Also known as -W.
       "-Wno-unused-parameter",
@@ -225,6 +226,9 @@ config("dart_config") {
       "-fno-rtti",
       "-fno-exceptions",
     ]
+    if (dart_use_sysroot != "alpine") {
+      cflags += [ "-Werror" ]
+    }
     if (is_clang) {
       cflags += [
         "-Wimplicit-fallthrough",

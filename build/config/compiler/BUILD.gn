@@ -13,6 +13,8 @@ declare_args() {
   }
 }
 
+import("//build/config/sysroot.gni")
+
 import("//build/config/android/config.gni")
 if (current_cpu == "arm") {
   import("//build/config/arm.gni")
@@ -670,8 +672,11 @@ config("chromium_code") {
     cflags = [
       "-Wall",
       "-Wextra",
-      "-Werror",
     ]
+
+    if (dart_use_sysroot != "alpine") {
+      cflags += [ "-Werror" ]
+    }
 
     defines = []
     if (!using_sanitizer && !is_clang) {
