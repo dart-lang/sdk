@@ -4,6 +4,8 @@
 
 // Tests for @FfiNative related transformations.
 
+// ignore_for_file: deprecated_member_use
+
 // @dart=2.14
 
 import 'dart:ffi';

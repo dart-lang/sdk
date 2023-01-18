@@ -12,6 +12,8 @@
 // OtherResources=asset_executable_test.dart
 // OtherResources=helpers.dart
 
+// ignore_for_file: deprecated_member_use
+
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
@@ -65,20 +67,24 @@ Future<void> runTests() async {
 @FfiNative<Bool Function(Int64 port, Int64 message)>('Dart_PostInteger')
 external bool dartPostInteger(int port, int message);
 
+@Native<Bool Function(Int64 port, Int64 message)>()
+external bool Dart_PostInteger(int port, int message);
+
 Future<void> testExecutable() async {
-  const int message = 1337 * 42;
+  for (final postInteger in [dartPostInteger, Dart_PostInteger]) {
+    const int message = 1337 * 42;
 
-  final completer = Completer();
+    final completer = Completer();
 
-  final receivePort = ReceivePort()
-    ..listen((receivedMessage) => completer.complete(receivedMessage));
+    final receivePort = ReceivePort()
+      ..listen((receivedMessage) => completer.complete(receivedMessage));
 
-  final bool success =
-      dartPostInteger(receivePort.sendPort.nativePort, message);
-  Expect.isTrue(success);
+    final bool success = postInteger(receivePort.sendPort.nativePort, message);
+    Expect.isTrue(success);
 
-  final postedMessage = await completer.future;
-  Expect.equals(message, postedMessage);
+    final postedMessage = await completer.future;
+    Expect.equals(message, postedMessage);
 
-  receivePort.close();
+    receivePort.close();
+  }
 }

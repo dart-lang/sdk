@@ -12,6 +12,8 @@
 // OtherResources=asset_system_test.dart
 // OtherResources=helpers.dart
 
+// ignore_for_file: deprecated_member_use
+
 import 'dart:async';
 import 'dart:ffi';
 import 'dart:io';
@@ -37,18 +39,24 @@ main(List<String> args, Object? message) async {
   )(args, message);
 }
 
-final selfSourceUri = Platform.script.resolve('asset_system_test.dart');
+const asset2Name = 'myAsset';
+
 Future<void> selfInvokes() async {
+  final selfSourceUri = Platform.script.resolve('asset_system_test.dart');
+  final assetMapping = [
+    'system',
+    Platform.isWindows
+        ? 'ole32.dll'
+        : (Platform.isMacOS || Platform.isIOS)
+            ? 'libc.dylib'
+            : 'libc.so.6', // lib.so contains plain text with GROUP( ... ).
+  ];
   final nativeAssetsYaml = createNativeAssetYaml(
-      asset: 'file://${selfSourceUri.toFilePath()}',
-      assetMapping: [
-        'system',
-        Platform.isWindows
-            ? 'ole32.dll'
-            : (Platform.isMacOS || Platform.isIOS)
-                ? 'libc.dylib'
-                : 'libc.so.6', // lib.so contains plain text with GROUP( ... ).
-      ]);
+    asset: 'file://${selfSourceUri.toFilePath()}',
+    assetMapping: assetMapping,
+    asset2: asset2Name,
+    asset2Mapping: assetMapping,
+  );
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.jit,
@@ -80,14 +88,32 @@ external Pointer winCoTaskMemAlloc(int cb);
 @FfiNative<Void Function(Pointer)>('CoTaskMemFree')
 external void winCoTaskMemFree(Pointer pv);
 
+@Native<Pointer Function(IntPtr)>()
+external Pointer malloc(int size);
+
+@Native<Void Function(Pointer)>(assetId: asset2Name)
+external void free(Pointer pointer);
+
+@Native<Pointer Function(Size)>()
+external Pointer CoTaskMemAlloc(int cb);
+
+@Native<Void Function(Pointer)>(assetId: asset2Name)
+external void CoTaskMemFree(Pointer pv);
+
 void testProcessOrSystem() {
   if (Platform.isWindows) {
     final pointer = winCoTaskMemAlloc(8);
     Expect.notEquals(nullptr, pointer);
     winCoTaskMemFree(pointer);
+    final pointer2 = CoTaskMemAlloc(8);
+    Expect.notEquals(nullptr, pointer2);
+    CoTaskMemFree(pointer2);
   } else {
     final pointer = posixMalloc(8);
     Expect.notEquals(nullptr, pointer);
     posixFree(pointer);
+    final pointer2 = malloc(8);
+    Expect.notEquals(nullptr, pointer2);
+    free(pointer2);
   }
 }

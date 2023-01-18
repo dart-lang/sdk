@@ -270,6 +270,8 @@ String createNativeAssetYaml({
   String? target,
   required String asset,
   required List<String> assetMapping,
+  String? asset2,
+  List<String>? asset2Mapping,
 }) {
   target ??= Abi.current().toString();
   return jsonEncode({
@@ -277,6 +279,7 @@ String createNativeAssetYaml({
     'native-assets': {
       target: {
         asset: assetMapping,
+        if (asset2 != null && asset2Mapping != null) asset2: asset2Mapping,
       },
     },
   });
@@ -397,12 +400,20 @@ Future<void> Function(List<String> args, Object? message) selfInvokingTest({
 
 const doesNotExistName = 'doesnotexist92304';
 
-@FfiNative<Int32 Function(Int32, Int32)>('doesnotexist92304')
+@FfiNative<Int32 Function(Int32, Int32)>(doesNotExistName)
 external int doesNotExist(int a, int b);
+
+@Native<Int32 Function(Int32, Int32)>()
+external int doesnotexist92304(int a, int b);
 
 void testNonExistingFunction() {
   final argumentError = Expect.throws<ArgumentError>(() {
     doesNotExist(2, 3);
   });
   Expect.contains(doesNotExistName, argumentError.message);
+
+  final argumentError2 = Expect.throws<ArgumentError>(() {
+    doesnotexist92304(2, 3);
+  });
+  Expect.contains(doesNotExistName, argumentError2.message);
 }
