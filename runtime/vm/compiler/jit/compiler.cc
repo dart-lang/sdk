@@ -677,12 +677,14 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        volatile bool optimized,
                                        intptr_t osr_id) {
+  Thread* const thread = Thread::Current();
+  NoActiveIsolateScope no_active_isolate(thread);
+
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
   if (function.ForceOptimize()) optimized = true;
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Thread* const thread = Thread::Current();
     StackZone stack_zone(thread);
     Zone* const zone = stack_zone.GetZone();
     const bool trace_compiler =
@@ -879,7 +881,6 @@ ObjectPtr Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
   VMTagScope tag_scope(thread, VMTag::kCompileOptimizedTagId);
-  NoActiveIsolateScope no_active_isolate(thread);
 
 #if defined(SUPPORT_TIMELINE)
   const char* event_name;

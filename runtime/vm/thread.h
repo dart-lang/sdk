@@ -54,6 +54,7 @@ class Library;
 class Object;
 class OSThread;
 class JSONObject;
+class NoActiveIsolateScope;
 class PcDescriptors;
 class RuntimeEntry;
 class Smi;
@@ -92,8 +93,7 @@ class Thread;
   V(String)                                                                    \
   V(TypeParameters)                                                            \
   V(TypeArguments)                                                             \
-  V(TypeParameter)                                                             \
-  V(WeakArray)
+  V(TypeParameter)
 
 #define CACHED_VM_STUBS_LIST(V)                                                \
   V(CodePtr, fix_callers_target_code_, StubCode::FixCallersTarget().ptr(),     \
@@ -1273,6 +1273,7 @@ class Thread : public ThreadState {
   CompilerState* compiler_state_ = nullptr;
   HierarchyInfo* hierarchy_info_;
   TypeUsageInfo* type_usage_info_;
+  NoActiveIsolateScope* no_active_isolate_scope_ = nullptr;
 
   CompilerTimings* compiler_timings_ = nullptr;
 
@@ -1371,7 +1372,7 @@ class Thread : public ThreadState {
 #undef REUSABLE_FRIEND_DECLARATION
 
   friend class ApiZone;
-  friend class DisabledNoActiveIsolateScope;
+  friend class ActiveIsolateScope;
   friend class InterruptChecker;
   friend class Isolate;
   friend class IsolateGroup;

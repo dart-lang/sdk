@@ -126,6 +126,18 @@ class _Int16List {
 }
 
 @patch
+class _Uint16List {
+  @override
+  Type get runtimeType => Uint16List;
+}
+
+@patch
+class _Int32List {
+  @override
+  Type get runtimeType => Int32List;
+}
+
+@patch
 class _Uint32List {
   @override
   Type get runtimeType => Uint32List;
@@ -141,6 +153,12 @@ class _Int64List {
 class _Uint64List {
   @override
   Type get runtimeType => Uint64List;
+}
+
+@patch
+class _Float32List {
+  @override
+  Type get runtimeType => Float32List;
 }
 
 @patch

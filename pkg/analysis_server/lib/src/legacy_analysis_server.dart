@@ -451,22 +451,24 @@ class LegacyAnalysisServer extends AnalysisServer {
 
   /// Handle a [request] that was read from the communication channel.
   void handleRequest(Request request) {
-    analyticsManager.startedRequest(
-        request: request, startTime: DateTime.now());
+    final startTime = DateTime.now();
+    analyticsManager.startedRequest(request: request, startTime: startTime);
     performance.logRequestTiming(request.clientRequestTime);
 
     // Because we don't `await` the execution of the handlers, we wrap the
     // execution in order to have one central place to handle exceptions.
     runZonedGuarded(() async {
       // Record performance information for the request.
-      final performance = OperationPerformanceImpl('<root>');
-      await performance.runAsync('request', (performance) async {
-        final requestPerformance = RequestPerformance(
+      final rootPerformance = OperationPerformanceImpl('<root>');
+      RequestPerformance? requestPerformance;
+      await rootPerformance.runAsync('request', (performance) async {
+        requestPerformance = RequestPerformance(
           operation: request.method,
           performance: performance,
           requestLatency: request.timeSinceRequest,
+          startTime: startTime,
         );
-        recentPerformance.requests.add(requestPerformance);
+        recentPerformance.requests.add(requestPerformance!);
 
         var cancellationToken = CancelableToken();
         cancellationTokens[request.id] = cancellationToken;
@@ -479,6 +481,11 @@ class LegacyAnalysisServer extends AnalysisServer {
           sendResponse(Response.unknownRequest(request));
         }
       });
+      if (requestPerformance != null &&
+          requestPerformance!.performance.elapsed >
+              ServerRecentPerformance.slowRequestsThreshold) {
+        recentPerformance.slowRequests.add(requestPerformance!);
+      }
     }, (exception, stackTrace) {
       if (exception is InconsistentAnalysisException) {
         sendResponse(Response.contentModified(request));

@@ -6635,7 +6635,22 @@ void NativeCallInstr::SetupNative() {
     return;
   }
 
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  // Currently we perform unoptimized compilations only on mutator threads. If
+  // the compiler has to resolve a native to a function pointer it calls out to
+  // the embedder to do so.
+  //
+  // Unfortunately that embedder API was designed by giving it a handle to a
+  // string. So the embedder will have to call back into the VM to convert it to
+  // a C string - which requires an active isolate.
+  //
+  // => To allow this `dart-->jit-compiler-->embedder-->dart api` we set the
+  //    active isolate again.
+  //
+  ActiveIsolateScope active_isolate(thread);
+
   const Class& cls = Class::Handle(zone, function().Owner());
   const Library& library = Library::Handle(zone, cls.library());
 

@@ -972,8 +972,11 @@ bool AotCallSpecializer::TryExpandCallThroughGetter(const Class& receiver_class,
 
   Function& target = Function::Handle(Z);
 
-  const String& getter_name =
-      String::ZoneHandle(Z, Symbols::FromGet(thread(), call->function_name()));
+  const String& getter_name = String::ZoneHandle(
+      Z, Symbols::LookupFromGet(thread(), call->function_name()));
+  if (getter_name.IsNull()) {
+    return false;
+  }
 
   const Array& args_desc_array = Array::Handle(
       Z,

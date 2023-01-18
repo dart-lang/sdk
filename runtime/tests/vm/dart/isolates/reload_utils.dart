@@ -187,6 +187,46 @@ class Reloader {
     return reloadResult;
   }
 
+  Future<Stream> getDebugStream() async {
+    return await _remoteVm.getEventStream('Debug');
+  }
+
+  Future<String> getIsolateId(String name) async {
+    final vm = await _remoteVm.rpc.sendRequest('getVM', {});
+    final isolates = vm['isolates'];
+    for (final isolate in isolates) {
+      if (isolate['name'].contains(name)) {
+        return isolate['id'];
+      }
+    }
+    throw 'Did not find isolate with name "$name"';
+  }
+
+  Future addBreakpoint(int line, {String? isolateId}) async {
+    isolateId ??= await _remoteVm.mainId;
+    final rootScriptId = await getRootScriptId();
+    var result = await _remoteVm.rpc.sendRequest('addBreakpoint', {
+      'isolateId': isolateId,
+      'scriptId': rootScriptId,
+      'line': line,
+    });
+    if (result['enabled'] != true) throw 'failed to set breakpoint';
+  }
+
+  Future<String> getRootScriptId() async {
+    final isolateId = await _remoteVm.mainId;
+    final result = await _remoteVm.rpc.sendRequest('getIsolate', {
+      'isolateId': isolateId,
+    });
+    final rootLibraryId = result['rootLib']['id'];
+
+    final result2 = await _remoteVm.rpc.sendRequest('getObject', {
+      'isolateId': isolateId,
+      'objectId': rootLibraryId,
+    });
+    return result2['scripts'][0]['id'];
+  }
+
   Future<int> close() async {
     await _remoteVm.disconnect();
     final exitCode = await _process.exitCode;
