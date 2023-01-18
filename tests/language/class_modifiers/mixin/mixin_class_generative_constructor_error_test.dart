@@ -8,12 +8,12 @@
 // constructor
 
 mixin class MixinClass {
-// ^
-// [analyzer] unspecified
-// [cfe] unspecified
   final int foo;
 
   MixinClass(this.foo);
+//^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [cfe] unspecified
 }
 
 class GenerativeConstructor with MixinClass {}
