@@ -347,7 +347,14 @@ template("dartdevc_sdk_js") {
       "--multi-root-scheme",
       "org-dartlang-sdk",
       "--multi-root-output-path",
-      rebase_path("$target_gen_dir/../../"),
+
+      # This path is intended to point to a version of source files used to
+      # generate the SDK JavaScript modules.
+      # The intention is that the source map locations can be linked to the
+      # orignal source files while running SDK test suites.
+      # These JavaScript files and source maps are no longer packaged into the
+      # released SDK.
+      rebase_path("$target_gen_dir/../../../dart-sdk"),
       "--modules",
       "amd",
       "-o",

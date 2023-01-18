@@ -380,8 +380,8 @@ class TestDriver {
         if (!File('$dartSdkPath.js').existsSync()) {
           throw Exception('Unable to find Dart SDK at $dartSdkPath.js');
         }
-        var requirePath = escaped(p.join(buildDir, 'dart-sdk', 'lib',
-            'dev_compiler', 'kernel', 'amd', 'require.js'));
+        var requirePath = escaped(p.join(
+            buildDir, 'dart-sdk', 'lib', 'dev_compiler', 'amd', 'require.js'));
         var outputPath = escaped(p.withoutExtension(output.toFilePath()));
         bootstrapFile.writeAsStringSync('''
 <script src='$requirePath'></script>
