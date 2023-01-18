@@ -21,7 +21,10 @@ if (use_goma) {
   compiler_prefix = ""
 }
 
-if (host_cpu == "arm64") {
+# Google's clang does not work for alpine, use alpine's system clang
+if (dart_use_sysroot == "alpine") {
+  rebased_clang_dir = "/usr/bin"
+} else if (host_cpu == "arm64") {
   rebased_clang_dir =
       rebase_path("//buildtools/linux-arm64/clang/bin", root_build_dir)
 } else {
