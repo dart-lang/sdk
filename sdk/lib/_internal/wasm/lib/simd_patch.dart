@@ -240,6 +240,9 @@ class _NaiveFloat64x2List extends Object
 
   _NaiveFloat64x2List(int length) : _storage = Float64List(length * 2);
 
+  @override
+  Type get runtimeType => Float64x2List;
+
   _NaiveFloat64x2List._externalStorage(this._storage);
 
   _NaiveFloat64x2List._slowFromList(List<Float64x2> list)
@@ -332,6 +335,10 @@ class _NaiveFloat32x4 implements Float32x4 {
 
   _NaiveFloat32x4._truncated(this.x, this.y, this.z, this.w);
 
+  @override
+  Type get runtimeType => Float32x4List;
+
+  @override
   String toString() {
     return '[$x, $y, $z, $w]';
   }
