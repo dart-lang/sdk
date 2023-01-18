@@ -50,6 +50,7 @@ class Intrinsifier {
         '_shl': (b) => b.i64_shl(),
         '_shr_s': (b) => b.i64_shr_s(),
         '_shr_u': (b) => b.i64_shr_u(),
+        '_le_u': (b) => b.i64_le_u(),
         '_lt_u': (b) => b.i64_lt_u(),
       }
     },
@@ -63,6 +64,7 @@ class Intrinsifier {
         '<=': (b) => b.f64_le(),
         '>': (b) => b.f64_gt(),
         '>=': (b) => b.f64_ge(),
+        '_copysign': (b) => b.f64_copysign(),
       }
     },
   };
@@ -117,7 +119,12 @@ class Intrinsifier {
   }
 
   static bool isComparison(String op) =>
-      op == '<' || op == '<=' || op == '>' || op == '>=' || op == '_lt_u';
+      op == '<' ||
+      op == '<=' ||
+      op == '>' ||
+      op == '>=' ||
+      op == '_le_u' ||
+      op == '_lt_u';
 
   Intrinsifier(this.codeGen);
 
