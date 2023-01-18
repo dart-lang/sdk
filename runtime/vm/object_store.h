@@ -159,6 +159,8 @@ class ObjectPointerVisitor;
   RW(Library, root_library)                                                    \
   RW(Library, typed_data_library)                                              \
   RW(Library, _vmservice_library)                                              \
+  RW(Library, native_assets_library)                                           \
+  RW(Array, native_assets_map)                                                 \
   RW(GrowableObjectArray, libraries)                                           \
   RW(Array, libraries_map)                                                     \
   RW(Array, uri_to_resolved_uri_map)                                           \

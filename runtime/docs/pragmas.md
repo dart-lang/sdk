@@ -33,6 +33,14 @@ These pragmas can cause unsound behavior if used incorrectly and therefore are o
 | `vm:exact-result-type` | [Declaring an exact result type of a method](compiler/pragmas_recognized_by_compiler.md#providing-an-exact-result-type) |
 | `vm:recognized` | [Marking this as a recognized method](compiler/pragmas_recognized_by_compiler.md#marking-recognized-methods) |
 
+## Pragmas ignored in user code
+
+These pragma's are only used on AST nodes synthesized by us, so users defining these will be ignored.
+
+| Pragma | Meaning |
+| --- | --- |
+| `vm:ffi:native-assets` | [Passing a native assets mapping to the VM](compiler/ffi_pragmas.md) |
+
 ## Pragmas for internal testing
 
 These pragmas are used for inspecting or modifying internal VM state and should be used exclusively by SDK tests.

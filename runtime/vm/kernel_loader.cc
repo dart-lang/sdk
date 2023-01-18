@@ -966,6 +966,13 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
     library.SetLoadInProgress();
   }
 
+  if (library.url() == Symbols::vm_ffi_native_assets().ptr()) {
+    const auto& native_assets_library =
+        Library::Handle(IG->object_store()->native_assets_library());
+    ASSERT(native_assets_library.IsNull());
+    IG->object_store()->set_native_assets_library(library);
+  }
+
   library_helper.ReadUntilIncluding(LibraryHelper::kSourceUriIndex);
   const Script& script =
       Script::Handle(Z, ScriptAt(library_helper.source_uri_index_));

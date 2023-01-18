@@ -35,6 +35,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
+#include "vm/ffi/native_assets.h"
 #include "vm/flags.h"
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
@@ -490,6 +491,10 @@ void Precompiler::DoCompileAll() {
       dispatch_table_generator_ = new compiler::DispatchTableGenerator(Z);
       dispatch_table_generator_->Initialize(IG->class_table());
 
+      // After finding all code, and before starting to trace, populate the
+      // assets map.
+      GetNativeAssetsMap(T);
+
       // Precompile constructors to compute information such as
       // optimized instruction count (used in inlining heuristics).
       ClassFinalizer::ClearAllCode(
@@ -614,6 +619,7 @@ void Precompiler::DoCompileAll() {
         // Clear these before dropping classes as they may hold onto otherwise
         // dead instances of classes we will remove or otherwise unused symbols.
         IG->object_store()->set_unique_dynamic_targets(Array::null_array());
+        Library& null_library = Library::Handle(Z);
         Class& null_class = Class::Handle(Z);
         Function& null_function = Function::Handle(Z);
         Field& null_field = Field::Handle(Z);
@@ -628,6 +634,7 @@ void Precompiler::DoCompileAll() {
         IG->object_store()->set_simple_instance_of_false_function(
             null_function);
         IG->object_store()->set_async_star_stream_controller(null_class);
+        IG->object_store()->set_native_assets_library(null_library);
         DropMetadata();
         DropLibraryEntries();
       }
