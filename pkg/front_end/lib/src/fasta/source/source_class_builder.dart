@@ -787,11 +787,31 @@ class SourceClassBuilder extends ClassBuilderImpl
         superClass = decl;
       }
     }
-    if (cls.isMixinClass &&
-        superClass != null &&
-        superClass.cls != objectClass) {
-      addProblem(templateMixinInheritsFromNotObject.withArguments(name),
-          charOffset, noLength);
+    if (cls.isMixinClass) {
+      // Check that the class does not have a constructor.
+      Iterator<SourceMemberBuilder> constructorIterator =
+          fullConstructorIterator<SourceMemberBuilder>();
+      while (constructorIterator.moveNext()) {
+        SourceMemberBuilder constructor = constructorIterator.current;
+        // Assumes the constructor isn't synthetic since
+        // [installSyntheticConstructors] hasn't been called yet.
+        addProblem(
+            templateIllegalMixinDueToConstructors
+                .withArguments(fullNameForErrors),
+            charOffset,
+            noLength,
+            context: [
+              templateIllegalMixinDueToConstructorsCause
+                  .withArguments(fullNameForErrors)
+                  .withLocation(
+                      constructor.fileUri!, constructor.charOffset, noLength)
+            ]);
+      }
+      // Check that the class has 'Object' as their superclass.
+      if (superClass != null && superClass.cls != objectClass) {
+        addProblem(templateMixinInheritsFromNotObject.withArguments(name),
+            charOffset, noLength);
+      }
     }
     if (classHierarchyNode.isMixinApplication) {
       assert(mixedInTypeBuilder != null,
