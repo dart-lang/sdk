@@ -2544,7 +2544,15 @@ bool FlowGraph::Canonicalize() {
       if (replacement != current) {
         // For non-definitions Canonicalize should return either NULL or
         // this.
-        ASSERT((replacement == NULL) || current->IsDefinition());
+        ASSERT((replacement == nullptr) || current->IsDefinition());
+        if ((replacement != nullptr) && !unmatched_representations_allowed() &&
+            (replacement->representation() != current->representation()) &&
+            current->AsDefinition()->HasUses()) {
+          // Can't canonicalize this instruction as unmatched
+          // representations are not allowed at this point, but
+          // replacement has a different representation.
+          continue;
+        }
         ReplaceCurrentInstruction(&it, current, replacement);
         changed = true;
       }
