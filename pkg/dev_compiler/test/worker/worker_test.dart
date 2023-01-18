@@ -24,7 +24,7 @@ void main() {
     _resolvePath('gen/dartdevc.dart.snapshot'),
     '--sound-null-safety',
     '--dart-sdk-summary',
-    _resolvePath('ddc_outline_sound.dill'),
+    _resolvePath('ddc_outline.dill'),
   ];
   group('DDC: Hello World', () {
     final argsFile = file('hello_world.args');

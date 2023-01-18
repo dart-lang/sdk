@@ -81,8 +81,7 @@ void main() async {
   var testClassesPath =
       path.canonicalize(path.join(scriptDirectory, "test_classes.dart"));
   var ddcOutlinePath = path.canonicalize(path.join(
-      computePlatformBinariesLocation().toFilePath(),
-      "ddc_outline_sound.dill"));
+      computePlatformBinariesLocation().toFilePath(), "ddc_outline.dill"));
   var dillPath =
       path.canonicalize(path.join(scriptDirectory, "test_classes.dill"));
 

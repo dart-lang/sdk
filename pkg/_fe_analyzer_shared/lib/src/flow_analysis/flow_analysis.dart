@@ -2178,18 +2178,19 @@ class FlowModel<Type extends Object> {
   FlowModel<Type> write<Variable extends Object>(
       FlowModelHelper<Type> helper,
       NonPromotionReason? nonPromotionReason,
-      Variable variable,
       int variableKey,
       Type writtenType,
       SsaNode<Type> newSsaNode,
       Operations<Variable, Type> operations,
-      {bool promoteToTypeOfInterest = true}) {
+      {bool promoteToTypeOfInterest = true,
+      required Type unpromotedType}) {
     FlowModel<Type>? newModel;
     VariableModel<Type>? infoForVar = variableInfo[variableKey];
     if (infoForVar != null) {
-      VariableModel<Type> newInfoForVar = infoForVar.write(nonPromotionReason,
-          variable, variableKey, writtenType, operations, newSsaNode,
-          promoteToTypeOfInterest: promoteToTypeOfInterest);
+      VariableModel<Type> newInfoForVar = infoForVar.write(
+          nonPromotionReason, variableKey, writtenType, operations, newSsaNode,
+          promoteToTypeOfInterest: promoteToTypeOfInterest,
+          unpromotedType: unpromotedType);
       if (!identical(newInfoForVar, infoForVar)) {
         newModel = _updateVariableInfo(variableKey, newInfoForVar);
       }
@@ -2863,12 +2864,12 @@ class VariableModel<Type extends Object> {
   /// reason for any potential demotion.
   VariableModel<Type> write<Variable extends Object>(
       NonPromotionReason? nonPromotionReason,
-      Variable variable,
       int variableKey,
       Type writtenType,
       Operations<Variable, Type> operations,
       SsaNode<Type> newSsaNode,
-      {required bool promoteToTypeOfInterest}) {
+      {required bool promoteToTypeOfInterest,
+      required Type unpromotedType}) {
     if (writeCaptured) {
       return new VariableModel<Type>(
           promotedTypes: promotedTypes,
@@ -2882,10 +2883,9 @@ class VariableModel<Type extends Object> {
         _demoteViaAssignment(writtenType, operations, nonPromotionReason);
     List<Type>? newPromotedTypes = demotionResult.promotedTypes;
 
-    Type declaredType = operations.variableType(variable);
     if (promoteToTypeOfInterest) {
       newPromotedTypes = _tryPromoteToTypeOfInterest(
-          operations, declaredType, newPromotedTypes, writtenType);
+          operations, unpromotedType, newPromotedTypes, writtenType);
     }
     // TODO(paulberry): remove demotions from demotionResult.nonPromotionHistory
     // that are no longer in effect due to re-promotion.
@@ -3949,6 +3949,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       {required bool isFinal,
       required bool isLate,
       required bool isImplicitlyTyped}) {
+    Type unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
     ExpressionInfo<Type>? expressionInfo;
     if (isLate) {
@@ -3965,12 +3966,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     SsaNode<Type> newSsaNode = new SsaNode<Type>(
         expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
     _current = _current.write(
-        this, null, variable, variableKey, matchedType, newSsaNode, operations,
-        promoteToTypeOfInterest: !isImplicitlyTyped && !isFinal);
+        this, null, variableKey, matchedType, newSsaNode, operations,
+        promoteToTypeOfInterest: !isImplicitlyTyped && !isFinal,
+        unpromotedType: unpromotedType);
     if (isImplicitlyTyped && operations.isTypeParameterType(matchedType)) {
       _current = _current
-          .tryPromoteForTypeCheck(
-              this, _variableReference(variable, variableKey), matchedType)
+          .tryPromoteForTypeCheck(this,
+              _variableReference(variableKey, unpromotedType), matchedType)
           .ifTrue;
     }
   }
@@ -4436,11 +4438,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   Type? variableRead(Expression expression, Variable variable) {
+    Type unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
     VariableModel<Type> variableModel = _current._getInfo(variableKey);
     Type? promotedType = variableModel.promotedTypes?.last;
     _storeExpressionReference(
-        expression, _variableReference(variable, variableKey));
+        expression, _variableReference(variableKey, unpromotedType));
     ExpressionInfo<Type>? expressionInfo = variableModel.ssaNode?.expressionInfo
         ?.rebaseForward(operations, _current);
     if (expressionInfo != null) {
@@ -4505,6 +4508,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void write(Node node, Variable variable, Type writtenType,
       Expression? writtenExpression) {
+    Type unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
     ExpressionInfo<Type>? expressionInfo = writtenExpression == null
         ? null
@@ -4514,11 +4518,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _current = _current.write(
         this,
         new DemoteViaExplicitWrite<Variable>(variable, node),
-        variable,
         variableKey,
         writtenType,
         newSsaNode,
-        operations);
+        operations,
+        unpromotedType: unpromotedType);
   }
 
   @override
@@ -4775,9 +4779,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           isPromotable: false, isThisOrSuper: true);
 
   ReferenceWithType<Type> _variableReference(
-          Variable variable, int variableKey) =>
+          int variableKey, Type unpromotedType) =>
       new ReferenceWithType<Type>(variableKey,
-          promotedType(variable) ?? operations.variableType(variable),
+          _current.infoFor(variableKey).promotedTypes?.last ?? unpromotedType,
           isPromotable: true, isThisOrSuper: false);
 }
 

@@ -291,9 +291,9 @@ EOF
       third_party/firefox_jsshell/ \
       out/ReleaseX64/dart_precompiled_runtime \
       out/ReleaseX64/gen/utils/dartdevc/kernel/ \
-      out/ReleaseX64/ddc_outline.dill \
+      out/ReleaseX64/ddc_outline_unsound.dill \
       out/ReleaseX64/gen/utils/dartdevc/sound/ \
-      out/ReleaseX64/ddc_outline_sound.dill \
+      out/ReleaseX64/ddc_outline.dill \
       sdk \
       pkg/compiler/test/codesize/swarm \
       third_party/pkg \

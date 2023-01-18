@@ -510,22 +510,24 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   int _initializeThis(Member member) {
     bool hasThis = member.isInstanceMember || member is Constructor;
     if (hasThis) {
-      Class cls = member.enclosingClass!;
-      ClassInfo info = translator.classInfo[cls]!;
       thisLocal = paramLocals[0];
       assert(!thisLocal!.type.nullable);
-      w.RefType thisType = info.nonNullableType;
-      if (translator.needsConversion(paramLocals[0].type, thisType) &&
+      Class cls = member.enclosingClass!;
+      w.StorageType? builtin = translator.builtinTypes[cls];
+      w.ValueType thisType = translator.boxedClasses.containsKey(builtin)
+          ? builtin as w.ValueType
+          : translator.classInfo[cls]!.nonNullableType;
+      if (translator.needsConversion(thisLocal!.type, thisType) &&
           !(cls == translator.objectInfo.cls ||
               cls == translator.ffiPointerClass ||
               translator.isFfiCompound(cls) ||
               translator.isWasmType(cls))) {
         preciseThisLocal = addLocal(thisType);
-        b.local_get(paramLocals[0]);
-        b.ref_cast(info.nonNullableType);
+        b.local_get(thisLocal!);
+        translator.convertType(function, thisLocal!.type, thisType);
         b.local_set(preciseThisLocal!);
       } else {
-        preciseThisLocal = paramLocals[0];
+        preciseThisLocal = thisLocal!;
       }
       return 1;
     }

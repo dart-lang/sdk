@@ -53,8 +53,7 @@ library static_interop from "org-dartlang-test:///lib2.dart" as sta {
   @#C5
   @#C2
   class StaticJSClass extends dart.core::Object {
-    static factory •() → sta::StaticJSClass
-      return dart.js_util::_callConstructorUnchecked0<sta::StaticJSClass>(dart.js_util::_getPropertyTrustType<dart.core::Object>(dart.js_util::globalThis, "JSClass"));
+    external static factory •() → sta::StaticJSClass;
     static method _#new#tearOff() → sta::StaticJSClass
       return sta::StaticJSClass::•();
     static factory factory() → sta::StaticJSClass {

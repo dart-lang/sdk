@@ -187,6 +187,7 @@ ClassPtr Object::unhandled_exception_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::unwind_error_class_ = static_cast<ClassPtr>(RAW_NULL);
 ClassPtr Object::weak_serialization_reference_class_ =
     static_cast<ClassPtr>(RAW_NULL);
+ClassPtr Object::weak_array_class_ = static_cast<ClassPtr>(RAW_NULL);
 
 const double MegamorphicCache::kLoadFactor = 0.50;
 
@@ -942,6 +943,9 @@ void Object::Init(IsolateGroup* isolate_group) {
       isolate_group);
   weak_serialization_reference_class_ = cls.ptr();
 
+  cls = Class::New<WeakArray, RTN::WeakArray>(isolate_group);
+  weak_array_class_ = cls.ptr();
+
   ASSERT(class_class() != null_);
 
   // Pre-allocate classes in the vm isolate so that we can for example create a
@@ -1469,6 +1473,7 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
   SET_CLASS_NAME(namespace, Namespace);
   SET_CLASS_NAME(kernel_program_info, KernelProgramInfo);
   SET_CLASS_NAME(weak_serialization_reference, WeakSerializationReference);
+  SET_CLASS_NAME(weak_array, WeakArray);
   SET_CLASS_NAME(code, Code);
   SET_CLASS_NAME(instructions, Instructions);
   SET_CLASS_NAME(instructions_section, InstructionsSection);
@@ -5258,6 +5263,8 @@ const char* Class::GenerateUserVisibleName() const {
       return Symbols::KernelProgramInfo().ToCString();
     case kWeakSerializationReferenceCid:
       return Symbols::WeakSerializationReference().ToCString();
+    case kWeakArrayCid:
+      return Symbols::WeakArray().ToCString();
     case kCodeCid:
       return Symbols::Code().ToCString();
     case kInstructionsCid:
@@ -17400,6 +17407,24 @@ ObjectPtr WeakSerializationReference::New(const Object& target,
     result.untag()->set_replacement(replacement.ptr());
   }
   return result.ptr();
+}
+
+const char* WeakArray::ToCString() const {
+  return Thread::Current()->zone()->PrintToString("WeakArray len:%" Pd,
+                                                  Length());
+}
+
+WeakArrayPtr WeakArray::New(intptr_t length, Heap::Space space) {
+  ASSERT(Object::weak_array_class() != Class::null());
+  if (!IsValidLength(length)) {
+    // This should be caught before we reach here.
+    FATAL("Fatal error in WeakArray::New: invalid len %" Pd "\n", length);
+  }
+  WeakArrayPtr raw = static_cast<WeakArrayPtr>(
+      Object::Allocate(kWeakArrayCid, WeakArray::InstanceSize(length), space,
+                       WeakArray::ContainsCompressedPointers()));
+  raw->untag()->set_length(Smi::New(length));
+  return raw;
 }
 
 #if defined(INCLUDE_IL_PRINTER)

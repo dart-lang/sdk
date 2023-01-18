@@ -59,4 +59,17 @@ enum E with A {
       ],
     );
   }
+
+  test_mixinClass_constructorInside() async {
+    await assertErrorsInCode(
+      r'''
+mixin class A {
+  A() {}
+}
+''',
+      [
+        error(CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR, 18, 1),
+      ],
+    );
+  }
 }

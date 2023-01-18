@@ -391,7 +391,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.type?.accept(this);
 
     final name = node.name.lexeme;
-    var element = VariablePatternBindElementImpl(
+    var element = BindPatternVariableElementImpl(
       node,
       name,
       node.name.offset,
@@ -609,7 +609,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     super.visitForEachPartsWithPattern(node);
     var variablesMap = _patternVariables.casePatternFinish();
     node.variables = variablesMap.values
-        .whereType<VariablePatternBindElementImpl>()
+        .whereType<BindPatternVariableElementImpl>()
         .toList();
   }
 
@@ -1063,7 +1063,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     super.visitPatternVariableDeclaration(node);
     var variablesMap = _patternVariables.casePatternFinish();
     node.elements = variablesMap.values
-        .whereType<VariablePatternBindElementImpl>()
+        .whereType<BindPatternVariableElementImpl>()
         .toList();
   }
 
@@ -1683,27 +1683,34 @@ class _VariableBinder
   _VariableBinder({required super.errors});
 
   @override
-  VariablePatternJoinElementImpl joinPatternVariables({
+  JoinPatternVariableElementImpl joinPatternVariables({
     required Object key,
     required List<PromotableElement> components,
     required bool isConsistent,
   }) {
     var first = components.first;
-    var expandedComponents = components.expand((component) {
-      component as VariablePatternElementImpl;
-      if (component is VariablePatternJoinElementImpl) {
-        return component.components;
-      } else {
-        return [component];
-      }
-    }).toList(growable: false);
-    return VariablePatternJoinElementImpl(
+    List<PatternVariableElementImpl> expandedVariables;
+    if (key is LogicalOrPatternImpl) {
+      expandedVariables = components.expand((component) {
+        component as PatternVariableElementImpl;
+        if (component is JoinPatternVariableElementImpl) {
+          return component.variables;
+        } else {
+          return [component];
+        }
+      }).toList(growable: false);
+    } else {
+      expandedVariables = components
+          .map((e) => e as PatternVariableElementImpl)
+          .toList(growable: false);
+    }
+    return JoinPatternVariableElementImpl(
       first.name,
       -1,
-      expandedComponents,
+      expandedVariables,
       isConsistent &&
           components.every((element) =>
-              element is! VariablePatternJoinElementImpl ||
+              element is! JoinPatternVariableElementImpl ||
               element.isConsistent),
     )..enclosingElement = first.enclosingElement;
   }
@@ -1724,8 +1731,8 @@ class _VariableBinderErrors
   @override
   void duplicateVariablePattern({
     required String name,
-    required covariant VariablePatternBindElementImpl original,
-    required covariant VariablePatternBindElementImpl duplicate,
+    required covariant BindPatternVariableElementImpl original,
+    required covariant BindPatternVariableElementImpl duplicate,
   }) {
     visitor._errorReporter.reportError(
       DiagnosticFactory().duplicateDefinitionForNodes(

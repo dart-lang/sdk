@@ -738,8 +738,8 @@ class TestProjectConfiguration {
 
   Uri get sdkRoot => computePlatformBinariesLocation();
   Uri get sdkSummaryPath => soundNullSafety
-      ? sdkRoot.resolve('ddc_outline_sound.dill')
-      : sdkRoot.resolve('ddc_sdk.dill');
+      ? sdkRoot.resolve('ddc_outline.dill')
+      : sdkRoot.resolve('ddc_outline_unsound.dill');
   Uri get librariesPath => sdkRoot.resolve('lib/libraries.json');
 
   List get inputUris => [

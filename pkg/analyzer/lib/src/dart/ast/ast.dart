@@ -3535,7 +3535,7 @@ class DeclaredSimpleIdentifier extends SimpleIdentifierImpl {
 class DeclaredVariablePatternImpl extends VariablePatternImpl
     implements DeclaredVariablePattern {
   @override
-  VariablePatternBindElementImpl? declaredElement;
+  BindPatternVariableElementImpl? declaredElement;
 
   @override
   final Token? keyword;
@@ -5213,7 +5213,7 @@ class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   final DartPatternImpl pattern;
 
   /// Variables declared in [pattern].
-  late final List<VariablePatternBindElementImpl> variables;
+  late final List<BindPatternVariableElementImpl> variables;
 
   ForEachPartsWithPatternImpl({
     required List<AnnotationImpl>? metadata,
@@ -6642,7 +6642,7 @@ class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 
   /// Variables declared in [pattern], available in [whenClause] guard, and
   /// to the `ifTrue` node.
-  late Map<String, VariablePatternElementImpl> variables;
+  late Map<String, PatternVariableElementImpl> variables;
 
   @override
   final WhenClauseImpl? whenClause;
@@ -10242,7 +10242,7 @@ class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   final DartPatternImpl pattern;
 
   /// Variables declared in [pattern].
-  late final List<VariablePatternBindElementImpl> elements;
+  late final List<BindPatternVariableElementImpl> elements;
 
   PatternVariableDeclarationImpl({
     required this.keyword,

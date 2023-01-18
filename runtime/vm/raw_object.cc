@@ -151,6 +151,12 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
       instance_size = Array::InstanceSize(array_length);
       break;
     }
+    case kWeakArrayCid: {
+      const WeakArrayPtr raw_array = static_cast<const WeakArrayPtr>(this);
+      intptr_t array_length = Smi::Value(raw_array->untag()->length());
+      instance_size = WeakArray::InstanceSize(array_length);
+      break;
+    }
     case kObjectPoolCid: {
       const ObjectPoolPtr raw_object_pool =
           static_cast<const ObjectPoolPtr>(this);
@@ -529,6 +535,7 @@ COMPRESSED_VISITOR(Library)
 COMPRESSED_VISITOR(Namespace)
 COMPRESSED_VISITOR(KernelProgramInfo)
 COMPRESSED_VISITOR(WeakSerializationReference)
+VARIABLE_COMPRESSED_VISITOR(WeakArray, Smi::Value(raw_obj->untag()->length()))
 COMPRESSED_VISITOR(Type)
 COMPRESSED_VISITOR(FunctionType)
 COMPRESSED_VISITOR(RecordType)

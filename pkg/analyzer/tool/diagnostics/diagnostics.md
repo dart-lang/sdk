@@ -7045,7 +7045,7 @@ has `Enum` in the `on` clause, declares an explicit operator named `==`:
 
 {% prettify dart tag=pre+code %}
 mixin M on Enum {
-  bool operator [!==!](Object other) => false;
+  bool operator [!==!](Object? other) => false;
 }
 {% endprettify %}
 

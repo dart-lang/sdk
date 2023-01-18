@@ -173,4 +173,54 @@ enum E with C {
       error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 62, 1),
     ]);
   }
+
+  test_mixinClass_class_extends() async {
+    await assertErrorsInCode(r'''
+class A {}
+mixin class B extends A {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 33, 1),
+    ]);
+  }
+
+  test_mixinClass_class_extends_Object() async {
+    await assertNoErrorsInCode(r'''
+mixin class A extends Object {}
+''');
+  }
+
+  test_mixinClass_class_extends_Object_with() async {
+    await assertErrorsInCode(r'''
+class A {}
+mixin class B extends Object with A {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 40, 6),
+    ]);
+  }
+
+  test_mixinClass_class_with() async {
+    await assertErrorsInCode(r'''
+class A {}
+mixin class B with A {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 25, 6),
+    ]);
+  }
+
+  test_mixinClass_classTypeAlias_with() async {
+    await assertNoErrorsInCode(r'''
+class A {}
+mixin class B = Object with A;
+''');
+  }
+
+  test_mixinClass_classTypeAlias_with2() async {
+    await assertErrorsInCode(r'''
+class A {}
+class B {}
+mixin class C = Object with A, B;
+''', [
+      error(CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT, 45, 9),
+    ]);
+  }
 }

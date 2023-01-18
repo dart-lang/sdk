@@ -1749,7 +1749,7 @@ abstract class DeclaredIdentifier implements Declaration {
 abstract class DeclaredVariablePattern implements VariablePattern {
   /// Return the element associated with this declaration, or `null` if the AST
   /// structure has not been resolved.
-  VariablePatternElement? get declaredElement;
+  BindPatternVariableElement? get declaredElement;
 
   /// The 'var' or 'final' keyword.
   Token? get keyword;

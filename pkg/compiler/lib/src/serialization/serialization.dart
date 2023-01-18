@@ -21,6 +21,7 @@ import '../js/js.dart' as js;
 import '../js_model/closure.dart';
 import '../js_model/locals.dart';
 import '../js_model/type_recipe.dart' show TypeRecipe;
+import '../universe/record_shape.dart' show RecordShape;
 
 import '../options.dart';
 import 'data_sink.dart';

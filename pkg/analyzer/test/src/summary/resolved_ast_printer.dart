@@ -1666,13 +1666,13 @@ Expected parent: (${parent.runtimeType}) $parent
           ? _elementToReferenceString(enclosingElement)
           : 'root';
       return '$enclosingStr::@parameter::${element.name}';
-    } else if (element is VariablePatternJoinElementImpl) {
+    } else if (element is JoinPatternVariableElementImpl) {
       return [
         if (!element.isConsistent) 'notConsistent ',
         if (element.isFinal) 'final ',
         element.name,
         '[',
-        element.components.map(_elementToReferenceString).join(', '),
+        element.variables.map(_elementToReferenceString).join(', '),
         ']',
       ].join('');
     } else {

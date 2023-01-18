@@ -21,9 +21,10 @@ regress/issue_39035.crash: EmptyOutput
 regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
-class_modifiers/mixin/mixin_class_declaration: FormatterCrash
 class_modifiers/base/base_class_declaration: FormatterCrash
 class_modifiers/interface/interface_class_declaration: FormatterCrash
+class_modifiers/mixin/mixin_class_declaration: FormatterCrash
+class_modifiers/mixin/mixin_class_superclass_not_object: FormatterCrash
 const_functions/const_functions_const_ctor: FormatterCrash
 const_functions/const_functions_const_ctor_error: FormatterCrash
 const_functions/const_functions_const_factory: FormatterCrash
@@ -124,6 +125,7 @@ general/var_as_type_name: FormatterCrash
 inline_class/constructor_access: FormatterCrash
 inline_class/constructor_bodies: FormatterCrash
 inline_class/constructors: FormatterCrash
+inline_class/external: FormatterCrash
 inline_class/field_access: FormatterCrash
 inline_class/initializers: FormatterCrash
 inline_class/inline_class_declaration: FormatterCrash

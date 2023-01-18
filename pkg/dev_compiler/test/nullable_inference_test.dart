@@ -654,10 +654,11 @@ Future<CompileResult> kernelCompile(String code) async {
   }
 
   var root = Uri.file('/memory');
-  var sdkUri = Uri.file('/memory/dart_sdk.dill');
+  var sdkUri = Uri.file('/memory/ddc_outline_unsound.dill');
   var sdkFile = _fileSystem.entityForUri(sdkUri);
   if (!await sdkFile.exists()) {
-    var outlineDill = p.join(getSdkPath(), 'lib', '_internal', 'ddc_sdk.dill');
+    var outlineDill =
+        p.join(getSdkPath(), 'lib', '_internal', 'ddc_outline_unsound.dill');
     sdkFile.writeAsBytesSync(File(outlineDill).readAsBytesSync());
   }
   var librariesUri = Uri.file('/memory/libraries.json');

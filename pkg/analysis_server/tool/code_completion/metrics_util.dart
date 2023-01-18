@@ -458,7 +458,7 @@ class Place {
   int get rank => _numerator;
 
   @override
-  bool operator ==(Object other) =>
+  bool operator ==(dynamic other) =>
       other is Place &&
       _numerator == other._numerator &&
       _denominator == other._denominator;

@@ -631,13 +631,13 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPatternVariableDeclarationStatement(
-    covariant PatternVariableDeclarationStatementImpl node,
+  void visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
   ) {
-    for (var variable in node.declaration.elements) {
+    for (var variable in node.elements) {
       assignedVariables.declare(variable);
     }
-    super.visitPatternVariableDeclarationStatement(node);
+    super.visitPatternVariableDeclaration(node);
   }
 
   @override
@@ -774,6 +774,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       if (forLoopParts is ForPartsWithExpression) {
         forLoopParts.initialization?.accept(this);
       } else if (forLoopParts is ForPartsWithDeclarations) {
+        forLoopParts.variables.accept(this);
+      } else if (forLoopParts is ForPartsWithPattern) {
         forLoopParts.variables.accept(this);
       } else {
         throw StateError('Unrecognized for loop parts');

@@ -87,6 +87,11 @@ class RecordData {
   RecordRepresentation representationForStaticType(RecordType type) {
     // TODO(49718): Implement specialization when fields have types that allow
     // better code for `==` and `.hashCode`.
+
+    // TODO(50081): Ensure the specialization is correctly identified the
+    // 'static' type of a constant record where the type is generated from the
+    // field values.
+
     return representationForShape(type.shape);
   }
 

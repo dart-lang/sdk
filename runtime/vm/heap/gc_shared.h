@@ -30,6 +30,7 @@ namespace dart {
 // - variable name
 #define GC_LINKED_LIST(V)                                                      \
   V(WeakProperty, weak_properties)                                             \
+  V(WeakArray, weak_arrays)                                                    \
   V(WeakReference, weak_references)                                            \
   V(FinalizerEntry, finalizer_entries)
 

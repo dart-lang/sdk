@@ -787,6 +787,12 @@ class SourceClassBuilder extends ClassBuilderImpl
         superClass = decl;
       }
     }
+    if (cls.isMixinClass &&
+        superClass != null &&
+        superClass.cls != objectClass) {
+      addProblem(templateMixinInheritsFromNotObject.withArguments(name),
+          charOffset, noLength);
+    }
     if (classHierarchyNode.isMixinApplication) {
       assert(mixedInTypeBuilder != null,
           "No mixed in type builder for mixin application $this.");

@@ -102,10 +102,8 @@ class A extends core::Object {
     ;
   constructor constructor7({required core::int i = null}) → self::A
     ;
-  external constructor constructor8([core::int i = null]) → self::A
-    ;
-  external constructor constructor9({core::int i = null}) → self::A
-    ;
+  external constructor constructor8([core::int i = null]) → self::A;
+  external constructor constructor9({core::int i = null}) → self::A;
   static factory factory3([core::int i]) → self::A
     return new self::A::constructor3(i);
   static factory factory4({core::int i}) → self::A

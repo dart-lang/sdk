@@ -341,6 +341,8 @@ class EntityDataInfoVisitor extends EntityDataVisitor {
       }
     }
 
+    // TODO(51016): Track shapes of RecordConstantValue constants.
+
     // Constants are not allowed to refer to deferred constants, so
     // no need to check for a deferred type literal here.
     constant.getDependencies().forEach(infoBuilder.addConstant);

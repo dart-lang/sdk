@@ -422,6 +422,132 @@ SwitchStatement
 ''');
   }
 
+  test_variables_joinedCase_declareBoth_consistent_logicalOr2() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  switch (x) {
+    case int a || [int a] when a < 0:
+    case int a || [int a] when a > 0:
+      a;
+  }
+}
+''');
+
+    final node = findNode.switchStatement('switch');
+    assertResolvedNodeText(node, r'''
+SwitchStatement
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  rightParenthesis: )
+  leftBracket: {
+  members
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: LogicalOrPattern
+          leftOperand: DeclaredVariablePattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+            name: a
+            declaredElement: a@48
+              type: int
+          operator: ||
+          rightOperand: ListPattern
+            leftBracket: [
+            elements
+              DeclaredVariablePattern
+                type: NamedType
+                  name: SimpleIdentifier
+                    token: int
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+                name: a
+                declaredElement: a@58
+                  type: int
+            rightBracket: ]
+            requiredType: List<Object?>
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: a
+              staticElement: a[a@48, a@58]
+              staticType: int
+            operator: <
+            rightOperand: IntegerLiteral
+              literal: 0
+              parameter: dart:core::@class::num::@method::<::@parameter::other
+              staticType: int
+            staticElement: dart:core::@class::num::@method::<
+            staticInvokeType: bool Function(num)
+            staticType: bool
+      colon: :
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: LogicalOrPattern
+          leftOperand: DeclaredVariablePattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+            name: a
+            declaredElement: a@86
+              type: int
+          operator: ||
+          rightOperand: ListPattern
+            leftBracket: [
+            elements
+              DeclaredVariablePattern
+                type: NamedType
+                  name: SimpleIdentifier
+                    token: int
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+                name: a
+                declaredElement: a@96
+                  type: int
+            rightBracket: ]
+            requiredType: List<Object?>
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: a
+              staticElement: a[a@86, a@96]
+              staticType: int
+            operator: >
+            rightOperand: IntegerLiteral
+              literal: 0
+              parameter: dart:core::@class::num::@method::>::@parameter::other
+              staticType: int
+            staticElement: dart:core::@class::num::@method::>
+            staticInvokeType: bool Function(num)
+            staticType: bool
+      colon: :
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            staticElement: a[a[a@48, a@58], a[a@86, a@96]]
+            staticType: int
+          semicolon: ;
+  rightBracket: }
+''');
+  }
+
   test_variables_joinedCase_declareBoth_notConsistent_differentFinality() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {

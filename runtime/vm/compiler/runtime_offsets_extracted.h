@@ -57,6 +57,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    12;
+static constexpr dart::compiler::target::word WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65533;
@@ -730,6 +733,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 8;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    24;
+static constexpr dart::compiler::target::word WeakArray_element_size = 8;
 static constexpr dart::compiler::target::word Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
@@ -1414,6 +1420,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    12;
+static constexpr dart::compiler::target::word WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65533;
@@ -2087,6 +2096,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 8;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    24;
+static constexpr dart::compiler::target::word WeakArray_element_size = 8;
 static constexpr dart::compiler::target::word Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
@@ -2772,6 +2784,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    16;
+static constexpr dart::compiler::target::word WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65532;
@@ -3454,6 +3469,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    16;
+static constexpr dart::compiler::target::word WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65532;
@@ -4137,6 +4155,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    12;
+static constexpr dart::compiler::target::word WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65533;
@@ -4812,6 +4833,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 8;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    24;
+static constexpr dart::compiler::target::word WeakArray_element_size = 8;
 static constexpr dart::compiler::target::word Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
@@ -5496,6 +5520,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    12;
+static constexpr dart::compiler::target::word WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65533;
@@ -6161,6 +6188,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 8;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    24;
+static constexpr dart::compiler::target::word WeakArray_element_size = 8;
 static constexpr dart::compiler::target::word Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
@@ -6837,6 +6867,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    12;
+static constexpr dart::compiler::target::word WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65533;
@@ -7502,6 +7535,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 8;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    24;
+static constexpr dart::compiler::target::word WeakArray_element_size = 8;
 static constexpr dart::compiler::target::word Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
@@ -8179,6 +8215,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    16;
+static constexpr dart::compiler::target::word WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65532;
@@ -8853,6 +8892,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    16;
+static constexpr dart::compiler::target::word WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65532;
@@ -9528,6 +9570,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 4;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    12;
+static constexpr dart::compiler::target::word WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word Array_kMaxElements = 268435455;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
     65533;
@@ -10195,6 +10240,9 @@ static constexpr dart::compiler::target::word TypeArguments_element_size = 8;
 static constexpr dart::compiler::target::word
     TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word TwoByteString_element_size = 2;
+static constexpr dart::compiler::target::word WeakArray_elements_start_offset =
+    24;
+static constexpr dart::compiler::target::word WeakArray_element_size = 8;
 static constexpr dart::compiler::target::word Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word Array_kMaxNewSpaceElements =
@@ -10880,6 +10928,9 @@ static constexpr dart::compiler::target::word
     AOT_TwoByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word AOT_TwoByteString_element_size =
     2;
+static constexpr dart::compiler::target::word
+    AOT_WeakArray_elements_start_offset = 12;
+static constexpr dart::compiler::target::word AOT_WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     268435455;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
@@ -11629,6 +11680,9 @@ static constexpr dart::compiler::target::word
     AOT_TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_TwoByteString_element_size =
     2;
+static constexpr dart::compiler::target::word
+    AOT_WeakArray_elements_start_offset = 24;
+static constexpr dart::compiler::target::word AOT_WeakArray_element_size = 8;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
@@ -12386,6 +12440,9 @@ static constexpr dart::compiler::target::word
     AOT_TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_TwoByteString_element_size =
     2;
+static constexpr dart::compiler::target::word
+    AOT_WeakArray_elements_start_offset = 24;
+static constexpr dart::compiler::target::word AOT_WeakArray_element_size = 8;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
@@ -13141,6 +13198,9 @@ static constexpr dart::compiler::target::word
     AOT_TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_TwoByteString_element_size =
     2;
+static constexpr dart::compiler::target::word
+    AOT_WeakArray_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     268435455;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
@@ -13896,6 +13956,9 @@ static constexpr dart::compiler::target::word
     AOT_TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_TwoByteString_element_size =
     2;
+static constexpr dart::compiler::target::word
+    AOT_WeakArray_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     268435455;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
@@ -14652,6 +14715,9 @@ static constexpr dart::compiler::target::word
     AOT_TwoByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word AOT_TwoByteString_element_size =
     2;
+static constexpr dart::compiler::target::word
+    AOT_WeakArray_elements_start_offset = 12;
+static constexpr dart::compiler::target::word AOT_WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     268435455;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
@@ -15403,6 +15469,9 @@ static constexpr dart::compiler::target::word
     AOT_TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_TwoByteString_element_size =
     2;
+static constexpr dart::compiler::target::word
+    AOT_WeakArray_elements_start_offset = 24;
+static constexpr dart::compiler::target::word AOT_WeakArray_element_size = 8;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
@@ -16157,6 +16226,9 @@ static constexpr dart::compiler::target::word
     AOT_TwoByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word AOT_TwoByteString_element_size =
     2;
+static constexpr dart::compiler::target::word
+    AOT_WeakArray_elements_start_offset = 12;
+static constexpr dart::compiler::target::word AOT_WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     268435455;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
@@ -16897,6 +16969,9 @@ static constexpr dart::compiler::target::word
     AOT_TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_TwoByteString_element_size =
     2;
+static constexpr dart::compiler::target::word
+    AOT_WeakArray_elements_start_offset = 24;
+static constexpr dart::compiler::target::word AOT_WeakArray_element_size = 8;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
@@ -17645,6 +17720,9 @@ static constexpr dart::compiler::target::word
     AOT_TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_TwoByteString_element_size =
     2;
+static constexpr dart::compiler::target::word
+    AOT_WeakArray_elements_start_offset = 24;
+static constexpr dart::compiler::target::word AOT_WeakArray_element_size = 8;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
@@ -18391,6 +18469,9 @@ static constexpr dart::compiler::target::word
     AOT_TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_TwoByteString_element_size =
     2;
+static constexpr dart::compiler::target::word
+    AOT_WeakArray_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     268435455;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
@@ -19137,6 +19218,9 @@ static constexpr dart::compiler::target::word
     AOT_TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_TwoByteString_element_size =
     2;
+static constexpr dart::compiler::target::word
+    AOT_WeakArray_elements_start_offset = 16;
+static constexpr dart::compiler::target::word AOT_WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     268435455;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
@@ -19884,6 +19968,9 @@ static constexpr dart::compiler::target::word
     AOT_TwoByteString_elements_start_offset = 12;
 static constexpr dart::compiler::target::word AOT_TwoByteString_element_size =
     2;
+static constexpr dart::compiler::target::word
+    AOT_WeakArray_elements_start_offset = 12;
+static constexpr dart::compiler::target::word AOT_WeakArray_element_size = 4;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     268435455;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =
@@ -20626,6 +20713,9 @@ static constexpr dart::compiler::target::word
     AOT_TwoByteString_elements_start_offset = 16;
 static constexpr dart::compiler::target::word AOT_TwoByteString_element_size =
     2;
+static constexpr dart::compiler::target::word
+    AOT_WeakArray_elements_start_offset = 24;
+static constexpr dart::compiler::target::word AOT_WeakArray_element_size = 8;
 static constexpr dart::compiler::target::word AOT_Array_kMaxElements =
     576460752303423487;
 static constexpr dart::compiler::target::word AOT_Array_kMaxNewSpaceElements =

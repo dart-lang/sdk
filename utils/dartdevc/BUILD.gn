@@ -16,17 +16,17 @@ declare_args() {
 patched_sdk_dir = "$target_gen_dir/patched_sdk"
 sdk_summary = "$target_gen_dir/ddc_sdk.sum"
 
-sdk_outline_dill = "$root_out_dir/ddc_outline.dill"
-sdk_full_dill = "$root_out_dir/ddc_platform.dill"
-sdk_outline_sound_dill = "$root_out_dir/ddc_outline_sound.dill"
-sdk_full_sound_dill = "$root_out_dir/ddc_platform_sound.dill"
+sdk_outline_sound_dill = "$root_out_dir/ddc_outline.dill"
+sdk_full_sound_dill = "$root_out_dir/ddc_platform.dill"
+sdk_outline_unsound_dill = "$root_out_dir/ddc_outline_unsound.dill"
+sdk_full_unsound_dill = "$root_out_dir/ddc_platform_unsound.dill"
 
 application_snapshot("dartdevc") {
   main_dart = "../../pkg/dev_compiler/bin/dartdevc.dart"
 
   training_args = [
     "--dart-sdk-summary",
-    rebase_path(sdk_outline_dill),
+    rebase_path(sdk_outline_unsound_dill),
     "--no-sound-null-safety",
     "-o",
     "dartdevc.js",
@@ -39,10 +39,10 @@ application_snapshot("dartdevc") {
 
   deps = [
     ":dartdevc_kernel_sdk",
-    ":dartdevc_platform",
+    ":dartdevc_platform_unsound",
   ]
 
-  inputs = [ sdk_outline_dill ]
+  inputs = [ sdk_outline_unsound_dill ]
 }
 
 sdk_root = "../../sdk"
@@ -149,8 +149,8 @@ template("dartdevc_kernel_compile") {
     sdk_outline = sdk_outline_sound_dill
     js_gen_dir = "$target_gen_dir/pkg_sound"
   } else {
-    platform_dep = ":dartdevc_platform"
-    sdk_outline = sdk_outline_dill
+    platform_dep = ":dartdevc_platform_unsound"
+    sdk_outline = sdk_outline_unsound_dill
     js_gen_dir = "$target_gen_dir/pkg_kernel"
   }
 
@@ -290,14 +290,14 @@ template("compile_dartdevc_platform") {
       args += [ "--nnbd-weak" ]
 
       outputs = [
-        sdk_full_dill,
-        sdk_outline_dill,
+        sdk_full_unsound_dill,
+        sdk_outline_unsound_dill,
       ]
     }
   }
 }
 
-compile_dartdevc_platform("dartdevc_platform") {
+compile_dartdevc_platform("dartdevc_platform_unsound") {
   sound_null_safety = false
 }
 
@@ -315,8 +315,8 @@ template("dartdevc_sdk_js") {
     platform_input = sdk_full_sound_dill
     js_gen_dir = "$target_gen_dir/sound"
   } else {
-    platform_dep = ":dartdevc_platform"
-    platform_input = sdk_full_dill
+    platform_dep = ":dartdevc_platform_unsound"
+    platform_input = sdk_full_unsound_dill
     js_gen_dir = "$target_gen_dir/kernel"
   }
 
@@ -347,7 +347,14 @@ template("dartdevc_sdk_js") {
       "--multi-root-scheme",
       "org-dartlang-sdk",
       "--multi-root-output-path",
-      rebase_path("$target_gen_dir/../../"),
+
+      # This path is intended to point to a version of source files used to
+      # generate the SDK JavaScript modules.
+      # The intention is that the source map locations can be linked to the
+      # orignal source files while running SDK test suites.
+      # These JavaScript files and source maps are no longer packaged into the
+      # released SDK.
+      rebase_path("$target_gen_dir/../../../dart-sdk"),
       "--modules",
       "amd",
       "-o",

@@ -2226,6 +2226,10 @@ class _Socket extends Stream<Uint8List> implements Socket {
 
   void add(List<int> bytes) => _sink.add(bytes);
 
+  /// Unsupported operation on sockets.
+  ///
+  /// Throws an [UnsupportedError] because errors cannot be transmitted over a
+  /// [Socket].
   void addError(Object error, [StackTrace? stackTrace]) {
     throw new UnsupportedError("Cannot send errors on sockets");
   }

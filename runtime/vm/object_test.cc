@@ -4086,6 +4086,50 @@ ISOLATE_UNIT_TEST_CASE(
   WeakReference_Preserve_ReachableThroughWeakProperty(thread, Heap::kOld);
 }
 
+ISOLATE_UNIT_TEST_CASE(WeakArray_New) {
+  WeakArray& array = WeakArray::Handle(WeakArray::New(2, Heap::kNew));
+  Object& target0 = Object::Handle();
+  {
+    HANDLESCOPE(thread);
+    target0 = String::New("0", Heap::kNew);
+    Object& target1 = Object::Handle(String::New("1", Heap::kNew));
+    array.SetAt(0, target0);
+    array.SetAt(1, target1);
+  }
+
+  EXPECT(array.Length() == 2);
+  EXPECT(array.At(0) != Object::null());
+  EXPECT(array.At(1) != Object::null());
+
+  GCTestHelper::CollectNewSpace();
+
+  EXPECT(array.Length() == 2);
+  EXPECT(array.At(0) != Object::null());  // Survives
+  EXPECT(array.At(1) == Object::null());  // Cleared
+}
+
+ISOLATE_UNIT_TEST_CASE(WeakArray_Old) {
+  WeakArray& array = WeakArray::Handle(WeakArray::New(2, Heap::kOld));
+  Object& target0 = Object::Handle();
+  {
+    HANDLESCOPE(thread);
+    target0 = String::New("0", Heap::kOld);
+    Object& target1 = Object::Handle(String::New("1", Heap::kOld));
+    array.SetAt(0, target0);
+    array.SetAt(1, target1);
+  }
+
+  EXPECT(array.Length() == 2);
+  EXPECT(array.At(0) != Object::null());
+  EXPECT(array.At(1) != Object::null());
+
+  GCTestHelper::CollectAllGarbage();
+
+  EXPECT(array.Length() == 2);
+  EXPECT(array.At(0) != Object::null());  // Survives
+  EXPECT(array.At(1) == Object::null());  // Cleared
+}
+
 static int NumEntries(const FinalizerEntry& entry, intptr_t acc = 0) {
   if (entry.IsNull()) {
     return acc;

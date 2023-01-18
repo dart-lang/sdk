@@ -349,7 +349,6 @@ void f() {
     nodes[1] as PrefixExpression;
   }
 
-  @FailingTest(reason: 'The parser does not yet parse this code')
   Future<void> test_forPartsWithPattern_updaters() async {
     var nodes = await nodesInRange('''
 void f() {

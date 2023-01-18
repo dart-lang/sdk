@@ -1107,8 +1107,8 @@ mixin TypeAnalyzer<
     flow.patternForIn_end();
   }
 
-  /// Analyzes a patternVariableDeclaration statement of the form
-  /// `var pattern = initializer;` or `final pattern = initializer;.
+  /// Analyzes a patternVariableDeclaration node of the form
+  /// `var pattern = initializer` or `final pattern = initializer`.
   ///
   /// [node] should be the AST node for the entire declaration, [pattern] for
   /// the pattern, and [initializer] for the initializer.  [isFinal] and
@@ -1120,7 +1120,7 @@ mixin TypeAnalyzer<
   /// reported if any other kind of pattern is used.
   ///
   /// Stack effect: pushes (Expression, Pattern).
-  void analyzePatternVariableDeclarationStatement(
+  void analyzePatternVariableDeclaration(
       Node node, Pattern pattern, Expression initializer,
       {required bool isFinal, required bool isLate}) {
     // Stack: ()

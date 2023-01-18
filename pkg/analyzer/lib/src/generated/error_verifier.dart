@@ -448,6 +448,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForBadFunctionUse(node);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
       _checkForMainFunction1(node.name, node.declaredElement!);
+      _checkForMixinClassErrorCodes(node, members, superclass, withClause);
       _reportMacroApplicationErrors(
         annotations: node.metadata,
         macroErrors: element.macroApplicationErrors,
@@ -476,6 +477,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkClassInheritance(
           node, node.superclass, node.withClause, node.implementsClause);
       _checkForMainFunction1(node.name, node.declaredElement!);
+      _checkForMixinClassErrorCodes(
+          node, List.empty(), node.superclass, node.withClause);
       _checkForWrongTypeParameterVarianceInSuperinterfaces();
     } finally {
       _enclosingClass = outerClassElement;
@@ -3414,6 +3417,50 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
     return false;
+  }
+
+  /// Verify that mixin classes must have 'Object' as their superclass and that
+  /// they do not have a constructor.
+  ///
+  /// See [CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR],
+  /// [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT].
+  void _checkForMixinClassErrorCodes(
+      NamedCompilationUnitMember node,
+      List<ClassMember> members,
+      NamedType? superclass,
+      WithClause? withClause) {
+    final element = node.declaredElement;
+    if (element is ClassElementImpl && element.isMixinClass) {
+      // Check that the class does not have a constructor.
+      for (ClassMember member in members) {
+        if (member is ConstructorDeclaration) {
+          if (!member.isSynthetic && member.factoryKeyword == null) {
+            errorReporter.reportErrorForNode(
+                CompileTimeErrorCode.MIXIN_CLASS_DECLARES_CONSTRUCTOR,
+                member.returnType,
+                [element.name]);
+          }
+        }
+      }
+      // Check that the class has 'Object' as their superclass.
+      final supertype = element.supertype;
+      if (superclass != null &&
+          supertype != null &&
+          !supertype.isDartCoreObject) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
+          superclass,
+          [element.name],
+        );
+      } else if (withClause != null &&
+          !(element.isMixinApplication && withClause.mixinTypes.length < 2)) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT,
+          withClause,
+          [element.name],
+        );
+      }
+    }
   }
 
   /// Verify that the given mixin has the 'Object' superclass.

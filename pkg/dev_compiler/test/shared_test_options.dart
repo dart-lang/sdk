@@ -40,9 +40,9 @@ class DevelopmentIncrementalCompiler extends IncrementalCompiler {
 
 class SetupCompilerOptions {
   static final sdkRoot = computePlatformBinariesLocation();
-  static final sdkUnsoundSummaryPath = p.join(sdkRoot.path, 'ddc_sdk.dill');
-  static final sdkSoundSummaryPath =
-      p.join(sdkRoot.path, 'ddc_outline_sound.dill');
+  static final sdkUnsoundSummaryPath =
+      p.join(sdkRoot.path, 'ddc_outline_unsound.dill');
+  static final sdkSoundSummaryPath = p.join(sdkRoot.path, 'ddc_outline.dill');
   // TODO(46617) Call getSdkPath() from command.dart instead.
   static final librariesSpecificationUri =
       p.join(p.dirname(p.dirname(getSdkPath())), 'libraries.json');

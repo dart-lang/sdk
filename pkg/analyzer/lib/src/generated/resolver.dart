@@ -880,7 +880,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void finishJoinedPatternVariable(
-    covariant VariablePatternJoinElementImpl variable, {
+    covariant JoinPatternVariableElementImpl variable, {
     required JoinedPatternVariableLocation location,
     required bool isConsistent,
     required bool isFinal,
@@ -907,8 +907,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   @override
   List<PromotableElement>? getJoinedVariableComponents(
       PromotableElement variable) {
-    if (variable is VariablePatternJoinElementImpl) {
-      return variable.components;
+    if (variable is JoinPatternVariableElementImpl) {
+      return variable.variables;
     }
     return null;
   }
@@ -3032,15 +3032,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    // TODO(scheglov) Support for `late` was removed.
+    analyzePatternVariableDeclaration(node, node.pattern, node.expression,
+        isFinal: node.keyword.keyword == Keyword.FINAL, isLate: false);
+    popRewrite(); // expression
+  }
+
+  @override
   void visitPatternVariableDeclarationStatement(
       PatternVariableDeclarationStatement node) {
     checkUnreachableNode(node);
-    var declaration = node.declaration;
-    // TODO(scheglov) Support for `late` was removed.
-    analyzePatternVariableDeclarationStatement(
-        node, declaration.pattern, declaration.expression,
-        isFinal: declaration.keyword.keyword == Keyword.FINAL, isLate: false);
-    popRewrite(); // expression
+    node.declaration.accept(this);
   }
 
   @override
@@ -4746,6 +4749,17 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
+  ) {
+    for (var variable in node.elements) {
+      _define(variable);
+    }
+
+    super.visitPatternVariableDeclaration(node);
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     // Do not visit the identifier after the `.`, since it is not meant to be
     // looked up in the current scope.
@@ -4794,7 +4808,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     if (kind == ElementKind.LOCAL_VARIABLE || kind == ElementKind.PARAMETER) {
       node.staticElement = element;
       if (node.inSetterContext()) {
-        if (element is VariablePatternElementImpl &&
+        if (element is PatternVariableElementImpl &&
             element.isVisitingWhenClause) {
           errorReporter.reportErrorForNode(
             CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
@@ -4808,7 +4822,7 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
         }
       }
     }
-    if (element is VariablePatternJoinElementImpl) {
+    if (element is JoinPatternVariableElementImpl) {
       element.references.add(node);
     }
   }

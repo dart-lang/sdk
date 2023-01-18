@@ -358,7 +358,7 @@ class JConstructorBody extends JFunction implements ConstructorBodyEntity {
   JConstructorBody(this.constructor, ParameterStructure parameterStructure)
       : super(constructor.library, constructor.enclosingClass,
             constructor.memberName, parameterStructure, AsyncMarker.SYNC,
-            isStatic: false, isExternal: false);
+            isStatic: false, isExternal: constructor.isExternal);
 
   factory JConstructorBody.readFromDataSource(DataSourceReader source) {
     source.begin(tag);

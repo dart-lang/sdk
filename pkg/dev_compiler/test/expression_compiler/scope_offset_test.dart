@@ -14,7 +14,7 @@ import 'package:test/test.dart';
 bool get verbose => false;
 
 Uri get sdkRoot => computePlatformBinariesLocation();
-Uri get sdkSummaryPath => sdkRoot.resolve('ddc_sdk.dill');
+Uri get sdkSummaryPath => sdkRoot.resolve('ddc_outline_unsound.dill');
 Uri get librariesPath => sdkRoot.resolve('lib/libraries.json');
 
 void main(List<String> args) {

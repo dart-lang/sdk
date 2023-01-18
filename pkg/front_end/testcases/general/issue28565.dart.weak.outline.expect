@@ -18,28 +18,21 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  external constructor •() → self::A
-    ;
+  external constructor •() → self::A;
 }
 class B extends core::Object /*hasConstConstructor*/  {
-  external const constructor •() → self::B
-    ;
+  external const constructor •() → self::B;
 }
 class C extends core::Object {
-  external constructor named() → self::C
-    ;
+  external constructor named() → self::C;
 }
 class D extends core::Object /*hasConstConstructor*/  {
-  external const constructor named() → self::D
-    ;
+  external const constructor named() → self::D;
 }
 class E extends core::Object {
-  external constructor •() → self::E
-    ;
-  external constructor redirect() → self::E
-    ;
+  external constructor •() → self::E;
+  external constructor redirect() → self::E;
 }
 class F extends core::Object {
-  external constructor •() → self::F
-    ;
+  external constructor •() → self::F;
 }

@@ -12,6 +12,7 @@ import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../enqueue.dart' show Enqueuer, EnqueuerListener;
+import '../js_model/records.dart';
 import '../native/enqueue.dart';
 import '../options.dart';
 import '../universe/call_structure.dart' show CallStructure;
@@ -31,6 +32,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
 
   final BackendUsage _backendUsage;
   final RuntimeTypesNeed _rtiNeed;
+  final RecordData _recordData;
 
   final CustomElementsCodegenAnalysis _customElementsAnalysis;
 
@@ -46,6 +48,7 @@ class CodegenEnqueuerListener extends EnqueuerListener {
       this._impacts,
       this._backendUsage,
       this._rtiNeed,
+      this._recordData,
       this._customElementsAnalysis,
       this._nativeEnqueuer);
 
@@ -209,6 +212,12 @@ class CodegenEnqueuerListener extends EnqueuerListener {
         // that contains that call.
         _impacts.typeLiteral.registerImpact(impactBuilder, _elementEnvironment);
       }
+    }
+    if (type is RecordType) {
+      final representation = _recordData.representationForStaticType(type);
+      impactBuilder.registerTypeUse(TypeUse.instantiation(_commonElements
+          .dartTypes
+          .interfaceType(representation.cls, const [])));
     }
   }
 
