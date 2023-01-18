@@ -984,11 +984,11 @@ abstract class ClassAugmentationDeclaration
 /// The declaration of a class.
 ///
 ///    classDeclaration ::=
-///        classModifier? 'class' name [TypeParameterList]?
+///        classModifiers 'class' name [TypeParameterList]?
 ///        [ExtendsClause]? [WithClause]? [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
 ///
-///    classModifier ::= 'sealed' | 'abstract'
+///    classModifiers ::= 'sealed' | 'abstract'? | 'abstract'? 'mixin'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassDeclaration implements ClassOrAugmentationDeclaration {
@@ -1072,6 +1072,9 @@ abstract class ClassOrAugmentationDeclaration
   /// Returns the members defined by the class.
   NodeList<ClassMember> get members;
 
+  /// Return the 'mixin' keyword, or `null` if the keyword was absent.
+  Token? get mixinKeyword;
+
   /// Returns the right curly bracket.
   Token get rightBracket;
 
@@ -1090,9 +1093,9 @@ abstract class ClassOrAugmentationDeclaration
 /// A class type alias.
 ///
 ///    classTypeAlias ::=
-///        name [TypeParameterList]? '=' classModifier? mixinApplication
+///        name [TypeParameterList]? '=' classModifiers mixinApplication
 ///
-///    classModifier ::= 'sealed' | 'abstract'
+///    classModifiers ::= 'sealed' | 'abstract'? | 'abstract'? 'mixin'
 ///
 ///    mixinApplication ::=
 ///        [TypeName] [WithClause] [ImplementsClause]? ';'
@@ -1116,6 +1119,9 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// Return the implements clause for this class, or `null` if there is no
   /// implements clause.
   ImplementsClause? get implementsClause;
+
+  /// Return the 'mixin' keyword, or `null` if the keyword was absent.
+  Token? get mixinKeyword;
 
   /// Return the 'sealed' keyword, or `null` if the keyword was absent.
   Token? get sealedKeyword;

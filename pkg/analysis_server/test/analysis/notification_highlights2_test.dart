@@ -297,6 +297,21 @@ void f() {
     assertNoRegion(HighlightRegionType.BUILT_IN, 'library = 42');
   }
 
+  Future<void> test_BUILT_IN_mixin() async {
+    addTestFile('''
+mixin class A {}
+mixin M {}
+mixin class B = Object with M;
+void f() {
+  var mixin = 42;
+}
+''');
+    await prepareHighlights();
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'mixin class A');
+    assertHasRegion(HighlightRegionType.BUILT_IN, 'mixin class B');
+    assertNoRegion(HighlightRegionType.BUILT_IN, 'mixin = 42');
+  }
+
   Future<void> test_BUILT_IN_native() async {
     addTestFile('''
 class A native "A_native" {}
