@@ -1,3 +1,6 @@
+# 2.7.3
+- A new exception `ExistingDartDevelopmentServiceException` (extending `DartDevelopmentServiceException`) is thrown when trying to connect DDS to a VM Service that already has a DDS instance. This new exception contains a `ddsUri` field that is populated with the URI of the existing DDS instance if provided by the target VM Service.
+
 # 2.7.2
 - Update DDS protocol version to 1.4.
 - [DAP] Forward any events from the VM Service's `ToolEvent` stream as `dart.toolEvent` DAP events.

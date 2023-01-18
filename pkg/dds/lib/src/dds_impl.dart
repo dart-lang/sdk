@@ -207,11 +207,25 @@ class DartDevelopmentServiceImpl implements DartDevelopmentService {
     } on json_rpc.RpcException catch (e) {
       await _server.close(force: true);
       String message = e.toString();
-      if (e.data != null) {
-        message += ' data: ${e.data}';
+      Object? data = e.data;
+      Uri? ddsUri;
+      if (data != null) {
+        message += ' data: $data';
+
+        // Read the existing URI (if provided) so clients can connect to it
+        // directly.
+        if (data is Map<String, Object?>) {
+          final uri = data['ddsUri'];
+          if (uri is String) {
+            ddsUri = Uri.tryParse(uri);
+          }
+        }
       }
       // _yieldControlToDDS fails if DDS is not the only VM service client.
-      throw DartDevelopmentServiceException.existingDdsInstance(message);
+      throw DartDevelopmentServiceException.existingDdsInstance(
+        message,
+        ddsUri: ddsUri,
+      );
     }
 
     _uri = tmpUri;
