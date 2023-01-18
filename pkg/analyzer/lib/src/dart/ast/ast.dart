@@ -1817,13 +1817,13 @@ class ChildEntity {
 /// The declaration of a class.
 ///
 ///    classDeclaration ::=
-///        classModifiers? 'class' [SimpleIdentifier] [TypeParameterList]?
+///        classModifiers 'class' [SimpleIdentifier] [TypeParameterList]?
 ///        ([ExtendsClause] [WithClause]?)?
 ///        [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
 ///
 ///    classModifiers ::= 'sealed'
-///      | 'abstract' ('base' | 'interface')?
+///      | 'abstract'? ('base' | 'interface')?
 ///      | 'abstract'? 'base'? 'mixin'
 ///
 class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
@@ -1852,6 +1852,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token? augmentKeyword;
 
   /// The 'mixin' keyword, or `null` if the keyword was absent.
+  @override
   final Token? mixinKeyword;
 
   /// The token representing the 'class' keyword.
@@ -2042,11 +2043,11 @@ abstract class ClassMemberImpl extends DeclarationImpl implements ClassMember {
 /// A class type alias.
 ///
 ///    classTypeAlias ::=
-///        [SimpleIdentifier] [TypeParameterList]? '=' classModifiers?
+///        [SimpleIdentifier] [TypeParameterList]? '=' classModifiers
 ///        mixinApplication
 ///
 ///    classModifiers ::= 'sealed'
-///      | 'abstract' ('base' | 'interface')?
+///      | 'abstract'? ('base' | 'interface')?
 ///      | 'abstract'? 'base'? 'mixin'
 ///
 ///    mixinApplication ::=
@@ -2092,6 +2093,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   /// The token for the 'mixin' keyword, or `null` if this is not defining a
   /// mixin class.
+  @override
   final Token? mixinKeyword;
 
   /// The name of the superclass of the class being declared.
