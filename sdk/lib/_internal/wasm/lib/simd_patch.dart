@@ -696,7 +696,8 @@ class _NaiveInt32x4 implements Int32x4 {
 
   _NaiveInt32x4._truncated(this.x, this.y, this.z, this.w);
 
-  String toString() => '[$x, $y, $z, $w]';
+  String toString() => '[${_int32ToHex(x)}, ${_int32ToHex(y)}, '
+      '${_int32ToHex(z)}, ${_int32ToHex(w)}]';
 
   Int32x4 operator |(Int32x4 other) {
     int _x = x | other.x;
@@ -881,3 +882,5 @@ int _checkValidRange(int start, int? end, int length) {
   }
   return end ?? length;
 }
+
+String _int32ToHex(int i) => i.toRadixString(16).padLeft(8, '0');
