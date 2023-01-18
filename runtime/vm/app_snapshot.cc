@@ -6167,6 +6167,7 @@ class VMSerializationRoots : public SerializationRoots {
     s->AddBaseObject(Object::sentinel().ptr(), "Null", "sentinel");
     s->AddBaseObject(Object::transition_sentinel().ptr(), "Null",
                      "transition_sentinel");
+    s->AddBaseObject(Object::optimized_out().ptr(), "Null", "<optimized out>");
     s->AddBaseObject(Object::empty_array().ptr(), "Array", "<empty_array>");
     s->AddBaseObject(Object::empty_instantiations_cache_array().ptr(), "Array",
                      "<empty_instantiations_cache_array>");
@@ -6290,6 +6291,7 @@ class VMDeserializationRoots : public DeserializationRoots {
     d->AddBaseObject(Object::null());
     d->AddBaseObject(Object::sentinel().ptr());
     d->AddBaseObject(Object::transition_sentinel().ptr());
+    d->AddBaseObject(Object::optimized_out().ptr());
     d->AddBaseObject(Object::empty_array().ptr());
     d->AddBaseObject(Object::empty_instantiations_cache_array().ptr());
     d->AddBaseObject(Object::dynamic_type().ptr());

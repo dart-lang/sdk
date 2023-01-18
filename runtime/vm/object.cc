@@ -830,6 +830,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   {
     *unknown_constant_ ^= Sentinel::New();
     *non_constant_ ^= Sentinel::New();
+    *optimized_out_ ^= Sentinel::New();
   }
 
   // Allocate the remaining VM internal classes.
@@ -1300,6 +1301,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(unknown_constant_->IsSentinel());
   ASSERT(!non_constant_->IsSmi());
   ASSERT(non_constant_->IsSentinel());
+  ASSERT(!optimized_out_->IsSmi());
+  ASSERT(optimized_out_->IsSentinel());
   ASSERT(!bool_true_->IsSmi());
   ASSERT(bool_true_->IsBool());
   ASSERT(!bool_false_->IsSmi());
@@ -18629,6 +18632,8 @@ const char* Sentinel::ToCString() const {
     return "unknown_constant";
   } else if (ptr() == Object::non_constant().ptr()) {
     return "non_constant";
+  } else if (ptr() == Object::optimized_out().ptr()) {
+    return "<optimized out>";
   }
   return "Sentinel(unknown)";
 }

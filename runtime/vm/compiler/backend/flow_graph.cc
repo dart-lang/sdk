@@ -1113,7 +1113,7 @@ void FlowGraph::InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
 
 void FlowGraph::CreateCommonConstants() {
   constant_null_ = GetConstant(Object::ZoneHandle());
-  constant_dead_ = GetConstant(Symbols::OptimizedOut());
+  constant_dead_ = GetConstant(Object::optimized_out());
 }
 
 void FlowGraph::AddSyntheticPhis(BlockEntryInstr* block) {

@@ -361,7 +361,7 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
                                         intptr_t dst_index) {
   if (src.IsConstant()) {
     // Skip dead locations.
-    if (src.constant().ptr() == Symbols::OptimizedOut().ptr()) {
+    if (src.constant().ptr() == Object::optimized_out().ptr()) {
       return CatchEntryMove();
     }
     const intptr_t pool_index =

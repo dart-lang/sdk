@@ -413,7 +413,7 @@ ClosurePtr StackTraceUtils::ClosureFromFrameFunction(
     Object& receiver =
         Object::Handle(*(reinterpret_cast<ObjectPtr*>(frame->GetCallerSp()) +
                          kNumArgsFutureListenerHandleValue));
-    if (receiver.ptr() == Symbols::OptimizedOut().ptr()) {
+    if (receiver.ptr() == Object::optimized_out().ptr()) {
       // In the very rare case that _FutureListener.handleValue has deoptimized
       // it may override the receiver slot in the caller frame with "<optimized
       // out>" due to the `this` no longer being needed.
