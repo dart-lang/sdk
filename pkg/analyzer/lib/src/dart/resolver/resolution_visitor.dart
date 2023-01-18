@@ -1230,27 +1230,27 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.expression.accept(this);
 
     for (var group in node.memberGroups) {
-      _patternVariables.switchStatementSharedCaseScopeStart(node);
+      _patternVariables.switchStatementSharedCaseScopeStart(group);
       for (var member in group.members) {
         _buildLabelElements(member.labels, true);
         if (member is SwitchCaseImpl) {
           member.expression.accept(this);
         } else if (member is SwitchDefaultImpl) {
-          _patternVariables.switchStatementSharedCaseScopeEmpty(node);
+          _patternVariables.switchStatementSharedCaseScopeEmpty(group);
         } else if (member is SwitchPatternCaseImpl) {
           _resolveGuardedPattern(
             member.guardedPattern,
-            sharedCaseScopeKey: node,
+            sharedCaseScopeKey: group,
           );
         } else {
           throw UnimplementedError('(${member.runtimeType}) $member');
         }
       }
       if (group.hasLabels) {
-        _patternVariables.switchStatementSharedCaseScopeEmpty(node);
+        _patternVariables.switchStatementSharedCaseScopeEmpty(group);
       }
       group.variables =
-          _patternVariables.switchStatementSharedCaseScopeFinish(node);
+          _patternVariables.switchStatementSharedCaseScopeFinish(group);
       _withNameScope(() {
         var statements = group.statements;
         _buildLocalElements(statements);
@@ -1688,18 +1688,20 @@ class _VariableBinder
     var first = components.first;
     List<PatternVariableElementImpl> expandedVariables;
     if (key is LogicalOrPatternImpl) {
-      expandedVariables = components.expand((component) {
-        component as PatternVariableElementImpl;
-        if (component is JoinPatternVariableElementImpl) {
-          return component.variables;
+      expandedVariables = components.expand((variable) {
+        variable as PatternVariableElementImpl;
+        if (variable is JoinPatternVariableElementImpl) {
+          return variable.variables;
         } else {
-          return [component];
+          return [variable];
         }
       }).toList(growable: false);
-    } else {
+    } else if (key is SwitchStatementCaseGroup) {
       expandedVariables = components
           .map((e) => e as PatternVariableElementImpl)
           .toList(growable: false);
+    } else {
+      throw UnimplementedError('(${key.runtimeType}) $key');
     }
     return JoinPatternVariableElementImpl(
       first.name,
