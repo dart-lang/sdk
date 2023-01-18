@@ -164,7 +164,7 @@ class _NaiveInt32x4List extends Object
   }
 
   Int32x4List sublist(int start, [int? end]) {
-    int stop = _checkValidRange(start, end, length);
+    int stop = RangeError.checkValidRange(start, end, length);
     return _NaiveInt32x4List._externalStorage(
         _storage.sublist(start * 4, stop * 4));
   }
@@ -227,7 +227,7 @@ class _NaiveFloat32x4List extends Object
   }
 
   Float32x4List sublist(int start, [int? end]) {
-    int stop = _checkValidRange(start, end, length);
+    int stop = RangeError.checkValidRange(start, end, length);
     return _NaiveFloat32x4List._externalStorage(
         _storage.sublist(start * 4, stop * 4));
   }
@@ -287,7 +287,7 @@ class _NaiveFloat64x2List extends Object
   }
 
   Float64x2List sublist(int start, [int? end]) {
-    int stop = _checkValidRange(start, end, length);
+    int stop = RangeError.checkValidRange(start, end, length);
     return _NaiveFloat64x2List._externalStorage(
         _storage.sublist(start * 2, stop * 2));
   }
@@ -866,21 +866,6 @@ class _NaiveInt32x4 implements Int32x4 {
     return _NaiveFloat32x4._truncated(
         floatList[0], floatList[1], floatList[2], floatList[3]);
   }
-}
-
-int _checkValidRange(int start, int? end, int length) {
-  if (start > length) {
-    throw RangeError.range(start, 0, length, 'checkValidRange');
-  }
-  if (end != null) {
-    if (end > length) {
-      throw RangeError.range(end, 0, length, 'checkValidRange');
-    }
-    if (start > end) {
-      throw RangeError.range(start, 0, end, 'checkValidRange');
-    }
-  }
-  return end ?? length;
 }
 
 String _int32ToHex(int i) => i.toRadixString(16).padLeft(8, '0');
