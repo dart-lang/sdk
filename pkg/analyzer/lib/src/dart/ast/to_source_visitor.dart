@@ -922,6 +922,18 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitNullAssertPattern(NullAssertPattern node) {
+    _visitNode(node.pattern);
+    sink.write(node.operator.lexeme);
+  }
+
+  @override
+  void visitNullCheckPattern(NullCheckPattern node) {
+    _visitNode(node.pattern);
+    sink.write(node.operator.lexeme);
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {
     sink.write('null');
   }
@@ -998,12 +1010,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitPostfixExpression(PostfixExpression node) {
     _writeOperand(node, node.operand);
-    sink.write(node.operator.lexeme);
-  }
-
-  @override
-  void visitPostfixPattern(PostfixPattern node) {
-    _visitNode(node.operand);
     sink.write(node.operator.lexeme);
   }
 

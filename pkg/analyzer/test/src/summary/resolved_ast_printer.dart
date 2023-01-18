@@ -1017,6 +1017,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitNullAssertPattern(NullAssertPattern node) {
+    _writeln('NullAssertPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitNullCheckPattern(NullCheckPattern node) {
+    _writeln('NullCheckPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {
     _writeln('NullLiteral');
     _withIndent(() {
@@ -1118,14 +1134,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       }
       _writeElement('staticElement', node.staticElement);
       _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitPostfixPattern(PostfixPattern node) {
-    _writeln('PostfixPattern');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
     });
   }
 

@@ -43,8 +43,8 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: PostfixPattern
-          operand: ConstantPattern
+        pattern: NullCheckPattern
+          pattern: ConstantPattern
             expression: IntegerLiteral
               literal: 0
               staticType: int
@@ -93,8 +93,8 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: PostfixPattern
-          operand: ConstantPattern
+        pattern: NullCheckPattern
+          pattern: ConstantPattern
             expression: IntegerLiteral
               literal: 0
               staticType: int
@@ -103,8 +103,8 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: PostfixPattern
-          operand: ConstantPattern
+        pattern: NullCheckPattern
+          pattern: ConstantPattern
             expression: IntegerLiteral
               literal: 1
               staticType: int
@@ -117,8 +117,8 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: PostfixPattern
-          operand: ConstantPattern
+        pattern: NullCheckPattern
+          pattern: ConstantPattern
             expression: IntegerLiteral
               literal: 2
               staticType: int

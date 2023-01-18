@@ -1053,6 +1053,20 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitNullAssertPattern(NullAssertPattern node) {
+    var other = _other as NullAssertPattern;
+    return isEqualNodes(node.pattern, other.pattern) &&
+        isEqualTokens(node.operator, other.operator);
+  }
+
+  @override
+  bool visitNullCheckPattern(NullCheckPattern node) {
+    var other = _other as NullCheckPattern;
+    return isEqualNodes(node.pattern, other.pattern) &&
+        isEqualTokens(node.operator, other.operator);
+  }
+
+  @override
   bool visitNullLiteral(NullLiteral node) {
     NullLiteral other = _other as NullLiteral;
     return isEqualTokens(node.literal, other.literal);
@@ -1145,13 +1159,6 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitPostfixExpression(PostfixExpression node) {
     PostfixExpression other = _other as PostfixExpression;
-    return isEqualNodes(node.operand, other.operand) &&
-        isEqualTokens(node.operator, other.operator);
-  }
-
-  @override
-  bool visitPostfixPattern(PostfixPattern node) {
-    var other = _other as PostfixPattern;
     return isEqualNodes(node.operand, other.operand) &&
         isEqualTokens(node.operator, other.operator);
   }

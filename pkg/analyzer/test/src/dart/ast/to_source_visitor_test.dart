@@ -2793,7 +2793,7 @@ void f(x) {
 ''');
     _assertSource(
       'true!',
-      findNode.postfixPattern('true'),
+      findNode.nullAssertPattern('true'),
     );
   }
 

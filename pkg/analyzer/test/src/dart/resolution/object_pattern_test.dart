@@ -431,8 +431,8 @@ ObjectPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: PostfixPattern
-        operand: DeclaredVariablePattern
+      pattern: NullAssertPattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: foo
           declaredElement: hasImplicitType foo@82
@@ -472,8 +472,8 @@ ObjectPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: PostfixPattern
-        operand: DeclaredVariablePattern
+      pattern: NullCheckPattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: foo
           declaredElement: hasImplicitType foo@82

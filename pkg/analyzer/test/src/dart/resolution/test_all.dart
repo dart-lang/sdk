@@ -66,6 +66,8 @@ import 'namespace_test.dart' as namespace;
 import 'node_text_expectations.dart';
 import 'non_nullable_blaze_workspace_test.dart' as non_nullable_blaze_workspace;
 import 'non_nullable_test.dart' as non_nullable;
+import 'null_assert_pattern_test.dart' as null_assert_pattern;
+import 'null_check_pattern_test.dart' as null_check_pattern;
 import 'object_pattern_test.dart' as object_pattern;
 import 'optional_const_test.dart' as optional_const;
 import 'parenthesized_pattern_test.dart' as parenthesized_pattern;
@@ -74,7 +76,6 @@ import 'pattern_assignment_test.dart' as pattern_assignment;
 import 'pattern_variable_declaration_statement_test.dart'
     as pattern_variable_declaration_statement;
 import 'postfix_expression_test.dart' as postfix_expression;
-import 'postfix_pattern_test.dart' as postfix_pattern;
 import 'prefix_element_test.dart' as prefix_element;
 import 'prefix_expression_test.dart' as prefix_expression;
 import 'prefixed_identifier_test.dart' as prefixed_identifier;
@@ -157,6 +158,8 @@ main() {
     namespace.main();
     non_nullable_blaze_workspace.main();
     non_nullable.main();
+    null_assert_pattern.main();
+    null_check_pattern.main();
     object_pattern.main();
     optional_const.main();
     parenthesized_pattern.main();
@@ -164,7 +167,6 @@ main() {
     pattern_assignment.main();
     pattern_variable_declaration_statement.main();
     postfix_expression.main();
-    postfix_pattern.main();
     prefix_element.main();
     prefix_expression.main();
     prefixed_identifier.main();

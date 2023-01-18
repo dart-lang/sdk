@@ -533,6 +533,14 @@ class FindNode {
     return _node(search, (n) => n is NativeFunctionBody);
   }
 
+  NullAssertPattern nullAssertPattern(String search) {
+    return _node(search, (n) => n is NullAssertPattern);
+  }
+
+  NullCheckPattern nullCheckPattern(String search) {
+    return _node(search, (n) => n is NullCheckPattern);
+  }
+
   NullLiteral nullLiteral(String search) {
     return _node(search, (n) => n is NullLiteral);
   }
@@ -585,10 +593,6 @@ class FindNode {
 
   PostfixExpression postfix(String search) {
     return _node(search, (n) => n is PostfixExpression);
-  }
-
-  PostfixPattern postfixPattern(String search) {
-    return _node(search, (n) => n is PostfixPattern);
   }
 
   PrefixExpression prefix(String search) {

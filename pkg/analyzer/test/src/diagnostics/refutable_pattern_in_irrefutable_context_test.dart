@@ -90,8 +90,8 @@ PatternVariableDeclaration
   keyword: var
   pattern: ParenthesizedPattern
     leftParenthesis: (
-    pattern: PostfixPattern
-      operand: WildcardPattern
+    pattern: NullCheckPattern
+      pattern: WildcardPattern
         name: _
       operator: ?
     rightParenthesis: )
