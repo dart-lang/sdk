@@ -12,45 +12,48 @@ import '../analyzer.dart';
 import '../ast.dart';
 import '../extensions.dart';
 
-_Predicate _hasConstructorFieldInitializers(
-        VariableDeclaration v) =>
-    (AstNode n) =>
-        n is ConstructorFieldInitializer &&
-        n.fieldName.staticElement == v.declaredElement;
+/// Returns a predicate that returns true for a node `n` if `n` is a
+/// [ConstructorFieldInitializer] initializing [v].
+_Predicate _hasConstructorFieldInitializers(VariableElement v) => (AstNode n) =>
+    n is ConstructorFieldInitializer && n.fieldName.staticElement == v;
 
-_Predicate _hasFieldFormalParameter(VariableDeclaration v) => (AstNode n) {
-      if (n is FieldFormalParameter) {
-        var staticElement = n.declaredElement;
-        return staticElement is FieldFormalParameterElement &&
-            staticElement.field == v.declaredElement;
+/// Returns a predicate that returns true for a node `n` if `n` is a
+/// [FieldFormalParameter] initializing [v].
+_Predicate _hasFieldFormalParameter(VariableElement v) => (AstNode n) {
+      if (n is! FieldFormalParameter) {
+        return false;
       }
-      return false;
+      var staticElement = n.declaredElement;
+      return staticElement is FieldFormalParameterElement &&
+          staticElement.field == v;
     };
 
-_Predicate _hasReturn(VariableDeclaration v) => (AstNode n) {
-      if (n is ReturnStatement) {
-        var expression = n.expression;
-        if (expression is SimpleIdentifier) {
-          return expression.staticElement == v.declaredElement;
-        }
+/// Returns a predicate that returns true for a node `n` if `n` is a
+/// [ReturnStatement] initializing [v].
+_Predicate _hasReturn(VariableElement v) => (AstNode n) {
+      if (n is! ReturnStatement) {
+        return false;
       }
-      return false;
+      var expression = n.expression;
+      return expression is SimpleIdentifier && expression.staticElement == v;
     };
 
-/// Builds a function that reports the variable node if the set of nodes
-/// inside the [container] node is empty for all the predicates resulting
-/// from building (predicates) with the provided [predicateBuilders] evaluated
-/// in the variable.
+/// Builds a function that reports a variable node if none of the predicates
+/// which result from building [predicates] with [predicateBuilders] return
+/// `true` for any node inside the [container] node.
 _VisitVariableDeclaration _buildVariableReporter(
         AstNode container,
         Iterable<_PredicateBuilder> predicateBuilders,
         LintRule rule,
         Map<DartTypePredicate, String> predicates) =>
     (VariableDeclaration variable) {
-      if (!predicates.keys.any((DartTypePredicate p) {
-        var declaredElement = variable.declaredElement;
-        return declaredElement != null && p(declaredElement.type);
-      })) {
+      var variableElement = variable.declaredElement;
+      if (variableElement == null) {
+        return;
+      }
+
+      if (!predicates.keys
+          .any((DartTypePredicate p) => p(variableElement.type))) {
         return;
       }
 
@@ -58,80 +61,92 @@ _VisitVariableDeclaration _buildVariableReporter(
       // ignore: deprecated_member_use_from_same_package
       var containerNodes = container.traverseNodesInDFS();
 
-      var validators = <Iterable<AstNode>>[];
-      for (var f in predicateBuilders) {
-        validators.add(containerNodes.where(f(variable)));
+      for (var predicateBuilder in predicateBuilders) {
+        if (containerNodes.any(predicateBuilder(variableElement))) {
+          return;
+        }
       }
 
-      validators
-        ..add(_findVariableAssignments(containerNodes, variable))
-        ..add(_findNodesInvokingMethodOnVariable(
-            containerNodes, variable, predicates))
-        ..add(_findMethodCallbackNodes(containerNodes, variable, predicates))
-        // If any function is invoked with our variable, we suppress lints. This
-        // is because it is not so uncommon to invoke the target method there. We
-        // might not have access to the body of such function at analysis time, so
-        // trying to infer if the close method is invoked there is not always
-        // possible.
-        // TODO: Should there be another lint more relaxed that omits this step?
-        ..add(_findMethodInvocationsWithVariableAsArgument(
-            containerNodes, variable));
-
-      if (validators.every((i) => i.isEmpty)) {
-        rule.reportLint(variable);
+      if (_findVariableAssignments(containerNodes, variable)) {
+        return;
       }
+
+      if (_findNodesInvokingMethodOnVariable(
+          containerNodes, variable, predicates)) {
+        return;
+      }
+
+      if (_findMethodCallbackNodes(
+          containerNodes, variableElement, predicates)) {
+        return;
+      }
+
+      // If any function is invoked with our variable, we suppress lints. This
+      // is because it is not so uncommon to invoke the target method there. We
+      // might not have access to the body of such function at analysis time, so
+      // trying to infer if the close method is invoked there is not always
+      // possible.
+      // TODO: Should there be another lint more relaxed that omits this step?
+      if (_findMethodInvocationsWithVariableAsArgument(
+          containerNodes, variableElement)) {
+        return;
+      }
+
+      rule.reportLint(variable);
     };
 
-Iterable<AstNode> _findMethodCallbackNodes(Iterable<AstNode> containerNodes,
-    VariableDeclaration variable, Map<DartTypePredicate, String> predicates) {
+// TODO(srawlins): Rename to `_hasMethodCallbackNodes`.
+bool _findMethodCallbackNodes(
+    Iterable<AstNode> containerNodes,
+    VariableElement variableElement,
+    Map<DartTypePredicate, String> predicates) {
   var prefixedIdentifiers = containerNodes.whereType<PrefixedIdentifier>();
-  return prefixedIdentifiers.where((n) {
-    var declaredElement = variable.declaredElement;
-    return declaredElement != null &&
-        n.prefix.staticElement == variable.declaredElement &&
-        _hasMatch(predicates, declaredElement.type, n.identifier.token.lexeme);
-  });
+  return prefixedIdentifiers.any((n) =>
+      n.prefix.staticElement == variableElement &&
+      _hasMatch(predicates, variableElement.type, n.identifier.token.lexeme));
 }
 
-Iterable<AstNode> _findMethodInvocationsWithVariableAsArgument(
-    Iterable<AstNode> containerNodes, VariableDeclaration variable) {
-  var prefixedIdentifiers = containerNodes.whereType<MethodInvocation>();
-  return prefixedIdentifiers.where((n) => n.argumentList.arguments
+// TODO(srawlins): Rename to `_hasMethodInvocationsWithVariableAsArgument`.
+bool _findMethodInvocationsWithVariableAsArgument(
+    Iterable<AstNode> containerNodes, VariableElement variableElement) {
+  var methodInvocations = containerNodes.whereType<MethodInvocation>();
+  return methodInvocations.any((n) => n.argumentList.arguments
       .whereType<SimpleIdentifier>()
       .map((e) => e.staticElement)
-      .contains(variable.declaredElement));
+      .contains(variableElement));
 }
 
-Iterable<AstNode> _findNodesInvokingMethodOnVariable(
+// TODO(srawlins): Rename this `_hasNodesInvokingMethodWithVariable`.
+bool _findNodesInvokingMethodOnVariable(
         Iterable<AstNode> classNodes,
         VariableDeclaration variable,
         Map<DartTypePredicate, String> predicates) =>
-    classNodes.where((AstNode n) {
+    classNodes.any((AstNode n) {
       var declaredElement = variable.declaredElement;
       return declaredElement != null &&
           n is MethodInvocation &&
           ((_hasMatch(predicates, declaredElement.type, n.methodName.name) &&
                   (_isSimpleIdentifierElementEqualToVariable(
-                          n.realTarget, variable) ||
+                          n.realTarget, declaredElement) ||
                       _isPostfixExpressionOperandEqualToVariable(
-                          n.realTarget, variable) ||
-                      _isPropertyAccessThroughThis(n.realTarget, variable) ||
+                          n.realTarget, declaredElement) ||
+                      _isPropertyAccessThroughThis(
+                          n.realTarget, declaredElement) ||
                       (n.thisOrAncestorMatching((a) => a == variable) !=
                           null))) ||
-              (_isInvocationThroughCascadeExpression(n, variable)));
+              (_isInvocationThroughCascadeExpression(n, declaredElement)));
     });
 
-Iterable<AstNode> _findVariableAssignments(
+// TODO(srawlins): Rename to `_hasVariableAssignments`.
+bool _findVariableAssignments(
     Iterable<AstNode> containerNodes, VariableDeclaration variable) {
-  if (variable.equals != null &&
-      variable.initializer != null &&
-      variable.initializer is SimpleIdentifier) {
-    return [variable];
+  if (variable.equals != null && variable.initializer is SimpleIdentifier) {
+    return true;
   }
 
-  return containerNodes.where((n) =>
+  return containerNodes.any((n) =>
       n is AssignmentExpression &&
-      (_isElementEqualToVariable(n.writeElement, variable) ||
+      (_isElementEqualToVariable(n.writeElement, variable.declaredElement) ||
           // Assignment to VariableDeclaration as setter.
           (n.leftHandSide is PropertyAccess &&
               (n.leftHandSide as PropertyAccess).propertyName.token.lexeme ==
@@ -141,23 +156,19 @@ Iterable<AstNode> _findVariableAssignments(
       n.rightHandSide is SimpleIdentifier);
 }
 
+/// Whether any of the [predicates] holds true for [type] and [methodName].
 bool _hasMatch(Map<DartTypePredicate, String> predicates, DartType type,
         String methodName) =>
-    predicates.keys.fold(
-        false,
-        (bool previous, DartTypePredicate p) =>
-            previous || p(type) && predicates[p] == methodName);
+    predicates.keys.any((p) => predicates[p] == methodName && p(type));
 
 bool _isElementEqualToVariable(
-    Element? propertyElement, VariableDeclaration variable) {
-  var variableElement = variable.declaredElement;
-  return propertyElement == variableElement ||
-      propertyElement is PropertyAccessorElement &&
-          propertyElement.variable == variableElement;
-}
+        Element? propertyElement, VariableElement? variableElement) =>
+    propertyElement == variableElement ||
+    propertyElement is PropertyAccessorElement &&
+        propertyElement.variable == variableElement;
 
 bool _isInvocationThroughCascadeExpression(
-    MethodInvocation invocation, VariableDeclaration variable) {
+    MethodInvocation invocation, VariableElement variableElement) {
   if (invocation.realTarget is! SimpleIdentifier) {
     return false;
   }
@@ -166,13 +177,14 @@ bool _isInvocationThroughCascadeExpression(
   if (identifier is SimpleIdentifier) {
     var element = identifier.staticElement;
     if (element is PropertyAccessorElement) {
-      return element.variable == variable.declaredElement;
+      return element.variable == variableElement;
     }
   }
   return false;
 }
 
-bool _isPropertyAccessThroughThis(Expression? n, VariableDeclaration variable) {
+bool _isPropertyAccessThroughThis(
+    Expression? n, VariableElement variableElement) {
   if (n is! PropertyAccess) {
     return false;
   }
@@ -182,22 +194,21 @@ bool _isPropertyAccessThroughThis(Expression? n, VariableDeclaration variable) {
     return false;
   }
 
-  var property = n.propertyName;
-  var propertyElement = property.staticElement;
-  return _isElementEqualToVariable(propertyElement, variable);
+  var propertyElement = n.propertyName.staticElement;
+  return _isElementEqualToVariable(propertyElement, variableElement);
 }
 
 bool _isSimpleIdentifierElementEqualToVariable(
-        AstNode? n, VariableDeclaration variable) =>
+        AstNode? n, VariableElement variableElement) =>
     n is SimpleIdentifier &&
-    _isElementEqualToVariable(n.staticElement, variable);
+    _isElementEqualToVariable(n.staticElement, variableElement);
 
 bool _isPostfixExpressionOperandEqualToVariable(
-    AstNode? n, VariableDeclaration variable) {
+    AstNode? n, VariableElement variableElement) {
   if (n is PostfixExpression) {
     var operand = n.operand;
     return operand is SimpleIdentifier &&
-        _isElementEqualToVariable(operand.staticElement, variable);
+        _isElementEqualToVariable(operand.staticElement, variableElement);
   }
   return false;
 }
@@ -206,7 +217,7 @@ typedef DartTypePredicate = bool Function(DartType type);
 
 typedef _Predicate = bool Function(AstNode node);
 
-typedef _PredicateBuilder = _Predicate Function(VariableDeclaration v);
+typedef _PredicateBuilder = _Predicate Function(VariableElement v);
 
 typedef _VisitVariableDeclaration = void Function(VariableDeclaration node);
 
