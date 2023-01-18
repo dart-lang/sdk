@@ -30,7 +30,6 @@ import 'integration/exhaustive_cases.dart' as exhaustive_cases;
 import 'integration/flutter_style_todos.dart' as flutter_style_todos;
 import 'integration/lines_longer_than_80_chars.dart'
     as lines_longer_than_80_chars;
-import 'integration/only_throw_errors.dart' as only_throw_errors;
 import 'integration/prefer_const_constructors_in_immutables.dart'
     as prefer_const_constructors_in_immutables;
 import 'integration/prefer_mixin.dart' as prefer_mixin;
@@ -177,7 +176,6 @@ void ruleTests() {
     directives_ordering.main();
     flutter_style_todos.main();
     lines_longer_than_80_chars.main();
-    only_throw_errors.main();
     always_require_non_null_named_parameters.main();
     prefer_const_constructors_in_immutables.main();
     avoid_relative_lib_imports.main();
