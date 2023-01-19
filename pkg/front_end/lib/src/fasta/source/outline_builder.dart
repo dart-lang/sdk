@@ -1297,12 +1297,8 @@ class OutlineBuilder extends StackListenerImpl {
     TypeBuilder? supertype = nullIfParserRecovery(pop()) as TypeBuilder?;
     Token? mixinToken = pop(NullValues.Token) as Token?;
     Token? augmentToken = pop(NullValues.Token) as Token?;
-    // TODO(kallentu): AST work for class modifiers.
-    // ignore: unused_local_variable
     Token? finalToken = pop(NullValues.Token) as Token?;
-    // ignore: unused_local_variable
     Token? interfaceToken = pop(NullValues.Token) as Token?;
-    // ignore: unused_local_variable
     Token? baseToken = pop(NullValues.Token) as Token?;
     Token? sealedToken = pop(NullValues.Token) as Token?;
     // TODO(johnniwinther): Create builder for inline.
@@ -1403,6 +1399,9 @@ class OutlineBuilder extends StackListenerImpl {
             supertypeOffset,
             isMacro: macroToken != null,
             isSealed: sealedToken != null,
+            isBase: baseToken != null,
+            isInterface: interfaceToken != null,
+            isFinal: finalToken != null,
             isAugmentation: augmentToken != null,
             isMixinClass: mixinToken != null);
       }
@@ -1441,12 +1440,8 @@ class OutlineBuilder extends StackListenerImpl {
         nullIfParserRecovery(pop()) as List<TypeBuilder>?;
     List<TypeVariableBuilder>? typeVariables =
         pop(NullValues.TypeVariables) as List<TypeVariableBuilder>?;
-    // TODO(kallentu): Add AST support for mixin modifiers
-    // ignore: unused_local_variable
     Token? finalToken = pop(NullValues.Token) as Token?;
-    // ignore: unused_local_variable
     Token? interfaceToken = pop(NullValues.Token) as Token?;
-    // ignore: unused_local_variable
     Token? baseToken = pop(NullValues.Token) as Token?;
     Token? sealedToken = pop(NullValues.Token) as Token?;
     Token? augmentToken = pop(NullValues.Token) as Token?;
@@ -1505,6 +1500,9 @@ class OutlineBuilder extends StackListenerImpl {
           endToken.charOffset,
           -1,
           isSealed: sealedToken != null,
+          isBase: baseToken != null,
+          isInterface: interfaceToken != null,
+          isFinal: finalToken != null,
           isAugmentation: augmentToken != null);
     }
     libraryBuilder.setCurrentClassName(null);
@@ -2293,12 +2291,8 @@ class OutlineBuilder extends StackListenerImpl {
     Object? supertype = pop();
     Token? mixinToken = pop(NullValues.Token) as Token?;
     Token? augmentToken = pop(NullValues.Token) as Token?;
-    // TODO(kallentu): AST work for class modifiers.
-    // ignore: unused_local_variable
     Token? finalToken = pop(NullValues.Token) as Token?;
-    // ignore: unused_local_variable
     Token? interfaceToken = pop(NullValues.Token) as Token?;
-    // ignore: unused_local_variable
     Token? baseToken = pop(NullValues.Token) as Token?;
     Token? sealedToken = pop(NullValues.Token) as Token?;
     // TODO(johnniwinther): Report error on 'inline' here; it can't be used on
@@ -2381,6 +2375,9 @@ class OutlineBuilder extends StackListenerImpl {
           charEndOffset,
           isMacro: macroToken != null,
           isSealed: sealedToken != null,
+          isBase: baseToken != null,
+          isInterface: interfaceToken != null,
+          isFinal: finalToken != null,
           isAugmentation: augmentToken != null,
           isMixinClass: mixinToken != null);
     }

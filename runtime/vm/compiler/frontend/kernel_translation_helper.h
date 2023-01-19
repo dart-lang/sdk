@@ -755,8 +755,11 @@ class ClassHelper {
     kFlagMixinDeclaration = 1 << 4,
     kHasConstConstructor = 1 << 5,
     kIsMacro = 1 << 6,
-    kisSealed = 1 << 7,
+    kIsSealed = 1 << 7,
     kIsMixinClass = 1 << 8,
+    kIsBase = 1 << 9,
+    kIsInterface = 1 << 10,
+    kIsFinal = 1 << 11,
   };
 
   explicit ClassHelper(KernelReaderHelper* helper)

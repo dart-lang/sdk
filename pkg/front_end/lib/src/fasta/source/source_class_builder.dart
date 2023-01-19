@@ -111,6 +111,15 @@ class SourceClassBuilder extends ClassBuilderImpl
   final bool isSealed;
 
   @override
+  final bool isBase;
+
+  @override
+  final bool isInterface;
+
+  @override
+  final bool isFinal;
+
+  @override
   final bool isAugmentation;
 
   @override
@@ -158,6 +167,9 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isMixinDeclaration = false,
       this.isMacro = false,
       this.isSealed = false,
+      this.isBase = false,
+      this.isInterface = false,
+      this.isFinal = false,
       this.isAugmentation = false,
       this.isMixinClass = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
@@ -278,6 +290,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     cls.isMacro = isMacro;
     cls.isMixinClass = isMixinClass;
     cls.isSealed = isSealed;
+    cls.isBase = isBase;
+    cls.isInterface = isInterface;
+    cls.isFinal = isFinal;
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         interfaceBuilders![i] = _checkSupertype(interfaceBuilders![i]);
