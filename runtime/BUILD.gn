@@ -226,7 +226,7 @@ config("dart_config") {
       "-fno-rtti",
       "-fno-exceptions",
     ]
-    if (dart_use_sysroot != "alpine") {
+    if (dart_sysroot != "alpine") {
       cflags += [ "-Werror" ]
     }
     if (is_clang) {

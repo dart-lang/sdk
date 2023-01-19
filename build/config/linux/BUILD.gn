@@ -26,7 +26,7 @@ config("sdk") {
                              ],
                              "value") ]
 
-    if (dart_use_sysroot == "alpine") {
+    if (dart_sysroot == "alpine") {
       # When using the alpine sysroot, prefers lld as linker.
       if (is_clang) {
         ldflags += [ "-fuse-ld=lld" ]
@@ -42,7 +42,7 @@ config("sdk") {
 
     # When using the pulled Debian sysroot with gcc, we have to specify these
     # excplicitly.
-    if (dart_use_sysroot == "debian" && !is_clang) {
+    if (dart_sysroot == "debian" && !is_clang) {
       cflags += [
         "-I=/usr/include/c++/4.8",
         "-I=/usr/include/c++/4.8/i486-linux-gnu",

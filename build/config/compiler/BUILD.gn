@@ -264,7 +264,7 @@ config("compiler") {
   # ------------------------------------
   if (is_linux) {
     if (is_clang) {
-      if (dart_use_sysroot == "alpine") {
+      if (dart_sysroot == "alpine") {
         # alpine linux target names can be found at:
         # https://pkgs.alpinelinux.org/contents?file=stdc%2B%2B.h&name=libstdc%2B%2B-dev
         if (current_cpu == "arm") {
@@ -397,7 +397,7 @@ config("compiler") {
   # changes since artifacts from an older version of the toolchain may or may
   # not be compatible with newer ones. To achieve this, we insert a synthetic
   # define into the compile line.
-  if (is_clang && (is_linux || is_mac) && dart_use_sysroot != "alpine") {
+  if (is_clang && (is_linux || is_mac) && dart_sysroot != "alpine") {
     if (is_linux && host_cpu == "arm64") {
       toolchain_stamp_file =
           "//buildtools/linux-arm64/clang/.versions/clang.cipd_version"
@@ -674,7 +674,7 @@ config("chromium_code") {
       "-Wextra",
     ]
 
-    if (dart_use_sysroot != "alpine") {
+    if (dart_sysroot != "alpine") {
       cflags += [ "-Werror" ]
     }
 
