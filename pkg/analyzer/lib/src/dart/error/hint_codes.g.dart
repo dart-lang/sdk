@@ -173,22 +173,6 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
-  static const HintCode EQUAL_ELEMENTS_IN_SET = HintCode(
-    'EQUAL_ELEMENTS_IN_SET',
-    "Two elements in a set literal shouldn't be equal.",
-    correctionMessage: "Change or remove the duplicate element.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const HintCode EQUAL_KEYS_IN_MAP = HintCode(
-    'EQUAL_KEYS_IN_MAP',
-    "Two keys in a map literal shouldn't be equal.",
-    correctionMessage: "Change or remove the duplicate key.",
-    hasPublishedDocs: true,
-  );
-
   ///  It is a bad practice for a source file in a package "lib" directory
   ///  hierarchy to traverse outside that directory hierarchy. For example, a
   ///  source file in the "lib" directory should not contain a directive such as

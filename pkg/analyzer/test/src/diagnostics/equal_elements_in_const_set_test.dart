@@ -143,7 +143,7 @@ var c = const {1, ...{1}};
     await assertErrorsInCode('''
 var c = {1, 2, 1};
 ''', [
-      error(HintCode.EQUAL_ELEMENTS_IN_SET, 15, 1),
+      error(WarningCode.EQUAL_ELEMENTS_IN_SET, 15, 1),
     ]);
   }
 }

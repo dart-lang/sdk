@@ -5693,6 +5693,22 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const WarningCode EQUAL_ELEMENTS_IN_SET = WarningCode(
+    'EQUAL_ELEMENTS_IN_SET',
+    "Two elements in a set literal shouldn't be equal.",
+    correctionMessage: "Change or remove the duplicate element.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode EQUAL_KEYS_IN_MAP = WarningCode(
+    'EQUAL_KEYS_IN_MAP',
+    "Two keys in a map literal shouldn't be equal.",
+    correctionMessage: "Change or remove the duplicate key.",
+    hasPublishedDocs: true,
+  );
+
   ///  Parameters:
   ///  0: the name of the class
   static const WarningCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = WarningCode(
