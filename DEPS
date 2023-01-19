@@ -125,7 +125,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "d0c6b1da52c9f80679a7aaa05e5935ef5c6bb52f", # manually rev'd
 
-  "dartdoc_rev": "a99abd4ba40758dffdb112b725b7a96c16345684",
+  "dartdoc_rev": "ed56883d7b3c31aea3faa27232c3bffc2c97aaa4",
   "devtools_rev": "dd3fade2bd2ef74fc6102e56333a48f0efc594d3",
   "ffi_rev": "2a56c2a9a87122c057168874bde384debbb806b0",
   "file_rev": "b768f79dcd104a5feabafab47101c4355b71cd8f",
@@ -134,7 +134,7 @@ vars = {
   "html_rev": "3dd00b0ca99e222697e6b6dc653774dc877da420",
   "http_multi_server_rev": "cce50802b66d33f703f82b3189988aa8e51976ac",
   "http_parser_rev": "6f73e4a399df013ded8f4c81f151d122b36d361b",
-  "http_rev": "c955c7e33cc7b02e10f8fded071272d541518cdd",
+  "http_rev": "57c53b05e9f42546149f51348bc063bc7279283c",
   "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "intl_rev": "6140b600b3fd42d86e289f7d92c18488fe7e4bb9",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
@@ -151,7 +151,7 @@ vars = {
   "path_rev": "9768908ef81cf92fc77cb259c2cf01ca8725de88",
   "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "ad4e2a7fde6a2937b2f7f59af271b437376d8e3d",
-  "protobuf_rev": "dd04535271a25fd6f11ccaf09bca18d968538420",
+  "protobuf_rev": "cc0f287fb6a8680e431eb9210225f1d0ac33c047",
   "pub_rev": "0cbaf7a2fb8c8ca543c6f222bf25d5f5c63abbf3", # manually rev'd
   "pub_semver_rev": "3946e33446365aa6af84abc0b1f47ad3a6f3b490",
   "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
@@ -168,7 +168,7 @@ vars = {
   "test_descriptor_rev": "b73c691c4e38e23bf8383148d3d68fa65e4a57e9",
   "test_process_rev": "62ea2ba786d9e0e7cccedaf305d3972ee41fbc6a",
   "test_reflective_loader_rev": "cf58259b91c4d3cccc90abd4c0b44273e6421646",
-  "test_rev": "43fd92843c5d3cb43dede2b971c69923d9f7308c",
+  "test_rev": "19582a8d45670a53fa4fca8d06a3746d1616d46e",
   "typed_data_rev": "9c209b9c99ca7528a45c23d5d09579788b3ea81b",
   "usage_rev": "2773c7d334db9a902582feb8c5f38899c83d7b54",
   "vector_math_rev": "1eee95b15e5d35cf519514cc253037b19705fb7a",
@@ -177,7 +177,7 @@ vars = {
   "web_socket_channel_rev": "28d7b82986cf931e6d977d973a7849cfc7c0bab9",
   "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "webdev_rev": "f978b90cdfc97967b8caec1b5e2a4919ce9fa3d2",
-  "webdriver_rev": "b8c7bb5f57075e7c4215209c14d3e0a8767bf887",
+  "webdriver_rev": "00c887daa14de516c0dd02f1021225d478f503c1",
   "webkit_inspection_protocol_rev": "15244ffbab9221f1603eb04eaae74ae7c7ca3944",
   "yaml_edit_rev": "299f74594ff9fda412c1da5c0b5d5231d0c6fc42",
   "yaml_rev": "b2fce6cb8f07f091967b849d5434ed495cbb305f",
