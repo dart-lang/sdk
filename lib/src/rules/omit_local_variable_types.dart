@@ -54,7 +54,7 @@ annotate the variable with the type you want.
 **GOOD:**
 ```dart
 Widget build(BuildContext context) {
-  [!Widget!] result = Text('You won!');
+  Widget result = Text('You won!');
   if (applyPadding) {
     result = Padding(padding: EdgeInsets.all(8.0), child: result);
   }
