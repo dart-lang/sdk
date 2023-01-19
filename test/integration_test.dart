@@ -25,7 +25,6 @@ import 'integration/cancel_subscriptions.dart' as cancel_subscriptions;
 import 'integration/close_sinks.dart' as close_sinks;
 import 'integration/depend_on_referenced_packages.dart'
     as depend_on_referenced_packages;
-import 'integration/directives_ordering.dart' as directives_ordering;
 import 'integration/exhaustive_cases.dart' as exhaustive_cases;
 import 'integration/flutter_style_todos.dart' as flutter_style_todos;
 import 'integration/lines_longer_than_80_chars.dart'
@@ -171,7 +170,6 @@ void ruleTests() {
     close_sinks.main();
     cancel_subscriptions.main();
     depend_on_referenced_packages.main();
-    directives_ordering.main();
     flutter_style_todos.main();
     lines_longer_than_80_chars.main();
     always_require_non_null_named_parameters.main();

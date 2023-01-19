@@ -36,6 +36,7 @@ import 'constant_identifier_names_test.dart' as constant_identifier_names;
 import 'dangling_library_doc_comments_test.dart'
     as dangling_library_doc_comments;
 import 'deprecated_consistency_test.dart' as deprecated_consistency;
+import 'directives_ordering_test.dart' as directives_ordering;
 import 'discarded_futures_test.dart' as discarded_futures;
 import 'enable_null_safety_test.dart' as enable_null_safety;
 import 'file_names_test.dart' as file_names;
@@ -123,6 +124,7 @@ void main() {
   constant_identifier_names.main();
   dangling_library_doc_comments.main();
   deprecated_consistency.main();
+  directives_ordering.main();
   discarded_futures.main();
   enable_null_safety.main();
   file_names.main();
