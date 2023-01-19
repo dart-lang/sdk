@@ -158,6 +158,50 @@ class A {
       );
     });
 
+    test('includes record fields', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile('''
+void main(List<String> args) {
+  final (String?, int, {String? namedString, (int, int) namedRecord}) myRecord
+      = (namedString: '', namedRecord: (10, 11), '', 2);
+  print('Hello!'); $breakpointMarker
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        // TODO(dantup): Remove toolArgs when this is no longer required.
+        toolArgs: ['--enable-experiment=records'],
+      );
+
+      // Check the fields directly on the record.
+      final variables = await client.expectLocalVariable(
+        stop.threadId!,
+        expectedName: 'myRecord',
+        expectedDisplayString: 'Record',
+        expectedVariables: r'''
+            $0: "", eval: myRecord.$0
+            $1: 2, eval: myRecord.$1
+            namedRecord: Record, eval: myRecord.namedRecord
+            namedString: "", eval: myRecord.namedString
+        ''',
+      );
+
+      // Check the fields nested inside `namedRecord`.
+      final namedRecordVariable = variables.variables
+          .singleWhere((variable) => variable.name == 'namedRecord');
+      expect(namedRecordVariable.variablesReference, isPositive);
+      await client.expectVariables(
+        namedRecordVariable.variablesReference,
+        r'''
+            $0: 10
+            $1: 11
+        ''',
+      );
+    });
+
     test('renders a simple list', () async {
       final client = dap.client;
       final testFile = dap.createTestFile('''

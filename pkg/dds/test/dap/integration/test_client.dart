@@ -540,6 +540,7 @@ extension DapTestClientExtension on DapTestClient {
     String? condition,
     String? cwd,
     List<String>? args,
+    List<String>? toolArgs,
     Future<Response> Function()? launch,
   }) async {
     assert(condition == null || additionalBreakpoints == null,
@@ -553,7 +554,13 @@ extension DapTestClientExtension on DapTestClient {
         setBreakpoints(file, [line, ...additionalBreakpoints])
       else
         setBreakpoint(file, line, condition: condition),
-      launch?.call() ?? this.launch(entryFile.path, cwd: cwd, args: args),
+      launch?.call() ??
+          this.launch(
+            entryFile.path,
+            cwd: cwd,
+            args: args,
+            toolArgs: toolArgs,
+          ),
     ], eagerError: true);
 
     return stop;
