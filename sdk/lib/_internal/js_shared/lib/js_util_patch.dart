@@ -450,6 +450,12 @@ bool delete<T>(Object o, Object property) {
 }
 
 @patch
+@pragma('dart2js:tryInline')
+num unsignedRightShift(Object? leftOperand, Object? rightOperand) {
+  return JS<num>('num', '# >>> #', leftOperand, rightOperand);
+}
+
+@patch
 Future<T> promiseToFuture<T>(Object jsPromise) {
   final completer = Completer<T>();
 
