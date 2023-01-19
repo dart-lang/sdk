@@ -1621,9 +1621,11 @@ void FlowGraphSerializer::WriteObjectImpl(const Object& x,
     }
     case kSentinelCid:
       if (x.ptr() == Object::sentinel().ptr()) {
-        Write<bool>(true);
+        Write<uint8_t>(0);
       } else if (x.ptr() == Object::transition_sentinel().ptr()) {
-        Write<bool>(false);
+        Write<uint8_t>(1);
+      } else if (x.ptr() == Object::optimized_out().ptr()) {
+        Write<uint8_t>(2);
       } else {
         UNIMPLEMENTED();
       }
@@ -1899,7 +1901,16 @@ const Object& FlowGraphDeserializer::ReadObjectImpl(intptr_t cid,
       return rec;
     }
     case kSentinelCid:
-      return Read<bool>() ? Object::sentinel() : Object::transition_sentinel();
+      switch (Read<uint8_t>()) {
+        case 0:
+          return Object::sentinel();
+        case 1:
+          return Object::transition_sentinel();
+        case 2:
+          return Object::optimized_out();
+        default:
+          UNREACHABLE();
+      }
     case kSmiCid:
       return Smi::ZoneHandle(Z, Smi::New(Read<intptr_t>()));
     case kTwoByteStringCid: {

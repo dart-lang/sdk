@@ -92,20 +92,25 @@ final _errorMessages = <int, String>{
       'due to the current configuration',
 };
 
-String encodeRpcError(Message message, int code, {String? details}) {
+String encodeRpcError(
+  Message message,
+  int code, {
+  String? details,
+  Map<String, Object?>? data,
+}) {
+  if (details != null) {
+    data ??= {};
+    data['details'] = details;
+  }
   final response = <String, dynamic>{
     'jsonrpc': '2.0',
     'id': message.serial,
     'error': {
       'code': code,
       'message': _errorMessages[code],
+      if (data != null) 'data': data,
     },
   };
-  if (details != null) {
-    (response['error'] as Map<String, dynamic>)['data'] = <String, String>{
-      'details': details,
-    };
-  }
   return json.encode(response);
 }
 
@@ -269,9 +274,11 @@ class VMService extends MessageRouter {
               'Embedder does not support yielding to a VM service intermediary.');
     }
 
-    if (_ddsUri != null) {
+    final ddsUri = _ddsUri;
+    if (ddsUri != null) {
       return encodeRpcError(message, kFeatureDisabled,
-          details: 'A DDS instance is already connected at ${_ddsUri!}.');
+          details: 'A DDS instance is already connected at $ddsUri.',
+          data: {'ddsUri': ddsUri.toString()});
     }
 
     final uri = message.params['uri'] as String?;

@@ -2,10 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/kernel.dart';
-import 'package:vm/native_assets/validator.dart';
+import 'dart:io';
 
+import 'package:kernel/kernel.dart';
+import 'package:vm/kernel_front_end.dart';
+
+import 'diagnostic_message.dart';
 import 'json_to_kernel_constant.dart';
+import 'validator.dart';
 
 final _dummyFileUri = Uri.parse('dummy');
 
@@ -47,25 +51,92 @@ class NativeAssetsSynthesizer {
   static Library synthesizeLibrary(
     Map nativeAssetsYaml, {
     nonNullableByDefaultCompiledMode = NonNullableByDefaultCompiledMode.Strong,
+    Class? pragmaClass,
   }) {
     // We don't need the format-version in the VM.
     final jsonForVM = nativeAssetsYaml['native-assets'] as Map;
     final nativeAssetsConstant = jsonToKernelConstant(jsonForVM);
 
-    final pragma = _pragmaClass();
-    final pragmaName = pragma.fields.singleWhere((f) => f.name.text == 'name');
+    pragmaClass ??= _pragmaClass();
+    final pragmaName =
+        pragmaClass.fields.singleWhere((f) => f.name.text == 'name');
     final pragmaOptions =
-        pragma.fields.singleWhere((f) => f.name.text == 'options');
+        pragmaClass.fields.singleWhere((f) => f.name.text == 'options');
 
     return Library(
       Uri.parse('vm:ffi:native-assets'),
       fileUri: _dummyFileUri,
       annotations: [
-        ConstantExpression(InstanceConstant(pragma.reference, [], {
+        ConstantExpression(InstanceConstant(pragmaClass.reference, [], {
           pragmaName.fieldReference: StringConstant('vm:ffi:native-assets'),
           pragmaOptions.fieldReference: nativeAssetsConstant,
         }))
       ],
     )..nonNullableByDefaultCompiledMode = nonNullableByDefaultCompiledMode;
+  }
+
+  /// Loads [nativeAssetsYamlString], validates the contents, and synthesizes
+  /// a [Library] for the VM.
+  ///
+  /// Takes a nullable [nativeAssetsYamlString] to ease code-flow on call site.
+  ///
+  /// Errors are reported with [errorDetector].
+  static Future<Library?> synthesizeLibraryFromYamlString(
+    String? nativeAssetsYamlString,
+    ErrorDetector errorDetector, {
+    NonNullableByDefaultCompiledMode nonNullableByDefaultCompiledMode =
+        NonNullableByDefaultCompiledMode.Strong,
+    Class? pragmaClass,
+  }) async {
+    if (nativeAssetsYamlString == null) {
+      return null;
+    }
+
+    final nativeAssetsYaml = NativeAssetsValidator(errorDetector)
+        .parseAndValidate(nativeAssetsYamlString);
+    if (nativeAssetsYaml == null) {
+      return null;
+    }
+    return NativeAssetsSynthesizer.synthesizeLibrary(
+      nativeAssetsYaml,
+      nonNullableByDefaultCompiledMode: nonNullableByDefaultCompiledMode,
+      pragmaClass: pragmaClass,
+    );
+  }
+
+  /// Loads [nativeAssetsUri], validates the contents, and synthesizes
+  /// a [Library] for the VM.
+  ///
+  /// Takes a nullable [nativeAssetsUri] to ease code-flow on call site.
+  ///
+  /// Errors are reported with [errorDetector].
+  static Future<Library?> synthesizeLibraryFromYamlFile(
+    Uri? nativeAssetsUri,
+    ErrorDetector errorDetector, {
+    NonNullableByDefaultCompiledMode nonNullableByDefaultCompiledMode =
+        NonNullableByDefaultCompiledMode.Strong,
+    Class? pragmaClass,
+  }) async {
+    if (nativeAssetsUri == null) {
+      return null;
+    }
+
+    final nativeAssetsFile = File.fromUri(nativeAssetsUri);
+    if (!await nativeAssetsFile.exists()) {
+      errorDetector(NativeAssetsDiagnosticMessage(
+        message:
+            "Native assets file ${nativeAssetsUri.toFilePath()} doesn't exist.",
+        involvedFiles: [nativeAssetsUri],
+      ));
+      return null;
+    }
+    final nativeAssetsYamlString = await nativeAssetsFile.readAsString();
+
+    return synthesizeLibraryFromYamlString(
+      nativeAssetsYamlString,
+      errorDetector,
+      nonNullableByDefaultCompiledMode: nonNullableByDefaultCompiledMode,
+      pragmaClass: pragmaClass,
+    );
   }
 }

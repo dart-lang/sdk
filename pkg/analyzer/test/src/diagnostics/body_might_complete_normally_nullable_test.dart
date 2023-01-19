@@ -20,7 +20,7 @@ class BodyMightCompleteNormallyNullableTest extends PubPackageResolutionTest {
 import 'dart:async';
 FutureOr<int?> f(Future f) async {}
 ''', [
-      error(StaticWarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE, 36, 1),
+      error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE, 36, 1),
     ]);
   }
 
@@ -48,7 +48,7 @@ dynamic f() {}
     await assertErrorsInCode('''
 int? f() {}
 ''', [
-      error(StaticWarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE, 5, 1),
+      error(WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE, 5, 1),
     ]);
   }
 

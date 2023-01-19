@@ -9705,6 +9705,125 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
   }
 }
 
+/// A null-assert pattern.
+///
+///    nullAssertPattern ::=
+///        [DartPattern] '!'
+@experimental
+class NullAssertPatternImpl extends DartPatternImpl
+    implements NullAssertPattern {
+  @override
+  final DartPatternImpl pattern;
+
+  @override
+  final Token operator;
+
+  NullAssertPatternImpl({
+    required this.pattern,
+    required this.operator,
+  }) {
+    _becomeParentOf(pattern);
+  }
+
+  @override
+  Token get beginToken => pattern.beginToken;
+
+  @override
+  Token get endToken => operator;
+
+  @override
+  VariablePatternImpl? get variablePattern => pattern.variablePattern;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('pattern', pattern)
+    ..addToken('operator', operator);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullAssertPattern(this);
+
+  @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeNullCheckOrAssertPatternSchema(
+      pattern,
+      isAssert: true,
+    );
+  }
+
+  @override
+  void resolvePattern(
+    ResolverVisitor resolverVisitor,
+    SharedMatchContext context,
+  ) {
+    resolverVisitor.analyzeNullCheckOrAssertPattern(context, this, pattern,
+        isAssert: true);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    pattern.accept(visitor);
+  }
+}
+
+/// A null-check pattern.
+///
+///    nullCheckPattern ::=
+///        [DartPattern] '?'
+@experimental
+class NullCheckPatternImpl extends DartPatternImpl implements NullCheckPattern {
+  @override
+  final DartPatternImpl pattern;
+
+  @override
+  final Token operator;
+
+  NullCheckPatternImpl({
+    required this.pattern,
+    required this.operator,
+  }) {
+    _becomeParentOf(pattern);
+  }
+
+  @override
+  Token get beginToken => pattern.beginToken;
+
+  @override
+  Token get endToken => operator;
+
+  @override
+  VariablePatternImpl? get variablePattern => pattern.variablePattern;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('pattern', pattern)
+    ..addToken('operator', operator);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitNullCheckPattern(this);
+
+  @override
+  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
+    return resolverVisitor.analyzeNullCheckOrAssertPatternSchema(
+      pattern,
+      isAssert: false,
+    );
+  }
+
+  @override
+  void resolvePattern(
+    ResolverVisitor resolverVisitor,
+    SharedMatchContext context,
+  ) {
+    resolverVisitor.analyzeNullCheckOrAssertPattern(context, this, pattern,
+        isAssert: false);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    pattern.accept(visitor);
+  }
+}
+
 /// A null literal expression.
 ///
 ///    nullLiteral ::=
@@ -10422,62 +10541,6 @@ class PostfixExpressionImpl extends ExpressionImpl
   @override
   bool _extendsNullShorting(Expression descendant) =>
       identical(descendant, operand);
-}
-
-/// A postfix (unary) pattern.
-///
-///    postfixPattern ::=
-///        [DartPattern] ('?' | '!')
-@experimental
-class PostfixPatternImpl extends DartPatternImpl implements PostfixPattern {
-  @override
-  final DartPatternImpl operand;
-
-  @override
-  final Token operator;
-
-  PostfixPatternImpl({required this.operand, required this.operator}) {
-    _becomeParentOf(operand);
-  }
-
-  @override
-  Token get beginToken => operand.beginToken;
-
-  @override
-  Token get endToken => operator;
-
-  @override
-  VariablePatternImpl? get variablePattern => operand.variablePattern;
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addNode('operand', operand)
-    ..addToken('operator', operator);
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitPostfixPattern(this);
-
-  @override
-  DartType computePatternSchema(ResolverVisitor resolverVisitor) {
-    return resolverVisitor.analyzeNullCheckOrAssertPatternSchema(
-      operand,
-      isAssert: operator.type == TokenType.BANG,
-    );
-  }
-
-  @override
-  void resolvePattern(
-    ResolverVisitor resolverVisitor,
-    SharedMatchContext context,
-  ) {
-    resolverVisitor.analyzeNullCheckOrAssertPattern(context, this, operand,
-        isAssert: operator.type == TokenType.BANG);
-  }
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    operand.accept(visitor);
-  }
 }
 
 /// An identifier that is prefixed or an access to an object property where the

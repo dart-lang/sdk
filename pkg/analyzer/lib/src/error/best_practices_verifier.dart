@@ -423,8 +423,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (newKeyword != null &&
         _currentLibrary.featureSet.isEnabled(Feature.constructor_tearoffs)) {
       _errorReporter.reportErrorForToken(
-          StaticWarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE,
-          newKeyword, []);
+          WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, newKeyword, []);
     }
     super.visitCommentReference(node);
   }

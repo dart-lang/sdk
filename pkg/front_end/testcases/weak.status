@@ -143,6 +143,7 @@ general/bug30695: TypeCheckError
 general/call: RuntimeError
 general/cascade: RuntimeError
 general/constructor_initializer_invalid: RuntimeError # Fails execution after recovery
+general/continue_label_invalid: RuntimeError
 general/covariant_field: TypeCheckError
 general/covariant_generic2: RuntimeError
 general/covariant_generic: RuntimeError
@@ -257,6 +258,7 @@ rasta/parser_error: RuntimeError
 rasta/static: RuntimeError
 rasta/super: RuntimeError
 rasta/super_mixin: RuntimeError
+rasta/try_label: RuntimeError
 rasta/type_literals: RuntimeError
 rasta/typedef: RuntimeError
 rasta/unresolved: RuntimeError

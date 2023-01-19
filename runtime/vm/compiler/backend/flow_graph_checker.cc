@@ -40,7 +40,7 @@ DEFINE_FLAG(int,
 // Such constants may have a lot of uses and checking them could be too slow.
 static bool IsCommonConstant(Definition* def) {
   if (auto c = def->AsConstant()) {
-    return c->value().ptr() == Symbols::OptimizedOut().ptr() ||
+    return c->value().ptr() == Object::optimized_out().ptr() ||
            c->value().ptr() == Object::null();
   }
   return false;

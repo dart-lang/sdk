@@ -435,6 +435,8 @@ class Object {
   // initialization.
   // - unknown_constant and non_constant are optimizing compiler's constant
   // propagation constants.
+  // - optimized_out results from deopt environment pruning or failure to
+  // capture variables in a closure's context
 #define SHARED_READONLY_HANDLES_LIST(V)                                        \
   V(Object, null_object)                                                       \
   V(Class, null_class)                                                         \
@@ -462,6 +464,7 @@ class Object {
   V(Sentinel, transition_sentinel)                                             \
   V(Sentinel, unknown_constant)                                                \
   V(Sentinel, non_constant)                                                    \
+  V(Sentinel, optimized_out)                                                   \
   V(Bool, bool_true)                                                           \
   V(Bool, bool_false)                                                          \
   V(Smi, smi_illegal_cid)                                                      \
@@ -7252,6 +7255,8 @@ class ContextScope : public Object {
 // initialization of static fields.
 // - Object::unknown_constant() and Object::non_constant() are optimizing
 // compiler's constant propagation constants.
+// - Object::optimized_out() result from deopt environment pruning or failure
+// to capture variables in a closure's context
 class Sentinel : public Object {
  public:
   static intptr_t InstanceSize() {

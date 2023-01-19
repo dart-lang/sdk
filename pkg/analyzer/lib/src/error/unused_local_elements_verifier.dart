@@ -499,6 +499,14 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    final declaredElement = node.declaredElement!;
+    _visitLocalVariableElement(declaredElement);
+
+    super.visitDeclaredVariablePattern(node);
+  }
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     final declaredElement = node.declaredElement as FieldElement;
     _visitFieldElement(declaredElement);
@@ -1001,7 +1009,9 @@ class UsedLocalElements {
   }
 
   void addElement(Element? element) {
-    if (element != null) {
+    if (element is JoinPatternVariableElementImpl) {
+      elements.addAll(element.transitiveVariables);
+    } else if (element != null) {
       elements.add(element);
     }
   }

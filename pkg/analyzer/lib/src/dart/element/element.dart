@@ -3803,22 +3803,15 @@ class JoinPatternVariableElementImpl extends PatternVariableElementImpl
 
 /// A concrete implementation of a [LabelElement].
 class LabelElementImpl extends ElementImpl implements LabelElement {
-  /// A flag indicating whether this label is associated with a `switch`
-  /// statement.
-  // TODO(brianwilkerson) Make this a modifier.
-  final bool _onSwitchStatement;
-
   /// A flag indicating whether this label is associated with a `switch` member
   /// (`case` or `default`).
   // TODO(brianwilkerson) Make this a modifier.
   final bool _onSwitchMember;
 
   /// Initialize a newly created label element to have the given [name].
-  /// [onSwitchStatement] should be `true` if this label is associated with a
-  /// `switch` statement and [onSwitchMember] should be `true` if this label is
-  /// associated with a `switch` member.
-  LabelElementImpl(String super.name, super.nameOffset, this._onSwitchStatement,
-      this._onSwitchMember);
+  /// [onSwitchMember] should be `true` if this label is associated with a
+  /// `switch` member.
+  LabelElementImpl(String super.name, super.nameOffset, this._onSwitchMember);
 
   @override
   String get displayName => name;
@@ -3834,9 +3827,6 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   /// Return `true` if this label is associated with a `switch` member (`case
   /// ` or`default`).
   bool get isOnSwitchMember => _onSwitchMember;
-
-  /// Return `true` if this label is associated with a `switch` statement.
-  bool get isOnSwitchStatement => _onSwitchStatement;
 
   @override
   ElementKind get kind => ElementKind.LABEL;
@@ -5545,6 +5535,11 @@ class PatternVariableElementImpl extends LocalVariableElementImpl
   bool isVisitingWhenClause = false;
 
   PatternVariableElementImpl(super.name, super.offset);
+
+  /// Return the root [join], or self.
+  PatternVariableElementImpl get rootVariable {
+    return join?.rootVariable ?? this;
+  }
 }
 
 /// A concrete implementation of a [PrefixElement].

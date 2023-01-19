@@ -571,6 +571,10 @@ abstract class AstVisitor<R> {
 
   R? visitNativeFunctionBody(NativeFunctionBody node);
 
+  R? visitNullAssertPattern(NullAssertPattern node);
+
+  R? visitNullCheckPattern(NullCheckPattern node);
+
   R? visitNullLiteral(NullLiteral node);
 
   R? visitObjectPattern(ObjectPattern node);
@@ -593,8 +597,6 @@ abstract class AstVisitor<R> {
       PatternVariableDeclarationStatement node);
 
   R? visitPostfixExpression(PostfixExpression node);
-
-  R? visitPostfixPattern(PostfixPattern node);
 
   R? visitPrefixedIdentifier(PrefixedIdentifier node);
 
@@ -1671,9 +1673,10 @@ abstract class ContinueStatement implements Statement {
 ///      | [LogicalAndPattern]
 ///      | [LogicalOrPattern]
 ///      | [MapPattern]
+///      | [NullAssertPattern]
+///      | [NullCheckPattern]
 ///      | [ObjectPattern]
 ///      | [ParenthesizedPattern]
-///      | [PostfixPattern]
 ///      | [RecordPattern]
 ///      | [RelationalPattern]
 ///
@@ -4034,6 +4037,36 @@ abstract class NormalFormalParameter implements FormalParameter {
   List<AstNode> get sortedCommentAndAnnotations;
 }
 
+/// A null-assert pattern.
+///
+///    nullAssertPattern ::=
+///        [DartPattern] '!'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class NullAssertPattern implements DartPattern {
+  /// The `!` token.
+  Token get operator;
+
+  /// The sub-pattern.
+  DartPattern get pattern;
+}
+
+/// A null-check pattern.
+///
+///    nullCheckPattern ::=
+///        [DartPattern] '?'
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class NullCheckPattern implements DartPattern {
+  /// The `?` token.
+  Token get operator;
+
+  /// The sub-pattern.
+  DartPattern get pattern;
+}
+
 /// A null literal expression.
 ///
 ///    nullLiteral ::=
@@ -4250,21 +4283,6 @@ abstract class PostfixExpression
   Expression get operand;
 
   /// Return the postfix operator being applied to the operand.
-  Token get operator;
-}
-
-/// A postfix (unary) pattern.
-///
-///    postfixPattern ::=
-///        [DartPattern] ('?' | '!')
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class PostfixPattern implements DartPattern {
-  /// Return the pattern used to compute the operand.
-  DartPattern get operand;
-
-  /// Return the unary operator being applied.
   Token get operator;
 }
 

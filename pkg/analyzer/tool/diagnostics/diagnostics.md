@@ -3320,10 +3320,12 @@ class C<T> {
 C<T> newC<T>() => C<T>();
 {% endprettify %}
 
-### continue_label_on_switch
+### continue_label_invalid
 
-_A `continue` label resolves to a `switch` statement, but the label must be on a
-loop or a switch member._
+<a id="continue_label_on_switch" aria-hidden="true"></a>_(Previously known as `continue_label_on_switch`)_
+
+_The label used in a 'continue' statement must be defined on either a loop or a
+switch member._
 
 #### Description
 
@@ -3339,7 +3341,7 @@ label a `switch` statement, is used in the `continue` statement:
 void f(int i) {
   l: switch (i) {
     case 0:
-      continue [!l!];
+      [!continue l;!]
   }
 }
 {% endprettify %}

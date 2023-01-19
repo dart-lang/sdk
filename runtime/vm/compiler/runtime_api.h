@@ -1425,7 +1425,10 @@ class WeakSerializationReference : public AllStatic {
 
 class WeakArray : public AllStatic {
  public:
-  static word InstanceSize() { return 0; }
+  static word length_offset();
+  static word element_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
+  static word InstanceSize();
   FINAL_CLASS();
 };
 

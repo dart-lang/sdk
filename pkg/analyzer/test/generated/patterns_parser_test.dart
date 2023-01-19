@@ -1091,8 +1091,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: PropertyAccess
       target: PrefixedIdentifier
         prefix: SimpleIdentifier
@@ -1118,8 +1118,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: PropertyAccess
       target: PrefixedIdentifier
         prefix: SimpleIdentifier
@@ -1261,8 +1261,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
@@ -1284,8 +1284,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
@@ -1452,8 +1452,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: SimpleIdentifier
       token: y
   operator: !
@@ -1472,8 +1472,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: SimpleIdentifier
       token: y
   operator: ?
@@ -1606,8 +1606,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       typeArguments: TypeArgumentList
@@ -1634,8 +1634,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       typeArguments: TypeArgumentList
@@ -1754,8 +1754,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       typeArguments: TypeArgumentList
@@ -1785,8 +1785,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       typeArguments: TypeArgumentList
@@ -1878,8 +1878,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       leftBracket: [
@@ -1899,8 +1899,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       leftBracket: [
@@ -1991,8 +1991,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       leftBracket: [
@@ -2015,8 +2015,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: ListLiteral
       leftBracket: [
@@ -2155,8 +2155,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       typeArguments: TypeArgumentList
@@ -2194,8 +2194,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       typeArguments: TypeArgumentList
@@ -2319,8 +2319,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       leftBracket: {
@@ -2348,8 +2348,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       leftBracket: {
@@ -2457,8 +2457,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: MethodInvocation
       methodName: SimpleIdentifier
@@ -2484,8 +2484,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: MethodInvocation
       methodName: SimpleIdentifier
@@ -2579,8 +2579,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: ParenthesizedExpression
       leftParenthesis: (
@@ -2602,8 +2602,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: ParenthesizedExpression
       leftParenthesis: (
@@ -2720,8 +2720,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       typeArguments: TypeArgumentList
@@ -2752,8 +2752,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       typeArguments: TypeArgumentList
@@ -2858,8 +2858,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       leftBracket: {
@@ -2883,8 +2883,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     const: const
     expression: SetOrMapLiteral
       leftBracket: {
@@ -3774,8 +3774,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ListPattern
+NullAssertPattern
+  pattern: ListPattern
     leftBracket: [
     elements
       ConstantPattern
@@ -3797,8 +3797,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ListPattern
+NullCheckPattern
+  pattern: ListPattern
     leftBracket: [
     elements
       ConstantPattern
@@ -3876,8 +3876,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: BooleanLiteral
       literal: true
   operator: !
@@ -3895,8 +3895,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: BooleanLiteral
       literal: true
   operator: ?
@@ -3970,8 +3970,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: DoubleLiteral
       literal: 1.0
   operator: !
@@ -3989,8 +3989,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: DoubleLiteral
       literal: 1.0
   operator: ?
@@ -4064,8 +4064,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: IntegerLiteral
       literal: 1
   operator: !
@@ -4083,8 +4083,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: IntegerLiteral
       literal: 1
   operator: ?
@@ -4158,8 +4158,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: NullLiteral
       literal: null
   operator: !
@@ -4177,8 +4177,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: NullLiteral
       literal: null
   operator: ?
@@ -4252,8 +4252,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: SimpleStringLiteral
       literal: "x"
   operator: !
@@ -4271,8 +4271,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: SimpleStringLiteral
       literal: "x"
   operator: ?
@@ -4814,8 +4814,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: MapPattern
+NullAssertPattern
+  pattern: MapPattern
     leftBracket: {
     elements
       MapPatternEntry
@@ -4841,8 +4841,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: MapPattern
+NullCheckPattern
+  pattern: MapPattern
     leftBracket: {
     elements
       MapPatternEntry
@@ -4869,8 +4869,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullAssertPattern
+  pattern: ConstantPattern
     expression: SimpleIdentifier
       token: y
   operator: !
@@ -4888,8 +4888,8 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: PostfixPattern
-      operand: DeclaredVariablePattern
+    pattern: NullAssertPattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
       operator: !
@@ -4910,8 +4910,8 @@ void f(x) {
 ListPattern
   leftBracket: [
   elements
-    PostfixPattern
-      operand: ConstantPattern
+    NullAssertPattern
+      pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 1
       operator: !
@@ -4931,8 +4931,8 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 LogicalAndPattern
-  leftOperand: PostfixPattern
-    operand: ConstantPattern
+  leftOperand: NullAssertPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 1
     operator: !
@@ -4959,8 +4959,8 @@ LogicalAndPattern
     expression: IntegerLiteral
       literal: 1
   operator: &&
-  rightOperand: PostfixPattern
-    operand: ConstantPattern
+  rightOperand: NullAssertPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 2
     operator: !
@@ -4979,8 +4979,8 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 LogicalOrPattern
-  leftOperand: PostfixPattern
-    operand: ConstantPattern
+  leftOperand: NullAssertPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 1
     operator: !
@@ -5007,8 +5007,8 @@ LogicalOrPattern
     expression: IntegerLiteral
       literal: 1
   operator: ||
-  rightOperand: PostfixPattern
-    operand: ConstantPattern
+  rightOperand: NullAssertPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 2
     operator: !
@@ -5033,8 +5033,8 @@ MapPattern
       key: SimpleStringLiteral
         literal: 'a'
       separator: :
-      value: PostfixPattern
-        operand: ConstantPattern
+      value: NullAssertPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: !
@@ -5066,8 +5066,8 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: f
         colon: :
-      pattern: PostfixPattern
-        operand: ConstantPattern
+      pattern: NullAssertPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: !
@@ -5098,8 +5098,8 @@ ObjectPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: PostfixPattern
-        operand: DeclaredVariablePattern
+      pattern: NullAssertPattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: f
         operator: !
@@ -5120,8 +5120,8 @@ void f(x) {
     assertParsedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
-  pattern: PostfixPattern
-    operand: ConstantPattern
+  pattern: NullAssertPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 1
     operator: !
@@ -5147,8 +5147,8 @@ RecordPattern
       fieldName: RecordPatternFieldName
         name: n
         colon: :
-      pattern: PostfixPattern
-        operand: ConstantPattern
+      pattern: NullAssertPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: !
@@ -5177,8 +5177,8 @@ RecordPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: PostfixPattern
-        operand: DeclaredVariablePattern
+      pattern: NullAssertPattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: n
         operator: !
@@ -5205,8 +5205,8 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: PostfixPattern
-        operand: ConstantPattern
+      pattern: NullAssertPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: !
@@ -5230,8 +5230,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ConstantPattern
+NullCheckPattern
+  pattern: ConstantPattern
     expression: SimpleIdentifier
       token: y
   operator: ?
@@ -5249,8 +5249,8 @@ void f(x) {
 CaseClause
   caseKeyword: case
   guardedPattern: GuardedPattern
-    pattern: PostfixPattern
-      operand: DeclaredVariablePattern
+    pattern: NullCheckPattern
+      pattern: DeclaredVariablePattern
         keyword: var
         name: y
       operator: ?
@@ -5271,8 +5271,8 @@ void f(x) {
 ListPattern
   leftBracket: [
   elements
-    PostfixPattern
-      operand: ConstantPattern
+    NullCheckPattern
+      pattern: ConstantPattern
         expression: IntegerLiteral
           literal: 1
       operator: ?
@@ -5292,8 +5292,8 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 LogicalAndPattern
-  leftOperand: PostfixPattern
-    operand: ConstantPattern
+  leftOperand: NullCheckPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 1
     operator: ?
@@ -5320,8 +5320,8 @@ LogicalAndPattern
     expression: IntegerLiteral
       literal: 1
   operator: &&
-  rightOperand: PostfixPattern
-    operand: ConstantPattern
+  rightOperand: NullCheckPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 2
     operator: ?
@@ -5340,8 +5340,8 @@ void f(x) {
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
 LogicalOrPattern
-  leftOperand: PostfixPattern
-    operand: ConstantPattern
+  leftOperand: NullCheckPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 1
     operator: ?
@@ -5368,8 +5368,8 @@ LogicalOrPattern
     expression: IntegerLiteral
       literal: 1
   operator: ||
-  rightOperand: PostfixPattern
-    operand: ConstantPattern
+  rightOperand: NullCheckPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 2
     operator: ?
@@ -5394,8 +5394,8 @@ MapPattern
       key: SimpleStringLiteral
         literal: 'a'
       separator: :
-      value: PostfixPattern
-        operand: ConstantPattern
+      value: NullCheckPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: ?
@@ -5427,8 +5427,8 @@ ObjectPattern
       fieldName: RecordPatternFieldName
         name: f
         colon: :
-      pattern: PostfixPattern
-        operand: ConstantPattern
+      pattern: NullCheckPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: ?
@@ -5459,8 +5459,8 @@ ObjectPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: PostfixPattern
-        operand: DeclaredVariablePattern
+      pattern: NullCheckPattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: f
         operator: ?
@@ -5481,8 +5481,8 @@ void f(x) {
     assertParsedNodeText(node, r'''
 ParenthesizedPattern
   leftParenthesis: (
-  pattern: PostfixPattern
-    operand: ConstantPattern
+  pattern: NullCheckPattern
+    pattern: ConstantPattern
       expression: IntegerLiteral
         literal: 1
     operator: ?
@@ -5508,8 +5508,8 @@ RecordPattern
       fieldName: RecordPatternFieldName
         name: n
         colon: :
-      pattern: PostfixPattern
-        operand: ConstantPattern
+      pattern: NullCheckPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: ?
@@ -5538,8 +5538,8 @@ RecordPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: PostfixPattern
-        operand: DeclaredVariablePattern
+      pattern: NullCheckPattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: n
         operator: ?
@@ -5566,8 +5566,8 @@ RecordPattern
   leftParenthesis: (
   fields
     RecordPatternField
-      pattern: PostfixPattern
-        operand: ConstantPattern
+      pattern: NullCheckPattern
+        pattern: ConstantPattern
           expression: IntegerLiteral
             literal: 1
         operator: ?
@@ -5727,8 +5727,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ObjectPattern
+NullAssertPattern
+  pattern: ObjectPattern
     type: NamedType
       name: PrefixedIdentifier
         prefix: SimpleIdentifier
@@ -5762,8 +5762,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ObjectPattern
+NullCheckPattern
+  pattern: ObjectPattern
     type: NamedType
       name: PrefixedIdentifier
         prefix: SimpleIdentifier
@@ -5913,8 +5913,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ObjectPattern
+NullAssertPattern
+  pattern: ObjectPattern
     type: NamedType
       name: SimpleIdentifier
         token: C
@@ -5946,8 +5946,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ObjectPattern
+NullCheckPattern
+  pattern: ObjectPattern
     type: NamedType
       name: SimpleIdentifier
         token: C
@@ -6032,8 +6032,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ObjectPattern
+NullAssertPattern
+  pattern: ObjectPattern
     type: NamedType
       name: SimpleIdentifier
         token: C
@@ -6238,8 +6238,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ParenthesizedPattern
+NullAssertPattern
+  pattern: ParenthesizedPattern
     leftParenthesis: (
     pattern: ConstantPattern
       expression: IntegerLiteral
@@ -6260,8 +6260,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: ParenthesizedPattern
+NullCheckPattern
+  pattern: ParenthesizedPattern
     leftParenthesis: (
     pattern: ConstantPattern
       expression: IntegerLiteral
@@ -7356,8 +7356,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: RecordPattern
+NullAssertPattern
+  pattern: RecordPattern
     leftParenthesis: (
     fields
       RecordPatternField
@@ -7384,8 +7384,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: RecordPattern
+NullCheckPattern
+  pattern: RecordPattern
     leftParenthesis: (
     fields
       RecordPatternField
@@ -8140,8 +8140,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: DeclaredVariablePattern
+NullAssertPattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: y
   operator: !
@@ -8159,8 +8159,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: DeclaredVariablePattern
+NullCheckPattern
+  pattern: DeclaredVariablePattern
     keyword: final
     name: y
   operator: ?
@@ -8240,8 +8240,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: DeclaredVariablePattern
+NullAssertPattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -8261,8 +8261,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: DeclaredVariablePattern
+NullCheckPattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -8557,8 +8557,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: DeclaredVariablePattern
+NullAssertPattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -8578,8 +8578,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: DeclaredVariablePattern
+NullCheckPattern
+  pattern: DeclaredVariablePattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -8946,8 +8946,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: DeclaredVariablePattern
+NullAssertPattern
+  pattern: DeclaredVariablePattern
     keyword: var
     name: y
   operator: !
@@ -8965,8 +8965,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: DeclaredVariablePattern
+NullCheckPattern
+  pattern: DeclaredVariablePattern
     keyword: var
     name: y
   operator: ?
@@ -9058,8 +9058,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: WildcardPattern
+NullAssertPattern
+  pattern: WildcardPattern
     name: _
   operator: !
 ''');
@@ -9076,8 +9076,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: WildcardPattern
+NullCheckPattern
+  pattern: WildcardPattern
     name: _
   operator: ?
 ''');
@@ -9159,8 +9159,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: WildcardPattern
+NullAssertPattern
+  pattern: WildcardPattern
     keyword: final
     type: NamedType
       name: SimpleIdentifier
@@ -9181,8 +9181,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: WildcardPattern
+NullCheckPattern
+  pattern: WildcardPattern
     keyword: final
     type: NamedType
       name: SimpleIdentifier
@@ -9259,8 +9259,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: WildcardPattern
+NullAssertPattern
+  pattern: WildcardPattern
     keyword: final
     name: _
   operator: !
@@ -9278,8 +9278,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: WildcardPattern
+NullCheckPattern
+  pattern: WildcardPattern
     keyword: final
     name: _
   operator: ?
@@ -9359,8 +9359,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: WildcardPattern
+NullAssertPattern
+  pattern: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -9380,8 +9380,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: WildcardPattern
+NullCheckPattern
+  pattern: WildcardPattern
     type: NamedType
       name: SimpleIdentifier
         token: int
@@ -9457,8 +9457,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: WildcardPattern
+NullAssertPattern
+  pattern: WildcardPattern
     keyword: var
     name: _
   operator: !
@@ -9476,8 +9476,8 @@ void f(x) {
 ''');
     var node = findNode.singleGuardedPattern.pattern;
     assertParsedNodeText(node, r'''
-PostfixPattern
-  operand: WildcardPattern
+NullCheckPattern
+  pattern: WildcardPattern
     keyword: var
     name: _
   operator: ?

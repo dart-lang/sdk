@@ -642,6 +642,18 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitNullAssertPattern(NullAssertPattern node) {
+    _runSubscriptions(node, registry._forNullAssertPattern);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitNullCheckPattern(NullCheckPattern node) {
+    _runSubscriptions(node, registry._forNullCheckPattern);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {
     _runSubscriptions(node, registry._forNullLiteral);
     node.visitChildren(this);
@@ -705,12 +717,6 @@ class LinterVisitor implements AstVisitor<void> {
   @override
   void visitPostfixExpression(PostfixExpression node) {
     _runSubscriptions(node, registry._forPostfixExpression);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitPostfixPattern(PostfixPattern node) {
-    _runSubscriptions(node, registry._forPostfixPattern);
     node.visitChildren(this);
   }
 
@@ -1166,6 +1172,8 @@ class NodeLintRegistry {
   final List<_Subscription<NamedType>> _forNamedType = [];
   final List<_Subscription<NativeClause>> _forNativeClause = [];
   final List<_Subscription<NativeFunctionBody>> _forNativeFunctionBody = [];
+  final List<_Subscription<NullAssertPattern>> _forNullAssertPattern = [];
+  final List<_Subscription<NullCheckPattern>> _forNullCheckPattern = [];
   final List<_Subscription<NullLiteral>> _forNullLiteral = [];
   final List<_Subscription<OnClause>> _forOnClause = [];
   final List<_Subscription<ParenthesizedExpression>>
@@ -1179,7 +1187,6 @@ class NodeLintRegistry {
   final List<_Subscription<PatternVariableDeclarationStatement>>
       _forPatternVariableDeclarationStatement = [];
   final List<_Subscription<PostfixExpression>> _forPostfixExpression = [];
-  final List<_Subscription<PostfixPattern>> _forPostfixPattern = [];
   final List<_Subscription<PrefixedIdentifier>> _forPrefixedIdentifier = [];
   final List<_Subscription<PrefixExpression>> _forPrefixExpression = [];
   final List<_Subscription<PropertyAccess>> _forPropertyAccess = [];
@@ -1703,6 +1710,15 @@ class NodeLintRegistry {
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
+  void addNullAssertPattern(LintRule linter, AstVisitor visitor) {
+    _forNullAssertPattern
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addNullCheckPattern(LintRule linter, AstVisitor visitor) {
+    _forNullCheckPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
   void addNullLiteral(LintRule linter, AstVisitor visitor) {
     _forNullLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
@@ -1752,10 +1768,6 @@ class NodeLintRegistry {
   void addPostfixExpression(LintRule linter, AstVisitor visitor) {
     _forPostfixExpression
         .add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addPostfixPattern(LintRule linter, AstVisitor visitor) {
-    _forPostfixPattern.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addPrefixedIdentifier(LintRule linter, AstVisitor visitor) {

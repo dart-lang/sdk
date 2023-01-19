@@ -357,7 +357,7 @@ class BulkFixProcessor {
             directivesOrderingError = error;
             break;
           }
-        } else if (errorCode == StaticWarningCode.DUPLICATE_IMPORT ||
+        } else if (errorCode == WarningCode.DUPLICATE_IMPORT ||
             errorCode == HintCode.UNNECESSARY_IMPORT ||
             errorCode == HintCode.UNUSED_IMPORT) {
           unusedImportErrors.add(error);

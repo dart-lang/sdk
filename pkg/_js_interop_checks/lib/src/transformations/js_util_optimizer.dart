@@ -49,6 +49,11 @@ class JsUtilOptimizer extends Transformer {
   Map<Reference, ExtensionMemberDescriptor>? _extensionMemberIndex;
   late Set<Reference> _shouldTrustType;
 
+  static const Set<String> _existingJsAnnotationsUsers = {
+    'dart:_engine',
+    'dart:ui'
+  };
+
   JsUtilOptimizer(this._coreTypes, ClassHierarchy hierarchy)
       : _callMethodTarget =
             _coreTypes.index.getTopLevelProcedure('dart:js_util', 'callMethod'),
@@ -133,13 +138,15 @@ class JsUtilOptimizer extends Transformer {
                   hasStaticInteropAnnotation(node.enclosingClass!)) ||
               // We only lower top-levels if we're using the
               // `dart:_js_annotations`' `@JS` annotation to avoid a breaking
-              // change for `package:js` users. The one exception is `dart:ui`,
-              // since it's already using `dart:_js_annotations`. Whenever
-              // `dart:ui` is ready to migrate to the sound semantics, we should
-              // remove the exception.
+              // change for `package:js` users. There are some internal
+              // libraries that already use this library, so we exclude them
+              // here.
+              // TODO(srujzs): When they're ready to migrate to sound semantics,
+              // we should remove this exception.
               ((hasInternalJSInteropAnnotation(node) ||
                       hasInternalJSInteropAnnotation(node.enclosingLibrary)) &&
-                  node.enclosingLibrary.importUri.toString() != 'dart:ui'))) {
+                  !_existingJsAnnotationsUsers
+                      .contains(node.enclosingLibrary.importUri.toString())))) {
         // Fetch the dotted prefix of the member.
         var libraryName = getJSName(node.enclosingLibrary);
         var dottedPrefix = libraryName;

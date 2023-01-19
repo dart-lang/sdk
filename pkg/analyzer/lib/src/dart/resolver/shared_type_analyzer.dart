@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -138,18 +137,16 @@ class SharedTypeAnalyzerErrors
     required DartPattern pattern,
     required DartType matchedType,
   }) {
-    if (pattern is PostfixPatternImpl) {
-      if (pattern.operator.type == TokenType.BANG) {
-        _errorReporter.reportErrorForToken(
-          StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN,
-          pattern.operator,
-        );
-      } else {
-        _errorReporter.reportErrorForToken(
-          StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN,
-          pattern.operator,
-        );
-      }
+    if (pattern is NullAssertPattern) {
+      _errorReporter.reportErrorForToken(
+        StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN,
+        pattern.operator,
+      );
+    } else if (pattern is NullCheckPattern) {
+      _errorReporter.reportErrorForToken(
+        StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN,
+        pattern.operator,
+      );
     } else {
       throw UnimplementedError('(${pattern.runtimeType}) $pattern');
     }

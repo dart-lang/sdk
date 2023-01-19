@@ -622,7 +622,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             returnTypeBase.isDartCoreNull) {
           return;
         } else {
-          errorCode = StaticWarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
+          errorCode = WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
         }
       }
       if (errorNode is ConstructorDeclaration) {
@@ -3542,7 +3542,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
 
         errorReporter.reportErrorForToken(
-          StaticWarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR,
+          WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR,
           errorNode.block.leftBracket,
           [returnTypeBase],
         );
@@ -4979,7 +4979,16 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
             labelNode,
             [labelNode.name]);
       }
-      return definingScope.node;
+      var node = definingScope.node;
+      if (isContinue &&
+          node is! DoStatement &&
+          node is! ForStatement &&
+          node is! SwitchMember &&
+          node is! WhileStatement) {
+        errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONTINUE_LABEL_INVALID, parentNode);
+      }
+      return node;
     }
   }
 

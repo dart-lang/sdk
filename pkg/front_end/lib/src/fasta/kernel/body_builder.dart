@@ -7117,6 +7117,15 @@ class BodyBuilder extends StackListenerImpl
       if (continueStatements != null) {
         for (BreakStatementImpl continueStatement in continueStatements) {
           continueStatement.targetStatement = statement;
+          Statement body = statement.body;
+          if (body is! ForStatement &&
+              body is! DoStatement &&
+              body is! WhileStatement) {
+            push(buildProblemStatement(
+                fasta.messageContinueLabelInvalid, continueStatement.fileOffset,
+                length: 8));
+            return;
+          }
         }
       }
     }

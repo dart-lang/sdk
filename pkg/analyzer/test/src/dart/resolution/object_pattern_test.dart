@@ -70,7 +70,7 @@ ObjectPattern
   }
 
   test_class_generic_withTypeArguments_hasName_variable_untyped() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 abstract class A<T> {
   T get foo;
 }
@@ -81,7 +81,9 @@ void f(x) {
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 90, 4),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
@@ -209,6 +211,7 @@ void f(x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 74, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 83, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -236,7 +239,7 @@ ObjectPattern
   }
 
   test_class_notGeneric_hasName_variable_untyped() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int get foo;
 }
@@ -247,7 +250,9 @@ void f(x) {
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 84, 4),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
@@ -312,7 +317,7 @@ ObjectPattern
   }
 
   test_class_notGeneric_noName_variable() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int get foo;
 }
@@ -323,7 +328,9 @@ void f(x) {
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 81, 3),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
@@ -349,7 +356,7 @@ ObjectPattern
   }
 
   test_class_notGeneric_noName_variable_cast() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int? get foo;
 }
@@ -360,7 +367,9 @@ void f(x) {
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 3),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
@@ -394,7 +403,7 @@ ObjectPattern
   }
 
   test_class_notGeneric_noName_variable_nullAssert() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int? get foo;
 }
@@ -405,7 +414,9 @@ void f(x) {
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 3),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
@@ -420,8 +431,8 @@ ObjectPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: PostfixPattern
-        operand: DeclaredVariablePattern
+      pattern: NullAssertPattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: foo
           declaredElement: hasImplicitType foo@82
@@ -433,7 +444,7 @@ ObjectPattern
   }
 
   test_class_notGeneric_noName_variable_nullCheck() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int? get foo;
 }
@@ -444,7 +455,9 @@ void f(x) {
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 3),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
@@ -459,8 +472,8 @@ ObjectPattern
     RecordPatternField
       fieldName: RecordPatternFieldName
         colon: :
-      pattern: PostfixPattern
-        operand: DeclaredVariablePattern
+      pattern: NullCheckPattern
+        pattern: DeclaredVariablePattern
           keyword: var
           name: foo
           declaredElement: hasImplicitType foo@82
@@ -472,7 +485,7 @@ ObjectPattern
   }
 
   test_class_notGeneric_noName_variable_parenthesis() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 abstract class A {
   int get foo;
 }
@@ -483,7 +496,9 @@ void f(x) {
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 82, 3),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
@@ -560,6 +575,7 @@ void f(x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 65, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 65, 3),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -586,7 +602,7 @@ ObjectPattern
   }
 
   test_typedef_dynamic_hasName_unresolved() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 typedef A = dynamic;
 
 void f(Object? x) {
@@ -595,7 +611,9 @@ void f(Object? x) {
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 77, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
@@ -622,7 +640,7 @@ ObjectPattern
   }
 
   test_typedef_functionType_generic_withTypeArguments_hasName_extensionGetter() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 typedef A<T> = T Function();
 
 extension E on int Function() {
@@ -635,7 +653,9 @@ void f(Object? x) {
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 145, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
@@ -675,7 +695,7 @@ ObjectPattern
   }
 
   test_typedef_functionType_notGeneric_hasName_extensionGetter() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 typedef A = void Function();
 
 extension E on void Function() {
@@ -688,7 +708,9 @@ void f(Object? x) {
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 141, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
@@ -716,7 +738,7 @@ ObjectPattern
   }
 
   test_typedef_functionType_notGeneric_hasName_hashCode() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 typedef A = void Function();
 
 void f(Object? x) {
@@ -725,7 +747,9 @@ void f(Object? x) {
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 90, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
@@ -764,6 +788,7 @@ void f(Object? x) {
 }
 ''', [
       error(CompileTimeErrorCode.UNDEFINED_GETTER, 76, 3),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 85, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
@@ -792,7 +817,7 @@ ObjectPattern
   }
 
   test_typedef_recordType_notGeneric_hasName_named() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 typedef A = ({int foo});
 
 void f(x) {
@@ -801,7 +826,9 @@ void f(x) {
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 73, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
@@ -829,7 +856,7 @@ ObjectPattern
   }
 
   test_typedef_recordType_notGeneric_hasName_positional() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 typedef A = (int foo,);
 
 void f(x) {
@@ -838,7 +865,9 @@ void f(x) {
       break;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 71, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
 ObjectPattern
@@ -866,7 +895,7 @@ ObjectPattern
   }
 
   test_variableDeclaration_inferredType() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(A<int> x) {
   var A(foo: a) = x;
 }
@@ -874,7 +903,9 @@ void f(A<int> x) {
 class A<T> {
   T get foo => throw 0;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 32, 1),
+    ]);
     final node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -910,7 +941,7 @@ PatternVariableDeclaration
 
   /// TODO(scheglov) Remove `new` (everywhere), implement rewrite.
   test_variableDeclaration_typeSchema_withTypeArguments() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f() {
   var A<int>(foo: a) = new A();
 }
@@ -918,7 +949,9 @@ void f() {
 class A<T> {
   T get foo => throw 0;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 29, 1),
+    ]);
     final node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration
@@ -976,7 +1009,7 @@ PatternVariableDeclaration
 
   test_variableDeclaration_typeSchema_withVariableType() async {
     // `int a` does not propagate up, we get `A<dynamic>`
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f() {
   var A(foo: int a) = new A();
 }
@@ -984,7 +1017,9 @@ void f() {
 class A<T> {
   T get foo => throw 0;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 28, 1),
+    ]);
     final node = findNode.singlePatternVariableDeclaration;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclaration

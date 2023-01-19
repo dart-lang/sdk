@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/error/hint_codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -76,11 +77,14 @@ LogicalAndPattern
   }
 
   test_variableDeclaration() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f() {
   var (a && b) = 0;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 23, 1),
+    ]);
     final node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement

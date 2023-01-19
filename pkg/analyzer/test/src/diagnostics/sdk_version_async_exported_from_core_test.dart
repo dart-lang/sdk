@@ -93,7 +93,7 @@ import 'dart:core' show Future, int;
 
 Future<int> zero() async => 0;
 ''', expectedErrors: [
-      error(StaticWarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, 38, 6),
+      error(WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, 38, 6),
     ]);
   }
 
@@ -112,7 +112,7 @@ Future<int> zero() async => 0;
     await verifyVersion('2.0.0', '''
 Future<int> zero() async => 0;
 ''', expectedErrors: [
-      error(StaticWarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, 0, 6),
+      error(WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, 0, 6),
     ]);
   }
 
@@ -142,7 +142,7 @@ Future<int> zero() async => 0;
     final resolvedPart = resolvedLibrary.units.last;
     expect(resolvedPart.path, a.path);
     assertErrorsInList(resolvedPart.errors, [
-      error(StaticWarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, 14, 6),
+      error(WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE, 14, 6),
     ]);
   }
 

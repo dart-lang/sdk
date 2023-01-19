@@ -46,6 +46,13 @@ const List<ErrorClassInfo> errorClasses = [
       severity: 'WARNING',
       extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
   ErrorClassInfo(
+      filePath: 'lib/src/error/codes.g.dart',
+      name: 'WarningCode',
+      superclass: 'AnalyzerErrorCode',
+      type: 'STATIC_WARNING',
+      severity: 'WARNING',
+      extraImports: ['package:analyzer/src/error/analyzer_error_code.dart']),
+  ErrorClassInfo(
       filePath: 'lib/src/dart/error/ffi_code.g.dart',
       name: 'FfiCode',
       superclass: 'AnalyzerErrorCode',

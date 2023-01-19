@@ -139,7 +139,7 @@ class ObjectPointerVisitor;
   RW(Class, finalizer_class)                                                   \
   RW(Class, finalizer_entry_class)                                             \
   RW(Class, native_finalizer_class)                                            \
-  ARW_AR(Array, symbol_table)                                                  \
+  ARW_AR(WeakArray, symbol_table)                                              \
   RW(Array, canonical_types)                                                   \
   RW(Array, canonical_function_types)                                          \
   RW(Array, canonical_record_types)                                            \
@@ -159,6 +159,8 @@ class ObjectPointerVisitor;
   RW(Library, root_library)                                                    \
   RW(Library, typed_data_library)                                              \
   RW(Library, _vmservice_library)                                              \
+  RW(Library, native_assets_library)                                           \
+  RW(Array, native_assets_map)                                                 \
   RW(GrowableObjectArray, libraries)                                           \
   RW(Array, libraries_map)                                                     \
   RW(Array, uri_to_resolved_uri_map)                                           \

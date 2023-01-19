@@ -838,7 +838,7 @@ const Context& ActivationFrame::GetSavedCurrentContext() {
       } else if (obj.IsContext()) {
         ctx_ = Context::Cast(obj).ptr();
       } else {
-        ASSERT(obj.IsNull() || obj.ptr() == Symbols::OptimizedOut().ptr());
+        ASSERT(obj.IsNull() || obj.ptr() == Object::optimized_out().ptr());
         ctx_ = Context::null();
       }
       return ctx_;
@@ -1010,7 +1010,7 @@ bool ActivationFrame::IsRewindable() const {
   Object& obj = Object::Handle();
   for (int i = 0; i < deopt_frame_.Length(); i++) {
     obj = deopt_frame_.At(i);
-    if (obj.ptr() == Symbols::OptimizedOut().ptr()) {
+    if (obj.ptr() == Object::optimized_out().ptr()) {
       return false;
     }
   }
@@ -1113,7 +1113,7 @@ ObjectPtr ActivationFrame::GetRelativeContextVar(intptr_t var_ctx_level,
   // It's possible that ctx was optimized out as no locals were captured by the
   // context. See issue #38182.
   if (ctx.IsNull()) {
-    return Symbols::OptimizedOut().ptr();
+    return Object::optimized_out().ptr();
   }
 
   intptr_t level_diff = frame_ctx_level - var_ctx_level;
@@ -1169,7 +1169,7 @@ ObjectPtr ActivationFrame::GetReceiver() {
       return value.ptr();
     }
   }
-  return Symbols::OptimizedOut().ptr();
+  return Object::optimized_out().ptr();
 }
 
 static bool IsSyntheticVariableName(const String& var_name) {
@@ -1191,6 +1191,10 @@ ObjectPtr ActivationFrame::EvaluateCompiledExpression(
                                           arguments, type_arguments);
   } else {
     const Object& receiver = Object::Handle(GetReceiver());
+    if (receiver.ptr() == Object::optimized_out().ptr()) {
+      // Cannot execute an instance method without a receiver.
+      return Object::optimized_out().ptr();
+    }
     const Class& method_cls = Class::Handle(function().origin());
     ASSERT(receiver.IsInstance() || receiver.IsNull());
     if (!(receiver.IsInstance() || receiver.IsNull())) {

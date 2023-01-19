@@ -1980,6 +1980,16 @@ Message _withArgumentsConstructorWithWrongNameContext(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeContinueLabelInvalid = messageContinueLabelInvalid;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageContinueLabelInvalid = const MessageCode(
+    "ContinueLabelInvalid",
+    analyzerCodes: <String>["CONTINUE_LABEL_INVALID"],
+    problemMessage:
+        r"""A 'continue' label must be on a loop or a switch member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

@@ -1023,6 +1023,12 @@ void Sentinel::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("kind", "BeingInitialized");
     jsobj.AddProperty("valueAsString", "<being initialized>");
     return;
+  } else if (ptr() == Object::optimized_out().ptr()) {
+    JSONObject jsobj(stream);
+    jsobj.AddProperty("type", "Sentinel");
+    jsobj.AddProperty("kind", "OptimizedOut");
+    jsobj.AddProperty("valueAsString", "<optimized out>");
+    return;
   }
 
   Object::PrintJSONImpl(stream, ref);
@@ -1340,15 +1346,6 @@ void Double::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  if (ptr() == Symbols::OptimizedOut().ptr()) {
-    // TODO(turnidge): This is a hack.  The user could have this
-    // special string in their program.  Fixing this involves updating
-    // the debugging api a bit.
-    jsobj.AddProperty("type", "Sentinel");
-    jsobj.AddProperty("kind", "OptimizedOut");
-    jsobj.AddProperty("valueAsString", "<optimized out>");
-    return;
-  }
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "String");
   jsobj.AddProperty("length", Length());

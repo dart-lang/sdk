@@ -1194,8 +1194,8 @@ class A {
 /// [new A] or [new A.named]
 main() {}
 ''', [
-      error(StaticWarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 38, 3),
-      error(StaticWarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 49, 3),
+      error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 38, 3),
+      error(WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, 49, 3),
     ]);
 
     assertResolvedNodeText(findNode.commentReference('A]'), r'''

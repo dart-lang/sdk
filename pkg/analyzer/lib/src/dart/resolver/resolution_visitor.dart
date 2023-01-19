@@ -894,7 +894,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         // This is a case where the parser does not report an error, because the
         // parser thinks this could be an InstanceCreationExpression.
         _errorReporter.reportErrorForNode(
-            StaticWarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
+            WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
       }
       return newNode.accept(this);
     }
@@ -904,8 +904,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    bool onSwitchStatement = node.statement is SwitchStatement;
-    _buildLabelElements(node.labels, onSwitchStatement, false);
+    _buildLabelElements(node.labels, false);
 
     var outerScope = _labelScope;
     try {
@@ -1231,27 +1230,27 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.expression.accept(this);
 
     for (var group in node.memberGroups) {
-      _patternVariables.switchStatementSharedCaseScopeStart(node);
+      _patternVariables.switchStatementSharedCaseScopeStart(group);
       for (var member in group.members) {
-        _buildLabelElements(member.labels, false, true);
+        _buildLabelElements(member.labels, true);
         if (member is SwitchCaseImpl) {
           member.expression.accept(this);
         } else if (member is SwitchDefaultImpl) {
-          _patternVariables.switchStatementSharedCaseScopeEmpty(node);
+          _patternVariables.switchStatementSharedCaseScopeEmpty(group);
         } else if (member is SwitchPatternCaseImpl) {
           _resolveGuardedPattern(
             member.guardedPattern,
-            sharedCaseScopeKey: node,
+            sharedCaseScopeKey: group,
           );
         } else {
           throw UnimplementedError('(${member.runtimeType}) $member');
         }
       }
       if (group.hasLabels) {
-        _patternVariables.switchStatementSharedCaseScopeEmpty(node);
+        _patternVariables.switchStatementSharedCaseScopeEmpty(group);
       }
       group.variables =
-          _patternVariables.switchStatementSharedCaseScopeFinish(node);
+          _patternVariables.switchStatementSharedCaseScopeFinish(group);
       _withNameScope(() {
         var statements = group.statements;
         _buildLocalElements(statements);
@@ -1337,15 +1336,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   /// Builds the label elements associated with [labels] and stores them in the
   /// element holder.
-  void _buildLabelElements(
-      List<Label> labels, bool onSwitchStatement, bool onSwitchMember) {
+  void _buildLabelElements(List<Label> labels, bool onSwitchMember) {
     for (var label in labels) {
       label as LabelImpl;
       var labelName = label.label;
       var element = LabelElementImpl(
         labelName.name,
         labelName.offset,
-        onSwitchStatement,
         onSwitchMember,
       );
       labelName.staticElement = element;
@@ -1691,18 +1688,20 @@ class _VariableBinder
     var first = components.first;
     List<PatternVariableElementImpl> expandedVariables;
     if (key is LogicalOrPatternImpl) {
-      expandedVariables = components.expand((component) {
-        component as PatternVariableElementImpl;
-        if (component is JoinPatternVariableElementImpl) {
-          return component.variables;
+      expandedVariables = components.expand((variable) {
+        variable as PatternVariableElementImpl;
+        if (variable is JoinPatternVariableElementImpl) {
+          return variable.variables;
         } else {
-          return [component];
+          return [variable];
         }
       }).toList(growable: false);
-    } else {
+    } else if (key is SwitchStatementCaseGroup) {
       expandedVariables = components
           .map((e) => e as PatternVariableElementImpl)
           .toList(growable: false);
+    } else {
+      throw UnimplementedError('(${key.runtimeType}) $key');
     }
     return JoinPatternVariableElementImpl(
       first.name,

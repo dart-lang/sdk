@@ -4891,7 +4891,12 @@ class AstBuilder extends StackListener {
   @override
   void handleNullAssertPattern(Token bang) {
     debugEvent("NullAssertPattern");
-    push(PostfixPatternImpl(operand: pop() as DartPatternImpl, operator: bang));
+    push(
+      NullAssertPatternImpl(
+        pattern: pop() as DartPatternImpl,
+        operator: bang,
+      ),
+    );
   }
 
   @override
@@ -4901,8 +4906,12 @@ class AstBuilder extends StackListener {
       // TODO(paulberry): report the appropriate error
       throw UnimplementedError('Patterns not enabled');
     }
-    push(PostfixPatternImpl(
-        operand: pop() as DartPatternImpl, operator: question));
+    push(
+      NullCheckPatternImpl(
+        pattern: pop() as DartPatternImpl,
+        operator: question,
+      ),
+    );
   }
 
   @override

@@ -5,13 +5,21 @@
 import 'dart:ffi' as ffi;
 import 'dart:io' show Platform;
 
-String _platformPath(String name, {String? path}) {
-  if (path == null) path = "";
+final _dylibExtension = () {
   if (Platform.isLinux || Platform.isAndroid || Platform.isFuchsia)
-    return path + "lib" + name + ".so";
-  if (Platform.isMacOS) return path + "lib" + name + ".dylib";
-  if (Platform.isWindows) return path + name + ".dll";
-  throw Exception("Platform not implemented");
+    return '.so';
+  if (Platform.isMacOS) return '.dylib';
+  if (Platform.isWindows) return '.dll';
+  throw Exception('Platform not implemented.');
+}();
+
+final _dylibPrefix = Platform.isWindows ? '' : 'lib';
+
+String dylibName(String name) => '$_dylibPrefix$name$_dylibExtension';
+
+String _platformPath(String name, {String? path}) {
+  path ??= '';
+  return path + dylibName(name);
 }
 
 ffi.DynamicLibrary dlopenPlatformSpecific(String name, {String? path}) {
