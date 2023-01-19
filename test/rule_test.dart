@@ -228,10 +228,6 @@ void testRules(String ruleDir, {String? analysisOptions}) {
   for (var entry in Directory(ruleDir).listSync()) {
     if (entry is! File || !isDartFile(entry)) continue;
     var ruleName = p.basenameWithoutExtension(entry.path);
-    if (ruleName == 'unnecessary_getters') {
-      // Disabled pending fix: https://github.com/dart-lang/linter/issues/23
-      continue;
-    }
     testRule(ruleName, entry, analysisOptions: analysisOptions);
   }
 }
