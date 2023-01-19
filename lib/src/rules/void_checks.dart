@@ -78,6 +78,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool isTypeAcceptableWhenExpectingVoid(DartType type) {
     if (type.isVoid) return true;
     if (type.isDartCoreNull) return true;
+    if (type is NeverType) return true;
     if (type.isDartAsyncFuture &&
         type is InterfaceType &&
         isTypeAcceptableWhenExpectingVoid(type.typeArguments.first)) {
