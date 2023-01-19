@@ -57,8 +57,6 @@ Language/Expressions/Constants/integer_size_t04: SkipByDesign # uses integer lit
 Language/Expressions/Constants/literal_number_t01: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/math_operators_t01: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Constants/math_operators_t06: SkipByDesign # uses integer literal not representable as JavaScript number
-Language/Expressions/Function_Invocation/async_generator_invocation_t08: SkipSlow
-Language/Expressions/Function_Invocation/async_generator_invocation_t10: SkipSlow
 Language/Expressions/Numbers/integer_size_t03: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Numbers/static_type_of_int_t01: SkipByDesign # uses integer literal not representable as JavaScript number
 Language/Expressions/Numbers/syntax_t06: SkipByDesign # uses integer literal not representable as JavaScript number
