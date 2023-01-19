@@ -928,7 +928,7 @@ class ThreadInfo {
         // Don't rethrow here, because it will cause these completers futures
         // to not have error handlers attached which can cause their errors to
         // go unhandled. Instead, these completers futures will be returned
-        // below and awaited by the caller (which will propogate the errors).
+        // below and awaited by the caller (which will propagate the errors).
       }
     }
 

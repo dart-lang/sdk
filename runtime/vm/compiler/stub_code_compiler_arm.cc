@@ -1819,27 +1819,27 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
       Label not_parameterized_case;
 
       const Register kClsIdReg = R2;
-      const Register kTypeOffestReg = R9;
+      const Register kTypeOffsetReg = R9;
 
       __ ExtractClassIdFromTags(kClsIdReg, kTagsReg);
 
       // Load class' type_arguments_field offset in words.
-      __ LoadClassById(kTypeOffestReg, kClsIdReg);
+      __ LoadClassById(kTypeOffsetReg, kClsIdReg);
       __ ldr(
-          kTypeOffestReg,
-          FieldAddress(kTypeOffestReg,
+          kTypeOffsetReg,
+          FieldAddress(kTypeOffsetReg,
                        target::Class::
                            host_type_arguments_field_offset_in_words_offset()));
 
       // Set the type arguments in the new object.
       __ StoreIntoObjectNoBarrier(
           AllocateObjectABI::kResultReg,
-          Address(AllocateObjectABI::kResultReg, kTypeOffestReg, LSL,
+          Address(AllocateObjectABI::kResultReg, kTypeOffsetReg, LSL,
                   target::kWordSizeLog2),
           AllocateObjectABI::kTypeArgumentsReg);
 
       __ Bind(&not_parameterized_case);
-    }  // kClsIdReg = R1, kTypeOffestReg = R9
+    }  // kClsIdReg = R1, kTypeOffsetReg = R9
 
     __ AddImmediate(AllocateObjectABI::kResultReg,
                     AllocateObjectABI::kResultReg, kHeapObjectTag);

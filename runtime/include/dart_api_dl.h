@@ -29,7 +29,7 @@ DART_EXPORT intptr_t Dart_InitializeApiDL(void* data);
 // DART_API_DL_MAJOR_VERSION and DART_API_DL_MINOR_VERSION.
 //
 // Verbatim copy of `dart_native_api.h` and `dart_api.h` symbol names and types
-// to trigger compile-time errors if the sybols in those files are updated
+// to trigger compile-time errors if the symbols in those files are updated
 // without updating these.
 //
 // Function return and argument types, and typedefs are carbon copied. Structs

@@ -1157,7 +1157,7 @@ DEFINE_NATIVE_ENTRY(Isolate_sendOOB, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, msg, arguments->NativeArgAt(1));
 
-  // Make sure to route this request to the isolate library OOB mesage handler.
+  // Make sure to route this request to the isolate library OOB message handler.
   msg.SetAt(0, Smi::Handle(Smi::New(Message::kIsolateLibOOBMsg)));
 
   // Ensure message writer (and it's resources, e.g. forwarding tables) are

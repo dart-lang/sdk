@@ -1141,7 +1141,7 @@ class RuntimeType extends Type {
   int _computeHashCode() {
     int hash = _type.hashCode ^ 0x1234 & kHashMask;
     // Only hash by the type arguments of the class. The type arguments of
-    // supertypes are are implied by them.
+    // supertypes are implied by them.
     for (int i = 0; i < numImmediateTypeArgs; ++i) {
       hash = (((hash * 31) & kHashMask) + typeArgs![i].hashCode) & kHashMask;
     }

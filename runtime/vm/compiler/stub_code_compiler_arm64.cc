@@ -466,7 +466,7 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // we only emit a 32-bit callback ID.
   __ uxtw(R9, R9);
 
-  // Save THR (callee-saved) and LR on real real C stack (CSP). Keeps it
+  // Save THR (callee-saved) and LR on the real C stack (CSP). Keeps it
   // aligned.
   COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 2);
   SPILLS_LR_TO_FRAME(__ stp(
@@ -2147,7 +2147,7 @@ static void GenerateAllocateObjectHelper(Assembler* assembler,
           AllocateObjectABI::kTypeArgumentsReg);
 
       __ Bind(&not_parameterized_case);
-    }  // kClsIdReg = R4, kTypeOffestReg = R5
+    }  // kClsIdReg = R4, kTypeOffsetReg = R5
 
     __ AddImmediate(AllocateObjectABI::kResultReg,
                     AllocateObjectABI::kResultReg, kHeapObjectTag);

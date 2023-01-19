@@ -73,7 +73,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
                                                   bool* is_debuggable);
 
 /**
- * Requets that debugging be enabled for the given library.
+ * Requests that debugging be enabled for the given library.
  *
  * Requires there to be a current isolate.
  *

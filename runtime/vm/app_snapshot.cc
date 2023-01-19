@@ -6257,7 +6257,7 @@ class VMSerializationRoots : public SerializationRoots {
     }
 
     if (!should_write_symbols_ && s->profile_writer() != nullptr) {
-      // If writing V8 snapshot profile create an artifical node representing
+      // If writing V8 snapshot profile create an artificial node representing
       // VM isolate symbol table.
       ASSERT(!s->IsReachable(symbols_.ptr()));
       s->AssignArtificialRef(symbols_.ptr());
@@ -8027,7 +8027,7 @@ ZoneGrowableArray<Object*>* Serializer::Serialize(SerializationRoots* roots) {
     // targets in reachable WSRs if writing a v8 snapshot profile, since they
     // will be used in AttributeReference().
     //
-    // Unreachable WSRs may also need artifical nodes, as they may be members
+    // Unreachable WSRs may also need artificial nodes, as they may be members
     // of other unreachable objects that have artificial nodes in the profile,
     // but they are instead lazily handled in CreateArtificialNodeIfNeeded().
     wsr_cluster->CreateArtificialTargetNodesIfNeeded(this);
@@ -8082,7 +8082,7 @@ void Serializer::WriteDispatchTable(const Array& entries) {
 #if defined(DART_PRECOMPILER)
   if (kind() != Snapshot::kFullAOT) return;
 
-  // Create an artifical node to which the bytes should be attributed. We
+  // Create an artificial node to which the bytes should be attributed. We
   // don't attribute them to entries.ptr(), as we don't want to attribute the
   // bytes for printing out a length of 0 to Object::null() when the dispatch
   // table is empty.

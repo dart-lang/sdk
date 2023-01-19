@@ -1521,7 +1521,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
             : frames.length;
 
         // Find the first async marker, because some functionality only works
-        // up until the first async bounday (e.g. rewind) since we're showing
+        // up until the first async boundary (e.g. rewind) since we're showing
         // the user async frames which are out-of-sync with the real frames
         // past that point.
         final firstAsyncMarkerIndex = frames.indexWhere(
