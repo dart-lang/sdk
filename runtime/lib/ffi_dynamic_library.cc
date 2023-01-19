@@ -295,7 +295,7 @@ static void* FfiResolveAsset(Thread* const thread,
       asset_type.Equals(Symbols::system())) {
     path = String::RawCast(asset_location.At(1));
   }
-  void* handle;
+  void* handle = nullptr;
   if (asset_type.Equals(Symbols::absolute())) {
     handle = LoadDynamicLibrary(path.ToCString(), error);
   } else if (asset_type.Equals(Symbols::relative())) {
