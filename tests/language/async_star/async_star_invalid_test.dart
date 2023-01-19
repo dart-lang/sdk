@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedOptions=--enable-experiment=records
+
 // Test that various invalid uses of `yield` are disallowed.
 
 import "dart:async";
@@ -14,7 +16,7 @@ main() async {
   asyncStart();
   Stream<String> f() async* {
     // Invalid syntax.
-    yield ("a", "b"); //# 01: syntax error
+    yield ("a", "b"); //# 01: compile-time error
     yield yield "twice"; //# 02: syntax error
 
     // Valid but curious syntax.
