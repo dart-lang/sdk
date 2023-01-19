@@ -917,7 +917,6 @@ abstract class NativeApi {
 ///
 /// NOTE: This is an experimental feature and may change in the future.
 @Since('2.14')
-@Deprecated('Use Native instead.')
 class FfiNative<T> {
   final String nativeName;
 
