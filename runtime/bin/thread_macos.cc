@@ -114,7 +114,7 @@ int Thread::Start(const char* name,
   return 0;
 }
 
-const ThreadId Thread::kInvalidThreadId = reinterpret_cast<ThreadId>(NULL);
+const ThreadId Thread::kInvalidThreadId = static_cast<ThreadId>(NULL);
 
 intptr_t Thread::GetMaxStackSize() {
   const int kStackSize = (128 * kWordSize * KB);

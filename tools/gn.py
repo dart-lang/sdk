@@ -302,7 +302,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
 
     # Setup the user-defined sysroot.
     if UseSysroot(args, gn_args):
-        gn_args['dart_use_debian_sysroot'] = True
+        gn_args['dart_sysroot'] = 'debian'
     else:
         sysroot = TargetSysroot(args)
         if sysroot:

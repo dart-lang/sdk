@@ -13,6 +13,8 @@ declare_args() {
   }
 }
 
+import("//build/config/sysroot.gni")
+
 import("//build/config/android/config.gni")
 if (current_cpu == "arm") {
   import("//build/config/arm.gni")
@@ -262,21 +264,48 @@ config("compiler") {
   # ------------------------------------
   if (is_linux) {
     if (is_clang) {
-      if (current_cpu == "arm") {
-        cflags += [ "--target=armv7-linux-gnueabihf" ]
-        ldflags += [ "--target=armv7-linux-gnueabihf" ]
-      } else if (current_cpu == "arm64") {
-        cflags += [ "--target=aarch64-linux-gnu" ]
-        ldflags += [ "--target=aarch64-linux-gnu" ]
-      } else if (current_cpu == "riscv32") {
-        cflags += [ "--target=riscv32-linux-gnu" ]
-        ldflags += [ "--target=riscv32-linux-gnu" ]
-      } else if (current_cpu == "riscv64") {
-        cflags += [ "--target=riscv64-linux-gnu" ]
-        ldflags += [ "--target=riscv64-linux-gnu" ]
-      } else if (current_cpu == "x86") {
-        cflags += [ "--target=i386-linux-gnu" ]
-        ldflags += [ "--target=i386-linux-gnu" ]
+      if (dart_sysroot == "alpine") {
+        # alpine linux target names can be found at:
+        # https://pkgs.alpinelinux.org/contents?file=stdc%2B%2B.h&name=libstdc%2B%2B-dev
+        if (current_cpu == "arm") {
+          cflags += [ "--target=armv7-alpine-linux-musleabihf" ]
+          ldflags += [ "--target=armv7-alpine-linux-musleabihf" ]
+        } else if (current_cpu == "arm64") {
+          cflags += [ "--target=aarch64-alpine-linux-musl" ]
+          ldflags += [ "--target=aarch64-alpine-linux-musl" ]
+        } else if (current_cpu == "riscv32") {
+          cflags += [ "--target=riscv32-alpine-linux-musl" ]
+          ldflags += [ "--target=riscv32-alpine-linux-musl" ]
+        } else if (current_cpu == "riscv64") {
+          cflags += [ "--target=riscv64-alpine-linux-musl" ]
+          ldflags += [ "--target=riscv64-alpine-linux-musl" ]
+        } else if (current_cpu == "x64") {
+          cflags += [ "--target=x86_64-alpine-linux-musl" ]
+          ldflags += [ "--target=x86_64-alpine-linux-musl" ]
+        } else if (current_cpu == "x86") {
+          cflags += [ "--target=i586-alpine-linux-musl" ]
+          ldflags += [ "--target=i586-alpine-linux-musl" ]
+        }
+      } else {
+        if (current_cpu == "arm") {
+          cflags += [ "--target=armv7-linux-gnueabihf" ]
+          ldflags += [ "--target=armv7-linux-gnueabihf" ]
+        } else if (current_cpu == "arm64") {
+          cflags += [ "--target=aarch64-linux-gnu" ]
+          ldflags += [ "--target=aarch64-linux-gnu" ]
+        } else if (current_cpu == "riscv32") {
+          cflags += [ "--target=riscv32-linux-gnu" ]
+          ldflags += [ "--target=riscv32-linux-gnu" ]
+        } else if (current_cpu == "riscv64") {
+          cflags += [ "--target=riscv64-linux-gnu" ]
+          ldflags += [ "--target=riscv64-linux-gnu" ]
+        } else if (current_cpu == "x64") {
+          cflags += [ "--target=x86_64-linux-gnu" ]
+          ldflags += [ "--target=x86_64-linux-gnu" ]
+        } else if (current_cpu == "x86") {
+          cflags += [ "--target=i386-linux-gnu" ]
+          ldflags += [ "--target=i386-linux-gnu" ]
+        }
       }
     }
   }
@@ -368,7 +397,7 @@ config("compiler") {
   # changes since artifacts from an older version of the toolchain may or may
   # not be compatible with newer ones. To achieve this, we insert a synthetic
   # define into the compile line.
-  if (is_clang && (is_linux || is_mac)) {
+  if (is_clang && (is_linux || is_mac) && dart_sysroot != "alpine") {
     if (is_linux && host_cpu == "arm64") {
       toolchain_stamp_file =
           "//buildtools/linux-arm64/clang/.versions/clang.cipd_version"
@@ -643,8 +672,11 @@ config("chromium_code") {
     cflags = [
       "-Wall",
       "-Wextra",
-      "-Werror",
     ]
+
+    if (dart_sysroot != "alpine") {
+      cflags += [ "-Werror" ]
+    }
 
     defines = []
     if (!using_sanitizer && !is_clang) {

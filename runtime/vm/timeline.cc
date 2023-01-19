@@ -883,7 +883,7 @@ TimelineEvent* TimelineStream::StartEvent() {
 
 TimelineEventScope::TimelineEventScope(TimelineStream* stream,
                                        const char* label)
-    : StackResource(reinterpret_cast<Thread*>(NULL)),
+    : StackResource(static_cast<Thread*>(NULL)),
       stream_(stream),
       label_(label),
       enabled_(false) {
