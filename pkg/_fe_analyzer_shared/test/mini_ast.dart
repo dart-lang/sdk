@@ -3764,11 +3764,8 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void handle_ifCaseStatement_afterPattern({
-    required covariant _IfCase node,
-    required Iterable<Var> variables,
-  }) {
-    _irVariables(node, variables);
+  void handle_ifCaseStatement_afterPattern({required covariant _IfCase node}) {
+    _irVariables(node, node._candidateVariables.values);
   }
 
   void handleAssignedVariablePattern(covariant _VariablePattern node) {

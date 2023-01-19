@@ -534,10 +534,7 @@ mixin TypeAnalyzer<
       location: JoinedPatternVariableLocation.singlePattern,
     );
 
-    handle_ifCaseStatement_afterPattern(
-      node: node,
-      variables: variables.values,
-    );
+    handle_ifCaseStatement_afterPattern(node: node);
     // Stack: (Expression, Pattern)
     if (guard != null) {
       _checkGuardType(guard, analyzeExpression(guard, boolType));
@@ -1659,16 +1656,7 @@ mixin TypeAnalyzer<
   Type getVariableType(Variable variable);
 
   /// Called after visiting the pattern in `if-case` statement.
-  /// [variables] are variables declared in the pattern.
-  ///
-  /// It is expected that the client will push a new scope with [variables]
-  /// available.  This scope should be used to analyze the guard, and the
-  /// `then` branch. The scope is not used for the `else` branch, so on
-  /// [handle_ifStatement_thenEnd] the client should pop it.
-  void handle_ifCaseStatement_afterPattern({
-    required Statement node,
-    required Iterable<Variable> variables,
-  }) {}
+  void handle_ifCaseStatement_afterPattern({required Statement node}) {}
 
   /// Called after visiting the expression of an `if` element.
   void handle_ifElement_conditionEnd(Node node) {}
