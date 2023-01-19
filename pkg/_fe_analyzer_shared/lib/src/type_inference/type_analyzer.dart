@@ -417,7 +417,7 @@ mixin TypeAnalyzer<
         isLate: context.isLate,
         isImplicitlyTyped: isImplicitlyTyped);
     setVariableType(variable, staticType);
-    flow.declare(variable, false, staticType);
+    flow.declare(variable, staticType, initialized: false);
     flow.assignMatchedPatternVariable(variable, promotionKey);
     return staticType;
   }
@@ -1506,7 +1506,7 @@ mixin TypeAnalyzer<
       {required bool isFinal, required bool isLate}) {
     Type inferredType = declaredType ?? dynamicType;
     setVariableType(variable, inferredType);
-    flow.declare(variable, false, inferredType);
+    flow.declare(variable, inferredType, initialized: false);
     return inferredType;
   }
 
@@ -1927,7 +1927,7 @@ mixin TypeAnalyzer<
           isFinal: resultIsFinal,
           type: resultType,
         );
-        flow.declare(variable, true, resultType);
+        flow.declare(variable, resultType, initialized: true);
       }
     }
   }

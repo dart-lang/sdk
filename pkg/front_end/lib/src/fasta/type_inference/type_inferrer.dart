@@ -217,14 +217,14 @@ class TypeInferrerImpl implements TypeInferrer {
     List<Expression> positionalArguments = <Expression>[];
     for (VariableDeclaration parameter
         in redirectingFactoryFunction.positionalParameters) {
-      flowAnalysis.declare(parameter, true, parameter.type);
+      flowAnalysis.declare(parameter, parameter.type, initialized: true);
       positionalArguments
           .add(new VariableGetImpl(parameter, forNullGuardedAccess: false));
     }
     List<NamedExpression> namedArguments = <NamedExpression>[];
     for (VariableDeclaration parameter
         in redirectingFactoryFunction.namedParameters) {
-      flowAnalysis.declare(parameter, true, parameter.type);
+      flowAnalysis.declare(parameter, parameter.type, initialized: true);
       namedArguments.add(new NamedExpression(parameter.name!,
           new VariableGetImpl(parameter, forNullGuardedAccess: false)));
     }

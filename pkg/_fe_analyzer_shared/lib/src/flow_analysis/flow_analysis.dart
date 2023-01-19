@@ -210,8 +210,8 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// to [skipDuplicateCheck].
   ///
   /// TODO(paulberry): try to remove all uses of skipDuplicateCheck
-  void declare(Variable variable, bool initialized, Type staticType,
-      {bool skipDuplicateCheck = false});
+  void declare(Variable variable, Type staticType,
+      {required bool initialized, bool skipDuplicateCheck = false});
 
   /// Call this method after visiting a variable pattern in a non-assignment
   /// context (or a wildcard pattern).
@@ -1070,13 +1070,13 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void declare(Variable variable, bool initialized, Type staticType,
-      {bool skipDuplicateCheck = false}) {
+  void declare(Variable variable, Type staticType,
+      {required bool initialized, bool skipDuplicateCheck = false}) {
     _wrap(
-        'declare($variable, $initialized, $staticType, '
-        'skipDuplicateCheck: $skipDuplicateCheck)',
-        () => _wrapped.declare(variable, initialized, staticType,
-            skipDuplicateCheck: skipDuplicateCheck));
+        'declare($variable, $staticType, '
+        'initialized: $initialized, skipDuplicateCheck: $skipDuplicateCheck)',
+        () => _wrapped.declare(variable, staticType,
+            initialized: initialized, skipDuplicateCheck: skipDuplicateCheck));
   }
 
   @override
@@ -3651,8 +3651,8 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void declare(Variable variable, bool initialized, Type staticType,
-      {bool skipDuplicateCheck = false}) {
+  void declare(Variable variable, Type staticType,
+      {required bool initialized, bool skipDuplicateCheck = false}) {
     assert(
         operations.isSameType(staticType, operations.variableType(variable)));
     assert(_debugDeclaredVariables.add(variable) || skipDuplicateCheck,
@@ -5088,8 +5088,8 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void constantPattern_end(Expression expression) {}
 
   @override
-  void declare(Variable variable, bool initialized, Type staticType,
-      {bool skipDuplicateCheck = false}) {}
+  void declare(Variable variable, Type staticType,
+      {required bool initialized, bool skipDuplicateCheck = false}) {}
 
   @override
   int declaredVariablePattern(
