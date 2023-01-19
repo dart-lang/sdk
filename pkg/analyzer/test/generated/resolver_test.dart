@@ -69,7 +69,7 @@ class A {
     }
   }
 }''', [
-      error(CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH, 79, 1),
+      error(CompileTimeErrorCode.CONTINUE_LABEL_INVALID, 70, 11),
     ]);
   }
 
@@ -84,7 +84,7 @@ class A {
     }
   }
 }''', [
-      error(CompileTimeErrorCode.CONTINUE_LABEL_ON_SWITCH, 95, 1),
+      error(CompileTimeErrorCode.CONTINUE_LABEL_INVALID, 86, 11),
     ]);
   }
 

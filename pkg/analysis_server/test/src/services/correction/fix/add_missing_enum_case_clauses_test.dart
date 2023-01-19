@@ -256,6 +256,31 @@ void f(E e) {
     await assertNoFix(errorFilter: _filter);
   }
 
+  Future<void> test_notBrackets() async {
+    await resolveTestCode('''
+enum E {a, b, c}
+void f(E e) {
+  switch (e)
+}
+''');
+    await assertHasFixWithFilter('''
+enum E {a, b, c}
+void f(E e) {
+  switch (e) {
+    case E.a:
+      // TODO: Handle this case.
+      break;
+    case E.b:
+      // TODO: Handle this case.
+      break;
+    case E.c:
+      // TODO: Handle this case.
+      break;
+  }
+}
+''');
+  }
+
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49759')
   Future<void> test_notEmpty() async {
     await resolveTestCode('''

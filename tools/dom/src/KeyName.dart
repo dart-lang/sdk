@@ -41,7 +41,7 @@ abstract class _KeyName {
   static const String BROWSER_BACK = "BrowserBack";
 
   /** The Browser Favorites key */
-  static const String BROWSER_FAVORTIES = "BrowserFavorites";
+  static const String BROWSER_FAVORITES = "BrowserFavorites";
 
   /** The Browser Forward key */
   static const String BROWSER_FORWARD = "BrowserForward";

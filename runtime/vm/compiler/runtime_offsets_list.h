@@ -62,6 +62,7 @@
   ARRAY(Record, field_offset)                                                  \
   ARRAY(TypeArguments, type_at_offset)                                         \
   ARRAY(TwoByteString, element_offset)                                         \
+  ARRAY(WeakArray, element_offset)                                             \
   ARRAY_SIZEOF(Array, InstanceSize, element_offset)                            \
   ARRAY_SIZEOF(Code, InstanceSize, element_offset)                             \
   ARRAY_SIZEOF(Context, InstanceSize, variable_offset)                         \
@@ -72,6 +73,7 @@
   ARRAY_SIZEOF(Record, InstanceSize, field_offset)                             \
   ARRAY_SIZEOF(TypeArguments, InstanceSize, type_at_offset)                    \
   ARRAY_SIZEOF(TwoByteString, InstanceSize, element_offset)                    \
+  ARRAY_SIZEOF(WeakArray, InstanceSize, element_offset)                        \
   CONSTANT(Array, kMaxElements)                                                \
   CONSTANT(Array, kMaxNewSpaceElements)                                        \
   CONSTANT(Context, kMaxElements)                                              \

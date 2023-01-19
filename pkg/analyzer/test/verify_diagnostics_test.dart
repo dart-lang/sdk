@@ -84,6 +84,12 @@ class DocumentationValidator {
     'CompileTimeErrorCode.UNDEFINED_IDENTIFIER_AWAIT',
     // Produces multiple diagnostic because of poor recovery.
     'CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR',
+
+    // This is not reported after 2.12, and the examples don't compile after 3.0.
+    'FfiCode.FIELD_INITIALIZER_IN_STRUCT',
+    // This is not reported after 2.12, and the examples don't compile after 3.0.
+    'FfiCode.FIELD_IN_STRUCT_WITH_INITIALIZER',
+
     // This no longer works in 3.0.
     'HintCode.DEPRECATED_COLON_FOR_DEFAULT_VALUE',
     // The code has been replaced but is not yet removed.
@@ -96,6 +102,7 @@ class DocumentationValidator {
     // Produces two diagnostics when it should only produce one (see
     // https://github.com/dart-lang/sdk/issues/43051)
     'HintCode.UNNECESSARY_NULL_COMPARISON_FALSE',
+
     // Produces two diagnostics when it should only produce one (see
     // https://github.com/dart-lang/sdk/issues/43263)
     'StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION',

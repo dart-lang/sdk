@@ -904,10 +904,12 @@ abstract class NativeApi {
 /// Annotation to be used for marking an external function as FFI native.
 ///
 /// Example:
-///```dart template:top
+///
+/// ```dart template:top
 /// @FfiNative<Int64 Function(Int64, Int64)>('FfiNative_Sum', isLeaf:true)
 /// external int sum(int a, int b);
-///```
+/// ```
+///
 /// Calling such functions will throw an exception if no resolver
 /// was set on the library or the resolver failed to resolve the name.
 ///
@@ -915,6 +917,7 @@ abstract class NativeApi {
 ///
 /// NOTE: This is an experimental feature and may change in the future.
 @Since('2.14')
+@Deprecated('Use Native instead.')
 class FfiNative<T> {
   final String nativeName;
 
@@ -925,6 +928,176 @@ class FfiNative<T> {
   final bool isLeaf;
 
   const FfiNative(this.nativeName, {this.isLeaf = false});
+}
+
+/// Annotation specifying how to bind an external function to native code.
+///
+/// The annotation applies only to `external` function declarations.
+///
+/// A [Native]-annotated `external` function is implemented by native code.
+/// The implementation is found in the native library denoted by [assetId].
+///
+/// The compiler and/or runtime provides a binding from [assetId] to native
+/// library, which depends on the target platform.
+/// The compiler/runtime can then resolve/lookup symbols (identifiers)
+/// against the native library, to find a native function,
+/// and bind an `external` Dart function declaration to that native function.
+///
+/// Use this annotation on `external` functions to specify that they
+/// are resolved against an asset, and to, optionally, provide overrides
+/// of the default symbol and asset IDs.
+///
+/// The type argument to the [Native] annotation must be a function type
+/// representing the native function's parameter and return types.
+///
+/// Example:
+///
+/// ```dart template:top
+/// @Native<Int64 Function(Int64, Int64)>()
+/// external int sum(int a, int b);
+/// ```
+///
+/// Calling such function will try to resolve the [symbol] in (in that order)
+/// 1. the provided or default [assetId],
+/// 2. the native resolver set with `Dart_SetFfiNativeResolver` in
+///    `dart_api.h`, and
+/// 3. the current process.
+///
+/// At least one of those three *must* provide a binding for the symbol,
+/// otherwise the method call fails.
+///
+/// NOTE: This is an experimental feature and may change in the future.
+@Since('2.19')
+class Native<T> {
+  /// The native symbol to be resolved, if not using the default.
+  ///
+  /// If not specified, the default symbol used for native function lookup
+  /// is the annotated function's name.
+  ///
+  /// Example:
+  ///
+  /// ```dart template:top
+  /// @Native<Int64 Function(Int64, Int64)>()
+  /// external int sum(int a, int b);
+  /// ```
+  ///
+  /// Example 2:
+  ///
+  /// ```dart template:top
+  /// @Native<Int64 Function(Int64, Int64)>(symbol: 'sum')
+  /// external int sum(int a, int b);
+  /// ```
+  ///
+  /// The above two examples are equivalent.
+  ///
+  /// Prefer omitting the [symbol] when possible.
+  final String? symbol;
+
+  /// The ID of the asset in which [symbol] is resolved, if not using the
+  /// default.
+  ///
+  /// If no asset name is specified, the default is to use an asset ID
+  /// specified using an [DefaultAsset] annotation on the current library's
+  /// `library` declaration, and if there is no [DefaultAsset] annotation on
+  /// the current library, the library's URI (as a string) is used instead.
+  ///
+  /// Example (file `package:a/a.dart`):
+  ///
+  /// ```dart template:top
+  /// @Native<Int64 Function(Int64, Int64)>()
+  /// external int sum(int a, int b);
+  /// ```
+  ///
+  /// Example 2 (file `package:a/a.dart`):
+  ///
+  /// ```dart template:none
+  /// @DefaultAsset('package:a/a.dart')
+  /// library a;
+  ///
+  /// import 'dart:ffi';
+  ///
+  /// @Native<Int64 Function(Int64, Int64)>()
+  /// external int sum(int a, int b);
+  /// ```
+  ///
+  /// Example 3 (file `package:a/a.dart`):
+  ///
+  /// ```dart template:top
+  /// @Native<Int64 Function(Int64, Int64)>(assetId: 'package:a/a.dart')
+  /// external int sum(int a, int b);
+  /// ```
+  ///
+  /// The above three examples are all equivalent.
+  ///
+  /// Prefer using the library URI as an asset name over specifying it.
+  /// Prefer using an [DefaultAsset] on the `library` declaration
+  /// over specifying the asset name in a [Native] annotation.
+  final String? assetId;
+
+  /// Whether the function is a leaf function.
+  ///
+  /// A leaf function must not run Dart code or call back into the Dart VM.
+  ///
+  /// Leaf calls are faster than non-leaf calls.
+  final bool isLeaf;
+
+  const Native({
+    this.assetId,
+    this.isLeaf = false,
+    this.symbol,
+  });
+}
+
+/// Annotation specifying the default asset ID for the current library.
+///
+/// The annotation applies only to `library` declarations.
+///
+/// The compiler and/or runtime provides a binding from _asset ID_ to native
+/// library, which depends on the target platform and architecture.
+/// The compiler/runtime can resolve identifiers (symbols)
+/// against the native library, looking up native function implementations
+/// which are then used as the implementation of `external` Dart function
+/// declarations.
+///
+/// If used as annotation on a `library` declaration, all [Native]-annotated
+/// external functions in this library will use the specified asset [id]
+/// for native function resolution (unless overridden by [Native.assetId]).
+///
+/// If no [DefaultAsset] annotation is provided, the current library's URI
+/// is the default asset ID for [Native]-annotated external functions.
+///
+/// Example (file `package:a/a.dart`):
+///
+/// ```dart template:top
+/// @Native<Int64 Function(Int64, Int64)>()
+/// external int sum(int a, int b);
+/// ```
+///
+/// Example 2 (file `package:a/a.dart`):
+///
+/// ```dart template:none
+/// @DefaultAsset('package:a/a.dart')
+/// library a;
+///
+/// import 'dart:ffi';
+///
+/// @Native<Int64 Function(Int64, Int64)>()
+/// external int sum(int a, int b);
+/// ```
+///
+/// The above two examples are equivalent.
+///
+/// Prefer using the library URI as asset name when possible.
+///
+/// NOTE: This is an experimental feature and may change in the future.
+@Since('2.19')
+class DefaultAsset {
+  /// The default asset name for [Native] external functions in this library.
+  final String id;
+
+  const DefaultAsset(
+    this.id,
+  );
 }
 
 // Bootstrapping native for getting the FFI native C function pointer to look

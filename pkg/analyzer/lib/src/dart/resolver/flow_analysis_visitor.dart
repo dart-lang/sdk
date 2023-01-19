@@ -158,7 +158,11 @@ class FlowAnalysisHelper {
 
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        flow!.declare(parameter.declaredElement!, true);
+        var declaredElement = parameter.declaredElement!;
+        // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
+        // around a failure in duplicate_definition_test.dart; fix this.
+        flow!.declare(declaredElement, true, declaredElement.type,
+            skipDuplicateCheck: true);
       }
     }
   }
@@ -283,8 +287,9 @@ class FlowAnalysisHelper {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        flow!.declare(variable.declaredElement as PromotableElement,
-            variable.initializer != null);
+        var declaredElement = variable.declaredElement as PromotableElement;
+        flow!.declare(declaredElement, variable.initializer != null,
+            declaredElement.type);
       }
     }
   }
@@ -626,13 +631,13 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPatternVariableDeclarationStatement(
-    covariant PatternVariableDeclarationStatementImpl node,
+  void visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
   ) {
-    for (var variable in node.declaration.elements) {
+    for (var variable in node.elements) {
       assignedVariables.declare(variable);
     }
-    super.visitPatternVariableDeclarationStatement(node);
+    super.visitPatternVariableDeclaration(node);
   }
 
   @override
@@ -770,6 +775,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         forLoopParts.initialization?.accept(this);
       } else if (forLoopParts is ForPartsWithDeclarations) {
         forLoopParts.variables.accept(this);
+      } else if (forLoopParts is ForPartsWithPattern) {
+        forLoopParts.variables.accept(this);
       } else {
         throw StateError('Unrecognized for loop parts');
       }
@@ -792,6 +799,10 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       } else if (forLoopParts is ForEachPartsWithDeclaration) {
         var variable = forLoopParts.loopVariable.declaredElement!;
         assignedVariables.declare(variable);
+      } else if (forLoopParts is ForEachPartsWithPatternImpl) {
+        for (var variable in forLoopParts.variables) {
+          assignedVariables.declare(variable);
+        }
       } else {
         throw StateError('Unrecognized for loop parts');
       }

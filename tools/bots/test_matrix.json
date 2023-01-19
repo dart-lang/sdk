@@ -533,6 +533,81 @@
         ]
       }
     },
+    "vm-asan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "builder-tag": "asan",
+        "timeout": 240,
+        "nnbd": "strong"
+      }
+    },
+    "vm-lsan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "builder-tag": "lsan",
+        "timeout": 240,
+        "nnbd": "strong"
+      }
+    },
+    "vm-msan-linux-(debug|product|release)-(x64|simarm64|simriscv64)": {
+      "options": {
+        "builder-tag": "msan",
+        "timeout": 240,
+        "nnbd": "strong"
+      }
+    },
+    "vm-tsan-(linux|mac)-(debug|product|release)-(x64|simarm64|simriscv64)": {
+      "options": {
+        "builder-tag": "tsan",
+        "timeout": 240,
+        "nnbd": "strong"
+      }
+    },
+    "vm-ubsan-(linux|mac)-(debug|product|release)-(ia32|x64|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "builder-tag": "ubsan",
+        "timeout": 240,
+        "nnbd": "strong"
+      }
+    },
+    "vm-aot-asan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "builder-tag": "asan",
+        "timeout": 240,
+        "nnbd": "strong",
+        "compiler": "dartkp"
+      }
+    },
+    "vm-aot-lsan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "builder-tag": "lsan",
+        "timeout": 240,
+        "nnbd": "strong",
+        "compiler": "dartkp"
+      }
+    },
+    "vm-aot-msan-linux-(debug|product|release)-(x64|simarm64|simriscv64)": {
+      "options": {
+        "builder-tag": "msan",
+        "timeout": 240,
+        "nnbd": "strong",
+        "compiler": "dartkp"
+      }
+    },
+    "vm-aot-tsan-(linux|mac)-(debug|product|release)-(x64|simarm64|simriscv64)": {
+      "options": {
+        "builder-tag": "tsan",
+        "timeout": 240,
+        "nnbd": "strong",
+        "compiler": "dartkp"
+      }
+    },
+    "vm-aot-ubsan-(linux|mac)-(debug|product|release)-(x64|simarm|simarm64|simriscv32|simriscv64)": {
+      "options": {
+        "builder-tag": "ubsan",
+        "timeout": 240,
+        "nnbd": "strong",
+        "compiler": "dartkp"
+      }
+    },
     "dart2js-(linux|mac|win)-chrome": {
       "options": {
         "use-sdk": true,
@@ -972,6 +1047,16 @@
         ]
       }
     },
+    "vm-optcounter-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c|simarm|simarm64|simarm64c|simriscv32|simriscv64)": {
+      "options": {
+        "builder-tag": "optimization_counter_threshold",
+        "vm-options": [
+          "--optimization-counter-threshold=5",
+          "--random-seed=__RANDOM__"
+        ],
+        "nnbd": "strong"
+      }
+    },
     "dartk-reload-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
       "options": {
         "hot-reload": true,
@@ -986,6 +1071,18 @@
         "vm-options": [
           "--no-sound-null-safety"
         ]
+      }
+    },
+    "vm-reload-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
+      "options": {
+        "hot-reload": true,
+        "nnbd": "strong"
+      }
+    },
+    "vm-reload-rollback-(linux|mac|win)-(debug|product|release)-(ia32|x64|x64c)": {
+      "options": {
+        "hot-reload-rollback": true,
+        "nnbd": "strong"
       }
     },
     "dartk-linux-(debug|product|release)-(arm|arm64|arm64c|riscv32|riscv64)-qemu": {
@@ -1235,7 +1332,8 @@
             "corelib",
             "ffi",
             "language",
-            "lib"
+            "lib",
+            "service"
           ]
         }
       ]
@@ -1490,6 +1588,7 @@
             "language",
             "lib",
             "samples",
+            "service",
             "standalone",
             "utils",
             "vm"
@@ -1501,12 +1600,15 @@
       "builders": [
         "vm-kernel-precomp-nnbd-linux-debug-simriscv64",
         "vm-kernel-precomp-nnbd-linux-debug-x64",
+        "vm-kernel-precomp-nnbd-linux-debug-x64c",
         "vm-kernel-precomp-nnbd-linux-release-simarm64",
         "vm-kernel-precomp-nnbd-linux-release-simarm64c",
         "vm-kernel-precomp-nnbd-linux-release-x64",
         "vm-kernel-precomp-nnbd-linux-release-x64c",
         "vm-kernel-precomp-nnbd-mac-release-simarm64",
         "vm-kernel-precomp-nnbd-mac-release-simarm64c",
+        "vm-kernel-precomp-nnbd-win-debug-x64",
+        "vm-kernel-precomp-nnbd-win-debug-x64c",
         "vm-kernel-precomp-nnbd-win-release-x64",
         "vm-kernel-precomp-nnbd-win-release-x64c"
       ],
@@ -1550,6 +1652,7 @@
             "language",
             "lib",
             "samples",
+            "service",
             "standalone",
             "utils",
             "vm"
@@ -1874,6 +1977,128 @@
     },
     {
       "builders": [
+        "vm-asan-linux-release-ia32",
+        "vm-asan-linux-release-x64",
+        "vm-lsan-linux-release-ia32",
+        "vm-lsan-linux-release-x64",
+        "vm-msan-linux-release-x64",
+        "vm-ubsan-linux-release-ia32",
+        "vm-ubsan-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM/JIT builders with sanitizers."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-${sanitizer}-${system}-${mode}-${arch}",
+            "benchmark_smoke",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "samples",
+            "standalone",
+            "utils",
+            "vm"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-tsan-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM/JIT builders with sanitizers."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-${sanitizer}-${system}-${mode}-${arch}",
+            "vm",
+            "standalone"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 8
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-asan-linux-release-x64",
+        "vm-aot-lsan-linux-release-x64",
+        "vm-aot-msan-linux-release-x64",
+        "vm-aot-ubsan-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM/AOT builders with sanitizers."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
+            "vm",
+            "standalone"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-aot-tsan-linux-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is used by the VM/AOT builders with sanitizers."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime",
+            "runtime_precompiled"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-aot-${sanitizer}-${system}-${mode}-${arch}",
+            "vm",
+            "standalone"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 8
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-gcc-linux"
       ],
       "meta": {
@@ -2140,6 +2365,7 @@
             "language",
             "lib",
             "samples",
+            "service",
             "standalone",
             "utils",
             "vm"
@@ -2714,6 +2940,47 @@
     },
     {
       "builders": [
+        "vm-optcounter-threshold-linux-release-ia32",
+        "vm-optcounter-threshold-linux-release-x64",
+        "vm-optcounter-threshold-linux-release-x64c",
+        "vm-optcounter-threshold-linux-release-simarm",
+        "vm-optcounter-threshold-linux-release-simarm64",
+        "vm-optcounter-threshold-linux-release-simarm64c",
+        "vm-optcounter-threshold-linux-release-simriscv32",
+        "vm-optcounter-threshold-linux-release-simriscv64"
+      ],
+      "meta": {
+        "description": "This is the configuration for the kernel optcounter builders, under the vm-kernel group. They run the same tests as the ordinary VM kernel builders, but add extra options to the vm."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-optcounter-linux-release-${arch}",
+            "benchmark_smoke",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "samples",
+            "standalone",
+            "utils",
+            "vm"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
         "vm-kernel-reload-linux-debug-x64",
         "vm-kernel-reload-linux-debug-x64c",
         "vm-kernel-reload-linux-release-x64",
@@ -2762,6 +3029,80 @@
           "name": "vm tests",
           "arguments": [
             "-ndartk-reload-rollback-linux-${mode}-${arch}"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-reload-linux-debug-x64",
+        "vm-reload-linux-debug-x64c",
+        "vm-reload-linux-release-x64",
+        "vm-reload-linux-release-x64c"
+      ],
+      "meta": {
+        "description": "This is the configuration for the kernel hot reload builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-reload-${system}-${mode}-${arch}",
+            "benchmark_smoke",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "samples",
+            "standalone",
+            "utils",
+            "vm"
+          ],
+          "fileset": "vm-kernel",
+          "shards": 10
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-reload-rollback-linux-debug-x64",
+        "vm-reload-rollback-linux-debug-x64c",
+        "vm-reload-rollback-linux-release-x64",
+        "vm-reload-rollback-linux-release-x64c"
+      ],
+      "meta": {
+        "description": "This is the configuration for kernel reload rollback builders."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "runtime"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-reload-rollback-linux-${mode}-${arch}",
+            "benchmark_smoke",
+            "corelib",
+            "ffi",
+            "language",
+            "lib",
+            "samples",
+            "standalone",
+            "utils",
+            "vm"
           ],
           "fileset": "vm-kernel",
           "shards": 10

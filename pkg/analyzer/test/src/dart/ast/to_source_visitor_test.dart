@@ -892,13 +892,13 @@ void f() {
     var findNode = _parseStringToFindNode('''
 void f(x) {
   switch (x) {
-    case int? _:
+    case int? a:
       break;
   }
 }
 ''');
     _assertSource(
-      'int? _',
+      'int? a',
       findNode.declaredVariablePattern('int?'),
     );
   }
@@ -2793,7 +2793,7 @@ void f(x) {
 ''');
     _assertSource(
       'true!',
-      findNode.postfixPattern('true'),
+      findNode.nullAssertPattern('true'),
     );
   }
 
@@ -3793,6 +3793,21 @@ void f() {
 }
 ''');
     _assertSource(code, findNode.whileStatement(code));
+  }
+
+  void test_visitWildcardPattern() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case int? _:
+      break;
+  }
+}
+''');
+    _assertSource(
+      'int? _',
+      findNode.wildcardPattern('int?'),
+    );
   }
 
   void test_visitWithClause_multiple() {

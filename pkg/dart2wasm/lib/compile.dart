@@ -19,6 +19,7 @@ import 'package:front_end/src/api_unstable/vm.dart'
         Severity;
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
@@ -30,15 +31,23 @@ import 'package:vm/transformations/type_flow/transformer.dart' as globalTypeFlow
     show transformComponent;
 
 import 'package:dart2wasm/compiler_options.dart' as compiler;
+import 'package:dart2wasm/js_runtime_generator.dart';
 import 'package:dart2wasm/target.dart';
 import 'package:dart2wasm/translator.dart';
+
+class CompilerOutput {
+  final Uint8List wasmModule;
+  final String jsRuntime;
+
+  CompilerOutput(this.wasmModule, this.jsRuntime);
+}
 
 /// Compile a Dart file into a Wasm module.
 ///
 /// Returns `null` if an error occurred during compilation. The
 /// [handleDiagnosticMessage] callback will have received an error message
 /// describing the error.
-Future<Uint8List?> compileToModule(compiler.CompilerOptions options,
+Future<CompilerOutput?> compileToModule(compiler.CompilerOptions options,
     void Function(DiagnosticMessage) handleDiagnosticMessage) async {
   var succeeded = true;
   void diagnosticMessageHandler(DiagnosticMessage message) {
@@ -79,6 +88,9 @@ Future<Uint8List?> compileToModule(compiler.CompilerOptions options,
   }
   Component component = compilerResult.component!;
   CoreTypes coreTypes = compilerResult.coreTypes!;
+  ClassHierarchy classHierarchy = compilerResult.classHierarchy!;
+
+  String jsRuntime = generateJSRuntime(component, coreTypes, classHierarchy);
 
   globalTypeFlow.transformComponent(target, coreTypes, component,
       treeShakeSignatures: true,
@@ -96,7 +108,6 @@ Future<Uint8List?> compileToModule(compiler.CompilerOptions options,
       coreTypes,
       TypeEnvironment(coreTypes, compilerResult.classHierarchy!),
       options.translatorOptions);
-  final module = translator.translate();
 
   String? depFile = options.depFile;
   if (depFile != null) {
@@ -104,5 +115,5 @@ Future<Uint8List?> compileToModule(compiler.CompilerOptions options,
         options.outputFile, depFile);
   }
 
-  return module;
+  return CompilerOutput(translator.translate(), jsRuntime);
 }

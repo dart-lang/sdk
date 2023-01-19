@@ -227,6 +227,9 @@ void deepConversionsTest() {
       {'foo': 'bar'},
       [1, 2, 3, {'baz': 'boo'}],
     ];
+    let keyObject = function () {};
+    globalThis.keyObject1 = keyObject;
+    globalThis.keyObject2 = keyObject;
   ''');
   Object gt = globalThis;
   Expect.isNull(getProperty(gt, 'a'));
@@ -288,6 +291,18 @@ void deepConversionsTest() {
       {'baz': 'boo'}
     ],
   ], dartify(getProperty(globalThis, 'implicitExplicit')) as Iterable);
+
+  // Test that JS objects behave as expected in Map / Set.
+  Set<Object?> set = {};
+  Expect.isTrue(set.add(getProperty(globalThis, 'keyObject1')));
+  Expect.isFalse(set.add(getProperty(globalThis, 'keyObject2')));
+  Expect.equals(1, set.length);
+
+  Map<Object?, Object?> map = {};
+  map[getProperty(globalThis, 'keyObject1')] = 'foo';
+  map[getProperty(globalThis, 'keyObject2')] = 'bar';
+  Expect.equals(1, map.length);
+  Expect.equals('bar', map[getProperty(globalThis, 'keyObject1')]);
 }
 
 Future<void> promiseToFutureTest() async {

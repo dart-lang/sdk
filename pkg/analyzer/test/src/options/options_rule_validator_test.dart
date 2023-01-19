@@ -9,6 +9,7 @@ import 'package:analyzer/src/lint/linter.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:yaml/yaml.dart';
 
@@ -31,28 +32,42 @@ class DeprecatedLint extends LintRule {
         );
 }
 
+class DeprecatedSince3Lint extends LintRule {
+  DeprecatedSince3Lint()
+      : super(
+          name: 'deprecated_since_3_lint',
+          group: Group.style,
+          state: State.deprecated(since: dart3),
+          description: '',
+          details: '',
+        );
+}
+
 @reflectiveTest
 class OptionsRuleValidatorTest extends Object with ResourceProviderMixin {
-  LinterRuleOptionsValidator validator = LinterRuleOptionsValidator(
-      provider: () => [
-            DeprecatedLint(),
-            StableLint(),
-            RuleNeg(),
-            RulePos(),
-            RemovedLint(),
-            ReplacedLint(),
-            ReplacingLint(),
-          ]);
+  final rules = [
+    DeprecatedLint(),
+    DeprecatedSince3Lint(),
+    StableLint(),
+    RuleNeg(),
+    RulePos(),
+    RemovedLint(),
+    ReplacedLint(),
+    ReplacingLint(),
+  ];
 
   /// Assert that when the validator is used on the given [content] the
   /// [expectedErrorCodes] are produced.
-  void assertErrors(String content, List<ErrorCode> expectedErrorCodes) {
+  void assertErrors(String content, List<ErrorCode> expectedErrorCodes,
+      {VersionConstraint? sdk}) {
     GatheringErrorListener listener = GatheringErrorListener();
     ErrorReporter reporter = ErrorReporter(
       listener,
       StringSource(content, 'analysis_options.yaml'),
       isNonNullableByDefault: false,
     );
+    var validator = LinterRuleOptionsValidator(
+        provider: () => rules, sdkVersionConstraint: sdk);
     validator.validate(reporter, loadYamlNode(content) as YamlMap);
     listener.assertErrorsWithCodes(expectedErrorCodes);
   }
@@ -71,6 +86,43 @@ linter:
   rules:
     deprecated_lint: false
       ''', [DEPRECATED_LINT_HINT]);
+  }
+
+  test_deprecated_rule_withSince_inCurrentSdk() {
+    assertErrors(
+      '''
+linter:
+  rules:
+    - deprecated_since_3_lint
+      ''',
+      [DEPRECATED_LINT_HINT],
+      sdk: Version(3, 0, 0),
+    );
+  }
+
+  test_deprecated_rule_withSince_notInCurrentSdk() {
+    assertErrors(
+      '''
+linter:
+  rules:
+    - deprecated_since_3_lint
+      ''',
+      [],
+      sdk: Version(2, 17, 0),
+    );
+  }
+
+  test_deprecated_rule_withSince_unknownSdk() {
+    assertErrors(
+      '''
+linter:
+  rules:
+    - deprecated_since_3_lint
+      ''',
+      // No error
+      [],
+      sdk: null,
+    );
   }
 
   test_duplicated_rule() {

@@ -106,8 +106,7 @@ Future<Process> startDartProcessPaused(
   );
 }
 
-/// Monitors [process] for the Observatory/VM Service banner and extracts the
-/// VM Service URI.
+/// Monitors [process] for the VM Service banner and extracts the URI.
 Future<Uri> waitForStdoutVmServiceBanner(Process process) {
   final _vmServiceUriCompleter = Completer<Uri>();
 

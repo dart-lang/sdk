@@ -73,6 +73,7 @@ import 'element_map_impl.dart';
 import 'js_world.dart';
 import 'js_world_builder.dart' show JClosedWorldBuilder;
 import 'locals.dart';
+import 'records.dart' show RecordDataBuilder;
 
 /// JS Strategy pattern that defines the element model used in type inference
 /// and code generation.
@@ -170,9 +171,12 @@ class JsBackendStrategy {
         closedWorld.annotationsData);
     ClosureDataBuilder closureDataBuilder = ClosureDataBuilder(
         _compiler.reporter, _elementMap, closedWorld.annotationsData);
+    RecordDataBuilder recordDataBuilder = RecordDataBuilder(
+        _compiler.reporter, _elementMap, closedWorld.annotationsData);
     JClosedWorldBuilder closedWorldBuilder = JClosedWorldBuilder(
         _elementMap,
         closureDataBuilder,
+        recordDataBuilder,
         _compiler.options,
         _compiler.reporter,
         _compiler.abstractValueStrategy);
@@ -267,6 +271,7 @@ class JsBackendStrategy {
             impacts,
             closedWorld.backendUsage,
             closedWorld.rtiNeed,
+            closedWorld.recordData,
             customElementsCodegenAnalysis,
             nativeCodegenEnqueuer),
         closedWorld.annotationsData);

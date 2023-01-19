@@ -135,4 +135,21 @@ main() {
     expect(js_util.delete(f, 'a'), isTrue);
     expect(js_util.getProperty(f, 'a'), equals(null));
   });
+
+  test('unsignedRightShift', () {
+    expect(js_util.unsignedRightShift(9, 2), equals(2));
+    expect(js_util.unsignedRightShift(-9, 2), equals(1073741821));
+
+    expect(js_util.unsignedRightShift(1, 'a'), equals(1));
+    expect(js_util.unsignedRightShift(1, null), equals(1));
+    expect(js_util.unsignedRightShift(1, undefinedObject), equals(1));
+    expect(js_util.unsignedRightShift(1, false), equals(1));
+    expect(js_util.unsignedRightShift(1, []), equals(1));
+
+    expect(js_util.unsignedRightShift('a', 1), equals(0));
+    expect(js_util.unsignedRightShift(null, 1), equals(0));
+    expect(js_util.unsignedRightShift(undefinedObject, 1), equals(0));
+    expect(js_util.unsignedRightShift(false, 1), equals(0));
+    expect(js_util.unsignedRightShift([], 1), equals(0));
+  });
 }

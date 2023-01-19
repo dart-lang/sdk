@@ -7,8 +7,8 @@ static method test(dynamic x) → dynamic {
   {
     dynamic #t1;
     final dynamic #t2 = x;
-    final core::int #t3 = -1;
-    final core::bool #t4 = false;
+    core::int #t3 = -1;
+    core::bool #t4 = false;
     if(!#t4) {
       final core::Object #t5 = let dynamic #t6 = #t2 in #t6 == null ?{core::Object} #t6 as{ForNonNullableByDefault} core::Object : #t6{core::Object};
       core::Object y = #t5;

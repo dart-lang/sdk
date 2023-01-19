@@ -60,6 +60,10 @@ T getProperty<T>(Object o, Object name) =>
     JS<dynamic>('Object|Null', '#[#]', o, name);
 
 /// Similar to [getProperty] but introduces an unsound implicit cast to `T`.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 T _getPropertyTrustType<T>(Object o, Object name) =>
     JS<T>('Object|Null', '#[#]', o, name);
 
@@ -70,6 +74,10 @@ T setProperty<T>(Object o, Object name, T? value) {
 }
 
 /// Unchecked version of setProperty, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _setPropertyUnchecked<T>(Object o, Object name, T? value) {
   return JS('', '#[#]=#', o, name, value);
@@ -88,6 +96,10 @@ T _callMethodTrustType<T>(Object o, String method, List<Object?> args) {
 }
 
 /// Unchecked version for 0 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked0<T>(Object o, String method) {
   return JS<dynamic>('Object|Null', '#[#]()', o, method);
@@ -95,12 +107,20 @@ T _callMethodUnchecked0<T>(Object o, String method) {
 
 /// Similar to [_callMethodUnchecked] but introduces an unsound implicit cast
 /// to `T`.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUncheckedTrustType0<T>(Object o, String method) {
   return JS<T>('Object|Null', '#[#]()', o, method);
 }
 
 /// Unchecked version for 1 argument, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked1<T>(Object o, String method, Object? arg1) {
   return JS<dynamic>('Object|Null', '#[#](#)', o, method, arg1);
@@ -108,12 +128,20 @@ T _callMethodUnchecked1<T>(Object o, String method, Object? arg1) {
 
 /// Similar to [_callMethodUnchecked1] but introduces an unsound implicit cast
 /// to `T`.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUncheckedTrustType1<T>(Object o, String method, Object? arg1) {
   return JS<T>('Object|Null', '#[#](#)', o, method, arg1);
 }
 
 /// Unchecked version for 2 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked2<T>(
     Object o, String method, Object? arg1, Object? arg2) {
@@ -122,6 +150,10 @@ T _callMethodUnchecked2<T>(
 
 /// Similar to [_callMethodUnchecked2] but introduces an unsound implicit cast
 /// to `T`.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUncheckedTrustType2<T>(
     Object o, String method, Object? arg1, Object? arg2) {
@@ -129,6 +161,10 @@ T _callMethodUncheckedTrustType2<T>(
 }
 
 /// Unchecked version for 3 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked3<T>(
     Object o, String method, Object? arg1, Object? arg2, Object? arg3) {
@@ -138,6 +174,10 @@ T _callMethodUnchecked3<T>(
 
 /// Similar to [_callMethodUnchecked3] but introduces an unsound implicit cast
 /// to `T`.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUncheckedTrustType3<T>(
     Object o, String method, Object? arg1, Object? arg2, Object? arg3) {
@@ -145,6 +185,10 @@ T _callMethodUncheckedTrustType3<T>(
 }
 
 /// Unchecked version for 4 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUnchecked4<T>(Object o, String method, Object? arg1, Object? arg2,
     Object? arg3, Object? arg4) {
@@ -154,6 +198,10 @@ T _callMethodUnchecked4<T>(Object o, String method, Object? arg1, Object? arg2,
 
 /// Similar to [_callMethodUnchecked4] but introduces an unsound implicit cast
 /// to `T`.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callMethodUncheckedTrustType4<T>(Object o, String method, Object? arg1,
     Object? arg2, Object? arg3, Object? arg4) {
@@ -229,24 +277,40 @@ T callConstructor<T>(Object constr, List<Object?>? arguments) {
 }
 
 /// Unchecked version for 0 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked0<T>(Object constr) {
   return JS<dynamic>('Object', 'new #()', constr);
 }
 
 /// Unchecked version for 1 argument, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked1<T>(Object constr, Object? arg1) {
   return JS<dynamic>('Object', 'new #(#)', constr, arg1);
 }
 
 /// Unchecked version for 2 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked2<T>(Object constr, Object? arg1, Object? arg2) {
   return JS<dynamic>('Object', 'new #(#, #)', constr, arg1, arg2);
 }
 
 /// Unchecked version for 3 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked3<T>(
     Object constr, Object? arg1, Object? arg2, Object? arg3) {
@@ -254,6 +318,10 @@ T _callConstructorUnchecked3<T>(
 }
 
 /// Unchecked version for 4 arguments, only used in a CFE transformation.
+///
+/// NOTE: In DDC, we lower this separately for inlining purposes, ignoring the
+/// body of this method. Edit `ProgramCompiler.visitStaticInvocation` if you
+/// edit this method.
 @pragma('dart2js:tryInline')
 T _callConstructorUnchecked4<T>(
     Object constr, Object? arg1, Object? arg2, Object? arg3, Object? arg4) {
@@ -379,6 +447,12 @@ T and<T>(Object? first, Object? second) {
 @pragma('dart2js:tryInline')
 bool delete<T>(Object o, Object property) {
   return JS<bool>('bool', 'delete #[#]', o, property);
+}
+
+@patch
+@pragma('dart2js:tryInline')
+num unsignedRightShift(Object? leftOperand, Object? rightOperand) {
+  return JS<num>('num', '# >>> #', leftOperand, rightOperand);
 }
 
 @patch

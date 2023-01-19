@@ -1423,6 +1423,15 @@ class WeakSerializationReference : public AllStatic {
   FINAL_CLASS();
 };
 
+class WeakArray : public AllStatic {
+ public:
+  static word length_offset();
+  static word element_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
+  static word InstanceSize();
+  FINAL_CLASS();
+};
+
 class SubtypeTestCache : public AllStatic {
  public:
   static word cache_offset();

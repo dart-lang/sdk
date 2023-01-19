@@ -1,8 +1,21 @@
 # Changelog
 
 ## 10.0.0
-- Update to version `3.62` of the spec.
-- Update for incorrectly documented types for WeakReference's target, WeakProperty's key and value, and MirrorReference's mirrorReferent.
+- Update to version `4.0` of the spec.
+- Update for incorrectly documented types for `WeakReference`'s `target`,
+  `WeakProperty`'s `key` and `value`, and `MirrorReference`'s `mirrorReferent`.
+- Add `Set`, `Record`, and `RecordType` to `InstanceKind`.
+- Add deprecation notice to the `decl` property of `BoundField`.
+- Add `name` property to `BoundField`.
+- Add deprecation notice to the `parentListIndex` property of
+  `InboundReference`.
+- Change the type of the `parentField` property of `InboundReference` from
+  `FieldRef` to `FieldRef|String|int`.
+- Add deprecation notice to the `parentListIndex` property of `RetainingObject`.
+- Change the type of the `parentField` property of `RetainingObject` from
+  `String` to `String|int`.
+- Remove deprecated `timeSpan` property from `CpuSamples`.
+- Remove deprecated `timeSpan` property from `CpuSamplesEvent`.
 
 ## 9.4.0
 - Update to version `3.61` of the spec.

@@ -363,7 +363,7 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// Handle a [message] that was read from the communication channel.
   void handleMessage(Message message) {
-    var startTime = DateTime.now();
+    final startTime = DateTime.now();
     performance.logRequestTiming(message.clientRequestTime);
     runZonedGuarded(() async {
       try {
@@ -371,14 +371,16 @@ class LspAnalysisServer extends AnalysisServer {
           handleClientResponse(message);
         } else if (message is IncomingMessage) {
           // Record performance information for the request.
-          final performance = OperationPerformanceImpl('<root>');
-          await performance.runAsync('request', (performance) async {
-            final requestPerformance = RequestPerformance(
+          final rootPerformance = OperationPerformanceImpl('<root>');
+          RequestPerformance? requestPerformance;
+          await rootPerformance.runAsync('request', (performance) async {
+            requestPerformance = RequestPerformance(
               operation: message.method.toString(),
               performance: performance,
               requestLatency: message.timeSinceRequest,
+              startTime: startTime,
             );
-            recentPerformance.requests.add(requestPerformance);
+            recentPerformance.requests.add(requestPerformance!);
 
             final messageInfo = MessageInfo(
               performance: performance,
@@ -399,6 +401,11 @@ class LspAnalysisServer extends AnalysisServer {
               showErrorMessageToUser('Unknown incoming message type');
             }
           });
+          if (requestPerformance != null &&
+              requestPerformance!.performance.elapsed >
+                  ServerRecentPerformance.slowRequestsThreshold) {
+            recentPerformance.slowRequests.add(requestPerformance!);
+          }
         } else {
           showErrorMessageToUser('Unknown message type');
         }

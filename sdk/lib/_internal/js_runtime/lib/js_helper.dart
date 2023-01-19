@@ -77,6 +77,7 @@ part 'native_helper.dart';
 part 'regexp_helper.dart';
 part 'string_helper.dart';
 part 'linked_hash_map.dart';
+part 'records.dart';
 
 /// Marks the internal map in dart2js, so that internal libraries can is-check
 /// them.

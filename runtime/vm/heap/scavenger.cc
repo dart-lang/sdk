@@ -309,7 +309,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       }
 
       MournWeakProperties();
-      MournOrUpdateWeakReferences();
+      MournWeakReferences();
+      MournWeakArrays();
       MournFinalized(this);
     }
     page_space_->ReleaseLock(freelist_);
@@ -539,7 +540,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   }
 
   void MournWeakProperties();
-  void MournOrUpdateWeakReferences();
+  void MournWeakReferences();
+  void MournWeakArrays();
 
   Thread* thread_;
   Scavenger* scavenger_;
@@ -1351,6 +1353,10 @@ intptr_t ScavengerVisitorBase<parallel>::ProcessCopied(ObjectPtr raw_obj) {
         return raw_weak->untag()->HeapSize();
       }
     }
+  } else if (UNLIKELY(class_id == kWeakArrayCid)) {
+    WeakArrayPtr raw_weak = static_cast<WeakArrayPtr>(raw_obj);
+    delayed_.weak_arrays.Enqueue(raw_weak);
+    return raw_weak->untag()->HeapSize();
   } else if (UNLIKELY(class_id == kFinalizerEntryCid)) {
     FinalizerEntryPtr raw_entry = static_cast<FinalizerEntryPtr>(raw_obj);
     ASSERT(IsNotForwarding(raw_entry));
@@ -1484,7 +1490,7 @@ void ScavengerVisitorBase<parallel>::MournWeakProperties() {
 }
 
 template <bool parallel>
-void ScavengerVisitorBase<parallel>::MournOrUpdateWeakReferences() {
+void ScavengerVisitorBase<parallel>::MournWeakReferences() {
   ASSERT(!scavenger_->abort_);
 
   // The queued weak references at this point either should have their target
@@ -1506,13 +1512,34 @@ void ScavengerVisitorBase<parallel>::MournOrUpdateWeakReferences() {
   }
 }
 
+template <bool parallel>
+void ScavengerVisitorBase<parallel>::MournWeakArrays() {
+  ASSERT(!scavenger_->abort_);
+  WeakArrayPtr cur_weak = delayed_.weak_arrays.Release();
+  while (cur_weak != WeakArray::null()) {
+    WeakArrayPtr next_weak =
+        cur_weak->untag()->next_seen_by_gc_.Decompress(cur_weak->heap_base());
+    // Reset the next pointer in the weak reference.
+    cur_weak->untag()->next_seen_by_gc_ = WeakArray::null();
+
+    intptr_t length = Smi::Value(cur_weak->untag()->length());
+    for (intptr_t i = 0; i < length; i++) {
+      ForwardOrSetNullIfCollected(cur_weak->heap_base(),
+                                  &(cur_weak->untag()->data()[i]));
+    }
+
+    // Advance to next weak reference in the queue.
+    cur_weak = next_weak;
+  }
+}
+
 // Returns whether the object referred to in `ptr_address` was GCed this GC.
 template <bool parallel>
 bool ScavengerVisitorBase<parallel>::ForwardOrSetNullIfCollected(
     uword heap_base,
     CompressedObjectPtr* ptr_address) {
   ObjectPtr raw = ptr_address->Decompress(heap_base);
-  if (raw.IsOldObject()) {
+  if (raw->IsSmiOrOldObject()) {
     // Object already null (which is old) or not touched during this GC.
     return false;
   }
@@ -1581,9 +1608,10 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
   // can reset the heap sampling offset in the new TLAB.
   intptr_t remaining = thread->true_end() - thread->top();
   const bool heap_sampling_enabled = thread->end() != thread->true_end();
+  const bool is_first_tlab = thread->true_end() == 0;
   if (heap_sampling_enabled && remaining > min_size) {
     // This is a sampling point and the TLAB isn't actually full.
-    thread->heap_sampler().SampleSize(min_size);
+    thread->heap_sampler().SampleNewSpaceAllocation(min_size);
     return;
   }
 #endif
@@ -1602,7 +1630,7 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
     if (available >= min_size) {
       page->Acquire(thread);
 #if !defined(PRODUCT)
-      thread->heap_sampler().HandleNewTLAB(remaining);
+      thread->heap_sampler().HandleNewTLAB(remaining, /*is_first_tlab=*/false);
 #endif
       return;
     }
@@ -1614,7 +1642,7 @@ void Scavenger::TryAllocateNewTLAB(Thread* thread,
   }
   page->Acquire(thread);
 #if !defined(PRODUCT)
-  thread->heap_sampler().HandleNewTLAB(remaining);
+  thread->heap_sampler().HandleNewTLAB(remaining, is_first_tlab);
 #endif
 }
 

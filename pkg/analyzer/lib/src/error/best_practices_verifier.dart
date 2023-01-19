@@ -372,6 +372,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitBinaryExpression(BinaryExpression node) {
     _checkForDivisionOptimizationHint(node);
     _deprecatedVerifier.binaryExpression(node);
+    _checkForInvariantNanComparison(node);
     _checkForInvariantNullComparison(node);
     _invalidAccessVerifier.verifyBinary(node);
     super.visitBinaryExpression(node);
@@ -422,7 +423,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (newKeyword != null &&
         _currentLibrary.featureSet.isEnabled(Feature.constructor_tearoffs)) {
       _errorReporter.reportErrorForToken(
-          HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, newKeyword, []);
+          WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, newKeyword, []);
     }
     super.visitCommentReference(node);
   }
@@ -1204,6 +1205,40 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           }
         }
       }
+    }
+  }
+
+  void _checkForInvariantNanComparison(BinaryExpression node) {
+    void reportStartEnd(
+      HintCode errorCode,
+      SyntacticEntity startEntity,
+      SyntacticEntity endEntity,
+    ) {
+      var offset = startEntity.offset;
+      _errorReporter.reportErrorForOffset(
+        errorCode,
+        offset,
+        endEntity.end - offset,
+      );
+    }
+
+    bool isDoubleNan(Expression expression) =>
+        expression is PrefixedIdentifier &&
+        expression.prefix.name == 'double' &&
+        expression.identifier.name == 'nan';
+
+    void checkLeftRight(HintCode errorCode) {
+      if (isDoubleNan(node.leftOperand)) {
+        reportStartEnd(errorCode, node.leftOperand, node.operator);
+      } else if (isDoubleNan(node.rightOperand)) {
+        reportStartEnd(errorCode, node.operator, node.rightOperand);
+      }
+    }
+
+    if (node.operator.type == TokenType.BANG_EQ) {
+      checkLeftRight(HintCode.UNNECESSARY_NAN_COMPARISON_TRUE);
+    } else if (node.operator.type == TokenType.EQ_EQ) {
+      checkLeftRight(HintCode.UNNECESSARY_NAN_COMPARISON_FALSE);
     }
   }
 

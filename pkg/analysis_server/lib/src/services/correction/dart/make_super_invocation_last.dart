@@ -21,13 +21,12 @@ class MakeSuperInvocationLast extends CorrectionProducer {
     if (parent is! ConstructorDeclaration) return;
 
     var initializers = parent.initializers;
-    var comments = node.beginToken.precedingComments;
-    var commentsString = comments == null ? '' : '$comments ';
-    var nodeString = utils.getRangeText(range.node(node));
+    var firstToken = node.beginToken.precedingComments ?? node.beginToken;
+    var lastToken = node.endToken;
+    var text = utils.getRangeText(range.startEnd(firstToken, lastToken));
     await builder.addDartFileEdit(file, (builder) {
       builder.addDeletion(range.nodeInList(initializers, node));
-      builder.addSimpleInsertion(
-          initializers.last.end, ', $commentsString$nodeString');
+      builder.addSimpleInsertion(initializers.last.end, ', $text');
     });
   }
 }

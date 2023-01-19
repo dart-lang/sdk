@@ -430,7 +430,7 @@ class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
             assert(oldDecoratedBound == newDecoratedBound);
           } else {
             DecoratedTypeParameterBounds.current!
-                .put(typeFormal, newDecoratedBound);
+                .put(undecoratedResult.typeFormals[i], newDecoratedBound);
           }
         }
       }

@@ -465,6 +465,18 @@ class BrowserCommandOutput extends CommandOutput
 
 /// A parsed analyzer error diagnostic.
 class AnalyzerError implements Comparable<AnalyzerError> {
+  /// The set of static warnings which must be expected in a test. Any warning
+  /// not specified here which is reported by the analyzer does not need to be
+  /// expected, and never causes a test to fail.
+  static const Set<String> _specifiedWarnings = {
+    'dead_null_aware_expression',
+    'invalid_null_aware_operator',
+    'missing_enum_constant_in_switch',
+    'unnecessary_non_null_assertion',
+    'unnecessary_null_assert_pattern',
+    'unnecessary_null_check_pattern',
+  };
+
   /// Parses all errors from analyzer [stdout] output.
   static List<AnalyzerError> parseStdout(String stdout) {
     var result = <AnalyzerError>[];
@@ -480,7 +492,20 @@ class AnalyzerError implements Comparable<AnalyzerError> {
       var diagnosticMap = diagnostic as Map<String, dynamic>;
 
       var type = diagnosticMap['type'] as String?;
+      if (type == 'HINT') {
+        // The analyzer can report hints which do not need to be expected in
+        // the test source. These can be ignored.
+        // TODO(srawlins): Hints will start to change to be warnings. There are
+        // some warnings produced now which must be expected. See
+        // [StaticError._analyzerWarningCodes]. When we change hints to
+        // warnings, we will need to ignore them here.
+        continue;
+      }
+
       var code = diagnosticMap['code'] as String;
+      if (type == 'STATIC_WARNING' && !_specifiedWarnings.contains(code)) {
+        continue;
+      }
       var errorCode = '$type.${code.toUpperCase()}';
 
       var error = _parse(
@@ -1334,6 +1359,46 @@ class JSCommandLineOutput extends CommandOutput
         .trim();
 
     _deobfuscateAndWriteStack(decodedOut, output);
+  }
+}
+
+class Dart2WasmCommandLineOutput extends CommandOutput
+    with _UnittestSuiteMessagesMixin {
+  Dart2WasmCommandLineOutput(Command command, int exitCode, bool timedOut,
+      List<int> stdout, List<int> stderr, Duration time)
+      : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
+
+  Expectation result(TestCase testCase) {
+    // Handle crashes and timeouts first.
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
+
+    if (testCase.hasRuntimeError) {
+      if (exitCode != 0) return Expectation.pass;
+      return Expectation.missingRuntimeError;
+    }
+
+    var outcome = exitCode == 0 ? Expectation.pass : Expectation.runtimeError;
+    return _negateOutcomeIfIncompleteAsyncTest(outcome, decodeUtf8(stdout));
+  }
+
+  /// Cloned code from member result(), with changes.
+  /// Delete existing result() function and rename, when status files are gone.
+  Expectation realResult(TestCase testCase) {
+    // Handle crashes and timeouts first.
+    if (hasCrashed) return Expectation.crash;
+    if (hasTimedOut) return Expectation.timeout;
+    if (hasNonUtf8) return Expectation.nonUtf8Error;
+    if (truncatedOutput) return Expectation.truncatedOutput;
+
+    if (exitCode != 0) return Expectation.runtimeError;
+    var output = decodeUtf8(stdout);
+    if (_isAsyncTest(output) && !_isAsyncTestSuccessful(output)) {
+      return Expectation.fail;
+    }
+    return Expectation.pass;
   }
 }
 

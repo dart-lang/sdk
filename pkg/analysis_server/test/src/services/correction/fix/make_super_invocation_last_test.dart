@@ -82,4 +82,21 @@ class A {
 }
 ''');
   }
+
+  Future<void> test_comment_last_multiple() async {
+    await resolveTestCode('''
+class A {
+  final int x;
+  final int y;
+  A() : x = 1, /* s1 */ /* s2 */ super(), /* a1 */ /* a2 */ y = 1;
+}
+''');
+    await assertHasFix('''
+class A {
+  final int x;
+  final int y;
+  A() : x = 1, /* a1 */ /* a2 */ y = 1, /* s1 */ /* s2 */ super();
+}
+''');
+  }
 }

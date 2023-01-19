@@ -157,6 +157,7 @@ sealed class Foo {}
 import 'foo.dart';
 class Bar with Foo {}
 ''', [
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 19, 21),
       error(
           CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 21),
     ]);
@@ -172,6 +173,7 @@ typedef FooTypedef = Foo;
 import 'foo.dart';
 class Bar with FooTypedef {}
 ''', [
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 19, 28),
       error(
           CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 19, 28),
     ]);
@@ -187,6 +189,7 @@ import 'foo.dart';
 typedef FooTypedef = Foo;
 class Bar with FooTypedef {}
 ''', [
+      error(CompileTimeErrorCode.CLASS_USED_AS_MIXIN, 45, 28),
       error(
           CompileTimeErrorCode.SEALED_CLASS_SUBTYPE_OUTSIDE_OF_LIBRARY, 45, 28),
     ]);

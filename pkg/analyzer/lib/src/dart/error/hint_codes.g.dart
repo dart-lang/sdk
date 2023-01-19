@@ -15,17 +15,6 @@ import "package:analyzer/error/error.dart";
 import "package:analyzer/src/error/analyzer_error_code.dart";
 
 class HintCode extends AnalyzerErrorCode {
-  ///  Parameters:
-  ///  0: the name of the actual argument type
-  ///  1: the name of the expected function return type
-  static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER =
-      HintCode(
-    'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
-    "The argument type '{0}' can't be assigned to the parameter type '{1} "
-        "Function(Object)' or '{1} Function(Object, StackTrace)'.",
-    hasPublishedDocs: true,
-  );
-
   ///  Users should not assign values marked `@doNotStore`.
   ///
   ///  Parameters:
@@ -38,29 +27,10 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the return type as derived by the type of the [Future].
-  static const HintCode BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR = HintCode(
-    'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
-    "This 'onError' handler must return a value assignable to '{0}', but ends "
-        "without returning a value.",
-    correctionMessage: "Try adding a return statement.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the declared return type
-  static const HintCode BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE = HintCode(
-    'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
-    "This function has a nullable return type of '{0}', but ends without "
-        "returning a value.",
-    correctionMessage:
-        "Try adding a return statement, or if no value is ever returned, try "
-        "changing the return type to 'void'.",
-  );
-
   ///  When the target expression uses '?.' operator, it can be `null`, so all the
   ///  subsequent invocations should also use '?.' operator.
+  ///
+  ///  Note: This diagnostic is only generated in pre-null safe code.
   static const HintCode CAN_BE_NULL_AFTER_NULL_AWARE = HintCode(
     'CAN_BE_NULL_AFTER_NULL_AWARE',
     "The receiver uses '?.', so its value can be null.",
@@ -149,24 +119,6 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
-  static const HintCode DEPRECATED_EXTENDS_FUNCTION = HintCode(
-    'DEPRECATED_SUBTYPE_OF_FUNCTION',
-    "Extending 'Function' is deprecated.",
-    correctionMessage: "Try removing 'Function' from the 'extends' clause.",
-    hasPublishedDocs: true,
-    uniqueName: 'DEPRECATED_EXTENDS_FUNCTION',
-  );
-
-  ///  No parameters.
-  static const HintCode DEPRECATED_IMPLEMENTS_FUNCTION = HintCode(
-    'DEPRECATED_SUBTYPE_OF_FUNCTION',
-    "Implementing 'Function' has no effect.",
-    correctionMessage: "Try removing 'Function' from the 'implements' clause.",
-    hasPublishedDocs: true,
-    uniqueName: 'DEPRECATED_IMPLEMENTS_FUNCTION',
-  );
-
   ///  Parameters:
   ///  0: the name of the member
   static const HintCode DEPRECATED_MEMBER_USE = HintCode(
@@ -213,78 +165,11 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const HintCode DEPRECATED_MIXIN_FUNCTION = HintCode(
-    'DEPRECATED_SUBTYPE_OF_FUNCTION',
-    "Mixing in 'Function' is deprecated.",
-    correctionMessage: "Try removing 'Function' from the 'with' clause.",
-    hasPublishedDocs: true,
-    uniqueName: 'DEPRECATED_MIXIN_FUNCTION',
-  );
-
-  ///  No parameters.
-  static const HintCode DEPRECATED_NEW_IN_COMMENT_REFERENCE = HintCode(
-    'DEPRECATED_NEW_IN_COMMENT_REFERENCE',
-    "Using the 'new' keyword in a comment reference is deprecated.",
-    correctionMessage: "Try referring to a constructor by its name.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
   static const HintCode DIVISION_OPTIMIZATION = HintCode(
     'DIVISION_OPTIMIZATION',
     "The operator x ~/ y is more efficient than (x / y).toInt().",
     correctionMessage:
         "Try re-writing the expression to use the '~/' operator.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Duplicate exports.
-  ///
-  ///  No parameters.
-  static const HintCode DUPLICATE_EXPORT = HintCode(
-    'DUPLICATE_EXPORT',
-    "Duplicate export.",
-    correctionMessage: "Try removing all but one export of the library.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const HintCode DUPLICATE_HIDDEN_NAME = HintCode(
-    'DUPLICATE_HIDDEN_NAME',
-    "Duplicate hidden name.",
-    correctionMessage:
-        "Try removing the repeated name from the list of hidden members.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the diagnostic being ignored
-  static const HintCode DUPLICATE_IGNORE = HintCode(
-    'DUPLICATE_IGNORE',
-    "The diagnostic '{0}' doesn't need to be ignored here because it's already "
-        "being ignored.",
-    correctionMessage:
-        "Try removing the name from the list, or removing the whole comment if "
-        "this is the only name in the list.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Duplicate imports.
-  ///
-  ///  No parameters.
-  static const HintCode DUPLICATE_IMPORT = HintCode(
-    'DUPLICATE_IMPORT',
-    "Duplicate import.",
-    correctionMessage: "Try removing all but one import of the library.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const HintCode DUPLICATE_SHOWN_NAME = HintCode(
-    'DUPLICATE_SHOWN_NAME',
-    "Duplicate shown name.",
-    correctionMessage:
-        "Try removing the repeated name from the list of shown members.",
     hasPublishedDocs: true,
   );
 
@@ -1234,6 +1119,22 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const HintCode UNNECESSARY_NAN_COMPARISON_FALSE = HintCode(
+    'UNNECESSARY_NAN_COMPARISON',
+    "A double can't equal NaN, so the condition is always 'false'.",
+    correctionMessage: "Try using 'isNan', or removing the condition.",
+    uniqueName: 'UNNECESSARY_NAN_COMPARISON_FALSE',
+  );
+
+  ///  No parameters.
+  static const HintCode UNNECESSARY_NAN_COMPARISON_TRUE = HintCode(
+    'UNNECESSARY_NAN_COMPARISON',
+    "A double can't equal NaN, so the condition is always 'true'.",
+    correctionMessage: "Try using 'isNan', or removing the condition.",
+    uniqueName: 'UNNECESSARY_NAN_COMPARISON_TRUE',
+  );
+
+  ///  No parameters.
   static const HintCode UNNECESSARY_NO_SUCH_METHOD = HintCode(
     'UNNECESSARY_NO_SUCH_METHOD',
     "Unnecessary 'noSuchMethod' declaration.",
@@ -1244,7 +1145,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  No parameters.
   static const HintCode UNNECESSARY_NULL_COMPARISON_FALSE = HintCode(
     'UNNECESSARY_NULL_COMPARISON',
-    "The operand can't be null, so the condition is always false.",
+    "The operand can't be null, so the condition is always 'false'.",
     correctionMessage:
         "Try removing the condition, an enclosing condition, or the whole "
         "conditional statement.",
@@ -1255,7 +1156,7 @@ class HintCode extends AnalyzerErrorCode {
   ///  No parameters.
   static const HintCode UNNECESSARY_NULL_COMPARISON_TRUE = HintCode(
     'UNNECESSARY_NULL_COMPARISON',
-    "The operand can't be null, so the condition is always true.",
+    "The operand can't be null, so the condition is always 'true'.",
     correctionMessage: "Remove the condition.",
     hasPublishedDocs: true,
     uniqueName: 'UNNECESSARY_NULL_COMPARISON_TRUE',

@@ -1096,8 +1096,6 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
     callee.removeCall(caller, callNode);
   }
 
-  late final Set<MemberEntity> closurizedTargets = {};
-
   void _handleCalledTarget(DynamicCallTarget target, InferrerEngine inferrer,
       {required bool addToQueue, required bool remove}) {
     MemberTypeInformation targetType = inferrer.inferredTypeOfTarget(target);
@@ -1109,16 +1107,8 @@ class DynamicCallSiteTypeInformation<T extends ir.Node>
       targetType.addUser(this);
     }
     final member = target.member;
-    final isClosurized = inferrer.updateParameterInputs(
-        this, member, arguments, selector,
+    inferrer.updateParameterInputs(this, member, arguments, selector,
         addToQueue: addToQueue, remove: remove, virtualCall: target.isVirtual);
-    if (isClosurized) {
-      if (remove) {
-        closurizedTargets.remove(member);
-      } else {
-        closurizedTargets.add(member);
-      }
-    }
   }
 
   @override

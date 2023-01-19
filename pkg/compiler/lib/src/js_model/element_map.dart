@@ -508,6 +508,43 @@ class ClosureMemberDefinition implements MemberDefinition {
   String toString() => 'ClosureMemberDefinition(kind:$kind,location:$location)';
 }
 
+/// Definition for a Record member. This is almost useless, since there is no
+/// location or corresponding ir.Node.
+class RecordMemberDefinition implements MemberDefinition {
+  /// Tag used for identifying serialized [RecordMemberDefinition] objects in a
+  /// debugging data stream.
+  static const String tag = 'record-member-definition';
+
+  @override
+  final SourceSpan location;
+  @override
+  final MemberKind kind;
+
+  @override
+  ir.TreeNode get node => throw UnsupportedError('RecordMemberDefinition.node');
+
+  RecordMemberDefinition(this.location, this.kind);
+
+  factory RecordMemberDefinition.readFromDataSource(
+      DataSourceReader source, MemberKind kind) {
+    source.begin(tag);
+    SourceSpan location = source.readSourceSpan();
+    source.end(tag);
+    return RecordMemberDefinition(location, kind);
+  }
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(kind);
+    sink.begin(tag);
+    sink.writeSourceSpan(location);
+    sink.end(tag);
+  }
+
+  @override
+  String toString() => 'RecordMemberDefinition(kind:$kind,location:$location)';
+}
+
 void forEachOrderedParameterByFunctionNode(
     ir.FunctionNode node,
     ParameterStructure parameterStructure,
@@ -588,6 +625,7 @@ enum ClassKind {
   // TODO(efortuna, johnniwinther): Context is not a class, but is
   // masquerading as one currently for consistency with the old element model.
   context,
+  record,
 }
 
 /// Definition information for a [ClassEntity].
@@ -612,6 +650,8 @@ abstract class ClassDefinition {
         return ClosureClassDefinition.readFromDataSource(source);
       case ClassKind.context:
         return ContextContainerDefinition.readFromDataSource(source);
+      case ClassKind.record:
+        return RecordClassDefinition.readFromDataSource(source);
     }
   }
 
@@ -728,4 +768,40 @@ class ContextContainerDefinition implements ClassDefinition {
   @override
   String toString() =>
       'ContextContainerDefinition(kind:$kind,location:$location)';
+}
+
+class RecordClassDefinition implements ClassDefinition {
+  /// Tag used for identifying serialized [RecordClassDefinition] objects in a
+  /// debugging data stream.
+  static const String tag = 'record-class-definition';
+
+  @override
+  final SourceSpan location;
+
+  RecordClassDefinition(this.location);
+
+  factory RecordClassDefinition.readFromDataSource(DataSourceReader source) {
+    source.begin(tag);
+    SourceSpan location = source.readSourceSpan();
+    source.end(tag);
+    return RecordClassDefinition(location);
+  }
+
+  @override
+  void writeToDataSink(DataSinkWriter sink) {
+    sink.writeEnum(ClassKind.record);
+    sink.begin(tag);
+    sink.writeSourceSpan(location);
+    sink.end(tag);
+  }
+
+  @override
+  ClassKind get kind => ClassKind.record;
+
+  @override
+  ir.Node get node =>
+      throw UnsupportedError('RecordClassDefinition.node for $location');
+
+  @override
+  String toString() => 'RecordClassDefinition(kind:$kind,location:$location)';
 }

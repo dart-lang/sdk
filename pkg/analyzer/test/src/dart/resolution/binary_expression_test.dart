@@ -17,6 +17,92 @@ main() {
 @reflectiveTest
 class BinaryExpressionResolutionTest extends PubPackageResolutionTest
     with BinaryExpressionResolutionTestCases {
+  test_eqEq_switchExpression_left() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  (switch (x) {
+    _ => 1,
+  } == 0);
+}
+''');
+
+    var node = findNode.binary('== 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+        arrow: =>
+        expression: IntegerLiteral
+          literal: 1
+          staticType: int
+    rightBracket: }
+    staticType: int
+  operator: ==
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::num::@method::==::@parameter::other
+    staticType: int
+  staticElement: dart:core::@class::num::@method::==
+  staticInvokeType: bool Function(Object)
+  staticType: bool
+''');
+  }
+
+  test_eqEq_switchExpression_right() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  0 == switch (x) {
+    _ => 1,
+  };
+}
+''');
+
+    var node = findNode.binary('0 ==');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: ==
+  rightOperand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+        arrow: =>
+        expression: IntegerLiteral
+          literal: 1
+          staticType: int
+    rightBracket: }
+    parameter: dart:core::@class::num::@method::==::@parameter::other
+    staticType: int
+  staticElement: dart:core::@class::num::@method::==
+  staticInvokeType: bool Function(Object)
+  staticType: bool
+''');
+  }
+
   test_ifNull_left_nullableContext() async {
     await assertNoErrorsInCode(r'''
 T f<T>(T t) => t;
@@ -181,6 +267,92 @@ BinaryExpression
   staticElement: <null>
   staticInvokeType: null
   staticType: Never
+''');
+  }
+
+  test_plus_switchExpression_left() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  (switch (x) {
+    _ => 1,
+  } + 0);
+}
+''');
+
+    var node = findNode.binary('+ 0');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+        arrow: =>
+        expression: IntegerLiteral
+          literal: 1
+          staticType: int
+    rightBracket: }
+    staticType: int
+  operator: +
+  rightOperand: IntegerLiteral
+    literal: 0
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticInvokeType: num Function(num)
+  staticType: int
+''');
+  }
+
+  test_plus_switchExpression_right() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  0 + switch (x) {
+    _ => 1,
+  };
+}
+''');
+
+    var node = findNode.binary('0 +');
+    assertResolvedNodeText(node, r'''
+BinaryExpression
+  leftOperand: IntegerLiteral
+    literal: 0
+    staticType: int
+  operator: +
+  rightOperand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+        arrow: =>
+        expression: IntegerLiteral
+          literal: 1
+          staticType: int
+    rightBracket: }
+    parameter: dart:core::@class::num::@method::+::@parameter::other
+    staticType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticInvokeType: num Function(num)
+  staticType: int
 ''');
   }
 }

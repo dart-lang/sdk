@@ -4,6 +4,7 @@
 
 /*library: nnbd=false*/
 
+// ignore: illegal_language_version_override
 // @dart=2.6
 
 /*class: A:A,Object*/

@@ -1713,6 +1713,28 @@ class UntaggedWeakSerializationReference : public UntaggedObject {
   VISIT_TO(replacement)
 };
 
+class UntaggedWeakArray : public UntaggedObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(WeakArray);
+
+  COMPRESSED_POINTER_FIELD(WeakArrayPtr, next_seen_by_gc)
+
+  COMPRESSED_SMI_FIELD(SmiPtr, length)
+  VISIT_FROM(length)
+  // Variable length data follows here.
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
+
+  template <typename Table, bool kAllCanonicalObjectsAreIncludedIntoSet>
+  friend class CanonicalSetDeserializationCluster;
+  template <typename Type, typename PtrType>
+  friend class GCLinkedList;
+  friend class GCMarker;
+  template <bool>
+  friend class MarkingVisitorBase;
+  friend class Scavenger;
+  template <bool>
+  friend class ScavengerVisitorBase;
+};
+
 class UntaggedCode : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
 
@@ -3400,7 +3422,13 @@ class UntaggedRegExp : public UntaggedInstance {
   VISIT_TO(external_two_byte_sticky)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 
-  intptr_t num_bracket_expressions_;
+  std::atomic<intptr_t> num_bracket_expressions_;
+  intptr_t num_bracket_expressions() {
+    return num_bracket_expressions_.load(std::memory_order_relaxed);
+  }
+  void set_num_bracket_expressions(intptr_t value) {
+    num_bracket_expressions_.store(value, std::memory_order_relaxed);
+  }
 
   // The same pattern may use different amount of registers if compiled
   // for a one-byte target than a two-byte target. For example, we do not
@@ -3413,7 +3441,9 @@ class UntaggedRegExp : public UntaggedInstance {
   // type: Uninitialized, simple or complex.
   // flags: Represents global/local, case insensitive, multiline, unicode,
   //        dotAll.
-  int8_t type_flags_;
+  // It is possible multiple compilers race to update the flags concurrently.
+  // That should be safe since all updates update to the same values..
+  AtomicBitFieldContainer<int8_t> type_flags_;
 };
 
 class UntaggedWeakProperty : public UntaggedInstance {

@@ -31,7 +31,7 @@ Set<int> zero() => <int>{0};
     await verifyVersion('2.1.0', '''
 Set<int> zero() => <int>{0};
 ''', expectedErrors: [
-      error(StaticWarningCode.SDK_VERSION_SET_LITERAL, 19, 8),
+      error(WarningCode.SDK_VERSION_SET_LITERAL, 19, 8),
     ]);
   }
 }

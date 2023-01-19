@@ -571,13 +571,15 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
       List<String> vmOptions,
       List<String> originalArguments,
       CommandArtifact? artifact) {
+    final filename = artifact!.filename;
     return [
       '--experimental-wasm-gc',
       '--experimental-wasm-stack-switching',
       '--experimental-wasm-type-reflection',
       'pkg/dart2wasm/bin/run_wasm.js',
       '--',
-      artifact!.filename,
+      '${filename.substring(0, filename.lastIndexOf('.'))}.mjs',
+      filename,
       ...testFile.sharedObjects
           .map((obj) => '${_configuration.buildDirectory}/wasm/$obj.wasm'),
     ];
@@ -630,8 +632,8 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // For local development we don't have a built SDK yet, so point directly
       // at the built summary file location.
       var sdkSummaryFile = _configuration.nnbdMode == NnbdMode.strong
-          ? 'ddc_outline_sound.dill'
-          : 'ddc_outline.dill';
+          ? 'ddc_outline.dill'
+          : 'ddc_outline_unsound.dill';
       var sdkSummary = Path(_configuration.buildDirectory)
           .append(sdkSummaryFile)
           .absolute

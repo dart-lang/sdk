@@ -913,9 +913,8 @@ const Template<Message Function(String name)> templateCantUseClassAsMixin =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Message Function(String name)> codeCantUseClassAsMixin =
-    const Code<Message Function(String name)>(
-  "CantUseClassAsMixin",
-);
+    const Code<Message Function(String name)>("CantUseClassAsMixin",
+        analyzerCodes: <String>["CLASS_USED_AS_MIXIN"]);
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsCantUseClassAsMixin(String name) {
@@ -1979,6 +1978,16 @@ Message _withArgumentsConstructorWithWrongNameContext(String name) {
       problemMessage: """The name of the enclosing class is '${name}'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeContinueLabelInvalid = messageContinueLabelInvalid;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageContinueLabelInvalid = const MessageCode(
+    "ContinueLabelInvalid",
+    analyzerCodes: <String>["CONTINUE_LABEL_INVALID"],
+    problemMessage:
+        r"""A 'continue' label must be on a loop or a switch member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeContinueOutsideOfLoop = messageContinueOutsideOfLoop;
@@ -7434,6 +7443,18 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
     correctionMessage: r"""Try replacing this with a normal method.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropStaticInteropAnonymousFactoryTearoff =
+    messageJsInteropStaticInteropAnonymousFactoryTearoff;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropStaticInteropAnonymousFactoryTearoff =
+    const MessageCode("JsInteropStaticInteropAnonymousFactoryTearoff",
+        problemMessage:
+            r"""Factories of `@anonymous` `@staticInterop` classes can not be torn off.""",
+        correctionMessage:
+            r"""Declare a closure that forwards to this factory instead.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null>
     codeJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
     messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters;
@@ -8093,6 +8114,19 @@ const MessageCode messageMemberWithSameNameAsClass = const MessageCode(
     problemMessage:
         r"""A class member can't have the same name as the enclosing class.""",
     correctionMessage: r"""Try renaming the member.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeMetadataSpaceBeforeParenthesis =
+    messageMetadataSpaceBeforeParenthesis;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageMetadataSpaceBeforeParenthesis = const MessageCode(
+    "MetadataSpaceBeforeParenthesis",
+    index: 134,
+    problemMessage:
+        r"""Annotations can't have spaces or comments before the parenthesis.""",
+    correctionMessage:
+        r"""Remove any spaces or comments before the parenthesis.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMetadataTypeArguments = messageMetadataTypeArguments;
@@ -10557,6 +10591,25 @@ const MessageCode messageRequiredParameterWithDefault = const MessageCode(
         r"""Try removing the default value or making the parameter optional.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRestPatternMoreThanOne = messageRestPatternMoreThanOne;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRestPatternMoreThanOne = const MessageCode(
+    "RestPatternMoreThanOne",
+    problemMessage:
+        r"""The '...' pattern can appear only once in the enclosing pattern.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeRestPatternNotLastInMapPattern =
+    messageRestPatternNotLastInMapPattern;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageRestPatternNotLastInMapPattern = const MessageCode(
+    "RestPatternNotLastInMapPattern",
+    problemMessage:
+        r"""The '...' pattern can appear only at the end in map patterns.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeRethrowNotCatch = messageRethrowNotCatch;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -12333,6 +12386,14 @@ const MessageCode messageVoidWithTypeArguments = const MessageCode(
     index: 100,
     problemMessage: r"""Type 'void' can't have type arguments.""",
     correctionMessage: r"""Try removing the type arguments.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeWasmSyncStar = messageWasmSyncStar;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageWasmSyncStar = const MessageCode("WasmSyncStar",
+    severity: Severity.warning,
+    problemMessage: r"""Compilation to Wasm does not support 'sync*'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeWeakWithStrongDillLibrary =

@@ -22,8 +22,7 @@ DEFINE_FLAG(bool,
             false,
             "Print constant propagation and useless code elimination.");
 
-// Quick access to the current zone and isolate.
-#define I (isolate())
+// Quick access to the current thread & zone.
 #define Z (graph_->zone())
 #define T (graph_->thread())
 

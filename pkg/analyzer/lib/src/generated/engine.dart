@@ -17,6 +17,7 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 export 'package:analyzer/dart/analysis/analysis_options.dart';
@@ -157,7 +158,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// The constraint on the language version for every Dart file.
   /// Violations will be reported as analysis errors.
-  VersionConstraint? sourceLanguageConstraint;
+  VersionConstraint? sourceLanguageConstraint =
+      noSoundNullSafety ? VersionConstraint.parse('>= 2.12.0') : null;
 
   ExperimentStatus _contextFeatures = ExperimentStatus();
 

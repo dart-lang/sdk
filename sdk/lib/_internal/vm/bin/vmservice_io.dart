@@ -198,6 +198,8 @@ Future<Uri> createTempDirCallback(String base) async {
 Future<void> deleteDirCallback(Uri path) async =>
     await Directory.fromUri(path).delete(recursive: true);
 
+void serveObservatoryCallback() => _serveObservatory = true;
+
 class PendingWrite {
   PendingWrite(this.uri, this.bytes);
   final completer = Completer<void>();
@@ -376,6 +378,7 @@ main() {
   VMServiceEmbedderHooks.webServerControl = webServerControlCallback;
   VMServiceEmbedderHooks.acceptNewWebSocketConnections =
       webServerAcceptNewWebSocketConnections;
+  VMServiceEmbedderHooks.serveObservatory = serveObservatoryCallback;
   // Always instantiate the vmservice object so that the exit message
   // can be delivered and waiting loaders can be cancelled.
   VMService();

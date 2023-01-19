@@ -2410,6 +2410,124 @@ foo<T>(T a) {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_VariablePatternElement_declaration() async {
+    await resolveTestCode('''
+void f(x) {
+  var (v) = x;
+  v = 1;
+  v += 2;
+  v;
+  v();
+}
+''');
+    var element = findNode.declaredVariablePattern('v) =').declaredElement!;
+    var f = findElement.function('f');
+    var expected = [
+      _expectId(f, SearchResultKind.WRITE, 'v = 1;'),
+      _expectId(f, SearchResultKind.READ_WRITE, 'v += 2;'),
+      _expectId(f, SearchResultKind.READ, 'v;'),
+      _expectId(f, SearchResultKind.READ, 'v();')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_VariablePatternElement_ifCase() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case int v) {
+    v;
+  }
+}
+''');
+    var element = findNode.declaredVariablePattern('v)').declaredElement!;
+    var f = findElement.function('f');
+    var expected = [
+      _expectId(f, SearchResultKind.READ, 'v;'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_VariablePatternElement_ifCase_logicalOr() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  if (x case int v || [int v]) {
+    v;
+    v = 1;
+  }
+}
+''');
+    var element = findNode.declaredVariablePattern('v]').declaredElement!;
+    var f = findElement.function('f');
+    var expected = [
+      _expectId(f, SearchResultKind.READ, 'v;'),
+      _expectId(f, SearchResultKind.WRITE, 'v = 1'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_VariablePatternElement_switchExpression() async {
+    await resolveTestCode('''
+Object f(Object? x) => switch (0) {
+  int v when v > 0 => v + 1 + (v = 2),
+  _ => -1,
+}
+''');
+    var element = findNode.declaredVariablePattern('int v').declaredElement!;
+    var f = findElement.function('f');
+    var expected = [
+      _expectId(f, SearchResultKind.READ, 'v > 0'),
+      _expectId(f, SearchResultKind.READ, 'v + 1'),
+      _expectId(f, SearchResultKind.WRITE, 'v = 2'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_VariablePatternElement_switchStatement_shared() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  switch (0) {
+    case int v when v > 0:
+    case [int v] when v < 0:
+      v;
+      v = 1;
+  }
+}
+''');
+    var element =
+        findNode.declaredVariablePattern('int v when').declaredElement!;
+    var f = findElement.function('f');
+    var expected = [
+      _expectId(f, SearchResultKind.READ, 'v > 0'),
+      _expectId(f, SearchResultKind.READ, 'v < 0'),
+      _expectId(f, SearchResultKind.READ, 'v;'),
+      _expectId(f, SearchResultKind.WRITE, 'v = 1'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_VariablePatternElement_switchStatement_shared_hasLogicalOr() async {
+    await resolveTestCode('''
+void f(Object? x) {
+  switch (0) {
+    case int v when v > 0:
+    case [int v] || [..., int v] when v < 0:
+      v;
+      v = 1;
+  }
+}
+''');
+    var element =
+        findNode.declaredVariablePattern('int v when').declaredElement!;
+    var f = findElement.function('f');
+    var expected = [
+      _expectId(f, SearchResultKind.READ, 'v > 0'),
+      _expectId(f, SearchResultKind.READ, 'v < 0'),
+      _expectId(f, SearchResultKind.READ, 'v;'),
+      _expectId(f, SearchResultKind.WRITE, 'v = 1'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchSubtypes() async {
     await resolveTestCode('''
 class T {}

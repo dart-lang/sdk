@@ -127,6 +127,8 @@ import 'make_conditional_on_debug_mode_test.dart'
 import 'make_field_not_final_test.dart' as make_field_not_final;
 import 'make_field_public_test.dart' as make_field_public;
 import 'make_final_test.dart' as make_final;
+import 'make_required_named_parameters_first_test.dart'
+    as make_required_named_parameters_first;
 import 'make_return_type_nullable_test.dart' as make_return_type_nullable;
 import 'make_super_invocation_last_test.dart' as make_super_invocation_last;
 import 'make_variable_not_final_test.dart' as make_variable_not_final;
@@ -230,6 +232,7 @@ import 'replace_with_extension_name_test.dart' as replace_with_extension_name;
 import 'replace_with_identifier_test.dart' as replace_with_identifier;
 import 'replace_with_interpolation_test.dart' as replace_with_interpolation;
 import 'replace_with_is_empty_test.dart' as replace_with_is_empty;
+import 'replace_with_is_nan_test.dart' as replace_with_is_nan;
 import 'replace_with_is_not_empty_test.dart' as replace_with_is_not_empty;
 import 'replace_with_not_null_aware_test.dart' as replace_with_not_null_aware;
 import 'replace_with_null_aware_test.dart' as replace_with_null_aware;
@@ -362,6 +365,7 @@ void main() {
     make_field_not_final.main();
     make_field_public.main();
     make_final.main();
+    make_required_named_parameters_first.main();
     make_return_type_nullable.main();
     make_super_invocation_last.main();
     make_variable_not_final.main();
@@ -451,6 +455,7 @@ void main() {
     replace_with_identifier.main();
     replace_with_interpolation.main();
     replace_with_is_empty.main();
+    replace_with_is_nan.main();
     replace_with_is_not_empty.main();
     replace_with_not_null_aware.main();
     replace_with_null_aware.main();

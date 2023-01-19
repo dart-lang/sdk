@@ -4,7 +4,6 @@
 
 import 'package:dart2wasm/class_info.dart';
 import 'package:dart2wasm/closures.dart';
-import 'package:dart2wasm/constants.dart';
 import 'package:dart2wasm/dispatch_table.dart';
 import 'package:dart2wasm/dynamic_forwarders.dart';
 import 'package:dart2wasm/intrinsics.dart';
@@ -90,8 +89,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   Member get member => reference.asMember;
 
-  w.ValueType get returnType => translator
-      .outputOrVoid(returnLabel?.targetTypes ?? function.type.outputs);
+  List<w.ValueType> get outputs =>
+      returnLabel?.targetTypes ?? function.type.outputs;
+
+  w.ValueType get returnType => translator.outputOrVoid(outputs);
 
   TranslatorOptions get options => translator.options;
 
@@ -192,7 +193,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return generateAsyncWrapper(procedure.function, inner, parameterOffset);
     }
 
-    return generateBody(member);
+    translator.membersBeingGenerated.add(member);
+    generateBody(member);
+    translator.membersBeingGenerated.remove(member);
   }
 
   void generateTearOffGetter(Procedure procedure) {
@@ -201,7 +204,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     ClosureImplementation closure = translator.getTearOffClosure(procedure);
     w.StructType struct = closure.representation.closureStruct;
 
-    ClassInfo info = translator.classInfo[translator.functionClass]!;
+    ClassInfo info = translator.closureInfo;
     translator.functions.allocateClass(info.classId);
 
     b.i32_const(info.classId);
@@ -229,8 +232,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.global_set(flag);
     }
     b.global_get(global);
-    translator.convertType(
-        function, global.type.type, function.type.outputs.single);
+    translator.convertType(function, global.type.type, outputs.single);
     b.end();
   }
 
@@ -330,8 +332,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     // Call async helper
     b.call(asyncHelper);
-    translator.convertType(function, asyncHelper.type.outputs.single,
-        function.type.outputs.single);
+    translator.convertType(
+        function, asyncHelper.type.outputs.single, outputs.single);
     b.end();
 
     // Call inner function from stub
@@ -508,22 +510,24 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   int _initializeThis(Member member) {
     bool hasThis = member.isInstanceMember || member is Constructor;
     if (hasThis) {
-      Class cls = member.enclosingClass!;
-      ClassInfo info = translator.classInfo[cls]!;
       thisLocal = paramLocals[0];
       assert(!thisLocal!.type.nullable);
-      w.RefType thisType = info.nonNullableType;
-      if (translator.needsConversion(paramLocals[0].type, thisType) &&
+      Class cls = member.enclosingClass!;
+      w.StorageType? builtin = translator.builtinTypes[cls];
+      w.ValueType thisType = translator.boxedClasses.containsKey(builtin)
+          ? builtin as w.ValueType
+          : translator.classInfo[cls]!.nonNullableType;
+      if (translator.needsConversion(thisLocal!.type, thisType) &&
           !(cls == translator.objectInfo.cls ||
               cls == translator.ffiPointerClass ||
               translator.isFfiCompound(cls) ||
               translator.isWasmType(cls))) {
         preciseThisLocal = addLocal(thisType);
-        b.local_get(paramLocals[0]);
-        b.ref_cast(info.struct);
+        b.local_get(thisLocal!);
+        translator.convertType(function, thisLocal!.type, thisType);
         b.local_set(preciseThisLocal!);
       } else {
-        preciseThisLocal = paramLocals[0];
+        preciseThisLocal = thisLocal!;
       }
       return 1;
     }
@@ -536,12 +540,12 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   void _initializeContextLocals(FunctionNode functionNode) {
     Context? context = closures.contexts[functionNode]?.parent;
     if (context != null) {
+      w.RefType contextType = w.RefType.def(context.struct, nullable: false);
       b.local_get(paramLocals[0]);
-      b.ref_cast(context.struct);
+      b.ref_cast(contextType);
       while (true) {
-        w.Local contextLocal =
-            addLocal(w.RefType.def(context!.struct, nullable: false));
-        context.currentLocal = contextLocal;
+        w.Local contextLocal = addLocal(contextType);
+        context!.currentLocal = contextLocal;
         if (context.parent != null || context.containsThis) {
           b.local_tee(contextLocal);
         } else {
@@ -552,6 +556,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.struct_get(context.struct, context.parentFieldIndex);
         b.ref_as_non_null();
         context = context.parent!;
+        contextType = w.RefType.def(context.struct, nullable: false);
       }
       if (context.containsThis) {
         thisLocal = addLocal(context
@@ -566,15 +571,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   void _implicitReturn() {
-    if (function.type.outputs.isNotEmpty) {
-      w.ValueType returnType = function.type.outputs[0];
+    if (outputs.isNotEmpty) {
+      w.ValueType returnType = outputs.single;
       if (returnType is w.RefType && returnType.nullable) {
         // Dart body may have an implicit return null.
         b.ref_null(returnType.heapType.bottomType);
       } else {
         // This point is unreachable, but the Wasm validator still expects the
         // stack to contain a value matching the Wasm function return type.
-        b.block(const [], function.type.outputs);
+        b.block(const [], outputs);
         b.comment("Unreachable implicit return");
         b.unreachable();
         b.end();
@@ -627,10 +632,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   /// Helper function to throw a Wasm ref downcast error.
   void throwWasmRefError(String expected) {
-    wrap(
-        StringLiteral(expected),
-        translator
-            .translateType(translator.coreTypes.stringNonNullableRawType));
+    _emitString(expected);
     call(translator.stackTraceCurrent.reference);
     call(translator.throwWasmRefError.reference);
     b.unreachable();
@@ -676,25 +678,28 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   }
 
   w.ValueType call(Reference target) {
-    w.BaseFunction targetFunction = translator.functions.getFunction(target);
     if (translator.shouldInline(target)) {
+      w.FunctionType targetFunctionType =
+          translator.functions.getFunctionType(target);
       List<w.Local> inlinedLocals =
-          targetFunction.type.inputs.map((t) => addLocal(t)).toList();
+          targetFunctionType.inputs.map((t) => addLocal(t)).toList();
       for (w.Local local in inlinedLocals.reversed) {
         b.local_set(local);
       }
-      w.Label block = b.block(const [], targetFunction.type.outputs);
+      w.Label block = b.block(const [], targetFunctionType.outputs);
       b.comment("Inlined ${target.asMember}");
       CodeGenerator(translator, function, target,
               paramLocals: inlinedLocals, returnLabel: block)
           .generate();
+      return translator.outputOrVoid(targetFunctionType.outputs);
     } else {
+      w.BaseFunction targetFunction = translator.functions.getFunction(target);
       String access =
           target.isGetter ? "get" : (target.isSetter ? "set" : "call");
       b.comment("Direct $access of '${target.asMember}'");
       b.call(targetFunction);
+      return translator.outputOrVoid(targetFunction.type.outputs);
     }
-    return translator.outputOrVoid(targetFunction.type.outputs);
   }
 
   @override
@@ -845,44 +850,35 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // It is not valid dart to have a try without a catch.
     assert(node.catches.isNotEmpty);
 
-    // We lower a [TryCatch] to a wasm try block. If there are any [Catch]
-    // nodes, we generate a single wasm catch instruction, and dispatch at
-    // runtime based on the type of the caught exception.
+    // We lower a [TryCatch] to a wasm try block.
     w.Label try_ = b.try_();
     visitStatement(node.body);
     b.br(try_);
 
-    // Insert a catch instruction which will catch any thrown Dart
-    // exceptions.
     // Note: We must wait to add the try block to the [tryLabels] stack until
     // after we have visited the body of the try. This is to handle the case of
     // a rethrow nested within a try nested within a catch, that is we need the
     // rethrow to target the last try block with a catch.
     tryLabels.add(try_);
-    b.catch_(translator.exceptionTag);
 
     // Stash the original exception in a local so we can push it back onto the
     // stack after each type test. Also, store the stack trace in a local.
-    w.RefType stackTrace = translator.stackTraceInfo.nonNullableType;
-    w.Local thrownStackTrace = addLocal(stackTrace);
-    b.local_set(thrownStackTrace);
+    w.Local thrownException = addLocal(translator.topInfo.nonNullableType);
+    w.Local thrownStackTrace =
+        addLocal(translator.stackTraceInfo.nonNullableType);
 
-    w.RefType exception = translator.topInfo.nonNullableType;
-    w.Local thrownException = addLocal(exception);
-    b.local_set(thrownException);
-
-    // For each catch node:
-    //   1) Create a block for the catch.
-    //   2) Push the caught exception onto the stack.
-    //   3) Add a type test based on the guard of the catch.
-    //   4) If the test fails, we jump to the next catch. Otherwise, we
-    //      execute the body of the catch.
-    for (Catch catch_ in node.catches) {
+    void emitCatchBlock(Catch catch_, bool emitGuard) {
+      // For each catch node:
+      //   1) Create a block for the catch.
+      //   2) Push the caught exception onto the stack.
+      //   3) Add a type test based on the guard of the catch.
+      //   4) If the test fails, we jump to the next catch. Otherwise, we
+      //      execute the body of the catch.
       w.Label catchBlock = b.block();
       DartType guard = catch_.guard;
 
       // Only emit the type test if the guard is not [Object].
-      if (guard != translator.coreTypes.objectNonNullableRawType) {
+      if (emitGuard) {
         b.local_get(thrownException);
         types.emitTypeTest(
             this, guard, translator.coreTypes.objectNonNullableRawType, node);
@@ -894,7 +890,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // the catch's exception [VariableDeclaration] node.
       VariableDeclaration? exceptionDeclaration = catch_.exception;
       if (exceptionDeclaration != null) {
-        w.Local guardedException = addLocal(exception);
+        w.Local guardedException = addLocal(translator.topInfo.nonNullableType);
         locals[exceptionDeclaration] = guardedException;
         b.local_get(thrownException);
         b.local_set(guardedException);
@@ -904,7 +900,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       // corresponding to the catch's stack trace [VariableDeclaration] node.
       VariableDeclaration? stackTraceDeclaration = catch_.stackTrace;
       if (stackTraceDeclaration != null) {
-        w.Local guardedStackTrace = addLocal(stackTrace);
+        w.Local guardedStackTrace =
+            addLocal(translator.stackTraceInfo.nonNullableType);
         locals[stackTraceDeclaration] = guardedStackTrace;
         b.local_get(thrownStackTrace);
         b.local_set(guardedStackTrace);
@@ -916,10 +913,78 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.end(); // end catchBlock.
     }
 
-    // We insert a rethrow just before the end of the try block to handle the
-    // case where none of the catch blocks catch the type of the thrown
-    // exception.
+    // Insert a catch instruction which will catch any thrown Dart
+    // exceptions.
+    b.catch_(translator.exceptionTag);
+
+    b.local_set(thrownStackTrace);
+    b.local_set(thrownException);
+    for (final Catch catch_ in node.catches) {
+      // Only insert type checks if the guard is not `Object`
+      final bool shouldEmitGuard =
+          catch_.guard != translator.coreTypes.objectNonNullableRawType;
+      emitCatchBlock(catch_, shouldEmitGuard);
+      if (!shouldEmitGuard) {
+        // If we didn't emit a guard, we won't ever fall through to the
+        // following catch blocks.
+        break;
+      }
+    }
+    // Rethrow if all the catch blocks fall through
     b.rethrow_(try_);
+
+    bool guardCanMatchJSException(DartType guard) {
+      if (guard is DynamicType) {
+        return true;
+      }
+      if (guard is InterfaceType) {
+        return translator.hierarchy
+            .isSubtypeOf(translator.javaScriptErrorClass, guard.classNode);
+      }
+      if (guard is TypeParameterType) {
+        return guardCanMatchJSException(guard.bound);
+      }
+      return false;
+    }
+
+    // If we have a catches that are generic enough to catch a JavaScript
+    // error, we need to put that into a catch_all block.
+    final Iterable<Catch> catchAllCatches =
+        node.catches.where((c) => guardCanMatchJSException(c.guard));
+
+    if (catchAllCatches.isNotEmpty) {
+      // This catches any objects that aren't dart exceptions, such as
+      // JavaScript exceptions or objects.
+      b.catch_all();
+
+      // We can't inspect the thrown object in a catch_all and get a stack
+      // trace, so we just attach the current stack trace.
+      call(translator.stackTraceCurrent.reference);
+      b.local_set(thrownStackTrace);
+
+      // We create a generic JavaScript error in this case.
+      call(translator.javaScriptErrorFactory.reference);
+      b.local_set(thrownException);
+
+      for (final c in catchAllCatches) {
+        // Type guards based on a type parameter are special, in that we cannot
+        // statically determine whether a JavaScript error will always satisfy
+        // the guard, so we should emit the type checking code for it. All
+        // other guards will always match a JavaScript error, however, so no
+        // need to emit type checks for those.
+        final bool shouldEmitGuard = c.guard is TypeParameterType;
+        emitCatchBlock(c, shouldEmitGuard);
+        if (!shouldEmitGuard) {
+          // If we didn't emit a guard, we won't ever fall through to the
+          // following catch blocks.
+          break;
+        }
+      }
+
+      // Rethrow if the catch block falls through
+      b.rethrow_(try_);
+    }
+
     tryLabels.removeLast();
     b.end(); // end try_.
   }
@@ -1536,17 +1601,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitDynamicInvocation(
       DynamicInvocation node, w.ValueType expectedType) {
-    // Handle dynamic 'call' separately.
-    if (node.name.text == "call") {
-      return _functionCall(node.receiver, node.arguments);
-    }
-
     // Call dynamic invocation forwarder
     final receiver = node.receiver;
     final typeArguments = node.arguments.types;
     final positionalArguments = node.arguments.positional;
     final namedArguments = node.arguments.named;
-    final forwarder = translator.dynamicForwarders.getMethodForwarder(node);
+    final forwarder = translator.dynamicForwarders
+        .getDynamicInvocationForwarder(node.name.text);
 
     final forwarderCallBlock = b.block([], [translator.topInfo.nullableType]);
 
@@ -1556,11 +1617,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         function.addLocal(translator.topInfo.nullableType);
     b.local_set(nullableReceiverLocal);
 
-    // Evaluate type arguments
+    // Evaluate type arguments. Type argument list is growable as we may want
+    // to add default bounds when the callee has type parameters but no type
+    // arguments are passed.
     makeList(InterfaceType(translator.typeClass, Nullability.nonNullable),
         typeArguments.length, (elementType, elementIdx) {
       translator.types.makeType(this, typeArguments[elementIdx]);
-    }, isGrowable: false);
+    }, isGrowable: true);
     final typeArgsLocal = function.addLocal(
         translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
     b.local_set(typeArgsLocal);
@@ -1574,18 +1637,31 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         translator.classInfo[translator.fixedLengthListClass]!.nonNullableType);
     b.local_set(positionalArgsLocal);
 
-    // Evaluate named arguments
+    // Evaluate named arguments. The arguments need to be evaluated in the
+    // order they appear in the AST, but need to be sorted based on names in
+    // the argument list passed to the dynamic forwarder. Create a local for
+    // each argument to allow adding values to the list in expected order.
+    final List<MapEntry<String, w.Local>> namedArgumentLocals = [];
+    for (final namedArgument in namedArguments) {
+      wrap(namedArgument.value, translator.topInfo.nullableType);
+      final argumentLocal = function.addLocal(translator.topInfo.nullableType);
+      b.local_set(argumentLocal);
+      namedArgumentLocals.add(MapEntry(namedArgument.name, argumentLocal));
+    }
+    namedArgumentLocals.sort((e1, e2) => e1.key.compareTo(e2.key));
+
+    // Create named argument list
     makeList(DynamicType(), namedArguments.length * 2,
         (elementType, elementIdx) {
       if (elementIdx % 2 == 0) {
-        final name = namedArguments[elementIdx ~/ 2].name;
+        final name = namedArgumentLocals[elementIdx ~/ 2].key;
         final w.ValueType symbolValueType =
             translator.classInfo[translator.symbolClass]!.nonNullableType;
         translator.constants.instantiateConstant(
             function, b, SymbolConstant(name, null), symbolValueType);
       } else {
-        final value = namedArguments[elementIdx ~/ 2].value;
-        wrap(value, elementType);
+        final local = namedArgumentLocals[elementIdx ~/ 2].value;
+        b.local_get(local);
       }
     }, isGrowable: false);
     final namedArgsLocal = function.addLocal(
@@ -1951,7 +2027,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       w.StructType closureStruct = _pushClosure(
           translator.getTearOffClosure(target),
           translator.getTearOffType(target),
-          () => visitThis(w.RefType.data(nullable: false)));
+          () => visitThis(w.RefType.struct(nullable: false)));
       return w.RefType.def(closureStruct, nullable: false);
     }
     return _directGet(target, ThisExpression(), () => null);
@@ -2008,7 +2084,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   @override
   w.ValueType visitDynamicGet(DynamicGet node, w.ValueType expectedType) {
     final receiver = node.receiver;
-    final forwarder = translator.dynamicForwarders.getGetterForwarder(node);
+    final forwarder =
+        translator.dynamicForwarders.getDynamicGetForwarder(node.name.text);
 
     // Call get forwarder
     final forwarderCallBlock = b.block([], [translator.topInfo.nullableType]);
@@ -2045,7 +2122,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType visitDynamicSet(DynamicSet node, w.ValueType expectedType) {
     final receiver = node.receiver;
     final value = node.value;
-    final forwarder = translator.dynamicForwarders.getSetterForwarder(node);
+    final forwarder =
+        translator.dynamicForwarders.getDynamicSetForwarder(node.name.text);
 
     // Call set forwarder
     final forwarderCallBlock = b.block([], [translator.topInfo.nullableType]);
@@ -2094,7 +2172,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (target is Field) {
       ClassInfo info = translator.classInfo[target.enclosingClass]!;
       int fieldIndex = translator.fieldIndex[target]!;
-      w.ValueType receiverType = info.nullableType;
+      w.ValueType receiverType = info.nonNullableType;
       w.ValueType fieldType = info.struct.fields[fieldIndex].type.unpacked;
       wrap(receiver, receiverType);
       b.struct_get(info.struct, fieldIndex);
@@ -2192,7 +2270,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (target is Field) {
       ClassInfo info = translator.classInfo[target.enclosingClass]!;
       int fieldIndex = translator.fieldIndex[target]!;
-      w.ValueType receiverType = info.nullableType;
+      w.ValueType receiverType = info.nonNullableType;
       w.ValueType fieldType = info.struct.fields[fieldIndex].type.unpacked;
       wrap(receiver, receiverType);
       wrap(value, fieldType);
@@ -2269,7 +2347,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       DartType functionType, void pushContext()) {
     w.StructType struct = closure.representation.closureStruct;
 
-    ClassInfo info = translator.classInfo[translator.functionClass]!;
+    ClassInfo info = translator.closureInfo;
     translator.functions.allocateClass(info.classId);
 
     b.i32_const(info.classId);
@@ -2288,7 +2366,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       b.local_get(context.currentLocal);
       assert(!context.currentLocal.type.nullable);
     } else {
-      b.global_get(translator.globals.dummyGlobal); // Dummy context
+      b.global_get(translator.globals.dummyStructGlobal); // Dummy context
     }
   }
 
@@ -2299,10 +2377,17 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         intrinsifier.generateFunctionCallIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
 
-    return _functionCall(node.receiver, node.arguments);
-  }
+    if (node.kind == FunctionAccessKind.Function) {
+      // Type of function is `Function`, without the argument types.
+      return visitDynamicInvocation(
+          DynamicInvocation(DynamicAccessKind.Dynamic, node.receiver, node.name,
+              node.arguments),
+          expectedType);
+    }
 
-  w.ValueType _functionCall(Expression receiver, Arguments arguments) {
+    final Expression receiver = node.receiver;
+    final Arguments arguments = node.arguments;
+
     int typeCount = arguments.types.length;
     int posArgCount = arguments.positional.length;
     List<String> argNames = arguments.named.map((a) => a.name).toList()..sort();
@@ -2345,14 +2430,13 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
 
     // Call entry point in vtable
-    int vtableIndex =
+    int vtableFieldIndex =
         representation.fieldIndexForSignature(posArgCount, argNames);
     w.FunctionType functionType =
-        (representation.vtableStruct.fields[vtableIndex].type as w.RefType)
-            .heapType as w.FunctionType;
+        representation.getVtableFieldType(vtableFieldIndex);
     b.local_get(temp);
     b.struct_get(struct, FieldIndex.closureVtable);
-    b.struct_get(representation.vtableStruct, vtableIndex);
+    b.struct_get(representation.vtableStruct, vtableFieldIndex);
     b.call_ref(functionType);
     return translator.topInfo.nullableType;
   }
@@ -2601,43 +2685,9 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   w.ValueType makeList(DartType typeArg, int length,
       void Function(w.ValueType, int) generateItem,
       {bool isGrowable = false}) {
-    Class cls = isGrowable
-        ? translator.growableListClass
-        : translator.fixedLengthListClass;
-    ClassInfo info = translator.classInfo[cls]!;
-    translator.functions.allocateClass(info.classId);
-    w.ArrayType arrayType = translator.listArrayType;
-    w.ValueType elementType = arrayType.elementType.type.unpacked;
-
-    b.i32_const(info.classId);
-    b.i32_const(initialIdentityHash);
-    types.makeType(this, typeArg);
-    b.i64_const(length);
-    if (length > maxArrayNewFixedLength) {
-      // Too long for `array.new_fixed`. Set elements individually.
-      b.i32_const(length);
-      b.array_new_default(arrayType);
-      if (length > 0) {
-        w.Local arrayLocal =
-            addLocal(w.RefType.def(arrayType, nullable: false));
-        b.local_set(arrayLocal);
-        for (int i = 0; i < length; i++) {
-          b.local_get(arrayLocal);
-          b.i32_const(i);
-          generateItem(elementType, i);
-          b.array_set(arrayType);
-        }
-        b.local_get(arrayLocal);
-      }
-    } else {
-      for (int i = 0; i < length; i++) {
-        generateItem(elementType, i);
-      }
-      b.array_new_fixed(arrayType, length);
-    }
-    b.struct_new(info.struct);
-
-    return info.nonNullableType;
+    return translator.makeList(
+        function, (b) => types.makeType(this, typeArg), length, generateItem,
+        isGrowable: isGrowable);
   }
 
   w.ValueType makeListFromExpressions(
@@ -2736,6 +2786,23 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     return operand.type;
   }
 
+  @override
+  w.ValueType visitLoadLibrary(LoadLibrary node, w.ValueType expectedType) {
+    LibraryDependency import = node.import;
+    _emitString(import.enclosingLibrary.importUri.toString());
+    _emitString(import.name!);
+    return call(translator.loadLibrary.reference);
+  }
+
+  @override
+  w.ValueType visitCheckLibraryIsLoaded(
+      CheckLibraryIsLoaded node, w.ValueType expectedType) {
+    LibraryDependency import = node.import;
+    _emitString(import.enclosingLibrary.importUri.toString());
+    _emitString(import.name!);
+    return call(translator.checkLibraryIsLoaded.reference);
+  }
+
   /// Pushes the `_Type` object for a function or class type parameter to the
   /// stack and returns the value type of the object.
   w.ValueType instantiateTypeParameter(TypeParameter parameter) {
@@ -2805,7 +2872,8 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     if (member_ is Field) {
       int fieldIndex = translator.fieldIndex[member_]!;
       b.local_get(receiverLocal);
-      translator.convertType(function, receiverLocal.type, info.nullableType);
+      translator.convertType(
+          function, receiverLocal.type, info.nonNullableType);
       b.local_get(argLocal);
       translator.convertType(function, argLocal.type,
           info.struct.fields[fieldIndex].type.unpacked);
@@ -2955,8 +3023,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     final List<w.ValueType> memberWasmInputs = memberWasmFunction.type.inputs;
 
     b.local_get(receiverLocal);
-    translator.convertType(
-        function, translator.topInfo.nullableType, memberWasmInputs[0]);
+    translator.convertType(function, receiverLocal.type, memberWasmInputs[0]);
 
     for (final typeParam in memberTypeParams) {
       b.local_get(typeLocals[typeParam]!);
@@ -3031,15 +3098,15 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     // Type check failed
     b.local_get(argLocal);
     b.local_get(argExpectedTypeLocal);
-    wrap(
-        StringLiteral(argName),
-        translator
-            .translateType(translator.coreTypes.stringNonNullableRawType));
+    _emitString(argName);
     call(translator.stackTraceCurrent.reference);
     call(translator.throwArgumentTypeCheckError.reference);
     b.unreachable();
     b.end();
   }
+
+  void _emitString(String str) => wrap(StringLiteral(str),
+      translator.translateType(translator.coreTypes.stringNonNullableRawType));
 }
 
 class TryBlockFinalizer {

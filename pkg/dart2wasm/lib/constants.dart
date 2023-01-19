@@ -545,12 +545,12 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
     w.StructType struct = closure.representation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
     return createConstant(constant, type, (function, b) {
-      ClassInfo info = translator.classInfo[translator.functionClass]!;
+      ClassInfo info = translator.closureInfo;
       translator.functions.allocateClass(info.classId);
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      b.global_get(translator.globals.dummyGlobal); // Dummy context
+      b.global_get(translator.globals.dummyStructGlobal); // Dummy context
       b.global_get(closure.vtable);
       constants.instantiateConstant(
           function, b, functionTypeConstant, this.types.nonNullableTypeType);
@@ -584,8 +584,37 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
         .getClosureRepresentation(0, positionalCount, names)!;
     w.StructType struct = representation.closureStruct;
     w.RefType type = w.RefType.def(struct, nullable: false);
+
+    w.DefinedFunction makeDynamicCallEntry() {
+      final w.DefinedFunction function = m.addFunction(
+          translator.dynamicCallVtableEntryFunctionType, "dynamic call entry");
+
+      final w.Instructions b = function.body;
+
+      final closureLocal = function.locals[0];
+      final typeArgsListLocal = function.locals[1]; // empty
+      final posArgsListLocal = function.locals[2];
+      final namedArgsListLocal = function.locals[3];
+
+      b.local_get(closureLocal);
+      final ListConstant typeArgs = constants.makeTypeList(constant.types);
+      constants.instantiateConstant(
+          function, b, typeArgs, typeArgsListLocal.type);
+      b.local_get(posArgsListLocal);
+      b.local_get(namedArgsListLocal);
+      b.call(tearOffClosure.dynamicCallEntry);
+      b.end();
+
+      return function;
+    }
+
+    // Dynamic call entry needs to be created first (before `createConstant`)
+    // as it needs to create a constant for the type list, and we cannot create
+    // a constant while creating another one.
+    final w.DefinedFunction dynamicCallEntry = makeDynamicCallEntry();
+
     return createConstant(constant, type, (function, b) {
-      ClassInfo info = translator.classInfo[translator.functionClass]!;
+      ClassInfo info = translator.closureInfo;
       translator.functions.allocateClass(info.classId);
 
       w.DefinedFunction makeTrampoline(
@@ -614,8 +643,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
             .fieldIndexForSignature(posArgCount, argNames);
 
         w.FunctionType signature =
-            (representation.vtableStruct.fields[fieldIndex].type as w.RefType)
-                .heapType as w.FunctionType;
+            representation.getVtableFieldType(fieldIndex);
         w.DefinedFunction tearOffFunction = tearOffClosure.functions[
             tearOffFieldIndex - tearOffClosure.representation.vtableBaseIndex];
         w.DefinedFunction function =
@@ -626,6 +654,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       }
 
       void makeVtable() {
+        b.ref_func(dynamicCallEntry);
         if (representation.isGeneric) {
           b.ref_func(representation.instantiationFunction);
         }
@@ -642,7 +671,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
 
       b.i32_const(info.classId);
       b.i32_const(initialIdentityHash);
-      b.global_get(translator.globals.dummyGlobal); // Dummy context
+      b.global_get(translator.globals.dummyStructGlobal); // Dummy context
       makeVtable();
       constants.instantiateConstant(
           function, b, functionTypeConstant, this.types.nonNullableTypeType);

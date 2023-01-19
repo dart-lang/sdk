@@ -526,8 +526,7 @@ class Types {
       b.drop();
       b.i32_const(1);
     } else if (type.classNode == coreTypes.functionClass) {
-      ClassInfo functionInfo = translator.classInfo[translator.functionClass]!;
-      b.ref_test(functionInfo.struct);
+      b.ref_test(translator.closureInfo.nonNullableType);
     } else if (concrete.isEmpty) {
       b.drop();
       b.i32_const(0);

@@ -362,7 +362,12 @@ def ProcessOsOption(os_name):
 
 def ProcessOptions(args):
     if args.arch == 'all':
-        args.arch = 'ia32,x64,simarm,simarm64,x64c,simarm64c,simriscv32,simriscv64'
+        if platform.system() == 'Darwin':
+            # Targeting 32 bits not supported on MacOS.
+            # See HostArchitectures in utils.py.
+            args.arch = 'x64,simarm64,x64c,simarm64c,simriscv64'
+        else:
+            args.arch = 'ia32,x64,simarm,simarm64,x64c,simarm64c,simriscv32,simriscv64'
     if args.mode == 'all':
         args.mode = 'debug,release,product'
     if args.os == 'all':

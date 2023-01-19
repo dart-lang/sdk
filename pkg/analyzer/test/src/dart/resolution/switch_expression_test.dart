@@ -42,7 +42,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: MethodInvocation
@@ -75,7 +75,7 @@ void f(Object? x, int Function() a) {
     assertResolvedNodeText(node, r'''
 SwitchExpressionCase
   guardedPattern: GuardedPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       name: _
   arrow: =>
   expression: FunctionExpressionInvocation
@@ -200,7 +200,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -245,7 +245,7 @@ SwitchExpression
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: NullLiteral
@@ -290,7 +290,7 @@ SwitchExpression
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -359,7 +359,7 @@ SwitchExpression
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -444,7 +444,7 @@ SwitchExpression
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -513,7 +513,7 @@ SwitchExpression
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: SimpleIdentifier

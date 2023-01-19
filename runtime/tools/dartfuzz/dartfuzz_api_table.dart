@@ -86,7 +86,6 @@ class DartLib {
     DartType.UINT8CLAMPEDLIST_NULLABLE: uint8ClampedListLibsNullable,
     DartType.UINT8LIST: uint8ListLibs,
     DartType.UINT8LIST_NULLABLE: uint8ListLibsNullable,
-    DartType.VOID: voidLibs,
     DartType.VOID_NULLABLE: voidLibsNullable,
   };
   static const typedDataFloatTypes = [

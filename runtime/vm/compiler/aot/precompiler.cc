@@ -35,6 +35,7 @@
 #include "vm/compiler/jit/compiler.h"
 #include "vm/dart_entry.h"
 #include "vm/exceptions.h"
+#include "vm/ffi/native_assets.h"
 #include "vm/flags.h"
 #include "vm/hash_table.h"
 #include "vm/isolate.h"
@@ -345,7 +346,6 @@ class PrecompileParsedFunctionHelper : public ValueObject {
   ParsedFunction* parsed_function() const { return parsed_function_; }
   bool optimized() const { return optimized_; }
   Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return thread_->isolate(); }
 
   void FinalizeCompilation(compiler::Assembler* assembler,
                            FlowGraphCompiler* graph_compiler,
@@ -387,7 +387,6 @@ void Precompiler::ReportStats() {
 Precompiler::Precompiler(Thread* thread)
     : thread_(thread),
       zone_(NULL),
-      isolate_(thread->isolate()),
       changed_(false),
       retain_root_library_caches_(false),
       function_count_(0),
@@ -403,7 +402,7 @@ Precompiler::Precompiler(Thread* thread)
       dropped_library_count_(0),
       dropped_constants_arrays_entries_count_(0),
       libraries_(GrowableObjectArray::Handle(
-          isolate_->group()->object_store()->libraries())),
+          thread->isolate_group()->object_store()->libraries())),
       pending_functions_(
           GrowableObjectArray::Handle(GrowableObjectArray::New())),
       sent_selectors_(),
@@ -491,6 +490,10 @@ void Precompiler::DoCompileAll() {
 
       dispatch_table_generator_ = new compiler::DispatchTableGenerator(Z);
       dispatch_table_generator_->Initialize(IG->class_table());
+
+      // After finding all code, and before starting to trace, populate the
+      // assets map.
+      GetNativeAssetsMap(T);
 
       // Precompile constructors to compute information such as
       // optimized instruction count (used in inlining heuristics).
@@ -616,6 +619,7 @@ void Precompiler::DoCompileAll() {
         // Clear these before dropping classes as they may hold onto otherwise
         // dead instances of classes we will remove or otherwise unused symbols.
         IG->object_store()->set_unique_dynamic_targets(Array::null_array());
+        Library& null_library = Library::Handle(Z);
         Class& null_class = Class::Handle(Z);
         Function& null_function = Function::Handle(Z);
         Field& null_field = Field::Handle(Z);
@@ -630,6 +634,7 @@ void Precompiler::DoCompileAll() {
         IG->object_store()->set_simple_instance_of_false_function(
             null_function);
         IG->object_store()->set_async_star_stream_controller(null_class);
+        IG->object_store()->set_native_assets_library(null_library);
         DropMetadata();
         DropLibraryEntries();
       }
@@ -1721,12 +1726,8 @@ void Precompiler::CheckForNewDynamicFunctions() {
             functions_called_dynamically_.Insert(function2);
           }
         } else if (function.kind() == UntaggedFunction::kRegularFunction) {
-          selector2 = Field::LookupGetterSymbol(selector);
-          selector3 = String::null();
-          if (!selector2.IsNull()) {
-            selector3 =
-                Function::CreateDynamicInvocationForwarderName(selector2);
-          }
+          selector2 = Field::GetterSymbol(selector);
+          selector3 = Function::CreateDynamicInvocationForwarderName(selector2);
           if (IsSent(selector2) || IsSent(selector3)) {
             metadata = kernel::ProcedureAttributesOf(function, Z);
             found_metadata = true;
@@ -3544,7 +3545,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // too big). If we were adding objects into the global pool directly
       // these recompilations would leave dead entries behind.
       // Instead we add objects into an intermediary pool which gets
-      // commited into the global object pool at the end of the compilation.
+      // committed into the global object pool at the end of the compilation.
       // This makes an assumption that global object pool itself does not
       // grow during code generation - unfortunately this is not the case
       // because we might have nested code generation (i.e. we might generate

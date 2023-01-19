@@ -312,7 +312,10 @@ class _ClassVerifier {
           superMember: interfaceElement,
           errorReporter: reporter,
           errorNode: classNameToken,
-          errorCode: CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
+          errorCode: concreteElement is PropertyAccessorElement &&
+                  concreteElement.isSetter
+              ? CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE_SETTER
+              : CompileTimeErrorCode.INVALID_IMPLEMENTATION_OVERRIDE,
         );
       }
 
@@ -358,10 +361,12 @@ class _ClassVerifier {
       }
 
       correctOverrideHelper.verify(
-        superMember: superMember,
-        errorReporter: reporter,
-        errorNode: node,
-      );
+          superMember: superMember,
+          errorReporter: reporter,
+          errorNode: node,
+          errorCode: member is PropertyAccessorElement && member.isSetter
+              ? CompileTimeErrorCode.INVALID_OVERRIDE_SETTER
+              : CompileTimeErrorCode.INVALID_OVERRIDE);
     }
 
     if (mixinIndex == -1) {

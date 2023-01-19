@@ -7,11 +7,11 @@ static method test(dynamic x) → dynamic {
   {
     dynamic #t1;
     final dynamic #t2 = x;
-    final core::int #t3 = -1;
-    final core::bool #t4 = false;
+    core::int #t3 = -1;
+    core::bool #t4 = false;
     if(!#t4) {
       final dynamic #t5 = #t2;
-      if(#t5 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #t5{core::Map<dynamic, dynamic>}.{core::Map::containsKey}("a"){(core::Object?) → core::bool}) {
+      if(#t5 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #t5{core::Map<dynamic, dynamic>}.{core::Map::containsKey}("a"){(core::Object?) → core::bool} && #t5{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
         final dynamic #t6 = #t5{core::Map<dynamic, dynamic>}.{core::Map::[]}("a"){(core::Object?) → dynamic};
         final dynamic #t7 = #t6;
         if(#t7 is core::int) {

@@ -139,9 +139,15 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
 
     final ffiConstant = ffiNativeAnnotation.constant as InstanceConstant;
     final ffiFunctionType = ffiConstant.typeArguments[0] as FunctionType;
-    final nativeFunctionName = ffiConstant
-        .fieldValues[ffiNativeNameField.fieldReference] as StringConstant;
-    final isLeaf = (ffiConstant.fieldValues[ffiNativeIsLeafField.fieldReference]
+    final nativeFunctionConst =
+        (ffiConstant.fieldValues[nativeSymbolField.fieldReference] ??
+            ffiConstant.fieldValues[ffiNativeNameField.fieldReference]);
+    final nativeFunctionName = nativeFunctionConst is StringConstant
+        ? nativeFunctionConst
+        : StringConstant(node.name.text);
+    final isLeaf = ((ffiConstant
+                    .fieldValues[nativeIsLeafField.fieldReference] ??
+                ffiConstant.fieldValues[ffiNativeIsLeafField.fieldReference])
             as BoolConstant)
         .value;
 

@@ -1285,18 +1285,36 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     var kind = params['kind'];
 
     List<RequestPerformance> items;
+    List<RequestPerformance>? itemsSlow;
     if (kind == 'completion') {
       items = server.recentPerformance.completion.items.toList();
     } else {
       items = server.recentPerformance.requests.items.toList();
+      itemsSlow = server.recentPerformance.slowRequests.items.toList();
     }
 
     var id = int.tryParse(params['id'] ?? '');
     if (id == null) {
-      return _generateList(items);
+      return _generateList(items, itemsSlow);
     } else {
-      return _generateDetails(id, items);
+      return _generateDetails(id, items, itemsSlow);
     }
+  }
+
+  void _emitTable(List<RequestPerformance> items) {
+    buf.writeln('<table>');
+    buf.writeln('<tr><th>Time</th><th>Request</th></tr>');
+    for (var item in items) {
+      buf.writeln(
+        '<tr>'
+        '<td class="pre right"><a href="/timing?id=${item.id}">'
+        '${_formatTiming(item)}'
+        '</a></td>'
+        '<td>${escape(item.operation)}</td>'
+        '</tr>',
+      );
+    }
+    buf.writeln('</table>');
   }
 
   String _formatTiming(RequestPerformance item) {
@@ -1314,8 +1332,12 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     return buffer.toString();
   }
 
-  void _generateDetails(int id, List<RequestPerformance> items) {
+  void _generateDetails(int id, List<RequestPerformance> items,
+      List<RequestPerformance>? itemsSlow) {
     var item = items.firstWhereOrNull((info) => info.id == id);
+    if (item == null && itemsSlow != null) {
+      item = itemsSlow.firstWhereOrNull((info) => info.id == id);
+    }
 
     if (item == null) {
       blankslate('Unable to find data for $id. '
@@ -1323,6 +1345,17 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
       return;
     }
 
+    h3("Request '${item.operation}'");
+    var requestLatency = item.requestLatency;
+    if (requestLatency != null) {
+      buf.writeln("Request latency: $requestLatency ms.");
+      buf.writeln('<p>');
+    }
+    var startTime = item.startTime;
+    if (startTime != null) {
+      buf.writeln("Request start time: ${startTime.toIso8601String()}.");
+      buf.writeln('<p>');
+    }
     var buffer = StringBuffer();
     item.performance.write(buffer: buffer);
     pre(() {
@@ -1332,8 +1365,10 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     });
   }
 
-  void _generateList(List<RequestPerformance> items) {
+  void _generateList(
+      List<RequestPerformance> items, List<RequestPerformance>? itemsSlow) {
     if (items.isEmpty) {
+      assert(itemsSlow == null || itemsSlow.isEmpty);
       blankslate('No requests recorded.');
       return;
     }
@@ -1341,18 +1376,14 @@ class TimingPage extends DiagnosticPageWithNav with PerformanceChartMixin {
     drawChart(items);
 
     // emit the data as a table
-    buf.writeln('<table>');
-    buf.writeln('<tr><th>Time</th><th>Request</th></tr>');
-    for (var item in items) {
-      buf.writeln(
-        '<tr>'
-        '<td class="pre right"><a href="/timing?id=${item.id}">'
-        '${_formatTiming(item)}'
-        '</a></td>'
-        '<td>${escape(item.operation)}</td>'
-        '</tr>',
-      );
+    if (itemsSlow != null) {
+      h3('Recent requests');
     }
-    buf.writeln('</table>');
+    _emitTable(items);
+
+    if (itemsSlow != null) {
+      h3('Slow requests');
+      _emitTable(itemsSlow);
+    }
   }
 }

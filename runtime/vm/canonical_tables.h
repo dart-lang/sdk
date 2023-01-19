@@ -132,7 +132,8 @@ class SymbolTraits {
   }
 };
 
-typedef UnorderedHashSet<SymbolTraits, AcqRelStorageTraits> CanonicalStringSet;
+typedef UnorderedHashSet<SymbolTraits, WeakAcqRelStorageTraits>
+    CanonicalStringSet;
 
 class CanonicalTypeKey {
  public:

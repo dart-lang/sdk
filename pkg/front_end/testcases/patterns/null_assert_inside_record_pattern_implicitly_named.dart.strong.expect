@@ -7,15 +7,15 @@ static method test(dynamic x) → dynamic {
   {
     dynamic #t1;
     final dynamic #t2 = x;
-    final core::int #t3 = -1;
-    final core::bool #t4 = false;
+    core::int #t3 = -1;
+    core::bool #t4 = false;
     if(!#t4) {
       final dynamic #t5 = #t2;
       if(#t5 is{ForNonNullableByDefault} (core::Object?, {: core::Object?})) {
         final core::Object? #t6 = #t5{(core::Object?, {: core::Object?})}.{core::Object?};
         final core::Object? #t7 = #t5{(core::Object?, {: core::Object?})}.$0{core::Object?};
         final core::Object #t8 = #t6!;
-        if(#t7 =={core::Object::==}{(core::Object) → core::bool} 2) {
+        if(#t7 =={core::Object::==}{(core::Object) → core::bool} #C1) {
           dynamic n = #t8;
           #t3 = 0;
           #t4 = true;
@@ -25,7 +25,7 @@ static method test(dynamic x) → dynamic {
     }
     switch(#t3) {
       #L2:
-      case #C1:
+      case #C2:
         {
           dynamic n = #t1{dynamic};
           {
@@ -37,5 +37,6 @@ static method test(dynamic x) → dynamic {
 }
 
 constants  {
-  #C1 = 0
+  #C1 = 2
+  #C2 = 0
 }

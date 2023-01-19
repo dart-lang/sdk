@@ -66,6 +66,7 @@ import 'cast_from_null_always_fails_test.dart' as cast_from_null_always_fails;
 import 'cast_to_non_type_test.dart' as cast_to_non_type;
 import 'class_instantiation_access_to_member_test.dart'
     as class_instantiation_access_to_member;
+import 'class_used_as_mixin_test.dart' as class_used_as_mixin;
 import 'concrete_class_has_enum_superinterface_test.dart'
     as concrete_class_has_enum_superinterface;
 import 'concrete_class_with_abstract_member_test.dart'
@@ -128,6 +129,7 @@ import 'const_with_undefined_constructor_test.dart'
     as const_with_undefined_constructor;
 import 'constant_pattern_with_non_constant_expression_test.dart'
     as constant_pattern_with_non_constant_expression;
+import 'continue_label_invalid_test.dart' as continue_label_invalid;
 import 'could_not_infer_test.dart' as could_not_infer;
 import 'creation_of_struct_or_union_test.dart' as creation_of_struct_or_union;
 import 'dead_code_test.dart' as dead_code;
@@ -164,6 +166,8 @@ import 'duplicate_ignore_test.dart' as duplicate_ignore;
 import 'duplicate_import_test.dart' as duplicate_import;
 import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
 import 'duplicate_part_test.dart' as duplicate_part;
+import 'duplicate_pattern_assignment_variable_test.dart'
+    as duplicate_pattern_assignment_variable;
 import 'duplicate_record_pattern_field_test.dart'
     as duplicate_record_pattern_field;
 import 'duplicate_rest_element_in_pattern_test.dart'
@@ -618,6 +622,8 @@ import 'pattern_assignment_not_local_variable_test.dart'
     as pattern_assignment_not_local_variable;
 import 'pattern_type_mismatch_in_irrefutable_context_test.dart'
     as pattern_type_mismatch_in_irrefutable_context;
+import 'pattern_variable_assignment_inside_guard_test.dart'
+    as pattern_variable_assignment_inside_guard;
 import 'positional_super_formal_parameter_with_positional_argument_test.dart'
     as positional_super_formal_parameter_with_positional_argument;
 import 'prefix_collides_with_top_level_member_test.dart'
@@ -794,9 +800,14 @@ import 'unnecessary_cast_test.dart' as unnecessary_cast;
 import 'unnecessary_final_test.dart' as unnecessary_final;
 import 'unnecessary_ignore_test.dart' as unnecessary_ignore;
 import 'unnecessary_import_test.dart' as unnecessary_import;
+import 'unnecessary_nan_comparison_test.dart' as unnecessary_nan_comparison;
 import 'unnecessary_no_such_method_test.dart' as unnecessary_no_such_method;
 import 'unnecessary_non_null_assertion_test.dart'
     as unnecessary_non_null_assertion;
+import 'unnecessary_null_assert_pattern_test.dart'
+    as unnecessary_null_assert_pattern;
+import 'unnecessary_null_check_pattern_test.dart'
+    as unnecessary_null_check_pattern;
 import 'unnecessary_null_comparison_test.dart' as unnecessary_null_comparison;
 import 'unnecessary_question_mark_test.dart' as unnecessary_question_mark;
 import 'unnecessary_type_check_test.dart' as unnecessary_type_check;
@@ -883,6 +894,7 @@ main() {
     cast_from_null_always_fails.main();
     cast_to_non_type.main();
     class_instantiation_access_to_member.main();
+    class_used_as_mixin.main();
     concrete_class_has_enum_superinterface.main();
     concrete_class_with_abstract_member.main();
     conflicting_constructor_and_static_field.main();
@@ -921,6 +933,7 @@ main() {
     const_with_type_parameters.main();
     const_with_undefined_constructor.main();
     constant_pattern_with_non_constant_expression.main();
+    continue_label_invalid.main();
     could_not_infer.main();
     creation_of_struct_or_union.main();
     dead_code.main();
@@ -948,6 +961,7 @@ main() {
     duplicate_import.main();
     duplicate_named_argument.main();
     duplicate_part.main();
+    duplicate_pattern_assignment_variable.main();
     duplicate_record_pattern_field.main();
     duplicate_rest_element_in_pattern.main();
     duplicate_shown_name.main();
@@ -1243,6 +1257,7 @@ main() {
     part_of_non_part.main();
     pattern_assignment_not_local_variable.main();
     pattern_type_mismatch_in_irrefutable_context.main();
+    pattern_variable_assignment_inside_guard.main();
     positional_super_formal_parameter_with_positional_argument.main();
     prefix_collides_with_top_level_member.main();
     prefix_identifier_not_followed_by_dot.main();
@@ -1362,8 +1377,11 @@ main() {
     unnecessary_cast.main();
     unnecessary_final.main();
     unnecessary_ignore.main();
+    unnecessary_nan_comparison.main();
     unnecessary_no_such_method.main();
     unnecessary_non_null_assertion.main();
+    unnecessary_null_assert_pattern.main();
+    unnecessary_null_check_pattern.main();
     unnecessary_null_comparison.main();
     unnecessary_question_mark.main();
     unnecessary_type_check.main();

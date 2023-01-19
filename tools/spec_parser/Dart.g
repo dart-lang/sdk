@@ -4,6 +4,20 @@
 
 // CHANGES:
 //
+// v0.29 Add an alternative in the `primary` rule to enable method invocations
+// of the form `super(...)` and `super<...>(...)`. This was added to the
+// language specification in May 21, b26e7287c318c0112610fe8b7e175289792dfde2,
+// but the correspanding update here wasn't done here at the time.
+//
+// v0.28 Add support for `new` in `enumEntry`, e.g., `enum E { x.new(); }`.
+// Add `identifierOrNew` non-terminal to simplify the grammar.
+//
+// v0.27 Remove unused non-terminals; make handling of interpolation in URIs
+// consistent with the language specification. Make `partDeclaration` a
+// start symbol in addition to `libraryDefinition` (such that no special
+// precautions are needed in order to parse a part file). Corrected spacing
+// in several rules.
+//
 // v0.26 Add missing `metadata` in `partDeclaration`.
 //
 // v0.25 Update pattern rules following changes to the patterns feature
@@ -112,7 +126,7 @@ import java.util.Stack;
   public boolean parseLibrary(String filePath) throws RecognitionException {
     this.filePath = filePath;
     errorHasOccurred = false;
-    libraryDefinition();
+    startSymbol();
     return !errorHasOccurred;
   }
 
@@ -129,7 +143,7 @@ import java.util.Stack;
   // neither `async`, `async*`, nor `sync*`.
   void startNonAsyncFunction() { asyncEtcAreKeywords.push(false); }
 
-  // Use this to indicate that we are now leaving any funciton.
+  // Use this to indicate that we are now leaving any function.
   void endFunction() { asyncEtcAreKeywords.pop(); }
 
   // Whether we can recognize AWAIT/YIELD as an identifier/typeIdentifier.
@@ -198,6 +212,11 @@ import java.util.Stack;
 
 // ---------------------------------------- Grammar rules.
 
+startSymbol
+    :    libraryDefinition
+    |    partDeclaration
+    ;
+
 libraryDefinition
     :    FEFF? SCRIPT_TAG?
          libraryName?
@@ -256,11 +275,6 @@ initializedIdentifierList
 
 functionSignature
     :    type? identifierNotFUNCTION formalParameterPart
-    ;
-
-functionBodyPrefix
-    :    ASYNC? '=>'
-    |    (ASYNC | ASYNC '*' | SYNC '*')? LBRACE
     ;
 
 functionBody
@@ -466,11 +480,17 @@ constructorSignature
     ;
 
 constructorName
-    :    typeIdentifier ('.' (identifier | NEW))?
+    :    typeIdentifier ('.' identifierOrNew)?
+    ;
+
+// TODO: Add this in the language specification, use it in grammar rules.
+identifierOrNew
+    :    identifier
+    |    NEW
     ;
 
 redirection
-    :    ':' THIS ('.' (identifier | NEW))? arguments
+    :    ':' THIS ('.' identifierOrNew)? arguments
     ;
 
 initializers
@@ -479,7 +499,7 @@ initializers
 
 initializerListEntry
     :    SUPER arguments
-    |    SUPER '.' (identifier | NEW) arguments
+    |    SUPER '.' identifierOrNew arguments
     |    fieldInitializer
     |    assertion
     ;
@@ -519,7 +539,7 @@ enumType
 
 enumEntry
     :    metadata identifier argumentPart?
-    |    metadata identifier typeArguments? '.' identifier arguments
+    |    metadata identifier typeArguments? '.' identifierOrNew arguments
     ;
 
 typeParameter
@@ -563,13 +583,14 @@ expressionList
 primary
     :    thisExpression
     |    SUPER unconditionalAssignableSelector
-    |    constObjectExpression
-    |    newExpression
-    |    constructorInvocation
+    |    SUPER argumentPart
     |    functionPrimary
-    |    '(' expression ')'
     |    literal
     |    identifier
+    |    newExpression
+    |    constObjectExpression
+    |    constructorInvocation
+    |    '(' expression ')'
     |    constructorTearoff
     |    switchExpression
     ;
@@ -608,11 +629,6 @@ stringLiteral
     :    (multiLineString | singleLineString)+
     ;
 
-// Not used in the specification (needed here for <uri>).
-stringLiteralWithoutInterpolation
-    :    singleStringWithoutInterpolation+
-    ;
-
 setOrMapLiteral
     :    CONST? typeArguments? LBRACE elements? RBRACE
     ;
@@ -637,35 +653,35 @@ recordField
     ;
 
 elements
-    : element (',' element)* ','?
+    :    element (',' element)* ','?
     ;
 
 element
-    : expressionElement
-    | mapElement
-    | spreadElement
-    | ifElement
-    | forElement
+    :    expressionElement
+    |    mapElement
+    |    spreadElement
+    |    ifElement
+    |    forElement
     ;
 
 expressionElement
-    : expression
+    :    expression
     ;
 
 mapElement
-    : expression ':' expression
+    :    expression ':' expression
     ;
 
 spreadElement
-    : ('...' | '...?') expression
+    :    ('...' | '...?') expression
     ;
 
 ifElement
-    : ifCondition element (ELSE element)?
+    :    ifCondition element (ELSE element)?
     ;
 
 forElement
-    : AWAIT? FOR '(' forLoopParts ')' element
+    :    AWAIT? FOR '(' forLoopParts ')' element
     ;
 
 constructorTearoff
@@ -698,10 +714,6 @@ functionExpressionBody
     |    ASYNC '=>' { startAsyncFunction(); } expression { endFunction(); }
     ;
 
-functionExpressionBodyPrefix
-    :    ASYNC? '=>'
-    ;
-
 functionExpressionWithoutCascade
     :    formalParameterPart functionExpressionWithoutCascadeBody
     ;
@@ -721,10 +733,6 @@ functionPrimaryBody
     :    { startNonAsyncFunction(); } block { endFunction(); }
     |    (ASYNC | ASYNC '*' | SYNC '*')
          { startAsyncFunction(); } block { endFunction(); }
-    ;
-
-functionPrimaryBodyPrefix
-    : (ASYNC | ASYNC '*' | SYNC '*')? LBRACE
     ;
 
 thisExpression
@@ -983,8 +991,8 @@ identifier
     ;
 
 qualifiedName
-    :    typeIdentifier '.' (identifier | NEW)
-    |    typeIdentifier '.' typeIdentifier '.' (identifier | NEW)
+    :    typeIdentifier '.' identifierOrNew
+    |    typeIdentifier '.' typeIdentifier '.' identifierOrNew
     ;
 
 typeIdentifier
@@ -1146,7 +1154,7 @@ outerPattern
     ;
 
 patternAssignment
-    : outerPattern '=' expression
+    :    outerPattern '=' expression
     ;
 
 statements
@@ -1353,13 +1361,11 @@ partHeader
     ;
 
 partDeclaration
-    :    partHeader (metadata topLevelDefinition)* EOF
+    :    FEFF? partHeader (metadata topLevelDefinition)* EOF
     ;
 
-// In the specification a plain <stringLiteral> is used.
-// TODO(eernst): Check whether it creates ambiguities to do that.
 uri
-    :    stringLiteralWithoutInterpolation
+    :    stringLiteral
     ;
 
 configurableUri
@@ -1503,21 +1509,11 @@ typedIdentifier
 constructorDesignation
     :    typeIdentifier
     |    qualifiedName
-    |    typeName typeArguments ('.' (identifier | NEW))?
+    |    typeName typeArguments ('.' identifierOrNew)?
     ;
 
 symbolLiteral
     :    '#' (operator | (identifier ('.' identifier)*) | VOID)
-    ;
-
-// Not used in the specification (needed here for <uri>).
-singleStringWithoutInterpolation
-    :    RAW_SINGLE_LINE_STRING
-    |    RAW_MULTI_LINE_STRING
-    |    SINGLE_LINE_STRING_DQ_BEGIN_END
-    |    SINGLE_LINE_STRING_SQ_BEGIN_END
-    |    MULTI_LINE_STRING_DQ_BEGIN_END
-    |    MULTI_LINE_STRING_SQ_BEGIN_END
     ;
 
 singleLineString

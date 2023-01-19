@@ -391,33 +391,32 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.type?.accept(this);
 
     final name = node.name.lexeme;
-    if (name != '_') {
-      var element = VariablePatternBindElementImpl(
-        node,
-        name,
-        node.name.offset,
-      );
-      _patternVariables.add(name, element);
-      _elementHolder.enclose(element);
-      _define(element);
-      element.hasImplicitType = node.type == null;
-      element.type = node.type?.type ?? _dynamicType;
-      node.declaredElement = element;
+    var element = BindPatternVariableElementImpl(
+      node,
+      name,
+      node.name.offset,
+    );
+    _patternVariables.add(name, element);
+    _elementHolder.enclose(element);
+    _define(element);
+    element.hasImplicitType = node.type == null;
+    element.type = node.type?.type ?? _dynamicType;
+    node.declaredElement = element;
 
-      var patternContext = node.patternContext;
-      if (patternContext is PatternVariableDeclarationImpl) {
-        element.isFinal = patternContext.finalToken != null;
-        var keyword = node.keyword;
-        if (keyword != null) {
-          _errorReporter.reportErrorForToken(
-            CompileTimeErrorCode
-                .VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
-            keyword,
-          );
-        }
-      } else {
-        element.isFinal = node.finalToken != null;
+    var patternContext = node.patternContext;
+    if (patternContext is ForEachPartsWithPatternImpl) {
+      element.isFinal = patternContext.finalKeyword != null;
+    } else if (patternContext is PatternVariableDeclarationImpl) {
+      element.isFinal = patternContext.finalKeyword != null;
+      var keyword = node.keyword;
+      if (keyword != null) {
+        _errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.VARIABLE_PATTERN_KEYWORD_IN_DECLARATION_CONTEXT,
+          keyword,
+        );
       }
+    } else {
+      element.isFinal = node.finalKeyword != null;
     }
   }
 
@@ -600,6 +599,18 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         },
       );
     });
+  }
+
+  @override
+  void visitForEachPartsWithPattern(
+    covariant ForEachPartsWithPatternImpl node,
+  ) {
+    _patternVariables.casePatternStart();
+    super.visitForEachPartsWithPattern(node);
+    var variablesMap = _patternVariables.casePatternFinish();
+    node.variables = variablesMap.values
+        .whereType<BindPatternVariableElementImpl>()
+        .toList();
   }
 
   @override
@@ -883,7 +894,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         // This is a case where the parser does not report an error, because the
         // parser thinks this could be an InstanceCreationExpression.
         _errorReporter.reportErrorForNode(
-            StaticWarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
+            WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, node, []);
       }
       return newNode.accept(this);
     }
@@ -893,8 +904,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    bool onSwitchStatement = node.statement is SwitchStatement;
-    _buildLabelElements(node.labels, onSwitchStatement, false);
+    _buildLabelElements(node.labels, false);
 
     var outerScope = _labelScope;
     try {
@@ -1052,7 +1062,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     super.visitPatternVariableDeclaration(node);
     var variablesMap = _patternVariables.casePatternFinish();
     node.elements = variablesMap.values
-        .whereType<VariablePatternBindElementImpl>()
+        .whereType<BindPatternVariableElementImpl>()
         .toList();
   }
 
@@ -1220,27 +1230,27 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     node.expression.accept(this);
 
     for (var group in node.memberGroups) {
-      _patternVariables.switchStatementSharedCaseScopeStart(node);
+      _patternVariables.switchStatementSharedCaseScopeStart(group);
       for (var member in group.members) {
-        _buildLabelElements(member.labels, false, true);
+        _buildLabelElements(member.labels, true);
         if (member is SwitchCaseImpl) {
           member.expression.accept(this);
         } else if (member is SwitchDefaultImpl) {
-          _patternVariables.switchStatementSharedCaseScopeEmpty(node);
+          _patternVariables.switchStatementSharedCaseScopeEmpty(group);
         } else if (member is SwitchPatternCaseImpl) {
           _resolveGuardedPattern(
             member.guardedPattern,
-            sharedCaseScopeKey: node,
+            sharedCaseScopeKey: group,
           );
         } else {
           throw UnimplementedError('(${member.runtimeType}) $member');
         }
       }
       if (group.hasLabels) {
-        _patternVariables.switchStatementSharedCaseScopeEmpty(node);
+        _patternVariables.switchStatementSharedCaseScopeEmpty(group);
       }
       group.variables =
-          _patternVariables.switchStatementSharedCaseScopeFinish(node);
+          _patternVariables.switchStatementSharedCaseScopeFinish(group);
       _withNameScope(() {
         var statements = group.statements;
         _buildLocalElements(statements);
@@ -1326,15 +1336,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   /// Builds the label elements associated with [labels] and stores them in the
   /// element holder.
-  void _buildLabelElements(
-      List<Label> labels, bool onSwitchStatement, bool onSwitchMember) {
+  void _buildLabelElements(List<Label> labels, bool onSwitchMember) {
     for (var label in labels) {
       label as LabelImpl;
       var labelName = label.label;
       var element = LabelElementImpl(
         labelName.name,
         labelName.offset,
-        onSwitchStatement,
         onSwitchMember,
       );
       labelName.staticElement = element;
@@ -1474,7 +1482,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       for (var variable in variables.values) {
         _define(variable);
       }
-      guardedPattern.variables = variables;
+      guardedPattern.variables = variables.cast();
       guardedPattern.whenClause?.accept(this);
       if (then != null) {
         then();
@@ -1672,27 +1680,36 @@ class _VariableBinder
   _VariableBinder({required super.errors});
 
   @override
-  VariablePatternJoinElementImpl joinPatternVariables({
+  JoinPatternVariableElementImpl joinPatternVariables({
     required Object key,
     required List<PromotableElement> components,
     required bool isConsistent,
   }) {
     var first = components.first;
-    var expandedComponents = components.expand((component) {
-      component as VariablePatternElementImpl;
-      if (component is VariablePatternJoinElementImpl) {
-        return component.components;
-      } else {
-        return [component];
-      }
-    }).toList(growable: false);
-    return VariablePatternJoinElementImpl(
+    List<PatternVariableElementImpl> expandedVariables;
+    if (key is LogicalOrPatternImpl) {
+      expandedVariables = components.expand((variable) {
+        variable as PatternVariableElementImpl;
+        if (variable is JoinPatternVariableElementImpl) {
+          return variable.variables;
+        } else {
+          return [variable];
+        }
+      }).toList(growable: false);
+    } else if (key is SwitchStatementCaseGroup) {
+      expandedVariables = components
+          .map((e) => e as PatternVariableElementImpl)
+          .toList(growable: false);
+    } else {
+      throw UnimplementedError('(${key.runtimeType}) $key');
+    }
+    return JoinPatternVariableElementImpl(
       first.name,
       -1,
-      expandedComponents,
+      expandedVariables,
       isConsistent &&
           components.every((element) =>
-              element is! VariablePatternJoinElementImpl ||
+              element is! JoinPatternVariableElementImpl ||
               element.isConsistent),
     )..enclosingElement = first.enclosingElement;
   }
@@ -1713,8 +1730,8 @@ class _VariableBinderErrors
   @override
   void duplicateVariablePattern({
     required String name,
-    required covariant VariablePatternBindElementImpl original,
-    required covariant VariablePatternBindElementImpl duplicate,
+    required covariant BindPatternVariableElementImpl original,
+    required covariant BindPatternVariableElementImpl duplicate,
   }) {
     visitor._errorReporter.reportError(
       DiagnosticFactory().duplicateDefinitionForNodes(

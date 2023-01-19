@@ -531,6 +531,12 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitFormalParameter(node);
 
   @override
+  R? visitNullAssertPattern(NullAssertPattern node) => visitDartPattern(node);
+
+  @override
+  R? visitNullCheckPattern(NullCheckPattern node) => visitDartPattern(node);
+
+  @override
   R? visitNullLiteral(NullLiteral node) => visitLiteral(node);
 
   @override
@@ -567,9 +573,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPostfixExpression(PostfixExpression node) => visitExpression(node);
-
-  @override
-  R? visitPostfixPattern(PostfixPattern node) => visitDartPattern(node);
 
   @override
   R? visitPrefixedIdentifier(PrefixedIdentifier node) => visitIdentifier(node);
@@ -749,6 +752,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitWhileStatement(WhileStatement node) => visitStatement(node);
+
+  @override
+  R? visitWildcardPattern(WildcardPattern node) => visitDartPattern(node);
 
   @override
   R? visitWithClause(WithClause node) => visitNode(node);
@@ -1390,6 +1396,18 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitNullAssertPattern(NullAssertPattern node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitNullCheckPattern(NullCheckPattern node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitNullLiteral(NullLiteral node) {
     node.visitChildren(this);
     return null;
@@ -1452,12 +1470,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPostfixExpression(PostfixExpression node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitPostfixPattern(PostfixPattern node) {
     node.visitChildren(this);
     return null;
   }
@@ -1743,6 +1755,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitWhileStatement(WhileStatement node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitWildcardPattern(WildcardPattern node) {
     node.visitChildren(this);
     return null;
   }
@@ -2085,6 +2103,12 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitNativeFunctionBody(NativeFunctionBody node) => null;
 
   @override
+  R? visitNullAssertPattern(NullAssertPattern node) => null;
+
+  @override
+  R? visitNullCheckPattern(NullCheckPattern node) => null;
+
+  @override
   R? visitNullLiteral(NullLiteral node) => null;
 
   @override
@@ -2118,9 +2142,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPostfixExpression(PostfixExpression node) => null;
-
-  @override
-  R? visitPostfixPattern(PostfixPattern node) => null;
 
   @override
   R? visitPrefixedIdentifier(PrefixedIdentifier node) => null;
@@ -2270,6 +2291,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitWhileStatement(WhileStatement node) => null;
+
+  @override
+  R? visitWildcardPattern(WildcardPattern node) => null;
 
   @override
   R? visitWithClause(WithClause node) => null;
@@ -2610,6 +2634,12 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitNativeFunctionBody(NativeFunctionBody node) => _throw(node);
 
   @override
+  R? visitNullAssertPattern(NullAssertPattern node) => _throw(node);
+
+  @override
+  R? visitNullCheckPattern(NullCheckPattern node) => _throw(node);
+
+  @override
   R? visitNullLiteral(NullLiteral node) => _throw(node);
 
   @override
@@ -2644,9 +2674,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPostfixExpression(PostfixExpression node) => _throw(node);
-
-  @override
-  R? visitPostfixPattern(PostfixPattern node) => _throw(node);
 
   @override
   R? visitPrefixedIdentifier(PrefixedIdentifier node) => _throw(node);
@@ -2798,6 +2825,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitWhileStatement(WhileStatement node) => _throw(node);
+
+  @override
+  R? visitWildcardPattern(WildcardPattern node) => _throw(node);
 
   @override
   R? visitWithClause(WithClause node) => _throw(node);
@@ -3654,6 +3684,22 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitNullAssertPattern(NullAssertPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitNullAssertPattern(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitNullCheckPattern(NullCheckPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitNullCheckPattern(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitNullLiteral(NullLiteral node) {
     stopwatch.start();
     T? result = _baseVisitor.visitNullLiteral(node);
@@ -3738,14 +3784,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitPostfixExpression(PostfixExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitPostfixExpression(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitPostfixPattern(PostfixPattern node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitPostfixPattern(node);
     stopwatch.stop();
     return result;
   }
@@ -4130,6 +4168,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitWildcardPattern(WildcardPattern node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitWildcardPattern(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitWithClause(WithClause node) {
     stopwatch.start();
     T? result = _baseVisitor.visitWithClause(node);
@@ -4496,6 +4542,12 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitNullAssertPattern(NullAssertPattern node) => visitNode(node);
+
+  @override
+  R? visitNullCheckPattern(NullCheckPattern node) => visitNode(node);
+
+  @override
   R? visitNullLiteral(NullLiteral node) => visitNode(node);
 
   @override
@@ -4531,9 +4583,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitPostfixExpression(PostfixExpression node) => visitNode(node);
-
-  @override
-  R? visitPostfixPattern(PostfixPattern node) => visitNode(node);
 
   @override
   R? visitPrefixedIdentifier(PrefixedIdentifier node) => visitNode(node);
@@ -4687,6 +4736,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitWhileStatement(WhileStatement node) => visitNode(node);
+
+  @override
+  R? visitWildcardPattern(WildcardPattern node) => visitNode(node);
 
   @override
   R? visitWithClause(WithClause node) => visitNode(node);

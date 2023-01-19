@@ -82,11 +82,11 @@ class AddTypeAnnotation extends CorrectionProducer {
       if (builder.canWriteType(type)) {
         if (keyword != null && keyword.keyword == Keyword.VAR) {
           builder.addReplacement(range.token(keyword), (builder) {
-            builder.writeType(type, includeDefaultValuesInFunctionTypes: false);
+            builder.writeType(type);
           });
         } else {
           builder.addInsertion(offset, (builder) {
-            builder.writeType(type, includeDefaultValuesInFunctionTypes: false);
+            builder.writeType(type);
             builder.write(' ');
           });
         }

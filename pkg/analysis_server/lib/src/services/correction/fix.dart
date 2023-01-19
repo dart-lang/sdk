@@ -832,15 +832,20 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Make the return type nullable',
   );
-  static const MOVE_TYPE_ARGUMENTS_TO_CLASS = FixKind(
-    'dart.fix.moveTypeArgumentsToClass',
-    DartFixKindPriority.DEFAULT,
-    'Move type arguments to after class name',
-  );
   static const MAKE_CONDITIONAL_ON_DEBUG_MODE = FixKind(
     'dart.fix.flutter.makeConditionalOnDebugMode',
     DartFixKindPriority.DEFAULT,
     "Make conditional on 'kDebugMode'",
+  );
+  static const MAKE_REQUIRED_NAMED_PARAMETERS_FIRST = FixKind(
+    'dart.fix.makeRequiredNamedParametersFirst',
+    DartFixKindPriority.DEFAULT,
+    "Put required named parameter first",
+  );
+  static const MAKE_REQUIRED_NAMED_PARAMETERS_FIRST_MULTI = FixKind(
+    'dart.fix.makeRequiredNamedParametersFirst.multi',
+    DartFixKindPriority.IN_FILE,
+    "Put required named parameters first everywhere in file",
   );
   static const MAKE_SUPER_INVOCATION_LAST = FixKind(
     'dart.fix.makeSuperInvocationLast',
@@ -866,6 +871,11 @@ class DartFixKind {
     'dart.fix.moveDocCommentToLibraryDirective',
     DartFixKindPriority.DEFAULT,
     "Move this doc comment to a library directive",
+  );
+  static const MOVE_TYPE_ARGUMENTS_TO_CLASS = FixKind(
+    'dart.fix.moveTypeArgumentsToClass',
+    DartFixKindPriority.DEFAULT,
+    'Move type arguments to after class name',
   );
   static const ORGANIZE_IMPORTS = FixKind(
     'dart.fix.organize.imports',
@@ -1565,6 +1575,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     "Replace with 'isEmpty' everywhere in file",
   );
+  static const REPLACE_WITH_IS_NAN = FixKind(
+    'dart.fix.replace.withIsNaN',
+    DartFixKindPriority.DEFAULT,
+    "Replace the condition with '.isNaN'",
+  );
   static const REPLACE_WITH_IS_NOT_EMPTY = FixKind(
     'dart.fix.replace.withIsNotEmpty',
     DartFixKindPriority.DEFAULT,
@@ -1613,7 +1628,7 @@ class DartFixKind {
   static const REPLACE_WITH_VAR_MULTI = FixKind(
     'dart.fix.replace.withVar.multi',
     DartFixKindPriority.IN_FILE,
-    "Replace type annotations with 'var' in file",
+    "Replace type annotations with 'var' everywhere in file",
   );
   static const SORT_CHILD_PROPERTY_LAST = FixKind(
     'dart.fix.sort.childPropertyLast',

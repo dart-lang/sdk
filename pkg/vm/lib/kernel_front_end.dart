@@ -37,7 +37,8 @@ import 'package:front_end/src/api_unstable/vm.dart'
         resolveInputUri;
 
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
-import 'package:kernel/ast.dart' show Component, Library, Reference;
+import 'package:kernel/ast.dart'
+    show Component, Library, Reference, NonNullableByDefaultCompiledMode;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart' show loadComponentFromBinary;
@@ -45,6 +46,7 @@ import 'package:kernel/target/targets.dart' show Target, TargetFlags, getTarget;
 import 'package:package_config/package_config.dart' show loadPackageConfigUri;
 
 import 'http_filesystem.dart' show HttpAwareFileSystem;
+import 'native_assets/synthesizer.dart';
 import 'target/install.dart' show installAdditionalTargets;
 import 'transformations/devirtualization.dart' as devirtualization
     show transformComponent;
@@ -98,6 +100,9 @@ void declareCompilerOptions(ArgParser args) {
   args.addMultiOption('source',
       help: 'List additional source files to include into compilation.',
       defaultsTo: const <String>[]);
+  args.addOption('native-assets',
+      help:
+          'Provide the native-assets mapping for @Native external functions.');
   args.addOption('target',
       help: 'Target model that determines what core libraries are available',
       allowed: <String>['vm', 'flutter', 'flutter_runner', 'dart_runner'],
@@ -174,6 +179,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     return successExitCode;
   }
 
+  final String? nativeAssetsPath = options['native-assets'];
   if ((options.rest.length != 1) || (platformKernel == null)) {
     print(usage);
     return badUsageExitCode;
@@ -245,17 +251,20 @@ Future<int> runCompiler(ArgResults options, String usage) async {
     additionalDills.add(platformKernelUri);
   }
 
+  final verbosity = Verbosity.parseArgument(options['verbosity']);
+  final errorPrinter = new ErrorPrinter(verbosity);
+  final errorDetector =
+      new ErrorDetector(previousErrorHandler: errorPrinter.call);
+
+  final Uri? nativeAssetsUri =
+      nativeAssetsPath == null ? null : resolveInputUri(nativeAssetsPath);
+
   Uri mainUri = resolveInputUri(input);
   if (packagesUri != null) {
     mainUri = await convertToPackageUri(fileSystem, mainUri, packagesUri);
   }
 
   final List<Uri> additionalSources = sources.map(resolveInputUri).toList();
-
-  final verbosity = Verbosity.parseArgument(options['verbosity']);
-  final errorPrinter = new ErrorPrinter(verbosity);
-  final errorDetector =
-      new ErrorDetector(previousErrorHandler: errorPrinter.call);
 
   final CompilerOptions compilerOptions = new CompilerOptions()
     ..sdkSummary = platformKernelUri
@@ -285,6 +294,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 
   final results = await compileToKernel(mainUri, compilerOptions,
       additionalSources: additionalSources,
+      nativeAssets: nativeAssetsUri,
       includePlatform: additionalDills.isNotEmpty,
       deleteToStringPackageUris: options['delete-tostring-package-uri'],
       aot: aot,
@@ -300,6 +310,7 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   errorPrinter.printCompilationMessages();
 
   final Component? component = results.component;
+  final Library? nativeAssetsLibrary = results.nativeAssetsLibrary;
   if (errorDetector.hasCompilationErrors || (component == null)) {
     return compileTimeErrorExitCode;
   }
@@ -307,7 +318,23 @@ Future<int> runCompiler(ArgResults options, String usage) async {
   final IOSink sink = new File(outputFileName).openWrite();
   final BinaryPrinter printer = new BinaryPrinter(sink,
       libraryFilter: (lib) => !results.loadedLibraries.contains(lib));
+  if (aot && nativeAssetsLibrary != null && aot) {
+    // If Dart component in  AOT, write the vm:native-assets library _inside_
+    // the Dart component.
+    component.libraries.add(nativeAssetsLibrary);
+    nativeAssetsLibrary.parent = component;
+  }
   printer.writeComponentFile(component);
+  if (nativeAssetsLibrary != null && !aot) {
+    // If no Dart component, write as separate dill.
+    // If Dart component in JIT, write as concatenated dill, to not mess with
+    // the incremental compiler.
+    final BinaryPrinter printer = new BinaryPrinter(sink);
+    printer.writeComponentFile(Component(
+      libraries: [nativeAssetsLibrary],
+      mode: NonNullableByDefaultCompiledMode.Strong,
+    ));
+  }
   await sink.close();
 
   if (depfile != null) {
@@ -336,6 +363,8 @@ Future<int> runCompiler(ArgResults options, String usage) async {
 class KernelCompilationResults {
   final Component? component;
 
+  final Library? nativeAssetsLibrary;
+
   /// Set of libraries loaded from .dill, with or without the SDK depending on
   /// the compilation settings.
   final Set<Library> loadedLibraries;
@@ -344,7 +373,17 @@ class KernelCompilationResults {
   final Iterable<Uri>? compiledSources;
 
   KernelCompilationResults(this.component, this.loadedLibraries,
-      this.classHierarchy, this.coreTypes, this.compiledSources);
+      this.classHierarchy, this.coreTypes, this.compiledSources)
+      : nativeAssetsLibrary = null;
+
+  KernelCompilationResults.named({
+    this.component,
+    this.loadedLibraries = const {},
+    this.classHierarchy,
+    this.coreTypes,
+    this.compiledSources,
+    this.nativeAssetsLibrary,
+  });
 }
 
 /// Generates a kernel representation of the program whose main library is in
@@ -353,23 +392,35 @@ class KernelCompilationResults {
 /// VM-specific replacement of [kernelForProgram].
 ///
 Future<KernelCompilationResults> compileToKernel(
-    Uri source, CompilerOptions options,
-    {List<Uri> additionalSources = const <Uri>[],
-    bool includePlatform = false,
-    List<String> deleteToStringPackageUris = const <String>[],
-    bool aot = false,
-    bool useGlobalTypeFlowAnalysis = false,
-    bool useRapidTypeAnalysis = true,
-    required Map<String, String> environmentDefines,
-    bool enableAsserts = true,
-    bool useProtobufTreeShakerV2 = false,
-    bool minimalKernel = false,
-    bool treeShakeWriteOnlyFields = false,
-    String? fromDillFile = null}) async {
+  Uri source,
+  CompilerOptions options, {
+  List<Uri> additionalSources = const <Uri>[],
+  Uri? nativeAssets,
+  bool includePlatform = false,
+  List<String> deleteToStringPackageUris = const <String>[],
+  bool aot = false,
+  bool useGlobalTypeFlowAnalysis = false,
+  bool useRapidTypeAnalysis = true,
+  required Map<String, String> environmentDefines,
+  bool enableAsserts = true,
+  bool useProtobufTreeShakerV2 = false,
+  bool minimalKernel = false,
+  bool treeShakeWriteOnlyFields = false,
+  String? fromDillFile = null,
+}) async {
   // Replace error handler to detect if there are compilation errors.
   final errorDetector =
       new ErrorDetector(previousErrorHandler: options.onDiagnostic);
   options.onDiagnostic = errorDetector.call;
+
+  final nativeAssetsLibrary =
+      await NativeAssetsSynthesizer.synthesizeLibraryFromYamlFile(
+    nativeAssets,
+    errorDetector,
+    nonNullableByDefaultCompiledMode: options.nnbdMode == NnbdMode.Strong
+        ? NonNullableByDefaultCompiledMode.Strong
+        : NonNullableByDefaultCompiledMode.Weak,
+  );
 
   final target = options.target!;
   options.environmentDefines =
@@ -417,12 +468,14 @@ Future<KernelCompilationResults> compileToKernel(
   // Restore error handler (in case 'options' are reused).
   options.onDiagnostic = errorDetector.previousErrorHandler;
 
-  return new KernelCompilationResults(
-      component,
-      loadedLibraries,
-      compilerResult?.classHierarchy,
-      compilerResult?.coreTypes,
-      compiledSources);
+  return KernelCompilationResults.named(
+    component: component,
+    nativeAssetsLibrary: nativeAssetsLibrary,
+    loadedLibraries: loadedLibraries,
+    classHierarchy: compilerResult?.classHierarchy,
+    coreTypes: compilerResult?.coreTypes,
+    compiledSources: compiledSources,
+  );
 }
 
 Set<Library> createLoadedLibrariesSet(

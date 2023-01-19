@@ -705,6 +705,35 @@ void WeakSerializationReference::PrintJSONImpl(JSONStream* stream,
   jsobj.AddProperty("target", obj);
 }
 
+void WeakArray::PrintJSONImpl(JSONStream* stream, bool ref) const {
+  JSONObject jsobj(stream);
+  AddCommonObjectProperties(&jsobj, "Object", ref);
+  jsobj.AddServiceId(*this);
+  jsobj.AddProperty("length", Length());
+  if (ref) {
+    return;
+  }
+  intptr_t offset;
+  intptr_t count;
+  stream->ComputeOffsetAndCount(Length(), &offset, &count);
+  if (offset > 0) {
+    jsobj.AddProperty("offset", offset);
+  }
+  if (count < Length()) {
+    jsobj.AddProperty("count", count);
+  }
+  intptr_t limit = offset + count;
+  ASSERT(limit <= Length());
+  {
+    JSONArray jsarr(&jsobj, "elements");
+    Object& element = Object::Handle();
+    for (intptr_t index = offset; index < limit; index++) {
+      element = At(index);
+      jsarr.AddValue(element);
+    }
+  }
+}
+
 void ObjectPool::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   AddCommonObjectProperties(&jsobj, "Object", ref);
@@ -993,6 +1022,12 @@ void Sentinel::PrintJSONImpl(JSONStream* stream, bool ref) const {
     jsobj.AddProperty("type", "Sentinel");
     jsobj.AddProperty("kind", "BeingInitialized");
     jsobj.AddProperty("valueAsString", "<being initialized>");
+    return;
+  } else if (ptr() == Object::optimized_out().ptr()) {
+    JSONObject jsobj(stream);
+    jsobj.AddProperty("type", "Sentinel");
+    jsobj.AddProperty("kind", "OptimizedOut");
+    jsobj.AddProperty("valueAsString", "<optimized out>");
     return;
   }
 
@@ -1311,15 +1346,6 @@ void Double::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 void String::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  if (ptr() == Symbols::OptimizedOut().ptr()) {
-    // TODO(turnidge): This is a hack.  The user could have this
-    // special string in their program.  Fixing this involves updating
-    // the debugging api a bit.
-    jsobj.AddProperty("type", "Sentinel");
-    jsobj.AddProperty("kind", "OptimizedOut");
-    jsobj.AddProperty("valueAsString", "<optimized out>");
-    return;
-  }
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "String");
   jsobj.AddProperty("length", Length());

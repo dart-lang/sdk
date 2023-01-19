@@ -91,7 +91,7 @@ class DartTestDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
         if (!enableAuthCodes) '--disable-service-auth-codes'
       ],
       if (debug && vmServiceInfoFile != null) ...[
-        '-DSILENT_OBSERVATORY=true',
+        '-DSILENT_VM_SERVICE=true',
         '--write-service-info=${Uri.file(vmServiceInfoFile.path)}'
       ],
       // TODO(dantup): This should be changed from "dart run test:test" to

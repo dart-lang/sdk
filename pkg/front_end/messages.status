@@ -64,7 +64,6 @@ CantInferPackagesFromPackageUri/analyzerCode: Fail
 CantInferPackagesFromPackageUri/example: Fail
 CantInferTypeDueToCircularity/example: Fail
 CantReadFile/part_wrapped_script: Fail # Importing file in the (now) part.
-CantUseClassAsMixin/analyzerCode: Fail
 CantUseClassAsMixin/part_wrapped_script: Fail # Uses imports
 CantUseControlFlowOrSpreadAsConstant/example: Fail
 CantUseDeferredPrefixAsConstant/part_wrapped_script: Fail # Importing file in the (now) part.
@@ -594,6 +593,8 @@ JsInteropNonStaticWithStaticInteropSupertype/analyzerCode: Fail # Web compiler s
 JsInteropNonStaticWithStaticInteropSupertype/example: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
+JsInteropStaticInteropAnonymousFactoryTearoff/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropAnonymousFactoryTearoff/example: Fail # Web compiler specific
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
@@ -849,6 +850,8 @@ RequiredNamedParameterHasDefaultValueError/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueError/example: Fail
 RequiredNamedParameterHasDefaultValueWarning/analyzerCode: Fail
 RequiredNamedParameterHasDefaultValueWarning/example: Fail
+RestPatternMoreThanOne/analyzerCode: Fail
+RestPatternNotLastInMapPattern/analyzerCode: Fail
 RethrowNotCatch/example: Fail
 ReturnTypeFunctionExpression/analyzerCode: Fail
 ReturnTypeFunctionExpression/example: Fail
@@ -981,6 +984,10 @@ VarAsTypeName/script1: Fail # Too many problems
 VariableCouldBeNullDueToWrite/analyzerCode: Fail
 VariableCouldBeNullDueToWrite/example: Fail
 VariablePatternTypeMismatchInSwitchHeads/analyzerCode: Fail
+VariablePatternTypeMismatchInSwitchHeads/part_wrapped_script: Crash
+VariablePatternTypeMismatchInSwitchHeads/script: Crash
+WasmSyncStar/analyzerCode: Fail
+WasmSyncStar/example: Fail
 WeakWithStrongDillLibrary/analyzerCode: Fail
 WeakWithStrongDillLibrary/example: Fail
 WebLiteralCannotBeRepresentedExactly/analyzerCode: Fail

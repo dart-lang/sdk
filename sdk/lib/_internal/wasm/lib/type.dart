@@ -519,7 +519,7 @@ class _TypeUniverse {
 
   static bool isFunctionType(_Type t) =>
       isSpecificInterfaceType(t, ClassID.cidFunction) ||
-      isSpecificInterfaceType(t, ClassID.cid_Function);
+      isSpecificInterfaceType(t, ClassID.cid_Closure);
 
   static _Type substituteInterfaceTypeParameter(
       _InterfaceTypeParameterType typeParameter, List<_Type> substitutions) {
@@ -912,4 +912,138 @@ _TypeUniverse _typeUniverse = _TypeUniverse.create();
 @pragma("wasm:entry-point")
 bool _isSubtype(Object? s, _Type t) {
   return _typeUniverse.isSubtype(s._runtimeType, null, t, null);
+}
+
+/// Checks that argument lists have expected number of arguments for the
+/// closure.
+///
+/// If the type argument list ([typeArguments]) is empty but the closure has
+/// type parameters, updates [typeArguments] with the default bounds of the
+/// type parameters.
+///
+/// [namedArguments] is a list of `Symbol` and `Object?` pairs.
+@pragma("wasm:entry-point")
+bool _checkClosureShape(_FunctionType functionType, List<_Type> typeArguments,
+    List<Object?> positionalArguments, List<dynamic> namedArguments) {
+  // Check type args, add default types to the type list if its empty
+  if (typeArguments.isEmpty) {
+    // TODO(50992): Default values of type parameters are not available in
+    // runtime
+    typeArguments.addAll(functionType.typeParameterBounds);
+  } else if (typeArguments.length != functionType.typeParameterBounds.length) {
+    return false;
+  }
+
+  // Check positional args
+  if (positionalArguments.length < functionType.requiredParameterCount ||
+      positionalArguments.length > functionType.positionalParameters.length) {
+    return false;
+  }
+
+  // Check named args. Both parameters and args are sorted, so we can iterate
+  // them in parallel.
+  int namedParamIdx = 0;
+  int namedArgIdx = 0;
+  while (namedParamIdx < functionType.namedParameters.length) {
+    _NamedParameter param = functionType.namedParameters[namedParamIdx];
+
+    if (namedArgIdx * 2 >= namedArguments.length) {
+      if (param.isRequired) {
+        return false;
+      }
+      namedParamIdx += 1;
+      continue;
+    }
+
+    String argName = _symbolToString(namedArguments[namedArgIdx * 2] as Symbol);
+
+    final cmp = argName.compareTo(param.name);
+
+    if (cmp == 0) {
+      // Expected arg passed
+      namedParamIdx += 1;
+      namedArgIdx += 1;
+    } else if (cmp < 0) {
+      // Unexpected arg passed
+      return false;
+    } else if (param.isRequired) {
+      // Required param not passed
+      return false;
+    } else {
+      // Optional param not passed
+      namedParamIdx += 1;
+    }
+  }
+
+  // All named parameters checked, any extra arguments are unexpected
+  if (namedArgIdx * 2 < namedArguments.length) {
+    return false;
+  }
+
+  return true;
+}
+
+/// Checks that values in argument lists have expected types.
+///
+/// Throws [TypeError] when a type check fails.
+///
+/// Assumes that shape check ([_checkClosureShape]) passed and the type list is
+/// adjusted with default bounds if necessary.
+///
+/// [namedArguments] is a list of `Symbol` and `Object?` pairs.
+@pragma("wasm:entry-point")
+void _checkClosureType(_FunctionType functionType, List<_Type> typeArguments,
+    List<Object?> positionalArguments, List<dynamic> namedArguments) {
+  assert(functionType.typeParameterBounds.length == typeArguments.length);
+
+  if (!typeArguments.isEmpty) {
+    for (int i = 0; i < typeArguments.length; i += 1) {
+      final typeArgument = typeArguments[i];
+      final paramBound = _TypeUniverse.substituteTypeArgument(
+          functionType.typeParameterBounds[i], typeArguments, functionType);
+      if (!_typeUniverse.isSubtype(typeArgument, null, paramBound, null)) {
+        final stackTrace = StackTrace.current;
+        final typeError = _TypeError.fromMessageAndStackTrace(
+            "Type argument '$typeArgument' is not a "
+            "subtype of type parameter bound '$paramBound'",
+            stackTrace);
+        _throwObjectWithStackTrace(typeError, stackTrace);
+      }
+    }
+
+    functionType = _TypeUniverse.substituteFunctionTypeArgument(
+        functionType, typeArguments);
+  }
+
+  // Check positional arguments
+  for (int i = 0; i < positionalArguments.length; i += 1) {
+    final Object? arg = positionalArguments[i];
+    final _Type paramTy = functionType.positionalParameters[i];
+    if (!_isSubtype(arg, paramTy)) {
+      // TODO(50991): Positional parameter names not available in runtime
+      _TypeError._throwArgumentTypeCheckError(
+          arg, paramTy, '???', StackTrace.current);
+    }
+  }
+
+  // Check named arguments. Since the shape check passed we know that passed
+  // names exist in named parameters of the function.
+  int namedParamIdx = 0;
+  int namedArgIdx = 0;
+  while (namedArgIdx * 2 < namedArguments.length) {
+    final String argName =
+        _symbolToString(namedArguments[namedArgIdx * 2] as Symbol);
+    if (argName == functionType.namedParameters[namedParamIdx].name) {
+      final arg = namedArguments[namedArgIdx * 2 + 1];
+      final paramTy = functionType.namedParameters[namedParamIdx].type;
+      if (!_isSubtype(arg, paramTy)) {
+        _TypeError._throwArgumentTypeCheckError(
+            arg, paramTy, argName, StackTrace.current);
+      }
+      namedParamIdx += 1;
+      namedArgIdx += 1;
+    } else {
+      namedParamIdx += 1;
+    }
+  }
 }

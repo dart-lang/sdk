@@ -1,0 +1,36 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:5:13: Error: Can't use 'MultipleConstructors' as a mixin because it has constructors.
+// mixin class MultipleConstructors {
+//             ^
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:7:3: Context: This constructor prevents using 'MultipleConstructors' as a mixin.
+//   MultipleConstructors(this.foo);
+//   ^
+//
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:11:13: Error: Can't use 'SingleConstructor' as a mixin because it has constructors.
+// mixin class SingleConstructor {
+//             ^
+// pkg/front_end/testcases/class_modifiers/mixin/mixin_class_generative_constructor.dart:13:3: Context: This constructor prevents using 'SingleConstructor' as a mixin.
+//   SingleConstructor.named(this.foo);
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+mixin class MultipleConstructors extends core::Object {
+  final field core::bool foo;
+  constructor •(core::bool foo) → self::MultipleConstructors
+    : self::MultipleConstructors::foo = foo, super core::Object::•()
+    ;
+  constructor named(core::bool foo) → self::MultipleConstructors
+    : self::MultipleConstructors::foo = foo, super core::Object::•()
+    ;
+}
+mixin class SingleConstructor extends core::Object {
+  final field core::bool foo;
+  constructor named(core::bool foo) → self::SingleConstructor
+    : self::SingleConstructor::foo = foo, super core::Object::•()
+    ;
+}

@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -24,6 +25,7 @@ class NonNullOptOutTest extends PubPackageResolutionTest {
   }
 
   test_assignment_indexExpression() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   void operator[]=(int a, int b) {}
@@ -75,6 +77,7 @@ AssignmentExpression
   }
 
   test_assignment_prefixedIdentifier_instanceTarget_class_field() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo = 0;
@@ -123,6 +126,7 @@ AssignmentExpression
   }
 
   test_assignment_prefixedIdentifier_instanceTarget_extension_setter() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 extension E on A {
@@ -172,6 +176,7 @@ AssignmentExpression
   }
 
   test_assignment_prefixedIdentifier_staticTarget_class_field() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static int foo = 0;
@@ -220,6 +225,7 @@ AssignmentExpression
   }
 
   test_assignment_prefixedIdentifier_staticTarget_extension_field() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 extension E on int {
   static int foo = 0;
@@ -268,6 +274,7 @@ AssignmentExpression
   }
 
   test_assignment_prefixedIdentifier_topLevelVariable() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 int foo = 0;
 ''');
@@ -314,6 +321,7 @@ AssignmentExpression
   }
 
   test_assignment_propertyAccess_class_field() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo = 0;
@@ -372,6 +380,7 @@ AssignmentExpression
   }
 
   test_assignment_propertyAccess_extension_setter() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 extension E on A {
@@ -431,6 +440,7 @@ AssignmentExpression
   }
 
   test_assignment_propertyAccess_extensionOverride_setter() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 extension E on A {
@@ -491,6 +501,7 @@ AssignmentExpression
   }
 
   test_assignment_propertyAccess_superTarget() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo = 0;
@@ -539,6 +550,7 @@ AssignmentExpression
   }
 
   test_assignment_simpleIdentifier_topLevelVariable() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 int foo = 0;
 ''');
@@ -577,6 +589,7 @@ AssignmentExpression
   }
 
   test_binaryExpression() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int operator+(int a) => 0;
@@ -599,6 +612,7 @@ main(A a) {
   }
 
   test_functionExpressionInvocation() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 int Function(int, int?)? foo;
 ''');
@@ -622,6 +636,7 @@ main() {
   }
 
   test_functionExpressionInvocation_call() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int call(int a, int? b) => 0;
@@ -647,6 +662,7 @@ main(A a) {
   }
 
   test_functionExpressionInvocation_extension_staticTarget() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 extension E on int {
   static int Function(int) get foo => (_) => 0;
@@ -672,6 +688,7 @@ main() {
   }
 
   test_instanceCreation() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A(int a, int? b);
@@ -695,6 +712,7 @@ main() {
   }
 
   test_instanceCreation_generic() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
   A(T a, T? b);
@@ -719,6 +737,7 @@ main() {
   }
 
   test_instanceCreation_generic_instantiateToBounds() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T extends num> {}
 ''');
@@ -734,6 +753,7 @@ var v = A();
   }
 
   test_methodInvocation_extension_functionTarget() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 extension E on void Function() {
   int foo(int a) => 0;
@@ -759,6 +779,7 @@ main(void Function() a) {
   }
 
   test_methodInvocation_extension_interfaceTarget() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 extension E on int {
   int foo(int a) => 0;
@@ -784,6 +805,7 @@ main() {
   }
 
   test_methodInvocation_extension_nullTarget() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 extension E on A {
@@ -812,6 +834,7 @@ class B extends A {
   }
 
   test_methodInvocation_extension_staticTarget() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 extension E on int {
   static int foo(int a) => 0;
@@ -837,6 +860,7 @@ main() {
   }
 
   test_methodInvocation_extensionOverride() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 extension E on int {
   int foo(int a) => 0;
@@ -862,6 +886,7 @@ main() {
   }
 
   test_methodInvocation_function() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 int foo(int a, int? b) => 0;
 ''');
@@ -885,6 +910,7 @@ main() {
   }
 
   test_methodInvocation_function_prefixed() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 int foo(int a, int? b) => 0;
 ''');
@@ -908,6 +934,7 @@ main() {
   }
 
   test_methodInvocation_method_cascade() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo(int a, int? b) => 0;
@@ -933,6 +960,7 @@ main(A a) {
   }
 
   test_methodInvocation_method_interfaceTarget() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo(int a, int? b) => 0;
@@ -958,6 +986,7 @@ main(A a) {
   }
 
   test_methodInvocation_method_nullTarget() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo(int a, int? b) => 0;
@@ -985,6 +1014,7 @@ class B extends A {
   }
 
   test_methodInvocation_method_staticTarget() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static int foo(int a, int? b) => 0;
@@ -1010,6 +1040,7 @@ main() {
   }
 
   test_methodInvocation_method_superTarget() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo(int a, int? b) => 0;
@@ -1037,6 +1068,7 @@ class B extends A {
   }
 
   test_nnbd_optOut_invalidSyntax() async {
+    noSoundNullSafety = false;
     await assertErrorsInCode('''
 // @dart = 2.2
 // NNBD syntax is not allowed
@@ -1045,6 +1077,7 @@ f(x, z) { (x is String?) ? x : z; }
   }
 
   test_nnbd_optOut_late() async {
+    noSoundNullSafety = false;
     await assertNoErrorsInCode('''
 // @dart = 2.2
 class C {
@@ -1055,6 +1088,7 @@ class C {
   }
 
   test_nnbd_optOut_transformsOptedInSignatures() async {
+    noSoundNullSafety = false;
     await assertNoErrorsInCode('''
 // @dart = 2.2
 f(String x) {
@@ -1064,6 +1098,7 @@ f(String x) {
   }
 
   test_postfixExpression() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A operator+(int a) => this;
@@ -1085,6 +1120,7 @@ main(A a) {
   }
 
   test_prefixExpression() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int operator-() => 0;
@@ -1106,6 +1142,7 @@ main(A a) {
   }
 
   test_read_indexExpression_class() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int operator[](int a) => 0;
@@ -1127,6 +1164,7 @@ main(A a) {
   }
 
   test_read_prefixedIdentifier_instanceTarget_class_field() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo;
@@ -1151,6 +1189,7 @@ main(A a) {
   }
 
   test_read_prefixedIdentifier_instanceTarget_extension_getter() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 extension E on A {
@@ -1176,6 +1215,7 @@ main(A a) {
   }
 
   test_read_prefixedIdentifier_staticTarget_class_field() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static int foo;
@@ -1200,6 +1240,7 @@ main() {
   }
 
   test_read_prefixedIdentifier_staticTarget_class_method() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static int foo(int a) => 0;
@@ -1224,6 +1265,7 @@ main() {
   }
 
   test_read_prefixedIdentifier_staticTarget_extension_field() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 extension E {
   static int foo;
@@ -1248,6 +1290,7 @@ main() {
   }
 
   test_read_prefixedIdentifier_staticTarget_extension_method() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 extension E {
   static int foo(int a) => 0;
@@ -1272,6 +1315,7 @@ main() {
   }
 
   test_read_prefixedIdentifier_topLevelVariable() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 int foo = 0;
 ''');
@@ -1294,6 +1338,7 @@ main() {
   }
 
   test_read_propertyAccessor_class_field() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo = 0;
@@ -1318,6 +1363,7 @@ main() {
   }
 
   test_read_propertyAccessor_class_method() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo() => 0;
@@ -1342,6 +1388,7 @@ main() {
   }
 
   test_read_propertyAccessor_extensionOverride_getter() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 extension E on A {
@@ -1367,6 +1414,7 @@ main(A a) {
   }
 
   test_read_propertyAccessor_superTarget() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo = 0;
@@ -1393,6 +1441,7 @@ class B extends A {
   }
 
   test_read_simpleIdentifier_class_field() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo = 0;
@@ -1416,6 +1465,7 @@ class B extends A {
   }
 
   test_read_simpleIdentifier_class_method() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   int foo(int a) => 0;
@@ -1439,6 +1489,7 @@ class B extends A {
   }
 
   test_read_simpleIdentifier_extension_getter() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 extension E on A {
@@ -1463,6 +1514,7 @@ class B extends A {
   }
 
   test_read_simpleIdentifier_extension_method() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 extension E on A {
@@ -1487,6 +1539,7 @@ class B extends A {
   }
 
   test_read_simpleIdentifier_topLevelVariable() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 int foo = 0;
 ''');
@@ -1506,6 +1559,7 @@ main() {
   }
 
   test_superConstructorInvocation() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   A(int a, int? b);

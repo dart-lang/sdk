@@ -182,7 +182,7 @@ def HostArchitectures():
             return ['arm']
         if m in ['i386', 'i686', 'ia32', 'x86']:
             return ['x86', 'ia32']
-        if m in ['x64', 'x86-64', 'x86_64', 'AMD64']:
+        if m in ['x64', 'x86-64', 'x86_64', 'amd64', 'AMD64']:
             return ['x64', 'x86', 'ia32']
     raise Exception('Failed to determine host architectures for %s %s',
                     platform.machine(), platform.system())

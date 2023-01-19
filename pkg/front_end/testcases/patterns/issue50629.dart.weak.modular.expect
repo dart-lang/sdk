@@ -5,7 +5,7 @@ import "dart:core" as core;
 static method main() → dynamic {
   core::List<dynamic> value = #C2;
   final core::List<dynamic> #t1 = value;
-  final core::bool #t2 = true;
+  core::bool #t2 = true;
   if(#t1 =={core::List::==}{(core::Object) → core::bool} #C2) {
     #t2 = false;
     {

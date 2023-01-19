@@ -185,7 +185,7 @@ def Gsutil(cmd, throw_on_error=True):
     gsutilTool = join(DART_PATH, 'third_party', 'gsutil', 'gsutil')
     command = [sys.executable, gsutilTool] + cmd
     if DRY_RUN:
-        print('DRY runnning: %s' % command)
+        print('DRY running: %s' % command)
         return (None, None, 0)
     return bot_utils.run(command, throw_on_error=throw_on_error)
 

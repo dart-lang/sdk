@@ -16,6 +16,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
 
@@ -218,6 +219,7 @@ class AbstractContextTest with ResourceProviderMixin {
   void setupResourceProvider() {}
 
   void tearDown() {
+    noSoundNullSafety = true;
     AnalysisEngine.instance.clearCaches();
   }
 

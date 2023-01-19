@@ -2477,7 +2477,7 @@ void StubCodeCompiler::GenerateAsyncExceptionHandlerStub(Assembler* assembler) {
 
   // Check if suspend_state is initialized. Otherwise
   // exception was thrown from the prologue code and
-  // should be synchronuously propagated.
+  // should be synchronously propagated.
   __ CompareObject(kSuspendState, NullObject());
   __ BranchIf(EQUAL, &rethrow_exception);
 

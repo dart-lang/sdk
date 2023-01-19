@@ -523,68 +523,69 @@ static method callReturningNever(() → Never f) → dynamic {
   let final Never #t75 = f(){() → Never} in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");
 }
 static method switchOnEnum(uns::E e) → dynamic {
+  #L1:
   switch(e) /*isExplicitlyExhaustive*/ {
-    #L1:
+    #L2:
     case #C3:
       {
         return;
       }
-    #L2:
+    #L3:
     case #C6:
       {
         return;
       }
-    #L3:
+    #L4:
     default:
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method switchOnEnumWithBreak(uns::E e) → dynamic {
-  #L4:
+  #L5:
   switch(e) /*isExplicitlyExhaustive*/ {
-    #L5:
+    #L6:
     case #C3:
       {
-        break #L4;
-      }
-    #L6:
-    case #C6:
-      {
-        break #L4;
+        break #L5;
       }
     #L7:
+    case #C6:
+      {
+        break #L5;
+      }
+    #L8:
     default:
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method switchOnEnumWithFallThrough1(uns::E e) → dynamic {
-  #L8:
+  #L9:
   switch(e) /*isExplicitlyExhaustive*/ {
-    #L9:
+    #L10:
     case #C3:
       {
-        break #L8;
-      }
-    #L10:
-    case #C6:
-      {
-        break #L8;
+        break #L9;
       }
     #L11:
+    case #C6:
+      {
+        break #L9;
+      }
+    #L12:
     default:
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }
 }
 static method switchOnEnumWithFallThrough2(uns::E e) → dynamic {
-  #L12:
+  #L13:
   switch(e) /*isExplicitlyExhaustive*/ {
-    #L13:
+    #L14:
     case #C3:
     case #C6:
       {
-        break #L12;
+        break #L13;
       }
-    #L14:
+    #L15:
     default:
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable enum type.");
   }

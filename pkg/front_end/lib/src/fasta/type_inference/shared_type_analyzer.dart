@@ -58,6 +58,15 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void duplicateAssignmentPatternVariable({
+    required VariableDeclaration variable,
+    required Pattern original,
+    required Pattern duplicate,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
   void duplicateRecordPatternField({
     required String name,
     required RecordPatternField<Node, Pattern> original,
@@ -85,6 +94,14 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void matchedTypeIsStrictlyNonNullable({
+    required Pattern pattern,
+    required DartType matchedType,
+  }) {
+    // TODO(scheglov) Implement it.
+  }
+
+  @override
   void nonBooleanCondition(Expression node) {
     throw new UnimplementedError('TODO(paulberry)');
   }
@@ -92,6 +109,15 @@ class SharedTypeAnalyzerErrors
   @override
   void patternDoesNotAllowLate(Node pattern) {
     throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void patternForInExpressionIsNotIterable({
+    required Node node,
+    required Expression expression,
+    required DartType expressionType,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
   }
 
   @override

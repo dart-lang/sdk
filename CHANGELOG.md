@@ -69,6 +69,12 @@
 [`DeferredLibrary`]: https://api.dart.dev/stable/2.18.4/dart-async/DeferredLibrary-class.html
 [`deferred as`]: https://dart.dev/guides/language/language-tour#deferred-loading
 
+#### `dart:collection`
+
+- Deprecated the `HasNextIterator` class ([#50883][]).
+
+[#50883]: https://github.com/dart-lang/sdk/issues/50883
+
 #### `dart:developer`
 
 - **Breaking change** [#49529][]:
@@ -77,9 +83,18 @@
 - Callbacks passed to `registerExtension` will be run in the zone from which
   they are registered.
 
+- **Breaking change** [#50231][]:
+  - Removed the deprecated [`Metrics`][], [`Metric`][], [`Counter`][],
+    and [`Gauge`][] classes as they have been broken since Dart 2.0.
+
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
+[#50231]: https://github.com/dart-lang/sdk/issues/50231
 [`MAX_USER_TAGS`]: https://api.dart.dev/stable/dart-developer/UserTag/MAX_USER_TAGS-constant.html
 [`maxUserTags`]: https://api.dart.dev/beta/2.19.0-255.2.beta/dart-developer/UserTag/maxUserTags-constant.html
+[`Metrics`]: https://api.dart.dev/stable/2.18.2/dart-developer/Metrics-class.html
+[`Metric`]: https://api.dart.dev/stable/2.18.2/dart-developer/Metric-class.html
+[`Counter`]: https://api.dart.dev/stable/2.18.2/dart-developer/Counter-class.html
+[`Gauge`]: https://api.dart.dev/stable/2.18.2/dart-developer/Gauge-class.html
 
 #### `dart:html`
 
@@ -114,6 +129,12 @@ Updates the Linter to `1.32.0`, which includes changes that
 - improve performance for `prefer_const_literals_to_create_immutables`.
 - update `use_build_context_synchronously` to check context properties.
 - fix a false positive for `avoid_private_typedef_functions` with generalized type aliases.
+
+#### Migration tool removal
+
+The null safety migration tool (`dart migrate`) has been removed.  If you still
+have code which needs to be migrated to null safety, please run `dart migrate`
+using Dart version 2.19, before upgrading to Dart version 3.0.
 
 ## 2.19.0
 

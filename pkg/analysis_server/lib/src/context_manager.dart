@@ -311,6 +311,7 @@ class ContextManagerImpl implements ContextManager {
         content,
         driver.sourceFactory,
         driver.currentSession.analysisContext.contextRoot.root.path,
+        driver.analysisOptions.sdkVersionConstraint,
       );
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(errors,

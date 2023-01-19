@@ -46,7 +46,7 @@ class ThreadPool {
     return RunImpl(std::unique_ptr<Task>(new T(std::forward<Args>(args)...)));
   }
 
-  // Returns `true` if the current thread is runing on the [this] thread pool.
+  // Returns `true` if the current thread is running on the [this] thread pool.
   bool CurrentThreadIsWorker();
 
   // Mark the current thread as being blocked (e.g. in native code). This might

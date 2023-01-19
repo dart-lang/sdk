@@ -33,7 +33,7 @@ void f() {
   var x = 0;
 }
 ''', [
-      error(HintCode.DUPLICATE_IGNORE, 43, 21),
+      error(WarningCode.DUPLICATE_IGNORE, 43, 21),
     ]);
   }
 
@@ -44,7 +44,7 @@ void f() {
   var x = 0;
 }
 ''', [
-      error(HintCode.DUPLICATE_IGNORE, 47, 21),
+      error(WarningCode.DUPLICATE_IGNORE, 47, 21),
     ]);
   }
 
@@ -56,7 +56,7 @@ void f() {
   var x = 0;
 }
 ''', [
-      error(HintCode.DUPLICATE_IGNORE, 66, 21),
+      error(WarningCode.DUPLICATE_IGNORE, 66, 21),
     ]);
   }
 
@@ -65,7 +65,7 @@ void f() {
 // ignore_for_file: type=lint, TYPE=LINT
 void f(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''', [
-      error(HintCode.DUPLICATE_IGNORE, 31, 10),
+      error(WarningCode.DUPLICATE_IGNORE, 31, 10),
     ]);
   }
 
@@ -75,7 +75,7 @@ void f() {}
 // ignore: type=lint, TYPE=LINT
 void g(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''', [
-      error(HintCode.DUPLICATE_IGNORE, 34, 10),
+      error(WarningCode.DUPLICATE_IGNORE, 34, 10),
     ]);
   }
 
@@ -86,7 +86,7 @@ void f() {}
 // ignore: type=lint
 void g(arg1(int)) {} // AVOID_TYPES_AS_PARAMETER_NAMES
 ''', [
-      error(HintCode.DUPLICATE_IGNORE, 53, 10),
+      error(WarningCode.DUPLICATE_IGNORE, 53, 10),
     ]);
   }
 }

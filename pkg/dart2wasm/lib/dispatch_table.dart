@@ -200,10 +200,10 @@ class DispatchTable {
   final Map<int, SelectorInfo> _selectorInfo = {};
 
   /// Maps member names to getter selectors with the same member name.
-  final Map<String, List<SelectorInfo>> _dynamicGets = {};
+  final Map<String, List<SelectorInfo>> _dynamicGetters = {};
 
   /// Maps member names to setter selectors with the same member name.
-  final Map<String, List<SelectorInfo>> _dynamicSets = {};
+  final Map<String, List<SelectorInfo>> _dynamicSetters = {};
 
   /// Maps member names to method selectors with the same member name.
   final Map<String, List<SelectorInfo>> _dynamicMethods = {};
@@ -259,7 +259,8 @@ class DispatchTable {
 
     final calledDynamically = !isWasmType &&
         (metadata.getterCalledDynamically ||
-            metadata.methodOrSetterCalledDynamically);
+            metadata.methodOrSetterCalledDynamically ||
+            member.name.text == "call");
 
     final selector = _selectorInfo.putIfAbsent(
         selectorId,
@@ -269,9 +270,9 @@ class DispatchTable {
     selector._returnCount = max(selector._returnCount, returnCount);
     if (calledDynamically) {
       if (isGetter) {
-        (_dynamicGets[member.name.text] ??= []).add(selector);
+        (_dynamicGetters[member.name.text] ??= []).add(selector);
       } else if (isSetter) {
-        (_dynamicSets[member.name.text] ??= []).add(selector);
+        (_dynamicSetters[member.name.text] ??= []).add(selector);
       } else {
         (_dynamicMethods[member.name.text] ??= []).add(selector);
       }
@@ -279,17 +280,17 @@ class DispatchTable {
     return selector;
   }
 
-  Iterable<SelectorInfo>? selectorsForDynamicGet(String memberName) {
-    return _dynamicGets[memberName];
-  }
+  /// Get selectors for getters and tear-offs with the given name.
+  Iterable<SelectorInfo> dynamicGetterSelectors(String memberName) =>
+      _dynamicGetters[memberName] ?? Iterable.empty();
 
-  Iterable<SelectorInfo>? selectorsForDynamicSet(String memberName) {
-    return _dynamicSets[memberName];
-  }
+  /// Get selectors for setters with the given name.
+  Iterable<SelectorInfo> dynamicSetterSelectors(String memberName) =>
+      _dynamicSetters[memberName] ?? Iterable.empty();
 
-  Iterable<SelectorInfo>? selectorsForDynamicInvocation(String memberName) {
-    return _dynamicMethods[memberName];
-  }
+  /// Get selectors for methods with the given name.
+  Iterable<SelectorInfo> dynamicMethodSelectors(String memberName) =>
+      _dynamicMethods[memberName] ?? Iterable.empty();
 
   void build() {
     // Collect class/selector combinations
@@ -348,7 +349,10 @@ class DispatchTable {
           if (member.hasSetter) addMember(member.setterReference!);
         } else if (member is Procedure) {
           addMember(member.reference);
-          if (_procedureAttributeMetadata[member]!.hasTearOffUses) {
+          // `hasTearOffUses` can be true for operators as well, even though
+          // it's not possible to tear-off an operator. (no syntax for it)
+          if (member.kind == ProcedureKind.Method &&
+              _procedureAttributeMetadata[member]!.hasTearOffUses) {
             addMember(member.tearOffReference);
           }
         }

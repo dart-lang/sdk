@@ -32,6 +32,7 @@ import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_model/elements.dart'
     show JField, JGeneratorBody, JSignatureMethod;
 import '../../js_model/js_world.dart';
+import '../../js_model/records.dart' show RecordData, RecordRepresentation;
 import '../../js_model/type_recipe.dart'
     show FullTypeEnvironmentStructure, TypeExpressionRecipe;
 import '../../native/enqueue.dart' show NativeCodegenEnqueuer;
@@ -77,6 +78,7 @@ class ProgramBuilder {
   final CodeEmitterTask _task;
   final JClosedWorld _closedWorld;
   final JFieldAnalysis _fieldAnalysis;
+  final RecordData _recordData;
   final InferredData _inferredData;
   final SourceInformationStrategy _sourceInformationStrategy;
 
@@ -123,6 +125,7 @@ class ProgramBuilder {
       this._task,
       this._closedWorld,
       this._fieldAnalysis,
+      this._recordData,
       this._inferredData,
       this._sourceInformationStrategy,
       this._sorter,
@@ -571,6 +574,21 @@ class ProgramBuilder {
       sharedClosureApplyMetadata = 2;
     }
 
+    int? recordShapeTag;
+    js.Expression? recordShapeRecipe;
+    RecordRepresentation? record = _recordData.representationForClass(cls);
+    if (record != null && record.definesShape) {
+      recordShapeTag = record.shapeTag;
+      // A top-type for a record shape. We choose `dynamic` as the top-type for
+      // the fields since is encodes concisely.
+      // TODO(50081): Move this somewhere to improve consistency with Rti
+      // runtime.
+      final recordTop = _dartTypes.recordType(record.shape,
+          List.filled(record.shape.fieldCount, _dartTypes.dynamicType()));
+      recordShapeRecipe = _rtiRecipeEncoder.encodeGroundRecipe(
+          _task.emitter, TypeExpressionRecipe(recordTop));
+    }
+
     List<Method> methods = [];
     List<StubMethod> callStubs = [];
 
@@ -719,6 +737,8 @@ class ProgramBuilder {
       assert(methods.isEmpty);
       assert(!isClosureBaseClass);
       assert(sharedClosureApplyMetadata == null);
+      assert(recordShapeTag == null);
+      assert(recordShapeRecipe == null);
 
       result = MixinApplication(cls, typeData, name, instanceFields, callStubs,
           checkedSetters, gettersSetters, isChecks, typeTests.functionTypeIndex,
@@ -746,7 +766,9 @@ class ProgramBuilder {
           isNative: _nativeData.isNativeClass(cls),
           isClosureBaseClass: isClosureBaseClass,
           sharedClosureApplyMetadata: sharedClosureApplyMetadata,
-          isMixinApplicationWithMembers: isMixinApplicationWithMembers);
+          isMixinApplicationWithMembers: isMixinApplicationWithMembers,
+          recordShapeTag: recordShapeTag,
+          recordShapeRecipe: recordShapeRecipe);
     }
     _classes[cls] = result;
     return result;

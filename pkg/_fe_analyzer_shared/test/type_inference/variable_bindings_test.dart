@@ -113,15 +113,27 @@ main() {
         expectedVariables: {'x: [1, 3]', 'y: notConsistent [2]'},
       );
     });
-    test('Has default', () {
-      h.runSwitchStatementSharedBody(
-        sharedCaseScopeKey: 0,
-        casePatterns: [
-          _VarPattern('x', 1),
-        ],
-        hasDefault: true,
-        expectedVariables: {'x: notConsistent [1]'},
-      );
+    group('Has default', () {
+      test('First', () {
+        h.runSwitchStatementSharedBody(
+          sharedCaseScopeKey: 0,
+          casePatterns: [
+            _VarPattern('x', 1),
+          ],
+          hasDefaultFirst: true, // does not happen normally
+          expectedVariables: {'x: notConsistent [1]'},
+        );
+      });
+      test('Last', () {
+        h.runSwitchStatementSharedBody(
+          sharedCaseScopeKey: 0,
+          casePatterns: [
+            _VarPattern('x', 1),
+          ],
+          hasDefaultLast: true,
+          expectedVariables: {'x: notConsistent [1]'},
+        );
+      });
     });
     group('With logical-or', () {
       test('Both have', () {
@@ -254,11 +266,16 @@ class _Harness {
   void runSwitchStatementSharedBody({
     required Object sharedCaseScopeKey,
     required List<_Node> casePatterns,
-    bool hasDefault = false,
+    bool hasDefaultFirst = false,
+    bool hasDefaultLast = false,
     List<String> expectErrors = const [],
     required Set<String> expectedVariables,
   }) {
+    assert(!(hasDefaultFirst && hasDefaultLast));
     _binder.switchStatementSharedCaseScopeStart(sharedCaseScopeKey);
+    if (hasDefaultFirst) {
+      _binder.switchStatementSharedCaseScopeEmpty(sharedCaseScopeKey);
+    }
     for (var casePattern in casePatterns) {
       _binder.casePatternStart();
       casePattern._visit(this);
@@ -266,7 +283,7 @@ class _Harness {
         sharedCaseScopeKey: sharedCaseScopeKey,
       );
     }
-    if (hasDefault) {
+    if (hasDefaultLast) {
       _binder.switchStatementSharedCaseScopeEmpty(sharedCaseScopeKey);
     }
     var variables =

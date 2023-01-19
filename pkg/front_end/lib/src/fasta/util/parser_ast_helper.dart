@@ -182,6 +182,8 @@ abstract class AbstractParserAstListener implements Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -191,6 +193,8 @@ abstract class AbstractParserAstListener implements Listener {
         macroToken: macroToken,
         inlineToken: inlineToken,
         sealedToken: sealedToken,
+        baseToken: baseToken,
+        interfaceToken: interfaceToken,
         augmentToken: augmentToken,
         mixinToken: mixinToken,
         name: name);
@@ -245,11 +249,13 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void beginMixinDeclaration(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(Token? augmentToken, Token? sealedToken,
+      Token? baseToken, Token? interfaceToken, Token mixinKeyword, Token name) {
     MixinDeclarationBegin data = new MixinDeclarationBegin(ParserAstType.BEGIN,
         augmentToken: augmentToken,
         sealedToken: sealedToken,
+        baseToken: baseToken,
+        interfaceToken: interfaceToken,
         mixinKeyword: mixinKeyword,
         name: name);
     seen(data);
@@ -970,6 +976,8 @@ abstract class AbstractParserAstListener implements Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -980,6 +988,8 @@ abstract class AbstractParserAstListener implements Listener {
         macroToken: macroToken,
         inlineToken: inlineToken,
         sealedToken: sealedToken,
+        baseToken: baseToken,
+        interfaceToken: interfaceToken,
         augmentToken: augmentToken,
         mixinToken: mixinToken,
         name: name);
@@ -3250,6 +3260,8 @@ class ClassDeclarationBegin extends ParserAstNode {
   final Token? macroToken;
   final Token? inlineToken;
   final Token? sealedToken;
+  final Token? baseToken;
+  final Token? interfaceToken;
   final Token? augmentToken;
   final Token? mixinToken;
   final Token name;
@@ -3260,6 +3272,8 @@ class ClassDeclarationBegin extends ParserAstNode {
       this.macroToken,
       this.inlineToken,
       this.sealedToken,
+      this.baseToken,
+      this.interfaceToken,
       this.augmentToken,
       this.mixinToken,
       required this.name})
@@ -3272,6 +3286,8 @@ class ClassDeclarationBegin extends ParserAstNode {
         "macroToken": macroToken,
         "inlineToken": inlineToken,
         "sealedToken": sealedToken,
+        "baseToken": baseToken,
+        "interfaceToken": interfaceToken,
         "augmentToken": augmentToken,
         "mixinToken": mixinToken,
         "name": name,
@@ -3373,12 +3389,16 @@ class ClassDeclarationEnd extends ParserAstNode {
 class MixinDeclarationBegin extends ParserAstNode {
   final Token? augmentToken;
   final Token? sealedToken;
+  final Token? baseToken;
+  final Token? interfaceToken;
   final Token mixinKeyword;
   final Token name;
 
   MixinDeclarationBegin(ParserAstType type,
       {this.augmentToken,
       this.sealedToken,
+      this.baseToken,
+      this.interfaceToken,
       required this.mixinKeyword,
       required this.name})
       : super("MixinDeclaration", type);
@@ -3387,6 +3407,8 @@ class MixinDeclarationBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "augmentToken": augmentToken,
         "sealedToken": sealedToken,
+        "baseToken": baseToken,
+        "interfaceToken": interfaceToken,
         "mixinKeyword": mixinKeyword,
         "name": name,
       };
@@ -4667,6 +4689,8 @@ class NamedMixinApplicationBegin extends ParserAstNode {
   final Token? macroToken;
   final Token? inlineToken;
   final Token? sealedToken;
+  final Token? baseToken;
+  final Token? interfaceToken;
   final Token? augmentToken;
   final Token? mixinToken;
   final Token name;
@@ -4677,6 +4701,8 @@ class NamedMixinApplicationBegin extends ParserAstNode {
       this.macroToken,
       this.inlineToken,
       this.sealedToken,
+      this.baseToken,
+      this.interfaceToken,
       this.augmentToken,
       this.mixinToken,
       required this.name})
@@ -4689,6 +4715,8 @@ class NamedMixinApplicationBegin extends ParserAstNode {
         "macroToken": macroToken,
         "inlineToken": inlineToken,
         "sealedToken": sealedToken,
+        "baseToken": baseToken,
+        "interfaceToken": interfaceToken,
         "augmentToken": augmentToken,
         "mixinToken": mixinToken,
         "name": name,

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../generated/test_support.dart';
@@ -26,15 +27,15 @@ class InconsistentLanguageVersionOverrideTest extends PubPackageResolutionTest
   test_both_different() async {
     await _checkLibraryAndPart(
       libraryContent: r'''
-// @dart = 2.5
+// @dart = 2.12
 part 'b.dart';
 ''',
       partContent: r'''
-// @dart = 2.6
+// @dart = 2.13
 part of 'a.dart';
 ''',
       libraryErrors: [
-        error(_errorCode, 20, 8),
+        error(_errorCode, 21, 8),
       ],
     );
   }
@@ -42,11 +43,11 @@ part of 'a.dart';
   test_both_same() async {
     await _checkLibraryAndPart(
       libraryContent: r'''
-// @dart = 2.5
+// @dart = 2.12
 part 'b.dart';
 ''',
       partContent: r'''
-// @dart = 2.5
+// @dart = 2.12
 part of 'a.dart';
 ''',
       libraryErrors: [],
@@ -66,6 +67,7 @@ part of 'a.dart';
   }
 
   test_onlyLibrary() async {
+    noSoundNullSafety = false;
     await _checkLibraryAndPart(
       libraryContent: r'''
 // @dart = 2.5

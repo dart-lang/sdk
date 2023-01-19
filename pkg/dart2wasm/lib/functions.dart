@@ -31,7 +31,7 @@ class FunctionCollector {
   final w.ValueType asyncStackType = const w.RefType.extern(nullable: true);
 
   late final w.FunctionType asyncStubFunctionType = m.addFunctionType(
-      [const w.RefType.data(nullable: false), asyncStackType],
+      [const w.RefType.struct(nullable: false), asyncStackType],
       [translator.topInfo.nullableType]);
 
   late final w.StructType asyncStubBaseStruct = m.addStructType("#AsyncStub",
@@ -140,41 +140,52 @@ class FunctionCollector {
   w.BaseFunction getFunction(Reference target) {
     return _functions.putIfAbsent(target, () {
       _worklist.add(target);
-
-      if (target.isTypeCheckerReference) {
-        Member member = target.asMember;
-        if (member is Field || (member is Procedure && member.isSetter)) {
-          return m.addFunction(translator.dynamicSetForwarderFunctionType,
-              '${target.asMember} setter type checker');
-        } else {
-          return m.addFunction(
-              translator.dynamicInvocationForwarderFunctionType,
-              '${target.asMember} invocation type checker');
-        }
-      }
-
-      if (target.isTearOffReference) {
-        return m.addFunction(
-            translator.dispatchTable.selectorForTarget(target).signature,
-            "${target.asMember}");
-      }
-
-      if (target.isAsyncInnerReference) {
-        w.BaseFunction outer = getFunction(target.asProcedure.reference);
-        return addAsyncInnerFunctionFor(outer);
-      }
-
-      final ftype =
-          target.asMember.accept1(_FunctionTypeGenerator(translator), target);
-      return m.addFunction(ftype, "${target.asMember}");
+      return _getFunctionTypeAndName(target, m.addFunction);
     });
   }
 
+  w.FunctionType getFunctionType(Reference target) {
+    return _getFunctionTypeAndName(target, (ftype, name) => ftype);
+  }
+
+  T _getFunctionTypeAndName<T>(
+      Reference target, T Function(w.FunctionType, String) action) {
+    if (target.isTypeCheckerReference) {
+      Member member = target.asMember;
+      if (member is Field || (member is Procedure && member.isSetter)) {
+        return action(translator.dynamicSetForwarderFunctionType,
+            '${target.asMember} setter type checker');
+      } else {
+        return action(translator.dynamicInvocationForwarderFunctionType,
+            '${target.asMember} invocation type checker');
+      }
+    }
+
+    if (target.isTearOffReference) {
+      return action(
+          translator.dispatchTable.selectorForTarget(target).signature,
+          "${target.asMember}");
+    }
+
+    if (target.isAsyncInnerReference) {
+      w.BaseFunction outer = getFunction(target.asProcedure.reference);
+      return action(
+          _asyncInnerFunctionTypeFor(outer), "${outer.functionName} inner");
+    }
+
+    final ftype =
+        target.asMember.accept1(_FunctionTypeGenerator(translator), target);
+    return action(ftype, "${target.asMember}");
+  }
+
   w.DefinedFunction addAsyncInnerFunctionFor(w.BaseFunction outer) {
-    w.FunctionType ftype = m.addFunctionType(
-        [...outer.type.inputs, asyncStackType],
-        [translator.topInfo.nullableType]);
+    w.FunctionType ftype = _asyncInnerFunctionTypeFor(outer);
     return m.addFunction(ftype, "${outer.functionName} inner");
+  }
+
+  w.FunctionType _asyncInnerFunctionTypeFor(w.BaseFunction outer) {
+    return m.addFunctionType([...outer.type.inputs, asyncStackType],
+        [translator.topInfo.nullableType]);
   }
 
   void activateSelector(SelectorInfo selector) {

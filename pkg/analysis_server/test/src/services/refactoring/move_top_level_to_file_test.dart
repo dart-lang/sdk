@@ -36,7 +36,6 @@ class ^A {}
     arguments[0] = newFileUri.toString();
   }
 
-  @failingTest
   Future<void> test_copyFileHeader() async {
     var originalSource = '''
 // File header.

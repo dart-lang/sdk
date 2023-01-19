@@ -92,7 +92,6 @@ class SnippetTester {
     //  API, write code to compute the list of imports so that new public API
     //  will automatically be allowed.
     String imports = '''
-// @dart = 2.9
 import 'dart:math' as math;
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
@@ -105,7 +104,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-void assertNoErrorsInCode(String s) {}
+Future<void> assertNoErrorsInCode(String s) async {}
 void test(String s, void Function() f) {}
 void group(String s, void Function() f) {}
 ''';

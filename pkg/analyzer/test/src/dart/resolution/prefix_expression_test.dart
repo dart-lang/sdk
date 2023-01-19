@@ -147,6 +147,50 @@ PrefixExpression
 ''');
   }
 
+  test_plusPlus_switchExpression() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  ++switch (x) {
+    _ => 0,
+  };
+}
+''', [
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 51, 1),
+    ]);
+
+    var node = findNode.prefix('++switch');
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+        arrow: =>
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+    rightBracket: }
+    staticType: int
+  readElement: <null>
+  readType: dynamic
+  writeElement: <null>
+  writeType: dynamic
+  staticElement: <null>
+  staticType: dynamic
+''');
+  }
+
   test_tilde_no_nullShorting() async {
     await assertErrorsInCode(r'''
 class A {

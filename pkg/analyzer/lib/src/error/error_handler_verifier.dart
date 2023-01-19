@@ -174,7 +174,7 @@ class ErrorHandlerVerifier {
       {bool checkFirstParameterType = true}) {
     void report() {
       _errorReporter.reportErrorForNode(
-        HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
+        WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER,
         expression,
         [expressionType, expectedFunctionReturnType],
       );

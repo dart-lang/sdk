@@ -72,7 +72,7 @@ const int kFontFieldLength = 4;
 
 /// Extension to use a 64-bit integer as bit field.
 extension IntBitField on int {
-  static int _bitMask(int offset, int lenght) => ((1 << lenght) - 1) << offset;
+  static int _bitMask(int offset, int length) => ((1 << length) - 1) << offset;
 
   /// Read `length` bits at `offset`.
   ///

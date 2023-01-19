@@ -118,6 +118,10 @@ external T and<T>(Object? first, Object? second);
 /// given object.
 external bool delete<T>(Object o, Object property);
 
+/// Perform JavaScript unsigned right shift operator (`>>>`) on the given left
+/// operand by the amount specified by the given right operand.
+external num unsignedRightShift(Object? leftOperand, Object? rightOperand);
+
 /// Exception for when the promise is rejected with a `null` or `undefined`
 /// value.
 ///

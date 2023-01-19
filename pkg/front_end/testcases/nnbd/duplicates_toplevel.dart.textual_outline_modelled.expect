@@ -1,3 +1,4 @@
+// @dart = 2.19
 expect(expected, actual) {}
 final int topLevelDuplicateFieldAndDuplicateSetter = 1;
 final int topLevelDuplicateFieldAndDuplicateSetter = 2;

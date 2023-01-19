@@ -88,6 +88,7 @@ namespace dart {
   F(KernelProgramInfo, retained_kernel_blob_)                                  \
   F(WeakSerializationReference, target_)                                       \
   F(WeakSerializationReference, replacement_)                                  \
+  F(WeakArray, length_)                                                        \
   F(Code, object_pool_)                                                        \
   F(Code, instructions_)                                                       \
   F(Code, owner_)                                                              \

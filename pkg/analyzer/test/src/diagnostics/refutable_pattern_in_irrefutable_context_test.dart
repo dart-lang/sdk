@@ -61,10 +61,10 @@ PatternVariableDeclaration
   pattern: ParenthesizedPattern
     leftParenthesis: (
     pattern: LogicalOrPattern
-      leftOperand: DeclaredVariablePattern
+      leftOperand: WildcardPattern
         name: _
       operator: ||
-      rightOperand: DeclaredVariablePattern
+      rightOperand: WildcardPattern
         name: _
     rightParenthesis: )
   equals: =
@@ -76,12 +76,12 @@ PatternVariableDeclaration
 
   test_declaration_nullCheckPattern() async {
     await assertErrorsInCode(r'''
-void f() {
-  var (_?) = 0;
+void f(int? x) {
+  var (_?) = x;
 }
 ''', [
       error(
-          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT, 18, 2),
+          CompileTimeErrorCode.REFUTABLE_PATTERN_IN_IRREFUTABLE_CONTEXT, 24, 2),
     ]);
 
     var node = findNode.singlePatternVariableDeclaration;
@@ -90,15 +90,16 @@ PatternVariableDeclaration
   keyword: var
   pattern: ParenthesizedPattern
     leftParenthesis: (
-    pattern: PostfixPattern
-      operand: DeclaredVariablePattern
+    pattern: NullCheckPattern
+      pattern: WildcardPattern
         name: _
       operator: ?
     rightParenthesis: )
   equals: =
-  expression: IntegerLiteral
-    literal: 0
-    staticType: int
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: int?
 ''');
   }
 

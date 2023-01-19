@@ -528,6 +528,18 @@ class _HttpRequest extends _HttpInboundMessage implements HttpRequest {
   Uri get requestedUri {
     var requestedUri = _requestedUri;
     if (requestedUri != null) return requestedUri;
+
+    // `uri` can be an absoluteURI or an abs_path (RFC 2616 section 5.1.2).
+    // If `uri` is already absolute then use it as-is. Otherwise construct an
+    // absolute URI using `uri` and header information.
+
+    // RFC 3986 section 4.3 says that an absolute URI must have a scheme and
+    // cannot have a fragment. But any URI with a scheme is sufficient for the
+    // purpose of providing the `requestedUri`.
+    if (uri.hasScheme) {
+      return _requestedUri = uri;
+    }
+
     var proto = headers['x-forwarded-proto'];
     var scheme = proto != null
         ? proto.first
@@ -2497,26 +2509,24 @@ class _ConnectionTarget {
           return _ConnectionInfo(connection, proxy);
         }
       }, onError: (error) {
-        // When there is a timeout, there is a race in which the connectionTask
-        // Future won't be completed with an error before the socketFuture here
-        // is completed with a TimeoutException by the onTimeout callback above.
-        // In this case, propagate a SocketException as specified by the
-        // HttpClient.connectionTimeout docs.
+        _connecting--;
+        _socketTasks.remove(task);
+        _checkPending();
+        // When there is a timeout, cancel the ConnectionTask and propagate a
+        // SocketException as specified by the HttpClient.connectionTimeout
+        // docs.
         if (error is TimeoutException) {
           assert(connectionTimeout != null);
-          _connecting--;
-          _socketTasks.remove(task);
           task.cancel();
           throw SocketException(
               "HTTP connection timed out after $connectionTimeout, "
               "host: $host, port: $port");
         }
-        _socketTasks.remove(task);
-        _checkPending();
         throw error;
       });
     }, onError: (error) {
       _connecting--;
+      _checkPending();
       throw error;
     });
   }

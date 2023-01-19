@@ -19,7 +19,7 @@ class DeprecatedExtendsFunctionTest extends PubPackageResolutionTest {
     await assertErrorsInCode('''
 class A extends Function {}
 ''', [
-      error(HintCode.DEPRECATED_EXTENDS_FUNCTION, 16, 8),
+      error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 16, 8),
     ]);
   }
 
@@ -29,7 +29,7 @@ class Function {}
 class A extends Function {}
 ''', [
       error(CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPE_NAME, 6, 8),
-      error(HintCode.DEPRECATED_EXTENDS_FUNCTION, 34, 8),
+      error(WarningCode.DEPRECATED_EXTENDS_FUNCTION, 34, 8),
     ]);
   }
 }

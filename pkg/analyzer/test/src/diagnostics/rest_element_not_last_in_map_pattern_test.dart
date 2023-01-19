@@ -35,7 +35,7 @@ MapPattern
         literal: 0
         staticType: int
       separator: :
-      value: DeclaredVariablePattern
+      value: WildcardPattern
         name: _
   rightBracket: }
   requiredType: Map<int, String>

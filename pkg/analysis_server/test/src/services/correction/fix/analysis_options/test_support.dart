@@ -47,6 +47,7 @@ class AnalysisOptionsFixTest with ResourceProviderMixin {
       content,
       sourceFactory,
       '/',
+      null,
     );
     if (errorFilter != null) {
       if (errors.length == 1) {

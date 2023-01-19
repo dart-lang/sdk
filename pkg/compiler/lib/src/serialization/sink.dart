@@ -56,9 +56,9 @@ class DataSinkWriter {
       return UnorderedIndexedSink<T>(this,
           startOffset: indices.previousSourceReader?.endOffset);
     }
-    Map<T, int> cacheCopy = Map.from(sourceInfo.cache);
     return UnorderedIndexedSink<T>(this,
-        cache: cacheCopy, startOffset: indices.previousSourceReader?.endOffset);
+        cache: Map.from(sourceInfo.cache),
+        startOffset: indices.previousSourceReader?.endOffset);
   }
 
   IndexedSink<T> _createSink<T>() {
@@ -66,8 +66,8 @@ class DataSinkWriter {
     if (indices == null || !indices.caches.containsKey(T)) {
       return OrderedIndexedSink<T>(_sinkWriter);
     } else {
-      Map<T, int> cacheCopy = Map.from(indices.caches[T]!.cache);
-      return OrderedIndexedSink<T>(_sinkWriter, cache: cacheCopy);
+      return OrderedIndexedSink<T>(_sinkWriter,
+          cache: Map.from(indices.caches[T]!.cache));
     }
   }
 
@@ -987,6 +987,11 @@ class DataSinkWriter {
         writeDartType(constant.type);
         writeMemberMap(constant.fields,
             (MemberEntity member, ConstantValue value) => writeConstant(value));
+        break;
+      case ConstantValueKind.RECORD:
+        final constant = value as RecordConstantValue;
+        constant.shape.writeToDataSink(this);
+        writeConstants(constant.values);
         break;
       case ConstantValueKind.TYPE:
         final constant = value as TypeConstantValue;

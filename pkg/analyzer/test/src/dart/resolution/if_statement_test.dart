@@ -207,7 +207,8 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN, 53, 1),
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR, 53, 1),
     ]);
 
     final node = findNode.ifStatement('if');
@@ -287,7 +288,8 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN, 50, 1),
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR, 50, 1),
     ]);
 
     final node = findNode.ifStatement('if');

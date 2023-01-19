@@ -106,9 +106,8 @@ class BinaryExpressionResolver {
 
   void _resolveEqual(BinaryExpressionImpl node,
       {required bool notEqual, required DartType? contextType}) {
-    var left = node.leftOperand;
-    left.accept(_resolver);
-    left = node.leftOperand;
+    _resolver.analyzeExpression(node.leftOperand, null);
+    var left = _resolver.popRewrite()!;
 
     var flow = _resolver.flowAnalysis.flow;
     EqualityInfo<DartType>? leftInfo;
@@ -117,9 +116,8 @@ class BinaryExpressionResolver {
       leftInfo = flow?.equalityOperand_end(left, left.typeOrThrow);
     }
 
-    var right = node.rightOperand;
-    right.accept(_resolver);
-    right = node.rightOperand;
+    _resolver.analyzeExpression(node.rightOperand, null);
+    var right = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(right);
 
     if (!leftExtensionOverride) {
@@ -243,11 +241,8 @@ class BinaryExpressionResolver {
 
   void _resolveUserDefinable(BinaryExpressionImpl node,
       {required DartType? contextType}) {
-    var left = node.leftOperand;
-    var right = node.rightOperand;
-
-    left.accept(_resolver);
-    left = node.leftOperand; // In case it was rewritten
+    _resolver.analyzeExpression(node.leftOperand, null);
+    var left = _resolver.popRewrite()!;
 
     var operator = node.operator;
     _resolveUserDefinableElement(node, operator.lexeme);
@@ -262,8 +257,8 @@ class BinaryExpressionResolver {
           left.staticType, node.staticElement, contextType, rightParam.type);
     }
 
-    _resolver.analyzeExpression(right, rightContextType);
-    right = _resolver.popRewrite()!;
+    _resolver.analyzeExpression(node.rightOperand, rightContextType);
+    var right = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(right);
 
     _resolveUserDefinableType(node, contextType: contextType);

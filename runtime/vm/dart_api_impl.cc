@@ -5898,7 +5898,7 @@ DART_EXPORT Dart_Handle Dart_FinalizeLoading(bool complete_futures) {
   I->debugger()->NotifyDoneLoading();
 #endif
 
-  // After having loaded all the code, we can let the GC set reaonsable limits
+  // After having loaded all the code, we can let the GC set reasonable limits
   // for the heap growth.
   // If this is an auxiliary isolate inside a larger isolate group, we will not
   // re-initialize the growth policy.

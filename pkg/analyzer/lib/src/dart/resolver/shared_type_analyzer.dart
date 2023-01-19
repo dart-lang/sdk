@@ -74,6 +74,22 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void duplicateAssignmentPatternVariable({
+    required covariant PromotableElement variable,
+    required covariant AssignedVariablePatternImpl original,
+    required covariant AssignedVariablePatternImpl duplicate,
+  }) {
+    _errorReporter.reportError(
+      DiagnosticFactory().duplicateAssignmentPatternVariable(
+        source: _errorReporter.source,
+        variable: variable,
+        original: original,
+        duplicate: duplicate,
+      ),
+    );
+  }
+
+  @override
   void duplicateRecordPatternField({
     required String name,
     required covariant SharedRecordPatternField original,
@@ -110,20 +126,56 @@ class SharedTypeAnalyzerErrors
     required PromotableElement component,
   }) {
     _errorReporter.reportErrorForElement(
-      CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN,
+      CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
       component,
       [variable.name],
     );
   }
 
   @override
+  void matchedTypeIsStrictlyNonNullable({
+    required DartPattern pattern,
+    required DartType matchedType,
+  }) {
+    if (pattern is NullAssertPattern) {
+      _errorReporter.reportErrorForToken(
+        StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN,
+        pattern.operator,
+      );
+    } else if (pattern is NullCheckPattern) {
+      _errorReporter.reportErrorForToken(
+        StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN,
+        pattern.operator,
+      );
+    } else {
+      throw UnimplementedError('(${pattern.runtimeType}) $pattern');
+    }
+  }
+
+  @override
   void nonBooleanCondition(Expression node) {
-    throw UnimplementedError('TODO(paulberry)');
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.NON_BOOL_CONDITION,
+      node,
+    );
   }
 
   @override
   void patternDoesNotAllowLate(AstNode pattern) {
     throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void patternForInExpressionIsNotIterable({
+    required AstNode node,
+    required Expression expression,
+    required DartType expressionType,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
+      expression,
+      [expressionType, 'Iterable'],
+    );
   }
 
   @override

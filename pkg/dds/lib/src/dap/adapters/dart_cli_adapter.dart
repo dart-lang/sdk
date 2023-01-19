@@ -117,7 +117,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
       ],
       '--disable-dart-dev',
       if (debug && vmServiceInfoFile != null) ...[
-        '-DSILENT_OBSERVATORY=true',
+        '-DSILENT_VM_SERVICE=true',
         '--write-service-info=${Uri.file(vmServiceInfoFile.path)}'
       ],
     ];

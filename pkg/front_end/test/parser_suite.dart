@@ -3,43 +3,30 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert' show jsonDecode;
-
 import 'dart:io' show File;
-
 import 'dart:typed_data' show Uint8List;
-
-import 'package:front_end/src/fasta/command_line_reporting.dart'
-    as command_line_reporting;
-
-import 'package:front_end/src/fasta/messages.dart' show Message;
-import 'package:front_end/src/fasta/source/diet_parser.dart'
-    show useImplicitCreationExpressionInCfe;
-
-import 'package:front_end/src/fasta/util/parser_ast.dart' show getAST;
-
-import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared
-    show ExperimentalFlag;
 
 import 'package:_fe_analyzer_shared/src/experiments/errors.dart'
     show getExperimentNotEnabledMessage;
-
+import 'package:_fe_analyzer_shared/src/experiments/flags.dart' as shared
+    show ExperimentalFlag;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Parser, lengthOfSpan;
-
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
     show ErrorToken, ScannerConfiguration, Token, Utf8BytesScanner;
-
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show SyntheticStringToken;
-
+import 'package:front_end/src/fasta/command_line_reporting.dart'
+    as command_line_reporting;
+import 'package:front_end/src/fasta/messages.dart' show Message;
+import 'package:front_end/src/fasta/source/diet_parser.dart'
+    show useImplicitCreationExpressionInCfe;
 import 'package:front_end/src/fasta/source/stack_listener_impl.dart'
     show offsetForToken;
-
+import 'package:front_end/src/fasta/util/parser_ast.dart' show getAST;
 import 'package:front_end/src/fasta/util/parser_ast_helper.dart'
     show ParserAstNode;
-
 import 'package:kernel/ast.dart';
-
 import 'package:testing/testing.dart'
     show
         Chain,
@@ -51,13 +38,10 @@ import 'package:testing/testing.dart'
         runMe;
 
 import 'fasta/testing/suite.dart' show UPDATE_EXPECTATIONS;
-import 'utils/kernel_chain.dart' show MatchContext;
-
 import 'parser_test_listener.dart' show ParserTestListener;
-
 import 'parser_test_parser.dart' show TestParser;
-
 import 'testing_utils.dart' show checkEnvironment;
+import 'utils/kernel_chain.dart' show MatchContext;
 
 const String EXPECTATIONS = '''
 [
@@ -78,13 +62,13 @@ void main([List<String> arguments = const []]) =>
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
   const Set<String> knownEnvironmentKeys = {
-    "updateExpectations",
+    UPDATE_EXPECTATIONS,
     "trace",
     "annotateLines"
   };
   checkEnvironment(environment, knownEnvironmentKeys);
 
-  bool updateExpectations = environment["updateExpectations"] == "true";
+  bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
   bool trace = environment["trace"] == "true";
   bool annotateLines = environment["annotateLines"] == "true";
 
@@ -177,8 +161,10 @@ class ContextChecksOnly extends Context {
 
 class ParserAstStep extends Step<TestDescription, TestDescription, Context> {
   const ParserAstStep();
+
   @override
   String get name => "ParserAst";
+
   @override
   Future<Result<TestDescription>> run(
       TestDescription description, Context context) {
@@ -196,6 +182,7 @@ class ParserAstStep extends Step<TestDescription, TestDescription, Context> {
 
 class ListenerStep extends Step<TestDescription, TestDescription, Context> {
   final bool doExpects;
+
   const ListenerStep(this.doExpects);
 
   @override

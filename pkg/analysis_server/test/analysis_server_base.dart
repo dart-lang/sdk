@@ -189,7 +189,6 @@ class ContextResolutionTest with ResourceProviderMixin {
       InstrumentationService.NULL_SERVICE,
     );
 
-    server.pendingFilesRemoveOverlayDelay = const Duration(milliseconds: 10);
     server.pluginManager = pluginManager;
     server.completionState.budgetDuration = const Duration(seconds: 30);
   }

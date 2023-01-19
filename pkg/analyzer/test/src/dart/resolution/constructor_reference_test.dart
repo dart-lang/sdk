@@ -1757,7 +1757,7 @@ void bar() {
   A.foo;
 }
 ''', [
-      error(StaticWarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, 39, 5),
+      error(WarningCode.SDK_VERSION_CONSTRUCTOR_TEAROFFS, 39, 5),
     ]);
 
     var node = findNode.constructorReference('A.foo;');

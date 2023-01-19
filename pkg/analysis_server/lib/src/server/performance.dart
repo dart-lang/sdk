@@ -10,10 +10,12 @@ class RequestPerformance {
   final OperationPerformance performance;
   final int? requestLatency;
   final String operation;
+  final DateTime? startTime;
 
   RequestPerformance({
     required this.operation,
     required this.performance,
     this.requestLatency,
+    this.startTime,
   }) : id = _nextId++;
 }

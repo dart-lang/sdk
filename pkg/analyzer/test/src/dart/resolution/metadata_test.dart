@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -339,6 +340,7 @@ A
   }
 
   test_optIn_fromOptOut_class() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A(int a);
@@ -377,6 +379,7 @@ Annotation
   }
 
   test_optIn_fromOptOut_class_constructor() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   final int a;
@@ -435,6 +438,7 @@ A*
   }
 
   test_optIn_fromOptOut_class_constructor_withDefault() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   final int a;
@@ -486,6 +490,7 @@ A*
   }
 
   test_optIn_fromOptOut_class_getter() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const foo = 42;
@@ -532,6 +537,7 @@ int 42
   }
 
   test_optIn_fromOptOut_getter() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 const foo = 42;
 ''');
@@ -566,6 +572,7 @@ int 42
   }
 
   test_optIn_fromOptOut_prefix_class() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A(int a);
@@ -612,6 +619,7 @@ Annotation
   }
 
   test_optIn_fromOptOut_prefix_class_constructor() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A.named(int a);
@@ -665,6 +673,7 @@ Annotation
   }
 
   test_optIn_fromOptOut_prefix_class_getter() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const foo = 0;
@@ -708,6 +717,7 @@ Annotation
   }
 
   test_optIn_fromOptOut_prefix_getter() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 const foo = 0;
 ''');

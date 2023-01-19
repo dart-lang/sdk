@@ -15,6 +15,7 @@ namespace dart {
 struct ArrayStorageTraits {
   using ArrayHandle = Array;
   using ArrayPtr = dart::ArrayPtr;
+  static const intptr_t ArrayCid = kArrayCid;
 
   static ArrayHandle& PtrToHandle(ArrayPtr ptr) { return Array::Handle(ptr); }
 
@@ -43,7 +44,51 @@ struct ArrayStorageTraits {
   }
 };
 
+struct WeakArrayStorageTraits {
+  using ArrayHandle = WeakArray;
+  using ArrayPtr = dart::WeakArrayPtr;
+  static const intptr_t ArrayCid = kWeakArrayCid;
+
+  static ArrayHandle& PtrToHandle(ArrayPtr ptr) {
+    return WeakArray::Handle(ptr);
+  }
+
+  static void SetHandle(ArrayHandle& dst, const ArrayHandle& src) {  // NOLINT
+    dst = src.ptr();
+  }
+
+  static void ClearHandle(ArrayHandle& handle) {  // NOLINT
+    handle = WeakArray::null();
+  }
+
+  static ArrayPtr New(Zone* zone, intptr_t length, Heap::Space space) {
+    return WeakArray::New(length, space);
+  }
+
+  static bool IsImmutable(const ArrayHandle& handle) {
+    return handle.ptr()->untag()->InVMIsolateHeap();
+  }
+
+  static ObjectPtr At(ArrayHandle* array, intptr_t index) {
+    return array->At(index);
+  }
+
+  static void SetAt(ArrayHandle* array, intptr_t index, const Object& value) {
+    array->SetAt(index, value);
+  }
+};
+
 struct AcqRelStorageTraits : ArrayStorageTraits {
+  static ObjectPtr At(ArrayHandle* array, intptr_t index) {
+    return array->AtAcquire(index);
+  }
+
+  static void SetAt(ArrayHandle* array, intptr_t index, const Object& value) {
+    array->SetAtRelease(index, value);
+  }
+};
+
+struct WeakAcqRelStorageTraits : WeakArrayStorageTraits {
   static ObjectPtr At(ArrayHandle* array, intptr_t index) {
     return array->AtAcquire(index);
   }
@@ -56,7 +101,7 @@ struct AcqRelStorageTraits : ArrayStorageTraits {
 class HashTableBase : public ValueObject {
  public:
   static const Object& UnusedMarker() { return Object::transition_sentinel(); }
-  static const Object& DeletedMarker() { return Object::sentinel(); }
+  static const Object& DeletedMarker() { return Object::null_object(); }
 };
 
 // OVERVIEW:
@@ -206,9 +251,6 @@ class HashTable : public HashTableBase {
   template <typename Key>
   intptr_t FindKey(const Key& key) const {
     const intptr_t num_entries = NumEntries();
-    // Deleted may undercount due to weak references used during AOT
-    // snapshotting.
-    NOT_IN_PRECOMPILED(ASSERT(NumOccupied() < num_entries));
     // TODO(koda): Add salt.
     NOT_IN_PRODUCT(intptr_t collisions = 0;)
     uword hash = KeyTraits::Hash(key);
@@ -244,9 +286,6 @@ class HashTable : public HashTableBase {
   bool FindKeyOrDeletedOrUnused(const Key& key, intptr_t* entry) const {
     const intptr_t num_entries = NumEntries();
     ASSERT(entry != NULL);
-    // Deleted may undercount due to weak references used during AOT
-    // snapshotting.
-    NOT_IN_PRECOMPILED(ASSERT(NumOccupied() < num_entries));
     NOT_IN_PRODUCT(intptr_t collisions = 0;)
     uword hash = KeyTraits::Hash(key);
     ASSERT(Utils::IsPowerOfTwo(num_entries));
@@ -294,9 +333,6 @@ class HashTable : public HashTableBase {
     }
     InternalSetKey(entry, key);
     ASSERT(IsOccupied(entry));
-    // Deleted may undercount due to weak references used during AOT
-    // snapshotting.
-    NOT_IN_PRECOMPILED(ASSERT(NumOccupied() < NumEntries()));
   }
 
   bool IsUnused(intptr_t entry) const {
@@ -401,6 +437,26 @@ class HashTable : public HashTableBase {
   }
 #endif  // !PRODUCT
 
+  void UpdateWeakDeleted() const {
+    if (StorageTraits::ArrayCid != kWeakArrayCid) return;
+
+    // As entries are deleted by GC, NumOccupied and NumDeleted become stale.
+    // Re-count before growing/rehashing to prevent table growth when the
+    // number of live entries is not increasing.
+    intptr_t num_occupied = 0;
+    intptr_t num_deleted = 0;
+    for (intptr_t i = 0, n = NumEntries(); i < n; i++) {
+      if (IsDeleted(i)) {
+        num_deleted++;
+      }
+      if (IsOccupied(i)) {
+        num_occupied++;
+      }
+    }
+    SetSmiValueAt(kOccupiedEntriesIndex, num_occupied);
+    SetSmiValueAt(kDeletedEntriesIndex, num_deleted);
+  }
+
  protected:
   static const intptr_t kOccupiedEntriesIndex = 0;
   static const intptr_t kDeletedEntriesIndex = 1;
@@ -439,6 +495,9 @@ class HashTable : public HashTableBase {
 
   intptr_t GetSmiValueAt(intptr_t index) const {
     ASSERT(!data_->IsNull());
+    if (StorageTraits::At(data_, index)->IsHeapObject()) {
+      Object::Handle(StorageTraits::At(data_, index)).Print();
+    }
     ASSERT(!StorageTraits::At(data_, index)->IsHeapObject());
     return Smi::Value(Smi::RawCast(StorageTraits::At(data_, index)));
   }
@@ -476,11 +535,13 @@ class UnorderedHashTable
     : public HashTable<KeyTraits, kUserPayloadSize, 0, StorageTraits> {
  public:
   typedef HashTable<KeyTraits, kUserPayloadSize, 0, StorageTraits> BaseTable;
+  typedef typename StorageTraits::ArrayPtr ArrayPtr;
+  typedef typename StorageTraits::ArrayHandle ArrayHandle;
   static const intptr_t kPayloadSize = kUserPayloadSize;
   explicit UnorderedHashTable(ArrayPtr data)
       : BaseTable(Thread::Current()->zone(), data) {}
   UnorderedHashTable(Zone* zone, ArrayPtr data) : BaseTable(zone, data) {}
-  UnorderedHashTable(Object* key, Smi* value, Array* data)
+  UnorderedHashTable(Object* key, Smi* value, ArrayHandle* data)
       : BaseTable(key, value, data) {}
   // Note: Does not check for concurrent modification.
   class Iterator {
@@ -565,6 +626,9 @@ class HashTables : public AllStatic {
     if (current < high && !too_many_deleted) {
       return;
     }
+
+    table.UpdateWeakDeleted();
+
     // Normally we double the size here, but if less than half are occupied
     // then it won't grow (this would imply that there were quite a lot of
     // deleted slots).  We don't want to constantly rehash if we are adding
@@ -724,13 +788,15 @@ class UnorderedHashMap : public HashMap<UnorderedHashTable<KeyTraits, 1> > {
       : BaseMap(key, value, data) {}
 };
 
-template <typename BaseIterTable>
+template <typename BaseIterTable, typename StorageTraits>
 class HashSet : public BaseIterTable {
  public:
+  typedef typename StorageTraits::ArrayPtr ArrayPtr;
+  typedef typename StorageTraits::ArrayHandle ArrayHandle;
   explicit HashSet(ArrayPtr data)
       : BaseIterTable(Thread::Current()->zone(), data) {}
   HashSet(Zone* zone, ArrayPtr data) : BaseIterTable(zone, data) {}
-  HashSet(Object* key, Smi* value, Array* data)
+  HashSet(Object* key, Smi* value, ArrayHandle* data)
       : BaseIterTable(key, value, data) {}
   bool Insert(const Object& key) {
     EnsureCapacity();
@@ -800,17 +866,20 @@ class HashSet : public BaseIterTable {
 
 template <typename KeyTraits, typename TableStorageTraits = ArrayStorageTraits>
 class UnorderedHashSet
-    : public HashSet<UnorderedHashTable<KeyTraits, 0, TableStorageTraits>> {
+    : public HashSet<UnorderedHashTable<KeyTraits, 0, TableStorageTraits>,
+                     TableStorageTraits> {
   using UnderlyingTable = UnorderedHashTable<KeyTraits, 0, TableStorageTraits>;
 
  public:
-  typedef HashSet<UnderlyingTable> BaseSet;
+  typedef HashSet<UnderlyingTable, TableStorageTraits> BaseSet;
+  typedef typename TableStorageTraits::ArrayPtr ArrayPtr;
+  typedef typename TableStorageTraits::ArrayHandle ArrayHandle;
   explicit UnorderedHashSet(ArrayPtr data)
       : BaseSet(Thread::Current()->zone(), data) {
-    ASSERT(data != Array::null());
+    ASSERT(data != Object::null());
   }
   UnorderedHashSet(Zone* zone, ArrayPtr data) : BaseSet(zone, data) {}
-  UnorderedHashSet(Object* key, Smi* value, Array* data)
+  UnorderedHashSet(Object* key, Smi* value, ArrayHandle* data)
       : BaseSet(key, value, data) {}
 
   void Dump() const {

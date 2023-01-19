@@ -52,6 +52,9 @@ class double {
 
   /// Wasm i64.trunc_sat_f64_s instruction
   external int _toInt();
+
+  /// Wasm f64.copysign instruction
+  external double _copysign(double other);
 }
 
 @pragma("wasm:entry-point")
@@ -86,11 +89,16 @@ class _BoxedDouble extends double {
     return (bits ^ (bits >>> 32)) & 0x3FFFFFFF;
   }
 
+  @pragma("wasm:prefer-inline")
   double operator +(num other) => this + other.toDouble(); // Intrinsic +
+  @pragma("wasm:prefer-inline")
   double operator -(num other) => this - other.toDouble(); // Intrinsic -
+  @pragma("wasm:prefer-inline")
   double operator *(num other) => this * other.toDouble(); // Intrinsic *
+  @pragma("wasm:prefer-inline")
   double operator /(num other) => this / other.toDouble(); // Intrinsic /
 
+  @pragma("wasm:prefer-inline")
   int operator ~/(num other) {
     return _truncDiv(this, other.toDouble());
   }
@@ -99,6 +107,7 @@ class _BoxedDouble extends double {
     return (a / b).toInt();
   }
 
+  @pragma("wasm:prefer-inline")
   double operator %(num other) {
     return _modulo(this, other.toDouble());
   }
@@ -116,6 +125,7 @@ class _BoxedDouble extends double {
     return rem;
   }
 
+  @pragma("wasm:prefer-inline")
   double remainder(num other) {
     return _remainder(this, other.toDouble());
   }
@@ -126,6 +136,7 @@ class _BoxedDouble extends double {
 
   external double operator -();
 
+  @pragma("wasm:prefer-inline")
   bool operator ==(Object other) {
     return other is double
         ? this == other // Intrinsic ==
@@ -134,53 +145,65 @@ class _BoxedDouble extends double {
             : false;
   }
 
+  @pragma("wasm:prefer-inline")
   bool operator <(num other) => this < other.toDouble(); // Intrinsic <
+  @pragma("wasm:prefer-inline")
   bool operator >(num other) => this > other.toDouble(); // Intrinsic >
+  @pragma("wasm:prefer-inline")
   bool operator >=(num other) => this >= other.toDouble(); // Intrinsic >=
+  @pragma("wasm:prefer-inline")
   bool operator <=(num other) => this <= other.toDouble(); // Intrinsic <=
 
+  @pragma("wasm:prefer-inline")
   bool get isNegative {
-    if (isNaN) {
-      return false;
-    }
+    // Sign bit set, not NaN
     int bits = doubleToIntBits(this);
-    return (bits & _signMask) != 0;
+    return (bits ^ _signMask)._le_u(_exponentMask);
   }
 
+  @pragma("wasm:prefer-inline")
   bool get isInfinite {
+    // Exponent at max, mantissa zero
     int bits = doubleToIntBits(this);
-    return (bits & _exponentMask) == _exponentMask &&
-        (bits & _mantissaMask) == 0;
+    return (bits & (_exponentMask | _mantissaMask)) == _exponentMask;
   }
 
+  @pragma("wasm:prefer-inline")
   bool get isNaN {
+    // Exponent at max, mantissa nonzero
     int bits = doubleToIntBits(this);
-    return (bits & _exponentMask) == _exponentMask &&
-        (bits & _mantissaMask) != 0;
+    return (bits & (_exponentMask | _mantissaMask)) > _exponentMask;
   }
 
+  @pragma("wasm:prefer-inline")
   bool get isFinite {
+    // Exponent not at max
     int bits = doubleToIntBits(this);
     return (bits & _exponentMask) != _exponentMask;
   }
 
+  @pragma("wasm:prefer-inline")
   double abs() {
-    // Handle negative 0.0.
-    if (this == 0.0) return 0.0;
-    return this < 0.0 ? -this : this;
+    return _copysign(0.0);
   }
 
+  @pragma("wasm:prefer-inline")
   double get sign {
     if (this > 0.0) return 1.0;
     if (this < 0.0) return -1.0;
     return this; // +/-0.0 or NaN.
   }
 
+  @pragma("wasm:prefer-inline")
   int round() => roundToDouble().toInt();
+  @pragma("wasm:prefer-inline")
   int floor() => floorToDouble().toInt();
+  @pragma("wasm:prefer-inline")
   int ceil() => ceilToDouble().toInt();
+  @pragma("wasm:prefer-inline")
   int truncate() => truncateToDouble().toInt();
 
+  @pragma("wasm:prefer-inline")
   double roundToDouble() {
     return _roundToDouble(this);
   }
@@ -223,6 +246,7 @@ class _BoxedDouble extends double {
     return this;
   }
 
+  @pragma("wasm:prefer-inline")
   int toInt() {
     if (!isFinite) {
       throw UnsupportedError("Infinity or NaN toInt");
@@ -230,6 +254,7 @@ class _BoxedDouble extends double {
     return _toInt();
   }
 
+  @pragma("wasm:prefer-inline")
   double toDouble() {
     return this;
   }

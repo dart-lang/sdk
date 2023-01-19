@@ -96,7 +96,7 @@ abstract class MatchContext implements ChainContext {
     File expectedFile = new File("${uri.toFilePath()}$suffix");
     if (await expectedFile.exists()) {
       String expected = await expectedFile.readAsString();
-      if (expected != actual) {
+      if (expected.replaceAll("\r\n", "\n") != actual) {
         if (updateExpectations) {
           return updateExpectationFile<O>(expectedFile.uri, actual, output);
         }

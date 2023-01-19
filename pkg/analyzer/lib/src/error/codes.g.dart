@@ -390,6 +390,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'CLASS_INSTANTIATION_ACCESS_TO_UNKNOWN_MEMBER',
   );
 
+  ///  Parameters:
+  ///  0: the name of the class being used as a mixin
+  static const CompileTimeErrorCode CLASS_USED_AS_MIXIN = CompileTimeErrorCode(
+    'CLASS_USED_AS_MIXIN',
+    "The class '{0}' can't be implicitly used as a mixin because it isn't a "
+        "mixin class nor a mixin.",
+  );
+
   static const CompileTimeErrorCode CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE =
       CompileTimeErrorCode(
     'CONCRETE_CLASS_HAS_ENUM_SUPERINTERFACE',
@@ -1013,11 +1021,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try calling a different constructor.",
   );
 
-  static const CompileTimeErrorCode CONTINUE_LABEL_ON_SWITCH =
+  ///  No parameters.
+  static const CompileTimeErrorCode CONTINUE_LABEL_INVALID =
       CompileTimeErrorCode(
-    'CONTINUE_LABEL_ON_SWITCH',
-    "A `continue` label resolves to a `switch` statement, but the label must "
-        "be on a loop or a switch member.",
+    'CONTINUE_LABEL_INVALID',
+    "The label used in a 'continue' statement must be defined on either a loop "
+        "or a switch member.",
     hasPublishedDocs: true,
   );
 
@@ -1176,6 +1185,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try removing all except one of the duplicated part directives.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the variable
+  static const CompileTimeErrorCode DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE =
+      CompileTimeErrorCode(
+    'DUPLICATE_PATTERN_ASSIGNMENT_VARIABLE',
+    "The variable '{0}' is already assigned in this pattern.",
+    correctionMessage: "Try renaming the variable.",
   );
 
   ///  Parameters:
@@ -1699,7 +1717,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   static const CompileTimeErrorCode FOR_IN_OF_INVALID_TYPE =
       CompileTimeErrorCode(
     'FOR_IN_OF_INVALID_TYPE',
-    "The type '{0}' used in the 'for' loop must implement {1}.",
+    "The type '{0}' used in the 'for' loop must implement '{1}'.",
     hasPublishedDocs: true,
   );
 
@@ -2046,6 +2064,30 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     "Parts must have exactly the same language version override as the "
         "library.",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the pattern variable
+  static const CompileTimeErrorCode INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR =
+      CompileTimeErrorCode(
+    'INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR',
+    "The variable '{0}' has a different type and/or finality in this branch of "
+        "the logical-or pattern.",
+    correctionMessage:
+        "Try declaring the variable pattern with the same type and finality in "
+        "both branches.",
+  );
+
+  ///  Parameters:
+  ///  0: the name of the pattern variable
+  static const CompileTimeErrorCode
+      INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE = CompileTimeErrorCode(
+    'INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE',
+    "The variable '{0}' doesn't have the same type and/or finality in all "
+        "cases that share this body.",
+    correctionMessage:
+        "Try declaring the variable pattern with the same type and finality in "
+        "all cases.",
   );
 
   ///  Parameters:
@@ -2400,6 +2442,24 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the declared setter that is not a valid override.
+  ///  1: the name of the interface that declares the setter.
+  ///  2: the type of the declared setter in the interface.
+  ///  3: the name of the interface with the overridden setter.
+  ///  4: the type of the overridden setter.
+  ///
+  ///  These parameters must be kept in sync with those of
+  ///  [CompileTimeErrorCode.INVALID_OVERRIDE].
+  static const CompileTimeErrorCode INVALID_IMPLEMENTATION_OVERRIDE_SETTER =
+      CompileTimeErrorCode(
+    'INVALID_IMPLEMENTATION_OVERRIDE',
+    "The setter '{1}.{0}' ('{2}') isn't a valid concrete implementation of "
+        "'{3}.{0}' ('{4}').",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_IMPLEMENTATION_OVERRIDE_SETTER',
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode INVALID_INLINE_FUNCTION_TYPE =
       CompileTimeErrorCode(
@@ -2441,6 +2501,20 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     'INVALID_OVERRIDE',
     "'{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
     hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the declared setter that is not a valid override.
+  ///  1: the name of the interface that declares the setter.
+  ///  2: the type of the declared setter in the interface.
+  ///  3: the name of the interface with the overridden setter.
+  ///  4: the type of the overridden setter.
+  static const CompileTimeErrorCode INVALID_OVERRIDE_SETTER =
+      CompileTimeErrorCode(
+    'INVALID_OVERRIDE',
+    "The setter '{1}.{0}' ('{2}') isn't a valid override of '{3}.{0}' ('{4}').",
+    hasPublishedDocs: true,
+    uniqueName: 'INVALID_OVERRIDE_SETTER',
   );
 
   static const CompileTimeErrorCode
@@ -3417,18 +3491,6 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of the variable pattern
-  static const CompileTimeErrorCode NOT_CONSISTENT_VARIABLE_PATTERN =
-      CompileTimeErrorCode(
-    'NOT_CONSISTENT_VARIABLE_PATTERN',
-    "Variable pattern '{0}' has a different type or finality in this branch of "
-        "the logical-or pattern.",
-    correctionMessage:
-        "Try declaring the variable pattern with the same type and finality in "
-        "both branches.",
-  );
-
-  ///  Parameters:
   ///  0: the expected number of required arguments
   ///  1: the actual number of positional arguments given
   ///  2: name of the function or method
@@ -3739,6 +3801,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage:
         "Try changing the required type of the pattern, or the matched value "
         "type.",
+  );
+
+  static const CompileTimeErrorCode PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD =
+      CompileTimeErrorCode(
+    'PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD',
+    "Pattern variables can't be assigned inside the guard of the enclosing "
+        "guarded pattern.",
+    correctionMessage: "Try assigning to a different variable.",
   );
 
   ///  No parameters.
@@ -5454,138 +5524,6 @@ class StaticWarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  Parameters:
-  ///  0: the name of the class
-  static const StaticWarningCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE =
-      StaticWarningCode(
-    'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
-    "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but "
-        "this code is required to be able to run on earlier versions.",
-    correctionMessage:
-        "Try either importing 'dart:async' or updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const StaticWarningCode SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT =
-      StaticWarningCode(
-    'SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT',
-    "The use of an as expression in a constant expression wasn't supported "
-        "until version 2.3.2, but this code is required to be able to run on "
-        "earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the operator
-  static const StaticWarningCode SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT =
-      StaticWarningCode(
-    'SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT',
-    "The use of the operator '{0}' for 'bool' operands in a constant context "
-        "wasn't supported until version 2.3.2, but this code is required to be "
-        "able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  ///
-  ///  There is also a [ParserError.EXPERIMENT_NOT_ENABLED] code which catches
-  ///  some cases of constructor tearoff features (like `List<int>.filled;`).
-  ///  Other constructor tearoff cases are not realized until resolution
-  ///  (like `List.filled;`).
-  static const StaticWarningCode SDK_VERSION_CONSTRUCTOR_TEAROFFS =
-      StaticWarningCode(
-    'SDK_VERSION_CONSTRUCTOR_TEAROFFS',
-    "Tearing off a constructor requires the 'constructor-tearoffs' language "
-        "feature.",
-    correctionMessage:
-        "Try updating your pubspec.yaml to set the minimum SDK constraint to "
-        "2.15 or higher, and running 'pub get'.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const StaticWarningCode SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT =
-      StaticWarningCode(
-    'SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT',
-    "Using the operator '==' for non-primitive types wasn't supported until "
-        "version 2.3.2, but this code is required to be able to run on earlier "
-        "versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const StaticWarningCode SDK_VERSION_EXTENSION_METHODS =
-      StaticWarningCode(
-    'SDK_VERSION_EXTENSION_METHODS',
-    "Extension methods weren't supported until version 2.6.0, but this code is "
-        "required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const StaticWarningCode SDK_VERSION_GT_GT_GT_OPERATOR =
-      StaticWarningCode(
-    'SDK_VERSION_GT_GT_GT_OPERATOR',
-    "The operator '>>>' wasn't supported until version 2.14.0, but this code "
-        "is required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const StaticWarningCode SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT =
-      StaticWarningCode(
-    'SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT',
-    "The use of an is expression in a constant context wasn't supported until "
-        "version 2.3.2, but this code is required to be able to run on earlier "
-        "versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const StaticWarningCode SDK_VERSION_NEVER = StaticWarningCode(
-    'SDK_VERSION_NEVER',
-    "The type 'Never' wasn't supported until version 2.12.0, but this code is "
-        "required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const StaticWarningCode SDK_VERSION_SET_LITERAL = StaticWarningCode(
-    'SDK_VERSION_SET_LITERAL',
-    "Set literals weren't supported until version 2.2, but this code is "
-        "required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const StaticWarningCode SDK_VERSION_UI_AS_CODE = StaticWarningCode(
-    'SDK_VERSION_UI_AS_CODE',
-    "The for, if, and spread elements weren't supported until version 2.3.0, "
-        "but this code is required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const StaticWarningCode SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT =
-      StaticWarningCode(
-    'SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT',
-    "The if and spread elements weren't supported in constant expressions "
-        "until version 2.5.0, but this code is required to be able to run on "
-        "earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
   ///  No parameters.
   static const StaticWarningCode UNNECESSARY_NON_NULL_ASSERTION =
       StaticWarningCode(
@@ -5593,6 +5531,26 @@ class StaticWarningCode extends AnalyzerErrorCode {
     "The '!' will have no effect because the receiver can't be null.",
     correctionMessage: "Try removing the '!' operator.",
     hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const StaticWarningCode UNNECESSARY_NULL_ASSERT_PATTERN =
+      StaticWarningCode(
+    'UNNECESSARY_NULL_ASSERT_PATTERN',
+    "The null-assert pattern will have no effect because the matched type "
+        "isn't nullable.",
+    correctionMessage:
+        "Try replacing the null-assert pattern with its nested pattern.",
+  );
+
+  ///  No parameters.
+  static const StaticWarningCode UNNECESSARY_NULL_CHECK_PATTERN =
+      StaticWarningCode(
+    'UNNECESSARY_NULL_CHECK_PATTERN',
+    "The null-check pattern will have no effect because the matched type isn't "
+        "nullable.",
+    correctionMessage:
+        "Try replacing the null-check pattern with its nested pattern.",
   );
 
   /// Initialize a newly created error code to have the given [name].
@@ -5607,6 +5565,274 @@ class StaticWarningCode extends AnalyzerErrorCode {
           name: name,
           problemMessage: problemMessage,
           uniqueName: 'StaticWarningCode.${uniqueName ?? name}',
+        );
+
+  @override
+  ErrorSeverity get errorSeverity => ErrorSeverity.WARNING;
+
+  @override
+  ErrorType get type => ErrorType.STATIC_WARNING;
+}
+
+class WarningCode extends AnalyzerErrorCode {
+  ///  Parameters:
+  ///  0: the name of the actual argument type
+  ///  1: the name of the expected function return type
+  static const WarningCode ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER =
+      WarningCode(
+    'ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER',
+    "The argument type '{0}' can't be assigned to the parameter type '{1} "
+        "Function(Object)' or '{1} Function(Object, StackTrace)'.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the return type as derived by the type of the [Future].
+  static const WarningCode BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR =
+      WarningCode(
+    'BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR',
+    "This 'onError' handler must return a value assignable to '{0}', but ends "
+        "without returning a value.",
+    correctionMessage: "Try adding a return statement.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the declared return type
+  static const WarningCode BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE = WarningCode(
+    'BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE',
+    "This function has a nullable return type of '{0}', but ends without "
+        "returning a value.",
+    correctionMessage:
+        "Try adding a return statement, or if no value is ever returned, try "
+        "changing the return type to 'void'.",
+  );
+
+  ///  No parameters.
+  static const WarningCode DEPRECATED_EXTENDS_FUNCTION = WarningCode(
+    'DEPRECATED_SUBTYPE_OF_FUNCTION',
+    "Extending 'Function' is deprecated.",
+    correctionMessage: "Try removing 'Function' from the 'extends' clause.",
+    hasPublishedDocs: true,
+    uniqueName: 'DEPRECATED_EXTENDS_FUNCTION',
+  );
+
+  ///  No parameters.
+  static const WarningCode DEPRECATED_IMPLEMENTS_FUNCTION = WarningCode(
+    'DEPRECATED_SUBTYPE_OF_FUNCTION',
+    "Implementing 'Function' has no effect.",
+    correctionMessage: "Try removing 'Function' from the 'implements' clause.",
+    hasPublishedDocs: true,
+    uniqueName: 'DEPRECATED_IMPLEMENTS_FUNCTION',
+  );
+
+  ///  No parameters.
+  static const WarningCode DEPRECATED_MIXIN_FUNCTION = WarningCode(
+    'DEPRECATED_SUBTYPE_OF_FUNCTION',
+    "Mixing in 'Function' is deprecated.",
+    correctionMessage: "Try removing 'Function' from the 'with' clause.",
+    hasPublishedDocs: true,
+    uniqueName: 'DEPRECATED_MIXIN_FUNCTION',
+  );
+
+  ///  No parameters.
+  static const WarningCode DEPRECATED_NEW_IN_COMMENT_REFERENCE = WarningCode(
+    'DEPRECATED_NEW_IN_COMMENT_REFERENCE',
+    "Using the 'new' keyword in a comment reference is deprecated.",
+    correctionMessage: "Try referring to a constructor by its name.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Duplicate exports.
+  ///
+  ///  No parameters.
+  static const WarningCode DUPLICATE_EXPORT = WarningCode(
+    'DUPLICATE_EXPORT',
+    "Duplicate export.",
+    correctionMessage: "Try removing all but one export of the library.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode DUPLICATE_HIDDEN_NAME = WarningCode(
+    'DUPLICATE_HIDDEN_NAME',
+    "Duplicate hidden name.",
+    correctionMessage:
+        "Try removing the repeated name from the list of hidden members.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the diagnostic being ignored
+  static const WarningCode DUPLICATE_IGNORE = WarningCode(
+    'DUPLICATE_IGNORE',
+    "The diagnostic '{0}' doesn't need to be ignored here because it's already "
+        "being ignored.",
+    correctionMessage:
+        "Try removing the name from the list, or removing the whole comment if "
+        "this is the only name in the list.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Duplicate imports.
+  ///
+  ///  No parameters.
+  static const WarningCode DUPLICATE_IMPORT = WarningCode(
+    'DUPLICATE_IMPORT',
+    "Duplicate import.",
+    correctionMessage: "Try removing all but one import of the library.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode DUPLICATE_SHOWN_NAME = WarningCode(
+    'DUPLICATE_SHOWN_NAME',
+    "Duplicate shown name.",
+    correctionMessage:
+        "Try removing the repeated name from the list of shown members.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the class
+  static const WarningCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = WarningCode(
+    'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
+    "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but "
+        "this code is required to be able to run on earlier versions.",
+    correctionMessage:
+        "Try either importing 'dart:async' or updating the SDK constraints.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT =
+      WarningCode(
+    'SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT',
+    "The use of an as expression in a constant expression wasn't supported "
+        "until version 2.3.2, but this code is required to be able to run on "
+        "earlier versions.",
+    correctionMessage: "Try updating the SDK constraints.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the operator
+  static const WarningCode SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT =
+      WarningCode(
+    'SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT',
+    "The use of the operator '{0}' for 'bool' operands in a constant context "
+        "wasn't supported until version 2.3.2, but this code is required to be "
+        "able to run on earlier versions.",
+    correctionMessage: "Try updating the SDK constraints.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  ///
+  ///  There is also a [ParserError.EXPERIMENT_NOT_ENABLED] code which catches
+  ///  some cases of constructor tearoff features (like `List<int>.filled;`).
+  ///  Other constructor tearoff cases are not realized until resolution
+  ///  (like `List.filled;`).
+  static const WarningCode SDK_VERSION_CONSTRUCTOR_TEAROFFS = WarningCode(
+    'SDK_VERSION_CONSTRUCTOR_TEAROFFS',
+    "Tearing off a constructor requires the 'constructor-tearoffs' language "
+        "feature.",
+    correctionMessage:
+        "Try updating your pubspec.yaml to set the minimum SDK constraint to "
+        "2.15 or higher, and running 'pub get'.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT =
+      WarningCode(
+    'SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT',
+    "Using the operator '==' for non-primitive types wasn't supported until "
+        "version 2.3.2, but this code is required to be able to run on earlier "
+        "versions.",
+    correctionMessage: "Try updating the SDK constraints.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode SDK_VERSION_EXTENSION_METHODS = WarningCode(
+    'SDK_VERSION_EXTENSION_METHODS',
+    "Extension methods weren't supported until version 2.6.0, but this code is "
+        "required to be able to run on earlier versions.",
+    correctionMessage: "Try updating the SDK constraints.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode SDK_VERSION_GT_GT_GT_OPERATOR = WarningCode(
+    'SDK_VERSION_GT_GT_GT_OPERATOR',
+    "The operator '>>>' wasn't supported until version 2.14.0, but this code "
+        "is required to be able to run on earlier versions.",
+    correctionMessage: "Try updating the SDK constraints.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT =
+      WarningCode(
+    'SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT',
+    "The use of an is expression in a constant context wasn't supported until "
+        "version 2.3.2, but this code is required to be able to run on earlier "
+        "versions.",
+    correctionMessage: "Try updating the SDK constraints.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode SDK_VERSION_NEVER = WarningCode(
+    'SDK_VERSION_NEVER',
+    "The type 'Never' wasn't supported until version 2.12.0, but this code is "
+        "required to be able to run on earlier versions.",
+    correctionMessage: "Try updating the SDK constraints.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode SDK_VERSION_SET_LITERAL = WarningCode(
+    'SDK_VERSION_SET_LITERAL',
+    "Set literals weren't supported until version 2.2, but this code is "
+        "required to be able to run on earlier versions.",
+    correctionMessage: "Try updating the SDK constraints.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode SDK_VERSION_UI_AS_CODE = WarningCode(
+    'SDK_VERSION_UI_AS_CODE',
+    "The for, if, and spread elements weren't supported until version 2.3.0, "
+        "but this code is required to be able to run on earlier versions.",
+    correctionMessage: "Try updating the SDK constraints.",
+    hasPublishedDocs: true,
+  );
+
+  ///  No parameters.
+  static const WarningCode SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT =
+      WarningCode(
+    'SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT',
+    "The if and spread elements weren't supported in constant expressions "
+        "until version 2.5.0, but this code is required to be able to run on "
+        "earlier versions.",
+    correctionMessage: "Try updating the SDK constraints.",
+    hasPublishedDocs: true,
+  );
+
+  /// Initialize a newly created error code to have the given [name].
+  const WarningCode(
+    String name,
+    String problemMessage, {
+    super.correctionMessage,
+    super.hasPublishedDocs = false,
+    super.isUnresolvedIdentifier = false,
+    String? uniqueName,
+  }) : super(
+          name: name,
+          problemMessage: problemMessage,
+          uniqueName: 'WarningCode.${uniqueName ?? name}',
         );
 
   @override

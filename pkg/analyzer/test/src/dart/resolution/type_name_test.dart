@@ -5,6 +5,7 @@
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -24,6 +25,7 @@ class TypeNameResolutionTest extends PubPackageResolutionTest
   }
 
   test_optIn_fromOptOut_class() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
@@ -43,6 +45,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_toBounds() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T extends num> {}
 ''');
@@ -62,6 +65,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_toBounds_dynamic() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 ''');
@@ -81,6 +85,7 @@ f(A a) {}
   }
 
   test_optIn_fromOptOut_class_generic_typeArguments() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {}
 ''');
@@ -100,6 +105,7 @@ f(A<int> a) {}
   }
 
   test_optIn_fromOptOut_functionTypeAlias() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 typedef F = int Function(bool);
 ''');
@@ -124,6 +130,7 @@ f(F a) {}
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_dynamic() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 typedef F<T> = T Function(bool);
 ''');
@@ -148,6 +155,7 @@ f(F a) {}
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_toBounds() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 typedef F<T extends num> = T Function(bool);
 ''');
@@ -172,6 +180,7 @@ f(F a) {}
   }
 
   test_optIn_fromOptOut_functionTypeAlias_generic_typeArguments() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 typedef F<T> = T Function(bool);
 ''');
@@ -196,6 +205,7 @@ f(F<int> a) {}
   }
 
   test_optOut_fromOptIn_class() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A {}
@@ -217,6 +227,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_toBounds() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A<T extends num> {}
@@ -238,6 +249,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_toBounds_dynamic() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A<T> {}
@@ -259,6 +271,7 @@ f(A a) {}
   }
 
   test_optOut_fromOptIn_class_generic_typeArguments() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 class A<T> {}
@@ -280,6 +293,7 @@ f(A<int> a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F = int Function();
@@ -301,6 +315,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_toBounds() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F<T extends num> = T Function();
@@ -322,6 +337,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_toBounds_dynamic() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F<T> = T Function();
@@ -343,6 +359,7 @@ f(F a) {}
   }
 
   test_optOut_fromOptIn_functionTypeAlias_generic_typeArguments() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 typedef F<T> = T Function();
@@ -437,6 +454,7 @@ void f(X<String> a, X<String?> b) {}
   }
 
   test_typeAlias_asParameterType_interfaceType_none_inLegacy() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 typedef X<T> = Map<int, T>;
 ''');
@@ -473,6 +491,7 @@ void f(X<int> a, X<int?> b) {}
   }
 
   test_typeAlias_asParameterType_interfaceType_question_inLegacy() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 typedef X<T> = List<T?>;
 ''');
@@ -509,6 +528,7 @@ void f(X a, X? b) {}
   }
 
   test_typeAlias_asParameterType_Never_none_inLegacy() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 typedef X = Never;
 ''');

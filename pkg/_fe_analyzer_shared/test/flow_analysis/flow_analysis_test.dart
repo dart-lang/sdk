@@ -6620,6 +6620,19 @@ main() {
       });
     });
 
+    group('List pattern:', () {
+      test('Not guaranteed to match', () {
+        h.run([
+          switch_(expr('Object'), [
+            listPattern([]).then([break_()]),
+            default_.then([
+              checkReachable(true),
+            ]),
+          ]),
+        ]);
+      });
+    });
+
     group('Switch expression:', () {
       test('guarded', () {
         var x = Var('x');
@@ -6638,7 +6651,42 @@ main() {
         ]);
       });
 
-      test('promotes', () {
+      group('guard promotes later cases:', () {
+        test('when pattern fully covers the scrutinee type', () {
+          // `case _ when x == null:` promotes `x` to non-null in later cases,
+          // because the implicit type of `_` fully covers the scrutinee type.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            switchExpr(expr('Object?'), [
+              wildcard().when(x.expr.eq(nullLiteral)).thenExpr(intLiteral(0)),
+              wildcard().thenExpr(block([
+                checkPromoted(x, 'int'),
+              ]).thenExpr(intLiteral(1))),
+            ]).stmt,
+          ]);
+        });
+
+        test('when pattern does not fully cover the scrutinee type', () {
+          // `case String _ when x == null:` does not promote `y` to non-null in
+          // later cases, because the type `String` does not fully cover the
+          // scrutinee type.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            switchExpr(expr('Object?'), [
+              wildcard(type: 'String')
+                  .when(x.expr.eq(nullLiteral))
+                  .thenExpr(intLiteral(0)),
+              wildcard().thenExpr(block([
+                checkNotPromoted(x),
+              ]).thenExpr(intLiteral(1))),
+            ]).stmt,
+          ]);
+        });
+      });
+
+      test('promotes scrutinee', () {
         var x = Var('x');
         var y = Var('y');
         h.run([
@@ -6652,6 +6700,55 @@ main() {
               checkReachable(true),
               checkNotPromoted(x),
             ]).thenExpr(expr('String'))),
+          ]).stmt,
+        ]);
+      });
+
+      test('reassigned scrutinee var no longer promotes', () {
+        var x = Var('x');
+        // Note that the second `wildcard(type: 'int')` doesn't promote `x`
+        // because it's been reassigned.  But it does still promote the
+        // scrutinee in the RHS of the `&&`.
+        h.run([
+          declare(x, initializer: expr('Object')),
+          switchExpr(x.expr, [
+            wildcard(type: 'int')
+                .and(wildcard(expectInferredType: 'int'))
+                .thenExpr(block([
+                  checkPromoted(x, 'int'),
+                ]).thenExpr(intLiteral(0))),
+            wildcard()
+                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .thenExpr(intLiteral(1)),
+            wildcard(type: 'int')
+                .and(wildcard(expectInferredType: 'int'))
+                .thenExpr(block([
+                  checkNotPromoted(x),
+                ]).thenExpr(intLiteral(2))),
+            wildcard().thenExpr(intLiteral(3)),
+          ]).stmt,
+        ]);
+      });
+
+      test(
+          'cached scrutinee retains promoted type even if scrutinee var '
+          'reassigned', () {
+        var x = Var('x');
+        var y = Var('y');
+        // `x` is promoted at the time the scrutinee is cached.  Therefore, even
+        // though `case _ where f(x = ...)` de-promotes `x`, the promoted type
+        // is still used for type inference in the later `case var y`.
+        h.run([
+          declare(x, initializer: expr('Object')),
+          x.expr.as_('int').stmt,
+          checkPromoted(x, 'int'),
+          switchExpr(x.expr, [
+            wildcard()
+                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .thenExpr(intLiteral(0)),
+            y.pattern(expectInferredType: 'int').thenExpr(block([
+                  checkNotPromoted(x),
+                ]).thenExpr(intLiteral(1))),
           ]).stmt,
         ]);
       });
@@ -6679,7 +6776,42 @@ main() {
         ]);
       });
 
-      test('promotes', () {
+      group('guard promotes later cases:', () {
+        test('when pattern fully covers the scrutinee type', () {
+          // `case _ when x == null:` promotes `x` to non-null in later cases,
+          // because the implicit type of `_` fully covers the scrutinee type.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            switch_(expr('Object?'), [
+              wildcard().when(x.expr.eq(nullLiteral)).then([break_()]),
+              wildcard().then([
+                checkPromoted(x, 'int'),
+              ]),
+            ]),
+          ]);
+        });
+
+        test('when pattern does not fully cover the scrutinee type', () {
+          // `case String _ when x == null:` does not promote `x` to non-null in
+          // later cases, because the type `String` does not fully cover the
+          // scrutinee type.
+          var x = Var('x');
+          h.run([
+            declare(x, type: 'int?'),
+            switch_(expr('Object?'), [
+              wildcard(type: 'String')
+                  .when(x.expr.eq(nullLiteral))
+                  .then([break_()]),
+              wildcard().then([
+                checkNotPromoted(x),
+              ]),
+            ]),
+          ]);
+        });
+      });
+
+      test('promotes scrutinee', () {
         var x = Var('x');
         var y = Var('y');
         h.run([
@@ -6849,6 +6981,78 @@ main() {
           ]);
         });
       });
+
+      test('reassigned scrutinee var no longer promotes', () {
+        var x = Var('x');
+        // Note that the second `wildcard(type: 'int')` doesn't promote `x`
+        // because it's been reassigned.  But it does still promote the
+        // scrutinee in the RHS of the `&&`.
+        h.run([
+          declare(x, initializer: expr('Object')),
+          switch_(x.expr, [
+            wildcard(type: 'int')
+                .and(wildcard(expectInferredType: 'int'))
+                .then([
+              checkPromoted(x, 'int'),
+            ]),
+            wildcard()
+                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .then([
+              break_(),
+            ]),
+            wildcard(type: 'int')
+                .and(wildcard(expectInferredType: 'int'))
+                .then([
+              checkNotPromoted(x),
+            ])
+          ]),
+        ]);
+      });
+
+      test(
+          'cached scrutinee retains promoted type even if scrutinee var '
+          'reassigned', () {
+        var x = Var('x');
+        var y = Var('y');
+        // `x` is promoted at the time the scrutinee is cached.  Therefore, even
+        // though `case _ where f(x = ...)` de-promotes `x`, the promoted type
+        // is still used for type inference in the later `case var y`.
+        h.run([
+          declare(x, initializer: expr('Object')),
+          x.expr.as_('int').stmt,
+          checkPromoted(x, 'int'),
+          switch_(x.expr, [
+            wildcard()
+                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .then([break_()]),
+            y.pattern(expectInferredType: 'int').then([
+              checkNotPromoted(x),
+            ]),
+          ]),
+        ]);
+      });
+
+      test('synthetic break inserted even in unreachable cases', () {
+        // In this example, the second case is unreachable, so technically it
+        // doesn't matter whether it ends in a synthetic break.  However, to
+        // avoid confusion on the part of the CFE and back-end developers, we go
+        // ahead and put in the synthetic break anyhow.
+        h.run([
+          switch_(expr('Object'), [
+            wildcard().then([
+              intLiteral(0).stmt,
+            ]),
+            wildcard().then([
+              intLiteral(1).stmt,
+            ]),
+          ]).checkIr('switch(expr(Object), '
+              'case(heads(head(wildcardPattern(matchedType: Object), true, '
+              'variables()), variables()), block(stmt(0), synthetic-break())), '
+              'case(heads(head(wildcardPattern(matchedType: Object), true, '
+              'variables()), variables()), '
+              'block(stmt(1), synthetic-break())))'),
+        ]);
+      });
     });
 
     group('Variable pattern:', () {
@@ -6931,6 +7135,51 @@ main() {
           });
         });
       });
+    });
+
+    test('Pattern inside guard', () {
+      // Roughly equivalent Dart code:
+      //     FutureOr<int> x = ...;
+      //     FutureOr<String> y = ...;
+      //     if (x case int _ when f(() {
+      //           if (y case String _) {
+      //             /* x promoted to `int` */
+      //             /* y promoted to `String` */
+      //           } else {
+      //             /* x promoted to `int` */
+      //             /* y promoted to `Future<String>` */
+      //           }
+      //         }, throw ...)) {
+      //       /* unreachable (due to `throw`) */
+      //     } else {
+      //       /* x promoted to `Future<int>` */
+      //     }
+      // For this to be analyzed correctly, flow analysis needs to avoid mixing
+      // up the "unmatched" state from the outer and inner pattern matches.
+      var x = Var('x');
+      var y = Var('y');
+      h.run([
+        declare(x, initializer: expr('FutureOr<int>')),
+        declare(y, initializer: expr('FutureOr<String>')),
+        ifCase(
+            x.expr,
+            wildcard(type: 'int').when(localFunction([
+              ifCase(y.expr, wildcard(type: 'String'), [
+                checkPromoted(x, 'int'),
+                checkPromoted(y, 'String'),
+              ], [
+                checkPromoted(x, 'int'),
+                checkPromoted(y, 'Future<String>'),
+              ]),
+            ]).thenExpr(throw_(expr('Object')))),
+            [
+              checkReachable(false),
+            ],
+            [
+              checkReachable(true),
+              checkPromoted(x, 'Future<int>'),
+            ]),
+      ]);
     });
   });
 }
@@ -7060,12 +7309,7 @@ extension on FlowModel<Type> {
           Var variable,
           Type writtenType,
           SsaNode<Type> newSsaNode) =>
-      write(
-          h,
-          nonPromotionReason,
-          variable,
-          h.promotionKeyStore.keyForVariable(variable),
-          writtenType,
-          newSsaNode,
-          h.typeOperations);
+      write(h, nonPromotionReason, h.promotionKeyStore.keyForVariable(variable),
+          writtenType, newSsaNode, h.typeOperations,
+          unpromotedType: variable.type);
 }

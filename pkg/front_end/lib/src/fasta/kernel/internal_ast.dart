@@ -31,6 +31,7 @@ import '../builder/type_alias_builder.dart';
 import '../fasta_codes.dart';
 import '../names.dart';
 import '../problems.dart' show unsupported;
+import '../type_inference/external_ast_helper.dart';
 import '../type_inference/inference_visitor.dart';
 import '../type_inference/inference_visitor_base.dart';
 import '../type_inference/inference_results.dart';
@@ -324,10 +325,11 @@ class TryStatement extends InternalStatement {
 }
 
 class SwitchCaseImpl extends SwitchCase {
+  final List<int> caseOffsets;
   final bool hasLabel;
 
-  SwitchCaseImpl(
-      List<Expression> expressions, List<int> expressionOffsets, Statement body,
+  SwitchCaseImpl(this.caseOffsets, List<Expression> expressions,
+      List<int> expressionOffsets, Statement body,
       {bool isDefault = false, required this.hasLabel})
       // ignore: unnecessary_null_comparison
       : assert(hasLabel != null),
@@ -367,7 +369,9 @@ class PatternGuard extends TreeNode with InternalTreeNode {
 class PatternSwitchCase extends TreeNode
     with InternalTreeNode
     implements SwitchCase {
+  final List<int> caseOffsets;
   final List<PatternGuard> patternGuards;
+
   @override
   Statement body;
 
@@ -378,7 +382,8 @@ class PatternSwitchCase extends TreeNode
 
   final List<VariableDeclaration> jointVariables;
 
-  PatternSwitchCase(int fileOffset, this.patternGuards, this.body,
+  PatternSwitchCase(
+      int fileOffset, this.caseOffsets, this.patternGuards, this.body,
       {required this.isDefault,
       required this.hasLabel,
       required this.jointVariables}) {
@@ -436,7 +441,7 @@ class PatternSwitchStatement extends InternalStatement
   Expression expression;
 
   @override
-  final List<SwitchCase> cases;
+  final List<PatternSwitchCase> cases;
 
   @override
   bool isExplicitlyExhaustive = false;
@@ -3350,48 +3355,6 @@ class ParenthesizedExpression extends InternalExpression {
   }
 }
 
-/// Creates a [Let] of [variable] with the given [body] using
-/// `variable.fileOffset` as the file offset for the let.
-///
-/// This is useful for create let expressions in replacement code.
-Let createLet(VariableDeclaration variable, Expression body) {
-  return new Let(variable, body)..fileOffset = variable.fileOffset;
-}
-
-/// Creates a [VariableDeclaration] for [expression] with the static [type]
-/// using `expression.fileOffset` as the file offset for the declaration.
-///
-/// This is useful for creating let variables for expressions in replacement
-/// code.
-VariableDeclaration createVariable(Expression expression, DartType type) {
-  assert(expression is! ThisExpression);
-  return new VariableDeclaration.forValue(expression, type: type)
-    ..fileOffset = expression.fileOffset;
-}
-
-/// Creates a [VariableDeclaration] for the expression inference [result]
-/// using `result.expression.fileOffset` as the file offset for the declaration.
-///
-/// This is useful for creating let variables for expressions in replacement
-/// code.
-VariableDeclaration createVariableForResult(ExpressionInferenceResult result) {
-  return createVariable(result.expression, result.inferredType);
-}
-
-/// Creates a [VariableGet] of [variable] using `variable.fileOffset` as the
-/// file offset for the expression.
-///
-/// This is useful for referencing let variables for expressions in replacement
-/// code.
-VariableGet createVariableGet(VariableDeclaration variable) {
-  return new VariableGet(variable)..fileOffset = variable.fileOffset;
-}
-
-ExpressionStatement createExpressionStatement(Expression expression) {
-  return new ExpressionStatement(expression)
-    ..fileOffset = expression.fileOffset;
-}
-
 /// Returns `true` if [node] is a pure expression.
 ///
 /// A pure expression is an expression that is deterministic and side effect
@@ -3731,7 +3694,7 @@ abstract class Pattern extends TreeNode with InternalTreeNode {
   /// causing additional side effects. It is the responsibility of the caller to
   /// ensure the absence of those side effects, which can be done, for example,
   /// via caching of the value to match in a local variable.
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext});
@@ -3757,7 +3720,7 @@ class DummyPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
@@ -3780,6 +3743,11 @@ class DummyPattern extends Pattern {
 class ExpressionPattern extends Pattern {
   Expression expression;
 
+  /// Static type of the expression as computed during inference.
+  // TODO(johnniwinther): Use UnknownType instead to flag when this type has
+  // not been computed.
+  DartType expressionType = const DynamicType();
+
   ExpressionPattern(this.expression) : super(expression.fileOffset) {
     expression.parent = this;
   }
@@ -3796,24 +3764,20 @@ class ExpressionPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
-    ObjectAccessTarget target = inferenceVisitor.findInterfaceMember(
-        matchedType, equalsName, fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-    Expression result = inferenceVisitor.engine.forest.createEqualsCall(
-        fileOffset,
-        matchedExpression,
-        expression,
-        target.getFunctionType(inferenceVisitor),
-        target.member as Procedure);
+    VariableDeclaration constVariable =
+        createVariableCache(expression, expressionType)..isConst = true;
+    Expression result = createEqualsCall(
+        base, matchedType, matchedExpression, createVariableGet(constVariable),
+        fileOffset: fileOffset);
     return new PatternTransformationResult([
       new PatternTransformationElement(
           kind: PatternTransformationElementKind.regular,
           condition: result,
-          variableInitializers: [])
+          variableInitializers: [constVariable])
     ]);
   }
 
@@ -3851,38 +3815,33 @@ class AndPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
     // intermediateVariable: `matchedType` VAR = `matchedExpression`
-    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(matchedExpression,
-            type: matchedType);
+    VariableDeclaration intermediateVariable =
+        createVariableCache(matchedExpression, matchedType);
 
-    PatternTransformationResult transformationResult = left.transform(
-        inferenceVisitor,
-        matchedExpression: inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
+    PatternTransformationResult transformationResult = left.transform(base,
+        matchedExpression: createVariableGet(intermediateVariable),
         matchedType: matchedType,
-        variableInitializingContext: inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable));
+        variableInitializingContext: createVariableGet(intermediateVariable));
 
     transformationResult = transformationResult.combine(
-        right.transform(inferenceVisitor,
-            matchedExpression: inferenceVisitor.engine.forest
-                .createVariableGet(fileOffset, intermediateVariable),
+        right.transform(base,
+            matchedExpression: createVariableGet(intermediateVariable),
             matchedType: matchedType,
-            variableInitializingContext: inferenceVisitor.engine.forest
-                .createVariableGet(fileOffset, intermediateVariable)),
-        inferenceVisitor);
+            variableInitializingContext:
+                createVariableGet(intermediateVariable)),
+        base);
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
             kind: PatternTransformationElementKind.regular,
             condition: null,
             variableInitializers: [intermediateVariable]),
-        inferenceVisitor);
+        base);
 
     return transformationResult;
   }
@@ -3926,20 +3885,19 @@ class OrPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
     // intermediateVariable: `matchedType` VAR = `matchedExpression`
-    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(matchedExpression,
-            type: matchedType);
+    VariableDeclaration intermediateVariable =
+        createVariableCache(matchedExpression, matchedType);
 
     // leftConditionIsTrue: bool LVAR = false;
-    VariableDeclaration leftConditionIsTrue = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(
-            inferenceVisitor.engine.forest.createBoolLiteral(fileOffset, false),
-            type: inferenceVisitor.coreTypes.boolNonNullableRawType);
+    VariableDeclaration leftConditionIsTrue = createInitializedVariable(
+        createBoolLiteral(false, fileOffset: fileOffset),
+        base.coreTypes.boolNonNullableRawType,
+        fileOffset: fileOffset);
 
     Map<String, VariableDeclaration> leftVariablesByName = {
       for (VariableDeclaration variable in left.declaredVariables)
@@ -3959,133 +3917,111 @@ class OrPattern extends Pattern {
         continue;
       }
 
-      variable.initializer = inferenceVisitor.engine.forest
-          .createConditionalExpression(
-              fileOffset,
-              inferenceVisitor.engine.forest.createVariableGet(
-                  fileOffset, leftConditionIsTrue),
-              inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, leftVariable)
-                ..promotedType = leftVariable.type,
-              inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, rightVariable)
-                ..promotedType = rightVariable.type)
-        ..staticType = inferenceVisitor.typeSchemaEnvironment
-            .getStandardUpperBound(leftVariable.type, rightVariable.type,
-                isNonNullableByDefault: true)
+      variable.initializer = createConditionalExpression(
+          createVariableGet(leftConditionIsTrue),
+          createVariableGet(leftVariable, promotedType: leftVariable.type),
+          createVariableGet(rightVariable, promotedType: rightVariable.type),
+          staticType: base.typeSchemaEnvironment.getStandardUpperBound(
+              leftVariable.type, rightVariable.type,
+              isNonNullableByDefault: true),
+          fileOffset: fileOffset)
         ..parent = variable;
     }
 
     // setLeftConditionIsTrue: `leftConditionIsTrue` = true;
     //   ==> VAR = true;
-    Statement setLeftConditionIsTrue = inferenceVisitor.engine.forest
-        .createExpressionStatement(
-            fileOffset,
-            inferenceVisitor.engine.forest.createVariableSet(
-                fileOffset,
-                leftConditionIsTrue,
-                inferenceVisitor.engine.forest
-                    .createBoolLiteral(fileOffset, true)));
+    Statement setLeftConditionIsTrue = createExpressionStatement(
+        createVariableSet(leftConditionIsTrue,
+            createBoolLiteral(true, fileOffset: fileOffset),
+            fileOffset: fileOffset));
 
-    PatternTransformationResult leftTransformationResult = left.transform(
-        inferenceVisitor,
-        matchedExpression: inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
+    PatternTransformationResult leftTransformationResult = left.transform(base,
+        matchedExpression: createVariableGet(intermediateVariable),
         matchedType: matchedType,
-        variableInitializingContext: inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable));
+        variableInitializingContext: createVariableGet(intermediateVariable));
     leftTransformationResult = leftTransformationResult.prependElement(
         new PatternTransformationElement(
             kind: PatternTransformationElementKind.logicalOrPatternLeftBegin,
             condition: null,
             variableInitializers: []),
-        inferenceVisitor);
+        base);
+
     // Initialize variables to values captured by [left].
+    List<Statement> leftVariableInitializers = [setLeftConditionIsTrue];
+    for (VariableDeclaration variable in left.declaredVariables) {
+      // TODO(johnniwinther): Can the variable be const?
+      variable.isFinal = false;
+      leftVariableInitializers.add(createExpressionStatement(createVariableSet(
+          variable, variable.initializer!,
+          fileOffset: fileOffset)));
+      variable.name = null;
+      variable.initializer = null;
+      variable.type = const DynamicType();
+    }
     leftTransformationResult = leftTransformationResult.combine(
         new PatternTransformationResult([
           new PatternTransformationElement(
               kind: PatternTransformationElementKind.regular,
               condition: null,
-              variableInitializers: [
-                setLeftConditionIsTrue,
-                for (VariableDeclaration variable in left.declaredVariables)
-                  inferenceVisitor.engine.forest.createExpressionStatement(
-                      fileOffset,
-                      inferenceVisitor.engine.forest.createVariableSet(
-                          fileOffset, variable, variable.initializer!))
-              ])
+              variableInitializers: leftVariableInitializers)
         ]),
-        inferenceVisitor);
-    for (VariableDeclaration variable in left.declaredVariables) {
-      variable.name = null;
-      variable.initializer = null;
-      variable.type = const DynamicType();
-    }
+        base);
 
     // rightConditionIsTrue: bool RVAR = false;
-    VariableDeclaration rightConditionIsTrue = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(
-            inferenceVisitor.engine.forest.createBoolLiteral(fileOffset, false),
-            type: inferenceVisitor.coreTypes.boolNonNullableRawType);
+    VariableDeclaration rightConditionIsTrue = createInitializedVariable(
+        createBoolLiteral(false, fileOffset: fileOffset),
+        base.coreTypes.boolNonNullableRawType,
+        fileOffset: fileOffset);
 
     // setRightConditionIsTrue: `rightConditionIsTrue` = true;
     //   ==> VAR = true;
-    Statement setRightConditionIsTrue = inferenceVisitor.engine.forest
-        .createExpressionStatement(
-            fileOffset,
-            inferenceVisitor.engine.forest.createVariableSet(
-                fileOffset,
-                rightConditionIsTrue,
-                inferenceVisitor.engine.forest
-                    .createBoolLiteral(fileOffset, true)));
+    Statement setRightConditionIsTrue = createExpressionStatement(
+        createVariableSet(rightConditionIsTrue,
+            createBoolLiteral(true, fileOffset: fileOffset),
+            fileOffset: fileOffset));
 
     PatternTransformationResult rightTransformationResult = right.transform(
-        inferenceVisitor,
-        matchedExpression: inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
+        base,
+        matchedExpression: createVariableGet(intermediateVariable),
         matchedType: matchedType,
-        variableInitializingContext: inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable));
+        variableInitializingContext: createVariableGet(intermediateVariable));
     rightTransformationResult = rightTransformationResult.prependElement(
         new PatternTransformationElement(
             kind: PatternTransformationElementKind.regular,
             // condition: !`leftConditionIsTrue`
-            condition: inferenceVisitor.engine.forest.createNot(
-                fileOffset,
-                inferenceVisitor.engine.forest
-                    .createVariableGet(fileOffset, leftConditionIsTrue)),
+            condition: createNot(createVariableGet(leftConditionIsTrue)),
             variableInitializers: []),
-        inferenceVisitor);
+        base);
     rightTransformationResult = rightTransformationResult.prependElement(
         new PatternTransformationElement(
             kind: PatternTransformationElementKind.logicalOrPatternRightBegin,
             condition: null,
             variableInitializers: []),
-        inferenceVisitor);
+        base);
+
     // Initialize variables to values captured by [right].
+    List<Statement> rightVariableInitializers = [setRightConditionIsTrue];
+    for (VariableDeclaration variable in right.declaredVariables) {
+      // TODO(johnniwinther): Can the variable be const?
+      variable.isFinal = false;
+      rightVariableInitializers.add(createExpressionStatement(createVariableSet(
+          variable, variable.initializer!,
+          fileOffset: fileOffset)));
+      variable.name = null;
+      variable.initializer = null;
+      variable.type = const DynamicType();
+    }
     rightTransformationResult = rightTransformationResult.combine(
         new PatternTransformationResult([
           new PatternTransformationElement(
               kind: PatternTransformationElementKind.regular,
               condition: null,
-              variableInitializers: [
-                setRightConditionIsTrue,
-                for (VariableDeclaration variable in right.declaredVariables)
-                  inferenceVisitor.engine.forest.createExpressionStatement(
-                      fileOffset,
-                      inferenceVisitor.engine.forest.createVariableSet(
-                          fileOffset, variable, variable.initializer!))
-              ])
+              variableInitializers: rightVariableInitializers)
         ]),
-        inferenceVisitor);
-    for (VariableDeclaration variable in right.declaredVariables) {
-      variable.name = null;
-      variable.initializer = null;
-      variable.type = const DynamicType();
-    }
+        base);
 
     PatternTransformationResult transformationResult = leftTransformationResult
-        .combine(rightTransformationResult, inferenceVisitor)
+        .combine(rightTransformationResult, base)
         .combine(
             new PatternTransformationResult([
               new PatternTransformationElement(
@@ -4096,17 +4032,13 @@ class OrPattern extends Pattern {
                   kind: PatternTransformationElementKind.regular,
                   // condition:
                   //     `leftConditionIsTrue` || `rightConditionIsTrue`
-                  condition: inferenceVisitor.engine.forest
-                      .createLogicalExpression(
-                          fileOffset,
-                          inferenceVisitor.engine.forest.createVariableGet(
-                              fileOffset, leftConditionIsTrue),
-                          doubleBarName.text,
-                          inferenceVisitor.engine.forest.createVariableGet(
-                              fileOffset, rightConditionIsTrue)),
+                  condition: createOrExpression(
+                      createVariableGet(leftConditionIsTrue),
+                      createVariableGet(rightConditionIsTrue),
+                      fileOffset: fileOffset),
                   variableInitializers: [])
             ]),
-            inferenceVisitor);
+            base);
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
@@ -4119,7 +4051,7 @@ class OrPattern extends Pattern {
               ...left.declaredVariables,
               ...right.declaredVariables
             ]),
-        inferenceVisitor);
+        base);
 
     return transformationResult;
   }
@@ -4158,34 +4090,31 @@ class CastPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
     // castExpression: `matchedExpression` as `type`
-    Expression castExpression = inferenceVisitor.engine.forest
-        .createAsExpression(fileOffset, matchedExpression, type,
-            forNonNullableByDefault: inferenceVisitor.isNonNullableByDefault);
+    Expression castExpression = createAsExpression(matchedExpression, type,
+        forNonNullableByDefault: base.isNonNullableByDefault,
+        fileOffset: fileOffset);
 
     // intermediateVariable: `type` VAR = `castExpression`;
     //   ==> `type` VAR = `matchedExpression` as `type`;
-    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(castExpression, type: type);
+    VariableDeclaration intermediateVariable =
+        createVariableCache(castExpression, type);
 
-    PatternTransformationResult transformationResult = pattern.transform(
-        inferenceVisitor,
-        matchedExpression: inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
+    PatternTransformationResult transformationResult = pattern.transform(base,
+        matchedExpression: createVariableGet(intermediateVariable),
         matchedType: type,
-        variableInitializingContext: inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable));
+        variableInitializingContext: createVariableGet(intermediateVariable));
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
             kind: PatternTransformationElementKind.regular,
             condition: null,
             variableInitializers: [intermediateVariable]),
-        inferenceVisitor);
+        base);
 
     return transformationResult;
   }
@@ -4223,37 +4152,33 @@ class NullAssertPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
     // nullCheckCondition: `matchedExpression`!
-    Expression nullCheckExpression = inferenceVisitor.engine.forest
-        .createNullCheck(fileOffset, matchedExpression);
+    Expression nullCheckExpression =
+        createNullCheck(matchedExpression, fileOffset: fileOffset);
 
     DartType typeWithoutNullabilityMarkers = matchedType.toNonNull();
 
     // intermediateVariable: `typeWithoutNullabilityMarkers` VAR =
     //     `nullCheckExpression`;
     //   ==> `typeWithoutNullabilityMarkers` VAR = `matchedExpression`!;
-    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(nullCheckExpression,
-            type: typeWithoutNullabilityMarkers);
+    VariableDeclaration intermediateVariable =
+        createVariableCache(nullCheckExpression, typeWithoutNullabilityMarkers);
 
-    PatternTransformationResult transformationResult = pattern.transform(
-        inferenceVisitor,
-        matchedExpression: inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable),
+    PatternTransformationResult transformationResult = pattern.transform(base,
+        matchedExpression: createVariableGet(intermediateVariable),
         matchedType: typeWithoutNullabilityMarkers,
-        variableInitializingContext: inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable));
+        variableInitializingContext: createVariableGet(intermediateVariable));
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
             kind: PatternTransformationElementKind.regular,
             condition: null,
             variableInitializers: [intermediateVariable]),
-        inferenceVisitor);
+        base);
 
     return transformationResult;
   }
@@ -4290,32 +4215,24 @@ class NullCheckPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
     // intermediateVariable: `matchedType` VAR = `matchedExpression`
-    VariableDeclaration intermediateVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(matchedExpression,
-            type: matchedType);
+    VariableDeclaration intermediateVariable =
+        createVariableCache(matchedExpression, matchedType);
 
     // nullCheckCondition: !(`intermediateVariable` == null)
-    Expression nullCheckCondition = inferenceVisitor.engine.forest.createNot(
-        fileOffset,
-        inferenceVisitor.engine.forest.createEqualsNull(
-            fileOffset,
-            inferenceVisitor.engine.forest
-                .createVariableGet(fileOffset, intermediateVariable)));
+    Expression nullCheckCondition = createNot(
+        createEqualsNull(fileOffset, createVariableGet(intermediateVariable)));
 
     DartType promotedType = matchedType.toNonNull();
-    PatternTransformationResult transformationResult = pattern.transform(
-        inferenceVisitor,
-        matchedExpression: inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable)
-          ..promotedType = matchedType != promotedType ? promotedType : null,
+    PatternTransformationResult transformationResult = pattern.transform(base,
+        matchedExpression: createVariableGet(intermediateVariable,
+            promotedType: matchedType != promotedType ? promotedType : null),
         matchedType: promotedType,
-        variableInitializingContext: inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, intermediateVariable));
+        variableInitializingContext: createVariableGet(intermediateVariable));
 
     // This needs to be added to the transformation elements since we need to
     // create the [intermediateVariable] unconditionally before applying the
@@ -4326,13 +4243,13 @@ class NullCheckPattern extends Pattern {
             kind: PatternTransformationElementKind.regular,
             condition: nullCheckCondition,
             variableInitializers: []),
-        inferenceVisitor);
+        base);
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
             kind: PatternTransformationElementKind.regular,
             condition: null,
             variableInitializers: [intermediateVariable]),
-        inferenceVisitor);
+        base);
 
     return transformationResult;
   }
@@ -4372,52 +4289,33 @@ class ListPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
     // targetListType: List<`typeArgument`>
     DartType typeArgument = this.typeArgument ?? const DynamicType();
-    DartType targetListType = new InterfaceType(
-        inferenceVisitor.coreTypes.listClass,
-        Nullability.nonNullable,
-        <DartType>[typeArgument]);
+    DartType targetListType = new InterfaceType(base.coreTypes.listClass,
+        Nullability.nonNullable, <DartType>[typeArgument]);
 
-    ObjectAccessTarget lengthTarget = inferenceVisitor.findInterfaceMember(
-        targetListType, lengthName, fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
     bool typeCheckForTargetListNeeded =
-        !inferenceVisitor.isAssignable(targetListType, matchedType) ||
+        !base.isAssignable(targetListType, matchedType) ||
             matchedType is DynamicType;
 
     // listVariable: `matchedType` LVAR = `matchedExpression`
-    VariableDeclaration listVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(matchedExpression,
-            type: matchedType);
+    VariableDeclaration listVariable =
+        createVariableCache(matchedExpression, matchedType);
+    DartType? listVariablePromotedType =
+        typeCheckForTargetListNeeded ? targetListType : null;
 
     // lengthGet: `listVariable`.length
     //   ==> LVAR.length
-    Expression lengthGet = new InstanceGet(
-        InstanceAccessKind.Instance,
-        inferenceVisitor.engine.forest
-            .createVariableGet(fileOffset, listVariable)
-          ..promotedType = typeCheckForTargetListNeeded ? targetListType : null,
+    Expression lengthGet = createInstanceGet(
+        base,
+        targetListType,
+        createVariableGet(listVariable, promotedType: listVariablePromotedType),
         lengthName,
-        resultType: lengthTarget.getGetterType(inferenceVisitor),
-        interfaceTarget: lengthTarget.member as Procedure)
-      ..fileOffset = fileOffset;
-
-    ObjectAccessTarget greaterThanOrEqualsTarget =
-        inferenceVisitor.findInterfaceMember(
-            inferenceVisitor.coreTypes.intNonNullableRawType,
-            greaterThanOrEqualsName,
-            fileOffset,
-            callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-    ObjectAccessTarget equalsTarget = inferenceVisitor.findInterfaceMember(
-        inferenceVisitor.coreTypes.intNonNullableRawType,
-        equalsName,
-        fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
+        fileOffset: fileOffset);
 
     Expression lengthCheck;
     bool hasRestPattern = false;
@@ -4430,31 +4328,18 @@ class ListPattern extends Pattern {
     if (hasRestPattern) {
       // lengthCheck: `lengthGet` >= `patterns.length - 1`
       //   ==> LVAR.length >= `patterns.length - 1`
-      lengthCheck = new InstanceInvocation(
-          InstanceAccessKind.Instance,
+      lengthCheck = createOperatorInvocation(
+          base,
+          base.coreTypes.intNonNullableRawType,
           lengthGet,
           greaterThanOrEqualsName,
-          inferenceVisitor.engine.forest.createArguments(fileOffset, [
-            inferenceVisitor.engine.forest
-                .createIntLiteral(fileOffset, patterns.length - 1)
-          ]),
-          functionType:
-              greaterThanOrEqualsTarget.getFunctionType(inferenceVisitor),
-          interfaceTarget: greaterThanOrEqualsTarget.member as Procedure)
-        ..fileOffset = fileOffset;
+          createIntLiteral(patterns.length - 1, fileOffset: fileOffset),
+          fileOffset: fileOffset);
     } else {
       // lengthCheck: `lengthGet` == `patterns.length`
-      lengthCheck = new InstanceInvocation(
-          InstanceAccessKind.Instance,
-          lengthGet,
-          equalsName,
-          inferenceVisitor.engine.forest.createArguments(fileOffset, [
-            inferenceVisitor.engine.forest
-                .createIntLiteral(fileOffset, patterns.length)
-          ]),
-          functionType: equalsTarget.getFunctionType(inferenceVisitor),
-          interfaceTarget: equalsTarget.member as Procedure)
-        ..fileOffset = fileOffset;
+      lengthCheck = createEqualsCall(base, base.coreTypes.intNonNullableRawType,
+          lengthGet, createIntLiteral(patterns.length, fileOffset: fileOffset),
+          fileOffset: fileOffset);
     }
 
     // typeAndLengthCheck: `listVariable` is `targetListType`
@@ -4463,100 +4348,122 @@ class ListPattern extends Pattern {
     //       LVAR.length >= `patterns.length`
     Expression typeAndLengthCheck;
     if (typeCheckForTargetListNeeded) {
-      typeAndLengthCheck = inferenceVisitor.engine.forest
-          .createLogicalExpression(
-              fileOffset,
-              inferenceVisitor.engine.forest.createIsExpression(
-                  fileOffset,
-                  inferenceVisitor.engine.forest
-                      .createVariableGet(fileOffset, listVariable),
-                  targetListType,
-                  forNonNullableByDefault: false),
-              doubleAmpersandName.text,
-              lengthCheck);
+      typeAndLengthCheck = createAndExpression(
+          createIsExpression(createVariableGet(listVariable), targetListType,
+              forNonNullableByDefault: false, fileOffset: fileOffset),
+          lengthCheck,
+          fileOffset: fileOffset);
     } else {
       typeAndLengthCheck = lengthCheck;
     }
 
-    ObjectAccessTarget intSubtraction = inferenceVisitor.findInterfaceMember(
-        inferenceVisitor.coreTypes.intNonNullableRawType, minusName, fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-
-    ObjectAccessTarget elementAccess = inferenceVisitor.findInterfaceMember(
-        targetListType, indexGetName, fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-    FunctionType elementAccessFunctionType =
-        elementAccess.getFunctionType(inferenceVisitor);
     PatternTransformationResult transformationResult =
         new PatternTransformationResult([]);
     List<VariableDeclaration> elementAccessVariables = [];
     bool hasSeenRestPattern = false;
     for (int i = 0; i < patterns.length; i++) {
+      Expression listElement;
+      DartType listElementType;
       if (patterns[i] is RestPattern) {
         hasSeenRestPattern = true;
-        continue;
-      }
+        Pattern? subPattern = (patterns[i] as RestPattern).subPattern;
+        if (subPattern == null) {
+          continue;
+        }
+        // startIndex: `i`
+        Expression startIndex = createIntLiteral(i, fileOffset: fileOffset);
 
-      Expression elementIndex;
-      if (!hasSeenRestPattern) {
-        // elementIndex: `i`
-        elementIndex =
-            inferenceVisitor.engine.forest.createIntLiteral(fileOffset, i);
-      } else {
-        // elementIndex: `listVariable`.length - `patterns.length - i`
+        // endIndex: `listVariable`.length - `patterns.length - i`
         //   ==> LVAR.length - `patterns.length - i`
 
         // lengthGet: `listVariable`.length ==> LVAR.length
-        Expression lengthGet = new InstanceGet(
-            InstanceAccessKind.Instance,
-            inferenceVisitor.engine.forest
-                .createVariableGet(fileOffset, listVariable)
-              ..promotedType =
-                  typeCheckForTargetListNeeded ? targetListType : null,
+        Expression lengthGet = createInstanceGet(
+            base,
+            targetListType,
+            createVariableGet(listVariable,
+                promotedType: listVariablePromotedType),
             lengthName,
-            resultType: lengthTarget.getGetterType(inferenceVisitor),
-            interfaceTarget: lengthTarget.member as Procedure)
-          ..fileOffset = fileOffset;
+            fileOffset: fileOffset);
 
-        // elementIndex: `lengthGet` - `patterns.length - i`
-        //   ==> LVAR.length - `patterns.length - i`
-        elementIndex = new InstanceInvocation(
-            InstanceAccessKind.Instance,
-            lengthGet,
-            minusName,
-            inferenceVisitor.engine.forest.createArguments(fileOffset, [
-              inferenceVisitor.engine.forest
-                  .createIntLiteral(fileOffset, patterns.length - i)
-            ]),
-            interfaceTarget: intSubtraction.member as Procedure,
-            functionType: intSubtraction.getFunctionType(inferenceVisitor));
+        int nextIndex = i + 1;
+        Expression? endIndex;
+        if (nextIndex != patterns.length) {
+          // endIndex: `lengthGet` - `patterns.length - nextIndex`
+          //   ==> LVAR.length - `patterns.length - nextIndex`
+          endIndex = createOperatorInvocation(
+              base,
+              base.coreTypes.intNonNullableRawType,
+              lengthGet,
+              minusName,
+              createIntLiteral(patterns.length - nextIndex,
+                  fileOffset: fileOffset),
+              fileOffset: fileOffset);
+        }
+
+        // listElement: `listVariable`.subList(`startIndex`,`endIndex`)
+        //   ==> LVAR.subList(`startIndex`,`endIndex`)
+        InstanceInvocation sublist = listElement = createInstanceInvocation(
+            base,
+            targetListType,
+            createVariableGet(listVariable,
+                promotedType: listVariablePromotedType),
+            sublistName,
+            [startIndex, if (endIndex != null) endIndex],
+            fileOffset: fileOffset);
+        listElementType = sublist.functionType.returnType;
+      } else {
+        Expression elementIndex;
+        if (!hasSeenRestPattern) {
+          // elementIndex: `i`
+          elementIndex = createIntLiteral(i, fileOffset: fileOffset);
+        } else {
+          // elementIndex: `listVariable`.length - `patterns.length - i`
+          //   ==> LVAR.length - `patterns.length - i`
+
+          // lengthGet: `listVariable`.length ==> LVAR.length
+          Expression lengthGet = createInstanceGet(
+              base,
+              targetListType,
+              createVariableGet(listVariable,
+                  promotedType: listVariablePromotedType),
+              lengthName,
+              fileOffset: fileOffset);
+
+          // elementIndex: `lengthGet` - `patterns.length - i`
+          //   ==> LVAR.length - `patterns.length - i`
+          elementIndex = createOperatorInvocation(
+              base,
+              base.coreTypes.intNonNullableRawType,
+              lengthGet,
+              minusName,
+              createIntLiteral(patterns.length - i, fileOffset: fileOffset),
+              fileOffset: fileOffset);
+        }
+
+        // listElement: `listVariable`[`elementIndex`]
+        //   ==> LVAR[`elementIndex`]
+        listElement = createOperatorInvocation(
+            base,
+            targetListType,
+            createVariableGet(listVariable,
+                promotedType: listVariablePromotedType),
+            indexGetName,
+            elementIndex,
+            fileOffset: fileOffset);
+        listElementType = typeArgument;
       }
-
-      // listElement: `listVariable`[`elementIndex`]
-      //   ==> LVAR[`elementIndex`]
-      Expression listElement = new InstanceInvocation(
-          InstanceAccessKind.Instance,
-          inferenceVisitor.engine.forest
-              .createVariableGet(fileOffset, listVariable)
-            ..promotedType = targetListType,
-          indexGetName,
-          inferenceVisitor.engine.forest
-              .createArguments(fileOffset, [elementIndex]),
-          functionType: elementAccessFunctionType,
-          interfaceTarget: elementAccess.member as Procedure);
 
       // listElementVariable: `typeArgument` EVAR = `listElement`
       //   ==> `typeArgument` EVAR = LVAR[`i`]
-      VariableDeclaration listElementVariable = inferenceVisitor.engine.forest
-          .createVariableDeclarationForValue(listElement, type: typeArgument);
+      VariableDeclaration listElementVariable =
+          createVariableCache(listElement, listElementType);
 
       PatternTransformationResult subpatternTransformationResult = patterns[i]
-          .transform(inferenceVisitor,
-              matchedExpression: inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, listElementVariable),
+          .transform(base,
+              matchedExpression: createVariableGet(listElementVariable),
               matchedType: typeArgument,
-              variableInitializingContext: inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, listElementVariable));
+              variableInitializingContext:
+                  createVariableGet(listElementVariable));
 
       // If the sub-pattern transformation doesn't declare captured variables
       // and consists of a single empty element, it means that it simply
@@ -4571,8 +4478,8 @@ class ListPattern extends Pattern {
           !(subpatternTransformationResult.elements.length == 1 &&
               subpatternTransformationResult.elements.single.isEmpty)) {
         elementAccessVariables.add(listElementVariable);
-        transformationResult = transformationResult.combine(
-            subpatternTransformationResult, inferenceVisitor);
+        transformationResult =
+            transformationResult.combine(subpatternTransformationResult, base);
       }
     }
 
@@ -4581,14 +4488,14 @@ class ListPattern extends Pattern {
             kind: PatternTransformationElementKind.regular,
             condition: typeAndLengthCheck,
             variableInitializers: elementAccessVariables),
-        inferenceVisitor);
+        base);
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
             kind: PatternTransformationElementKind.regular,
             condition: null,
             variableInitializers: [listVariable]),
-        inferenceVisitor);
+        base);
 
     return transformationResult;
   }
@@ -4664,7 +4571,7 @@ class ObjectPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
@@ -4681,31 +4588,25 @@ class ObjectPattern extends Pattern {
       targetObjectType = new InterfaceType(
           classNode,
           Nullability.nonNullable,
-          calculateBounds(
-              classNode.typeParameters,
-              inferenceVisitor.coreTypes.objectClass,
-              inferenceVisitor.libraryBuilder.library));
+          calculateBounds(classNode.typeParameters, base.coreTypes.objectClass,
+              base.libraryBuilder.library));
     }
 
     bool typeCheckForTargetNeeded =
-        !inferenceVisitor.isAssignable(targetObjectType, matchedType) ||
+        !base.isAssignable(targetObjectType, matchedType) ||
             matchedType is DynamicType;
 
     // objectVariable: `matchedType` OVAR = `matchedExpression`
-    VariableDeclaration objectVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(matchedExpression,
-            type: matchedType);
+    VariableDeclaration objectVariable =
+        createVariableCache(matchedExpression, matchedType);
 
     // typeCheck: `objectVariable` is `targetObjectType`
     //   ==> OVAR is `classNode`<`typeArguments`>
     Expression? typeCheck;
     if (typeCheckForTargetNeeded) {
-      typeCheck = inferenceVisitor.engine.forest.createIsExpression(
-          fileOffset,
-          inferenceVisitor.engine.forest
-              .createVariableGet(fileOffset, objectVariable),
-          targetObjectType,
-          forNonNullableByDefault: false);
+      typeCheck = createIsExpression(
+          createVariableGet(objectVariable), targetObjectType,
+          forNonNullableByDefault: false, fileOffset: fileOffset);
     }
 
     List<VariableDeclaration> elementAccessVariables = [];
@@ -4728,50 +4629,46 @@ class ObjectPattern extends Pattern {
       if (fieldNameString != null) {
         Name fieldName = new Name(fieldNameString);
 
-        ObjectAccessTarget fieldAccessTarget = inferenceVisitor
-            .findInterfaceMember(targetObjectType, fieldName, fileOffset,
-                callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+        ObjectAccessTarget fieldAccessTarget = base.findInterfaceMember(
+            targetObjectType, fieldName, fileOffset,
+            callSiteAccessKind: CallSiteAccessKind.getterInvocation);
 
         if (fieldAccessTarget.member != null) {
-          fieldType = fieldAccessTarget.getGetterType(inferenceVisitor);
+          fieldType = fieldAccessTarget.getGetterType(base);
 
           // objectElement: `objectVariable`.`fieldName`
           //   ==> OVAR.`fieldName`
-          objectElement = new InstanceGet(
-              InstanceAccessKind.Instance,
-              inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, objectVariable)
-                ..promotedType = targetObjectType,
+          objectElement = createInstanceGet(
+              base,
+              targetObjectType,
+              createVariableGet(objectVariable, promotedType: targetObjectType),
               fieldName,
-              resultType: fieldType,
-              interfaceTarget: fieldAccessTarget.member!)
-            ..fileOffset = fileOffset;
+              fileOffset: fileOffset);
         } else {
-          objectElement = inferenceVisitor.helper.buildProblem(
+          objectElement = base.helper.buildProblem(
               templateUndefinedGetter.withArguments(fieldNameString,
-                  targetObjectType, inferenceVisitor.isNonNullableByDefault),
+                  targetObjectType, base.isNonNullableByDefault),
               fileOffset,
               noLength);
           fieldType = const InvalidType();
         }
       } else {
-        objectElement = inferenceVisitor.helper.buildProblem(
+        objectElement = base.helper.buildProblem(
             messageUnspecifiedGetterNameInObjectPattern, fileOffset, noLength);
         fieldType = const InvalidType();
       }
 
       // objectElementVariable: `fieldType` EVAR = `objectElement`
       //   ==> `fieldType` EVAR = OVAR.`fieldName`
-      VariableDeclaration objectElementVariable = inferenceVisitor.engine.forest
-          .createVariableDeclarationForValue(objectElement, type: fieldType);
+      VariableDeclaration objectElementVariable =
+          createVariableCache(objectElement, fieldType);
 
       PatternTransformationResult subpatternTransformationResult = field.pattern
-          .transform(inferenceVisitor,
-              matchedExpression: inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, objectElementVariable),
+          .transform(base,
+              matchedExpression: createVariableGet(objectElementVariable),
               matchedType: fieldType,
-              variableInitializingContext: inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, objectElementVariable));
+              variableInitializingContext:
+                  createVariableGet(objectElementVariable));
 
       // If the sub-pattern transformation doesn't declare captured variables
       // and consists of a single empty element, it means that it simply
@@ -4786,8 +4683,8 @@ class ObjectPattern extends Pattern {
           !(subpatternTransformationResult.elements.length == 1 &&
               subpatternTransformationResult.elements.single.isEmpty)) {
         elementAccessVariables.add(objectElementVariable);
-        transformationResult = transformationResult.combine(
-            subpatternTransformationResult, inferenceVisitor);
+        transformationResult =
+            transformationResult.combine(subpatternTransformationResult, base);
       }
     }
 
@@ -4796,7 +4693,7 @@ class ObjectPattern extends Pattern {
             kind: PatternTransformationElementKind.regular,
             condition: null,
             variableInitializers: elementAccessVariables),
-        inferenceVisitor);
+        base);
 
     if (typeCheck != null) {
       transformationResult = transformationResult.prependElement(
@@ -4804,7 +4701,7 @@ class ObjectPattern extends Pattern {
               kind: PatternTransformationElementKind.regular,
               condition: typeCheck,
               variableInitializers: []),
-          inferenceVisitor);
+          base);
     }
 
     transformationResult = transformationResult.prependElement(
@@ -4812,7 +4709,7 @@ class ObjectPattern extends Pattern {
             kind: PatternTransformationElementKind.regular,
             condition: null,
             variableInitializers: [objectVariable]),
-        inferenceVisitor);
+        base);
 
     return transformationResult;
   }
@@ -4850,7 +4747,7 @@ class RelationalPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
@@ -4859,23 +4756,15 @@ class RelationalPattern extends Pattern {
     switch (kind) {
       case RelationalPatternKind.equals:
       case RelationalPatternKind.notEquals:
-        if (expression is NullLiteral || expression is NullConstant) {
-          condition = inferenceVisitor.engine.forest
-              .createEqualsNull(fileOffset, matchedExpression);
+        if (expression is NullLiteral) {
+          condition = createEqualsNull(fileOffset, matchedExpression);
         } else {
-          ObjectAccessTarget target = inferenceVisitor.findInterfaceMember(
-              matchedType, equalsName, fileOffset,
-              callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-          condition = inferenceVisitor.engine.forest.createEqualsCall(
-              fileOffset,
-              matchedExpression,
-              expression,
-              target.getFunctionType(inferenceVisitor),
-              target.member as Procedure);
+          condition = createEqualsCall(
+              base, matchedType, matchedExpression, expression,
+              fileOffset: fileOffset);
         }
         if (kind == RelationalPatternKind.notEquals) {
-          condition =
-              inferenceVisitor.engine.forest.createNot(fileOffset, condition);
+          condition = createNot(condition);
         }
         break;
       case RelationalPatternKind.lessThan:
@@ -4892,7 +4781,7 @@ class RelationalPattern extends Pattern {
         break;
     }
     if (condition == null) {
-      ObjectAccessTarget target = inferenceVisitor.findInterfaceMember(
+      ObjectAccessTarget target = base.findInterfaceMember(
           matchedType, name!, fileOffset,
           callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
       if (target.kind == ObjectAccessTargetKind.dynamic) {
@@ -4900,12 +4789,11 @@ class RelationalPattern extends Pattern {
             DynamicAccessKind.Dynamic,
             matchedExpression,
             name,
-            inferenceVisitor.engine.forest
-                .createArguments(fileOffset, [expression]));
+            createArguments([expression], fileOffset: fileOffset));
       } else if (target.member is! Procedure) {
-        inferenceVisitor.helper.addProblem(
-            templateUndefinedOperator.withArguments(name.text, matchedType,
-                inferenceVisitor.isNonNullableByDefault),
+        base.helper.addProblem(
+            templateUndefinedOperator.withArguments(
+                name.text, matchedType, base.isNonNullableByDefault),
             fileOffset,
             noLength);
         condition = null;
@@ -4914,9 +4802,8 @@ class RelationalPattern extends Pattern {
             InstanceAccessKind.Instance,
             matchedExpression,
             name,
-            inferenceVisitor.engine.forest
-                .createArguments(fileOffset, [expression]),
-            functionType: target.getFunctionType(inferenceVisitor),
+            createArguments([expression], fileOffset: fileOffset),
+            functionType: target.getFunctionType(base),
             interfaceTarget: target.member as Procedure)
           ..fileOffset = fileOffset;
       }
@@ -4977,15 +4864,14 @@ class WildcardPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
     Expression? condition;
     if (type != null) {
-      condition = inferenceVisitor.engine.forest.createIsExpression(
-          fileOffset, matchedExpression, type!,
-          forNonNullableByDefault: false);
+      condition = createIsExpression(matchedExpression, type!,
+          forNonNullableByDefault: false, fileOffset: fileOffset);
     } else {
       condition = null;
     }
@@ -5091,7 +4977,7 @@ class AssignedVariablePattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
@@ -5099,12 +4985,12 @@ class AssignedVariablePattern extends Pattern {
     return new PatternTransformationResult([
       new PatternTransformationElement(
           kind: PatternTransformationElementKind.regular,
-          condition: inferenceVisitor.engine.forest.createLet(
-              inferenceVisitor.engine.forest.createVariableDeclarationForValue(
-                  inferenceVisitor.engine.forest.createVariableSet(
-                      fileOffset, variable, matchedExpression)),
-              inferenceVisitor.engine.forest
-                  .createBoolLiteral(fileOffset, true))
+          condition: createLet(
+              createVariableCache(
+                  createVariableSet(variable, matchedExpression,
+                      fileOffset: fileOffset),
+                  const DynamicType()),
+              createBoolLiteral(true, fileOffset: fileOffset))
             ..fileOffset = fileOffset,
           variableInitializers: [])
     ]);
@@ -5162,6 +5048,12 @@ class IfCaseStatement extends InternalStatement {
 
 final MapPatternEntry dummyMapPatternEntry =
     new MapPatternEntry(dummyPattern, dummyPattern, TreeNode.noOffset);
+
+/// This is used as a sentinel value to mark the occurrence of the rest pattern
+final MapPatternEntry restMapPatternEntry = new MapPatternEntry(
+    new ExpressionPattern(new NullLiteral()),
+    new ExpressionPattern(new NullLiteral()),
+    TreeNode.noOffset);
 
 class MapPatternEntry extends TreeNode with InternalTreeNode {
   final Pattern key;
@@ -5230,55 +5122,47 @@ class MapPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
     DartType keyType = this.keyType ?? const DynamicType();
     DartType valueType = this.valueType ?? const DynamicType();
     DartType targetMapType = new InterfaceType(
-        inferenceVisitor.coreTypes.mapClass,
-        Nullability.nonNullable,
-        [keyType, valueType]);
+        base.coreTypes.mapClass, Nullability.nonNullable, [keyType, valueType]);
 
-    ObjectAccessTarget containsKeyTarget = inferenceVisitor.findInterfaceMember(
-        targetMapType, containsKeyName, fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.methodInvocation);
     bool typeCheckForTargetMapNeeded =
-        !inferenceVisitor.isAssignable(targetMapType, matchedType) ||
+        !base.isAssignable(targetMapType, matchedType) ||
             matchedType is DynamicType;
 
     // mapVariable: `matchedType` MVAR = `matchedExpression`
-    VariableDeclaration mapVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(matchedExpression,
-            type: matchedType);
+    VariableDeclaration mapVariable =
+        createVariableCache(matchedExpression, matchedType);
 
     Expression? keysCheck;
     for (int i = entries.length - 1; i >= 0; i--) {
       MapPatternEntry entry = entries[i];
+      if (identical(entry, restMapPatternEntry)) continue;
       ExpressionPattern keyPattern = entry.key as ExpressionPattern;
 
       // containsKeyCheck: `mapVariable`.containsKey(`keyPattern.expression`)
       //   ==> MVAR.containsKey(`keyPattern.expression`)
-      Expression containsKeyCheck = new InstanceInvocation(
-          InstanceAccessKind.Instance,
-          inferenceVisitor.engine.forest
-              .createVariableGet(fileOffset, mapVariable)
-            ..promotedType = typeCheckForTargetMapNeeded ? targetMapType : null,
+      Expression containsKeyCheck = createInstanceInvocation(
+          base,
+          targetMapType,
+          createVariableGet(mapVariable,
+              promotedType: typeCheckForTargetMapNeeded ? targetMapType : null),
           containsKeyName,
-          inferenceVisitor.engine.forest
-              .createArguments(fileOffset, [keyPattern.expression]),
-          functionType: containsKeyTarget.getFunctionType(inferenceVisitor),
-          interfaceTarget: containsKeyTarget.member as Procedure)
-        ..fileOffset = fileOffset;
+          [keyPattern.expression],
+          fileOffset: fileOffset);
 
       if (keysCheck == null) {
         // keyCheck: `containsKeyCheck`
         keysCheck = containsKeyCheck;
       } else {
         // keyCheck: `containsKeyCheck` && `keyCheck`
-        keysCheck = inferenceVisitor.engine.forest.createLogicalExpression(
-            fileOffset, containsKeyCheck, doubleAmpersandName.text, keysCheck);
+        keysCheck = createAndExpression(containsKeyCheck, keysCheck,
+            fileOffset: fileOffset);
       }
     }
 
@@ -5286,19 +5170,17 @@ class MapPattern extends Pattern {
     if (typeCheckForTargetMapNeeded) {
       // typeCheck: `mapVariable` is `targetMapType`
       //   ==> MVAR is Map<`keyType`, `valueType`>
-      typeCheck = inferenceVisitor.engine.forest.createIsExpression(
-          fileOffset,
-          inferenceVisitor.engine.forest
-              .createVariableGet(fileOffset, mapVariable),
-          targetMapType,
-          forNonNullableByDefault: inferenceVisitor.isNonNullableByDefault);
+      typeCheck = createIsExpression(
+          createVariableGet(mapVariable), targetMapType,
+          forNonNullableByDefault: base.isNonNullableByDefault,
+          fileOffset: fileOffset);
     }
 
     Expression? typeAndKeysCheck;
     if (typeCheck != null && keysCheck != null) {
       // typeAndKeysCheck: `typeCheck` && `keysCheck`
-      typeAndKeysCheck = inferenceVisitor.engine.forest.createLogicalExpression(
-          fileOffset, typeCheck, doubleAmpersandName.text, keysCheck);
+      typeAndKeysCheck =
+          createAndExpression(typeCheck, keysCheck, fileOffset: fileOffset);
     } else if (typeCheck != null && keysCheck == null) {
       typeAndKeysCheck = typeCheck;
     } else if (typeCheck == null && keysCheck != null) {
@@ -5307,16 +5189,53 @@ class MapPattern extends Pattern {
       typeAndKeysCheck = null;
     }
 
-    ObjectAccessTarget valueAccess = inferenceVisitor.findInterfaceMember(
-        targetMapType, indexGetName, fileOffset,
-        callSiteAccessKind: CallSiteAccessKind.operatorInvocation);
-    FunctionType valueAccessFunctionType =
-        valueAccess.getFunctionType(inferenceVisitor);
+    // lengthGet: `mapVariable`.length
+    //   ==> MVAR.length
+    Expression lengthGet = createInstanceGet(
+        base,
+        targetMapType,
+        createVariableGet(mapVariable,
+            promotedType: typeCheckForTargetMapNeeded ? targetMapType : null),
+        lengthName,
+        fileOffset: fileOffset);
+
+    Expression lengthCheck;
+    // In map patterns the rest pattern can appear only in the end.
+    bool hasRestPattern =
+        entries.isNotEmpty && identical(entries.last, restMapPatternEntry);
+    if (hasRestPattern) {
+      // lengthCheck: `lengthGet` >= `entries.length - 1`
+      //   ==> MVAR.length >= `entries.length - 1`
+      lengthCheck = createOperatorInvocation(
+          base,
+          base.coreTypes.intNonNullableRawType,
+          lengthGet,
+          greaterThanOrEqualsName,
+          createIntLiteral(entries.length - 1, fileOffset: fileOffset),
+          fileOffset: fileOffset);
+    } else {
+      // lengthCheck: `lengthGet` == `entries.length`
+      lengthCheck = createEqualsCall(base, base.coreTypes.intNonNullableRawType,
+          lengthGet, createIntLiteral(entries.length, fileOffset: fileOffset),
+          fileOffset: fileOffset);
+    }
+
+    Expression typeAndKeysAndLengthCheck;
+    if (typeAndKeysCheck != null) {
+      // typeAndKeysAndLengthCheck: `typeAndKeysCheck` && `lengthCheck`
+      typeAndKeysAndLengthCheck = createAndExpression(
+          typeAndKeysCheck, lengthCheck,
+          fileOffset: fileOffset);
+    } else {
+      typeAndKeysAndLengthCheck = lengthCheck;
+    }
+
     PatternTransformationResult transformationResult =
         new PatternTransformationResult([]);
     List<VariableDeclaration> valueAccessVariables = [];
     CloneVisitorNotMembers cloner = new CloneVisitorNotMembers();
     for (MapPatternEntry entry in entries) {
+      if (identical(entry, restMapPatternEntry)) continue;
       ExpressionPattern keyPattern = entry.key as ExpressionPattern;
 
       // [keyPattern.expression] can be cloned without caching because it's a
@@ -5325,29 +5244,25 @@ class MapPattern extends Pattern {
       //
       // mapValue: `mapVariable`[`keyPattern.expression`]
       //   ==> MVAR[`keyPattern.expression`]
-      Expression mapValue = new InstanceInvocation(
-          InstanceAccessKind.Instance,
-          inferenceVisitor.engine.forest
-              .createVariableGet(fileOffset, mapVariable)
-            ..promotedType = typeCheckForTargetMapNeeded ? targetMapType : null,
+      Expression mapValue = createOperatorInvocation(
+          base,
+          targetMapType,
+          createVariableGet(mapVariable,
+              promotedType: typeCheckForTargetMapNeeded ? targetMapType : null),
           indexGetName,
-          inferenceVisitor.engine.forest.createArguments(
-              fileOffset, [cloner.clone(keyPattern.expression)]),
-          functionType: valueAccessFunctionType,
-          interfaceTarget: valueAccess.member as Procedure);
+          cloner.clone(keyPattern.expression),
+          fileOffset: fileOffset);
 
       // mapValueVariable: `valueType` VVAR = `mapValue`
       //   ==> `valueType` VVAR = MVAR[`keyPattern.expression`]
-      VariableDeclaration mapValueVariable = inferenceVisitor.engine.forest
-          .createVariableDeclarationForValue(mapValue, type: valueType);
+      VariableDeclaration mapValueVariable =
+          createVariableCache(mapValue, valueType);
 
       PatternTransformationResult subpatternTransformationResult = entry.value
-          .transform(inferenceVisitor,
-              matchedExpression: inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, mapValueVariable),
+          .transform(base,
+              matchedExpression: createVariableGet(mapValueVariable),
               matchedType: valueType,
-              variableInitializingContext: inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, mapValueVariable));
+              variableInitializingContext: createVariableGet(mapValueVariable));
 
       // If the sub-pattern transformation doesn't declare captured variables
       // and consists of a single empty element, it means that it simply
@@ -5362,24 +5277,24 @@ class MapPattern extends Pattern {
           !(subpatternTransformationResult.elements.length == 1 &&
               subpatternTransformationResult.elements.single.isEmpty)) {
         valueAccessVariables.add(mapValueVariable);
-        transformationResult = transformationResult.combine(
-            subpatternTransformationResult, inferenceVisitor);
+        transformationResult =
+            transformationResult.combine(subpatternTransformationResult, base);
       }
     }
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
             kind: PatternTransformationElementKind.regular,
-            condition: typeAndKeysCheck,
+            condition: typeAndKeysAndLengthCheck,
             variableInitializers: valueAccessVariables),
-        inferenceVisitor);
+        base);
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
             kind: PatternTransformationElementKind.regular,
             condition: null,
             variableInitializers: [mapVariable]),
-        inferenceVisitor);
+        base);
 
     return transformationResult;
   }
@@ -5417,7 +5332,7 @@ class NamedPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
@@ -5469,17 +5384,16 @@ class RecordPattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
-    bool typeCheckNeeded = !inferenceVisitor.isAssignable(type, matchedType) ||
-        matchedType is DynamicType;
+    bool typeCheckNeeded =
+        !base.isAssignable(type, matchedType) || matchedType is DynamicType;
 
     // recordVariable: `matchedType` RVAR = `matchedExpression`
-    VariableDeclaration recordVariable = inferenceVisitor.engine.forest
-        .createVariableDeclarationForValue(matchedExpression,
-            type: matchedType);
+    VariableDeclaration recordVariable =
+        createVariableCache(matchedExpression, matchedType);
 
     PatternTransformationResult transformationResult =
         new PatternTransformationResult([]);
@@ -5492,12 +5406,12 @@ class RecordPattern extends Pattern {
       if (fieldPattern is NamedPattern) {
         // recordField: `recordVariable`[`fieldPattern.name`]
         //   ==> RVAR[`fieldPattern.name`]
-        recordField = new RecordNameGet(
-            inferenceVisitor.engine.forest
-                .createVariableGet(fileOffset, recordVariable)
-              ..promotedType = typeCheckNeeded ? type : null,
+        recordField = createRecordNameGet(
             type,
-            fieldPattern.name);
+            createVariableGet(recordVariable,
+                promotedType: typeCheckNeeded ? type : null),
+            fieldPattern.name,
+            fileOffset: fieldPattern.fileOffset);
 
         // [type] is computed by the CFE, so the absence of the named field is
         // an internal error, and we check the condition with an assert rather
@@ -5511,12 +5425,12 @@ class RecordPattern extends Pattern {
       } else {
         // recordField: `recordVariable`[`recordFieldIndex`]
         //   ==> RVAR[`recordFieldIndex`]
-        recordField = new RecordIndexGet(
-            inferenceVisitor.engine.forest
-                .createVariableGet(fileOffset, recordVariable)
-              ..promotedType = typeCheckNeeded ? type : null,
+        recordField = createRecordIndexGet(
             type,
-            recordFieldIndex);
+            createVariableGet(recordVariable,
+                promotedType: typeCheckNeeded ? type : null),
+            recordFieldIndex,
+            fileOffset: fieldPattern.fileOffset);
 
         // [type] is computed by the CFE, so the field index out of range is an
         // internal error, and we check the condition with an assert rather than
@@ -5529,16 +5443,15 @@ class RecordPattern extends Pattern {
       }
 
       // recordFieldIndex: `fieldType` FVAR = `recordField`
-      VariableDeclaration recordFieldVariable = inferenceVisitor.engine.forest
-          .createVariableDeclarationForValue(recordField, type: fieldType);
+      VariableDeclaration recordFieldVariable =
+          createVariableCache(recordField, fieldType);
 
-      PatternTransformationResult subpatternTransformationResult = subpattern
-          .transform(inferenceVisitor,
-              matchedExpression: inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, recordFieldVariable),
+      PatternTransformationResult subpatternTransformationResult =
+          subpattern.transform(base,
+              matchedExpression: createVariableGet(recordFieldVariable),
               matchedType: fieldType,
-              variableInitializingContext: inferenceVisitor.engine.forest
-                  .createVariableGet(fileOffset, recordFieldVariable));
+              variableInitializingContext:
+                  createVariableGet(recordFieldVariable));
 
       // If the sub-pattern transformation doesn't declare captured variables
       // and consists of a single empty element, it means that it simply
@@ -5553,8 +5466,8 @@ class RecordPattern extends Pattern {
           !(subpatternTransformationResult.elements.length == 1 &&
               subpatternTransformationResult.elements.single.isEmpty)) {
         fieldAccessVariables.add(recordFieldVariable);
-        transformationResult = transformationResult.combine(
-            subpatternTransformationResult, inferenceVisitor);
+        transformationResult =
+            transformationResult.combine(subpatternTransformationResult, base);
       }
     }
 
@@ -5565,22 +5478,18 @@ class RecordPattern extends Pattern {
             kind: PatternTransformationElementKind.regular,
             condition: !typeCheckNeeded
                 ? null
-                : inferenceVisitor.engine.forest.createIsExpression(
-                    fileOffset,
-                    inferenceVisitor.engine.forest
-                        .createVariableGet(fileOffset, recordVariable),
-                    type,
-                    forNonNullableByDefault:
-                        inferenceVisitor.isNonNullableByDefault),
+                : createIsExpression(createVariableGet(recordVariable), type,
+                    forNonNullableByDefault: base.isNonNullableByDefault,
+                    fileOffset: fileOffset),
             variableInitializers: fieldAccessVariables),
-        inferenceVisitor);
+        base);
 
     transformationResult = transformationResult.prependElement(
         new PatternTransformationElement(
             kind: PatternTransformationElementKind.regular,
             condition: null,
             variableInitializers: [recordVariable]),
-        inferenceVisitor);
+        base);
 
     return transformationResult;
   }
@@ -5606,7 +5515,7 @@ class VariablePattern extends Pattern {
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
@@ -5614,15 +5523,11 @@ class VariablePattern extends Pattern {
 
     if (type != null) {
       VariableDeclaration? matchedExpressionVariable;
-      matchedExpressionVariable = inferenceVisitor.engine.forest
-          .createVariableDeclarationForValue(matchedExpression,
-              type: matchedType);
-      Expression condition = inferenceVisitor.engine.forest.createIsExpression(
-          variable.fileOffset,
-          inferenceVisitor.engine.forest
-              .createVariableGet(fileOffset, matchedExpressionVariable),
-          type!,
-          forNonNullableByDefault: false);
+      matchedExpressionVariable =
+          createVariableCache(matchedExpression, matchedType);
+      Expression condition = createIsExpression(
+          createVariableGet(matchedExpressionVariable), type!,
+          forNonNullableByDefault: false, fileOffset: variable.fileOffset);
       transformationResult = new PatternTransformationResult([
         new PatternTransformationElement(
             kind: PatternTransformationElementKind.regular,
@@ -5633,10 +5538,9 @@ class VariablePattern extends Pattern {
             condition: condition,
             variableInitializers: [])
       ]);
-      variable.initializer = inferenceVisitor.engine.forest
-          .createVariableGet(fileOffset, matchedExpressionVariable)
-        ..promotedType = type!
-        ..parent = variable;
+      variable.initializer =
+          createVariableGet(matchedExpressionVariable, promotedType: type!)
+            ..parent = variable;
     } else {
       transformationResult = new PatternTransformationResult([]);
       variable.initializer = matchedExpression..parent = variable;
@@ -5679,7 +5583,9 @@ class VariablePattern extends Pattern {
 }
 
 class RestPattern extends Pattern {
-  RestPattern(int fileOffset) : super(fileOffset);
+  Pattern? subPattern;
+
+  RestPattern(int fileOffset, this.subPattern) : super(fileOffset);
 
   @override
   void acceptInference(InferenceVisitorImpl visitor,
@@ -5688,25 +5594,34 @@ class RestPattern extends Pattern {
   }
 
   @override
-  List<VariableDeclaration> get declaredVariables => const [];
+  List<VariableDeclaration> get declaredVariables =>
+      subPattern?.declaredVariables ?? const [];
 
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('...');
+    if (subPattern != null) {
+      subPattern!.toTextInternal(printer);
+    }
   }
 
   @override
   String toString() {
-    return "RestPattern(${toStringInternal()}";
+    return "RestPattern(${toStringInternal()})";
   }
 
   @override
-  PatternTransformationResult transform(InferenceVisitorBase inferenceVisitor,
+  PatternTransformationResult transform(InferenceVisitorBase base,
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext}) {
-    return unsupported(
-        "RestPattern.transform", fileOffset, inferenceVisitor.helper.uri);
+    if (subPattern != null) {
+      return subPattern!.transform(base,
+          matchedExpression: matchedExpression,
+          matchedType: matchedType,
+          variableInitializingContext: variableInitializingContext);
+    }
+    return unsupported("RestPattern.transform", fileOffset, base.helper.uri);
   }
 }
 
@@ -5760,8 +5675,8 @@ class PatternTransformationResult {
   ///
   /// [combine] uses [prependElement] on [other] for the purpose of optimization
   /// and simplification.
-  PatternTransformationResult combine(PatternTransformationResult other,
-      InferenceVisitorBase inferenceVisitor) {
+  PatternTransformationResult combine(
+      PatternTransformationResult other, InferenceVisitorBase base) {
     if (elements.isEmpty) {
       return other;
     } else if (other.elements.isEmpty) {
@@ -5772,7 +5687,7 @@ class PatternTransformationResult {
       // accumulated result?
       return new PatternTransformationResult([
         ...elements.sublist(0, elements.length - 1),
-        ...other.prependElement(elements.last, inferenceVisitor).elements
+        ...other.prependElement(elements.last, base).elements
       ]);
     }
   }
@@ -5786,8 +5701,7 @@ class PatternTransformationResult {
   /// conditions via logical `&&` operation and concatenating lists of variable
   /// declarations.
   PatternTransformationResult prependElement(
-      PatternTransformationElement element,
-      InferenceVisitorBase inferenceVisitor) {
+      PatternTransformationElement element, InferenceVisitorBase base) {
     if (elements.isEmpty) {
       return new PatternTransformationResult([element]);
     }
@@ -5814,11 +5728,8 @@ class PatternTransformationResult {
       } else {
         elements[0] = new PatternTransformationElement(
             kind: PatternTransformationElementKind.regular,
-            condition: inferenceVisitor.engine.forest.createLogicalExpression(
-                elementCondition.fileOffset,
-                elementCondition,
-                doubleAmpersandName.text,
-                outermostCondition),
+            condition: createAndExpression(elementCondition, outermostCondition,
+                fileOffset: elementCondition.fileOffset),
             variableInitializers: outermost.variableInitializers);
         return this;
       }

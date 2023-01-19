@@ -286,6 +286,9 @@ void MutatorThreadPool::OnEnterIdleLocked(MonitorLocker* ml) {
     return;
   }
 
+  // Avoid shutdown having to wait for the timeout to expire.
+  if (ShuttingDownLocked()) return;
+
   // Wait for the recommended idle timeout.
   // We can be woken up because of a), b) or c)
   const auto result =
@@ -687,6 +690,10 @@ void IsolateGroup::UnscheduleThreadLocked(MonitorLocker* ml,
   thread->set_execution_state(Thread::kThreadInNative);
   thread->set_safepoint_state(Thread::AtSafepointField::encode(true) |
                               Thread::AtDeoptSafepointField::encode(true));
+#if !defined(PRODUCT)
+  thread->heap_sampler().Cleanup();
+#endif
+
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   if (is_mutator) {
     // The mutator thread structure stays alive and attached to the isolate as

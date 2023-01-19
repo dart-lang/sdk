@@ -55,9 +55,9 @@ class DevelopmentIncrementalCompiler extends fe.IncrementalCompiler {
 class SetupCompilerOptions {
   static final sdkRoot = fe.computePlatformBinariesLocation();
   static final sdkUnsoundSummaryPath =
-      p.join(sdkRoot.toFilePath(), 'ddc_sdk.dill');
+      p.join(sdkRoot.toFilePath(), 'ddc_outline_unsound.dill');
   static final sdkSoundSummaryPath =
-      p.join(sdkRoot.toFilePath(), 'ddc_outline_sound.dill');
+      p.join(sdkRoot.toFilePath(), 'ddc_outline.dill');
   static final librariesSpecificationUri =
       p.join(p.dirname(p.dirname(getSdkPath())), 'libraries.json');
 
@@ -380,8 +380,8 @@ class TestDriver {
         if (!File('$dartSdkPath.js').existsSync()) {
           throw Exception('Unable to find Dart SDK at $dartSdkPath.js');
         }
-        var requirePath = escaped(p.join(buildDir, 'dart-sdk', 'lib',
-            'dev_compiler', 'kernel', 'amd', 'require.js'));
+        var requirePath = escaped(p.join(
+            buildDir, 'dart-sdk', 'lib', 'dev_compiler', 'amd', 'require.js'));
         var outputPath = escaped(p.withoutExtension(output.toFilePath()));
         bootstrapFile.writeAsStringSync('''
 <script src='$requirePath'></script>

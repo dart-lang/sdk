@@ -6,8 +6,8 @@ static method f(dynamic x) → dynamic
   return block {
     core::int #t1;
     final dynamic #t2 = x;
-    final core::int #t3 = -1;
-    final core::bool #t4 = false;
+    core::int #t3 = -1;
+    core::bool #t4 = false;
     if(!#t4) {
       #t3 = 0;
       #t4 = true;

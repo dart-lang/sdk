@@ -292,6 +292,12 @@ abstract class Process {
   /// process. If the process cannot be started the returned [Future]
   /// completes with an exception.
   ///
+  /// Using an absolute path for [executable] is recommended since resolving
+  /// the [executable] path is platform-specific. On Windows, both any `PATH`
+  /// set in the [environment] map parameter and the path set in
+  /// [workingDirectory] parameter are ignored for the purposes of resolving
+  /// the [executable] path.
+  ///
   /// Use [workingDirectory] to set the working directory for the process. Note
   /// that the change of directory occurs before executing the process on some
   /// platforms, which may have impact when using relative paths for the
@@ -352,6 +358,12 @@ abstract class Process {
 
   /// Starts a process and runs it non-interactively to completion. The
   /// process run is [executable] with the specified [arguments].
+  ///
+  /// Using an absolute path for [executable] is recommended since resolving
+  /// the [executable] path is platform-specific. On Windows, both any `PATH`
+  /// set in the [environment] map parameter and the path set in
+  /// [workingDirectory] parameter are ignored for the purposes of resolving
+  /// the [executable] path.
   ///
   /// Use [workingDirectory] to set the working directory for the process. Note
   /// that the change of directory occurs before executing the process on some

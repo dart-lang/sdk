@@ -313,7 +313,6 @@ class CompileParsedFunctionHelper : public ValueObject {
   bool optimized() const { return optimized_; }
   intptr_t osr_id() const { return osr_id_; }
   Thread* thread() const { return thread_; }
-  Isolate* isolate() const { return thread_->isolate(); }
   IsolateGroup* isolate_group() const { return thread_->isolate_group(); }
   CodePtr FinalizeCompilation(compiler::Assembler* assembler,
                               FlowGraphCompiler* graph_compiler,
@@ -678,12 +677,14 @@ static ObjectPtr CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        volatile bool optimized,
                                        intptr_t osr_id) {
+  Thread* const thread = Thread::Current();
+  NoActiveIsolateScope no_active_isolate(thread);
+
   ASSERT(!FLAG_precompiled_mode);
   ASSERT(!optimized || function.WasCompiled() || function.ForceOptimize());
   if (function.ForceOptimize()) optimized = true;
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
-    Thread* const thread = Thread::Current();
     StackZone stack_zone(thread);
     Zone* const zone = stack_zone.GetZone();
     const bool trace_compiler =
@@ -879,7 +880,8 @@ ErrorPtr Compiler::EnsureUnoptimizedCode(Thread* thread,
 ObjectPtr Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
-  VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
+  VMTagScope tag_scope(thread, VMTag::kCompileOptimizedTagId);
+
 #if defined(SUPPORT_TIMELINE)
   const char* event_name;
   if (osr_id != kNoOSRDeoptId) {

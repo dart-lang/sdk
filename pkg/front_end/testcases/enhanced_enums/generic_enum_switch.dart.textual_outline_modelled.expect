@@ -1,3 +1,4 @@
+// @dart = 2.19
 enum Enum<T> {
   a<num>(),
   b<String>(),

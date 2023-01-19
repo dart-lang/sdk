@@ -8,4 +8,8 @@ void main() {
   log3('B');
   log('C');
   console.log('D');
+  if (DateTime.now().year == 0) {
+    // Avoid executing this branch.
+    new Class();
+  }
 }

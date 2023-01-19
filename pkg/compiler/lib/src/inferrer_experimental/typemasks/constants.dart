@@ -30,6 +30,11 @@ class ConstantValueTypeMasks
   }
 
   @override
+  TypeMask visitRecord(RecordConstantValue constant, JClosedWorld closedWorld) {
+    return _abstractValueDomain.recordType;
+  }
+
+  @override
   TypeMask visitDeferredGlobal(
       DeferredGlobalConstantValue constant, JClosedWorld closedWorld) {
     return constant.referenced.accept(this, closedWorld);

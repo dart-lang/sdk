@@ -44,11 +44,19 @@ void transformLibraries(
 class FfiNativeTransformer extends FfiTransformer {
   final DiagnosticReporter diagnosticReporter;
   final ReferenceFromIndex? referenceFromIndex;
+  final Class assetClass;
   final Class ffiNativeClass;
+  final Class nativeClass;
   final Class nativeFunctionClass;
+  final Field assetAssetField;
+  final Field nativeSymbolField;
   final Field ffiNativeNameField;
+  final Field nativeAssetField;
+  final Field nativeIsLeafField;
   final Field ffiNativeIsLeafField;
   final Field resolverField;
+
+  StringConstant? _currentAsset;
 
   // VariableDeclaration names can be null or empty string, in which case
   // they're automatically assigned a "temporary" name like `#t0`.
@@ -60,17 +68,37 @@ class FfiNativeTransformer extends FfiTransformer {
       ClassHierarchy hierarchy,
       this.diagnosticReporter,
       this.referenceFromIndex)
-      : ffiNativeClass = index.getClass('dart:ffi', 'FfiNative'),
+      : assetClass = index.getClass('dart:ffi', 'DefaultAsset'),
+        nativeClass = index.getClass('dart:ffi', 'Native'),
+        ffiNativeClass = index.getClass('dart:ffi', 'FfiNative'),
         nativeFunctionClass = index.getClass('dart:ffi', 'NativeFunction'),
+        assetAssetField = index.getField('dart:ffi', 'DefaultAsset', 'id'),
+        nativeSymbolField = index.getField('dart:ffi', 'Native', 'symbol'),
         ffiNativeNameField =
             index.getField('dart:ffi', 'FfiNative', 'nativeName'),
+        nativeAssetField = index.getField('dart:ffi', 'Native', 'assetId'),
+        nativeIsLeafField = index.getField('dart:ffi', 'Native', 'isLeaf'),
         ffiNativeIsLeafField =
             index.getField('dart:ffi', 'FfiNative', 'isLeaf'),
         resolverField = index.getTopLevelField('dart:ffi', '_ffi_resolver'),
         super(index, coreTypes, hierarchy, diagnosticReporter,
             referenceFromIndex);
 
-  ConstantExpression? tryGetFfiNativeAnnotation(Member node) {
+  @override
+  TreeNode visitLibrary(Library node) {
+    assert(_currentAsset == null);
+    final annotation = tryGetAssetAnnotation(node);
+    if (annotation != null) {
+      _currentAsset = (annotation.constant as InstanceConstant)
+          .fieldValues[assetAssetField.fieldReference] as StringConstant;
+    }
+    final result = super.visitLibrary(node);
+    _currentAsset = null;
+    return result;
+  }
+
+  ConstantExpression? tryGetAnnotation(
+      Annotatable node, List<Class> instanceOf) {
     for (final Expression annotation in node.annotations) {
       if (annotation is! ConstantExpression) {
         continue;
@@ -79,12 +107,18 @@ class FfiNativeTransformer extends FfiTransformer {
       if (annotationConstant is! InstanceConstant) {
         continue;
       }
-      if (annotationConstant.classNode == ffiNativeClass) {
+      if (instanceOf.contains(annotationConstant.classNode)) {
         return annotation;
       }
     }
     return null;
   }
+
+  ConstantExpression? tryGetAssetAnnotation(Library node) =>
+      tryGetAnnotation(node, [assetClass]);
+
+  ConstantExpression? tryGetFfiNativeAnnotation(Member node) =>
+      tryGetAnnotation(node, [nativeClass, ffiNativeClass]);
 
   bool _extendsNativeFieldWrapperClass1(DartType type) {
     if (type is InterfaceType) {
@@ -153,15 +187,23 @@ class FfiNativeTransformer extends FfiTransformer {
   //           .fromAddress(_ffi_resolver('..', 'DoXYZ', 1))
   //           .asFunction<int Function(Pointer<Void>)>(isLeaf:true);
   Field _createResolvedFfiNativeField(
-      String dartFunctionName,
-      StringConstant nativeFunctionName,
-      bool isLeaf,
-      FunctionType dartFunctionType,
-      FunctionType ffiFunctionType,
-      int fileOffset,
-      Uri fileUri) {
+    String dartFunctionName,
+    StringConstant nativeFunctionName,
+    StringConstant? assetName,
+    bool isLeaf,
+    FunctionType dartFunctionType,
+    FunctionType ffiFunctionType,
+    int fileOffset,
+    Uri fileUri,
+  ) {
     // Derive number of arguments from the native function signature.
     final numberNativeArgs = ffiFunctionType.positionalParameters.length;
+
+    final nativeFunctionType = InterfaceType(
+      nativeFunctionClass,
+      Nullability.legacy,
+      <DartType>[ffiFunctionType],
+    );
 
     // _ffi_resolver('...', 'DoXYZ', 1)
     final resolverInvocation = FunctionInvocation(
@@ -169,7 +211,7 @@ class FfiNativeTransformer extends FfiTransformer {
         StaticGet(resolverField),
         Arguments(<Expression>[
           ConstantExpression(
-              StringConstant(currentLibrary.importUri.toString())),
+              assetName ?? StringConstant(currentLibrary.importUri.toString())),
           ConstantExpression(nativeFunctionName),
           ConstantExpression(IntConstant(numberNativeArgs)),
         ]),
@@ -177,18 +219,16 @@ class FfiNativeTransformer extends FfiTransformer {
       ..fileOffset = fileOffset;
 
     // _fromAddress<NativeFunction<Double Function(Double)>>(...)
-    final fromAddressInvocation = StaticInvocation(
+    final functionPointerExpression = StaticInvocation(
         fromAddressInternal,
-        Arguments(<Expression>[
-          resolverInvocation
-        ], types: [
-          InterfaceType(nativeFunctionClass, Nullability.legacy,
-              <DartType>[ffiFunctionType])
-        ]))
+        Arguments(
+          <Expression>[resolverInvocation],
+          types: [nativeFunctionType],
+        ))
       ..fileOffset = fileOffset;
 
     final asFunctionInvocation = buildAsFunctionInternal(
-      functionPointer: fromAddressInvocation,
+      functionPointer: functionPointerExpression,
       dartSignature: dartFunctionType,
       nativeSignature: ffiFunctionType,
       isLeaf: isLeaf,
@@ -436,6 +476,7 @@ class FfiNativeTransformer extends FfiTransformer {
   Procedure _transformProcedure(
     Procedure node,
     StringConstant nativeFunctionName,
+    StringConstant? assetName,
     bool isLeaf,
     int annotationOffset,
     FunctionType dartFunctionType,
@@ -464,13 +505,15 @@ class FfiNativeTransformer extends FfiTransformer {
 
     // static final _myMethod$FfiNative$Ptr = ..
     final resolvedField = _createResolvedFfiNativeField(
-        '${node.name.text}\$${node.kind.name}',
-        nativeFunctionName,
-        isLeaf,
-        wrappedDartFunctionType,
-        ffiFunctionType,
-        node.fileOffset,
-        fileUri);
+      '${node.name.text}\$${node.kind.name}',
+      nativeFunctionName,
+      assetName,
+      isLeaf,
+      wrappedDartFunctionType,
+      ffiFunctionType,
+      node.fileOffset,
+      fileUri,
+    );
 
     // Add field to the parent the FfiNative function belongs to.
     if (parent is Class) {
@@ -531,6 +574,7 @@ class FfiNativeTransformer extends FfiTransformer {
       Procedure node,
       FunctionType ffiFunctionType,
       StringConstant nativeFunctionName,
+      StringConstant? assetName,
       bool isLeaf,
       int annotationOffset) {
     final dartFunctionType = FunctionType([
@@ -547,6 +591,7 @@ class FfiNativeTransformer extends FfiTransformer {
     return _transformProcedure(
       node,
       nativeFunctionName,
+      assetName,
       isLeaf,
       annotationOffset,
       dartFunctionType,
@@ -569,6 +614,7 @@ class FfiNativeTransformer extends FfiTransformer {
       Procedure node,
       FunctionType ffiFunctionType,
       StringConstant nativeFunctionName,
+      StringConstant? assetName,
       bool isLeaf,
       int annotationOffset) {
     final dartFunctionType =
@@ -582,6 +628,7 @@ class FfiNativeTransformer extends FfiTransformer {
     return _transformProcedure(
       node,
       nativeFunctionName,
+      assetName,
       isLeaf,
       annotationOffset,
       dartFunctionType,
@@ -612,19 +659,29 @@ class FfiNativeTransformer extends FfiTransformer {
 
     final ffiConstant = ffiNativeAnnotation.constant as InstanceConstant;
     final ffiFunctionType = ffiConstant.typeArguments[0] as FunctionType;
-    final nativeFunctionName = ffiConstant
-        .fieldValues[ffiNativeNameField.fieldReference] as StringConstant;
-    final isLeaf = (ffiConstant.fieldValues[ffiNativeIsLeafField.fieldReference]
+    final nativeFunctionConst =
+        (ffiConstant.fieldValues[nativeSymbolField.fieldReference] ??
+            ffiConstant.fieldValues[ffiNativeNameField.fieldReference]);
+    final nativeFunctionName = nativeFunctionConst is StringConstant
+        ? nativeFunctionConst
+        : StringConstant(node.name.text);
+    final assetConstant =
+        ffiConstant.fieldValues[nativeAssetField.fieldReference];
+    final assetName =
+        assetConstant is StringConstant ? assetConstant : _currentAsset;
+    final isLeaf = ((ffiConstant
+                    .fieldValues[nativeIsLeafField.fieldReference] ??
+                ffiConstant.fieldValues[ffiNativeIsLeafField.fieldReference])
             as BoolConstant)
         .value;
 
     if (!node.isStatic) {
       return _transformInstanceMethod(node, ffiFunctionType, nativeFunctionName,
-          isLeaf, ffiNativeAnnotation.fileOffset);
+          assetName, isLeaf, ffiNativeAnnotation.fileOffset);
     }
 
     return _transformStaticFunction(node, ffiFunctionType, nativeFunctionName,
-        isLeaf, ffiNativeAnnotation.fileOffset);
+        assetName, isLeaf, ffiNativeAnnotation.fileOffset);
   }
 
   /// Checks whether the FFI function type is valid and reports any errors.

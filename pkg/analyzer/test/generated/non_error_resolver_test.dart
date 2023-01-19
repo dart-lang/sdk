@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -211,7 +212,7 @@ library L;
 export 'lib.dart';
 export 'lib.dart';
 ''', [
-      error(HintCode.DUPLICATE_EXPORT, 37, 10),
+      error(WarningCode.DUPLICATE_EXPORT, 37, 10),
     ]);
   }
 
@@ -1492,6 +1493,7 @@ bool test(C c) => c.method<bool>(arg: true);
   }
 
   test_genericTypeAlias_castsAndTypeChecks_hasTypeParameters() async {
+    noSoundNullSafety = false;
     await assertNoErrorsInCode('''
 // @dart = 2.9
 typedef Foo<S> = S Function<T>(T x);
@@ -1510,6 +1512,7 @@ main(Object p) {
   }
 
   test_genericTypeAlias_castsAndTypeChecks_noTypeParameters() async {
+    noSoundNullSafety = false;
     await assertNoErrorsInCode('''
 // @dart = 2.9
 typedef Foo = T Function<T>(T x);
@@ -1646,7 +1649,7 @@ import 'lib.dart';
 ''', [
       error(HintCode.UNUSED_IMPORT, 21, 10),
       error(HintCode.UNUSED_IMPORT, 40, 10),
-      error(HintCode.DUPLICATE_IMPORT, 40, 10),
+      error(WarningCode.DUPLICATE_IMPORT, 40, 10),
     ]);
   }
 
@@ -3123,6 +3126,7 @@ main(Object p) {
   }
 
   test_typePromotion_if_is_and_subThenSuper() async {
+    noSoundNullSafety = false;
     await assertNoErrorsInCode(r'''
 // @dart = 2.9
 class A {
