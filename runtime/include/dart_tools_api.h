@@ -143,7 +143,7 @@ typedef struct {
  * \return Returns a pointer to a Dart_EmbedderInformation structure.
  * The embedder keeps the ownership of the structure and any field in it.
  * The embedder must ensure that the structure will remain valid until the
- * next invokation of the callback.
+ * next invocation of the callback.
  */
 typedef void (*Dart_EmbedderInformationCallback)(
     Dart_EmbedderInformation* info);

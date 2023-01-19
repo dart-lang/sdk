@@ -90,9 +90,9 @@ Language/Expressions/Await_Expressions/evaluation_throws_t06: RuntimeError # Ple
 Language/Expressions/Await_Expressions/evaluation_throws_t07: RuntimeError # Please triage this failure
 Language/Expressions/Constants/identifier_denotes_a_constant_t06: MissingCompileTimeError # Issue 26580
 Language/Expressions/Constants/identifier_denotes_a_constant_t07: MissingCompileTimeError # Issue 26580
-Language/Expressions/Function_Invocation/async_generator_invokation_t08: Skip # Issue 25967
-Language/Expressions/Function_Invocation/async_generator_invokation_t10: Skip # Issue 25967
-Language/Expressions/Function_Invocation/async_invokation_t04: RuntimeError, Pass # co19 issue 57
+Language/Expressions/Function_Invocation/async_generator_invocation_t08: Skip # Issue 25967
+Language/Expressions/Function_Invocation/async_generator_invocation_t10: Skip # Issue 25967
+Language/Expressions/Function_Invocation/async_invocation_t04: RuntimeError, Pass # co19 issue 57
 Language/Expressions/Instance_Creation/New/evaluation_t19: RuntimeError # Please triage this failure
 Language/Expressions/Instance_Creation/New/evaluation_t20: RuntimeError # Please triage this failure
 Language/Expressions/Maps/key_value_equals_operator_t02: CompileTimeError # Please triage this failure
@@ -1781,7 +1781,7 @@ LibTest/html/Window/requestFileSystem_A01_t01: Skip # Roll 50 failure
 LibTest/html/Window/requestFileSystem_A01_t02: Skip # Roll 50 failure
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
-Language/Expressions/Function_Invocation/async_invokation_t04: RuntimeError # Please triage this failure
+Language/Expressions/Function_Invocation/async_invocation_t04: RuntimeError # Please triage this failure
 LayoutTests/fast/canvas/webgl/canvas-test_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/canvas/webgl/context-lost-restored_t01: Skip # Times out. Please triage this failure.
 LayoutTests/fast/canvas/webgl/draw-webgl-to-canvas-2d_t01: Pass, RuntimeError # Please triage this failure

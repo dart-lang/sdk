@@ -262,7 +262,7 @@ class IsolateGroupReloadContext {
   BitVector* modified_libs_transitive_ = nullptr;
 
   // A bit vector indicating which of the saved libraries that transitively
-  // depend on a modified libary.
+  // depend on a modified library.
   BitVector* saved_libs_transitive_updated_ = nullptr;
 
   String& root_lib_url_;

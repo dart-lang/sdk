@@ -476,7 +476,7 @@ TEST_CASE(ResolveUri_DataUri) {
 }
 
 // dart:core Uri allows for the base url to be relative (no scheme, no
-// authory, relative path) but this behavior is not in RFC 3986.  We
+// authority, relative path) but this behavior is not in RFC 3986.  We
 // do not implement this.
 TEST_CASE(ResolveUri_RelativeBase_NotImplemented) {
   const char* target_uri;

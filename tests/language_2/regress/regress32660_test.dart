@@ -5,7 +5,7 @@
 // @dart = 2.9
 
 // noSuchMethod does not overwrite actual implementations, so if an
-// implemetation of a member exists that doesn't fulfill the interface it's
+// implementation of a member exists that doesn't fulfill the interface it's
 // an error.
 // On the other hand, if no implementation exists,
 // noSuchMethod will take its place and everything is okay.

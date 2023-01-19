@@ -64,7 +64,7 @@ If `<destination-type>` is a type parameter we will load its value and call its 
 
 ## JIT mode
 
-In JIT mode we build the TTS lazily on first involcation (the TTS of types will be initialized to the `LazySpecializeTypeTest` stub). If later on more classes get loaded and the TTS fast path starts failing we re-build the TTS.
+In JIT mode we build the TTS lazily on first invocation (the TTS of types will be initialized to the `LazySpecializeTypeTest` stub). If later on more classes get loaded and the TTS fast path starts failing we re-build the TTS.
 
 After a hot-reload we reset all types to the lazy specialize TTS.
 

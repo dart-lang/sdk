@@ -10131,7 +10131,7 @@ void main() {
 
 // There exists another test by name DartAPI_Invoke_CrossLibrary.
 // However, that currently fails for the dartk configuration as it
-// uses Dart_LoadLibray. This test here effectively tests the same
+// uses Dart_LoadLibrary. This test here effectively tests the same
 // functionality but invokes a function from an imported standard
 // library.
 TEST_CASE(DartAPI_InvokeImportedFunction) {

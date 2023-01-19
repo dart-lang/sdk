@@ -89,7 +89,7 @@ void main() {
   final Function localNonNullLegacy = () => 'hello';
   final String Function() localNonNull = () => 'hello';
 
-  // Assigment to JS static field.
+  // Assignment to JS static field.
   Expect.throws(() {
     _jsStaticVariable = () => 'hello';
   });

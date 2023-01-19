@@ -309,7 +309,7 @@ class _WasmTransformer extends Transformer {
   TreeNode _lowerAsyncStar(FunctionNode functionNode) {
     // TODO(joshualitt): This lowering is mostly reasonable, but if possible we
     // should try and figure out a way to remove the even / odd dance. That
-    // said, this will be replaced by an intrinsic implemntation ASAP so it may
+    // said, this will be replaced by an intrinsic implementation ASAP so it may
     // not be worth spending anymore time on this(aside from bug fixes).
     //
     // Transform
