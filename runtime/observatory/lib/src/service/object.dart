@@ -1166,9 +1166,9 @@ class InboundReferences implements M.InboundReferences {
 
 class InboundReference implements M.InboundReference {
   final ServiceObject /*HeapObject*/ source;
-  final HeapObject parentField;
-  final int parentListIndex;
-  final int parentWordOffset;
+  final dynamic parentField;
+  final int? parentListIndex;
+  final int? parentWordOffset;
 
   InboundReference(Map map)
       : source = map['source'],
@@ -1190,9 +1190,9 @@ class RetainingPath implements M.RetainingPath {
 
 class RetainingPathItem implements M.RetainingPathItem {
   final ServiceObject /*HeapObject*/ source;
-  final String parentField;
-  final int parentListIndex;
-  final int parentWordOffset;
+  final dynamic parentField;
+  final int? parentListIndex;
+  final int? parentWordOffset;
 
   RetainingPathItem(Map map)
       : source = map['value'],
