@@ -112,7 +112,7 @@ String createCompileJitJson({
   );
 }
 
-/// Used to create compile requesets for AOT compilations
+/// Used to create compile requests for AOT compilations
 String createCompileAotJson({
   required String executable,
   required String outputDill,

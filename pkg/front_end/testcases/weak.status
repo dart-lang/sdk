@@ -84,6 +84,7 @@ general/issue31767: semiFuzzFailureOnForceRebuildBodies # private class, field
 general/issue45101/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/issue47036: semiFuzzFailureOnForceRebuildBodies # private class
 general/issue48548: semiFuzzFailureOnForceRebuildBodies # private field
+general/issue49697_2/main: RuntimeError # https://github.com/dart-lang/sdk/issues/51053
 general/nested_lib_spec/main: semiFuzzFailureOnForceRebuildBodies # needs custom libraries.json (and platform?) not setup here
 general/private_members: semiFuzzFailureOnForceRebuildBodies # private class (etc).
 general/private_method_tearoff: semiFuzzFailureOnForceRebuildBodies # private method in class

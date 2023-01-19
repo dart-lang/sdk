@@ -233,7 +233,7 @@
 
 ## 4.0.0
 - **breaking**: RPCs which can return a `Sentinel` will now throw a `SentinelException`
-  if a `Sential` is received as a response.
+  if a `Sentinel` is received as a response.
 - **breaking**: RPCs which can return multiple values now return
   `Future<Response>` rather than `Future<dynamic>`.
 - `RPCError` now implements `Exception`.

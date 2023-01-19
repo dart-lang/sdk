@@ -1011,7 +1011,7 @@ class NodeChangeForMethodName extends NodeChange<SimpleIdentifier> {
 }
 
 /// Common infrastructure used by [NodeChange] objects that operate on AST nodes
-/// with that can be null-aware (method invocations and propety accesses).
+/// with that can be null-aware (method invocations and property accesses).
 mixin NodeChangeForNullAware<N extends Expression> on NodeChange<N> {
   /// Indicates how null-awareness should be handled.
   NullAwarenessRemovalType nullAwarenessRemoval = NullAwarenessRemovalType.none;

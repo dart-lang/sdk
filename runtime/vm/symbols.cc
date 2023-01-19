@@ -198,7 +198,7 @@ StringPtr Symbols::FromUTF8(Thread* thread,
                             const uint8_t* utf8_array,
                             intptr_t array_len) {
   if (array_len == 0 || utf8_array == NULL) {
-    return FromLatin1(thread, reinterpret_cast<uint8_t*>(NULL), 0);
+    return FromLatin1(thread, static_cast<uint8_t*>(NULL), 0);
   }
   Utf8::Type type;
   intptr_t len = Utf8::CodeUnitCount(utf8_array, array_len, &type);

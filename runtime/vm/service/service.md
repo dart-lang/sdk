@@ -964,7 +964,7 @@ collected, then an [Object](#object) will be returned.
 The _offset_ and _count_ parameters are used to request subranges of
 Instance objects with the kinds: String, List, Map, Set, Uint8ClampedList,
 Uint8List, Uint16List, Uint32List, Uint64List, Int8List, Int16List,
-Int32List, Int64List, Flooat32List, Float64List, Inst32x3List,
+Int32List, Int64List, Float32List, Float64List, Inst32x3List,
 Float32x4List, and Float64x2List.  These parameters are otherwise
 ignored.
 
@@ -3745,7 +3745,7 @@ class ProcessMemoryItem {
   // of children.
   int size;
 
-  // Subdivisons of this bucket of memory.
+  // Subdivisions of this bucket of memory.
   ProcessMemoryItem[] children;
 }
 ```

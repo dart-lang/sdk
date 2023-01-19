@@ -90,7 +90,7 @@ static uword ForwardingHeader(ObjectPtr target) {
 // here as relaxed so the C++ compiler still has the freedom to reorder them.
 NO_SANITIZE_THREAD
 static void objcpy(void* dst, const void* src, size_t size) {
-  // A memcopy specialized for objects. We can assume:
+  // A mem copy specialized for objects. We can assume:
   //  - dst and src do not overlap
   ASSERT(
       (reinterpret_cast<uword>(dst) + size <= reinterpret_cast<uword>(src)) ||

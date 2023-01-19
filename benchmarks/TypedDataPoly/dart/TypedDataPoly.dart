@@ -62,7 +62,7 @@ class Monomorphic extends Base {
       : data1 = Uint8List(n)..setToOnes(),
         super('TypedDataPoly.mono.array', n);
 
-  /// An identical [sum] method appears in each benchmark so the the compiler
+  /// An identical [sum] method appears in each benchmark so the compiler
   /// can specialize the method according to different sets of input
   /// implementation types.
   @pragma('vm:never-inline')
@@ -94,7 +94,7 @@ class Monomorphic extends Base {
 }
 
 /// [Baseline] is modelled after [Monomorphic], but does almost no work in
-/// `sum`.  This measures the the cost of benchmark code outside of `sum`.
+/// `sum`.  This measures the cost of benchmark code outside of `sum`.
 class Baseline extends Base {
   final Uint8List data1;
   Baseline(int n)

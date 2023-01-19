@@ -73,7 +73,7 @@ caller can create more opportunities for optimization, for example, it becomes
 possible to recognize and remove repeated operations.
 
 The compiler automatically makes a decision whether or not to inline a function
-or method based on heuristics. One heuristic is to inline if the the inlined
+or method based on heuristics. One heuristic is to inline if the inlined
 code is likely to be smaller that the call, as this results in a smaller _and_
 faster program. Another heuristic is to inline even if the code is likely to be
 slightly larger when the call is in a loop, as loops here is a chance that some

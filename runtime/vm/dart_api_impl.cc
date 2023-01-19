@@ -1286,7 +1286,7 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
     if (error != NULL) {
       *error = Utils::StrDup("Isolate creation failed");
     }
-    return reinterpret_cast<Dart_Isolate>(NULL);
+    return static_cast<Dart_Isolate>(NULL);
   }
 
   Thread* T = Thread::Current();
@@ -1330,7 +1330,7 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   }
 
   Dart::ShutdownIsolate();
-  return reinterpret_cast<Dart_Isolate>(NULL);
+  return static_cast<Dart_Isolate>(NULL);
 }
 
 static bool IsServiceOrKernelIsolateName(const char* name) {
