@@ -47,6 +47,7 @@ class _MethodLoweringConfig {
     String callArguments;
     String functionParameters;
     String object;
+    bool argumentsNeedParens = parameters.isEmpty || parameters.length > 1;
     if (isConstructor) {
       object = '';
       callArguments = parameters.join(',');
@@ -70,7 +71,7 @@ class _MethodLoweringConfig {
         for (int i = 0; i < parameters.length; i++) {
           keyValuePairs.add('${keys[i]}: ${parameters[i]}');
         }
-        bodyString = '{${keyValuePairs.join(',')}}';
+        bodyString = '({${keyValuePairs.join(',')}})';
         break;
       case _MethodType.constructor:
         bodyString = 'new $jsString($callArguments)';
@@ -85,9 +86,11 @@ class _MethodLoweringConfig {
         bodyString = '$object.$jsString = $callArguments';
         break;
     }
-    return """function($functionParameters) {
-      return $bodyString;
-    }""";
+    if (argumentsNeedParens) {
+      return '($functionParameters) => $bodyString';
+    } else {
+      return '$functionParameters => $bodyString';
+    }
   }
 }
 
@@ -446,7 +449,7 @@ class _JSLowerer extends Transformer {
     }
 
     // Create Dart procedure stub for JS method.
-    final jsMethodName = '${config.tag}${_jsTrampolineN++}';
+    final jsMethodName = '_${_jsTrampolineN++}';
     final dartProcedureName = '|$jsMethodName';
     final dartProcedure = Procedure(
         Name(dartProcedureName, _library),
