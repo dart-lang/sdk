@@ -157,6 +157,22 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// See [assert_begin] for more information.
   void assert_end();
 
+  /// Call this method when the temporary variable holding the result of a
+  /// pattern match is assigned to a user-accessible variable.  (Depending on
+  /// the client's model, this might happen right after a variable pattern is
+  /// matched, or later, after one or more logical-or patterns have been
+  /// handled).
+  ///
+  /// [promotionKey] is the promotion key used by flow analysis to represent the
+  /// temporary variable holding the result of the pattern match, and [variable]
+  /// is the user-accessible variable that the value is being assigned to.
+  ///
+  /// Returns the promotion key used by flow analysis to represent [variable].
+  /// This may be used in future calls to [assignMatchedPatternVariable] to
+  /// handle nested logical-ors, or logical-ors nested within switch cases that
+  /// share a body.
+  int assignMatchedPatternVariable(Variable variable, int promotionKey);
+
   /// Call this method when visiting a boolean literal expression.
   void booleanLiteral(Expression expression, bool value);
 
@@ -202,8 +218,26 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   ///
   /// [matchedType] should be the static type of the value being matched.
   /// [staticType] should be the static type of the variable pattern itself.
-  void declaredVariablePattern(
-      {required Type matchedType, required Type staticType});
+  /// [initializerExpression] should be the initializer expression being matched
+  /// (or `null` if there is no expression being matched to this variable).
+  /// [isFinal] indicates whether the variable is final, and [isImplicitlyTyped]
+  /// indicates whether the variable has an explicit type annotation.
+  ///
+  /// Although pattern variables in Dart cannot be late, the client is allowed
+  /// to model a traditional (non-patterned) variable declaration statement
+  /// using the same flow analysis machinery as it uses for pattern variable
+  /// declaration statements; when it does so, it may use [isLate] to indicate
+  /// whether the variable in question is a `late` variable.
+  ///
+  /// Returns the promotion key used by flow analysis to track the temporary
+  /// variable that holds the matched value.
+  int declaredVariablePattern(
+      {required Type matchedType,
+      required Type staticType,
+      Expression? initializerExpression,
+      bool isFinal = false,
+      bool isLate = false,
+      required bool isImplicitlyTyped});
 
   /// Call this method before visiting the body of a "do-while" statement.
   /// [doStatement] should be the same node that was passed to
@@ -992,6 +1026,13 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
+  int assignMatchedPatternVariable(Variable variable, int promotionKey) {
+    return _wrap('assignMatchedPatternVariable($variable, $promotionKey)',
+        () => _wrapped.assignMatchedPatternVariable(variable, promotionKey),
+        isQuery: true, isPure: false);
+  }
+
+  @override
   void booleanLiteral(Expression expression, bool value) {
     _wrap('booleanLiteral($expression, $value)',
         () => _wrapped.booleanLiteral(expression, value));
@@ -1039,13 +1080,27 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void declaredVariablePattern(
-      {required Type matchedType, required Type staticType}) {
-    _wrap(
+  int declaredVariablePattern(
+      {required Type matchedType,
+      required Type staticType,
+      Expression? initializerExpression,
+      bool isFinal = false,
+      bool isLate = false,
+      required bool isImplicitlyTyped}) {
+    return _wrap(
         'declaredVariablePattern(matchedType: $matchedType, '
-        'staticType: $staticType)',
+        'staticType: $staticType, '
+        'initializerExpression: $initializerExpression, isFinal: $isFinal, '
+        'isLate: $isLate, isImplicitlyTyped: $isImplicitlyTyped)',
         () => _wrapped.declaredVariablePattern(
-            matchedType: matchedType, staticType: staticType));
+            matchedType: matchedType,
+            staticType: staticType,
+            initializerExpression: initializerExpression,
+            isFinal: isFinal,
+            isLate: isLate,
+            isImplicitlyTyped: isImplicitlyTyped),
+        isQuery: true,
+        isPure: false);
   }
 
   @override
@@ -3532,6 +3587,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  int assignMatchedPatternVariable(Variable variable, int promotionKey) {
+    int mergedKey = promotionKeyStore.keyForVariable(variable);
+    _current =
+        _current._updateVariableInfo(mergedKey, _current.infoFor(promotionKey));
+    return mergedKey;
+  }
+
+  @override
   void booleanLiteral(Expression expression, bool value) {
     FlowModel<Type> unreachable = _current.setUnreachable();
     _storeExpressionInfo(
@@ -3599,8 +3662,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void declaredVariablePattern(
-      {required Type matchedType, required Type staticType}) {
+  int declaredVariablePattern(
+      {required Type matchedType,
+      required Type staticType,
+      Expression? initializerExpression,
+      bool isFinal = false,
+      bool isLate = false,
+      required bool isImplicitlyTyped}) {
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     ReferenceWithType<Type> matchedValueReference =
         context._matchedValueReference;
@@ -3629,6 +3697,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (!coversMatchedType) {
       _unmatched = _join(_unmatched!, ifFalse);
     }
+    // Choose a fresh promotion key to represent the temporary variable that
+    // stores the matched value, and mark it as initialized.
+    int promotionKey = promotionKeyStore.makeTemporaryKey();
+    _current = _current.declare(promotionKey, true);
+    _initialize(promotionKey, matchedType, initializerExpression,
+        isFinal: isFinal,
+        isLate: isLate,
+        isImplicitlyTyped: isImplicitlyTyped,
+        unpromotedType: staticType);
+    return promotionKey;
   }
 
   @override
@@ -3951,30 +4029,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       required bool isImplicitlyTyped}) {
     Type unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
-    ExpressionInfo<Type>? expressionInfo;
-    if (isLate) {
-      // Don't get expression info for late variables, since we don't know when
-      // they'll be initialized.
-    } else if (isImplicitlyTyped && !respectImplicitlyTypedVarInitializers) {
-      // If the language version is too old, SSA analysis has to ignore
-      // initializer expressions for implicitly typed variables, in order to
-      // preserve the buggy behavior of
-      // https://github.com/dart-lang/language/issues/1785.
-    } else if (initializerExpression != null) {
-      expressionInfo = _getExpressionInfo(initializerExpression);
-    }
-    SsaNode<Type> newSsaNode = new SsaNode<Type>(
-        expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
-    _current = _current.write(
-        this, null, variableKey, matchedType, newSsaNode, operations,
-        promoteToTypeOfInterest: !isImplicitlyTyped && !isFinal,
+    _initialize(variableKey, matchedType, initializerExpression,
+        isFinal: isFinal,
+        isLate: isLate,
+        isImplicitlyTyped: isImplicitlyTyped,
         unpromotedType: unpromotedType);
-    if (isImplicitlyTyped && operations.isTypeParameterType(matchedType)) {
-      _current = _current
-          .tryPromoteForTypeCheck(this,
-              _variableReference(variableKey, unpromotedType), matchedType)
-          .ifTrue;
-    }
   }
 
   @override
@@ -4687,6 +4746,38 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     return promotedType;
   }
 
+  void _initialize(
+      int promotionKey, Type matchedType, Expression? initializerExpression,
+      {required bool isFinal,
+      required bool isLate,
+      required bool isImplicitlyTyped,
+      required Type unpromotedType}) {
+    ExpressionInfo<Type>? expressionInfo;
+    if (isLate) {
+      // Don't get expression info for late variables, since we don't know when
+      // they'll be initialized.
+    } else if (isImplicitlyTyped && !respectImplicitlyTypedVarInitializers) {
+      // If the language version is too old, SSA analysis has to ignore
+      // initializer expressions for implicitly typed variables, in order to
+      // preserve the buggy behavior of
+      // https://github.com/dart-lang/language/issues/1785.
+    } else if (initializerExpression != null) {
+      expressionInfo = _getExpressionInfo(initializerExpression);
+    }
+    SsaNode<Type> newSsaNode = new SsaNode<Type>(
+        expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
+    _current = _current.write(
+        this, null, promotionKey, matchedType, newSsaNode, operations,
+        promoteToTypeOfInterest: !isImplicitlyTyped && !isFinal,
+        unpromotedType: unpromotedType);
+    if (isImplicitlyTyped && operations.isTypeParameterType(matchedType)) {
+      _current = _current
+          .tryPromoteForTypeCheck(this,
+              _variableReference(promotionKey, unpromotedType), matchedType)
+          .ifTrue;
+    }
+  }
+
   FlowModel<Type> _join(FlowModel<Type>? first, FlowModel<Type>? second) =>
       FlowModel.join(operations, first, second, _current._emptyVariableMap);
 
@@ -4971,6 +5062,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void assert_end() {}
 
   @override
+  int assignMatchedPatternVariable(Variable variable, int promotionKey) => 0;
+
+  @override
   void booleanLiteral(Expression expression, bool value) {}
 
   @override
@@ -4998,8 +5092,14 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
       {bool skipDuplicateCheck = false}) {}
 
   @override
-  void declaredVariablePattern(
-      {required Type matchedType, required Type staticType}) {}
+  int declaredVariablePattern(
+          {required Type matchedType,
+          required Type staticType,
+          Expression? initializerExpression,
+          bool isFinal = false,
+          bool isLate = false,
+          required bool isImplicitlyTyped}) =>
+      0;
 
   @override
   void doStatement_bodyBegin(Statement doStatement) {}

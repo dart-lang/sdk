@@ -914,6 +914,7 @@ class MiniAstOperations
     'List<int> <: Object': true,
     'Never <: Object': true,
     'Never <: Object?': true,
+    'Null <: double': false,
     'Null <: double?': true,
     'Null <: int': false,
     'Null <: Object': false,

@@ -407,16 +407,18 @@ mixin TypeAnalyzer<
           matchedType: matchedType,
           requiredType: staticType);
     }
-    flow.declaredVariablePattern(
-        matchedType: matchedType, staticType: staticType);
     bool isImplicitlyTyped = declaredType == null;
-    setVariableType(variable, staticType);
-    flow.declare(variable, false, staticType);
     // TODO(paulberry): are we handling _isFinal correctly?
-    flow.initialize(variable, matchedType, context.getInitializer(node),
+    int promotionKey = flow.declaredVariablePattern(
+        matchedType: matchedType,
+        staticType: staticType,
+        initializerExpression: context.getInitializer(node),
         isFinal: context.isFinal || isVariableFinal(variable),
         isLate: context.isLate,
         isImplicitlyTyped: isImplicitlyTyped);
+    setVariableType(variable, staticType);
+    flow.declare(variable, false, staticType);
+    flow.assignMatchedPatternVariable(variable, promotionKey);
     return staticType;
   }
 
@@ -1537,6 +1539,7 @@ mixin TypeAnalyzer<
       flow.declaredVariablePattern(
         matchedType: matchedType,
         staticType: declaredType,
+        isImplicitlyTyped: false,
       );
     }
   }
