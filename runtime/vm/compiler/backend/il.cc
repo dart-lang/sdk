@@ -3048,6 +3048,12 @@ Definition* BoxInstr::Canonicalize(FlowGraph* flow_graph) {
     return value()->definition();
   }
 
+  // Fold away Box<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
+  }
+
   // Fold away Box<rep>(Unbox<rep>(v)) if value is known to be of the
   // right class.
   UnboxInstr* unbox_defn = value()->definition()->AsUnbox();
@@ -3069,6 +3075,12 @@ Definition* BoxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
   if (input_use_list() == nullptr) {
     // Environments can accommodate any representation. No need to box.
     return value()->definition();
+  }
+
+  // Fold away Box<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
   }
 
   return this;
@@ -3116,6 +3128,12 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
 Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses() && !CanDeoptimize()) return NULL;
 
+  // Fold away Unbox<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
+  }
+
   // Fold away Unbox<rep>(Box<rep>(v)).
   BoxInstr* box_defn = value()->definition()->AsBox();
   if ((box_defn != NULL) &&
@@ -3140,6 +3158,12 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
 
 Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses() && !CanDeoptimize()) return NULL;
+
+  // Fold away Unbox<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
+  }
 
   // Do not attempt to fold this instruction if we have not matched
   // input/output representations yet.
