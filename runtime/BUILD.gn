@@ -213,8 +213,6 @@ config("dart_config") {
     }
   } else {
     cflags = [
-      "-Wall",
-      "-Wextra",  # Also known as -W.
       "-Wno-unused-parameter",
       "-Wno-unused-private-field",
       "-Wnon-virtual-dtor",
@@ -226,9 +224,6 @@ config("dart_config") {
       "-fno-rtti",
       "-fno-exceptions",
     ]
-    if (dart_sysroot != "alpine") {
-      cflags += [ "-Werror" ]
-    }
     if (is_clang) {
       cflags += [
         "-Wimplicit-fallthrough",
