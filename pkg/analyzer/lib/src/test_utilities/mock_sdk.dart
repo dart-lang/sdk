@@ -333,6 +333,7 @@ abstract class double extends num {
   static const double minPositive = 5e-324;
   static const double maxFinite = 1.7976931348623157e+308;
 
+  bool get isNaN;
   double get sign;
   double operator %(num other);
   double operator *(num other);

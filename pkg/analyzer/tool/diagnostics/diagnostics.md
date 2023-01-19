@@ -284,6 +284,7 @@ doesn't conform to the language specification or
 that might work in unexpected ways.
 
 [ffi]: https://dart.dev/guides/libraries/c-interop
+[IEEE 754]: https://en.wikipedia.org/wiki/IEEE_754
 [meta-doNotStore]: https://pub.dev/documentation/meta/latest/meta/doNotStore-constant.html
 [meta-factory]: https://pub.dev/documentation/meta/latest/meta/factory-constant.html
 [meta-immutable]: https://pub.dev/documentation/meta/latest/meta/immutable-constant.html
@@ -19356,6 +19357,43 @@ If the import isn't needed, then remove it.
 If some of the names imported by this import are intended to be used but
 aren't yet, and if those names aren't imported by other imports, then add
 the missing references to those names.
+
+### unnecessary_nan_comparison
+
+_A double can't equal 'double.nan', so the condition is always 'false'._
+
+_A double can't equal 'double.nan', so the condition is always 'true'._
+
+#### Description
+
+The analyzer produces this diagnostic when a value is compared to
+`double.nan` using either `==` or `!=`.
+
+Dart follows the [IEEE 754] floating-point standard for the semantics of
+floating point operations, which states that, for any floating point value
+`x` (including NaN, positive infinity, and negative infinity),
+- `NaN == x` is always false
+- `NaN != x` is always true
+
+As a result, comparing any value to NaN is pointless because the result is
+already known (based on the comparison operator being used).
+
+#### Example
+
+The following code produces this diagnostic because `d` is being compared
+to `double.nan`:
+
+{% prettify dart tag=pre+code %}
+bool isNaN(double d) => d [!== double.nan!];
+{% endprettify %}
+
+#### Common fixes
+
+Use the getter `double.isNaN` instead:
+
+{% prettify dart tag=pre+code %}
+bool isNaN(double d) => d.isNaN;
+{% endprettify %}
 
 ### unnecessary_non_null_assertion
 
