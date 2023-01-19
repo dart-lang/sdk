@@ -117,11 +117,11 @@ abstract class StackListener extends Listener with StackChecker {
   /// to document the expected stack and get earlier errors on unexpected stack
   /// content.
   bool checkState(Token? token, List<ValueKind> kinds) {
-    return checkStackState(uri, token?.charOffset, kinds);
+    return checkStackStateForAssert(uri, token?.charOffset, kinds);
   }
 
   @override
-  int get stackLength => stack.length;
+  int get stackHeight => stack.length;
 
   @override
   Object? lookupStack(int index) => stack[index];
