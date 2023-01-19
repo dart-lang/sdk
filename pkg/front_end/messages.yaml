@@ -1086,7 +1086,6 @@ ExtraneousModifier:
     - "abstract foo; main(){}"
     - "static foo; main(){}"
     - "external foo; main(){}"
-    - "final class C {}"
     - "abstract enum foo {bar}"
     - "abstract void foo() {}"
     - "static void foo() {}"

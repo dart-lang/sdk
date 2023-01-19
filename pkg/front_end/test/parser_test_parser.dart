@@ -668,6 +668,7 @@ class TestParser extends Parser {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token classKeyword) {
@@ -678,6 +679,7 @@ class TestParser extends Parser {
         '$sealedToken, '
         '$baseToken, '
         '$interfaceToken, '
+        '$finalToken, '
         '$augmentToken, '
         '$mixinToken, '
         '$classKeyword)');
@@ -689,6 +691,7 @@ class TestParser extends Parser {
         sealedToken,
         baseToken,
         interfaceToken,
+        finalToken,
         augmentToken,
         mixinToken,
         classKeyword);
@@ -767,16 +770,17 @@ class TestParser extends Parser {
 
   @override
   Token parseMixin(Token? augmentToken, Token? sealedToken, Token? baseToken,
-      Token? interfaceToken, Token mixinKeyword) {
+      Token? interfaceToken, Token? finalToken, Token mixinKeyword) {
     doPrint('parseMixin('
         '$augmentToken, '
         '$sealedToken, '
         '$baseToken, '
         '$interfaceToken, '
+        '$finalToken, '
         '$mixinKeyword)');
     indent++;
-    var result = super.parseMixin(
-        augmentToken, sealedToken, baseToken, interfaceToken, mixinKeyword);
+    var result = super.parseMixin(augmentToken, sealedToken, baseToken,
+        interfaceToken, finalToken, mixinKeyword);
     indent--;
     return result;
   }

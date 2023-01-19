@@ -6,17 +6,17 @@
 // the `class-modifiers` experiment enabled.
 
 final class FinalClass {}
-// ^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [error column 1, length 5]
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'class-modifiers' language feature to be enabled.
 
 mixin M {}
 final class FinalClassTypeAlias = Object with M;
-// ^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [error column 1, length 5]
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'class-modifiers' language feature to be enabled.
 
 final mixin FinalMixin {}
-// ^
-// [analyzer] unspecified
-// [cfe] unspecified
+// [error column 1, length 5]
+// [analyzer] SYNTACTIC_ERROR.EXPERIMENT_NOT_ENABLED
+// [cfe] This requires the experimental 'class-modifiers' language feature to be enabled.

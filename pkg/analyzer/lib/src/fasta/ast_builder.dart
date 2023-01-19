@@ -228,6 +228,7 @@ class AstBuilder extends StackListener {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -281,6 +282,15 @@ class AstBuilder extends StackListener {
         // incomplete.
         interfaceToken = null;
       }
+      if (finalToken != null) {
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.class_modifiers,
+          startToken: finalToken,
+        );
+        // Pretend that 'final' didn't occur while this feature is
+        // incomplete.
+        finalToken = null;
+      }
       if (mixinToken != null) {
         _reportFeatureNotEnabled(
           feature: ExperimentalFeatures.class_modifiers,
@@ -295,6 +305,7 @@ class AstBuilder extends StackListener {
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
+    push(finalToken ?? NullValues.Token);
     push(augmentToken ?? NullValues.Token);
     push(mixinToken ?? NullValues.Token);
   }
@@ -420,8 +431,14 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void beginMixinDeclaration(Token? augmentToken, Token? sealedToken,
-      Token? baseToken, Token? interfaceToken, Token mixinKeyword, Token name) {
+  void beginMixinDeclaration(
+      Token? augmentToken,
+      Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
+      Token mixinKeyword,
+      Token name) {
     assert(_classLikeBuilder == null);
     if (!enableSealedClass) {
       if (sealedToken != null) {
@@ -450,11 +467,20 @@ class AstBuilder extends StackListener {
         // Pretend that 'interface' didn't occur while this feature is incomplete.
         interfaceToken = null;
       }
+      if (finalToken != null) {
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.class_modifiers,
+          startToken: finalToken,
+        );
+        // Pretend that 'final' didn't occur while this feature is incomplete.
+        finalToken = null;
+      }
     }
     push(augmentToken ?? NullValues.Token);
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
+    push(finalToken ?? NullValues.Token);
   }
 
   @override
@@ -466,6 +492,7 @@ class AstBuilder extends StackListener {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -518,6 +545,14 @@ class AstBuilder extends StackListener {
         // incomplete.
         interfaceToken = null;
       }
+      if (finalToken != null) {
+        _reportFeatureNotEnabled(
+          feature: ExperimentalFeatures.class_modifiers,
+          startToken: finalToken,
+        );
+        // Pretend that 'final' didn't occur while this feature is incomplete.
+        finalToken = null;
+      }
       if (mixinToken != null) {
         _reportFeatureNotEnabled(
           feature: ExperimentalFeatures.class_modifiers,
@@ -532,6 +567,7 @@ class AstBuilder extends StackListener {
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
+    push(finalToken ?? NullValues.Token);
     push(augmentToken ?? NullValues.Token);
     push(mixinToken ?? NullValues.Token);
   }
@@ -754,6 +790,7 @@ class AstBuilder extends StackListener {
       sealedKeyword: null,
       baseKeyword: null,
       interfaceKeyword: null,
+      finalKeyword: null,
       augmentKeyword: null,
       mixinKeyword: null,
       classKeyword: Token(Keyword.CLASS, 0),
@@ -2773,6 +2810,7 @@ class AstBuilder extends StackListener {
     }
     var mixinKeyword = pop(NullValues.Token) as Token?;
     var augmentKeyword = pop(NullValues.Token) as Token?;
+    var finalKeyword = pop(NullValues.Token) as Token?;
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
@@ -2798,6 +2836,7 @@ class AstBuilder extends StackListener {
         sealedKeyword: sealedKeyword,
         baseKeyword: baseKeyword,
         interfaceKeyword: interfaceKeyword,
+        finalKeyword: finalKeyword,
         augmentKeyword: augmentKeyword,
         mixinKeyword: mixinKeyword,
         superclass: superclass,
@@ -3779,6 +3818,7 @@ class AstBuilder extends StackListener {
     var extendsClause = pop(NullValues.ExtendsClause) as ExtendsClauseImpl?;
     var mixinKeyword = pop(NullValues.Token) as Token?;
     var augmentKeyword = pop(NullValues.Token) as Token?;
+    var finalKeyword = pop(NullValues.Token) as Token?;
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
@@ -3801,6 +3841,7 @@ class AstBuilder extends StackListener {
       sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
       interfaceKeyword: interfaceKeyword,
+      finalKeyword: finalKeyword,
       augmentKeyword: augmentKeyword,
       mixinKeyword: mixinKeyword,
       classKeyword: classKeyword,
@@ -4706,6 +4747,7 @@ class AstBuilder extends StackListener {
     var implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
     var onClause = pop(NullValues.IdentifierList) as OnClauseImpl?;
+    var finalKeyword = pop(NullValues.Token) as Token?;
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
@@ -4722,6 +4764,7 @@ class AstBuilder extends StackListener {
       sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
       interfaceKeyword: interfaceKeyword,
+      finalKeyword: finalKeyword,
       mixinKeyword: mixinKeyword,
       name: name.token,
       typeParameters: typeParameters,
@@ -5721,6 +5764,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? sealedKeyword;
   final Token? baseKeyword;
   final Token? interfaceKeyword;
+  final Token? finalKeyword;
   final Token? augmentKeyword;
   final Token? mixinKeyword;
   final Token classKeyword;
@@ -5742,6 +5786,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
+    required this.finalKeyword,
     required this.augmentKeyword,
     required this.mixinKeyword,
     required this.classKeyword,
@@ -5762,6 +5807,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
       interfaceKeyword: interfaceKeyword,
+      finalKeyword: finalKeyword,
       augmentKeyword: augmentKeyword,
       mixinKeyword: mixinKeyword,
       classKeyword: classKeyword,
@@ -5882,6 +5928,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? sealedKeyword;
   final Token? baseKeyword;
   final Token? interfaceKeyword;
+  final Token? finalKeyword;
   final Token mixinKeyword;
   final Token name;
   OnClauseImpl? onClause;
@@ -5897,6 +5944,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
+    required this.finalKeyword,
     required this.mixinKeyword,
     required this.name,
     required this.onClause,
@@ -5911,6 +5959,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
       interfaceKeyword: interfaceKeyword,
+      finalKeyword: finalKeyword,
       mixinKeyword: mixinKeyword,
       name: name,
       typeParameters: typeParameters,

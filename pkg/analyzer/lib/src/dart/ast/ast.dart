@@ -1823,7 +1823,7 @@ class ChildEntity {
 ///        '{' [ClassMember]* '}'
 ///
 ///    classModifiers ::= 'sealed'
-///      | 'abstract'? ('base' | 'interface')?
+///      | 'abstract'? ('base' | 'interface' | 'final')?
 ///      | 'abstract'? 'base'? 'mixin'
 ///
 class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
@@ -1847,6 +1847,9 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   /// The 'interface' keyword, or `null` if the keyword was absent.
   final Token? interfaceKeyword;
+
+  /// The 'final' keyword, or `null` if the keyword was absent.
+  final Token? finalKeyword;
 
   /// The 'augment' keyword, or `null` if the keyword was absent.
   final Token? augmentKeyword;
@@ -1910,6 +1913,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
+    required this.finalKeyword,
     required this.augmentKeyword,
     required this.mixinKeyword,
     required this.classKeyword,
@@ -1957,6 +1961,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
         sealedKeyword ??
         baseKeyword ??
         interfaceKeyword ??
+        finalKeyword ??
         augmentKeyword ??
         mixinKeyword ??
         classKeyword;
@@ -2001,6 +2006,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('baseKeyword', baseKeyword)
     ..addToken('interfaceKeyword', interfaceKeyword)
+    ..addToken('finalKeyword', finalKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('mixinKeyword', mixinKeyword)
     ..addToken('classKeyword', classKeyword)
@@ -2047,7 +2053,7 @@ abstract class ClassMemberImpl extends DeclarationImpl implements ClassMember {
 ///        mixinApplication
 ///
 ///    classModifiers ::= 'sealed'
-///      | 'abstract'? ('base' | 'interface')?
+///      | 'abstract'? ('base' | 'interface' | 'final')?
 ///      | 'abstract'? 'base'? 'mixin'
 ///
 ///    mixinApplication ::=
@@ -2086,6 +2092,10 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   /// The token for the 'interface' keyword, or `null` if this is not defining
   /// an interface class.
   final Token? interfaceKeyword;
+
+  /// The token for the 'final' keyword, or `null` if this is not defining a
+  /// final class.
+  final Token? finalKeyword;
 
   /// The token for the 'augment' keyword, or `null` if this is not defining an
   /// augmentation class.
@@ -2128,6 +2138,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
+    required this.finalKeyword,
     required this.augmentKeyword,
     required this.mixinKeyword,
     required NamedTypeImpl superclass,
@@ -2156,6 +2167,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
         sealedKeyword ??
         baseKeyword ??
         interfaceKeyword ??
+        finalKeyword ??
         augmentKeyword ??
         mixinKeyword ??
         typedefKeyword;
@@ -2201,6 +2213,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('baseKeyword', baseKeyword)
     ..addToken('interfaceKeyword', interfaceKeyword)
+    ..addToken('finalKeyword', finalKeyword)
     ..addToken('augmentKeyword', augmentKeyword)
     ..addToken('mixinKeyword', mixinKeyword)
     ..addNode('superclass', superclass)
@@ -9025,7 +9038,7 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 ///        [TypeParameterList]? [RequiresClause]? [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
 ///
-///    mixinModifiers ::= 'sealed' | 'base' | 'interface'
+///    mixinModifiers ::= 'sealed' | 'base' | 'interface' | 'final'
 class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements MixinDeclaration {
   /// Return the 'augment' keyword, or `null` if the keyword was absent.
@@ -9040,6 +9053,9 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   /// Return the 'interface' keyword, or `null` if the keyword was absent.
   final Token? interfaceKeyword;
+
+  /// Return the 'final' keyword, or `null` if the keyword was absent.
+  final Token? finalKeyword;
 
   @override
   final Token mixinKeyword;
@@ -9084,6 +9100,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
+    required this.finalKeyword,
     required this.mixinKeyword,
     required super.name,
     required TypeParameterListImpl? typeParameters,
@@ -9110,7 +9127,11 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    return sealedKeyword ?? baseKeyword ?? interfaceKeyword ?? mixinKeyword;
+    return sealedKeyword ??
+        baseKeyword ??
+        interfaceKeyword ??
+        finalKeyword ??
+        mixinKeyword;
   }
 
   @override
@@ -9142,6 +9163,7 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('baseKeyword', baseKeyword)
     ..addToken('interfaceKeyword', interfaceKeyword)
+    ..addToken('finalKeyword', finalKeyword)
     ..addToken('mixinKeyword', mixinKeyword)
     ..addToken('name', name)
     ..addNode('typeParameters', typeParameters)
