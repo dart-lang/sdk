@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/cli.dart' as cli;
 import 'package:test/test.dart';
@@ -15,8 +16,12 @@ void main() {
   group('use_build_context_synchronously', () {
     var currentOut = outSink;
     var collectingOut = CollectingSink();
-    setUp(() => outSink = collectingOut);
+    setUp(() {
+      noSoundNullSafety = false;
+      return outSink = collectingOut;
+    });
     tearDown(() {
+      noSoundNullSafety = true;
       collectingOut.buffer.clear();
       outSink = currentOut;
     });

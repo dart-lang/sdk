@@ -14,6 +14,7 @@ import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/services/lint.dart' as lint_service;
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/formatter.dart';
@@ -205,12 +206,21 @@ void testRule(String ruleName, File file,
       throw Exception('No rule found defined at: ${file.path}');
     }
 
-    var errorInfos = await _getErrorInfos(ruleName, file,
-        useMockSdk: useMockSdk, debug: debug, analysisOptions: analysisOptions);
-    _validateExpectedLints(file, errorInfos,
-        debug: debug,
-        failOnErrors: failOnErrors,
-        analysisOptions: analysisOptions);
+    // Disable this check until migration is complete internally.
+    noSoundNullSafety = false;
+
+    try {
+      var errorInfos = await _getErrorInfos(ruleName, file,
+          useMockSdk: useMockSdk,
+          debug: debug,
+          analysisOptions: analysisOptions);
+      _validateExpectedLints(file, errorInfos,
+          debug: debug,
+          failOnErrors: failOnErrors,
+          analysisOptions: analysisOptions);
+    } finally {
+      noSoundNullSafety = true;
+    }
   });
 }
 
