@@ -17,8 +17,8 @@ void check(int length, BigInt base) {
   assert(base > BigInt.zero);
 
   // Check with slight adjustments. We choose -3..+3 so that the lowest bit in
-  // the 2's-complement representation is both zero and one for both the positive
-  // [n] and its negative complement [m] below.
+  // the 2's-complement representation is both zero and one for both the
+  // positive [n] and its negative complement [m] below.
   for (int delta = -3; delta <= 3; delta++) {
     BigInt n = base + BigInt.from(delta);
     assert(n >= BigInt.zero);
