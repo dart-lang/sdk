@@ -17,6 +17,8 @@ import '../messages/codes.dart'
 
 import '../scanner/scanner.dart' show Token;
 
+import '../util/stack_checker.dart';
+import '../util/value_kind.dart';
 import 'identifier_context.dart' show IdentifierContext;
 
 import 'parser.dart' show Listener, MemberKind, lengthOfSpan;
@@ -24,7 +26,6 @@ import 'parser.dart' show Listener, MemberKind, lengthOfSpan;
 import 'quote.dart' show unescapeString;
 
 import '../util/null_value.dart';
-import '../util/value_kind.dart';
 
 /// Sentinel values used for typed `null` values on a stack.
 ///
@@ -90,12 +91,9 @@ enum NullValues implements NullValue<Object> {
   WithClause,
 }
 
-abstract class StackListener extends Listener {
+abstract class StackListener extends Listener with StackChecker {
   static const bool debugStack = false;
   final Stack stack = debugStack ? new DebugStack() : new StackImpl();
-
-  /// Used to report an internal error encountered in the stack listener.
-  Never internalProblem(Message message, int charOffset, Uri uri);
 
   /// Checks that [value] matches the expected [kind].
   ///
@@ -104,23 +102,8 @@ abstract class StackListener extends Listener {
   ///     assert(checkValue(token, ValueKind.Token, value));
   ///
   /// to document and validate the expected value kind.
-  bool checkValue(Token? token, ValueKind kind, Object value) {
-    if (!kind.check(value)) {
-      String message = 'Unexpected value `${value}` (${value.runtimeType}). '
-          'Expected ${kind}.';
-      if (token != null) {
-        // If offset is available report and internal problem to show the
-        // parsed code in the output.
-        throw internalProblem(
-            new Message(const Code<String>('Internal error'),
-                problemMessage: message),
-            token.charOffset,
-            uri);
-      } else {
-        throw message;
-      }
-    }
-    return true;
+  bool checkValue(Token? token, ValueKind kind, Object? value) {
+    return checkStackValue(uri, token?.charOffset, kind, value);
   }
 
   /// Checks the top of the current stack against [kinds]. If a mismatch is
@@ -134,97 +117,14 @@ abstract class StackListener extends Listener {
   /// to document the expected stack and get earlier errors on unexpected stack
   /// content.
   bool checkState(Token? token, List<ValueKind> kinds) {
-    bool success = true;
-    for (int kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
-      ValueKind kind = kinds[kindIndex];
-      if (kindIndex < stack.length) {
-        Object? value = stack[kindIndex];
-        if (!kind.check(value)) {
-          success = false;
-        }
-      } else {
-        success = false;
-      }
-    }
-    if (!success) {
-      StringBuffer sb = new StringBuffer();
-
-      String safeToString(Object? object) {
-        try {
-          return '$object';
-        } catch (e) {
-          // Judgments fail on toString.
-          return object.runtimeType.toString();
-        }
-      }
-
-      String padLeft(Object object, int length) {
-        String text = safeToString(object);
-        if (text.length < length) {
-          return ' ' * (length - text.length) + text;
-        }
-        return text;
-      }
-
-      String padRight(Object object, int length) {
-        String text = safeToString(object);
-        if (text.length < length) {
-          return text + ' ' * (length - text.length);
-        }
-        return text;
-      }
-
-      // Compute kind/stack frame information for all expected values plus 3 more
-      // stack elements if available.
-      for (int kindIndex = 0; kindIndex < kinds.length + 3; kindIndex++) {
-        if (kindIndex >= stack.length && kindIndex >= kinds.length) {
-          // No more stack elements nor kinds to display.
-          break;
-        }
-        sb.write(padLeft(kindIndex, 4));
-        sb.write(': ');
-        ValueKind? kind;
-        if (kindIndex < kinds.length) {
-          kind = kinds[kindIndex];
-          sb.write(padRight(kind, 60));
-        } else {
-          sb.write(padRight('---', 60));
-        }
-        if (kindIndex < stack.length) {
-          Object? value = stack[kindIndex];
-          if (kind == null || kind.check(value)) {
-            sb.write(' ');
-          } else {
-            sb.write('*');
-          }
-          sb.write(safeToString(value));
-          sb.write(' (${value.runtimeType})');
-        } else {
-          if (kind == null) {
-            sb.write(' ');
-          } else {
-            sb.write('*');
-          }
-          sb.write('---');
-        }
-        sb.writeln();
-      }
-
-      String message = '$runtimeType failure\n$sb';
-      if (token != null) {
-        // If offset is available report and internal problem to show the
-        // parsed code in the output.
-        throw internalProblem(
-            new Message(const Code<String>('Internal error'),
-                problemMessage: message),
-            token.charOffset,
-            uri);
-      } else {
-        throw message;
-      }
-    }
-    return success;
+    return checkStackState(uri, token?.charOffset, kinds);
   }
+
+  @override
+  int get stackLength => stack.length;
+
+  @override
+  Object? lookupStack(int index) => stack[index];
 
   @override
   Uri get uri;
