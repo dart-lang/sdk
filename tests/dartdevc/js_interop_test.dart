@@ -91,7 +91,7 @@ void main() {
   final Function? localNullableLegacy = () => 'hello';
   final String Function()? localNullable = () => 'hello';
 
-  // Assigment to JS static field.
+  // Assignment to JS static field.
   Expect.throws(() {
     _jsStaticVariable = () => 'hello';
   });

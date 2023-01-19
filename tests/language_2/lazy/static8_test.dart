@@ -6,7 +6,7 @@
 
 import "package:expect/expect.dart";
 
-// Test re-entrant initializer - calls throw Error.
+// Test reentrant initializer - calls throw Error.
 
 var trace;
 

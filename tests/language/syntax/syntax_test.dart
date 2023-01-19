@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedOptions=--enable-experiment=patterns,records
+
 class SyntaxTest {
   // "this" cannot be used as a field name.
   SyntaxTest this; //# 01: syntax error
@@ -242,7 +244,7 @@ main() {
 
     1 + 2 = 1; //# 63: syntax error
     new SyntaxTest() = 1; //# 64: syntax error
-    futureOf(null) = 1; //# 65: syntax error
+    futureOf(1 + 2) = 1; //# 65: syntax error
 
   } catch (ex) {
     // Swallowing exceptions. Any error should be a compile-time error

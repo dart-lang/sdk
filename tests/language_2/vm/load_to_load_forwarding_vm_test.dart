@@ -65,7 +65,7 @@ testPhiRepresentation(f, arr) {
   return arr[0];
 }
 
-testPhiConvertions(f, arr) {
+testPhiConversions(f, arr) {
   if (f) {
     arr[0] = arr[1];
   } else {
@@ -561,8 +561,8 @@ main() {
   u32List[2] = 0x7FFFFFFF;
 
   for (var i = 0; i < 20; i++) {
-    testPhiConvertions(true, u32List);
-    testPhiConvertions(false, u32List);
+    testPhiConversions(true, u32List);
+    testPhiConversions(false, u32List);
   }
 
   for (var i = 0; i < 20; i++) {

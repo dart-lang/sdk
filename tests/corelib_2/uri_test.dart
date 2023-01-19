@@ -461,7 +461,7 @@ void testReplace() {
   }
 
   // Regression test, http://dartbug.com/20814
-  var uri = Uri.parse("/no-authorty/");
+  var uri = Uri.parse("/no-authority/");
   uri = uri.replace(fragment: "fragment");
   Expect.isFalse(uri.hasAuthority);
 
@@ -577,7 +577,7 @@ void testPackageUris() {
 
 void testBackslashes() {
   // Tests change which makes `\` be treated as `/` in
-  // autority and path.
+  // authority and path.
 
   Expect.stringEquals("https://example.com/",
       Uri.parse(r"https:\\example.com\").toString());

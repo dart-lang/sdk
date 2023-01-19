@@ -1274,7 +1274,7 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
   /// Builds an SSA graph for a sync*/async/async* generator.  We generate a
   /// entry function which tail-calls a body function. The entry contains
   /// per-invocation checks and the body, which is later transformed, contains
-  /// the re-entrant 'state machine' code.
+  /// the reentrant 'state machine' code.
   void _buildGenerator(FunctionEntity function, ir.FunctionNode functionNode) {
     _openFunction(function,
         functionNode: functionNode,

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedOptions=--enable-experiment=patterns,records
+
 // Test switch statement.
 
 // VMOptions=
@@ -84,26 +86,6 @@ void testSwitchEnum(Enum? input, int expect) {
   Expect.equals(expect, result);
 }
 
-const int ic1 = 1;
-const int ic2 = 2;
-void testSwitchIntExpression(int input, int? expect) {
-  int? result = null;
-  switch (input) {
-    case 1 + 1: // 2
-    case ic1 + 2: // 3
-      result = 11;
-      break;
-    case ic2 * 2: // 4
-    case 1 * 5: // 5
-      result = 21;
-      break;
-    case ic1 % ic2 + 5: // 6
-      result = 31;
-      break;
-  }
-  Expect.equals(expect, result);
-}
-
 void testSwitchBool(bool input, int expect) {
   int? result = null;
   switch (input) {
@@ -154,13 +136,6 @@ main() {
   testSwitchEnum(Enum.e2, 20);
   testSwitchEnum(Enum.e3, 30);
   testSwitchEnum(null, 40);
-
-  testSwitchIntExpression(2, 11);
-  testSwitchIntExpression(3, 11);
-  testSwitchIntExpression(4, 21);
-  testSwitchIntExpression(5, 21);
-  testSwitchIntExpression(6, 31);
-  testSwitchIntExpression(7, null);
 
   testSwitchBool(true, 12);
   testSwitchBool(false, 22);

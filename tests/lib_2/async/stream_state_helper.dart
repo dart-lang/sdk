@@ -583,7 +583,7 @@ class LogAnyEvent extends Event {
     return true;
   }
 
-  bool _testSubcribe() {
+  bool _testSubscribe() {
     _actual = "*[Subscribed]";
     return true;
   }

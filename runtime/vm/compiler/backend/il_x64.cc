@@ -458,7 +458,7 @@ static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
 LocationSummary* IfThenElseInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);
-  // TODO(dartbug.com/30952) support convertion of Register to corresponding
+  // TODO(dartbug.com/30952) support conversion of Register to corresponding
   // least significant byte register (e.g. RAX -> AL, RSI -> SIL, r15 -> r15b).
   comparison()->locs()->set_out(0, Location::RegisterLocation(RDX));
   return comparison()->locs();

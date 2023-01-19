@@ -141,6 +141,7 @@ class Listener implements UnescapeErrorListener {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {}
@@ -207,6 +208,7 @@ class Listener implements UnescapeErrorListener {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
+      Token? finalToken,
       Token mixinKeyword,
       Token name) {}
 
@@ -794,6 +796,7 @@ class Listener implements UnescapeErrorListener {
       Token? sealedToken,
       Token? baseToken,
       Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {}

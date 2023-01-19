@@ -3548,7 +3548,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // committed into the global object pool at the end of the compilation.
       // This makes an assumption that global object pool itself does not
       // grow during code generation - unfortunately this is not the case
-      // becase we might have nested code generation (i.e. we might generate
+      // because we might have nested code generation (i.e. we might generate
       // some stubs). If this indeed happens we retry the compilation.
       // (See TryCommitToParent invocation below).
       compiler::ObjectPoolBuilder object_pool_builder(

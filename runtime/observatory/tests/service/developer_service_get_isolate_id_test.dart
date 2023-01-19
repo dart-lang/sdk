@@ -67,12 +67,12 @@ var tests = <VMTest>[
     await initialIsolate.reload();
 
     // Grab the root library.
-    Service.Library rootLbirary =
+    Service.Library rootLibrary =
         await initialIsolate.rootLibrary.load() as Service.Library;
 
     // Grab self id.
     Service.Instance localSelfId = await initialIsolate.invoke(
-        rootLbirary, 'getSelfId') as Service.Instance;
+        rootLibrary, 'getSelfId') as Service.Instance;
 
     // Check that the id reported from dart:developer matches the id reported
     // from the service protocol.
@@ -81,7 +81,7 @@ var tests = <VMTest>[
 
     // Grab the child isolate's id.
     Service.Instance localChildId = await initialIsolate.invoke(
-        rootLbirary, 'getChildId') as Service.Instance;
+        rootLibrary, 'getChildId') as Service.Instance;
 
     // Check that the id reported from dart:developer matches the id reported
     // from the service protocol.

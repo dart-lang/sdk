@@ -208,7 +208,14 @@ class ProtocolConverter {
       // Otherwise, show the fields from the instance.
       final variables = await Future.wait(fields.mapIndexed(
         (index, field) async {
-          final name = field.decl?.name;
+          var name = field.decl?.name;
+          if (name == null && field.name is int) {
+            // Indexed record fields are given only their index as the name, but
+            // users will expect to see them as they are accessed like `$1`.
+            name = '\$${field.name}';
+          } else {
+            name ??= field.name;
+          }
           return convertVmResponseToVariable(thread, field.value,
               name: name ?? '<unnamed field>',
               evaluateName: name != null
