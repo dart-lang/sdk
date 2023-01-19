@@ -246,5 +246,5 @@ annotation on the variable called "`_`":
 ```
 
 `dart2js:load-priority` annotations are _scoped_: when there are multiple
-annotations, the one on the nearest element enclosing the call to `loadLibrary()`
-is in effect.
+annotations, the one on the nearest element enclosing the call to
+`loadLibrary()` is in effect.
