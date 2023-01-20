@@ -100,4 +100,84 @@ class C<T extends Function> {
       error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 152, 1),
     ]);
   }
+
+  test_lookupFunction_VarArgs1() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+final lib = DynamicLibrary.open('dontcare');
+final variadicAt1Doublex2 =
+  lib.lookupFunction<
+    Double Function(Double, VarArgs<(Double,)>),
+    double Function(double, double)
+  >(
+    "VariadicAt1Doublex2"
+  );
+''');
+  }
+
+  test_lookupFunction_VarArgs2() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:ffi';
+final lib = DynamicLibrary.open('dontcare');
+final variadicAt1Int64x5Leaf =
+  lib.lookupFunction<
+    Int64 Function(Int64, VarArgs<(Int64, Int64, Int64, Int64)>),
+    int Function(int, int, int, int, int)
+  >(
+    "VariadicAt1Int64x5",
+    isLeaf:true
+  );
+''');
+  }
+
+  test_lookupFunction_VarArgs3() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+final lib = DynamicLibrary.open('dontcare');
+final variadicAt1Int64x5Leaf =
+  lib.lookupFunction<
+    Int64 Function(Int64, VarArgs<(Int64, Int64, Int64, Int64)>),
+    int Function(int, int, int, int, double)
+  >(
+    "VariadicAt1Int64x5",
+    isLeaf:true
+  );
+''', [
+      error(FfiCode.MUST_BE_A_SUBTYPE, 187, 40),
+    ]);
+  }
+
+  test_lookupFunction_VarArgs4() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+final lib = DynamicLibrary.open('dontcare');
+final variadicAt1Int64x5Leaf =
+  lib.lookupFunction<
+    Int64 Function(Int64, VarArgs<(Int64, Int64, Int64, {Int64 named})>),
+    int Function(int, int, int, int)
+  >(
+    "VariadicAt1Int64x5",
+    isLeaf:true
+  );
+''', [
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 121, 68),
+    ]);
+  }
+
+  test_lookupFunction_VarArgs5() async {
+    await assertErrorsInCode(r'''
+import 'dart:ffi';
+final lib = DynamicLibrary.open('dontcare');
+final variadicAt1Int64x5Leaf =
+  lib.lookupFunction<
+    Int64 Function(Int64, VarArgs<(Int64, Int64, Int64)>, Int64),
+    int Function(int, int, int, int, int)
+  >(
+    "VariadicAt1Int64x5",
+    isLeaf:true
+  );
+''', [
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 121, 60),
+    ]);
+  }
 }
