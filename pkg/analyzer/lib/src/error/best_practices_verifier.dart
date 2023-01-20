@@ -990,8 +990,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         var value = constEvaluation.value;
         if (value != null && !alreadySeen.add(value)) {
           var errorCode = node.isSet
-              ? HintCode.EQUAL_ELEMENTS_IN_SET
-              : HintCode.EQUAL_KEYS_IN_MAP;
+              ? WarningCode.EQUAL_ELEMENTS_IN_SET
+              : WarningCode.EQUAL_KEYS_IN_MAP;
           _errorReporter.reportErrorForNode(errorCode, expression);
         }
       }

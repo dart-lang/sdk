@@ -1370,14 +1370,6 @@ HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE:
   status: hasFix
 HintCode.DIVISION_OPTIMIZATION:
   status: hasFix
-HintCode.EQUAL_ELEMENTS_IN_SET:
-  status: noFix
-  notes: |-
-    Fix depends on user's intent, which can't be known.
-HintCode.EQUAL_KEYS_IN_MAP:
-  status: noFix
-  notes: |-
-    Fix depends on user's intent, which can't be known.
 HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE:
   status: noFix
   notes: |-
@@ -2724,9 +2716,9 @@ StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH:
 StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION:
   status: hasFix
 StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN:
-  status: needsFix
+  status: hasFix
 StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN:
-  status: needsFix
+  status: hasFix
 WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
   status: noFix
   notes: |-
@@ -2761,6 +2753,14 @@ WarningCode.DUPLICATE_IMPORT:
   status: hasFix
 WarningCode.DUPLICATE_SHOWN_NAME:
   status: hasFix
+WarningCode.EQUAL_ELEMENTS_IN_SET:
+  status: noFix
+  notes: |-
+    Fix depends on user's intent, which can't be known.
+WarningCode.EQUAL_KEYS_IN_MAP:
+  status: noFix
+  notes: |-
+    Fix depends on user's intent, which can't be known.
 WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
   status: hasFix
 WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT:

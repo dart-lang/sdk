@@ -1009,7 +1009,7 @@ class UntaggedClass : public UntaggedObject {
   // Stub code for allocation of instances.
   COMPRESSED_POINTER_FIELD(CodePtr, allocation_stub)
   // CHA optimized codes.
-  COMPRESSED_POINTER_FIELD(ArrayPtr, dependent_code)
+  COMPRESSED_POINTER_FIELD(WeakArrayPtr, dependent_code)
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -1447,7 +1447,7 @@ class UntaggedField : public UntaggedObject {
   // - for static fields: index into field_table.
   COMPRESSED_POINTER_FIELD(SmiPtr, host_offset_or_field_id)
   COMPRESSED_POINTER_FIELD(SmiPtr, guarded_list_length)
-  COMPRESSED_POINTER_FIELD(ArrayPtr, dependent_code)
+  COMPRESSED_POINTER_FIELD(WeakArrayPtr, dependent_code)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:

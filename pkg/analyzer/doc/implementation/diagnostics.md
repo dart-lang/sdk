@@ -15,21 +15,29 @@ problem and correction messages that will be shown to users.
 
 For most diagnostics, a single message (code) is sufficient. But sometimes it's
 useful to tailor the message based on the context in which the problem occurs or
-because the message can be made more clear. For example, it's an error to
-declare two or more constructors with the same name. That's true whether the
-name is explicit or implicit (the default constructor). In order for the message
-to match the user's model of the language, we define two messages for this one
-problem: one that refers to the constructors by their name, and one that refers
-to the constructors as "unnamed". The way we define two messages is by defining
-two codes.
+because the message can be made more clear.
+
+For example, it's an error to declare two or more constructors with the same name.
+That's true whether the name is explicit or implicit (the default constructor).
+In order for the message to match the user's model of the language, we define
+two messages for this one problem: one that refers to the constructors by their
+name, and one that refers to the constructors as "unnamed". The way we define
+two messages is by defining two codes.
 
 Each code has a unique name (the key used in the map in `messages.yaml`) and can
 optionally define a shared name that links all the codes for a single diagnostic
 together. It is the shared name that is displayed to users. If a shared name
 isn't explicitly provided, it will default to being the same as the unique name.
 
-After every edit to the `messages.yaml` file, you will need to run the utility
-`analyzer/tool/messages/generate.dart` to update the generated files.
+### Updating generated files
+
+After every edit to the `messages.yaml` file, you will need to run the following
+to update the generated files:
+```bash
+dart run analyzer/tool/messages/generate.dart
+```
+
+### Add code to `error_fix_status.yaml`
 
 You also need to manually add the name of the code to the list of codes in the
 file `analysis_server/lib/src/services/correction/error_fix_status.yaml`. The
@@ -38,6 +46,13 @@ code should have the line
   status: needsEvaluation
 ```
 nested under the name of the code.
+
+At some point, we'll evaluate the diagnostics that are marked as `needsEvaluation`.
+If we can think of a reasonable and useful fix, then we'll change it to `needsFix`
+with a comment indicating what fix we thought of. If we can't think of one, then
+we'll change it to `noFix`. The status is changed to `hasFix` when there's at least
+one fix associated with the diagnostic, which is something we can (and do) verify
+in a test.
 
 ## Write tests
 
@@ -48,6 +63,7 @@ implementation code and fewer bugs.
 
 The tests for each diagnostic code (or set of codes that have the same shared
 name) are in a separate file in the directory `analyzer/test/src/diagnostics`.
+
 Looking at the implementation of tests in a few of the other files can help you
 see the basic pattern, but all the tests essentially work by setting up the code
 to be analyzed, then assert that either the expected diagnostic has been
@@ -58,11 +74,14 @@ false positives.)
 ## Report the diagnostic
 
 The last step is to write the code to report the diagnostic. Where that code
-lives depends on the kind of diagnostic you're adding. If you're adding a
-diagnostic that's defined by the language specification (with a severity of
-'error'), then the best place to implement it will usually be in one of the
-`<node class>Resolver` classes. If you're adding a warning, then the class
-`BestPracticesVerifier` is usually the best place for it.
+lives depends on the kind of diagnostic you're adding.
+
+If you're adding a diagnostic that's defined by the language specification
+(with a severity of 'error'), then the best place to implement it will usually
+be in one of the `<node class>Resolver` classes.
+
+If you're adding a warning, then the class `BestPracticesVerifier` is usually
+the best place for it.
 
 ## Document the diagnostic
 

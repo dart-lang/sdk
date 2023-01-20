@@ -2063,8 +2063,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       try {
         if (declaredElement is PromotableElement) {
-          _flowAnalysis!.declare(declaredElement, initializer != null,
-              _variables.decoratedElementType(declaredElement));
+          _flowAnalysis!.declare(
+              declaredElement, _variables.decoratedElementType(declaredElement),
+              initialized: initializer != null);
         }
         if (initializer == null) {
           // For top level variables and static fields, we have to generate an
@@ -2124,9 +2125,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         var declaredElement = parameter.declaredElement!;
         // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
         // around a failure in api_test.dart; fix this.
-        _flowAnalysis!.declare(declaredElement, true,
-            _variables.decoratedElementType(declaredElement),
-            skipDuplicateCheck: true);
+        _flowAnalysis!.declare(
+            declaredElement, _variables.decoratedElementType(declaredElement),
+            initialized: true, skipDuplicateCheck: true);
       }
     }
   }
@@ -2209,8 +2210,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
         var declaredElement = parameter.declaredElement!;
-        _flowAnalysis!.declare(declaredElement, true,
-            _variables.decoratedElementType(declaredElement));
+        _flowAnalysis!.declare(
+            declaredElement, _variables.decoratedElementType(declaredElement),
+            initialized: true);
       }
     }
   }
@@ -2949,8 +2951,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       DecoratedType? lhsType;
       if (parts is ForEachPartsWithDeclaration) {
         var variableElement = parts.loopVariable.declaredElement!;
-        _flowAnalysis!.declare(variableElement, true,
-            _variables.decoratedElementType(variableElement));
+        _flowAnalysis!.declare(
+            variableElement, _variables.decoratedElementType(variableElement),
+            initialized: true);
         lhsElement = variableElement;
         _dispatch(parts.loopVariable.type);
         lhsType = _variables.decoratedElementType(lhsElement);

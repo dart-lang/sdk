@@ -173,22 +173,6 @@ class HintCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
-  ///  No parameters.
-  static const HintCode EQUAL_ELEMENTS_IN_SET = HintCode(
-    'EQUAL_ELEMENTS_IN_SET',
-    "Two elements in a set literal shouldn't be equal.",
-    correctionMessage: "Change or remove the duplicate element.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const HintCode EQUAL_KEYS_IN_MAP = HintCode(
-    'EQUAL_KEYS_IN_MAP',
-    "Two keys in a map literal shouldn't be equal.",
-    correctionMessage: "Change or remove the duplicate key.",
-    hasPublishedDocs: true,
-  );
-
   ///  It is a bad practice for a source file in a package "lib" directory
   ///  hierarchy to traverse outside that directory hierarchy. For example, a
   ///  source file in the "lib" directory should not contain a directive such as
@@ -1121,16 +1105,16 @@ class HintCode extends AnalyzerErrorCode {
   ///  No parameters.
   static const HintCode UNNECESSARY_NAN_COMPARISON_FALSE = HintCode(
     'UNNECESSARY_NAN_COMPARISON',
-    "A double can't equal NaN, so the condition is always 'false'.",
-    correctionMessage: "Try using 'isNan', or removing the condition.",
+    "A double can't equal 'double.nan', so the condition is always 'false'.",
+    correctionMessage: "Try using 'double.isNan', or removing the condition.",
     uniqueName: 'UNNECESSARY_NAN_COMPARISON_FALSE',
   );
 
   ///  No parameters.
   static const HintCode UNNECESSARY_NAN_COMPARISON_TRUE = HintCode(
     'UNNECESSARY_NAN_COMPARISON',
-    "A double can't equal NaN, so the condition is always 'true'.",
-    correctionMessage: "Try using 'isNan', or removing the condition.",
+    "A double can't equal 'double.nan', so the condition is always 'true'.",
+    correctionMessage: "Try using 'double.isNan', or removing the condition.",
     uniqueName: 'UNNECESSARY_NAN_COMPARISON_TRUE',
   );
 

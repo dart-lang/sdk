@@ -1027,6 +1027,9 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   static const int FlagMacro = 1 << 6;
   static const int FlagSealed = 1 << 7;
   static const int FlagMixinClass = 1 << 8;
+  static const int FlagBase = 1 << 9;
+  static const int FlagInterface = 1 << 10;
+  static const int FlagFinal = 1 << 11;
 
   int flags = 0;
 
@@ -1050,11 +1053,32 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     flags = value ? (flags | FlagMacro) : (flags & ~FlagMacro);
   }
 
-  /// Whether this class is a macro class.
+  /// Whether this class is a sealed class.
   bool get isSealed => flags & FlagSealed != 0;
 
   void set isSealed(bool value) {
     flags = value ? (flags | FlagSealed) : (flags & ~FlagSealed);
+  }
+
+  /// Whether this class is a base class.
+  bool get isBase => flags & FlagBase != 0;
+
+  void set isBase(bool value) {
+    flags = value ? (flags | FlagBase) : (flags & ~FlagBase);
+  }
+
+  /// Whether this class is an interface class.
+  bool get isInterface => flags & FlagInterface != 0;
+
+  void set isInterface(bool value) {
+    flags = value ? (flags | FlagInterface) : (flags & ~FlagInterface);
+  }
+
+  /// Whether this class is a final class.
+  bool get isFinal => flags & FlagFinal != 0;
+
+  void set isFinal(bool value) {
+    flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
   }
 
   /// Whether this class is a synthetic implementation created for each

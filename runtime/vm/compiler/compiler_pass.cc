@@ -382,9 +382,9 @@ FlowGraph* CompilerPass::RunPipeline(PipelineMode mode,
   INVOKE_PASS(AllocationSinking_Sink);
   INVOKE_PASS(EliminateDeadPhis);
   INVOKE_PASS(DCE);
+  INVOKE_PASS(Canonicalize);
   INVOKE_PASS(TypePropagation);
   INVOKE_PASS(SelectRepresentations_Final);
-  INVOKE_PASS(Canonicalize);
   INVOKE_PASS(UseTableDispatch);
   INVOKE_PASS(EliminateStackOverflowChecks);
   INVOKE_PASS(Canonicalize);

@@ -2514,9 +2514,10 @@ bool FlowGraph::Canonicalize() {
     if (auto join = block->AsJoinEntry()) {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
         PhiInstr* current = it.Current();
-        if (current->HasUnmatchedInputRepresentations()) {
+        if (current->HasUnmatchedInputRepresentations() &&
+            (current->SpeculativeModeOfInputs() == Instruction::kGuardInputs)) {
           // Can't canonicalize this instruction until all conversions for its
-          // inputs are inserted.
+          // speculative inputs are inserted.
           continue;
         }
 
@@ -2533,9 +2534,10 @@ bool FlowGraph::Canonicalize() {
     }
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (current->HasUnmatchedInputRepresentations()) {
+      if (current->HasUnmatchedInputRepresentations() &&
+          (current->SpeculativeModeOfInputs() == Instruction::kGuardInputs)) {
         // Can't canonicalize this instruction until all conversions for its
-        // inputs are inserted.
+        // speculative inputs are inserted.
         continue;
       }
 
@@ -2544,14 +2546,18 @@ bool FlowGraph::Canonicalize() {
       if (replacement != current) {
         // For non-definitions Canonicalize should return either NULL or
         // this.
-        ASSERT((replacement == nullptr) || current->IsDefinition());
-        if ((replacement != nullptr) && !unmatched_representations_allowed() &&
-            (replacement->representation() != current->representation()) &&
-            current->AsDefinition()->HasUses()) {
-          // Can't canonicalize this instruction as unmatched
-          // representations are not allowed at this point, but
-          // replacement has a different representation.
-          continue;
+        if (replacement != nullptr) {
+          ASSERT(current->IsDefinition());
+          if (!unmatched_representations_allowed()) {
+            RELEASE_ASSERT(!replacement->HasUnmatchedInputRepresentations());
+            if ((replacement->representation() != current->representation()) &&
+                current->AsDefinition()->HasUses()) {
+              // Can't canonicalize this instruction as unmatched
+              // representations are not allowed at this point, but
+              // replacement has a different representation.
+              continue;
+            }
+          }
         }
         ReplaceCurrentInstruction(&it, current, replacement);
         changed = true;

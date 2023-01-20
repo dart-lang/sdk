@@ -2,17 +2,17 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class A extends core::Object {
+base class A extends core::Object {
   synthetic constructor •() → self::A
     ;
 }
-abstract class B extends core::Object {
+abstract base class B extends core::Object {
   synthetic constructor •() → self::B
     ;
 }
-abstract class M extends core::Object /*isMixinDeclaration*/  {
+abstract base class M extends core::Object /*isMixinDeclaration*/  {
 }
-class C = core::Object with self::M /*hasConstConstructor*/  {
+base class C = core::Object with self::M /*hasConstConstructor*/  {
   const synthetic constructor •() → self::C
     : super core::Object::•()
     ;

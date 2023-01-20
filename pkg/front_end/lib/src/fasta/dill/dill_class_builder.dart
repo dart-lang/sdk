@@ -67,6 +67,15 @@ class DillClassBuilder extends ClassBuilderImpl {
   bool get isSealed => cls.isSealed;
 
   @override
+  bool get isBase => cls.isBase;
+
+  @override
+  bool get isInterface => cls.isInterface;
+
+  @override
+  bool get isFinal => cls.isFinal;
+
+  @override
   bool get isAugmentation => false;
 
   @override

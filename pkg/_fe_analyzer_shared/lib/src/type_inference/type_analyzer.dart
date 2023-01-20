@@ -407,16 +407,18 @@ mixin TypeAnalyzer<
           matchedType: matchedType,
           requiredType: staticType);
     }
-    flow.declaredVariablePattern(
-        matchedType: matchedType, staticType: staticType);
     bool isImplicitlyTyped = declaredType == null;
-    setVariableType(variable, staticType);
-    flow.declare(variable, false, staticType);
     // TODO(paulberry): are we handling _isFinal correctly?
-    flow.initialize(variable, matchedType, context.getInitializer(node),
+    int promotionKey = flow.declaredVariablePattern(
+        matchedType: matchedType,
+        staticType: staticType,
+        initializerExpression: context.getInitializer(node),
         isFinal: context.isFinal || isVariableFinal(variable),
         isLate: context.isLate,
         isImplicitlyTyped: isImplicitlyTyped);
+    setVariableType(variable, staticType);
+    flow.declare(variable, staticType, initialized: false);
+    flow.assignMatchedPatternVariable(variable, promotionKey);
     return staticType;
   }
 
@@ -532,10 +534,7 @@ mixin TypeAnalyzer<
       location: JoinedPatternVariableLocation.singlePattern,
     );
 
-    handle_ifCaseStatement_afterPattern(
-      node: node,
-      variables: variables.values,
-    );
+    handle_ifCaseStatement_afterPattern(node: node);
     // Stack: (Expression, Pattern)
     if (guard != null) {
       _checkGuardType(guard, analyzeExpression(guard, boolType));
@@ -1507,7 +1506,7 @@ mixin TypeAnalyzer<
       {required bool isFinal, required bool isLate}) {
     Type inferredType = declaredType ?? dynamicType;
     setVariableType(variable, inferredType);
-    flow.declare(variable, false, inferredType);
+    flow.declare(variable, inferredType, initialized: false);
     return inferredType;
   }
 
@@ -1537,6 +1536,7 @@ mixin TypeAnalyzer<
       flow.declaredVariablePattern(
         matchedType: matchedType,
         staticType: declaredType,
+        isImplicitlyTyped: false,
       );
     }
   }
@@ -1656,16 +1656,7 @@ mixin TypeAnalyzer<
   Type getVariableType(Variable variable);
 
   /// Called after visiting the pattern in `if-case` statement.
-  /// [variables] are variables declared in the pattern.
-  ///
-  /// It is expected that the client will push a new scope with [variables]
-  /// available.  This scope should be used to analyze the guard, and the
-  /// `then` branch. The scope is not used for the `else` branch, so on
-  /// [handle_ifStatement_thenEnd] the client should pop it.
-  void handle_ifCaseStatement_afterPattern({
-    required Statement node,
-    required Iterable<Variable> variables,
-  }) {}
+  void handle_ifCaseStatement_afterPattern({required Statement node}) {}
 
   /// Called after visiting the expression of an `if` element.
   void handle_ifElement_conditionEnd(Node node) {}
@@ -1936,7 +1927,7 @@ mixin TypeAnalyzer<
           isFinal: resultIsFinal,
           type: resultType,
         );
-        flow.declare(variable, true, resultType);
+        flow.declare(variable, resultType, initialized: true);
       }
     }
   }

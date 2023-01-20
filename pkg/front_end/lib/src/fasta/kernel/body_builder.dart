@@ -1260,13 +1260,14 @@ class BodyBuilder extends StackListenerImpl
     final SourceFunctionBuilder builder = member as SourceFunctionBuilder;
     if (thisVariable != null) {
       typeInferrer.flowAnalysis
-          .declare(thisVariable!, true, thisVariable!.type);
+          .declare(thisVariable!, thisVariable!.type, initialized: true);
     }
     if (formals?.parameters != null) {
       for (int i = 0; i < formals!.parameters!.length; i++) {
         FormalParameterBuilder parameter = formals.parameters![i];
         VariableDeclaration variable = parameter.variable!;
-        typeInferrer.flowAnalysis.declare(variable, true, variable.type);
+        typeInferrer.flowAnalysis
+            .declare(variable, variable.type, initialized: true);
       }
       for (int i = 0; i < formals.parameters!.length; i++) {
         FormalParameterBuilder parameter = formals.parameters![i];
@@ -1814,7 +1815,8 @@ class BodyBuilder extends StackListenerImpl
     if (formals != null) {
       for (int i = 0; i < formals.length; i++) {
         VariableDeclaration variable = formals[i].variable!;
-        typeInferrer.flowAnalysis.declare(variable, true, variable.type);
+        typeInferrer.flowAnalysis
+            .declare(variable, variable.type, initialized: true);
       }
     }
     InferredFunctionBody inferredFunctionBody = typeInferrer.inferFunctionBody(
@@ -1948,8 +1950,8 @@ class BodyBuilder extends StackListenerImpl
         // around a failure in
         // co19/Language/Expressions/Postfix_Expressions/conditional_increment_t02;
         // fix this.
-        typeInferrer.flowAnalysis
-            .declare(variable, true, variable.type, skipDuplicateCheck: true);
+        typeInferrer.flowAnalysis.declare(variable, variable.type,
+            initialized: true, skipDuplicateCheck: true);
       }
     }
 

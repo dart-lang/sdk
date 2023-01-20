@@ -18116,97 +18116,6 @@ HintCode:
       ```dart
       int divide(num x, num y) => x ~/ y;
       ```
-  EQUAL_ELEMENTS_IN_SET:
-    problemMessage: "Two elements in a set literal shouldn't be equal."
-    correctionMessage: Change or remove the duplicate element.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when an element in a non-constant set
-      is the same as a previous element in the same set. If two elements are the
-      same, then the second value is ignored, which makes having both elements
-      pointless and likely signals a bug.
-
-      #### Example
-
-      The following code produces this diagnostic because the element `1` appears
-      twice:
-
-      ```dart
-      const a = 1;
-      const b = 1;
-      var s = <int>{a, [!b!]};
-      ```
-
-      #### Common fixes
-
-      If both elements should be included in the set, then change one of the
-      elements:
-
-      ```dart
-      const a = 1;
-      const b = 2;
-      var s = <int>{a, b};
-      ```
-
-      If only one of the elements is needed, then remove the one that isn't
-      needed:
-
-      ```dart
-      const a = 1;
-      var s = <int>{a};
-      ```
-
-      Note that literal sets preserve the order of their elements, so the choice
-      of which element to remove might affect the order in which elements are
-      returned by an iterator.
-  EQUAL_KEYS_IN_MAP:
-    problemMessage: "Two keys in a map literal shouldn't be equal."
-    correctionMessage: Change or remove the duplicate key.
-    hasPublishedDocs: true
-    comment: No parameters.
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a key in a non-constant map is
-      the same as a previous key in the same map. If two keys are the same, then
-      the second value overwrites the first value, which makes having both pairs
-      pointless and likely signals a bug.
-
-      #### Example
-
-      The following code produces this diagnostic because the keys `a` and `b`
-      have the same value:
-
-      ```dart
-      const a = 1;
-      const b = 1;
-      var m = <int, String>{a: 'a', [!b!]: 'b'};
-      ```
-
-      #### Common fixes
-
-      If both entries should be included in the map, then change one of the keys:
-
-      ```dart
-      const a = 1;
-      const b = 2;
-      var m = <int, String>{a: 'a', b: 'b'};
-      ```
-
-      If only one of the entries is needed, then remove the one that isn't
-      needed:
-
-      ```dart
-      const a = 1;
-      var m = <int, String>{a: 'a'};
-      ```
-
-      Note that literal maps preserve the order of their entries, so the choice
-      of which entry to remove might affect the order in which the keys and
-      values are returned by an iterator.
   FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE:
     problemMessage: "A file in the 'lib' directory shouldn't import a file outside the 'lib' directory."
     correctionMessage: "Try removing the import, or moving the imported file inside the 'lib' directory."
@@ -20576,14 +20485,45 @@ HintCode:
       the missing references to those names.
   UNNECESSARY_NAN_COMPARISON_FALSE:
     sharedName: UNNECESSARY_NAN_COMPARISON
-    problemMessage: "A double can't equal NaN, so the condition is always 'false'."
-    correctionMessage: Try using 'isNan', or removing the condition.
+    problemMessage: A double can't equal 'double.nan', so the condition is always 'false'.
+    correctionMessage: Try using 'double.isNan', or removing the condition.
     hasPublishedDocs: false
     comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a value is compared to
+      `double.nan` using either `==` or `!=`.
+
+      Dart follows the [IEEE 754] floating-point standard for the semantics of
+      floating point operations, which states that, for any floating point value
+      `x` (including NaN, positive infinity, and negative infinity),
+      - `NaN == x` is always false
+      - `NaN != x` is always true
+
+      As a result, comparing any value to NaN is pointless because the result is
+      already known (based on the comparison operator being used).
+
+      #### Example
+
+      The following code produces this diagnostic because `d` is being compared
+      to `double.nan`:
+
+      ```dart
+      bool isNaN(double d) => d [!== double.nan!];
+      ```
+
+      #### Common fixes
+
+      Use the getter `double.isNaN` instead:
+
+      ```dart
+      bool isNaN(double d) => d.isNaN;
+      ```
   UNNECESSARY_NAN_COMPARISON_TRUE:
     sharedName: UNNECESSARY_NAN_COMPARISON
-    problemMessage: "A double can't equal NaN, so the condition is always 'true'."
-    correctionMessage: Try using 'isNan', or removing the condition.
+    problemMessage: A double can't equal 'double.nan', so the condition is always 'true'.
+    correctionMessage: Try using 'double.isNan', or removing the condition.
     hasPublishedDocs: false
     comment: No parameters.
   UNNECESSARY_NO_SUCH_METHOD:
@@ -22838,6 +22778,97 @@ WarningCode:
 
       var x = min(2, min(0, 1));
       ```
+  EQUAL_ELEMENTS_IN_SET:
+    problemMessage: "Two elements in a set literal shouldn't be equal."
+    correctionMessage: Change or remove the duplicate element.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an element in a non-constant set
+      is the same as a previous element in the same set. If two elements are the
+      same, then the second value is ignored, which makes having both elements
+      pointless and likely signals a bug.
+
+      #### Example
+
+      The following code produces this diagnostic because the element `1` appears
+      twice:
+
+      ```dart
+      const a = 1;
+      const b = 1;
+      var s = <int>{a, [!b!]};
+      ```
+
+      #### Common fixes
+
+      If both elements should be included in the set, then change one of the
+      elements:
+
+      ```dart
+      const a = 1;
+      const b = 2;
+      var s = <int>{a, b};
+      ```
+
+      If only one of the elements is needed, then remove the one that isn't
+      needed:
+
+      ```dart
+      const a = 1;
+      var s = <int>{a};
+      ```
+
+      Note that literal sets preserve the order of their elements, so the choice
+      of which element to remove might affect the order in which elements are
+      returned by an iterator.
+  EQUAL_KEYS_IN_MAP:
+    problemMessage: "Two keys in a map literal shouldn't be equal."
+    correctionMessage: Change or remove the duplicate key.
+    hasPublishedDocs: true
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a key in a non-constant map is
+      the same as a previous key in the same map. If two keys are the same, then
+      the second value overwrites the first value, which makes having both pairs
+      pointless and likely signals a bug.
+
+      #### Example
+
+      The following code produces this diagnostic because the keys `a` and `b`
+      have the same value:
+
+      ```dart
+      const a = 1;
+      const b = 1;
+      var m = <int, String>{a: 'a', [!b!]: 'b'};
+      ```
+
+      #### Common fixes
+
+      If both entries should be included in the map, then change one of the keys:
+
+      ```dart
+      const a = 1;
+      const b = 2;
+      var m = <int, String>{a: 'a', b: 'b'};
+      ```
+
+      If only one of the entries is needed, then remove the one that isn't
+      needed:
+
+      ```dart
+      const a = 1;
+      var m = <int, String>{a: 'a'};
+      ```
+
+      Note that literal maps preserve the order of their entries, so the choice
+      of which entry to remove might affect the order in which the keys and
+      values are returned by an iterator.
   SDK_VERSION_ASYNC_EXPORTED_FROM_CORE:
     problemMessage: "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but this code is required to be able to run on earlier versions."
     correctionMessage: "Try either importing 'dart:async' or updating the SDK constraints."

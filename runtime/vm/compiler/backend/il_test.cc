@@ -1307,11 +1307,10 @@ static void TestRepresentationChangeDuringCanonicalization(
 
   H.flow_graph()->Canonicalize();
 
-  EXPECT(add->InputAt(0)->definition() == unbox);
-
   if (allow_representation_change) {
-    EXPECT(unbox->value()->definition() == param);
+    EXPECT(add->InputAt(0)->definition() == param);
   } else {
+    EXPECT(add->InputAt(0)->definition() == unbox);
     EXPECT(unbox->value()->definition() == load);
   }
 }

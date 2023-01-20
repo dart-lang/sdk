@@ -2,19 +2,19 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-class A extends core::Object {
+interface class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
 }
-abstract class B extends core::Object {
+abstract interface class B extends core::Object {
   synthetic constructor •() → self::B
     : super core::Object::•()
     ;
 }
-abstract class M extends core::Object /*isMixinDeclaration*/  {
+abstract interface class M extends core::Object /*isMixinDeclaration*/  {
 }
-class C = core::Object with self::M /*hasConstConstructor*/  {
+interface class C = core::Object with self::M /*hasConstConstructor*/  {
   const synthetic constructor •() → self::C
     : super core::Object::•()
     ;

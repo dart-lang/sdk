@@ -89,12 +89,16 @@ class InboundReferencesElement extends CustomElement implements Renderable {
   Element _createItem(M.InboundReference reference) {
     final content = <Element>[];
 
-    if (reference.parentField != null) {
+    if (reference.parentField is M.Object) {
       content.addAll([
         new SpanElement()..text = 'referenced by ',
         anyRef(_isolate, reference.parentField, _objects, queue: _r.queue),
         new SpanElement()..text = ' of '
       ]);
+    } else if (reference.parentField is String ||
+        reference.parentField is int) {
+      content.add(new SpanElement()
+        ..text = 'referenced by [ ${reference.parentField} ] of ');
     } else if (reference.parentListIndex != null) {
       content.add(new SpanElement()
         ..text = 'referenced by [ ${reference.parentListIndex} ] of ');

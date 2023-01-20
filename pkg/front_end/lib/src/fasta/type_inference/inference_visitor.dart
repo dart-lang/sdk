@@ -1346,7 +1346,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // This is matched by the call to [forEach_end] in
     // [inferElement], [inferMapEntry] or [inferForInStatement].
-    flowAnalysis.declare(variable, true, variable.type);
+    flowAnalysis.declare(variable, variable.type, initialized: true);
     flowAnalysis.forEach_bodyBegin(node);
 
     VariableDeclaration tempVariable =
@@ -1618,7 +1618,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           inferredType.returnType;
     }
     variable.type = inferredType;
-    flowAnalysis.declare(variable, true, variable.type);
+    flowAnalysis.declare(variable, variable.type, initialized: true);
     flowAnalysis.functionExpression_end();
     return const StatementInferenceResult();
   }
@@ -8346,7 +8346,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       }
       node.type = inferredType;
     }
-    flowAnalysis.declare(node, node.hasDeclaredInitializer, node.type);
+    flowAnalysis.declare(node, node.type,
+        initialized: node.hasDeclaredInitializer);
     if (initializerResult != null) {
       DartType initializerType = initializerResult.inferredType;
       // TODO(paulberry): `initializerType` is sometimes `null` during top

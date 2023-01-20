@@ -11,17 +11,26 @@ The configurations are described below.
 
 The source of truth for these configurations is the file [pkg/front_end/testing.json](../testing.json).
 
-## Dart 1.0 Compilation
-
-* Status file: [legacy.status](legacy.status)
-* Standalone test: [pkg/front_end/test/fasta/legacy_test.dart](../test/fasta/legacy_test.dart)
-* Expectation prefix: `.direct.expect`
-* How to update expectations:
-
+## Updating all expectations
+To update test expectations for all tests at once, run:
+```bash
+dart pkg/front_end/tool/update_expectations.dart
 ```
-./pkg/front_end/tool/fasta testing -DupdateExpectations=true compile/test1 compile/test2 ...
+Note that this takes a long time and should only be used when many tests need updating.
+
+## Updating expectations for a single test
+To update the expectations for a specific test, provide the folder and test name as an argument.
+
+For example, if you want to update the test expectations for a test, such as `pkg/front_end/testcases/general/abstract_instantiation.dart`, then run:
+```bash
+dart pkg/front_end/tool/update_expectations.dart general/abstract_instantiation
 ```
 
+## Updating expectations for all tests in a folder
+If you want to update the test expectations for a specific folder of tests such as the `pkg/front_end/testcases/general/` folder, then run:
+```bash
+dart pkg/front_end/tool/update_expectations.dart general/...
+```
 
 ## Dart 1.0 Outlines
 

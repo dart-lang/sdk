@@ -333,6 +333,7 @@ abstract class double extends num {
   static const double minPositive = 5e-324;
   static const double maxFinite = 1.7976931348623157e+308;
 
+  bool get isNaN;
   double get sign;
   double operator %(num other);
   double operator *(num other);
@@ -361,6 +362,17 @@ abstract class double extends num {
 
 class Duration implements Comparable<Duration> {
   int compareTo(Duration other) => 0;
+}
+
+abstract class Enum {
+  int get index; // Enum
+  String get _name;
+}
+
+abstract class _Enum implements Enum {
+  final int index;
+  final String _name;
+  const _Enum(this.index, this._name);
 }
 
 class Error {
@@ -567,17 +579,6 @@ class Object {
   static int hashAllUnordered(Iterable<Object?> objects) => 0;
 }
 
-abstract class Enum {
-  int get index; // Enum
-  String get _name;
-}
-
-abstract class _Enum implements Enum {
-  final int index;
-  final String _name;
-  const _Enum(this.index, this._name);
-}
-
 abstract class Pattern {
   Iterable<Match> allMatches(String string, [int start = 0]);
 }
@@ -608,6 +609,10 @@ abstract class Set<E> implements Iterable<E> {
 
   static Set<T> castFrom<S, T>(Set<S> source, {Set<R> Function<R>()? newSet}) =>
       throw '';
+}
+
+abstract class Sink {
+  void close();
 }
 
 class StackTrace {}
@@ -1230,6 +1235,10 @@ abstract class Process {
     Encoding? stdoutEncoding,
     Encoding? stderrEncoding,
   });
+}
+
+abstract class Socket {
+  void destroy() {}
 }
 ''',
     )
