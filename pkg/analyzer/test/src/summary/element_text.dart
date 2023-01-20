@@ -291,6 +291,9 @@ class _ElementWriter {
         _writeIf(e.isAbstract, 'abstract ');
         _writeIf(e.isMacro, 'macro ');
         _writeIf(e.isSealed, 'sealed ');
+        _writeIf(e.isBase, 'base ');
+        _writeIf(e.isInterface, 'interface ');
+        _writeIf(e.isFinal, 'final ');
         _writeIf(e.isMixinClass, 'mixin ');
       }
       _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
@@ -299,6 +302,9 @@ class _ElementWriter {
         buffer.write('enum ');
       } else if (e is MixinElement) {
         _writeIf(e.isSealed, 'sealed ');
+        _writeIf(e.isBase, 'base ');
+        _writeIf(e.isInterface, 'interface ');
+        _writeIf(e.isFinal, 'final ');
         buffer.write('mixin ');
       } else {
         buffer.write('class ');
@@ -1084,6 +1090,21 @@ class _Replacement {
 }
 
 extension on ClassElement {
+  bool get isBase {
+    final self = this;
+    return self is ClassElementImpl && self.isBase;
+  }
+
+  bool get isFinal {
+    final self = this;
+    return self is ClassElementImpl && self.isFinal;
+  }
+
+  bool get isInterface {
+    final self = this;
+    return self is ClassElementImpl && self.isInterface;
+  }
+
   bool get isMacro {
     final self = this;
     return self is ClassElementImpl && self.isMacro;
@@ -1101,6 +1122,21 @@ extension on ClassElement {
 }
 
 extension on MixinElement {
+  bool get isBase {
+    final self = this;
+    return self is MixinElementImpl && self.isBase;
+  }
+
+  bool get isFinal {
+    final self = this;
+    return self is MixinElementImpl && self.isFinal;
+  }
+
+  bool get isInterface {
+    final self = this;
+    return self is MixinElementImpl && self.isInterface;
+  }
+
   bool get isSealed {
     final self = this;
     return self is MixinElementImpl && self.isSealed;

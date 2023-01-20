@@ -1013,6 +1013,30 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
     return _interfaces;
   }
 
+  bool get isBase {
+    return hasModifier(Modifier.BASE);
+  }
+
+  set isBase(bool isBase) {
+    setModifier(Modifier.BASE, isBase);
+  }
+
+  bool get isFinal {
+    return hasModifier(Modifier.FINAL);
+  }
+
+  set isFinal(bool isFinal) {
+    setModifier(Modifier.FINAL, isFinal);
+  }
+
+  bool get isInterface {
+    return hasModifier(Modifier.INTERFACE);
+  }
+
+  set isInterface(bool isInterface) {
+    setModifier(Modifier.INTERFACE, isInterface);
+  }
+
   bool get isSealed {
     return hasModifier(Modifier.SEALED);
   }
@@ -4831,97 +4855,104 @@ class Modifier implements Comparable<Modifier> {
   /// asynchronous.
   static const Modifier ASYNCHRONOUS = Modifier('ASYNCHRONOUS', 1);
 
+  /// Indicates that the modifier 'base' was applied to the element.
+  static const Modifier BASE = Modifier('BASE', 2);
+
   /// Indicates that the modifier 'const' was applied to the element.
-  static const Modifier CONST = Modifier('CONST', 2);
+  static const Modifier CONST = Modifier('CONST', 3);
 
   /// Indicates that the modifier 'covariant' was applied to the element.
-  static const Modifier COVARIANT = Modifier('COVARIANT', 3);
+  static const Modifier COVARIANT = Modifier('COVARIANT', 4);
 
   /// Indicates that the class is `Object` from `dart:core`.
-  static const Modifier DART_CORE_OBJECT = Modifier('DART_CORE_OBJECT', 4);
+  static const Modifier DART_CORE_OBJECT = Modifier('DART_CORE_OBJECT', 5);
 
   /// Indicates that the import element represents a deferred library.
-  static const Modifier DEFERRED = Modifier('DEFERRED', 5);
+  static const Modifier DEFERRED = Modifier('DEFERRED', 6);
 
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier ENUM = Modifier('ENUM', 6);
+  static const Modifier ENUM = Modifier('ENUM', 7);
 
   /// Indicates that the element is an enum constant field.
-  static const Modifier ENUM_CONSTANT = Modifier('ENUM_CONSTANT', 7);
+  static const Modifier ENUM_CONSTANT = Modifier('ENUM_CONSTANT', 8);
 
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier EXTERNAL = Modifier('EXTERNAL', 8);
+  static const Modifier EXTERNAL = Modifier('EXTERNAL', 9);
 
   /// Indicates that the modifier 'factory' was applied to the element.
-  static const Modifier FACTORY = Modifier('FACTORY', 9);
+  static const Modifier FACTORY = Modifier('FACTORY', 10);
 
   /// Indicates that the modifier 'final' was applied to the element.
-  static const Modifier FINAL = Modifier('FINAL', 10);
+  static const Modifier FINAL = Modifier('FINAL', 11);
 
   /// Indicates that an executable element has a body marked as being a
   /// generator.
-  static const Modifier GENERATOR = Modifier('GENERATOR', 11);
+  static const Modifier GENERATOR = Modifier('GENERATOR', 12);
 
   /// Indicates that the pseudo-modifier 'get' was applied to the element.
-  static const Modifier GETTER = Modifier('GETTER', 12);
+  static const Modifier GETTER = Modifier('GETTER', 13);
 
   /// A flag used for libraries indicating that the variable has an explicit
   /// initializer.
-  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 13);
+  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 14);
 
   /// A flag used for libraries indicating that the defining compilation unit
   /// has a `part of` directive, meaning that this unit should be a part,
   /// but is used as a library.
   static const Modifier HAS_PART_OF_DIRECTIVE =
-      Modifier('HAS_PART_OF_DIRECTIVE', 14);
+      Modifier('HAS_PART_OF_DIRECTIVE', 15);
 
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 15);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 16);
+
+  /// Indicates that the modifier 'interface' was applied to the element.
+  static const Modifier INTERFACE = Modifier('INTERFACE', 17);
 
   /// Indicates that the method invokes the super method with the same name.
-  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 16);
+  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 18);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 17);
+  static const Modifier LATE = Modifier('LATE', 19);
 
   /// Indicates that a class is a macro builder.
-  static const Modifier MACRO = Modifier('MACRO', 18);
+  static const Modifier MACRO = Modifier('MACRO', 20);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 19);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 21);
 
   /// Indicates that a class is a mixin class.
-  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 20);
+  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 22);
 
-  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 21);
+  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 23);
 
   /// Indicates that the modifier 'sealed' was applied to the element.
-  static const Modifier SEALED = Modifier('SEALED', 22);
+  static const Modifier SEALED = Modifier('SEALED', 24);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 23);
+  static const Modifier SETTER = Modifier('SETTER', 25);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 24);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 26);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 25);
+  static const Modifier STATIC = Modifier('STATIC', 27);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 26);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 28);
 
   /// Indicates that the element was appended to this enclosing element to
   /// simulate temporary the effect of applying augmentation.
-  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 27);
+  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 29);
 
   static const List<Modifier> values = [
     ABSTRACT,
     ASYNCHRONOUS,
+    BASE,
     CONST,
     COVARIANT,
     DART_CORE_OBJECT,
@@ -4936,6 +4967,8 @@ class Modifier implements Comparable<Modifier> {
     HAS_INITIALIZER,
     HAS_PART_OF_DIRECTIVE,
     IMPLICIT_TYPE,
+    INTERFACE,
+    INVOKES_SUPER_SELF,
     LATE,
     MACRO,
     MIXIN_APPLICATION,

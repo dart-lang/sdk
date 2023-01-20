@@ -95,6 +95,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.isSealed = true;
       element.isAbstract = true;
     }
+    element.isBase = node.baseKeyword != null;
+    element.isInterface = node.interfaceKeyword != null;
+    element.isFinal = node.finalKeyword != null;
     element.isMixinClass = node.mixinKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -133,6 +136,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       element.isSealed = true;
       element.isAbstract = true;
     }
+    element.isBase = node.baseKeyword != null;
+    element.isInterface = node.interfaceKeyword != null;
+    element.isFinal = node.finalKeyword != null;
     element.isMixinApplication = true;
     element.isMixinClass = node.mixinKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
@@ -859,6 +865,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var element = MixinElementImpl(name, nameToken.offset);
     element.isSealed = node.sealedKeyword != null;
+    element.isBase = node.baseKeyword != null;
+    element.isInterface = node.interfaceKeyword != null;
+    element.isFinal = node.finalKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
