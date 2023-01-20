@@ -126,7 +126,7 @@ vars = {
   "dart_style_rev": "d0c6b1da52c9f80679a7aaa05e5935ef5c6bb52f", # manually rev'd
 
   "dartdoc_rev": "ed56883d7b3c31aea3faa27232c3bffc2c97aaa4",
-  "devtools_rev": "dd3fade2bd2ef74fc6102e56333a48f0efc594d3",
+  "devtools_rev": "c7a81f64dabb4b9f2cae0cf2c9411ef8bb805191",
   "ffi_rev": "2a56c2a9a87122c057168874bde384debbb806b0",
   "file_rev": "b768f79dcd104a5feabafab47101c4355b71cd8f",
   "fixnum_rev": "71f0d4d16054e6be7d8e22bdb3b082b9f82061be",
