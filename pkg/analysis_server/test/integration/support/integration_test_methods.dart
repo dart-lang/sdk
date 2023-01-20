@@ -1254,7 +1254,7 @@ abstract class IntegrationTestMixin {
   ///
   ///   The client is expected to check this list against the ElementKind sent
   ///   in IncludedSuggestionSet to decide whether or not these symbols should
-  ///   should be presented to the user.
+  ///   be presented to the user.
   ///
   /// includedSuggestionRelevanceTags: List<IncludedSuggestionRelevanceTag>
   /// (optional)

@@ -5295,8 +5295,8 @@ class CompletionResultsParams implements HasToJson {
   List<IncludedSuggestionSet>? includedSuggestionSets;
 
   /// The client is expected to check this list against the ElementKind sent in
-  /// IncludedSuggestionSet to decide whether or not these symbols should
-  /// should be presented to the user.
+  /// IncludedSuggestionSet to decide whether or not these symbols should be
+  /// presented to the user.
   List<ElementKind>? includedElementKinds;
 
   /// The client is expected to check this list against the values of the field
@@ -16478,7 +16478,7 @@ class TypeHierarchyItem implements HasToJson {
   List<int> interfaces;
 
   /// The indexes of the items representing the mixins referenced by this
-  /// class. The list will be empty if there are no classes mixed in to this
+  /// class. The list will be empty if there are no classes mixed into this
   /// class.
   List<int> mixins;
 

@@ -1212,9 +1212,9 @@ class Assembler : public AssemblerBase {
   void Breakpoint() override { int3(); }
 
   // Check if the given value is an integer value that can be directly
-  // emdedded into the code without additional XORing with jit_cookie.
+  // embedded into the code without additional XORing with jit_cookie.
   // We consider 16-bit integers, powers of two and corresponding masks
-  // as safe values that can be emdedded into the code object.
+  // as safe values that can be embedded into the code object.
   static bool IsSafeSmi(const Object& object) {
     if (!target::IsSmi(object)) {
       return false;

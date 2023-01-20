@@ -134,7 +134,7 @@ import 'dart:_rti' show Rti;
 /// Type argument.
 ///
 /// In Dart 2.0, the type argument additionally constrains the returned type.
-/// So, with type inference filling in the type argumemnt,
+/// So, with type inference filling in the type argument,
 ///
 ///     String s = JS('', 'JSON.stringify(#)', x);
 ///

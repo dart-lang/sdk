@@ -51,7 +51,7 @@ class Benchmark extends BenchmarkBase {
       if (b.bitLength < bits) {
         restartDelta += seed >> 20;
         restartDelta += BigInt.one;
-        // Restart from a slighly reduced seed to generate different numbers.
+        // Restart from a slightly reduced seed to generate different numbers.
         b = seed - restartDelta;
       }
       var string = b.toString();

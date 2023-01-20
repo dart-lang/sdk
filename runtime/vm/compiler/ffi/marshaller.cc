@@ -207,7 +207,7 @@ intptr_t BaseMarshaller::NumDefinitions(intptr_t arg_index) const {
   }
 
   ASSERT(loc.IsStack());
-  // For stack, word size definitions in IL. In FFI calls passed in to the
+  // For stack, word size definitions in IL. In FFI calls passed into the
   // native call, in FFI callbacks read in separate NativeParams.
   const intptr_t size_in_bytes = type.SizeInBytes();
   const intptr_t num_defs =

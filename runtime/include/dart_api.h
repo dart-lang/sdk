@@ -1972,7 +1972,7 @@ DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function);
 DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function);
 
 /**
- * Determines whether a function handle referes to a static function
+ * Determines whether a function handle refers to a static function
  * of method.
  *
  * For the purposes of the embedding API, a top-level function is

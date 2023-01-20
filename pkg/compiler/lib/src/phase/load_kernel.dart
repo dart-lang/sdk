@@ -411,7 +411,7 @@ Future<Output?> run(Input input) async {
       moduleLibraries, initializedCompilerState);
 }
 
-/// Registers with the dart2js compiler all sources embeded in a kernel
+/// Registers with the dart2js compiler all sources embedded in a kernel
 /// component. This may include sources that were read from disk directly as
 /// files, but also sources that were embedded in binary `.dill` files (like the
 /// platform kernel file and kernel files from modular compilation pipelines).

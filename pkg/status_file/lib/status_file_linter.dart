@@ -168,7 +168,7 @@ Iterable<LintingError> lintSectionEntryDuplicates(StatusSection section) {
 /// [ strong ]
 /// [ $compiler == dart2js ]
 ///
-/// which should should become:
+/// which should become:
 ///
 /// [ $compiler == dart2js ]
 /// [ $mode == debug ]

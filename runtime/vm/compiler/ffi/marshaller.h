@@ -180,7 +180,7 @@ class CallMarshaller : public BaseMarshaller {
   // The location of the inputs to the IL FfiCall instruction.
   dart::Location LocInFfiCall(intptr_t def_index_global) const;
 
-  // Allocate a TypedData before the FfiCall and pass it in to the FfiCall so
+  // Allocate a TypedData before the FfiCall and pass it into the FfiCall so
   // that it can be populated in assembly.
   bool PassTypedData() const;
   intptr_t TypedDataSizeInBytes() const;
