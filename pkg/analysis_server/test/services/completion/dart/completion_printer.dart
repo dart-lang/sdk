@@ -66,6 +66,8 @@ class CompletionResponsePrinter {
         return 'enum';
       } else if (elementKind == ElementKind.ENUM_CONSTANT) {
         return 'enumConstant';
+      } else if (elementKind == ElementKind.EXTENSION) {
+        return 'extension';
       } else if (elementKind == ElementKind.FIELD) {
         return 'field';
       } else if (elementKind == ElementKind.GETTER) {
