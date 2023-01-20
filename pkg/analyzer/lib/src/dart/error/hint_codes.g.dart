@@ -1025,31 +1025,11 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the name of the library being imported
-  ///  1: the name in the hide clause that isn't defined in the library
-  static const HintCode UNDEFINED_HIDDEN_NAME = HintCode(
-    'UNDEFINED_HIDDEN_NAME',
-    "The library '{0}' doesn't export a member with the hidden name '{1}'.",
-    correctionMessage: "Try removing the name from the list of hidden members.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
   ///  0: the name of the undefined parameter
   ///  1: the name of the targeted member
   static const HintCode UNDEFINED_REFERENCED_PARAMETER = HintCode(
     'UNDEFINED_REFERENCED_PARAMETER',
     "The parameter '{0}' isn't defined by '{1}'.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the library being imported
-  ///  1: the name in the show clause that isn't defined in the library
-  static const HintCode UNDEFINED_SHOWN_NAME = HintCode(
-    'UNDEFINED_SHOWN_NAME',
-    "The library '{0}' doesn't export a member with the shown name '{1}'.",
-    correctionMessage: "Try removing the name from the list of shown members.",
     hasPublishedDocs: true,
   );
 

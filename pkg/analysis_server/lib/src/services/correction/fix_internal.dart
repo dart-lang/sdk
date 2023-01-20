@@ -1436,12 +1436,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.TYPE_CHECK_IS_NULL: [
       UseEqEqNull.new,
     ],
-    HintCode.UNDEFINED_HIDDEN_NAME: [
-      RemoveNameFromCombinator.new,
-    ],
-    HintCode.UNDEFINED_SHOWN_NAME: [
-      RemoveNameFromCombinator.new,
-    ],
     HintCode.UNNECESSARY_CAST: [
       RemoveUnnecessaryCast.new,
     ],
@@ -1590,6 +1584,12 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.SDK_VERSION_UI_AS_CODE: [
       UpdateSdkConstraints.version_2_2_2,
+    ],
+    WarningCode.UNDEFINED_HIDDEN_NAME: [
+      RemoveNameFromCombinator.new,
+    ],
+    WarningCode.UNDEFINED_SHOWN_NAME: [
+      RemoveNameFromCombinator.new,
     ],
   };
 

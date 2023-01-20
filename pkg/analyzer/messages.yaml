@@ -20226,41 +20226,6 @@ HintCode:
     correctionMessage: "Try replacing the 'is Null' check with '== null'."
     hasPublishedDocs: true
     comment: No parameters.
-  UNDEFINED_HIDDEN_NAME:
-    problemMessage: "The library '{0}' doesn't export a member with the hidden name '{1}'."
-    correctionMessage: Try removing the name from the list of hidden members.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the library being imported
-      1: the name in the hide clause that isn't defined in the library
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a hide combinator includes a
-      name that isn't defined by the library being imported.
-
-      #### Example
-
-      The following code produces this diagnostic because `dart:math` doesn't
-      define the name `String`:
-
-      ```dart
-      import 'dart:math' hide [!String!], max;
-
-      var x = min(0, 1);
-      ```
-
-      #### Common fixes
-
-      If a different name should be hidden, then correct the name. Otherwise,
-      remove the name from the list:
-
-      ```dart
-      import 'dart:math' hide max;
-
-      var x = min(0, 1);
-      ```
   UNDEFINED_REFERENCED_PARAMETER:
     problemMessage: "The parameter '{0}' isn't defined by '{1}'."
     hasPublishedDocs: true
@@ -20297,41 +20262,6 @@ HintCode:
 
       @UseResult.unless(parameterDefined: 'a')
       int f([int? a]) => a ?? 0;
-      ```
-  UNDEFINED_SHOWN_NAME:
-    problemMessage: "The library '{0}' doesn't export a member with the shown name '{1}'."
-    correctionMessage: Try removing the name from the list of shown members.
-    hasPublishedDocs: true
-    comment: |-
-      Parameters:
-      0: the name of the library being imported
-      1: the name in the show clause that isn't defined in the library
-    documentation: |-
-      #### Description
-
-      The analyzer produces this diagnostic when a show combinator includes a
-      name that isn't defined by the library being imported.
-
-      #### Example
-
-      The following code produces this diagnostic because `dart:math` doesn't
-      define the name `String`:
-
-      ```dart
-      import 'dart:math' show min, [!String!];
-
-      var x = min(0, 1);
-      ```
-
-      #### Common fixes
-
-      If a different name should be shown, then correct the name. Otherwise,
-      remove the name from the list:
-
-      ```dart
-      import 'dart:math' show min;
-
-      var x = min(0, 1);
       ```
   UNIGNORABLE_IGNORE:
     problemMessage: "The diagnostic '{0}' can't be ignored."
@@ -23511,4 +23441,74 @@ WarningCode:
       ```dart
       const a = [1, 2];
       var b = [...a];
+      ```
+  UNDEFINED_HIDDEN_NAME:
+    problemMessage: "The library '{0}' doesn't export a member with the hidden name '{1}'."
+    correctionMessage: Try removing the name from the list of hidden members.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the library being imported
+      1: the name in the hide clause that isn't defined in the library
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a hide combinator includes a
+      name that isn't defined by the library being imported.
+
+      #### Example
+
+      The following code produces this diagnostic because `dart:math` doesn't
+      define the name `String`:
+
+      ```dart
+      import 'dart:math' hide [!String!], max;
+
+      var x = min(0, 1);
+      ```
+
+      #### Common fixes
+
+      If a different name should be hidden, then correct the name. Otherwise,
+      remove the name from the list:
+
+      ```dart
+      import 'dart:math' hide max;
+
+      var x = min(0, 1);
+      ```
+  UNDEFINED_SHOWN_NAME:
+    problemMessage: "The library '{0}' doesn't export a member with the shown name '{1}'."
+    correctionMessage: Try removing the name from the list of shown members.
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the library being imported
+      1: the name in the show clause that isn't defined in the library
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a show combinator includes a
+      name that isn't defined by the library being imported.
+
+      #### Example
+
+      The following code produces this diagnostic because `dart:math` doesn't
+      define the name `String`:
+
+      ```dart
+      import 'dart:math' show min, [!String!];
+
+      var x = min(0, 1);
+      ```
+
+      #### Common fixes
+
+      If a different name should be shown, then correct the name. Otherwise,
+      remove the name from the list:
+
+      ```dart
+      import 'dart:math' show min;
+
+      var x = min(0, 1);
       ```
