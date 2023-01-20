@@ -892,6 +892,8 @@ class AbiSpecificIntegerMapping {
 abstract class Finalizable {
   factory Finalizable._() => throw UnsupportedError("");
 }
+
+abstract class VarArgs<T extends Record> extends NativeType {}
 ''',
   )
 ]);

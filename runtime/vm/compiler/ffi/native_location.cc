@@ -99,6 +99,11 @@ const PointerToMemoryLocation& NativeLocation::AsPointerToMemory() const {
   return static_cast<const PointerToMemoryLocation&>(*this);
 }
 
+const BothNativeLocations& NativeLocation::AsBoth() const {
+  ASSERT(IsBoth());
+  return static_cast<const BothNativeLocations&>(*this);
+}
+
 #if !defined(FFI_UNIT_TESTS)
 Location NativeRegistersLocation::AsLocation() const {
   ASSERT(IsExpressibleAsLocation());
@@ -352,6 +357,14 @@ void MultipleNativeLocations::PrintTo(BaseTextBuffer* f) const {
   }
   f->Printf(")");
   PrintRepresentations(f, *this);
+}
+
+void BothNativeLocations::PrintTo(BaseTextBuffer* f) const {
+  f->Printf("B(");
+  location0_.PrintTo(f);
+  f->Printf(", ");
+  location1_.PrintTo(f);
+  f->Printf(")");
 }
 
 #if !defined(FFI_UNIT_TESTS)

@@ -57,6 +57,7 @@ class ObjectPointerVisitor;
   LAZY_CORE(Function, _object_to_string_function)                              \
   LAZY_INTERNAL(Class, symbol_class)                                           \
   LAZY_INTERNAL(Field, symbol_name_field)                                      \
+  LAZY_FFI(Class, varargs_class)                                               \
   LAZY_FFI(Function, handle_finalizer_message_function)                        \
   LAZY_FFI(Function, handle_native_finalizer_message_function)                 \
   LAZY_ASYNC(Type, non_nullable_future_rare_type)                              \

@@ -123,6 +123,7 @@ additionalExports = (ffi::nullptr,
   ffi::UnsignedLongLong,
   ffi::UnsignedShort,
   ffi::Unsized,
+  ffi::VarArgs,
   ffi::Void,
   ffi::WChar)
 
@@ -218,6 +219,7 @@ additionalExports = (ffi::nullptr,
   ffi::UnsignedLongLong,
   ffi::UnsignedShort,
   ffi::Unsized,
+  ffi::VarArgs,
   ffi::Void,
   ffi::WChar)
 

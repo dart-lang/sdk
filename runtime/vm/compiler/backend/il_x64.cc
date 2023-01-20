@@ -1300,6 +1300,12 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ movq(compiler::Assembler::VMTagAddress(), target_address);
 #endif
 
+    if (marshaller_.contains_varargs() &&
+        CallingConventions::kVarArgFpuRegisterCount != kNoRegister) {
+      // TODO(http://dartbug.com/38578): Use the number of used FPU registers.
+      __ LoadImmediate(CallingConventions::kVarArgFpuRegisterCount,
+                       CallingConventions::kFpuArgumentRegisters);
+    }
     __ CallCFunction(target_address, /*restore_rsp=*/true);
 
 #if !defined(PRODUCT)
@@ -1329,6 +1335,10 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ TransitionGeneratedToNative(target_address, FPREG, temp,
                                      /*enter_safepoint=*/true);
 
+      if (marshaller_.contains_varargs() &&
+          CallingConventions::kVarArgFpuRegisterCount != kNoRegister) {
+        __ LoadImmediate(CallingConventions::kVarArgFpuRegisterCount, 8);
+      }
       __ CallCFunction(target_address, /*restore_rsp=*/true);
 
       // Update information in the thread object and leave the safepoint.
@@ -1345,6 +1355,10 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       // Calls RBX within a safepoint. RBX and R12 are clobbered.
       __ movq(RBX, target_address);
+      if (marshaller_.contains_varargs() &&
+          CallingConventions::kVarArgFpuRegisterCount != kNoRegister) {
+        __ LoadImmediate(CallingConventions::kVarArgFpuRegisterCount, 8);
+      }
       __ call(temp);
     }
 

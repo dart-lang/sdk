@@ -755,6 +755,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         klass == structClass ||
         klass == unionClass ||
         klass == abiSpecificIntegerClass ||
+        klass == varArgsClass ||
         classNativeTypes[klass] != null) {
       return null;
     }
