@@ -10,7 +10,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/package_root.dart';
 import 'package:args/command_runner.dart';
@@ -22,7 +21,7 @@ import 'perf/flutter_analyze_benchmark.dart';
 import 'perf/flutter_completion_benchmark.dart';
 
 Future main(List<String> args) async {
-  var benchmarks = <Benchmark>[
+  var benchmarks = [
     ColdAnalysisBenchmark(ServerBenchmark.das),
     ColdAnalysisBenchmark(ServerBenchmark.lsp),
     AnalysisBenchmark(ServerBenchmark.das),
@@ -50,7 +49,7 @@ String get analysisServerSrcPath {
 
 void deleteServerCache() {
   // ~/.dartServer/.analysis-driver/
-  ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+  var resourceProvider = PhysicalResourceProvider.INSTANCE;
   var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
   try {
     stateLocation?.delete();

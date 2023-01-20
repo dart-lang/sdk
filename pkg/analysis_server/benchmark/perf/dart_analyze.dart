@@ -10,8 +10,8 @@ import 'package:analyzer_utilities/package_root.dart';
 import '../benchmarks.dart';
 import 'utils.dart';
 
-abstract class AbtractCmdLineBenchmark extends Benchmark {
-  AbtractCmdLineBenchmark(super.id, super.description, {required super.kind});
+abstract class AbstractCmdLineBenchmark extends Benchmark {
+  AbstractCmdLineBenchmark(super.id, super.description, {required super.kind});
 
   @override
   int get maxIterations => 3;
@@ -95,7 +95,7 @@ abstract class AbtractCmdLineBenchmark extends Benchmark {
   void setup() {}
 }
 
-class CmdLineOneProjectBenchmark extends AbtractCmdLineBenchmark {
+class CmdLineOneProjectBenchmark extends AbstractCmdLineBenchmark {
   CmdLineOneProjectBenchmark()
       : super('dart-analyze-one-project',
             'Run dart analyze on one project with and without a cache',
@@ -109,7 +109,7 @@ class CmdLineOneProjectBenchmark extends AbtractCmdLineBenchmark {
       quick ? ["meta"] : ["analysis_server"];
 }
 
-class CmdLineSeveralProjectsBenchmark extends AbtractCmdLineBenchmark {
+class CmdLineSeveralProjectsBenchmark extends AbstractCmdLineBenchmark {
   CmdLineSeveralProjectsBenchmark()
       : super('dart-analyze-several-projects',
             'Run dart analyze on several projects with and without a cache',
@@ -132,7 +132,7 @@ class CmdLineSeveralProjectsBenchmark extends AbtractCmdLineBenchmark {
         ];
 }
 
-class CmdLineSmallFileBenchmark extends AbtractCmdLineBenchmark {
+class CmdLineSmallFileBenchmark extends AbstractCmdLineBenchmark {
   Directory? _tempDir;
 
   CmdLineSmallFileBenchmark()
