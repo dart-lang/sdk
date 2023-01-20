@@ -520,20 +520,13 @@ List<int> jsIntTypedArrayToDartIntTypedData(
 List<Object?> toDartList(WasmExternRef? ref) => List<Object?>.generate(
     objectLength(ref).round(), (int n) => dartifyRaw(objectReadIndex(ref, n)));
 
-@pragma("wasm:import", "dart2wasm.wrapDartFunction")
-external WasmExternRef? _wrapDartFunctionRaw(WasmExternRef? dartFunction,
-    WasmExternRef? trampolineName, WasmExternRef? argCount);
+// These two trivial helpers are needed to work around an issue with tearing off
+// functions that take / return [WasmExternRef].
+bool _isDartFunctionWrapped<F extends Function>(F f) =>
+    functionToJSWrapper.containsKey(f);
 
-F _wrapDartFunction<F extends Function>(
-    F f, String trampolineName, int argCount) {
-  if (functionToJSWrapper.containsKey(f)) {
-    return f;
-  }
-  JSValue wrappedFunction = JSValue(_wrapDartFunctionRaw(
-      f.toJS().toExternRef(),
-      trampolineName.toJS().toExternRef(),
-      argCount.toDouble().toJS().toExternRef())!);
-  functionToJSWrapper[f] = wrappedFunction;
+F _wrapDartFunction<F extends Function>(F f, WasmExternRef ref) {
+  functionToJSWrapper[f] = JSValue(ref);
   return f;
 }
 

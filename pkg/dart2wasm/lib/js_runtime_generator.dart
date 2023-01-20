@@ -16,6 +16,8 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
+enum _AnnotationType { import, export }
+
 enum _MethodType {
   jsObjectLiteralConstructor,
   constructor,
@@ -23,6 +25,9 @@ enum _MethodType {
   method,
   setter,
 }
+
+bool parametersNeedParens(List<String> parameters) =>
+    parameters.isEmpty || parameters.length > 1;
 
 class _MethodLoweringConfig {
   final Procedure procedure;
@@ -47,7 +52,6 @@ class _MethodLoweringConfig {
     String callArguments;
     String functionParameters;
     String object;
-    bool argumentsNeedParens = parameters.isEmpty || parameters.length > 1;
     if (isConstructor) {
       object = '';
       callArguments = parameters.join(',');
@@ -86,7 +90,7 @@ class _MethodLoweringConfig {
         bodyString = '$object.$jsString = $callArguments';
         break;
     }
-    if (argumentsNeedParens) {
+    if (parametersNeedParens(parameters)) {
       return '($functionParameters) => $bodyString';
     } else {
       return '$functionParameters => $bodyString';
@@ -95,10 +99,10 @@ class _MethodLoweringConfig {
 }
 
 /// Lowers static interop to JS, generating specialized JS methods as required.
-/// TODO(joshualitt): Generate specialized JS callback trampolines.
 class _JSLowerer extends Transformer {
   final Procedure _dartifyRawTarget;
   final Procedure _jsifyRawTarget;
+  final Procedure _isDartFunctionWrappedTarget;
   final Procedure _wrapDartFunctionTarget;
   final Procedure _allowInteropTarget;
   final Procedure _numToInt;
@@ -110,7 +114,7 @@ class _JSLowerer extends Transformer {
   // _MethodLoweringConfigs until after we run the TFA, and then only generating
   // js methods for the dart stubs that remain.
   final List<String> jsMethods = [];
-  int _jsTrampolineN = 1;
+  int _methodN = 1;
   late Library _library;
   late String _libraryJSString;
 
@@ -123,6 +127,8 @@ class _JSLowerer extends Transformer {
             .getTopLevelProcedure('dart:_js_helper', 'dartifyRaw'),
         _jsifyRawTarget = _coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', 'jsifyRaw'),
+        _isDartFunctionWrappedTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:_js_helper', '_isDartFunctionWrapped'),
         _wrapDartFunctionTarget = _coreTypes.index
             .getTopLevelProcedure('dart:_js_helper', '_wrapDartFunction'),
         _allowInteropTarget =
@@ -162,7 +168,7 @@ class _JSLowerer extends Transformer {
   }
 
   @override
-  StaticInvocation visitStaticInvocation(StaticInvocation node) {
+  Expression visitStaticInvocation(StaticInvocation node) {
     node = super.visitStaticInvocation(node) as StaticInvocation;
     if (node.target == _allowInteropTarget) {
       Expression argument = node.arguments.positional.single;
@@ -271,8 +277,9 @@ class _JSLowerer extends Transformer {
     return _extensionMemberIndex!;
   }
 
-  DartType get _nullableObjectType =>
-      _coreTypes.objectRawType(Nullability.nullable);
+  // We could generate something more human readable, but for now we just
+  // generate something short and unique.
+  String generateMethodName() => '_${_methodN++}';
 
   DartType get _nonNullableObjectType =>
       _coreTypes.objectRawType(Nullability.nonNullable);
@@ -280,158 +287,229 @@ class _JSLowerer extends Transformer {
   DartType get _nullableWasmExternRefType =>
       _wasmExternRefClass.getThisType(_coreTypes, Nullability.nullable);
 
+  DartType get _nonNullableWasmExternRefType =>
+      _wasmExternRefClass.getThisType(_coreTypes, Nullability.nonNullable);
+
   Expression _variableCheckConstant(
           VariableDeclaration variable, Constant constant) =>
       StaticInvocation(_coreTypes.identicalProcedure,
           Arguments([VariableGet(variable), ConstantExpression(constant)]));
 
-  List<Expression> _generateCallbackArguments(
-      FunctionType function, List<VariableDeclaration> positionalParameters,
-      [int? requiredParameterCount]) {
-    List<Expression> callbackArguments = [];
-    int length = requiredParameterCount ?? function.positionalParameters.length;
-    for (int i = 0; i < length; i++) {
-      callbackArguments.add(AsExpression(VariableGet(positionalParameters[i]),
-          function.positionalParameters[i]));
+  Procedure _addInteropProcedure(String name, String pragmaOptionString,
+      FunctionNode function, Uri fileUri, _AnnotationType type,
+      {required bool isExternal}) {
+    String pragmaName;
+    switch (type) {
+      case _AnnotationType.import:
+        pragmaName = 'import';
+        break;
+      case _AnnotationType.export:
+        pragmaName = 'export';
+        break;
     }
-    return callbackArguments;
+    final procedure = Procedure(
+        Name(name, _library), ProcedureKind.Method, function,
+        isStatic: true, isExternal: isExternal, fileUri: fileUri)
+      ..isNonNullableByDefault = true;
+    procedure.addAnnotation(
+        ConstantExpression(InstanceConstant(_pragmaClass.reference, [], {
+      _pragmaName.fieldReference: StringConstant('wasm:$pragmaName'),
+      _pragmaOptions.fieldReference: StringConstant('$pragmaOptionString')
+    })));
+    _library.addProcedure(procedure);
+    return procedure;
   }
 
   Statement _generateDispatchCase(
-          FunctionType function,
-          VariableDeclaration callbackVariable,
-          List<VariableDeclaration> positionalParameters,
-          [int? requiredParameterCount]) =>
-      ReturnStatement(StaticInvocation(
-          _jsifyRawTarget,
-          Arguments([
-            FunctionInvocation(
-                FunctionAccessKind.FunctionType,
-                AsExpression(VariableGet(callbackVariable), function),
-                Arguments(_generateCallbackArguments(
-                    function, positionalParameters, requiredParameterCount)),
-                functionType: function),
-          ])));
-
-  /// Builds the body of a function trampoline. To support default arguments, we
-  /// find the last defined argument in JS, that is the last argument which was
-  /// explicitly passed by the user, and then we dispatch to a Dart function
-  /// with the right number of arguments.
-  Statement _createFunctionTrampolineBody(
       FunctionType function,
       VariableDeclaration callbackVariable,
-      VariableDeclaration lastDefinedArgument,
-      List<VariableDeclaration> positionalParameters) {
-    // Handle cases where some or all arguments are undefined.
-    // TODO(joshualitt): Consider using a switch instead.
-    List<Statement> dispatchCases = [];
-    for (int i = function.requiredParameterCount - 1;
-        i < function.positionalParameters.length;
-        i++) {
-      // In this case, [i] is the last defined argument which can range from
-      // -1(no arguments defined), to an actual index in the positional
-      // parameters. [_generateDispatchCase] must also take the required
-      // parameter count, which is always the index of the last defined argument
-      // + 1, i.e. the total number of defined arguments.
-      int requiredParameterCount = i + 1;
-      dispatchCases.add(IfStatement(
-          _variableCheckConstant(
-              lastDefinedArgument, DoubleConstant(i.toDouble())),
-          _generateDispatchCase(function, callbackVariable,
-              positionalParameters, requiredParameterCount),
-          null));
+      List<VariableDeclaration> positionalParameters,
+      int requiredParameterCount) {
+    List<Expression> callbackArguments = [];
+    for (int i = 0; i < requiredParameterCount; i++) {
+      callbackArguments.add(AsExpression(
+          StaticInvocation(_dartifyRawTarget,
+              Arguments([VariableGet(positionalParameters[i])])),
+          function.positionalParameters[i]));
     }
-
-    // Finally handle the case where all arguments are defined.
-    dispatchCases.add(_generateDispatchCase(
-        function, callbackVariable, positionalParameters));
-
-    return Block(dispatchCases);
+    return ReturnStatement(StaticInvocation(
+        _jsifyRawTarget,
+        Arguments([
+          FunctionInvocation(
+              FunctionAccessKind.FunctionType,
+              AsExpression(VariableGet(callbackVariable), function),
+              Arguments(callbackArguments),
+              functionType: function),
+        ])));
   }
+
+  bool _needsArgumentsLength(FunctionType type) =>
+      type.requiredParameterCount < type.positionalParameters.length;
 
   /// Creates a callback trampoline for the given [function]. This callback
   /// trampoline expects a Dart callback as its first argument, then an integer
-  /// value(double type) indicating the position of the last defined argument,
-  /// followed by all of the arguments to the Dart callback as Dart objects.  We
-  /// will always pad the argument list up to the maximum number of positional
-  /// arguments with `undefined` values.  The trampoline will cast all incoming
-  /// Dart objects to the appropriate types, dispatch, and then `jsifyRaw` any
-  /// returned value. [_createFunctionTrampoline] Returns a [String] function
-  /// name representing the name of the wrapping function.
-  /// TODO(joshualitt): Share callback trampolines if the [FunctionType]
-  /// matches.
-  /// TODO(joshualitt): Simplify the trampoline in JS for the case where there
-  /// are no default arguments.
+  /// value(double type) indicating the position of the last defined
+  /// argument(only for callbacks that take optional parameters), followed by
+  /// all of the arguments to the Dart callback as JS objects.  The trampoline
+  /// will `dartifyRaw` all incoming JS objects and then cast them to their
+  /// approriate types, dispatch, and then `jsifyRaw` any returned value.
+  /// [_createFunctionTrampoline] Returns a [String] function name representing
+  /// the name of the wrapping function.
   String _createFunctionTrampoline(Procedure node, FunctionType function) {
-    int fileOffset = node.fileOffset;
-
     // Create arguments for each positional parameter in the function. These
-    // arguments will be converted in JS to Dart objects. The generated wrapper
-    // will cast each argument to the correct type.  The first argument to this
-    // function will be the Dart callback, which will be cast to the supplied
-    // [FunctionType] before being invoked. The second argument will be the
-    // last defined argument which is necessary to support default arguments in
-    // callbacks.
+    // arguments will be JS objects. The generated wrapper will cast each
+    // argument to the correct type.  The first argument to this function will
+    // be the Dart callback, which will be cast to the supplied [FunctionType]
+    // before being invoked. If the callback takes optional parameters then, the
+    // second argument will be a `double` indicating the last defined argument.
+    int parameterId = 1;
     final callbackVariable =
         VariableDeclaration('callback', type: _nonNullableObjectType);
-    final lastDefinedArgument = VariableDeclaration('lastDefinedArgument',
-        type: _coreTypes.doubleNonNullableRawType);
+    VariableDeclaration? argumentsLength;
+    if (_needsArgumentsLength(function)) {
+      argumentsLength = VariableDeclaration('argumentsLength',
+          type: _coreTypes.doubleNonNullableRawType);
+    }
 
     // Initialize variable declarations.
     List<VariableDeclaration> positionalParameters = [];
     for (int j = 0; j < function.positionalParameters.length; j++) {
-      positionalParameters
-          .add(VariableDeclaration('x$j', type: _nullableObjectType));
+      positionalParameters.add(VariableDeclaration('x${parameterId++}',
+          type: _nullableWasmExternRefType));
     }
 
-    Statement functionTrampolineBody = _createFunctionTrampolineBody(
-        function, callbackVariable, lastDefinedArgument, positionalParameters);
+    // Build the body of a function trampoline. To support default arguments, we
+    // find the last defined argument in JS, that is the last argument which was
+    // explicitly passed by the user, and then we dispatch to a Dart function
+    // with the right number of arguments.
+    //
+    // First we handle cases where some or all arguments are undefined.
+    // TODO(joshualitt): Consider using a switch instead.
+    List<Statement> dispatchCases = [];
+    for (int i = function.requiredParameterCount + 1;
+        i <= function.positionalParameters.length;
+        i++) {
+      dispatchCases.add(IfStatement(
+          _variableCheckConstant(
+              argumentsLength!, DoubleConstant(i.toDouble())),
+          _generateDispatchCase(
+              function, callbackVariable, positionalParameters, i),
+          null));
+    }
+
+    // Finally handle the case where only required parameters are passed.
+    dispatchCases.add(_generateDispatchCase(function, callbackVariable,
+        positionalParameters, function.requiredParameterCount));
+    Statement functionTrampolineBody = Block(dispatchCases);
 
     // Create a new procedure for the callback trampoline. This procedure will
     // be exported from Wasm to JS so it can be called from JS. The argument
     // returned from the supplied callback will be converted with `jsifyRaw` to
     // a native JS value before being returned to JS.
-    final String libraryName = _library.name ?? 'Unnamed';
-    final functionTrampolineName =
-        '|_functionTrampoline${_jsTrampolineN++}For$libraryName';
-    final functionTrampolineImportName = '\$$functionTrampolineName';
-    final functionTrampoline = Procedure(
-        Name(functionTrampolineName, _library),
-        ProcedureKind.Method,
+    final functionTrampolineName = generateMethodName();
+    _addInteropProcedure(
+        functionTrampolineName,
+        functionTrampolineName,
         FunctionNode(functionTrampolineBody,
-            positionalParameters: [callbackVariable, lastDefinedArgument]
-                .followedBy(positionalParameters)
-                .toList(),
+            positionalParameters: [
+              callbackVariable,
+              if (argumentsLength != null) argumentsLength
+            ].followedBy(positionalParameters).toList(),
             returnType: _nullableWasmExternRefType)
-          ..fileOffset = fileOffset,
-        isStatic: true,
-        fileUri: node.fileUri)
-      ..fileOffset = fileOffset
-      ..isNonNullableByDefault = true;
-    functionTrampoline.addAnnotation(
-        ConstantExpression(InstanceConstant(_pragmaClass.reference, [], {
-      _pragmaName.fieldReference: StringConstant('wasm:export'),
-      _pragmaOptions.fieldReference:
-          StringConstant(functionTrampolineImportName)
-    })));
-    _library.addProcedure(functionTrampoline);
-    return functionTrampolineImportName;
+          ..fileOffset = node.fileOffset,
+        node.fileUri,
+        _AnnotationType.export,
+        isExternal: false);
+    return functionTrampolineName;
   }
 
-  /// Lowers a [StaticInvocation] of `allowInterop` to
-  /// [_createFunctionTrampoline] followed by `_wrapDartFunction`.
-  StaticInvocation _allowInterop(
+  /// Returns a JS method that wraps a Dart callback in a JS wrapper.
+  Procedure _getJSWrapperFunction(
+      FunctionType type, String functionTrampolineName, Uri fileUri) {
+    List<String> jsParameters = [];
+    for (int i = 0; i < type.positionalParameters.length; i++) {
+      jsParameters.add('x$i');
+    }
+    String jsParametersString = jsParameters.join(',');
+    String dartArguments = 'f';
+    bool needsArguments = _needsArgumentsLength(type);
+    if (needsArguments) {
+      dartArguments = '$dartArguments,arguments.length';
+    }
+    if (jsParameters.isNotEmpty) {
+      dartArguments = '$dartArguments,$jsParametersString';
+    }
+
+    // Create JS method.
+    // Note: We have to use a regular function for the inner closure in some
+    // cases because we need access to `arguments`.
+    final jsMethodName = functionTrampolineName;
+    if (needsArguments) {
+      jsMethods.add("$jsMethodName: f => "
+          "finalizeWrapper(f, function($jsParametersString) {"
+          " return dartInstance.exports.$functionTrampolineName($dartArguments) "
+          "})");
+    } else {
+      if (parametersNeedParens(jsParameters)) {
+        jsParametersString = '($jsParametersString)';
+      }
+      jsMethods.add("$jsMethodName: f => "
+          "finalizeWrapper(f,$jsParametersString => "
+          "dartInstance.exports.$functionTrampolineName($dartArguments))");
+    }
+
+    // Create Dart procedure stub.
+    return _addInteropProcedure(
+        '|$jsMethodName',
+        'dart2wasm.$jsMethodName',
+        FunctionNode(null,
+            positionalParameters: [
+              VariableDeclaration('dartFunction',
+                  type: _nonNullableWasmExternRefType)
+            ],
+            returnType: _nonNullableWasmExternRefType),
+        fileUri,
+        _AnnotationType.import,
+        isExternal: true);
+  }
+
+  /// Lowers an invocation of `allowInterop<type>(foo)` to:
+  ///
+  ///   let #var = foo in
+  ///     _isDartFunctionWrapped<type>(#var) ?
+  ///       #var :
+  ///       _wrapDartFunction<type>(#var, jsWrapperFunction(#var));
+  ///
+  /// The use of two functions here is necessary because we do not allow
+  /// `WasmExternRef` to be an argument or return type for a tear off.
+  ///
+  /// Note: _wrapDartFunction tracks wrapped Dart functions in a map.  When
+  /// these Dart functions flow to JS, they are replaced by their wrappers.  If
+  /// the wrapper should ever flow back into Dart then it will be replaced by
+  /// the original Dart function.
+  Expression _allowInterop(
       Procedure node, FunctionType type, Expression argument) {
     String functionTrampolineName = _createFunctionTrampoline(node, type);
-    return StaticInvocation(
-        _wrapDartFunctionTarget,
-        Arguments([
-          argument,
-          StringLiteral(functionTrampolineName),
-          ConstantExpression(IntConstant(type.positionalParameters.length))
-        ], types: [
-          type
-        ]));
+    Procedure jsWrapperFunction =
+        _getJSWrapperFunction(type, functionTrampolineName, node.fileUri);
+    VariableDeclaration v =
+        VariableDeclaration('#var', initializer: argument, type: type);
+    return Let(
+        v,
+        ConditionalExpression(
+            StaticInvocation(_isDartFunctionWrappedTarget,
+                Arguments([VariableGet(v)], types: [type])),
+            VariableGet(v),
+            StaticInvocation(
+                _wrapDartFunctionTarget,
+                Arguments([
+                  VariableGet(v),
+                  StaticInvocation(
+                      jsWrapperFunction, Arguments([VariableGet(v)])),
+                ], types: [
+                  type
+                ])),
+            type));
   }
 
   // Specializes a JS method for a given [_MethodLoweringConfig] and returns an
@@ -449,24 +527,16 @@ class _JSLowerer extends Transformer {
     }
 
     // Create Dart procedure stub for JS method.
-    final jsMethodName = '_${_jsTrampolineN++}';
-    final dartProcedureName = '|$jsMethodName';
-    final dartProcedure = Procedure(
-        Name(dartProcedureName, _library),
-        ProcedureKind.Method,
+    String jsMethodName = generateMethodName();
+    final dartProcedure = _addInteropProcedure(
+        '|$jsMethodName',
+        'dart2wasm.$jsMethodName',
         FunctionNode(null,
             positionalParameters: dartPositionalParameters,
             returnType: _nullableWasmExternRefType),
-        isExternal: true,
-        isStatic: true,
-        fileUri: config.fileUri)
-      ..isNonNullableByDefault = true;
-    dartProcedure.addAnnotation(
-        ConstantExpression(InstanceConstant(_pragmaClass.reference, [], {
-      _pragmaName.fieldReference: StringConstant('wasm:import'),
-      _pragmaOptions.fieldReference: StringConstant('dart2wasm.$jsMethodName')
-    })));
-    _library.addProcedure(dartProcedure);
+        config.fileUri,
+        _AnnotationType.import,
+        isExternal: true);
 
     // Create JS method
     jsMethods.add("$jsMethodName: ${config.generateJS(jsParameterStrings)}");
