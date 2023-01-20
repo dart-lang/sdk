@@ -4519,7 +4519,7 @@ class SocketStats {
 }
 
 /// A peer to a Socket in dart:io. Sockets can represent network sockets or
-/// OS pipes. Each socket is owned by another ServceObject, for example,
+/// OS pipes. Each socket is owned by another ServiceObject, for example,
 /// a process or an HTTP server.
 class Socket extends ServiceObject {
   Socket._empty(ServiceObjectOwner? owner) : super._empty(owner);
