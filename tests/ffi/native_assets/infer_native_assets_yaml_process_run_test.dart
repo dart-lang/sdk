@@ -28,7 +28,7 @@ final testPackageConfig = '''{
   "packages": [
     {
       "name": "meta",
-      "rootUri": "${packageMetaUri.toFilePath()}",
+      "rootUri": "$packageMetaUri",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     }
@@ -79,7 +79,7 @@ Future<void> createTestFiles(Uri tempUri) async {
   await File.fromUri(packageConfigUri).writeAsString(testPackageConfig);
 
   final nativeAssetsYaml = createNativeAssetYaml(
-    asset: 'file://${helperCopiedUri.toFilePath()}',
+    asset: helperCopiedUri.toString(),
     assetMapping: [
       'absolute',
       ffiTestFunctionsUriAbsolute.toFilePath(),

@@ -245,16 +245,46 @@ static void* FfiResolveWithFfiNativeResolver(Thread* const thread,
   return result;
 }
 
-static StringPtr GetPlatformScriptPath(Thread* thread) {
-  auto* const zone = thread->zone();
-  IsolateGroupSource* const source = thread->isolate_group()->source();
-  auto& result = String::Handle(zone, String::New(source->script_uri));
-  const auto& fileSchema = String::Handle(zone, String::New("file://"));
-  if (result.StartsWith(fileSchema)) {
-    // Isolate.spawnUri sets a `source` including the file schema.
-    result ^= String::SubString(result, fileSchema.Length());
+#if defined(DART_TARGET_OS_WINDOWS)
+// Replaces back slashes with forward slashes in place.
+static void ReplaceBackSlashes(char* cstr) {
+  const intptr_t length = strlen(cstr);
+  for (int i = 0; i < length; i++) {
+    cstr[i] = cstr[i] == '\\' ? '/' : cstr[i];
   }
+}
+#endif
+
+// Get a file path with only forward slashes from the script path.
+static StringPtr GetPlatformScriptPath(Thread* thread) {
+  IsolateGroupSource* const source = thread->isolate_group()->source();
+
+#if defined(DART_TARGET_OS_WINDOWS)
+  // Isolate.spawnUri sets a `source` including the file schema.
+  // And on Windows we get an extra forward slash in that case.
+  const char* path = source->script_uri;
+  if (strlen(source->script_uri) > 8 &&
+      strncmp(source->script_uri, "file:///", 8) == 0) {
+    path = (source->script_uri + 8);
+  }
+
+  // Replace backward slashes with forward slashes.
+  const intptr_t len = strlen(path);
+  char* path_copy = reinterpret_cast<char*>(malloc(len + 1));
+  snprintf(path_copy, len + 1, "%s", path);
+  ReplaceBackSlashes(path_copy);
+  const auto& result = String::Handle(String::New(path_copy));
+  free(path_copy);
   return result.ptr();
+#else
+  // Isolate.spawnUri sets a `source` including the file schema.
+  if (strlen(source->script_uri) > 7 &&
+      strncmp(source->script_uri, "file://", 7) == 0) {
+    const char* path = (source->script_uri + 7);
+    return String::New(path);
+  }
+  return String::New(source->script_uri);
+#endif
 }
 
 // Array::null if asset is not in mapping or no mapping.
@@ -302,8 +332,13 @@ static void* FfiResolveAsset(Thread* const thread,
     const auto& platform_script_path =
         String::Handle(zone, GetPlatformScriptPath(thread));
     const char* target_uri = nullptr;
-    const bool resolved = ResolveUri(
-        path.ToCString(), platform_script_path.ToCString(), &target_uri);
+    char* path_cstr = path.ToMallocCString();
+#if defined(DART_TARGET_OS_WINDOWS)
+    ReplaceBackSlashes(path_cstr);
+#endif
+    const bool resolved =
+        ResolveUri(path_cstr, platform_script_path.ToCString(), &target_uri);
+    free(path_cstr);
     if (!resolved) {
       *error = OS::SCreate(/*use malloc*/ nullptr,
                            "Failed to resolve '%s' relative to '%s'.",

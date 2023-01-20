@@ -97,13 +97,13 @@ Future<void> invokeSelf({
         tempUri.resolve(ffiTestFunctionsCopyUriRelative.toFilePath());
     await File(ffiTestFunctionsUriAbsolute.toFilePath())
         .copy(ffiTestFunctionsCopyUriAbsolute.toFilePath());
-
     final nativeAssetsYaml = createNativeAssetYaml(
-        asset: 'file://${selfSourceUri.toFilePath()}',
-        assetMapping: [
-          'relative',
-          ffiTestFunctionsCopyUriRelative.toFilePath(),
-        ]);
+      asset: selfSourceUri.toString(),
+      assetMapping: [
+        'relative',
+        ffiTestFunctionsCopyUriRelative.toFilePath(),
+      ],
+    );
 
     await compileAndRun(
       tempUri: tempUri,

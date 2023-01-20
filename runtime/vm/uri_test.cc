@@ -594,4 +594,30 @@ TEST_CASE(ResolveUri_MoreDotSegmentTests) {
 #undef LH
 }
 
+TEST_CASE(ResolveUri_WindowsPaths_Forwardslash_NoScheme) {
+  EXPECT_STREQ(
+      "c:/Users/USERNA~1/AppData/Local/Temp/a/b.dll",
+      TestResolve("C:/Users/USERNA~1/AppData/Local/Temp/a/out.dill", "b.dll"));
+}
+
+// > Here are some examples which may be accepted by some applications on
+// > Windows systems
+// https://en.wikipedia.org/wiki/File_URI_scheme
+// "file:///C:/"
+TEST_CASE(ResolveUri_WindowsPaths_Forwardslash_FileScheme) {
+  EXPECT_STREQ(
+      "file:///"
+      "C:/Users/USERNA~1/AppData/Local/Temp/a/b.dll",
+      TestResolve("file:///C:/Users/USERNA~1/AppData/Local/Temp/a/out.dill",
+                  "b.dll"));
+}
+
+TEST_CASE(ResolveUri_WindowsPaths_Backslash) {
+  EXPECT_STREQ(
+      "file:///b.dll",
+      TestResolve(
+          "file:///C:\\Users\\USERNA~1\\AppData\\Local\\Temp\\a\\out.dill",
+          "b.dll"));
+}
+
 }  // namespace dart

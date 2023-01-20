@@ -43,11 +43,12 @@ main(List<String> args, Object? message) async {
 Future<void> selfInvokes() async {
   final selfSourceUri = Platform.script.resolve('asset_absolute_test.dart');
   final nativeAssetsYaml = createNativeAssetYaml(
-      asset: 'file://${selfSourceUri.toFilePath()}',
-      assetMapping: [
-        'absolute',
-        ffiTestFunctionsUriAbsolute.toFilePath(),
-      ]);
+    asset: selfSourceUri.toString(),
+    assetMapping: [
+      'absolute',
+      ffiTestFunctionsUriAbsolute.toFilePath(),
+    ],
+  );
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.jit,
