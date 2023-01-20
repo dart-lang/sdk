@@ -1,0 +1,6 @@
+v0 double
+S+0 double
+S+8 Struct(size: 32)
+S+40 double
+=>
+v0 double

@@ -14,11 +14,7 @@ namespace ffi {
 const NativeCallingConvention& RunSignatureTest(
     dart::Zone* zone,
     const char* name,
-    const NativeTypes& argument_types,
-    const NativeType& return_type) {
-  const auto& native_signature =
-      *new (zone) NativeFunctionType(argument_types, return_type);
-
+    const NativeFunctionType& native_signature) {
   const auto& native_calling_convention =
       NativeCallingConvention::FromSignature(zone, native_signature);
 
@@ -45,6 +41,17 @@ const NativeCallingConvention& RunSignatureTest(
   }
 
   return native_calling_convention;
+}
+
+const NativeCallingConvention& RunSignatureTest(
+    dart::Zone* zone,
+    const char* name,
+    const NativeTypes& argument_types,
+    const NativeType& return_type) {
+  const auto& native_signature =
+      *new (zone) NativeFunctionType(argument_types, return_type);
+
+  return RunSignatureTest(zone, name, native_signature);
 }
 
 UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_int8x10) {
@@ -727,6 +734,176 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_regress_fuchsia105336) {
   arguments.Add(&intptr_type);  // pointer
 
   RunSignatureTest(Z, "regress_fuchsia105336", arguments, void_type);
+}
+
+// Binding in Dart with variadic arguments:
+// `IntPtr Function(IntPtr, VarArgs<(IntPtr, IntPtr, IntPtr, IntPtr)>)`
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_variadic_int) {
+#if defined(TARGET_ARCH_IS_32_BIT)
+  const auto& intptr_type = *new (Z) NativePrimitiveType(kInt32);
+#elif defined(TARGET_ARCH_IS_64_BIT)
+  const auto& intptr_type = *new (Z) NativePrimitiveType(kInt64);
+#endif
+
+  auto& arguments = *new (Z) NativeTypes(Z, 5);
+  arguments.Add(&intptr_type);
+  arguments.Add(&intptr_type);
+  arguments.Add(&intptr_type);
+  arguments.Add(&intptr_type);
+  arguments.Add(&intptr_type);
+
+  const auto& native_signature = *new (Z) NativeFunctionType(
+      arguments, intptr_type, /*variadic_arguments_index=*/1);
+
+  RunSignatureTest(Z, "variadic_int", native_signature);
+}
+
+// Binding in Dart with variadic arguments:
+// `Double Function(Double, VarArgs<(Double, Double, Double, Double)>)`
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_variadic_double) {
+  const auto& double_type = *new (Z) NativePrimitiveType(kDouble);
+
+  auto& arguments = *new (Z) NativeTypes(Z, 5);
+  arguments.Add(&double_type);
+  arguments.Add(&double_type);
+  arguments.Add(&double_type);
+  arguments.Add(&double_type);
+  arguments.Add(&double_type);
+
+  const auto& native_signature = *new (Z) NativeFunctionType(
+      arguments, double_type, /*variadic_arguments_index=*/1);
+
+  RunSignatureTest(Z, "variadic_double", native_signature);
+}
+
+// Binding in Dart with variadic arguments:
+// `Double Function(Double, VarArgs<(Struct20BytesHomogeneousFloat, Double)>)`
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_variadic_with_struct) {
+  const auto& double_type = *new (Z) NativePrimitiveType(kDouble);
+  const auto& float_type = *new (Z) NativePrimitiveType(kFloat);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 5);
+  member_types.Add(&float_type);
+  member_types.Add(&float_type);
+  member_types.Add(&float_type);
+  member_types.Add(&float_type);
+  member_types.Add(&float_type);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
+
+  auto& arguments = *new (Z) NativeTypes(Z, 3);
+  arguments.Add(&double_type);
+  arguments.Add(&struct_type);
+  arguments.Add(&double_type);
+
+  const auto& native_signature = *new (Z) NativeFunctionType(
+      arguments, double_type, /*variadic_arguments_index=*/1);
+
+  RunSignatureTest(Z, "variadic_with_struct", native_signature);
+}
+
+// Binding in Dart with variadic arguments.
+//
+// Especially macos_arm64 is interesting due to stack alignment.
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(
+    NativeCallingConvention_variadic_with_homogenous_struct) {
+  const auto& double_type = *new (Z) NativePrimitiveType(kDouble);
+  const auto& float_type = *new (Z) NativePrimitiveType(kFloat);
+  const auto& int64_type = *new (Z) NativePrimitiveType(kInt64);
+  const auto& int32_type = *new (Z) NativePrimitiveType(kInt32);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 3);
+  member_types.Add(&float_type);
+  member_types.Add(&float_type);
+  member_types.Add(&float_type);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
+
+  auto& arguments = *new (Z) NativeTypes(Z, 13);
+  arguments.Add(&double_type);
+  arguments.Add(&double_type);
+  arguments.Add(&double_type);
+  arguments.Add(&double_type);
+  arguments.Add(&double_type);
+  arguments.Add(&double_type);
+  arguments.Add(&double_type);
+  arguments.Add(&double_type);  // Exhaust FPU registers
+  arguments.Add(&float_type);   // Misalign stack.
+  arguments.Add(
+      &struct_type);  // Homogenous struct, not aligned to wordsize on stack.
+  arguments.Add(&int64_type);  // Start varargs.
+  arguments.Add(&int32_type);  // Misalign stack again.
+  arguments.Add(
+      &struct_type);  // Homogenous struct, aligned to wordsize on stack.
+
+  const auto& native_signature = *new (Z) NativeFunctionType(
+      arguments, double_type, /*variadic_arguments_index=*/11);
+
+  RunSignatureTest(Z, "variadic_with_homogenous_struct", native_signature);
+}
+
+// Binding in Dart with variadic arguments.
+//
+// Especially linux_riscv32 is interesting due to register alignment.
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_variadic_register_alignment) {
+  const auto& double_type = *new (Z) NativePrimitiveType(kDouble);
+
+  auto& member_types = *new (Z) NativeTypes(Z, 4);
+  member_types.Add(&double_type);
+  member_types.Add(&double_type);
+  member_types.Add(&double_type);
+  member_types.Add(&double_type);
+  const auto& struct_type = NativeStructType::FromNativeTypes(Z, member_types);
+
+  auto& arguments = *new (Z) NativeTypes(Z, 13);
+  arguments.Add(&double_type);
+  arguments.Add(&double_type);  // Passed in int register pair on RISC-V 32.
+  arguments.Add(
+      &struct_type);  // Passed using single integer register on RISC-V 32.
+  arguments.Add(
+      &double_type);  // Passed in _aligned_ int register pair on RISC-V 32.
+
+  const auto& native_signature = *new (Z) NativeFunctionType(
+      arguments, double_type, /*variadic_arguments_index=*/1);
+
+  RunSignatureTest(Z, "variadic_register_alignment", native_signature);
+}
+
+// Variadic function in C:
+// `int ioctl(int, unsigned long, ...)`
+//
+// Binding in Dart with single variadic argument:
+// `Int32 Function(Int32, Int64, VarArgs<Pointer<Void>>)`
+//
+// https://github.com/dart-lang/sdk/issues/49460
+//
+// See the *.expect in ./unit_tests for this behavior.
+UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_regress49460) {
+  const auto& int32_type = *new (Z) NativePrimitiveType(kInt32);
+  const auto& int64_type = *new (Z) NativePrimitiveType(kInt64);
+#if defined(TARGET_ARCH_IS_32_BIT)
+  const auto& intptr_type = *new (Z) NativePrimitiveType(kInt32);
+#elif defined(TARGET_ARCH_IS_64_BIT)
+  const auto& intptr_type = *new (Z) NativePrimitiveType(kInt64);
+#endif
+
+  auto& arguments = *new (Z) NativeTypes(Z, 3);
+  arguments.Add(&int32_type);
+  arguments.Add(&int64_type);
+  arguments.Add(&intptr_type);  // pointer
+
+  const auto& native_signature = *new (Z) NativeFunctionType(
+      arguments, int32_type, /*variadic_arguments_index=*/2);
+
+  RunSignatureTest(Z, "regress49460", native_signature);
 }
 
 }  // namespace ffi

@@ -1,0 +1,15 @@
+B(xmm0 double, rcx int64[double])
+B(xmm1 double, rdx int64[double])
+B(xmm2 double, r8 int64[double])
+B(xmm3 double, r9 int64[double])
+S+0 double
+S+8 double
+S+16 double
+S+24 double
+S+32 float
+P(S+40 int64) Struct(size: 12)
+S+48 int64
+S+56 int32
+P(S+64 int64) Struct(size: 12)
+=>
+xmm0 double

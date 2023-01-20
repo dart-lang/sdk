@@ -127,7 +127,7 @@ intptr_t NativePrimitiveType::SizeInBytes() const {
   return fundamental_size_in_bytes[representation_];
 }
 
-intptr_t NativePrimitiveType::AlignmentInBytesStack() const {
+intptr_t NativePrimitiveType::AlignmentInBytesStack(bool is_vararg) const {
   switch (CallingConventions::kArgumentStackAlignment) {
     case kAlignedToWordSize:
       // The default is to align stack arguments to word size.
@@ -178,6 +178,7 @@ NativeStructType& NativeStructType::FromNativeTypes(Zone* zone,
   // If this struct is passed on the stack, it should be aligned to the largest
   // alignment of its members when passing those members on the stack.
   intptr_t alignment_stack = kAtLeast1ByteAligned;
+  intptr_t alignment_stack_vararg = kAtLeast1ByteAligned;
 #if (defined(DART_TARGET_OS_MACOS_IOS) || defined(DART_TARGET_OS_MACOS)) &&    \
     defined(TARGET_ARCH_ARM64)
   // On iOS64 and MacOS arm64 stack values can be less aligned than wordSize,
@@ -193,6 +194,7 @@ NativeStructType& NativeStructType::FromNativeTypes(Zone* zone,
   if (!ContainsHomogeneousFloatsInternal(members)) {
     alignment_stack = compiler::target::kWordSize;
   }
+  alignment_stack_vararg = compiler::target::kWordSize;
 #endif
 
   auto& member_offsets =
@@ -212,11 +214,14 @@ NativeStructType& NativeStructType::FromNativeTypes(Zone* zone,
     offset += member_size;
     alignment_field = Utils::Maximum(alignment_field, member_align_field);
     alignment_stack = Utils::Maximum(alignment_stack, member_align_stack);
+    alignment_stack_vararg =
+        Utils::Maximum(alignment_stack_vararg, member_align_stack);
   }
   const intptr_t size = Utils::RoundUp(offset, alignment_field);
 
-  return *new (zone) NativeStructType(members, member_offsets, size,
-                                      alignment_field, alignment_stack);
+  return *new (zone)
+      NativeStructType(members, member_offsets, size, alignment_field,
+                       alignment_stack, alignment_stack_vararg);
 }
 
 // Keep consistent with
@@ -737,6 +742,9 @@ void NativeFunctionType::PrintTo(BaseTextBuffer* f) const {
   for (intptr_t i = 0; i < argument_types_.length(); i++) {
     if (i > 0) {
       f->AddString(", ");
+    }
+    if (i == variadic_arguments_index_) {
+      f->AddString("varargs: ");
     }
     argument_types_[i]->PrintTo(f);
   }
