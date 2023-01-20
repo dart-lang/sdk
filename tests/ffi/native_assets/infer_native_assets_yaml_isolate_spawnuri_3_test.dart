@@ -27,7 +27,7 @@ final emptyPackageConfig = '''{
   "packages": [
     {
       "name": "meta",
-      "rootUri": "${packageMetaUri.toFilePath()}",
+      "rootUri": "$packageMetaUri",
       "packageUri": "lib/",
       "languageVersion": "2.12"
     }

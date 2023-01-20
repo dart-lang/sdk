@@ -52,7 +52,7 @@ Future<void> selfInvokes() async {
             : 'libc.so.6', // lib.so contains plain text with GROUP( ... ).
   ];
   final nativeAssetsYaml = createNativeAssetYaml(
-    asset: 'file://${selfSourceUri.toFilePath()}',
+    asset: selfSourceUri.toString(),
     assetMapping: assetMapping,
     asset2: asset2Name,
     asset2Mapping: assetMapping,

@@ -92,7 +92,7 @@ AnalysisOptionsWarningCode:
       An error code indicating a specified include file could not be found.
 
       Parameters:
-      0: the uri of the file to be included
+      0: the URI of the file to be included
       1: the path of the file containing the include directive
       2: the path of the context being analyzed
   INVALID_OPTION:
@@ -3963,7 +3963,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the uri pointing to a library
+      0: the URI pointing to a library
     documentation: |-
       #### Description
 
@@ -4041,7 +4041,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the uri pointing to a non-library declaration
+      0: the URI pointing to a non-library declaration
     documentation: |-
       #### Description
 
@@ -5972,7 +5972,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the uri pointing to a library
+      0: the URI pointing to a library
     documentation: |-
       #### Description
 
@@ -5996,7 +5996,7 @@ CompileTimeErrorCode:
     correctionMessage: Try importing the library that the part is a part of.
     comment: |-
       Parameters:
-      0: the uri pointing to a non-library declaration
+      0: the URI pointing to a non-library declaration
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -11183,7 +11183,7 @@ CompileTimeErrorCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the uri pointing to a non-library declaration
+      0: the URI pointing to a non-library declaration
     documentation: |-
       #### Description
 
@@ -20368,8 +20368,8 @@ HintCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the uri that is not necessary
-      1: the uri that makes it unnecessary
+      0: the URI that is not necessary
+      1: the URI that makes it unnecessary
     documentation: |-
       #### Description
 
@@ -20836,7 +20836,7 @@ HintCode:
     hasPublishedDocs: true
     comment: |-
       Parameters:
-      0: the content of the unused import's uri
+      0: the content of the unused import's URI
     documentation: |-
       #### Description
 

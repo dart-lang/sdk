@@ -1574,12 +1574,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       if (getter is PropertyAccessorElement) {
         return getter.returnType;
       } else {
-        // TODO(scheglov) https://github.com/dart-lang/language/issues/2561
-        errorReporter.reportErrorForToken(
-          CompileTimeErrorCode.UNDEFINED_GETTER,
-          nameToken,
-          [nameToken.lexeme, receiverType],
-        );
         return getter.type;
       }
     }

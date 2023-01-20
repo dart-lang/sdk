@@ -42,16 +42,18 @@ final sdkUriAbsolute = buildUriAbsolute.parent.parent;
 
 final standaloneExtension = (Platform.isWindows ? '.bat' : '');
 
+final standaloneExtensionExe = (Platform.isWindows ? '.exe' : '');
+
 final genKernelUri =
     sdkUriAbsolute.resolve('pkg/vm/tool/gen_kernel$standaloneExtension');
 
 final genSnapshotUri =
-    buildUriAbsolute.resolve('gen_snapshot$standaloneExtension');
+    buildUriAbsolute.resolve('gen_snapshot$standaloneExtensionExe');
 
-final dartUri = buildUriAbsolute.resolve('dart$standaloneExtension');
+final dartUri = buildUriAbsolute.resolve('dart$standaloneExtensionExe');
 
 final dartPrecompiledRuntimeUri =
-    buildUriAbsolute.resolve('dart_precompiled_runtime$standaloneExtension');
+    buildUriAbsolute.resolve('dart_precompiled_runtime$standaloneExtensionExe');
 
 final platformDillUri = buildUriAbsolute.resolve('vm_platform_strong.dill');
 

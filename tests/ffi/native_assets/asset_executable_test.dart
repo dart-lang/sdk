@@ -43,8 +43,7 @@ main(List<String> args, Object? message) async {
 Future<void> selfInvokes() async {
   final selfSourceUri = Platform.script.resolve('asset_executable_test.dart');
   final nativeAssetsYaml = createNativeAssetYaml(
-      asset: 'file://${selfSourceUri.toFilePath()}',
-      assetMapping: ['executable']);
+      asset: selfSourceUri.toString(), assetMapping: ['executable']);
   await invokeSelf(
     selfSourceUri: selfSourceUri,
     runtime: Runtime.jit,

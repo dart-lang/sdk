@@ -210,7 +210,6 @@ void f(x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.UNDEFINED_GETTER, 74, 3),
       error(HintCode.UNUSED_LOCAL_VARIABLE, 83, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
@@ -234,6 +233,48 @@ ObjectPattern
         declaredElement: hasImplicitType y@83
           type: void Function()
       fieldElement: self::@class::A::@method::foo
+  rightParenthesis: )
+''');
+  }
+
+  test_class_notGeneric_hasName_method_ofExtension() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+extension E on A {
+  void foo() {}
+}
+
+void f(x) {
+  switch (x) {
+    case A(foo: var y):
+      break;
+  }
+}
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 97, 1),
+    ]);
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    type: A
+  leftParenthesis: (
+  fields
+    RecordPatternField
+      fieldName: RecordPatternFieldName
+        name: foo
+        colon: :
+      pattern: DeclaredVariablePattern
+        keyword: var
+        name: y
+        declaredElement: hasImplicitType y@97
+          type: void Function()
+      fieldElement: self::@extension::E::@method::foo
   rightParenthesis: )
 ''');
   }

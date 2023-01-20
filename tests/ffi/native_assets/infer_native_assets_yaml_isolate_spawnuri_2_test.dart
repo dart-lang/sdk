@@ -75,7 +75,7 @@ Future<void> createTestFiles(Uri tempUri, Uri tempUri2) async {
   await File.fromUri(packageConfigUri).writeAsString(emptyPackageConfig);
 
   final nativeAssetsYaml = createNativeAssetYaml(
-    asset: 'file://${helper2CopiedUri.toFilePath()}',
+    asset: helper2CopiedUri.toString(),
     assetMapping: [
       'absolute',
       ffiTestFunctionsUriAbsolute.toFilePath(),

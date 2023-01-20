@@ -44,7 +44,7 @@ const asset2Name = 'myAsset';
 Future<void> selfInvokes() async {
   final selfSourceUri = Platform.script.resolve('asset_process_test.dart');
   final nativeAssetsYaml = createNativeAssetYaml(
-    asset: 'file://${selfSourceUri.toFilePath()}',
+    asset: selfSourceUri.toString(),
     assetMapping: ['process'],
     asset2: asset2Name,
     asset2Mapping: ['process'],
