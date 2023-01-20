@@ -24,8 +24,9 @@ git clone git@github.com:flutter/devtools.git
 cd devtools
 git checkout -b cipd_release $1
 
-./tool/update_flutter_sdk.sh
-./tool/build_release.sh
+# If $2 equals "--no-update-flutter", the build_release.sh script will build
+# DevTools from the Flutter SDK that already exists on the user's path.
+./tool/build_release.sh $2
 
 # Copy the build output as well as the devtools packages needed
 # to serve from DDS.
