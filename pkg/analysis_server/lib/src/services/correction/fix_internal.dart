@@ -1539,6 +1539,12 @@ class FixProcessor extends BaseProcessor {
     StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION: [
       RemoveNonNullAssertion.new,
     ],
+    StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN: [
+      RemoveQuestionMark.new,
+    ],
+    StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN: [
+      RemoveNonNullAssertion.new,
+    ],
 
     WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE: [
       AddReturnNull.new,

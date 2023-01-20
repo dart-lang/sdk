@@ -49,14 +49,13 @@ void f(String a) {
 ''');
   }
 
-  @FailingTest(
-      reason: "TODO(keertip): Add support for patterns to FixProcessor")
   Future<void> test_nonNullableCasePattern() async {
     await resolveTestCode('''
 void f() {
   List<String> row = ['h', 'e', 'l'];
   switch (row) {
-    case ['user', var name!]: break;
+    case ['user', var name!]:
+    print(name);
   }
 }
 ''');
@@ -64,25 +63,28 @@ void f() {
 void f() {
   List<String> row = ['h', 'e', 'l'];
   switch (row) {
-    case ['user', var name]: break;
+    case ['user', var name]:
+    print(name);
   }
 }
 ''');
   }
 
-  @FailingTest(
-      reason: "TODO(keertip): Add support for patterns to FixProcessor")
   Future<void> test_nonNullablePattern() async {
     await resolveTestCode('''
 void f() {
   (int, int?) p = (1, 2);
   var (x!, y!) = p;
+  print(x);
+  print(y);
 }
 ''');
     await assertHasFix('''
 void f() {
   (int, int?) p = (1, 2);
   var (x, y!) = p;
+  print(x);
+  print(y);
 }
 ''');
   }

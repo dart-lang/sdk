@@ -2716,9 +2716,9 @@ StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH:
 StaticWarningCode.UNNECESSARY_NON_NULL_ASSERTION:
   status: hasFix
 StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN:
-  status: needsFix
+  status: hasFix
 StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN:
-  status: needsFix
+  status: hasFix
 WarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE_TO_ERROR_HANDLER:
   status: noFix
   notes: |-
