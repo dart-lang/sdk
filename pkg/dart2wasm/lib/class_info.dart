@@ -14,7 +14,7 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 /// code, e.g. in intrinsics.
 ///
 /// The values are validated by asserts, typically either through
-/// [ClassInfo.addField] (for manually added fields) or by a line in
+/// [ClassInfo._addField] (for manually added fields) or by a line in
 /// [FieldIndex.validate] (for fields declared in Dart code).
 class FieldIndex {
   static const classId = 0;
@@ -104,7 +104,7 @@ class ClassInfo {
 
   /// The class whose struct is used as the type for variables of this type.
   /// This is a type which is a superclass of all subtypes of this type.
-  late ClassInfo repr;
+  late final ClassInfo repr;
 
   /// All classes which implement this class. This is used to compute `repr`.
   final List<ClassInfo> implementedBy = [];
@@ -126,7 +126,7 @@ class ClassInfo {
     implementedBy.add(this);
   }
 
-  void addField(w.FieldType fieldType, [int? expectedIndex]) {
+  void _addField(w.FieldType fieldType, [int? expectedIndex]) {
     assert(expectedIndex == null || expectedIndex == struct.fields.length);
     struct.fields.add(fieldType);
   }
@@ -174,14 +174,14 @@ class ClassInfoCollector {
 
   TranslatorOptions get options => translator.options;
 
-  void initializeTop() {
+  void _initializeTop() {
     final w.StructType struct = m.addStructType("#Top");
     topInfo = ClassInfo(null, _nextClassId++, 0, struct, null);
     translator.classes.add(topInfo);
     translator.classForHeapType[struct] = topInfo;
   }
 
-  void initialize(Class cls) {
+  void _initialize(Class cls) {
     ClassInfo? info = translator.classInfo[cls];
     if (info != null) return;
 
@@ -197,9 +197,9 @@ class ClassInfoCollector {
       info.implementedBy.add(topInfo);
     } else {
       // Recursively initialize all supertypes before initializing this class.
-      initialize(superclass);
+      _initialize(superclass);
       for (Supertype interface in cls.implementedTypes) {
-        initialize(interface.classNode);
+        _initialize(interface.classNode);
       }
 
       // In the Wasm type hierarchy, Object, bool and num sit directly below
@@ -271,19 +271,19 @@ class ClassInfoCollector {
     info.repr = upperBound(info.implementedBy);
   }
 
-  void generateFields(ClassInfo info) {
+  void _generateFields(ClassInfo info) {
     ClassInfo? superInfo = info.superInfo;
     if (superInfo == null) {
       // Top - add class id field
-      info.addField(w.FieldType(w.NumType.i32), FieldIndex.classId);
+      info._addField(w.FieldType(w.NumType.i32), FieldIndex.classId);
     } else if (info.struct != superInfo.struct) {
       // Copy fields from superclass
       for (w.FieldType fieldType in superInfo.struct.fields) {
-        info.addField(fieldType);
+        info._addField(fieldType);
       }
       if (info.cls!.superclass == null) {
         // Object - add identity hash code field
-        info.addField(w.FieldType(w.NumType.i32), FieldIndex.identityHash);
+        info._addField(w.FieldType(w.NumType.i32), FieldIndex.identityHash);
       }
       // Add fields for type variables
       for (TypeParameter parameter in info.cls!.typeParameters) {
@@ -294,7 +294,7 @@ class ClassInfoCollector {
               translator.typeParameterIndex[match]!;
         } else {
           translator.typeParameterIndex[parameter] = info.struct.fields.length;
-          info.addField(typeType);
+          info._addField(typeType);
         }
       }
       // Add fields for Dart instance fields
@@ -306,7 +306,7 @@ class ClassInfoCollector {
             wasmType = wasmType.withNullability(true);
           }
           translator.fieldIndex[field] = info.struct.fields.length;
-          info.addField(w.FieldType(wasmType));
+          info._addField(w.FieldType(wasmType));
         }
       }
     } else {
@@ -320,21 +320,21 @@ class ClassInfoCollector {
 
   /// Create class info and Wasm struct for all classes.
   void collect() {
-    initializeTop();
+    _initializeTop();
 
     // Subclasses of the `_Closure` class are generated on the fly as fields
     // with function types are encountered. Therefore, `_Closure` class must
     // be early in the initialization order.
-    initialize(translator.closureClass);
+    _initialize(translator.closureClass);
 
     // Similarly `_Type` is needed for type parameter fields in classes and
     // needs to be initialized before we encounter a class with type
     // parameters.
-    initialize(translator.typeClass);
+    _initialize(translator.typeClass);
 
     for (Library library in translator.component.libraries) {
       for (Class cls in library.classes) {
-        initialize(cls);
+        _initialize(cls);
       }
     }
 
@@ -349,7 +349,7 @@ class ClassInfoCollector {
     // Now that the representation types for all classes have been computed,
     // fill in the types of the fields in the generated Wasm structs.
     for (ClassInfo info in translator.classes) {
-      generateFields(info);
+      _generateFields(info);
     }
 
     // Add hidden fields of typed_data classes.
@@ -362,16 +362,16 @@ class ClassInfoCollector {
   void _addTypedDataFields() {
     ClassInfo typedListBaseInfo =
         translator.classInfo[translator.typedListBaseClass]!;
-    typedListBaseInfo.addField(w.FieldType(w.NumType.i32, mutable: false),
+    typedListBaseInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
         FieldIndex.typedListBaseLength);
 
     ClassInfo typedListInfo = translator.classInfo[translator.typedListClass]!;
-    typedListInfo.addField(w.FieldType(w.NumType.i32, mutable: false),
+    typedListInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
         FieldIndex.typedListBaseLength);
     w.RefType bytesArrayType = w.RefType.def(
         translator.wasmArrayType(w.PackedType.i8, "i8"),
         nullable: false);
-    typedListInfo.addField(
+    typedListInfo._addField(
         w.FieldType(bytesArrayType, mutable: false), FieldIndex.typedListArray);
 
     w.RefType typedListType =
@@ -379,20 +379,20 @@ class ClassInfoCollector {
 
     ClassInfo typedListViewInfo =
         translator.classInfo[translator.typedListViewClass]!;
-    typedListViewInfo.addField(w.FieldType(w.NumType.i32, mutable: false),
+    typedListViewInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
         FieldIndex.typedListBaseLength);
-    typedListViewInfo.addField(w.FieldType(typedListType, mutable: false),
+    typedListViewInfo._addField(w.FieldType(typedListType, mutable: false),
         FieldIndex.typedListViewTypedData);
-    typedListViewInfo.addField(w.FieldType(w.NumType.i32, mutable: false),
+    typedListViewInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
         FieldIndex.typedListViewOffsetInBytes);
 
     ClassInfo byteDataViewInfo =
         translator.classInfo[translator.byteDataViewClass]!;
-    byteDataViewInfo.addField(w.FieldType(w.NumType.i32, mutable: false),
+    byteDataViewInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
         FieldIndex.byteDataViewLength);
-    byteDataViewInfo.addField(w.FieldType(typedListType, mutable: false),
+    byteDataViewInfo._addField(w.FieldType(typedListType, mutable: false),
         FieldIndex.byteDataViewTypedData);
-    byteDataViewInfo.addField(w.FieldType(w.NumType.i32, mutable: false),
+    byteDataViewInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
         FieldIndex.byteDataViewOffsetInBytes);
   }
 }
