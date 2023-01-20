@@ -475,7 +475,7 @@ class TimeoutMomentum implements Momentum {
     if (_moves.isNotEmpty) {
       final move = _moves.first;
       // This is a workaround for the ugly hacks that get applied when a user
-      // passed a velocity in to this Momentum implementation.
+      // passed a velocity into this Momentum implementation.
       num velocityScale = SingleDimensionPhysics._MS_PER_FRAME *
           SingleDimensionPhysics._INITIAL_VELOCITY_BOOST_FACTOR;
       velocity = Coordinate(move.vx / velocityScale, move.vy / velocityScale);

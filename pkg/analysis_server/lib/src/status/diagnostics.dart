@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert' show JsonEncoder;
 import 'dart:developer' as developer;
 import 'dart:io';
 
@@ -34,6 +35,7 @@ import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
+import "package:vm_service/vm_service_io.dart" as vm_service;
 
 final String kCustomCss = '''
 .lead, .page-title+.markdown-body>p:first-child {
@@ -237,6 +239,234 @@ class AstPage extends DiagnosticPageWithNav {
     } finally {
       _description = null;
     }
+  }
+}
+
+class CollectReportPage extends DiagnosticPage {
+  CollectReportPage(DiagnosticsSite site)
+      : super(site, 'collectreport', 'Collect Report',
+            description: 'Collect a shareable report for filing issues.');
+
+  @override
+  String? contentDispositionString(Map<String, String> params) {
+    if (params['collect'] != null) {
+      return 'attachment; filename="dart_analyzer_diagnostics_report.json"';
+    }
+    return super.contentDispositionString(params);
+  }
+
+  @override
+  ContentType contentType(Map<String, String> params) {
+    if (params['collect'] != null) {
+      return ContentType.json;
+    }
+    return super.contentType(params);
+  }
+
+  @override
+  Future generateContent(Map<String, String> params) async {
+    p('To download a report click the link below. '
+        'When the report is downloaded you can share it with the '
+        'Dart developers.');
+    p(
+      '<a href="${this.path}?collect=true">Download report</a>.',
+      raw: true,
+    );
+  }
+
+  @override
+  Future<void> generatePage(Map<String, String> params) async {
+    if (params['collect'] != null) {
+      // No added header etc.
+      String data = await _collectAllData();
+      buf.write(data);
+      return;
+    }
+    return await super.generatePage(params);
+  }
+
+  Future<String> _collectAllData() async {
+    Map<String, dynamic> collectedData = {};
+    var server = this.server;
+
+    // General data.
+    collectedData["currentTime"] = DateTime.now().millisecondsSinceEpoch;
+    collectedData["operatingSystem"] = Platform.operatingSystem;
+    collectedData["version"] = Platform.version;
+    collectedData["clientId"] = server.options.clientId;
+    collectedData["clientVersion"] = server.options.clientVersion;
+    collectedData["protocolVersion"] = PROTOCOL_VERSION;
+    collectedData["serverType"] = server.runtimeType.toString();
+    collectedData["uptime"] = server.uptime.toString();
+    if (server is LegacyAnalysisServer) {
+      collectedData["serverServices"] =
+          server.serverServices.map((e) => e.toString()).toList();
+    }
+
+    var profiler = ProcessProfiler.getProfilerForPlatform();
+    UsageInfo? usage;
+    if (profiler != null) {
+      usage = await profiler.getProcessUsage(pid);
+    }
+    collectedData["memoryKB"] = usage?.memoryKB;
+    collectedData["cpuPercentage"] = usage?.cpuPercentage;
+    collectedData["currentRss"] = ProcessInfo.currentRss;
+    collectedData["maxRss"] = ProcessInfo.maxRss;
+
+    // Communication.
+    for (var data in {
+      "startup": server.performanceDuringStartup,
+      if (server.performanceAfterStartup != null)
+        "afterStartup": server.performanceAfterStartup!
+    }.entries) {
+      var perf = data.value;
+      var perfData = {};
+      collectedData[data.key] = perfData;
+
+      var requestCount = perf.requestCount;
+      var latencyCount = perf.latencyCount;
+      var averageLatency =
+          latencyCount > 0 ? (perf.requestLatency ~/ latencyCount) : null;
+      var maximumLatency = perf.maxLatency;
+      var slowRequestCount = perf.slowRequestCount;
+
+      perfData["RequestCount"] = requestCount;
+      perfData["LatencyCount"] = latencyCount;
+      perfData["AverageLatency"] = averageLatency;
+      perfData["MaximumLatency"] = maximumLatency;
+      perfData["SlowRequestCount"] = slowRequestCount;
+    }
+
+    // Contexts.
+    var driverMapEntries = server.driverMap.entries.toList();
+    var contexts = [];
+    collectedData["contexts"] = contexts;
+    Set<String> uniqueKnownFiles = {};
+    for (var entry in driverMapEntries) {
+      var contextData = {};
+      contexts.add(contextData);
+      contextData["name"] = entry.key.shortName;
+      contextData["priorityFiles"] = entry.value.priorityFiles.length;
+      contextData["addedFiles"] = entry.value.addedFiles.length;
+      contextData["knownFiles"] = entry.value.knownFiles.length;
+      uniqueKnownFiles.addAll(entry.value.knownFiles);
+
+      contextData["lints"] =
+          entry.value.analysisOptions.lintRules.map((e) => e.name).toList();
+      contextData["plugins"] =
+          entry.value.analysisOptions.enabledPluginNames.toList();
+    }
+    collectedData["uniqueKnownFiles"] = uniqueKnownFiles.length;
+
+    // Recorded performance data (timing and code completion).
+    void collectPerformance(List<RequestPerformance> items, String type) {
+      var performance = [];
+      collectedData["performance$type"] = performance;
+      for (var item in items) {
+        var itemData = {};
+        performance.add(itemData);
+        itemData["id"] = item.id;
+        itemData["operation"] = item.operation;
+        itemData["requestLatency"] = item.requestLatency;
+        itemData["elapsed"] = item.performance.elapsed.inMilliseconds;
+        itemData["startTime"] = item.startTime?.toIso8601String();
+
+        var buffer = StringBuffer();
+        item.performance.write(buffer: buffer);
+        itemData["performance"] = buffer.toString();
+      }
+    }
+
+    collectPerformance(
+        server.recentPerformance.completion.items.toList(), "Completion");
+    collectPerformance(
+        server.recentPerformance.requests.items.toList(), "Requests");
+    collectPerformance(
+        server.recentPerformance.slowRequests.items.toList(), "SlowRequests");
+
+    // Exceptions.
+    var exceptions = [];
+    collectedData["exceptions"] = exceptions;
+    for (var exception in server.exceptions.items) {
+      exceptions.add({
+        "exception": exception.exception?.toString(),
+        "fatal": exception.fatal,
+        "message": exception.message,
+        "stackTrace": exception.stackTrace.toString(),
+      });
+    }
+
+    // Data from the observatory protocol.
+    var serviceProtocolInfo = await developer.Service.getInfo();
+    var startedServiceProtocol = false;
+    if (serviceProtocolInfo.serverUri == null) {
+      startedServiceProtocol = true;
+      serviceProtocolInfo = await developer.Service.controlWebServer(
+          enable: true, silenceOutput: true);
+    }
+
+    var serverUri = serviceProtocolInfo.serverUri;
+    if (serverUri != null) {
+      var path = serverUri.path;
+      if (!path.endsWith("/")) path += "/";
+      var wsUriString = 'ws://${serverUri.authority}${path}ws';
+      var serviceClient = await vm_service.vmServiceConnectUri(wsUriString);
+      var vm = await serviceClient.getVM();
+      collectedData["vm.architectureBits"] = vm.architectureBits;
+      collectedData["vm.hostCPU"] = vm.hostCPU;
+      collectedData["vm.operatingSystem"] = vm.operatingSystem;
+      collectedData["vm.startTime"] = vm.startTime;
+
+      var processMemoryUsage = await serviceClient.getProcessMemoryUsage();
+      collectedData["processMemoryUsage"] = processMemoryUsage.json;
+
+      var isolateData = [];
+      collectedData["isolates"] = isolateData;
+      var isolates = vm.isolates ?? [];
+      for (var isolate in isolates) {
+        String? id = isolate.id;
+        if (id == null) continue;
+        var thisIsolateData = {};
+        isolateData.add(thisIsolateData);
+        thisIsolateData["id"] = id;
+        thisIsolateData["isolateGroupId"] = isolate.isolateGroupId;
+        thisIsolateData["name"] = isolate.name;
+        var isolateMemoryUsage = await serviceClient.getMemoryUsage(id);
+        thisIsolateData["memory"] = isolateMemoryUsage.json;
+        var allocationProfile = await serviceClient.getAllocationProfile(id);
+        var allocationMembers = allocationProfile.members ?? [];
+        var allocationProfileData = [];
+        thisIsolateData["allocationProfile"] = allocationProfileData;
+        for (var member in allocationMembers) {
+          var bytesCurrent = member.bytesCurrent;
+          // Filter out very small entries to avoid the report becoming too big.
+          if (bytesCurrent == null || bytesCurrent < 1024) continue;
+
+          var memberData = {};
+          allocationProfileData.add(memberData);
+          memberData["bytesCurrent"] = bytesCurrent;
+          memberData["instancesCurrent"] = member.instancesCurrent;
+          memberData["accumulatedSize"] = member.accumulatedSize;
+          memberData["instancesAccumulated"] = member.instancesAccumulated;
+          memberData["className"] = member.classRef?.name;
+          memberData["libraryName"] = member.classRef?.library?.name;
+        }
+        allocationProfileData.sort((a, b) {
+          int bytesCurrentA = a["bytesCurrent"] as int;
+          int bytesCurrentB = b["bytesCurrent"] as int;
+          // Largest first.
+          return bytesCurrentB.compareTo(bytesCurrentA);
+        });
+      }
+    }
+
+    if (startedServiceProtocol) {
+      await developer.Service.controlWebServer(
+          enable: false, silenceOutput: true);
+    }
+
+    const JsonEncoder encoder = JsonEncoder.withIndent('  ');
+    return encoder.convert(collectedData);
   }
 }
 
@@ -685,6 +915,7 @@ abstract class DiagnosticPage extends Page {
 
       <nav class="masthead-nav">
         <a href="/status" ${isNavPage ? ' class="active"' : ''}>Diagnostics</a>
+        <a href="/collectreport" ${isCurrentPage('/collectreport') ? ' class="active"' : ''}>Collect Report</a>
         <a href="/feedback" ${isCurrentPage('/feedback') ? ' class="active"' : ''}>Feedback</a>
         <a href="https://dart.dev/tools/dart-analyze" target="_blank">Docs</a>
         <a href="https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/main/pkg/analysis_server/doc/api.html" target="_blank">Spec</a>
@@ -810,6 +1041,7 @@ class DiagnosticsSite extends Site implements AbstractGetHandler {
 
     // Add non-nav pages.
     pages.add(FeedbackPage(this));
+    pages.add(CollectReportPage(this));
     pages.add(AstPage(this));
     pages.add(ElementModelPage(this));
     pages.add(ContentsPage(this));

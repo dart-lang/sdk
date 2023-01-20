@@ -88,7 +88,7 @@ class Translator with KernelNodes {
   final Set<Member> membersContainingInnerFunctions = {};
   final Set<Member> membersBeingGenerated = {};
   final List<_FunctionGenerator> _pendingFunctions = [];
-  late Procedure mainFunction;
+  late final Procedure mainFunction;
   late final w.Module m;
   late final w.DefinedFunction initFunction;
   late final w.ValueType voidMarker;

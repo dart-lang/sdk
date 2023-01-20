@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/services/completion/dart/utilities.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -28,12 +29,21 @@ abstract class AbstractCompletionDriverTest
     extends PubPackageAnalysisServerTest {
   late CompletionDriver driver;
   late List<CompletionSuggestion> suggestions;
+  late CompletionResponseForTesting response;
 
-  /// The configuration for [assertResponseText].
+  /// The configuration for [assertResponseText] and [assertResponse].
   /// You almost always want to change it, usually in [setUp].
   printer.Configuration printerConfiguration = printer.Configuration(
     filter: (suggestion) => true,
   );
+
+  @override
+  List<String> get experiments => [
+        EnableString.class_modifiers,
+        EnableString.patterns,
+        EnableString.records,
+        EnableString.sealed_class,
+      ];
 
   bool get isProtocolVersion1 {
     return protocol == TestingCompletionProtocol.version1;
@@ -76,9 +86,16 @@ abstract class AbstractCompletionDriverTest
 
   /// Asserts that the [response] has the [expected] textual dump produced
   /// using [printerConfiguration].
+  void assertResponse(String expected) {
+    assertResponseText(response, expected);
+  }
+
+  /// Asserts that the [response] has the [expected] textual dump produced
+  /// using [printerConfiguration].
   void assertResponseText(
     CompletionResponseForTesting response,
     String expected, {
+    // TODO(brianwilkerson) Remove this parameter and improve the output.
     bool printIfFailed = true,
   }) {
     final buffer = StringBuffer();
@@ -114,6 +131,13 @@ abstract class AbstractCompletionDriverTest
           libraryUri: libraryUri,
         ),
         isNotNull);
+  }
+
+  /// TODO(brianwilkerson) Proposed replacement for [getTestCodeSuggestions].
+  Future<void> computeSuggestions(
+    String content,
+  ) async {
+    response = await getTestCodeSuggestions(content);
   }
 
   Future<List<CompletionSuggestion>> getSuggestions() async {

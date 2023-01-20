@@ -199,7 +199,7 @@ class WasmTable<T> extends _WasmBase {
   external WasmI32 get size;
 
   /// Call a function stored in the table using the `call_indirect` Wasm
-  /// instructionm. The function value returned from this method must be
+  /// instruction. The function value returned from this method must be
   /// called directly.
   @pragma("wasm:entry-point")
   external F callIndirect<F extends Function>(WasmI32 index);

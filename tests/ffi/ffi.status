@@ -48,7 +48,7 @@ vmspecific_native_finalizer_isolate_groups_test: Skip # SpawnUri not available o
 [ $system == windows ]
 regress_47594_test: Skip # DynamicLibrary.process() is not available on Windows.
 
-[ $arch == arm && $system == linux ]
+[ $qemu ]
 native_assets/asset_*: SkipByDesign # Only intended to run on host oses with AOT binaries available, not available on QEMU.
 
 [ $compiler != dart2analyzer && $compiler != fasta && $runtime != dart_precompiled && $runtime != vm ]

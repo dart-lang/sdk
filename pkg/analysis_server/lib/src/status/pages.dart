@@ -43,6 +43,10 @@ abstract class Page {
     div(() => buf.writeln(str), classes: 'blankslate');
   }
 
+  String? contentDispositionString(Map<String, String> params) => null;
+
+  ContentType contentType(Map<String, String> params) => ContentType.html;
+
   void div(void Function() gen, {String? classes}) {
     if (classes != null) {
       buf.writeln('<div class="$classes">');
@@ -200,8 +204,15 @@ abstract class Site {
       for (var page in pages) {
         if (page.path == path) {
           var response = request.response;
-          response.headers.contentType = ContentType.html;
-          response.write(await page.generate(request.uri.queryParameters));
+          var queryParameters = request.uri.queryParameters;
+          response.headers.contentType = page.contentType(queryParameters);
+          var contentDispositionString =
+              page.contentDispositionString(queryParameters);
+          if (contentDispositionString != null) {
+            response.headers
+                .add("Content-Disposition", contentDispositionString);
+          }
+          response.write(await page.generate(queryParameters));
           unawaited(response.close());
           return;
         }

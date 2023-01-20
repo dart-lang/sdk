@@ -815,7 +815,7 @@ class _SnapshotGraph implements SnapshotGraph {
     _ReadStream? stream = _ReadStream._new(chunks!);
     chunks = null;
 
-    // The phases of loading are placed in explicit `new Future(compuation)` so
+    // The phases of loading are placed in explicit `new Future(computation)` so
     // they will be deferred to the message loop. Ordinary async-await will only
     // defer to the microtask loop.
 

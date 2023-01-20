@@ -68,7 +68,7 @@ public class TypeHierarchyItem {
 
   /**
    * The indexes of the items representing the mixins referenced by this class. The list will be
-   * empty if there are no classes mixed in to this class.
+   * empty if there are no classes mixed into this class.
    */
   private final int[] mixins;
 
@@ -173,7 +173,7 @@ public class TypeHierarchyItem {
 
   /**
    * The indexes of the items representing the mixins referenced by this class. The list will be
-   * empty if there are no classes mixed in to this class.
+   * empty if there are no classes mixed into this class.
    */
   public int[] getMixins() {
     return mixins;

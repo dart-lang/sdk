@@ -105,10 +105,10 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     ErrorCode hintCode;
     if (combinator is HideCombinator) {
       names = combinator.hiddenNames;
-      hintCode = HintCode.UNDEFINED_HIDDEN_NAME;
+      hintCode = WarningCode.UNDEFINED_HIDDEN_NAME;
     } else {
       names = (combinator as ShowCombinator).shownNames;
-      hintCode = HintCode.UNDEFINED_SHOWN_NAME;
+      hintCode = WarningCode.UNDEFINED_SHOWN_NAME;
     }
     for (SimpleIdentifier name in names) {
       String nameStr = name.name;

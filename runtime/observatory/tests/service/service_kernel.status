@@ -33,7 +33,7 @@ pause_on_unhandled_async_exceptions2_test: Pass, Slow
 [ $compiler == dartkp ]
 add_breakpoint_rpc_kernel_test: SkipByDesign # Debugger is disabled in AOT mode.
 async_generator_breakpoint_test: SkipByDesign # Debugger is disabled in AOT mode.
-async_next_regession_18877_test: SkipByDesign # Debugger is disabled in AOT mode.
+async_next_regression_18877_test: SkipByDesign # Debugger is disabled in AOT mode.
 async_next_test: SkipByDesign # Debugger is disabled in AOT mode.
 async_scope_test: SkipByDesign # Debugger is disabled in AOT mode.
 async_single_step_exception_test: SkipByDesign # Debugger is disabled in AOT mode.

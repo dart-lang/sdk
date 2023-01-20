@@ -24,7 +24,7 @@ mixin UndefinedHiddenNameTestCases on PubPackageResolutionTest {
     await assertErrorsInCode(r'''
 export 'lib1.dart' hide a;
 ''', [
-      error(HintCode.UNDEFINED_HIDDEN_NAME, 24, 1),
+      error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 1),
     ]);
   }
 
@@ -34,7 +34,7 @@ export 'lib1.dart' hide a;
 import 'lib1.dart' hide a;
 ''', [
       error(HintCode.UNUSED_IMPORT, 7, 11),
-      error(HintCode.UNDEFINED_HIDDEN_NAME, 24, 1),
+      error(WarningCode.UNDEFINED_HIDDEN_NAME, 24, 1),
     ]);
   }
 }

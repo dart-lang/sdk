@@ -68,6 +68,7 @@ class ValueKinds {
       const SingleValueKind<type.ConstantContext>();
   static const ValueKind ContinueTarget =
       const SingleValueKind<type.JumpTarget>(NullValues.ContinueTarget);
+  static const ValueKind DartType = const SingleValueKind<type.DartType>();
   static const ValueKind Expression = const SingleValueKind<type.Expression>();
   static const ValueKind ExpressionOrPatternGuardCase =
       const SingleValueKind<type.ExpressionOrPatternGuardCase>();

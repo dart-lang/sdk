@@ -152,7 +152,7 @@ main() {
   print(max(1, 2));
 }
 ''', [
-      error(HintCode.UNDEFINED_SHOWN_NAME, 29, 6),
+      error(WarningCode.UNDEFINED_SHOWN_NAME, 29, 6),
     ]);
   }
 

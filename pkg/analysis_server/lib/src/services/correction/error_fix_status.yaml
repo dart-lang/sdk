@@ -1353,7 +1353,7 @@ HintCode.DEPRECATED_EXPORT_USE:
   notes: |-
     Low priority, because this is likely not encountered often.
 
-    The fix is to look for a non-deprected way to import the name and to add a
+    The fix is to look for a non-deprecated way to import the name and to add a
     new import for it. It might be possible to remove the old import if all of
     the names being imported through it are available through the new import.
 HintCode.DEPRECATED_MEMBER_USE:
@@ -1589,14 +1589,10 @@ HintCode.TYPE_CHECK_IS_NOT_NULL:
   status: hasFix
 HintCode.TYPE_CHECK_IS_NULL:
   status: hasFix
-HintCode.UNDEFINED_HIDDEN_NAME:
-  status: hasFix
 HintCode.UNDEFINED_REFERENCED_PARAMETER:
   status: needsFix
   notes: |-
     Can try to find the correct parameter name.
-HintCode.UNDEFINED_SHOWN_NAME:
-  status: hasFix
 HintCode.UNIGNORABLE_IGNORE:
   status: needsFix
   notes: |-
@@ -2788,3 +2784,7 @@ WarningCode.SDK_VERSION_UI_AS_CODE:
 WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
   status: noFix
   notes: Deprecated
+WarningCode.UNDEFINED_HIDDEN_NAME:
+  status: hasFix
+WarningCode.UNDEFINED_SHOWN_NAME:
+  status: hasFix

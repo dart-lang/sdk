@@ -205,6 +205,9 @@ cc/CorelibCompilerStats: Skip
 dart/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 dart_2/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 
+[ $qemu ]
+cc/ManyClasses: Slow, Pass # Generates 100k classes, slow on emulated architectures.
+
 [ $arch == ia32 && $mode == debug ]
 dart/*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
 dart_2/*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow

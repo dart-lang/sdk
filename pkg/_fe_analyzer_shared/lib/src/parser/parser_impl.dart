@@ -1379,7 +1379,7 @@ class Parser {
             bool recover = false;
             if (optional(';', endGroup.next!)) {
               // Missing parenthesis. Insert them.
-              // Turn "<whatever>;" in to "<whatever>();"
+              // Turn "<whatever>;" into "<whatever>();"
               // Insert missing 'Function' below.
               reportRecoverableError(endGroup,
                   missingParameterMessage(MemberKind.FunctionTypeAlias));

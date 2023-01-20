@@ -5837,6 +5837,26 @@ class WarningCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  Parameters:
+  ///  0: the name of the library being imported
+  ///  1: the name in the hide clause that isn't defined in the library
+  static const WarningCode UNDEFINED_HIDDEN_NAME = WarningCode(
+    'UNDEFINED_HIDDEN_NAME',
+    "The library '{0}' doesn't export a member with the hidden name '{1}'.",
+    correctionMessage: "Try removing the name from the list of hidden members.",
+    hasPublishedDocs: true,
+  );
+
+  ///  Parameters:
+  ///  0: the name of the library being imported
+  ///  1: the name in the show clause that isn't defined in the library
+  static const WarningCode UNDEFINED_SHOWN_NAME = WarningCode(
+    'UNDEFINED_SHOWN_NAME',
+    "The library '{0}' doesn't export a member with the shown name '{1}'.",
+    correctionMessage: "Try removing the name from the list of shown members.",
+    hasPublishedDocs: true,
+  );
+
   /// Initialize a newly created error code to have the given [name].
   const WarningCode(
     String name,

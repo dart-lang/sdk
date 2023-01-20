@@ -375,13 +375,13 @@ class CodeGenerator {
           : <String, JsonType>{};
 
       // Skip creation of Request sub-classes, as we don't use these we just
-      // pass the arguments in to the method directly.
+      // pass the arguments into the method directly.
       if (name != 'Request' && name.endsWith('Request')) {
         continue;
       }
 
       // Skip creation of Event sub-classes, as we don't use these we just
-      // pass the body in to sendEvent directly.
+      // pass the body into sendEvent directly.
       if (name != 'Event' && name.endsWith('Event')) {
         continue;
       }

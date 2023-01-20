@@ -288,7 +288,7 @@ class InterceptorDataBuilderImpl implements InterceptorDataBuilder {
   final Set<ClassEntity> _interceptedClasses = {};
 
   /// Set of classes used as mixins on intercepted (native and primitive)
-  /// classes. Methods on these classes might also be mixed in to regular Dart
+  /// classes. Methods on these classes might also be mixed into regular Dart
   /// (unintercepted) classes.
   final Set<ClassEntity> _classesMixedIntoInterceptedClasses = {};
 

@@ -2607,7 +2607,7 @@ Updated the Linter to `0.1.129`, which includes:
   `pubspec.lock` for `package_foo`, allowing users to only upgrade a subset of
   dependencies.
 
-- New command `dart pub login` that logs in to pub.dev.
+- New command `dart pub login` that logs into pub.dev.
 
 - The `--server` option to `dart pub publish` and `dart pub uploader` are
   deprecated. Use `publish_to` in your `pubspec.yaml` or set the
