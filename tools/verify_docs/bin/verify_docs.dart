@@ -498,7 +498,8 @@ class AnalysisHelper {
   final String libraryName;
   final resourceProvider =
       OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
-  final pathRoot = Directory('sdk/lib/').absolute.path;
+  late final String separator = resourceProvider.pathContext.separator;
+  late final pathRoot = Directory('sdk${separator}lib$separator').absolute.path;
   late AnalysisContextCollection collection;
   int index = 0;
 
@@ -512,8 +513,7 @@ class AnalysisHelper {
   }
 
   Future<SomeResolvedUnitResult> resolveFile(String contents) async {
-    final samplePath =
-        '$pathRoot$libraryName${resourceProvider.pathContext.separator}'
+    final samplePath = '$pathRoot$libraryName$separator'
         'sample_${index++}.dart';
     resourceProvider.setOverlay(
       samplePath,
