@@ -76,7 +76,6 @@ class ForResolver {
     _resolver.analyzePatternForIn(
       node: node,
       pattern: forLoopParts.pattern,
-      patternVariables: forLoopParts.variables,
       expression: forLoopParts.iterable,
       dispatchBody: dispatchBody,
     );

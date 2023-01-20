@@ -2585,6 +2585,7 @@ class _IfCaseElement extends _IfElementBase {
   final Expression _expression;
   final Pattern _pattern;
   final Expression? _guard;
+  late final Map<String, Var> _variables;
 
   _IfCaseElement(
       this._expression, this._pattern, this._guard, super.ifTrue, super.ifFalse,
@@ -2599,7 +2600,7 @@ class _IfCaseElement extends _IfElementBase {
     var variableBinder = _VariableBinder(errors: visitor.errors);
     variableBinder.casePatternStart();
     _pattern.preVisit(visitor, variableBinder, isInAssignment: false);
-    variableBinder.casePatternFinish();
+    _variables = variableBinder.casePatternFinish();
     variableBinder.finish();
     _guard?.preVisit(visitor);
     super.preVisit(visitor);
@@ -2611,6 +2612,7 @@ class _IfCaseElement extends _IfElementBase {
       node: this,
       expression: _expression,
       pattern: _pattern,
+      variables: _variables,
       guard: _guard,
       ifTrue: ifTrue,
       ifFalse: ifFalse,
@@ -4261,7 +4263,6 @@ class _PatternForIn extends Statement {
   final Pattern pattern;
   final Expression expression;
   final Statement body;
-  late final Map<String, Var> variables;
 
   _PatternForIn(this.pattern, this.expression, this.body,
       {required super.location});
@@ -4273,7 +4274,7 @@ class _PatternForIn extends Statement {
     var variableBinder = _VariableBinder(errors: visitor.errors);
     variableBinder.casePatternStart();
     pattern.preVisit(visitor, variableBinder, isInAssignment: false);
-    variables = variableBinder.casePatternFinish();
+    variableBinder.casePatternFinish();
     variableBinder.finish();
 
     visitor._assignedVariables.beginNode();
@@ -4291,7 +4292,6 @@ class _PatternForIn extends Statement {
     h.typeAnalyzer.analyzePatternForIn(
         node: this,
         pattern: pattern,
-        patternVariables: variables.values,
         expression: expression,
         dispatchBody: () {
           h.typeAnalyzer.dispatchStatement(body);
@@ -4309,7 +4309,6 @@ class _PatternForInElement extends CollectionElement {
   final Pattern pattern;
   final Expression expression;
   final CollectionElement body;
-  late final Map<String, Var> variables;
 
   _PatternForInElement(this.pattern, this.expression, this.body,
       {required super.location});
@@ -4321,7 +4320,7 @@ class _PatternForInElement extends CollectionElement {
     var variableBinder = _VariableBinder(errors: visitor.errors);
     variableBinder.casePatternStart();
     pattern.preVisit(visitor, variableBinder, isInAssignment: false);
-    variables = variableBinder.casePatternFinish();
+    variableBinder.casePatternFinish();
     variableBinder.finish();
 
     visitor._assignedVariables.beginNode();
@@ -4334,7 +4333,6 @@ class _PatternForInElement extends CollectionElement {
     h.typeAnalyzer.analyzePatternForIn(
         node: this,
         pattern: pattern,
-        patternVariables: variables.values,
         expression: expression,
         dispatchBody: () {
           h.typeAnalyzer.dispatchCollectionElement(body, context);
@@ -4915,7 +4913,7 @@ class _VariablePattern extends Pattern {
     } else {
       var matchedType = h.typeAnalyzer.flow.getMatchedValueType();
       var staticType = h.typeAnalyzer.analyzeDeclaredVariablePattern(
-          context, this, variable, declaredType);
+          context, this, variable, variable.name, declaredType);
       h.typeAnalyzer.handleDeclaredVariablePattern(this,
           matchedType: matchedType, staticType: staticType);
     }

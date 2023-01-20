@@ -9491,8 +9491,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    DartType inferredType =
-        analyzeDeclaredVariablePattern(context, node, node.variable, node.type);
+    DartType inferredType = analyzeDeclaredVariablePattern(
+        context, node, node.variable, node.variable.name!, node.type);
     instrumentation?.record(uriForInstrumentation, node.variable.fileOffset,
         'type', new InstrumentationValueForType(inferredType));
     if (node.type == null) {
