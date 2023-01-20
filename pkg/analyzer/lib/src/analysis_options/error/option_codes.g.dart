@@ -130,7 +130,7 @@ class AnalysisOptionsWarningCode extends ErrorCode {
   ///  An error code indicating a specified include file could not be found.
   ///
   ///  Parameters:
-  ///  0: the uri of the file to be included
+  ///  0: the URI of the file to be included
   ///  1: the path of the file containing the include directive
   ///  2: the path of the context being analyzed
   static const AnalysisOptionsWarningCode INCLUDE_FILE_NOT_FOUND =

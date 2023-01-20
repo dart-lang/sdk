@@ -1072,8 +1072,8 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the uri that is not necessary
-  ///  1: the uri that makes it unnecessary
+  ///  0: the URI that is not necessary
+  ///  1: the URI that makes it unnecessary
   static const HintCode UNNECESSARY_IMPORT = HintCode(
     'UNNECESSARY_IMPORT',
     "The import of '{0}' is unnecessary because all of the used elements are "
@@ -1202,7 +1202,7 @@ class HintCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the content of the unused import's uri
+  ///  0: the content of the unused import's URI
   static const HintCode UNUSED_IMPORT = HintCode(
     'UNUSED_IMPORT',
     "Unused import: '{0}'.",

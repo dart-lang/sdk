@@ -1346,7 +1346,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the uri pointing to a library
+  ///  0: the URI pointing to a library
   static const CompileTimeErrorCode EXPORT_INTERNAL_LIBRARY =
       CompileTimeErrorCode(
     'EXPORT_INTERNAL_LIBRARY',
@@ -1366,7 +1366,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the uri pointing to a non-library declaration
+  ///  0: the URI pointing to a non-library declaration
   static const CompileTimeErrorCode EXPORT_OF_NON_LIBRARY =
       CompileTimeErrorCode(
     'EXPORT_OF_NON_LIBRARY',
@@ -1982,7 +1982,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the uri pointing to a library
+  ///  0: the URI pointing to a library
   static const CompileTimeErrorCode IMPORT_INTERNAL_LIBRARY =
       CompileTimeErrorCode(
     'IMPORT_INTERNAL_LIBRARY',
@@ -1991,7 +1991,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the uri pointing to a non-library declaration
+  ///  0: the URI pointing to a non-library declaration
   static const CompileTimeErrorCode IMPORT_OF_NON_LIBRARY =
       CompileTimeErrorCode(
     'IMPORT_OF_NON_LIBRARY',
@@ -3753,7 +3753,7 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
-  ///  0: the uri pointing to a non-library declaration
+  ///  0: the URI pointing to a non-library declaration
   static const CompileTimeErrorCode PART_OF_NON_PART = CompileTimeErrorCode(
     'PART_OF_NON_PART',
     "The included part '{0}' must have a part-of directive.",
