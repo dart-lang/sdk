@@ -9,7 +9,7 @@ import '../common.dart' show failedAt, retainDataForTesting;
 import '../common/metrics.dart' show Metrics;
 import '../common/names.dart';
 import '../common/tasks.dart' show CompilerTask;
-import '../compiler_interfaces.dart' show CompilerTypeInferenceFacade;
+import '../compiler.dart' show Compiler;
 import '../elements/entities.dart';
 import '../inferrer/engine.dart' show KernelGlobalTypeInferenceElementData;
 import '../js_backend/inferred_data.dart';
@@ -158,7 +158,7 @@ class GlobalTypeInferenceTask extends CompilerTask {
   @override
   final String name = 'Type inference';
 
-  final CompilerTypeInferenceFacade compiler;
+  final Compiler compiler;
 
   /// The [TypeGraphInferrer] used by the global type inference. This should by
   /// accessed from outside this class for testing only.
@@ -168,7 +168,7 @@ class GlobalTypeInferenceTask extends CompilerTask {
 
   Metrics _metrics = Metrics.none();
 
-  GlobalTypeInferenceTask(CompilerTypeInferenceFacade compiler)
+  GlobalTypeInferenceTask(Compiler compiler)
       : compiler = compiler,
         super(compiler.measurer);
 
@@ -322,7 +322,7 @@ class GlobalTypeInferenceResultsImpl implements GlobalTypeInferenceResults {
         failedAt(
             member,
             "unexpected input: ConstructorBodyElements are created"
-            " after global type inference, no data is avaiable for them."));
+            " after global type inference, no data is available for them."));
     // TODO(sigmund,johnniwinther): Make it an error to query for results that
     // don't exist..
     /*assert(memberResults.containsKey(member) || member is JSignatureMethod,

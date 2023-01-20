@@ -35,6 +35,7 @@ if [[ $D8_OPTIONS ]]; then
   EXTRA_D8_OPTIONS+=("${OPTIONS[@]}")
 fi
 
+# Find the JS runtime based on the input wasm file.
 exec "$D8_EXEC" --experimental-wasm-gc --experimental-wasm-stack-switching \
   --experimental-wasm-type-reflection "${EXTRA_D8_OPTIONS[@]}" \
-  pkg/dart2wasm/bin/run_wasm.js -- "$@"
+  "$SDK_DIR/pkg/dart2wasm/bin/run_wasm.js" -- "$(realpath -- "${1%.*}.mjs")" "$@"

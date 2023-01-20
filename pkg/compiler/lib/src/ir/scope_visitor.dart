@@ -941,7 +941,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
     // user-defined `get:hashCode` or `operator==`.
     //
     // TODO(45681): Improve the analysis. (1) Use static type of the [key]
-    // expression. (2) Use information about the class heirarchy and overloading
+    // expression. (2) Use information about the class hierarchy and overloading
     // of `get:hashCode` to detect safe implementations. This will pick up a lot
     // of enum and enum-like classes.
     if (key is ir.ConstantExpression) {

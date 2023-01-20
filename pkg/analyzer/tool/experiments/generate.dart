@@ -15,10 +15,10 @@ main() async {
 }
 
 List<GeneratedContent> get allTargets {
-  Map<dynamic, dynamic> experimentsYaml = loadYaml(File(join(
+  var experimentsYaml = loadYaml(File(join(
           normalize(join(pkg_root.packageRoot, '../tools')),
           'experimental_features.yaml'))
-      .readAsStringSync());
+      .readAsStringSync()) as Map;
 
   return <GeneratedContent>[
     GeneratedFile('lib/src/dart/analysis/experiments.g.dart',
@@ -70,15 +70,16 @@ part of 'experiments.dart';
     if (features != null) return features;
 
     features = <String, dynamic>{};
-    Map yamlFeatures = experimentsYaml['features'];
+    var yamlFeatures = experimentsYaml['features'] as Map;
     for (MapEntry entry in yamlFeatures.entries) {
-      String category = (entry.value as YamlMap)['category'] ?? 'language';
+      var category =
+          (entry.value as YamlMap)['category'] as String? ?? 'language';
       if (category != "language") {
         // Skip a feature with a category that's not language. In the future
         // possibly allow e.g. 'analyzer' etc.
         continue;
       }
-      features[entry.key] = entry.value;
+      features[entry.key as String] = entry.value;
     }
 
     return _features = features;
@@ -214,7 +215,7 @@ class IsExpired {
     for (var key in keysSorted) {
       var entry = features[key] as YamlMap;
       bool shipped = entry['enabledIn'] != null;
-      bool? expired = entry['expired'];
+      var expired = entry['expired'] as bool?;
       out.write('''
       /// Expiration status of the experiment "$key"
       static const bool ${keyToIdentifier(key)} = ${expired == true};

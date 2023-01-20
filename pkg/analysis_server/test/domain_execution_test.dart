@@ -173,7 +173,7 @@ class A {
 }
 
 void contextFunction() {
-  var a = new A();
+  var a = A();
   // context line
 }
 ''';

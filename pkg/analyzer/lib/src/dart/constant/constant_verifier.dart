@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
+
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -99,12 +101,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitConstantPattern(ConstantPattern node) {
+    super.visitConstantPattern(node);
+
+    var expression = node.expression.unParenthesized;
     _validate(
-      node.expression,
+      expression,
       CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
     );
-
-    super.visitConstantPattern(node);
   }
 
   @override
@@ -229,9 +232,67 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitMapPattern(MapPattern node) {
+    node.typeArguments?.accept(this);
+
+    var uniqueKeys = HashMap<DartObjectImpl, Expression>(
+      hashCode: (_) => 0,
+      equals: (a, b) {
+        if (a.isIdentical2(_typeSystem, b).toBoolValue() == true) {
+          return true;
+        }
+        if (_isRecordTypeWithPrimitiveEqual(a.type) &&
+            _isRecordTypeWithPrimitiveEqual(b.type)) {
+          return a == b;
+        }
+        return false;
+      },
+    );
+    var duplicateKeys = <Expression, Expression>{};
+    for (var element in node.elements) {
+      element.accept(this);
+      if (element is MapPatternEntry) {
+        var key = element.key;
+        var keyValue = _validate(
+          key,
+          CompileTimeErrorCode.NON_CONSTANT_MAP_PATTERN_KEY,
+        );
+        if (keyValue != null) {
+          var existingKey = uniqueKeys[keyValue];
+          if (existingKey != null) {
+            duplicateKeys[key] = existingKey;
+          } else {
+            uniqueKeys[keyValue] = key;
+          }
+        }
+      }
+    }
+
+    for (var duplicateEntry in duplicateKeys.entries) {
+      _errorReporter.reportError(
+        _diagnosticFactory.equalKeysInMapPattern(
+          _errorReporter.source,
+          duplicateEntry.key,
+          duplicateEntry.value,
+        ),
+      );
+    }
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     super.visitMethodDeclaration(node);
     _validateDefaultValues(node.parameters);
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
+    super.visitRelationalPattern(node);
+
+    _validate(
+      node.operand,
+      CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION,
+    );
   }
 
   @override
@@ -393,6 +454,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     return false;
   }
 
+  bool _isRecordTypeWithPrimitiveEqual(DartType type) {
+    return type is RecordType && !_implementsEqualsWhenNotAllowed(type);
+  }
+
   /// Report any errors in the given list. Except for special cases, use the
   /// given error code rather than the one reported in the error.
   ///
@@ -461,7 +526,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
           identical(
               dataErrorCode,
               CompileTimeErrorCode
-                  .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY)) {
+                  .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY) ||
+          identical(dataErrorCode,
+              CompileTimeErrorCode.PATTERN_CONSTANT_FROM_DEFERRED_LIBRARY)) {
         _errorReporter.reportError(data);
       } else if (errorCode != null) {
         _errorReporter.reportError(
@@ -676,26 +743,38 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   void _validateSwitchStatement_nullSafety(SwitchStatement node) {
-    for (var switchMember in node.members) {
-      if (switchMember is SwitchCase) {
-        Expression expression = switchMember.expression;
+    void validateExpression(Expression expression) {
+      var expressionValue = _validate(
+        expression,
+        CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
+      );
+      if (expressionValue == null) {
+        return;
+      }
 
-        var expressionValue = _validate(
-          expression,
-          CompileTimeErrorCode.NON_CONSTANT_CASE_EXPRESSION,
-        );
-        if (expressionValue == null) {
-          continue;
-        }
-
+      if (!_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
         var expressionType = expressionValue.type;
-
         if (_implementsEqualsWhenNotAllowed(expressionType)) {
           _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.CASE_EXPRESSION_TYPE_IMPLEMENTS_EQUALS,
             expression,
             [expressionType],
           );
+        }
+      }
+    }
+
+    for (var switchMember in node.members) {
+      if (switchMember is SwitchCase) {
+        validateExpression(switchMember.expression);
+      } else if (switchMember is SwitchPatternCase) {
+        if (_currentLibrary.featureSet.isEnabled(Feature.patterns)) {
+          switchMember.accept(this);
+        } else {
+          var pattern = switchMember.guardedPattern.pattern;
+          if (pattern is ConstantPattern) {
+            validateExpression(pattern.expression.unParenthesized);
+          }
         }
       }
     }

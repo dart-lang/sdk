@@ -1639,11 +1639,13 @@ class BinaryBuilder {
 
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType representationType = readDartType();
+    String representationName = readStringReference();
     typeParameterStack.length = 0;
 
     node.name = name;
     node.fileUri = fileUri;
     node.declaredRepresentationType = representationType;
+    node.representationName = representationName;
 
     node.members = _readInlineClassMemberDescriptorList();
 

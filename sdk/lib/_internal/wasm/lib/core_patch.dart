@@ -54,10 +54,10 @@ import "dart:typed_data" show Uint8List, Uint16List;
 import 'dart:wasm';
 
 part "bool.dart";
+part "closure.dart";
 part "date_patch.dart";
 part "double.dart";
 part "errors_patch.dart";
-part "function.dart";
 part "growable_list.dart";
 part "identical_patch.dart";
 part "int.dart";

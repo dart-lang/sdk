@@ -230,7 +230,7 @@ class StaticInteropMockValidator {
   /// an error. Considering this API should primarily be used in tests, such a
   /// compilation will be unlikely, but we should revisit this.
   Map<Reference, Set<Extension>> _computeStaticInteropExtensionMap() {
-    // Process the stored libaries, and create a mapping between @staticInterop
+    // Process the stored libraries, and create a mapping between @staticInterop
     // classes and their extensions.
     var staticInteropClassesWithExtensions = <Reference, Set<Extension>>{};
     for (var library in ExportChecker.libraryExtensionMap.keys) {

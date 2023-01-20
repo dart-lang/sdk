@@ -8,11 +8,11 @@ inline class Class1 /* declaredRepresentationType = core::int */ {
 inline class Class2 /* declaredRepresentationType = core::int */ {
   constructor • = self::Class2|;
 }
-method Class1|(core::int field) → self::Class1 {
+static method Class1|(core::int field) → self::Class1 {
   final self::Class1 #this = field;
   return #this;
 }
-method Class2|(core::int field) → self::Class2 {
+static method Class2|(core::int field) → self::Class2 {
   final self::Class2 #this = field;
   return #this;
 }

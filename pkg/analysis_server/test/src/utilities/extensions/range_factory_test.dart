@@ -579,7 +579,7 @@ int bar = 1; // 4
 
   Future<void> test_topLevel_languageVersion_dartDoc() async {
     await resolveTestCode('''
-// @dart = 2.8
+// @dart = 2.19
 
 /// 1
 int foo = 1; // 2
@@ -595,7 +595,7 @@ int bar = 1; // 4
 
   Future<void> test_topLevel_languageVersion_noDartDoc() async {
     await resolveTestCode('''
-// @dart = 2.8
+// @dart = 2.19
 
 int foo = 1; // 2
 

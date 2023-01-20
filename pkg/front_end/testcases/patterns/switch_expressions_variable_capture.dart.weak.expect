@@ -1,0 +1,154 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+import "dart:math" as math;
+
+class Circle extends core::Object {
+  final field core::double radius;
+  constructor •(core::double radius) → self::Circle
+    : self::Circle::radius = radius, super core::Object::•()
+    ;
+}
+static field (dynamic) →? dynamic captured;
+static method test1(dynamic x) → dynamic
+  return block {
+    core::double? #t1;
+    {
+      core::double r;
+      final dynamic #t2 = x;
+      core::int #t3 = -1;
+      core::bool #t4 = false;
+      if(!#t4) {
+        final dynamic #t5 = #t2;
+        if(#t5 is self::Circle) {
+          final core::double #t6 = #t5{self::Circle}.{self::Circle::radius}{core::double};
+          r = #t6;
+          if(r.{core::num::>}(0){(core::num) → core::bool}) {
+            #t3 = 0;
+            #t4 = true;
+          }
+        }
+      }
+      if(!#t4) {
+        #t3 = 1;
+        #t4 = true;
+      }
+      #L1:
+      switch(#t3) {
+        #L2:
+        case #C1:
+          {
+            #t1 = r.{core::double::*}(r){(core::num) → core::double}.{core::double::*}(#C2){(core::num) → core::double};
+            break #L1;
+          }
+        #L3:
+        case #C3:
+          {
+            #t1 = null;
+            break #L1;
+          }
+      }
+    }
+  } =>#t1;
+static method test2(dynamic x) → dynamic
+  return block {
+    dynamic #t7;
+    {
+      core::String a;
+      core::String b;
+      {
+        core::int a;
+        core::int b;
+        final dynamic #t8 = x;
+        core::int #t9 = -1;
+        core::bool #t10 = false;
+        if(!#t10) {
+          final dynamic #t11 = #t8;
+          if(#t11 is core::List<dynamic> && #t11{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
+            final dynamic #t12 = #t11{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+            final dynamic #t13 = #t11{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+            final dynamic #t14 = #t12;
+            if(#t14 is core::int) {
+              final dynamic #t15 = #t13;
+              if(#t15 is core::int) {
+                a = #t14{core::int};
+                b = #t15{core::int};
+                if((self::captured = (dynamic x) → core::int {
+                  return a.{core::num::+}(b){(core::num) → core::int};
+                }) is{ForNonNullableByDefault} dynamic) {
+                  #t9 = 0;
+                  #t10 = true;
+                }
+              }
+            }
+          }
+        }
+        if(!#t10) {
+          final dynamic #t16 = #t8;
+          if(#t16 is core::List<dynamic> && #t16{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
+            final dynamic #t17 = #t16{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+            final dynamic #t18 = #t16{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+            final dynamic #t19 = #t17;
+            if(#t19 is core::String) {
+              final dynamic #t20 = #t18;
+              if(#t20 is core::String) {
+                a = #t19{core::String};
+                b = #t20{core::String};
+                if((self::captured = (dynamic x) → core::String {
+                  return a.{core::String::+}(b){(core::String) → core::String};
+                }) is{ForNonNullableByDefault} dynamic) {
+                  #t9 = 1;
+                  #t10 = true;
+                }
+              }
+            }
+          }
+        }
+        if(!#t10) {
+          #t9 = 2;
+          #t10 = true;
+        }
+        #L4:
+        switch(#t9) {
+          #L5:
+          case #C1:
+            {
+              #t7 = self::captured!(a = b){(dynamic) → dynamic};
+              break #L4;
+            }
+          #L6:
+          case #C3:
+            {
+              #t7 = self::captured!(a = b){(dynamic) → dynamic};
+              break #L4;
+            }
+          #L7:
+          case #C4:
+            {
+              #t7 = null;
+              break #L4;
+            }
+        }
+      }
+    }
+  } =>#t7;
+static method main() → dynamic {
+  self::expectEquals(#C2, self::test1(new self::Circle::•(1.0)));
+  self::expectEquals(null, self::test1(null));
+  self::expectEquals(4, self::test2(<core::int>[1, 2]));
+  self::expectEquals("twotwo", self::test2(<core::String>["one", "two"]));
+  self::expectEquals(null, self::test2(null));
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected ${x} to be equal to ${y}.";
+  }
+}
+
+constants  {
+  #C1 = 0
+  #C2 = 3.141592653589793
+  #C3 = 1
+  #C4 = 2
+}

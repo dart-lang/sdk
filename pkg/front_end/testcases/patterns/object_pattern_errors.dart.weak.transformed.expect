@@ -1,0 +1,35 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/object_pattern_errors.dart:10:14: Error: Expected 0 type arguments.
+//   if (x case A<int>()) {} // Error.
+//              ^
+//
+// pkg/front_end/testcases/patterns/object_pattern_errors.dart:13:14: Error: Expected 1 type arguments.
+//   if (x case B<String, num>()) {} // Error.
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef B<unrelated X extends core::Object? = dynamic> = self::A;
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+}
+static method test(dynamic x) → dynamic {
+  final dynamic #t1 = x;
+  final dynamic #t2 = x;
+  final dynamic #t3 = #t2;
+  if(#t3 is self::A) {
+  }
+  final dynamic #t4 = x;
+  final dynamic #t5 = #t4;
+  if(#t5 is self::A) {
+  }
+  final dynamic #t6 = x;
+}
+static method _#B#new#tearOff<unrelated X extends core::Object? = dynamic>() → self::A
+  return new self::A::•();

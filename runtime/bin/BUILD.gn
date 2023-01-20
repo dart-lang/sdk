@@ -7,6 +7,7 @@ import("../../build/dart/dart_action.gni")
 import("../../sdk_args.gni")
 import("../runtime_args.gni")
 import("../vm/compiler/compiler_sources.gni")
+import("../vm/ffi/ffi_sources.gni")
 import("../vm/heap/heap_sources.gni")
 import("../vm/vm_sources.gni")
 import("builtin_impl_sources.gni")
@@ -821,6 +822,7 @@ dart_executable("dart") {
     "loader.cc",
     "loader.h",
     "main.cc",
+    "main_impl.cc",
   ]
   if (dart_runtime_mode == "release") {
     extra_sources += [ "observatory_assets_empty.cc" ]
@@ -849,6 +851,7 @@ dart_executable("dart_precompiled_runtime") {
     "loader.cc",
     "loader.h",
     "main.cc",
+    "main_impl.cc",
     "snapshot_empty.cc",
   ]
 
@@ -880,6 +883,7 @@ dart_executable("dart_precompiled_runtime_product") {
     "loader.cc",
     "loader.h",
     "main.cc",
+    "main_impl.cc",
     "observatory_assets_empty.cc",
     "snapshot_empty.cc",
   ]

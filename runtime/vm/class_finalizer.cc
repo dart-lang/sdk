@@ -215,6 +215,9 @@ bool ClassFinalizer::ProcessPendingClasses() {
     for (intptr_t i = 0; i < class_array.Length(); i++) {
       cls ^= class_array.At(i);
       FinalizeTypesInClass(cls);
+#if !defined(PRODUCT)
+      cls.SetUserVisibleNameInClassTable();
+#endif
     }
 
     // Clear pending classes array.
@@ -1149,7 +1152,7 @@ void ClassFinalizer::RegisterClassInHierarchy(Zone* zone, const Class& cls) {
     other_cls.AddDirectImplementor(cls, /* is_mixin = */ i == mixin_index);
   }
 
-  // Propogate known concrete implementors to interfaces.
+  // Propagate known concrete implementors to interfaces.
   if (!cls.is_abstract()) {
     GrowableArray<const Class*> worklist;
     worklist.Add(&cls);

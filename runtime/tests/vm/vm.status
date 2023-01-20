@@ -205,6 +205,9 @@ cc/CorelibCompilerStats: Skip
 dart/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 dart_2/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 
+[ $qemu ]
+cc/ManyClasses: Slow, Pass # Generates 100k classes, slow on emulated architectures.
+
 [ $arch == ia32 && $mode == debug ]
 dart/*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
 dart_2/*: Pass, Slow # The CFE is not run from AppJit snapshot, JIT warmup in debug mode very slow
@@ -349,7 +352,7 @@ cc/CodeExecutability: SkipByDesign # --dual-map-code not supported on non-Linux/
 dart/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
 dart_2/v8_snapshot_profile_writer_test: SkipByDesign # Only relevant for AOT. Doesn't work in cross-compilation (has to run on the host). On Linux/simarm64 and Linux/simarm this test requires buildtools/clang which is not always available on testing shards.
 
-# On the simluator stack traces produced by the Profiler do not match
+# On the simulator stack traces produced by the Profiler do not match
 # up with the real Dart stack trace and hence we don't get correct
 # symbol names.
 [ $arch == simarm || $arch == simarm64 || $arch == simarm64c || $arch == simriscv32 || $arch == simriscv64 ]
@@ -372,7 +375,7 @@ cc/Profiler_ContextAllocation: SkipByDesign
 cc/Profiler_FunctionInline: SkipByDesign
 cc/Profiler_FunctionTicks: SkipByDesign
 cc/Profiler_GetSourceReport: SkipByDesign
-cc/Profiler_InliningIntervalBoundry: SkipByDesign
+cc/Profiler_InliningIntervalBoundary: SkipByDesign
 cc/Profiler_IntrinsicAllocation: SkipByDesign
 cc/Profiler_SampleBufferIterateTest: SkipByDesign
 cc/Profiler_SampleBufferWrapTest: SkipByDesign

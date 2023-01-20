@@ -9,7 +9,7 @@ import 'never_null_assignability_lib1.dart';
 
 // Tests for direct calls to null safe functions.
 void testNullSafeCalls() {
-  // Test calling a null safe function expecting Null from a null safe libary
+  // Test calling a null safe function expecting Null from a null safe library
   {
     takesNull(nil);
     Expect.throws<String>(() => takesNull(never));
@@ -18,7 +18,7 @@ void testNullSafeCalls() {
     Expect.throwsTypeError(() => (takesNull as dynamic)(3));
   }
 
-  // Test calling a null safe function expecting Never from a null safe libary
+  // Test calling a null safe function expecting Never from a null safe library
   {
     Expect.throws<String>(() => takesNever(never));
     // 3 can't be cast to Null or Never
@@ -26,7 +26,7 @@ void testNullSafeCalls() {
     Expect.throwsTypeError(() => (takesNever as dynamic)(3));
   }
 
-  // Test calling a null safe function expecting int from a null safe libary
+  // Test calling a null safe function expecting int from a null safe library
   {
     takesInt(3);
     Expect.throwsTypeError(() => takesInt(nil as dynamic));
@@ -34,14 +34,14 @@ void testNullSafeCalls() {
     Expect.throwsTypeError(() => (takesInt as dynamic)("hello"));
   }
 
-  // Test calling a null safe function expecting Object from a null safe libary
+  // Test calling a null safe function expecting Object from a null safe library
   {
     takesObject(3);
     Expect.throwsTypeError(() => takesObject(nil as dynamic));
     Expect.throwsTypeError(() => (takesObject as dynamic)(nil));
   }
 
-  // Test calling a null safe function expecting Object? from a null safe libary
+  // Test calling a null safe function expecting Object? from a null safe library
   {
     takesAny(3);
     takesAny(nil);

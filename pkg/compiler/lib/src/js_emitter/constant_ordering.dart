@@ -150,6 +150,13 @@ class _ConstantOrdering
   }
 
   @override
+  int visitRecord(RecordConstantValue a, RecordConstantValue b) {
+    int r = RecordShape.compare(a.shape, b.shape);
+    if (r != 0) return r;
+    return compareLists(compareValues, a.values, b.values);
+  }
+
+  @override
   int visitInterceptor(InterceptorConstantValue a, InterceptorConstantValue b) {
     return compareClasses(a.cls, b.cls);
   }

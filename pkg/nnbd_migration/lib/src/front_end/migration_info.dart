@@ -44,7 +44,7 @@ class EditDetail {
 /// with information about the rest of the libraries represented in the
 /// instrumentation output.
 class MigrationInfo {
-  /// The information about the compilation units that are are migrated.
+  /// The information about the compilation units that are migrated.
   final Set<UnitInfo>? units;
 
   /// A map from file paths to the unit infos created for those files. The units

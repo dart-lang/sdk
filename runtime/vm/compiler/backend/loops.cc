@@ -603,7 +603,7 @@ InductionVar* InductionVarAnalysis::SolveConstraint(LoopInfo* loop,
                                                     InductionVar* init) {
   InductionVar* c = LookupCycle(def->InputAt(0)->definition());
   if (c == init) {
-    // Record a non-artifical bound constraint on a phi.
+    // Record a non-artificial bound constraint on a phi.
     ConstraintInstr* constraint = def->AsConstraint();
     if (constraint->target() != nullptr) {
       loop->limit_ = constraint;

@@ -182,6 +182,9 @@ abstract class AbstractParserAstListener implements Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -191,6 +194,9 @@ abstract class AbstractParserAstListener implements Listener {
         macroToken: macroToken,
         inlineToken: inlineToken,
         sealedToken: sealedToken,
+        baseToken: baseToken,
+        interfaceToken: interfaceToken,
+        finalToken: finalToken,
         augmentToken: augmentToken,
         mixinToken: mixinToken,
         name: name);
@@ -246,10 +252,19 @@ abstract class AbstractParserAstListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
+      Token? augmentToken,
+      Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
+      Token mixinKeyword,
+      Token name) {
     MixinDeclarationBegin data = new MixinDeclarationBegin(ParserAstType.BEGIN,
         augmentToken: augmentToken,
         sealedToken: sealedToken,
+        baseToken: baseToken,
+        interfaceToken: interfaceToken,
+        finalToken: finalToken,
         mixinKeyword: mixinKeyword,
         name: name);
     seen(data);
@@ -970,6 +985,9 @@ abstract class AbstractParserAstListener implements Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -980,6 +998,9 @@ abstract class AbstractParserAstListener implements Listener {
         macroToken: macroToken,
         inlineToken: inlineToken,
         sealedToken: sealedToken,
+        baseToken: baseToken,
+        interfaceToken: interfaceToken,
+        finalToken: finalToken,
         augmentToken: augmentToken,
         mixinToken: mixinToken,
         name: name);
@@ -2556,6 +2577,14 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void handleSwitchExpressionCasePattern(Token token) {
+    SwitchExpressionCasePatternHandle data =
+        new SwitchExpressionCasePatternHandle(ParserAstType.HANDLE,
+            token: token);
+    seen(data);
+  }
+
+  @override
   void handleSymbolVoid(Token token) {
     SymbolVoidHandle data =
         new SymbolVoidHandle(ParserAstType.HANDLE, token: token);
@@ -2589,10 +2618,24 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void beginPatternGuard(Token when) {
+    PatternGuardBegin data =
+        new PatternGuardBegin(ParserAstType.BEGIN, when: when);
+    seen(data);
+  }
+
+  @override
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {
     ParenthesizedExpressionOrRecordLiteralBegin data =
         new ParenthesizedExpressionOrRecordLiteralBegin(ParserAstType.BEGIN,
             token: token);
+    seen(data);
+  }
+
+  @override
+  void beginSwitchCaseWhenClause(Token when) {
+    SwitchCaseWhenClauseBegin data =
+        new SwitchCaseWhenClauseBegin(ParserAstType.BEGIN, when: when);
     seen(data);
   }
 
@@ -2611,9 +2654,22 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void endPatternGuard(Token token) {
+    PatternGuardEnd data = new PatternGuardEnd(ParserAstType.END, token: token);
+    seen(data);
+  }
+
+  @override
   void endParenthesizedExpression(Token token) {
     ParenthesizedExpressionEnd data =
         new ParenthesizedExpressionEnd(ParserAstType.END, token: token);
+    seen(data);
+  }
+
+  @override
+  void endSwitchCaseWhenClause(Token token) {
+    SwitchCaseWhenClauseEnd data =
+        new SwitchCaseWhenClauseEnd(ParserAstType.END, token: token);
     seen(data);
   }
 
@@ -2625,9 +2681,16 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleConstantPattern(Token? constKeyword) {
-    ConstantPatternHandle data = new ConstantPatternHandle(ParserAstType.HANDLE,
+  void beginConstantPattern(Token? constKeyword) {
+    ConstantPatternBegin data = new ConstantPatternBegin(ParserAstType.BEGIN,
         constKeyword: constKeyword);
+    seen(data);
+  }
+
+  @override
+  void endConstantPattern(Token? constKeyword) {
+    ConstantPatternEnd data =
+        new ConstantPatternEnd(ParserAstType.END, constKeyword: constKeyword);
     seen(data);
   }
 
@@ -3208,6 +3271,9 @@ class ClassDeclarationBegin extends ParserAstNode {
   final Token? macroToken;
   final Token? inlineToken;
   final Token? sealedToken;
+  final Token? baseToken;
+  final Token? interfaceToken;
+  final Token? finalToken;
   final Token? augmentToken;
   final Token? mixinToken;
   final Token name;
@@ -3218,6 +3284,9 @@ class ClassDeclarationBegin extends ParserAstNode {
       this.macroToken,
       this.inlineToken,
       this.sealedToken,
+      this.baseToken,
+      this.interfaceToken,
+      this.finalToken,
       this.augmentToken,
       this.mixinToken,
       required this.name})
@@ -3230,6 +3299,9 @@ class ClassDeclarationBegin extends ParserAstNode {
         "macroToken": macroToken,
         "inlineToken": inlineToken,
         "sealedToken": sealedToken,
+        "baseToken": baseToken,
+        "interfaceToken": interfaceToken,
+        "finalToken": finalToken,
         "augmentToken": augmentToken,
         "mixinToken": mixinToken,
         "name": name,
@@ -3331,12 +3403,18 @@ class ClassDeclarationEnd extends ParserAstNode {
 class MixinDeclarationBegin extends ParserAstNode {
   final Token? augmentToken;
   final Token? sealedToken;
+  final Token? baseToken;
+  final Token? interfaceToken;
+  final Token? finalToken;
   final Token mixinKeyword;
   final Token name;
 
   MixinDeclarationBegin(ParserAstType type,
       {this.augmentToken,
       this.sealedToken,
+      this.baseToken,
+      this.interfaceToken,
+      this.finalToken,
       required this.mixinKeyword,
       required this.name})
       : super("MixinDeclaration", type);
@@ -3345,6 +3423,9 @@ class MixinDeclarationBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "augmentToken": augmentToken,
         "sealedToken": sealedToken,
+        "baseToken": baseToken,
+        "interfaceToken": interfaceToken,
+        "finalToken": finalToken,
         "mixinKeyword": mixinKeyword,
         "name": name,
       };
@@ -4625,6 +4706,9 @@ class NamedMixinApplicationBegin extends ParserAstNode {
   final Token? macroToken;
   final Token? inlineToken;
   final Token? sealedToken;
+  final Token? baseToken;
+  final Token? interfaceToken;
+  final Token? finalToken;
   final Token? augmentToken;
   final Token? mixinToken;
   final Token name;
@@ -4635,6 +4719,9 @@ class NamedMixinApplicationBegin extends ParserAstNode {
       this.macroToken,
       this.inlineToken,
       this.sealedToken,
+      this.baseToken,
+      this.interfaceToken,
+      this.finalToken,
       this.augmentToken,
       this.mixinToken,
       required this.name})
@@ -4647,6 +4734,9 @@ class NamedMixinApplicationBegin extends ParserAstNode {
         "macroToken": macroToken,
         "inlineToken": inlineToken,
         "sealedToken": sealedToken,
+        "baseToken": baseToken,
+        "interfaceToken": interfaceToken,
+        "finalToken": finalToken,
         "augmentToken": augmentToken,
         "mixinToken": mixinToken,
         "name": name,
@@ -7487,6 +7577,18 @@ class OperatorHandle extends ParserAstNode {
       };
 }
 
+class SwitchExpressionCasePatternHandle extends ParserAstNode {
+  final Token token;
+
+  SwitchExpressionCasePatternHandle(ParserAstType type, {required this.token})
+      : super("SwitchExpressionCasePattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
 class SymbolVoidHandle extends ParserAstNode {
   final Token token;
 
@@ -7546,6 +7648,18 @@ class ParenthesizedConditionHandle extends ParserAstNode {
       };
 }
 
+class PatternGuardBegin extends ParserAstNode {
+  final Token when;
+
+  PatternGuardBegin(ParserAstType type, {required this.when})
+      : super("PatternGuard", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "when": when,
+      };
+}
+
 class ParenthesizedExpressionOrRecordLiteralBegin extends ParserAstNode {
   final Token token;
 
@@ -7556,6 +7670,18 @@ class ParenthesizedExpressionOrRecordLiteralBegin extends ParserAstNode {
   @override
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
+      };
+}
+
+class SwitchCaseWhenClauseBegin extends ParserAstNode {
+  final Token when;
+
+  SwitchCaseWhenClauseBegin(ParserAstType type, {required this.when})
+      : super("SwitchCaseWhenClause", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "when": when,
       };
 }
 
@@ -7591,11 +7717,35 @@ class RecordPatternHandle extends ParserAstNode {
       };
 }
 
+class PatternGuardEnd extends ParserAstNode {
+  final Token token;
+
+  PatternGuardEnd(ParserAstType type, {required this.token})
+      : super("PatternGuard", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
 class ParenthesizedExpressionEnd extends ParserAstNode {
   final Token token;
 
   ParenthesizedExpressionEnd(ParserAstType type, {required this.token})
       : super("ParenthesizedExpression", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "token": token,
+      };
+}
+
+class SwitchCaseWhenClauseEnd extends ParserAstNode {
+  final Token token;
+
+  SwitchCaseWhenClauseEnd(ParserAstType type, {required this.token})
+      : super("SwitchCaseWhenClause", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -7615,10 +7765,22 @@ class ParenthesizedPatternHandle extends ParserAstNode {
       };
 }
 
-class ConstantPatternHandle extends ParserAstNode {
+class ConstantPatternBegin extends ParserAstNode {
   final Token? constKeyword;
 
-  ConstantPatternHandle(ParserAstType type, {this.constKeyword})
+  ConstantPatternBegin(ParserAstType type, {this.constKeyword})
+      : super("ConstantPattern", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "constKeyword": constKeyword,
+      };
+}
+
+class ConstantPatternEnd extends ParserAstNode {
+  final Token? constKeyword;
+
+  ConstantPatternEnd(ParserAstType type, {this.constKeyword})
       : super("ConstantPattern", type);
 
   @override

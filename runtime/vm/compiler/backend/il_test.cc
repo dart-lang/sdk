@@ -1242,4 +1242,82 @@ ISOLATE_UNIT_TEST_CASE(ConstantFold_bitLength) {
   test("m1", 0);
   test("m2", 1);
 }
+
+static void TestRepresentationChangeDuringCanonicalization(
+    Thread* thread,
+    bool allow_representation_change) {
+  using compiler::BlockBuilder;
+
+  const auto& lib = Library::Handle(Library::CoreLibrary());
+  const Class& list_class =
+      Class::Handle(lib.LookupClassAllowPrivate(Symbols::_List()));
+  EXPECT(!list_class.IsNull());
+  const Error& err = Error::Handle(list_class.EnsureIsFinalized(thread));
+  EXPECT(err.IsNull());
+  const Function& list_filled = Function::ZoneHandle(
+      list_class.LookupFactoryAllowPrivate(Symbols::_ListFilledFactory()));
+  EXPECT(!list_filled.IsNull());
+
+  CompilerState S(thread, /*is_aot=*/true, /*is_optimizing=*/true);
+
+  FlowGraphBuilderHelper H(/*num_parameters=*/1);
+  H.AddVariable("param", AbstractType::ZoneHandle(Type::IntType()));
+
+  auto normal_entry = H.flow_graph()->graph_entry()->normal_entry();
+
+  Definition* param = nullptr;
+  LoadFieldInstr* load = nullptr;
+  UnboxInstr* unbox = nullptr;
+  Definition* add = nullptr;
+  {
+    BlockBuilder builder(H.flow_graph(), normal_entry);
+    param = builder.AddParameter(0, 0, /*with_frame=*/true, kUnboxedInt64);
+
+    InputsArray args;
+    args.Add(new Value(H.flow_graph()->constant_null()));
+    args.Add(new Value(param));
+    args.Add(new Value(H.IntConstant(0)));
+    StaticCallInstr* array = builder.AddDefinition(new StaticCallInstr(
+        InstructionSource(), list_filled, 1, Array::empty_array(),
+        std::move(args), DeoptId::kNone, 0, ICData::kNoRebind));
+    array->UpdateType(CompileType::FromCid(kArrayCid));
+    array->SetResultType(thread->zone(), CompileType::FromCid(kArrayCid));
+    array->set_is_known_list_constructor(true);
+
+    load = builder.AddDefinition(new LoadFieldInstr(
+        new Value(array), Slot::Array_length(), InstructionSource()));
+
+    unbox = builder.AddDefinition(new UnboxInt64Instr(
+        new Value(load), DeoptId::kNone, Instruction::kNotSpeculative));
+
+    add = builder.AddDefinition(new BinaryInt64OpInstr(
+        Token::kADD, new Value(unbox), new Value(H.IntConstant(1)),
+        S.GetNextDeoptId(), Instruction::kNotSpeculative));
+
+    Definition* box = builder.AddDefinition(new BoxInt64Instr(new Value(add)));
+
+    builder.AddReturn(new Value(box));
+  }
+
+  H.FinishGraph();
+
+  if (!allow_representation_change) {
+    H.flow_graph()->disallow_unmatched_representations();
+  }
+
+  H.flow_graph()->Canonicalize();
+
+  if (allow_representation_change) {
+    EXPECT(add->InputAt(0)->definition() == param);
+  } else {
+    EXPECT(add->InputAt(0)->definition() == unbox);
+    EXPECT(unbox->value()->definition() == load);
+  }
+}
+
+ISOLATE_UNIT_TEST_CASE(IL_Canonicalize_RepresentationChange) {
+  TestRepresentationChangeDuringCanonicalization(thread, true);
+  TestRepresentationChangeDuringCanonicalization(thread, false);
+}
+
 }  // namespace dart

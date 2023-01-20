@@ -50,7 +50,7 @@ class Object {
 
   @pragma("wasm:entry-point")
   _Type get _runtimeType {
-    if (ClassID.getID(this) == ClassID.cid_Function) {
+    if (ClassID.getID(this) == ClassID.cid_Closure) {
       return _getFunctionTypeRuntimeType(this);
     } else {
       return _getInterfaceTypeRuntimeType(this, _typeArguments);

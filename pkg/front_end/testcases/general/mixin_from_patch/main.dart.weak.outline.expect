@@ -18,8 +18,7 @@ class Class extends core::Object {
   constructor _internal({core::bool value = false}) → self2::Class
     ;
   @_in::patch
-  external constructor patched() → self2::Class
-    ;
+  external constructor patched() → self2::Class;
   constructor unpatched() → self2::Class
     ;
 }
@@ -41,8 +40,7 @@ class SubClass extends self2::_SubClass&Class&Mixin {
   constructor _internal() → self2::SubClass
     ;
   @_in::patch
-  external constructor patched() → self2::SubClass
-    ;
+  external constructor patched() → self2::SubClass;
   constructor unpatched() → self2::SubClass
     ;
 }

@@ -5,23 +5,28 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
+import 'package:kernel/target/targets.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:kernel/type_algebra.dart';
+import 'package:_fe_analyzer_shared/src/messages/codes.dart'
+    show messageWasmSyncStar;
 
-void transformLibraries(
-    List<Library> libraries, CoreTypes coreTypes, ClassHierarchy hierarchy) {
-  final transformer = _WasmTransformer(coreTypes, hierarchy);
+void transformLibraries(List<Library> libraries, CoreTypes coreTypes,
+    ClassHierarchy hierarchy, DiagnosticReporter diagnosticReporter) {
+  final transformer =
+      _WasmTransformer(coreTypes, hierarchy, diagnosticReporter);
   libraries.forEach(transformer.visitLibrary);
 }
 
 void transformProcedure(
     Procedure procedure, CoreTypes coreTypes, ClassHierarchy hierarchy) {
-  final transformer = _WasmTransformer(coreTypes, hierarchy);
+  final transformer = _WasmTransformer(coreTypes, hierarchy, null);
   procedure.accept(transformer);
 }
 
 class _WasmTransformer extends Transformer {
   final TypeEnvironment env;
+  final DiagnosticReporter? diagnosticReporter;
 
   Member? _currentMember;
   StaticTypeContext? _cachedTypeContext;
@@ -43,7 +48,8 @@ class _WasmTransformer extends Transformer {
 
   CoreTypes get coreTypes => env.coreTypes;
 
-  _WasmTransformer(CoreTypes coreTypes, ClassHierarchy hierarchy)
+  _WasmTransformer(
+      CoreTypes coreTypes, ClassHierarchy hierarchy, this.diagnosticReporter)
       : env = TypeEnvironment(coreTypes, hierarchy),
         _nonNullableTypeType = coreTypes.index
             .getClass('dart:core', '_Type')
@@ -303,7 +309,7 @@ class _WasmTransformer extends Transformer {
   TreeNode _lowerAsyncStar(FunctionNode functionNode) {
     // TODO(joshualitt): This lowering is mostly reasonable, but if possible we
     // should try and figure out a way to remove the even / odd dance. That
-    // said, this will be replaced by an intrinsic implemntation ASAP so it may
+    // said, this will be replaced by an intrinsic implementation ASAP so it may
     // not be worth spending anymore time on this(aside from bug fixes).
     //
     // Transform
@@ -640,6 +646,10 @@ class _WasmTransformer extends Transformer {
       _enclosingIsAsyncStar = false;
       return super.visitFunctionNode(functionNode);
     } else {
+      if (functionNode.dartAsyncMarker == AsyncMarker.SyncStar) {
+        diagnosticReporter?.report(messageWasmSyncStar, functionNode.fileOffset,
+            1, functionNode.location?.file);
+      }
       bool previousEnclosing = _enclosingIsAsyncStar;
       TreeNode result = super.visitFunctionNode(functionNode);
       _enclosingIsAsyncStar = previousEnclosing;

@@ -6,22 +6,24 @@ static method test(dynamic x) → dynamic {
   #L1:
   {
     final dynamic #t1 = x;
-    final core::int #t2 = -1;
-    final core::bool #t3 = false;
+    core::int #t2 = -1;
+    core::bool #t3 = false;
     if(!#t3) {
       final dynamic #t4 = #t1;
-      if(#t4 is{ForNonNullableByDefault} core::Map<core::String, core::int> && (#t4{core::Map<core::String, core::int>}.{core::Map::containsKey}("a"){(core::Object?) → core::bool} && #t4{core::Map<core::String, core::int>}.{core::Map::containsKey}("b"){(core::Object?) → core::bool})) {
+      if(#t4 is{ForNonNullableByDefault} core::Map<core::String, core::int> && (#t4{core::Map<core::String, core::int>}.{core::Map::containsKey}("a"){(core::Object?) → core::bool} && #t4{core::Map<core::String, core::int>}.{core::Map::containsKey}("b"){(core::Object?) → core::bool}) && #t4{core::Map<core::String, core::int>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
         final core::int #t5 = #t4{core::Map<core::String, core::int>}.{core::Map::[]}("a"){(core::Object?) → core::int?};
         final core::int #t6 = #t4{core::Map<core::String, core::int>}.{core::Map::[]}("b"){(core::Object?) → core::int?};
-        if(#t5 =={core::num::==}{(core::Object) → core::bool} 1 && #t6 =={core::num::==}{(core::Object) → core::bool} 2) {
-          #t2 = 0;
-          #t3 = true;
+        if(#t5 =={core::num::==}{(core::Object) → core::bool} #C1) {
+          if(#t6 =={core::num::==}{(core::Object) → core::bool} #C2) {
+            #t2 = 0;
+            #t3 = true;
+          }
         }
       }
     }
     switch(#t2) {
       #L2:
-      case #C1:
+      case #C3:
         {
           {
             break #L1;
@@ -32,5 +34,7 @@ static method test(dynamic x) → dynamic {
 }
 
 constants  {
-  #C1 = 0
+  #C1 = 1
+  #C2 = 2
+  #C3 = 0
 }

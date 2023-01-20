@@ -564,6 +564,8 @@ class CallingConventions {
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
       kAlignedToWordSize;
+  static constexpr AlignmentStrategy kArgumentRegisterAlignmentVarArgs =
+      kArgumentRegisterAlignment;
 
   // How stack arguments are aligned.
 #if defined(DART_TARGET_OS_MACOS_IOS) || defined(DART_TARGET_OS_MACOS)

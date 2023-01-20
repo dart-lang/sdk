@@ -2321,6 +2321,7 @@ static void PrintInboundReferences(Thread* thread,
             (slot_offset.Value() - Array::element_offset(0)) /
             Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
+        jselement.AddProperty("parentField", element_index);
       } else if (source.IsRecord()) {
         AddParentFieldToResponseBasedOnRecord(thread, &field_names, &name,
                                               jselement, Record::Cast(source),
@@ -2351,6 +2352,7 @@ static void PrintInboundReferences(Thread* thread,
               (slot_offset.Value() - Context::variable_offset(0)) /
               Context::kBytesPerElement;
           jselement.AddProperty("parentListIndex", element_index);
+          jselement.AddProperty("parentField", element_index);
         } else {
           jselement.AddProperty("_parentWordOffset", slot_offset.Value());
         }
@@ -2445,6 +2447,7 @@ static void PrintRetainingPath(Thread* thread,
             (slot_offset.Value() - Array::element_offset(0)) /
             Array::kBytesPerElement;
         jselement.AddProperty("parentListIndex", element_index);
+        jselement.AddProperty("parentField", element_index);
       } else if (element.IsRecord()) {
         AddParentFieldToResponseBasedOnRecord(thread, &field_names, &name,
                                               jselement, Record::Cast(element),
@@ -2491,6 +2494,7 @@ static void PrintRetainingPath(Thread* thread,
               (slot_offset.Value() - Context::variable_offset(0)) /
               Context::kBytesPerElement;
           jselement.AddProperty("parentListIndex", element_index);
+          jselement.AddProperty("parentField", element_index);
         } else {
           jselement.AddProperty("_parentWordOffset", slot_offset.Value());
         }
@@ -3002,7 +3006,8 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
       method_name = frame->function().UserVisibleName();
       isStatic = true;
     } else {
-      const Class& method_cls = Class::Handle(zone, frame->function().origin());
+      Class& method_cls = Class::Handle(zone, frame->function().origin());
+      method_cls = method_cls.Mixin();
       library_uri = Library::Handle(zone, method_cls.library()).url();
       klass_name = method_cls.UserVisibleName();
       method_name = frame->function().UserVisibleName();
@@ -3038,6 +3043,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
         Instance& instance = Instance::Handle(zone);
         instance ^= obj.ptr();
         cls = instance.clazz();
+        cls = cls.Mixin();
         isStatic = false;
       }
       if (!cls.IsTopLevel() &&
@@ -4002,7 +4008,7 @@ static void RemoveBreakpoint(Thread* thread, JSONStream* js) {
   ObjectIdRing::LookupResult lookup_result;
   Isolate* isolate = thread->isolate();
   Breakpoint* bpt = LookupBreakpoint(isolate, bpt_id, &lookup_result);
-  // TODO(turnidge): Should we return a different error for bpts whic
+  // TODO(turnidge): Should we return a different error for bpts which
   // have been already removed?
   if (bpt == NULL) {
     PrintInvalidParamError(js, "breakpointId");

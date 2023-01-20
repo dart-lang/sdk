@@ -4973,6 +4973,40 @@ TEST_CASE(IsolateReload_RegressB179030011) {
   }
 }
 
+// Regression test for https://github.com/dart-lang/sdk/issues/50148.
+TEST_CASE(IsolateReload_GenericConstructorTearOff) {
+  const char* kScript = R"(
+    typedef Create<T, R> = T Function(R ref);
+
+    class Base<Input> {
+      Base(void Function(Create<void, Input> create) factory) : _factory = factory;
+
+      final void Function(Create<void, Input> create) _factory;
+
+      void fn() => _factory((ref) {});
+    }
+
+    class Check<T> {
+      Check(Create<Object?, List<T>> create);
+    }
+
+    final f = Base<List<int>>(Check<int>.new);
+
+    main() {
+      f.fn();
+      return "okay";
+    }
+  )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+
+  lib = TestCase::ReloadTestScript(kScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("okay", SimpleInvokeStr(lib, "main"));
+}
+
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
 }  // namespace dart

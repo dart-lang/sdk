@@ -10,7 +10,7 @@ import '../common.dart';
 import '../common/elements.dart';
 import '../common/metrics.dart';
 import '../common/names.dart';
-import '../compiler_migrated.dart';
+import '../compiler.dart';
 import '../constants/values.dart';
 import '../elements/entities.dart';
 import '../elements/names.dart';
@@ -988,16 +988,16 @@ class InferrerEngine {
       ir.Node callSite,
       Set<MemberEntity> visited) {
     final member = target.member;
-    final isClosurized = callSiteType.closurizedTargets.contains(member);
-    void handleTarget(MemberEntity override) {
-      if (override.isAbstract || !visited.add(override)) return;
+    bool handleTarget(MemberEntity override) {
+      if (override.isAbstract || !visited.add(override)) return false;
       MemberTypeInformation info = types.getInferredTypeOfMember(override);
       info.addCall(callSiteType.caller, callSite);
 
-      if (isClosurized) {
+      if (types.getInferredTypeOfVirtualMember(member).closurizedCount > 0) {
         _markForClosurization(info, callSiteType,
             remove: false, addToQueue: false);
       }
+      return true;
     }
 
     handleTarget(member);

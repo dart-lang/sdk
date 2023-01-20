@@ -221,7 +221,7 @@ abstract class DartEditBuilder implements EditBuilder {
       Expression argument, int index, Set<String> usedNames);
 
   /// Write the code for a list of [parameters], including the surrounding
-  /// parentheses.
+  /// parentheses and default values (unless [includeDefaultValues] is `false`).
   ///
   /// If a [methodBeingCopied] is provided, then type parameters defined by that
   /// method are assumed to be part of what is being written and hence valid
@@ -229,7 +229,9 @@ abstract class DartEditBuilder implements EditBuilder {
   ///
   /// If [requiredTypes] is `true`, then the types are always written.
   void writeParameters(Iterable<ParameterElement> parameters,
-      {ExecutableElement? methodBeingCopied, bool requiredTypes});
+      {ExecutableElement? methodBeingCopied,
+      bool includeDefaultValues = true,
+      bool requiredTypes});
 
   /// Write the code for a list of parameters that would match the given list of
   /// [arguments]. The surrounding parentheses are *not* written.
@@ -306,6 +308,10 @@ abstract class DartEditBuilder implements EditBuilder {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class DartFileEditBuilder implements FileEditBuilder {
+  /// Set the file header to be added before any generated imports. A blank line
+  /// will automatically be added after the file header.
+  set fileHeader(String fileHeader);
+
   /// A list of new URIs that must be imported for the types being referenced in
   /// edits.
   List<Uri> get requiredImports;

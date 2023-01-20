@@ -7,15 +7,16 @@ static method test(dynamic x) → dynamic {
   {
     dynamic #t1;
     final dynamic #t2 = x;
-    final core::int #t3 = -1;
-    final core::bool #t4 = false;
+    core::int #t3 = -1;
+    core::bool #t4 = false;
     if(!#t4) {
       final core::Object #t5 = #t2 as{ForNonNullableByDefault} core::Object;
       final core::Object #t6 = #t5;
       if(#t6 is core::int) {
+        core::int as = #t6{core::int};
         #t3 = 0;
         #t4 = true;
-        #t1 = #t6{core::int};
+        #t1 = as;
       }
     }
     switch(#t3) {

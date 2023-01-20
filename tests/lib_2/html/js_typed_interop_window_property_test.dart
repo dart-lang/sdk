@@ -25,7 +25,7 @@ _injectJs() {
 }
 
 @JS("window.foo")
-external List<Function> get foo;
+external List<dynamic> get foo;
 
 main() {
   _injectJs();

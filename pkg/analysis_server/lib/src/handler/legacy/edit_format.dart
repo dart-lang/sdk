@@ -16,7 +16,8 @@ import 'package:dart_style/src/source_code.dart';
 class EditFormatHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  EditFormatHandler(super.server, super.request, super.cancellationToken);
+  EditFormatHandler(
+      super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {

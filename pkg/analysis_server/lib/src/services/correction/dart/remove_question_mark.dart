@@ -42,5 +42,11 @@ class RemoveQuestionMark extends CorrectionProducer {
         builder.addDeletion(range.token(questionMark));
       });
     }
+    if (targetNode is NullCheckPattern) {
+      var questionMark = targetNode.operator;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addDeletion(range.token(questionMark));
+      });
+    }
   }
 }

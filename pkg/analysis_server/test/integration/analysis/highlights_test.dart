@@ -177,4 +177,32 @@ class B {}
     check(HighlightRegionType.BUILT_IN, ['implements', 'mixin', 'on']);
     check(HighlightRegionType.KEYWORD, ['class']);
   }
+
+  Future<void> test_highlights_tryCatch() async {
+    var pathname = sourcePath('test.dart');
+    var text = r'''
+void f() {
+  try {
+  } on ArgumentError catch (error1, stackTrace1) {
+  } on UnimplementedError catch (error2, stackTrace2) {
+  } on IndexError catch (error2) {
+  } catch (error3, stackTrace3) {
+  }
+}
+''';
+    await computeHighlights(pathname, text);
+
+    check(HighlightRegionType.BUILT_IN, ['on']);
+    check(HighlightRegionType.KEYWORD, ['void', 'try', 'catch']);
+    check(HighlightRegionType.CLASS,
+        ['ArgumentError', 'UnimplementedError', 'IndexError']);
+    check(HighlightRegionType.LOCAL_VARIABLE_DECLARATION, [
+      'error1',
+      'stackTrace1',
+      'error2',
+      'stackTrace2',
+      'error3',
+      'stackTrace3'
+    ]);
+  }
 }

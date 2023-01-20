@@ -4,18 +4,16 @@ import "dart:core" as core;
 
 static method test1(dynamic x) → dynamic {
   final dynamic #t1 = x;
-  final core::bool #t2 = true;
+  core::bool #t2 = true;
   final dynamic #t3 = #t1;
-  if(#t3 is core::List<dynamic> && #t3{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(1){(core::Object) → core::bool}) {
+  if(#t3 is core::List<dynamic> && #t3{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
     final dynamic #t4 = #t3{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     final dynamic #t5 = #t4;
     if(#t5 is core::int) {
+      core::int y = #t5{core::int};
       #t2 = false;
       {
-        core::int y = #t5{core::int};
-        {
-          return y;
-        }
+        return y;
       }
     }
   }
@@ -25,18 +23,16 @@ static method test1(dynamic x) → dynamic {
 }
 static method test2(dynamic x) → dynamic {
   final dynamic #t6 = x;
-  final core::bool #t7 = true;
+  core::bool #t7 = true;
   final dynamic #t8 = #t6;
   if(#t8 is core::List<dynamic> && #t8{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
     final dynamic #t9 = #t8{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     final dynamic #t10 = #t9;
     if(#t10 is core::int) {
+      core::int y = #t10{core::int};
       #t7 = false;
       {
-        core::int y = #t10{core::int};
-        {
-          return y;
-        }
+        return y;
       }
     }
   }
@@ -46,18 +42,16 @@ static method test2(dynamic x) → dynamic {
 }
 static method test3(dynamic x) → dynamic {
   final dynamic #t11 = x;
-  final core::bool #t12 = true;
+  core::bool #t12 = true;
   final dynamic #t13 = #t11;
   if(#t13 is core::List<dynamic> && #t13{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
     final dynamic #t14 = #t13{core::List<dynamic>}.{core::List::[]}(#t13{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::-}(1){(core::num) → core::num}){(core::int) → dynamic};
     final dynamic #t15 = #t14;
     if(#t15 is core::int) {
+      core::int y = #t15{core::int};
       #t12 = false;
       {
-        core::int y = #t15{core::int};
-        {
-          return y;
-        }
+        return y;
       }
     }
   }

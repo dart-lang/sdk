@@ -267,6 +267,8 @@ class ObjectPointerVisitor;
   V(UnwindError, "UnwindError")                                                \
   V(Value, "value")                                                            \
   V(Values, "values")                                                          \
+  V(VarArgs, "VarArgs")                                                        \
+  V(WeakArray, "WeakArray")                                                    \
   V(WeakSerializationReference, "WeakSerializationReference")                  \
   V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \
   V(_BufferingStreamSubscription, "_BufferingStreamSubscription")              \
@@ -468,6 +470,7 @@ class ObjectPointerVisitor;
   V(_yieldAsyncStar, "_yieldAsyncStar")                                        \
   V(_yieldStarIterable, "_yieldStarIterable")                                  \
   V(_yieldSyncStar, "_yieldSyncStar")                                          \
+  V(absolute, "absolute")                                                      \
   V(add, "add")                                                                \
   V(addStream, "addStream")                                                    \
   V(asyncStarBody, "asyncStarBody")                                            \
@@ -483,16 +486,20 @@ class ObjectPointerVisitor;
   V(current_position, ":current_position")                                     \
   V(dynamic_assert_assignable_stc_check,                                       \
     ":dynamic_assert_assignable_stc_check")                                    \
+  V(executable, "executable")                                                  \
   V(get, "get")                                                                \
   V(index_temp, ":index_temp")                                                 \
   V(isPaused, "isPaused")                                                      \
   V(match_end_index, ":match_end_index")                                       \
   V(match_start_index, ":match_start_index")                                   \
   V(name, "name")                                                              \
+  V(native_assets, "native-assets")                                            \
   V(null, "null")                                                              \
   V(options, "options")                                                        \
   V(position_registers, ":position_registers")                                 \
   V(print, "print")                                                            \
+  V(process, "process")                                                        \
+  V(relative, "relative")                                                      \
   V(result, "result")                                                          \
   V(set, "set")                                                                \
   V(stack, ":stack")                                                           \
@@ -501,11 +508,13 @@ class ObjectPointerVisitor;
   V(state, "state")                                                            \
   V(string_param, ":string_param")                                             \
   V(string_param_length, ":string_param_length")                               \
+  V(system, "system")                                                          \
   V(vm_always_consider_inlining, "vm:always-consider-inlining")                \
   V(vm_entry_point, "vm:entry-point")                                          \
   V(vm_exact_result_type, "vm:exact-result-type")                              \
   V(vm_external_name, "vm:external-name")                                      \
   V(vm_ffi_abi_specific_mapping, "vm:ffi:abi-specific-mapping")                \
+  V(vm_ffi_native_assets, "vm:ffi:native-assets")                              \
   V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
   V(vm_invisible, "vm:invisible")                                              \
   V(vm_never_inline, "vm:never-inline")                                        \

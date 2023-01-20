@@ -4582,6 +4582,7 @@ library foo;
     // Passes if no exceptions are thrown.
   }
 
+  @FailingTest(reason: 'Default list constructor has been removed.')
   Future<void> test_list_constructor_length() async {
     await analyze('''
 void main() {
@@ -4596,6 +4597,7 @@ void main() {
     assertEdge(always, filledParam.node, hard: false);
   }
 
+  @FailingTest(reason: 'Default list constructor has been removed.')
   Future<void> test_list_constructor_length_implicitParam() async {
     await analyze('''
 void main() {
@@ -8337,7 +8339,11 @@ class _TestEdgeOrigin implements EdgeOrigin {
   String get description => 'Test edge';
 
   @override
+  bool get isSetupAssignment => false;
+
+  @override
   EdgeOriginKind? get kind => null;
 
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

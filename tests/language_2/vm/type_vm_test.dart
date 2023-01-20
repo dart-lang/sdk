@@ -124,7 +124,7 @@ class TypeTest {
     return 1;
   }
 
-  static int testListAssigment() {
+  static int testListAssignment() {
     int result = 0;
     {
       var a = new List<dynamic>.filled(5, null);
@@ -180,7 +180,7 @@ class TypeTest {
     Expect.equals(1, testFunctionNum());
     Expect.equals(9, testBoolCheck());
     Expect.equals(1, testFactory());
-    Expect.equals(8, testListAssigment());
+    Expect.equals(8, testListAssignment());
   }
 }
 

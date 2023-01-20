@@ -42,7 +42,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: MethodInvocation
@@ -75,7 +75,7 @@ void f(Object? x, int Function() a) {
     assertResolvedNodeText(node, r'''
 SwitchExpressionCase
   guardedPattern: GuardedPattern
-    pattern: DeclaredVariablePattern
+    pattern: WildcardPattern
       name: _
   arrow: =>
   expression: FunctionExpressionInvocation
@@ -200,7 +200,7 @@ SwitchExpression
   cases
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -245,7 +245,7 @@ SwitchExpression
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: NullLiteral
@@ -290,11 +290,80 @@ SwitchExpression
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: IntegerLiteral
         literal: 1
+        staticType: int
+  rightBracket: }
+  staticType: int
+''');
+  }
+
+  test_variables_logicalOr() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  (switch (x) {
+    <int>[var a || var a] => a,
+    _ => 0,
+  });
+}
+''');
+
+    final node = findNode.switchExpression('switch');
+    assertResolvedNodeText(node, r'''
+SwitchExpression
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  rightParenthesis: )
+  leftBracket: {
+  cases
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: ListPattern
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: SimpleIdentifier
+                  token: int
+                  staticElement: dart:core::@class::int
+                  staticType: null
+                type: int
+            rightBracket: >
+          leftBracket: [
+          elements
+            LogicalOrPattern
+              leftOperand: DeclaredVariablePattern
+                keyword: var
+                name: a
+                declaredElement: hasImplicitType a@50
+                  type: int
+              operator: ||
+              rightOperand: DeclaredVariablePattern
+                keyword: var
+                name: a
+                declaredElement: hasImplicitType a@59
+                  type: int
+          rightBracket: ]
+          requiredType: List<int>
+      arrow: =>
+      expression: SimpleIdentifier
+        token: a
+        staticElement: a[a@50, a@59]
+        staticType: int
+    SwitchExpressionCase
+      guardedPattern: GuardedPattern
+        pattern: WildcardPattern
+          name: _
+      arrow: =>
+      expression: IntegerLiteral
+        literal: 0
         staticType: int
   rightBracket: }
   staticType: int
@@ -311,6 +380,8 @@ void f(Object? x) {
   });
 }
 ''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 64,
+          1),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 64, 1,
           contextMessages: [message('/home/test/lib/test.dart', 58, 1)]),
     ]);
@@ -373,7 +444,7 @@ SwitchExpression
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: IntegerLiteral
@@ -442,7 +513,7 @@ SwitchExpression
         staticType: int
     SwitchExpressionCase
       guardedPattern: GuardedPattern
-        pattern: DeclaredVariablePattern
+        pattern: WildcardPattern
           name: _
       arrow: =>
       expression: SimpleIdentifier

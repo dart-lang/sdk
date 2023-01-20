@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
@@ -125,6 +126,7 @@ extension E on int {}
   }
 
   test_jsonConfigDisablesExtensions_languageOverrideEnables() async {
+    noSoundNullSafety = false;
     _configureTestWithJsonConfig('''
 {
   "configVersion": 2,

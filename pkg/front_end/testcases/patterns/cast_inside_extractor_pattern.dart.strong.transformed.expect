@@ -12,14 +12,14 @@ static method test(dynamic x) → dynamic {
   #L1:
   {
     final dynamic #t1 = x;
-    final core::int #t2 = -1;
-    final core::bool #t3 = false;
+    core::int #t2 = -1;
+    core::bool #t3 = false;
     if(!#t3) {
       final dynamic #t4 = #t1;
       if(#t4 is self::C) {
         final core::int? #t5 = #t4{self::C}.{self::C::f}{core::int?};
         final core::int #t6 = let core::int? #t7 = #t5 in #t7 == null ?{core::int} #t7 as{ForNonNullableByDefault} core::int : #t7{core::int};
-        if(#t6 =={core::num::==}{(core::Object) → core::bool} 1) {
+        if(#t6 =={core::num::==}{(core::Object) → core::bool} #C1) {
           #t2 = 0;
           #t3 = true;
         }
@@ -27,7 +27,7 @@ static method test(dynamic x) → dynamic {
     }
     switch(#t2) {
       #L2:
-      case #C1:
+      case #C2:
         {
           {
             break #L1;
@@ -38,5 +38,6 @@ static method test(dynamic x) → dynamic {
 }
 
 constants  {
-  #C1 = 0
+  #C1 = 1
+  #C2 = 0
 }

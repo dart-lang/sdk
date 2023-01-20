@@ -18,7 +18,9 @@ void main() {
 @reflectiveTest
 class MoveTopLevelToFileTest extends RefactoringTest {
   /// Simple file content with a single class named 'A'.
-  static const simpleClassContent = 'class ^A {}';
+  static const simpleClassContent = '''
+class ^A {}
+''';
 
   /// The title of the refactor when using [simpleClassContent].
   static const simpleClassRefactorTitle = "Move 'A' to file";
@@ -34,21 +36,7 @@ class MoveTopLevelToFileTest extends RefactoringTest {
     arguments[0] = newFileUri.toString();
   }
 
-  Future<void> test_available() async {
-    addTestSource(simpleClassContent);
-    await initializeServer();
-    await expectCodeAction(simpleClassRefactorTitle);
-  }
-
-  Future<void> test_available_withoutClientCommandParameterSupport() async {
-    addTestSource(simpleClassContent);
-    await initializeServer(commandParameterSupportedKinds: null);
-    // This refactor is available without command parameter support because
-    // it has defaults.
-    await expectCodeAction(simpleClassRefactorTitle);
-  }
-
-  Future<void> test_class() async {
+  Future<void> test_copyFileHeader() async {
     var originalSource = '''
 // File header.
 
@@ -80,53 +68,6 @@ class ClassToMove {}
         newFileContent: newFileContent);
   }
 
-  Future<void> test_clientModifiedValues() async {
-    addTestSource(simpleClassContent);
-
-    /// Filename to inject to replace default.
-    final newFilePath = join(projectFolderPath, 'lib', 'my_new_class.dart');
-    final newFileUri = Uri.file(newFilePath);
-
-    /// Expected new file content.
-    const expectedNewFileContent = '''
-class A {}
-''';
-
-    await initializeServer();
-    final action = await expectCodeAction(simpleClassRefactorTitle);
-    // Replace the file URI argument with our custom path.
-    replaceSaveUriArgument(action, newFileUri);
-    await executeRefactor(action);
-
-    expect(content[newFilePath], expectedNewFileContent);
-  }
-
-  Future<void> test_enum() async {
-    var originalSource = '''
-class A {}
-
-enum EnumToMove^ { a, b }
-
-class B {}
-''';
-    var modifiedSource = '''
-class A {}
-
-class B {}
-''';
-    var declarationName = 'EnumToMove';
-    var newFileName = 'enum_to_move.dart';
-    var newFileContent = '''
-enum EnumToMove { a, b }
-''';
-    await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
-  }
-
   Future<void> test_existingFile() async {
     addTestSource(simpleClassContent);
 
@@ -149,62 +90,8 @@ int? a;
     expect(content[newFilePath], expectedNewFileContent);
   }
 
-  Future<void> test_extension() async {
-    var originalSource = '''
-class A {}
-
-extension ExtensionToMove^ on int { }
-
-class B {}
-''';
-    var modifiedSource = '''
-class A {}
-
-class B {}
-''';
-    var declarationName = 'ExtensionToMove';
-    var newFileName = 'extension_to_move.dart';
-    var newFileContent = '''
-extension ExtensionToMove on int { }
-''';
-    await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
-  }
-
-  Future<void> test_function() async {
-    var originalSource = '''
-class A {}
-
-void functionToMo^ve() { }
-
-class B {}
-''';
-    var modifiedSource = '''
-class A {}
-
-class B {}
-''';
-    var declarationName = 'functionToMove';
-    var newFileName = 'function_to_move.dart';
-    var newFileContent = '''
-void functionToMove() { }
-''';
-    await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
-  }
-
   Future<void> test_imports_referenceFromMovingToImported() async {
     var originalSource = '''
-// File header.
-
 import 'dart:io';
 
 class A {}
@@ -214,8 +101,6 @@ class B^ {
 }
 ''';
     var modifiedSource = '''
-// File header.
-
 import 'dart:io';
 
 class A {}
@@ -224,8 +109,6 @@ class A {}
     var newFileName = 'b.dart';
     var newFileContent = '''
 import 'dart:io';
-
-// File header.
 
 class B {
   File? f;
@@ -241,23 +124,17 @@ class B {
 
   Future<void> test_imports_referenceFromMovingToStaying() async {
     var originalSource = '''
-// File header.
-
 class A {}
 
 class ClassToMove^ extends A {}
 ''';
     var modifiedSource = '''
-// File header.
-
 class A {}
 ''';
     var declarationName = 'ClassToMove';
     var newFileName = 'class_to_move.dart';
     var newFileContent = '''
 import 'package:test/main.dart';
-
-// File header.
 
 class ClassToMove extends A {}
 ''';
@@ -271,15 +148,11 @@ class ClassToMove extends A {}
 
   Future<void> test_imports_referenceFromStayingToMoving() async {
     var originalSource = '''
-// File header.
-
 class A extends B {}
 
 class B^ {}
 ''';
     var modifiedSource = '''
-// File header.
-
 import 'package:test/b.dart';
 
 class A extends B {}
@@ -287,8 +160,6 @@ class A extends B {}
     var declarationName = 'B';
     var newFileName = 'b.dart';
     var newFileContent = '''
-// File header.
-
 class B {}
 ''';
     await _singleDeclaration(
@@ -422,7 +293,261 @@ p.B? b;
         modifiedOtherFileContent: modifiedOtherFileContent);
   }
 
-  Future<void> test_mixin() async {
+  Future<void> test_kind_class() async {
+    var originalSource = '''
+class A {}
+
+class ClassToMove^ {}
+
+class B {}
+''';
+    var modifiedSource = '''
+class A {}
+
+class B {}
+''';
+    var declarationName = 'ClassToMove';
+    var newFileName = 'class_to_move.dart';
+    var newFileContent = '''
+class ClassToMove {}
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_multiple() async {
+    var originalSource = '''
+class A {}
+
+class ClassTo[!Move1 {}
+
+class ClassTo!]Move2 {}
+
+class B {}
+''';
+    var modifiedSource = '''
+class A {}
+
+class B {}
+''';
+    var newFileName = 'class_to_move1.dart';
+    var newFileContent = '''
+class ClassToMove1 {}
+
+class ClassToMove2 {}
+''';
+    await _multipleDeclarations(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        count: 2,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_none_comment() async {
+    addTestSource('''
+// Comm^ent
+
+class A {}
+''');
+    await initializeServer(experimentalOptInFlag: false);
+    await expectNoCodeAction(null);
+  }
+
+  Future<void> test_none_directive() async {
+    addTestSource('''
+imp^ort 'dart:core';
+
+class A {}
+''');
+    await initializeServer(experimentalOptInFlag: false);
+    await expectNoCodeAction(null);
+  }
+
+  Future<void>
+      test_protocol_available_withClientCommandParameterSupport() async {
+    addTestSource(simpleClassContent);
+    await initializeServer();
+    await expectCodeAction(simpleClassRefactorTitle);
+  }
+
+  Future<void>
+      test_protocol_available_withoutClientCommandParameterSupport() async {
+    addTestSource(simpleClassContent);
+    await initializeServer(commandParameterSupportedKinds: null);
+    // This refactor is available without command parameter support because
+    // it has defaults.
+    await expectCodeAction(simpleClassRefactorTitle);
+  }
+
+  Future<void> test_protocol_clientModifiedValues() async {
+    addTestSource(simpleClassContent);
+
+    /// Filename to inject to replace default.
+    final newFilePath = join(projectFolderPath, 'lib', 'my_new_class.dart');
+    final newFileUri = Uri.file(newFilePath);
+
+    /// Expected new file content.
+    const expectedNewFileContent = '''
+class A {}
+''';
+
+    await initializeServer();
+    final action = await expectCodeAction(simpleClassRefactorTitle);
+    // Replace the file URI argument with our custom path.
+    replaceSaveUriArgument(action, newFileUri);
+    await executeRefactor(action);
+
+    expect(content[newFilePath], expectedNewFileContent);
+  }
+
+  Future<void> test_protocol_unavailable_withoutExperimentalOptIn() async {
+    addTestSource(simpleClassContent);
+    await initializeServer(experimentalOptInFlag: false);
+    await expectNoCodeAction(simpleClassRefactorTitle);
+  }
+
+  Future<void> test_protocol_unavailable_withoutFileCreateSupport() async {
+    addTestSource(simpleClassContent);
+    await initializeServer(fileCreateSupport: false);
+    await expectNoCodeAction(simpleClassRefactorTitle);
+  }
+
+  Future<void> test_single_class_withTypeParameters() async {
+    var originalSource = '''
+class A {}
+
+class ClassToMove^<T> {}
+
+class B {}
+''';
+    var modifiedSource = '''
+class A {}
+
+class B {}
+''';
+    var declarationName = 'ClassToMove';
+    var newFileName = 'class_to_move.dart';
+    var newFileContent = '''
+class ClassToMove<T> {}
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_single_enum() async {
+    var originalSource = '''
+class A {}
+
+enum EnumToMove^ { a, b }
+
+class B {}
+''';
+    var modifiedSource = '''
+class A {}
+
+class B {}
+''';
+    var declarationName = 'EnumToMove';
+    var newFileName = 'enum_to_move.dart';
+    var newFileContent = '''
+enum EnumToMove { a, b }
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_single_extension() async {
+    var originalSource = '''
+class A {}
+
+extension ExtensionToMove^ on int { }
+
+class B {}
+''';
+    var modifiedSource = '''
+class A {}
+
+class B {}
+''';
+    var declarationName = 'ExtensionToMove';
+    var newFileName = 'extension_to_move.dart';
+    var newFileContent = '''
+extension ExtensionToMove on int { }
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_single_function_endOfName() async {
+    var originalSource = '''
+class A {}
+
+void functionToMove^() { }
+
+class B {}
+''';
+    var modifiedSource = '''
+class A {}
+
+class B {}
+''';
+    var declarationName = 'functionToMove';
+    var newFileName = 'function_to_move.dart';
+    var newFileContent = '''
+void functionToMove() { }
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_single_function_middleOfName() async {
+    var originalSource = '''
+class A {}
+
+void functionToMo^ve() { }
+
+class B {}
+''';
+    var modifiedSource = '''
+class A {}
+
+class B {}
+''';
+    var declarationName = 'functionToMove';
+    var newFileName = 'function_to_move.dart';
+    var newFileContent = '''
+void functionToMove() { }
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
+  Future<void> test_single_mixin() async {
     var originalSource = '''
 class A {}
 
@@ -448,7 +573,7 @@ mixin MixinToMove { }
         newFileContent: newFileContent);
   }
 
-  Future<void> test_typedef() async {
+  Future<void> test_single_typedef() async {
     var originalSource = '''
 class A {}
 
@@ -474,19 +599,7 @@ typedef TypeToMove = void Function();
         newFileContent: newFileContent);
   }
 
-  Future<void> test_unavailable_withoutExperimentalOptIn() async {
-    addTestSource(simpleClassContent);
-    await initializeServer(experimentalOptInFlag: false);
-    await expectNoCodeAction(simpleClassRefactorTitle);
-  }
-
-  Future<void> test_unavailable_withoutFileCreateSupport() async {
-    addTestSource(simpleClassContent);
-    await initializeServer(fileCreateSupport: false);
-    await expectNoCodeAction(simpleClassRefactorTitle);
-  }
-
-  Future<void> test_variable() async {
+  Future<void> test_single_variable() async {
     var originalSource = '''
 class A {}
 
@@ -512,10 +625,30 @@ int variableToMove = 3;
         newFileContent: newFileContent);
   }
 
-  Future<void> _singleDeclaration(
+  Future<void> _multipleDeclarations(
       {required String originalSource,
       required String modifiedSource,
-      required String declarationName,
+      required int count,
+      required String newFileName,
+      required String newFileContent,
+      String? otherFilePath,
+      String? otherFileContent,
+      String? modifiedOtherFileContent}) async {
+    await _refactor(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        actionTitle: "Move $count declarations to file",
+        newFileName: newFileName,
+        newFileContent: newFileContent,
+        otherFilePath: otherFilePath,
+        otherFileContent: otherFileContent,
+        modifiedOtherFileContent: modifiedOtherFileContent);
+  }
+
+  Future<void> _refactor(
+      {required String originalSource,
+      required String modifiedSource,
+      required String actionTitle,
       required String newFileName,
       required String newFileContent,
       String? otherFilePath,
@@ -530,7 +663,7 @@ int variableToMove = 3;
     final expectedNewFilePath = join(projectFolderPath, 'lib', newFileName);
 
     await initializeServer();
-    final action = await expectCodeAction("Move '$declarationName' to file");
+    final action = await expectCodeAction(actionTitle);
     await executeRefactor(action);
 
     expect(content[mainFilePath], modifiedSource);
@@ -541,5 +674,25 @@ int variableToMove = 3;
     if (modifiedOtherFileContent != null) {
       expect(content[convertPath(otherFilePath!)], modifiedOtherFileContent);
     }
+  }
+
+  Future<void> _singleDeclaration(
+      {required String originalSource,
+      required String modifiedSource,
+      required String declarationName,
+      required String newFileName,
+      required String newFileContent,
+      String? otherFilePath,
+      String? otherFileContent,
+      String? modifiedOtherFileContent}) async {
+    await _refactor(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        actionTitle: "Move '$declarationName' to file",
+        newFileName: newFileName,
+        newFileContent: newFileContent,
+        otherFilePath: otherFilePath,
+        otherFileContent: otherFileContent,
+        modifiedOtherFileContent: modifiedOtherFileContent);
   }
 }

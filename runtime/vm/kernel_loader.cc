@@ -966,6 +966,13 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
     library.SetLoadInProgress();
   }
 
+  if (library.url() == Symbols::vm_ffi_native_assets().ptr()) {
+    const auto& native_assets_library =
+        Library::Handle(IG->object_store()->native_assets_library());
+    ASSERT(native_assets_library.IsNull());
+    IG->object_store()->set_native_assets_library(library);
+  }
+
   library_helper.ReadUntilIncluding(LibraryHelper::kSourceUriIndex);
   const Script& script =
       Script::Handle(Z, ScriptAt(library_helper.source_uri_index_));
@@ -1027,7 +1034,9 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
     FinishTopLevelClassLoading(toplevel_class, library, library_index);
   }
 
-  if (FLAG_enable_mirrors && annotation_count > 0) {
+  // Used for mirrors and allows VM to recognize @pragma annotations on
+  // libraries.
+  if (annotation_count > 0) {
     ASSERT(annotations_kernel_offset > 0);
     library.AddMetadata(library, annotations_kernel_offset);
   }
@@ -1110,7 +1119,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     helper_.ReadPosition();                // read file offset.
     helper_.ReadByte();                    // skip flags.
     helper_.SkipTypeParametersList();      // skip type parameter list.
-    helper_.SkipDartType();                // skip representation-type.
+    helper_.SkipDartType();                // skip declared representation type.
+    helper_.SkipStringReference();         // skip representation name.
 
     const intptr_t inline_class_member_count = helper_.ReadListLength();
     for (intptr_t j = 0; j < inline_class_member_count; ++j) {

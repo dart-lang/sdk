@@ -192,14 +192,6 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitBinaryPattern(BinaryPattern node) {
-    var other = _other as BinaryPattern;
-    return isEqualNodes(node.leftOperand, other.leftOperand) &&
-        isEqualTokens(node.operator, other.operator) &&
-        isEqualNodes(node.rightOperand, other.rightOperand);
-  }
-
-  @override
   bool visitBlock(Block node) {
     Block other = _other as Block;
     return isEqualTokens(node.leftBracket, other.leftBracket) &&
@@ -949,6 +941,22 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitLogicalAndPattern(LogicalAndPattern node) {
+    var other = _other as LogicalAndPattern;
+    return isEqualNodes(node.leftOperand, other.leftOperand) &&
+        isEqualTokens(node.operator, other.operator) &&
+        isEqualNodes(node.rightOperand, other.rightOperand);
+  }
+
+  @override
+  bool visitLogicalOrPattern(LogicalOrPattern node) {
+    var other = _other as LogicalOrPattern;
+    return isEqualNodes(node.leftOperand, other.leftOperand) &&
+        isEqualTokens(node.operator, other.operator) &&
+        isEqualNodes(node.rightOperand, other.rightOperand);
+  }
+
+  @override
   bool visitMapLiteralEntry(MapLiteralEntry node) {
     MapLiteralEntry other = _other as MapLiteralEntry;
     return isEqualNodes(node.key, other.key) &&
@@ -1045,6 +1053,20 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitNullAssertPattern(NullAssertPattern node) {
+    var other = _other as NullAssertPattern;
+    return isEqualNodes(node.pattern, other.pattern) &&
+        isEqualTokens(node.operator, other.operator);
+  }
+
+  @override
+  bool visitNullCheckPattern(NullCheckPattern node) {
+    var other = _other as NullCheckPattern;
+    return isEqualNodes(node.pattern, other.pattern) &&
+        isEqualTokens(node.operator, other.operator);
+  }
+
+  @override
   bool visitNullLiteral(NullLiteral node) {
     NullLiteral other = _other as NullLiteral;
     return isEqualTokens(node.literal, other.literal);
@@ -1137,13 +1159,6 @@ class AstComparator implements AstVisitor<bool> {
   @override
   bool visitPostfixExpression(PostfixExpression node) {
     PostfixExpression other = _other as PostfixExpression;
-    return isEqualNodes(node.operand, other.operand) &&
-        isEqualTokens(node.operator, other.operator);
-  }
-
-  @override
-  bool visitPostfixPattern(PostfixPattern node) {
-    var other = _other as PostfixPattern;
     return isEqualNodes(node.operand, other.operand) &&
         isEqualTokens(node.operator, other.operator);
   }
@@ -1549,6 +1564,14 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitWildcardPattern(WildcardPattern node) {
+    var other = _other as WildcardPattern;
+    return isEqualTokens(node.keyword, other.keyword) &&
+        isEqualNodes(node.type, other.type) &&
+        isEqualTokens(node.name, other.name);
+  }
+
+  @override
   bool visitWithClause(WithClause node) {
     WithClause other = _other as WithClause;
     return isEqualTokens(node.withKeyword, other.withKeyword) &&
@@ -1623,7 +1646,7 @@ class LinterExceptionHandler {
   /// Returns `true` if the exception was fully handled, and `false` if the
   /// exception should be rethrown.
   bool logException(
-      AstNode node, Object visitor, dynamic exception, StackTrace stackTrace) {
+      AstNode node, Object visitor, Object exception, StackTrace stackTrace) {
     StringBuffer buffer = StringBuffer();
     buffer.write('Exception while using a ${visitor.runtimeType} to visit a ');
     AstNode? currentNode = node;
@@ -3014,6 +3037,15 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       return true;
     }
     return visitAnnotatedNode(node);
+  }
+
+  @override
+  bool visitPatternAssignment(covariant PatternAssignmentImpl node) {
+    if (identical(node.expression, _oldNode)) {
+      node.expression = _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
   }
 
   @override

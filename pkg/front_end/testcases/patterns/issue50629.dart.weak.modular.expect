@@ -1,0 +1,23 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method main() → dynamic {
+  core::List<dynamic> value = #C2;
+  final core::List<dynamic> #t1 = value;
+  core::bool #t2 = true;
+  if(#t1 =={core::List::==}{(core::Object) → core::bool} #C2) {
+    #t2 = false;
+    {
+      core::print("OK");
+    }
+  }
+  if(#t2) {
+    throw "FAIL";
+  }
+}
+
+constants  {
+  #C1 = 42
+  #C2 = <dynamic>[#C1]
+}

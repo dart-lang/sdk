@@ -38,11 +38,15 @@ import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
-import 'package:kernel/kernel.dart' show Component, Library, Procedure;
+import 'package:kernel/kernel.dart'
+    show Component, Library, Procedure, NonNullableByDefaultCompiledMode;
 import 'package:kernel/target/targets.dart' show TargetFlags;
 import 'package:vm/incremental_compiler.dart';
-import 'package:vm/kernel_front_end.dart' show createLoadedLibrariesSet;
+import 'package:vm/kernel_front_end.dart'
+    show createLoadedLibrariesSet, ErrorDetector;
 import 'package:vm/http_filesystem.dart';
+import 'package:vm/native_assets/diagnostic_message.dart';
+import 'package:vm/native_assets/synthesizer.dart';
 import 'package:vm/target/vm.dart' show VmTarget;
 
 final bool verbose = new bool.fromEnvironment('DFE_VERBOSE');
@@ -830,6 +834,7 @@ Future _processLoadRequest(request) async {
   // one compiler or another. We should always use an incremental
   // compiler as its functionality is a super set of the other one. We need to
   // watch the performance though.
+  FileSystem fileSystem;
   if (incremental) {
     compiler = await lookupOrBuildNewIncrementalCompiler(
         isolateGroupId, sourceFiles, platformKernelPath, platformKernel,
@@ -842,8 +847,9 @@ Future _processLoadRequest(request) async {
         invocationModes: invocationModes,
         verbosityLevel: verbosityLevel,
         enableMirrors: enableMirrors);
+    fileSystem = compiler.fileSystem;
   } else {
-    FileSystem fileSystem = _buildFileSystem(
+    fileSystem = _buildFileSystem(
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
     compiler = new SingleShotCompilerWrapper(
         isolateGroupId, fileSystem, platformKernelPath,
@@ -866,21 +872,53 @@ Future _processLoadRequest(request) async {
     CompilerResult compilerResult = await compiler.compile(script!);
     Set<Library> loadedLibraries = compilerResult.loadedLibraries;
 
+    final String? nativeAssets = await findNativeAssets(
+      packagesFileUri:
+          packageConfig != null ? resolveInputUri(packageConfig) : null,
+      script: script,
+      fileSystem: fileSystem,
+    );
+    Component? nativeAssetsComponent;
+    final nativeAssetsErrors = <NativeAssetsDiagnosticMessage>[];
+    if (nativeAssets != null) {
+      final errorDetector = ErrorDetector(
+          previousErrorHandler: (message) =>
+              nativeAssetsErrors.add(message as NativeAssetsDiagnosticMessage));
+      final nativeAssetsLibrary =
+          await NativeAssetsSynthesizer.synthesizeLibraryFromYamlString(
+        nativeAssets,
+        errorDetector,
+        nonNullableByDefaultCompiledMode: nullSafety
+            ? NonNullableByDefaultCompiledMode.Strong
+            : NonNullableByDefaultCompiledMode.Weak,
+        pragmaClass: compilerResult.coreTypes?.pragmaClass,
+      );
+      if (nativeAssetsLibrary != null) {
+        nativeAssetsComponent = Component(
+          libraries: [nativeAssetsLibrary],
+          mode: nativeAssetsLibrary.nonNullableByDefaultCompiledMode,
+        );
+      }
+    }
+
     assert(compiler.errorsPlain.length == compiler.errorsColorized.length);
     // http://dartbug.com/45137
     // enableColors calls `stdout.supportsAnsiEscapes` which - on Windows -
     // does something with line endings. To avoid this when no error
     // messages are do be printed anyway, we are careful not to call it unless
     // necessary.
-    if (compiler.errorsColorized.isNotEmpty) {
-      final List<String> errors =
-          (enableColors) ? compiler.errorsColorized : compiler.errorsPlain;
+    if (compiler.errorsColorized.isNotEmpty || nativeAssetsErrors.isNotEmpty) {
+      final List<String> errors = [
+        ...(enableColors) ? compiler.errorsColorized : compiler.errorsPlain,
+        ...nativeAssetsErrors.map((e) => e.message)
+      ];
       final component = compilerResult.component;
       if (component != null) {
         result = new CompilationResult.errors(
             errors,
             serializeComponent(component,
-                filter: (lib) => !loadedLibraries.contains(lib)));
+                filter: (lib) => !loadedLibraries.contains(lib),
+                nativeAssetsComponent: nativeAssetsComponent));
       } else {
         result = new CompilationResult.errors(errors, null);
       }
@@ -891,7 +929,8 @@ Future _processLoadRequest(request) async {
       // decide what to exclude.
       result = new CompilationResult.ok(serializeComponent(
           compilerResult.component!,
-          filter: (lib) => !loadedLibraries.contains(lib)));
+          filter: (lib) => !loadedLibraries.contains(lib),
+          nativeAssetsComponent: nativeAssetsComponent));
     }
   } catch (error, stack) {
     result = new CompilationResult.crash(error, stack);
@@ -922,6 +961,67 @@ Future _processLoadRequest(request) async {
       new CompilationResult.errors(<String>["unknown tag"], null).payload
     ]);
   }
+}
+
+/// Returns the contents of the `native_assets.yaml` for the host os in JIT,
+/// if it exists.
+///
+/// Order or priority:
+/// 1. If a `package_config.json` is picked by the kernel service, look to see
+///    if there is a `native_assets.yaml` next to it.
+/// 2. If no `package_config.json` is picked by the kernel service, walk up
+///    folder hierarchy to find one and look next to it.
+Future<String?> findNativeAssets({
+  Uri? packagesFileUri,
+  Uri? script,
+  required FileSystem fileSystem,
+}) async {
+  if (packagesFileUri != null &&
+      (packagesFileUri.scheme == '' || packagesFileUri.scheme == 'file')) {
+    final nativeAssetsUri = packagesFileUri.resolve('native_assets.yaml');
+    final nativeAssetsEntity = fileSystem.entityForUri(nativeAssetsUri);
+    if (await nativeAssetsEntity.exists()) {
+      return await nativeAssetsEntity.readAsString();
+    }
+    return null;
+  }
+  if (script != null && (script.scheme == '' || script.scheme == 'file')) {
+    Future<String?> tryLoadNativeAssetsYaml(Uri uri) async {
+      final nativeAssetsUri = uri.resolve('.dart_tool/native_assets.yaml');
+      final nativeAssetsEntity = fileSystem.entityForUri(nativeAssetsUri);
+      if (await nativeAssetsEntity.exists()) {
+        return await nativeAssetsEntity.readAsString();
+      }
+      return null;
+    }
+
+    Uri folderUri = script.resolve('.');
+    while (true) {
+      final found = await tryLoadNativeAssetsYaml(folderUri);
+      if (found != null) {
+        return found;
+      }
+      final parentUri = script.resolve('..');
+      if (parentUri.path == folderUri.path) {
+        return null;
+      }
+      folderUri = parentUri;
+    }
+  }
+  return null;
+}
+
+Uint8List serializeComponent(Component component,
+    {bool Function(Library library)? filter,
+    Component? nativeAssetsComponent}) {
+  final byteSink = new BytesSink();
+  BinaryPrinter printer = new BinaryPrinter(byteSink, libraryFilter: filter);
+  printer.writeComponentFile(component);
+  if (nativeAssetsComponent != null) {
+    BinaryPrinter printer = new BinaryPrinter(byteSink);
+    printer.writeComponentFile(nativeAssetsComponent);
+  }
+  return byteSink.builder.takeBytes();
 }
 
 /// Creates a file system containing the files specified in [sourceFiles] and
@@ -1017,6 +1117,7 @@ Future trainInternal(String scriptUri, String? platformKernelPath) async {
     null /* original working directory */,
     'all' /* CFE logging mode */,
     true /* enableMirrors */,
+    null /* native assets yaml */,
   ];
   await _processLoadRequest(request);
 }

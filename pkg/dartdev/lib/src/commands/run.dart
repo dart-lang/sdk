@@ -170,7 +170,7 @@ class RunCommand extends DartdevCommand {
           hide: !verbose,
           negatable: false,
           help: 'When the VM service is told to bind to a particular port, '
-              'fallback to 0 if it fails to bind instread of failing to '
+              'fallback to 0 if it fails to bind instead of failing to '
               'start.',
         );
     }

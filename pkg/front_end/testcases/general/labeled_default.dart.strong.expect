@@ -2,8 +2,9 @@ library /*isNonNullableByDefault*/;
 import self as self;
 
 static method main() → dynamic {
+  #L1:
   switch(1) {
-    #L1:
+    #L2:
     default:
       {}
   }

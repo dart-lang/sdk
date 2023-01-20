@@ -18,10 +18,9 @@ import '../kernel/element_map.dart';
 import '../serialization/serialization.dart';
 import '../util/enumset.dart';
 import 'annotations.dart';
+import 'constants.dart';
 import 'impact.dart';
 import 'scope.dart';
-
-export 'modular_migrated.dart';
 
 class ModularMemberData {
   final ScopeModel scopeModel;
@@ -119,4 +118,11 @@ DiagnosticMessage _createDiagnosticMessage(
       message.uri!, message.charOffset, message.charOffset + message.length);
   return reporter.createMessage(
       sourceSpan, MessageKind.GENERIC, {'text': message.problemMessage});
+}
+
+class ModularCore {
+  final ir.Component component;
+  final Dart2jsConstantEvaluator constantEvaluator;
+
+  ModularCore(this.component, this.constantEvaluator);
 }

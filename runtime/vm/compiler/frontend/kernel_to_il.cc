@@ -962,6 +962,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kTypedData_Float32x4Array_factory:
     case MethodRecognizer::kTypedData_Int32x4Array_factory:
     case MethodRecognizer::kTypedData_Float64x2Array_factory:
+    case MethodRecognizer::kMemCopy:
     case MethodRecognizer::kFfiLoadInt8:
     case MethodRecognizer::kFfiLoadInt16:
     case MethodRecognizer::kFfiLoadInt32:
@@ -1232,6 +1233,25 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       body += Utf8Scan();
       body += Box(kUnboxedIntPtr);
       break;
+    case MethodRecognizer::kMemCopy: {
+      ASSERT_EQUAL(function.NumParameters(), 5);
+      LocalVariable* arg_target = parsed_function_->RawParameterVariable(0);
+      LocalVariable* arg_target_offset_in_bytes =
+          parsed_function_->RawParameterVariable(1);
+      LocalVariable* arg_source = parsed_function_->RawParameterVariable(2);
+      LocalVariable* arg_source_offset_in_bytes =
+          parsed_function_->RawParameterVariable(3);
+      LocalVariable* arg_length_in_bytes =
+          parsed_function_->RawParameterVariable(4);
+      body += LoadLocal(arg_source);
+      body += LoadLocal(arg_target);
+      body += LoadLocal(arg_source_offset_in_bytes);
+      body += LoadLocal(arg_target_offset_in_bytes);
+      body += LoadLocal(arg_length_in_bytes);
+      // Pointers and TypedData have the same layout.
+      body += MemoryCopy(kTypedDataUint8ArrayCid, kTypedDataUint8ArrayCid);
+      body += NullConstant();
+    } break;
     case MethodRecognizer::kFfiAbi:
       ASSERT_EQUAL(function.NumParameters(), 0);
       body += IntConstant(static_cast<int64_t>(compiler::ffi::TargetAbi()));
@@ -3704,7 +3724,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
       // Instantiate a flattened type arguments vector which
       // includes type arguments corresponding to superclasses.
       // TranslateInstantiatedTypeArguments is smart enough to
-      // avoid instantiation and resuse passed function type arguments
+      // avoid instantiation and reuse passed function type arguments
       // if there are no extra type arguments in the flattened vector.
       const auto& instantiated_type_arguments =
           TypeArguments::ZoneHandle(Z, result_type.arguments());

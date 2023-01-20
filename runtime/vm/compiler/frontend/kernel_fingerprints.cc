@@ -277,7 +277,7 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       ReadNullability();
       SkipCanonicalNameReference();    // read index for canonical name.
       SkipListOfDartTypes();           // read type arguments
-      CalculateDartTypeFingerprint();  // read representation type.
+      CalculateDartTypeFingerprint();  // read instantiated representation type.
       break;
     }
     default:

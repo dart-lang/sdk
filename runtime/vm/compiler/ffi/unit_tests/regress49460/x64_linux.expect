@@ -1,0 +1,5 @@
+rdi int32
+rsi int64
+rdx int64
+=>
+rax int32

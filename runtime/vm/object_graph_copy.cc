@@ -87,6 +87,7 @@
   V(UnlinkedCall)                                                              \
   V(UnwindError)                                                               \
   V(UserTag)                                                                   \
+  V(WeakArray)                                                                 \
   V(WeakSerializationReference)
 
 namespace dart {

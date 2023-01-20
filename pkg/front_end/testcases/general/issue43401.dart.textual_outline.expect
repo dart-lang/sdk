@@ -1,0 +1,5 @@
+extension Test<S, T> on S {
+  T operator >>(T Function(S s) f) => f(this);
+}
+
+void test() {}

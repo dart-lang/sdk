@@ -57,7 +57,7 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
   DirectoryWatchHandle* handle =
       new DirectoryWatchHandle(dir, list_events, recursive);
   // Issue a read directly, to be sure events are tracked from now on. This is
-  // okay, since in Dart, we create the socket and start reading immidiately.
+  // okay, since in Dart, we create the socket and start reading immediately.
   handle->EnsureInitialized(EventHandler::delegate());
   handle->IssueRead();
   return reinterpret_cast<intptr_t>(handle);

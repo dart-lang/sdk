@@ -6,15 +6,15 @@ static method test(dynamic x) → dynamic {
   #L1:
   {
     final dynamic #t1 = x;
-    final core::int #t2 = -1;
-    final core::bool #t3 = false;
+    core::int #t2 = -1;
+    core::bool #t3 = false;
     if(!#t3) {
       final dynamic #t4 = #t1;
-      final core::bool #t5 = false;
-      final core::bool #t6 = false;
+      core::bool #t5 = false;
+      core::bool #t6 = false;
       final dynamic #t7 = #t4;
-      final core::bool #t8 = false;
-      final core::bool #t9 = false;
+      core::bool #t8 = false;
+      core::bool #t9 = false;
       if(#t7 is core::int?) {
         #t8 = true;
       }

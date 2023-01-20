@@ -447,6 +447,7 @@ chooses
 choosing
 chosen
 chunk
+circle
 circularities
 circularity
 circumstance
@@ -2414,6 +2415,7 @@ quite
 quote
 quotes
 quoting
+radius
 raise
 raising
 random

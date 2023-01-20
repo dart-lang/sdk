@@ -458,7 +458,7 @@ static bool IsPowerOfTwoKind(intptr_t v1, intptr_t v2) {
 LocationSummary* IfThenElseInstr::MakeLocationSummary(Zone* zone,
                                                       bool opt) const {
   comparison()->InitializeLocationSummary(zone, opt);
-  // TODO(dartbug.com/30952) support convertion of Register to corresponding
+  // TODO(dartbug.com/30952) support conversion of Register to corresponding
   // least significant byte register (e.g. RAX -> AL, RSI -> SIL, r15 -> r15b).
   comparison()->locs()->set_out(0, Location::RegisterLocation(RDX));
   return comparison()->locs();
@@ -1300,6 +1300,12 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ movq(compiler::Assembler::VMTagAddress(), target_address);
 #endif
 
+    if (marshaller_.contains_varargs() &&
+        CallingConventions::kVarArgFpuRegisterCount != kNoRegister) {
+      // TODO(http://dartbug.com/38578): Use the number of used FPU registers.
+      __ LoadImmediate(CallingConventions::kVarArgFpuRegisterCount,
+                       CallingConventions::kFpuArgumentRegisters);
+    }
     __ CallCFunction(target_address, /*restore_rsp=*/true);
 
 #if !defined(PRODUCT)
@@ -1329,6 +1335,10 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ TransitionGeneratedToNative(target_address, FPREG, temp,
                                      /*enter_safepoint=*/true);
 
+      if (marshaller_.contains_varargs() &&
+          CallingConventions::kVarArgFpuRegisterCount != kNoRegister) {
+        __ LoadImmediate(CallingConventions::kVarArgFpuRegisterCount, 8);
+      }
       __ CallCFunction(target_address, /*restore_rsp=*/true);
 
       // Update information in the thread object and leave the safepoint.
@@ -1345,6 +1355,10 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       // Calls RBX within a safepoint. RBX and R12 are clobbered.
       __ movq(RBX, target_address);
+      if (marshaller_.contains_varargs() &&
+          CallingConventions::kVarArgFpuRegisterCount != kNoRegister) {
+        __ LoadImmediate(CallingConventions::kVarArgFpuRegisterCount, 8);
+      }
       __ call(temp);
     }
 
@@ -2346,7 +2360,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       __ j(NOT_EQUAL, fail);
     } else if (value_cid == field_cid) {
-      // This would normaly be caught by Canonicalize, but RemoveRedefinitions
+      // This would normally be caught by Canonicalize, but RemoveRedefinitions
       // may sometimes produce the situation after the last Canonicalize pass.
     } else {
       // Both value's and field's class id is known.

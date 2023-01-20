@@ -14,7 +14,7 @@ namespace dart {
 
 class Array;
 
-// Objects that are a source in a become are tranformed into forwarding
+// Objects that are a source in a become are transformed into forwarding
 // corpses pointing to the corresponding target. Forwarding corpses have the
 // same heap sizes as the source object to ensure the heap remains walkable.
 // If the heap sizes is small enough to be encoded in the size field of the

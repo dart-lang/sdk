@@ -30,6 +30,7 @@ namespace dart {
 // - variable name
 #define GC_LINKED_LIST(V)                                                      \
   V(WeakProperty, weak_properties)                                             \
+  V(WeakArray, weak_arrays)                                                    \
   V(WeakReference, weak_references)                                            \
   V(FinalizerEntry, finalizer_entries)
 
@@ -214,7 +215,7 @@ void MournFinalized(GCVisitorType* visitor) {
         // We only run in serial marker or in the finalize step in the marker,
         // both are in safepoint.
         // The main scavenger worker is at safepoint, the other scavenger
-        // workers are are not, but they bypass safepoint because the main
+        // workers are not, but they bypass safepoint because the main
         // worker is at a safepoint already.
         ASSERT(Thread::Current()->IsAtSafepoint() ||
                Thread::Current()->BypassSafepoints());

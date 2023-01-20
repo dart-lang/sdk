@@ -3287,7 +3287,7 @@ static void SlowWeakPersistentHandle(void* isolate_callback_data, void* peer) {
   (*count)++;
 }
 
-TEST_CASE(DartAPI_SlowWeakPersistenhandle) {
+TEST_CASE(DartAPI_SlowWeakPersistentHandle) {
   Dart_WeakPersistentHandle handles[20];
   intptr_t count = 0;
 
@@ -10131,7 +10131,7 @@ void main() {
 
 // There exists another test by name DartAPI_Invoke_CrossLibrary.
 // However, that currently fails for the dartk configuration as it
-// uses Dart_LoadLibray. This test here effectively tests the same
+// uses Dart_LoadLibrary. This test here effectively tests the same
 // functionality but invokes a function from an imported standard
 // library.
 TEST_CASE(DartAPI_InvokeImportedFunction) {
@@ -10477,11 +10477,11 @@ TEST_CASE(DartAPI_UserTags) {
 }
 
 void* last_isolate_group_data = nullptr;
-Dart_PersistentHandle last_allocation_cls = nullptr;
+const char* last_allocation_cls = nullptr;
 intptr_t heap_samples = 0;
 
 void HeapSamplingCallback(void* isolate_group_data,
-                          Dart_PersistentHandle cls_type,
+                          const char* cls_type,
                           Dart_WeakPersistentHandle obj,
                           uintptr_t size) {
   last_isolate_group_data = isolate_group_data;
@@ -10489,48 +10489,116 @@ void HeapSamplingCallback(void* isolate_group_data,
   heap_samples++;
 }
 
-TEST_CASE(DartAPI_HeapSampling) {
-  Dart_RegisterHeapSamplingCallback(HeapSamplingCallback);
+void ResetHeapSamplingState() {
+  heap_samples = 0;
+  last_allocation_cls = nullptr;
+  last_isolate_group_data = nullptr;
+}
 
+// Threads won't pick up heap sampling profiler state changes until they
+// process outstanding VM interrupts. Invoke this method after calling
+// any of the following APIs in a test to ensure changes are applied:
+//
+//  - Dart_EnableHeapSampling()
+//  - Dart_DisableHeapSampling()
+//  - Dart_SetHeapSamplingPeriod(...)
+void HandleInterrupts(Thread* thread) {
+  TransitionNativeToVM transition(thread);
+  thread->HandleInterrupts();
+}
+
+void InitHeapSampling(Thread* thread) {
+  ResetHeapSamplingState();
+  Dart_RegisterHeapSamplingCallback(HeapSamplingCallback);
   Dart_EnableHeapSampling();
   // Start with sampling on every byte allocated.
   Dart_SetHeapSamplingPeriod(1);
+  HandleInterrupts(thread);
+}
 
+TEST_CASE(DartAPI_HeapSampling_UserDefinedClass) {
   auto isolate_group_data = Dart_CurrentIsolateGroupData();
+  const char* kScriptChars = R"(
+    class Bar {}
+    foo() {
+      final list = [];
+      for (int i = 0; i < 100000; ++i) {
+        list.add(Bar());
+      }
+    }
+    )";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
+  EXPECT_VALID(lib);
+
+  InitHeapSampling(thread);
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
+  EXPECT_VALID(result);
+  EXPECT(heap_samples > 0);
+  EXPECT(heap_samples < 100000);
+  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
+
+  EXPECT_STREQ("Bar", last_allocation_cls);
+}
+
+TEST_CASE(DartAPI_HeapSampling_APIAllocations) {
+  auto isolate_group_data = Dart_CurrentIsolateGroupData();
+  InitHeapSampling(thread);
+
   // Some simple allocations
   USE(Dart_NewList(100));
 
-  const char* name = nullptr;
-  Dart_Handle result = Dart_StringToCString(last_allocation_cls, &name);
-  EXPECT_VALID(result);
-
   EXPECT(heap_samples > 0);
-  EXPECT_STREQ("List", name);
+  EXPECT_STREQ("List", last_allocation_cls);
   EXPECT_EQ(last_isolate_group_data, isolate_group_data);
 
-  heap_samples = 0;
+  ResetHeapSamplingState();
+
+  const intptr_t kNumAllocations = 1000;
+  for (intptr_t i = 0; i < kNumAllocations; ++i) {
+    USE(AllocateOldString("str"));
+  }
+
+  EXPECT(heap_samples > 0);
+  EXPECT(heap_samples <= kNumAllocations);
+  EXPECT_STREQ("String", last_allocation_cls);
+  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
+
+  ResetHeapSamplingState();
+
   USE(Dart_NewStringFromCString("Foo"));
-  result = Dart_StringToCString(last_allocation_cls, &name);
-  EXPECT_VALID(result);
   EXPECT(heap_samples > 0);
-  EXPECT_STREQ("String", name);
+  EXPECT_STREQ("String", last_allocation_cls);
   EXPECT_EQ(last_isolate_group_data, isolate_group_data);
+
+  ResetHeapSamplingState();
+
+  USE(Dart_NewTypedData(Dart_TypedData_kUint8, 1000000));
+  EXPECT(heap_samples > 0);
+  EXPECT_STREQ("Uint8List", last_allocation_cls);
+  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
+}
+
+TEST_CASE(DartAPI_HeapSampling_NonTrivialSamplingPeriod) {
+  auto isolate_group_data = Dart_CurrentIsolateGroupData();
+  InitHeapSampling(thread);
 
   // Increase the sampling period and check that we don't sample each
   // allocation. This should cause samples to be collected for approximately
   // every 1KiB allocated.
   Dart_SetHeapSamplingPeriod(1 << 10);
-  heap_samples = 0;
+  HandleInterrupts(thread);
 
+  // Allocate via the embedding API.
   const intptr_t kNumAllocations = 1000;
   for (intptr_t i = 0; i < kNumAllocations; ++i) {
     USE(Dart_NewList(10));
   }
   EXPECT(heap_samples > 0);
   EXPECT(heap_samples < kNumAllocations);
+  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
 
-  heap_samples = 0;
-  last_allocation_cls = nullptr;
   const char* kScriptChars = R"(
     foo() {
       final list = [];
@@ -10540,23 +10608,32 @@ TEST_CASE(DartAPI_HeapSampling) {
     }
     )";
   Dart_DisableHeapSampling();
+  HandleInterrupts(thread);
+
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, nullptr);
   EXPECT_VALID(lib);
+
+  ResetHeapSamplingState();
+
   Dart_EnableHeapSampling();
-  result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
+  HandleInterrupts(thread);
+
+  // Allocate via Dart code.
+  Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, nullptr);
   EXPECT_VALID(result);
   EXPECT(heap_samples > 0);
   EXPECT(heap_samples < kNumAllocations);
+  EXPECT_EQ(last_isolate_group_data, isolate_group_data);
 
   Dart_DisableHeapSampling();
 
   // Sampling on every byte allocated.
   Dart_SetHeapSamplingPeriod(1);
+  HandleInterrupts(thread);
 
   // Ensure no more samples are collected.
-  heap_samples = 0;
-  last_allocation_cls = nullptr;
-  last_isolate_group_data = nullptr;
+  ResetHeapSamplingState();
+
   USE(Dart_NewList(10));
   EXPECT_EQ(heap_samples, 0);
   EXPECT_NULLPTR(last_allocation_cls);

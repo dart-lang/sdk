@@ -69,6 +69,7 @@ class Bar implements Foo {}
     );
 
     newFile('$workspaceRootPath/foo/lib/foo.dart', r'''
+// @dart = 2.19
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
@@ -157,6 +158,7 @@ mixin Bar5 implements Foo {}
 
   test_withinPackageLibDirectory_OK() async {
     newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 2.19
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');
@@ -173,6 +175,7 @@ mixin Bar5 implements Foo {}
 
   test_withinPackageTestDirectory_OK() async {
     newFile('$testPackageLibPath/a.dart', r'''
+// @dart = 2.19
 import 'package:meta/meta.dart';
 @sealed class Foo {}
 ''');

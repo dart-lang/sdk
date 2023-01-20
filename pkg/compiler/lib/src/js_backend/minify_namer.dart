@@ -229,7 +229,7 @@ class MinifyNamer extends Namer
     // Try other n-character names based on the hash.  We try one to three
     // character identifiers.  For each length we try around 10 different names
     // in a predictable order determined by the proposed name.  This is in order
-    // to make the renamer stable: small changes in the input should nornally
+    // to make the renamer stable: small changes in the input should normally
     // result in relatively small changes in the output.
     for (int n = 1; n <= 3; n++) {
       int h = hash;

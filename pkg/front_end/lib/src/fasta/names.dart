@@ -16,12 +16,6 @@ final Name caretName = new Name("^");
 
 final Name divisionName = new Name("/");
 
-final Name doubleAmpersandName = new Name("&&");
-
-final Name doubleBarName = new Name("||");
-
-final Name doubleQuestionName = new Name("??");
-
 final Name emptyName = new Name("");
 
 final Name equalsName = new Name('==');
@@ -63,6 +57,8 @@ final Name rightShiftName = new Name(">>");
 final Name tripleShiftName = new Name(">>>");
 
 final Name tildeName = new Name("~");
+
+final Name sublistName = new Name("sublist");
 
 final Name unaryMinusName = new Name("unary-");
 

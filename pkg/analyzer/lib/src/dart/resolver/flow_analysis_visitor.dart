@@ -158,7 +158,11 @@ class FlowAnalysisHelper {
 
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        flow!.declare(parameter.declaredElement!, true);
+        var declaredElement = parameter.declaredElement!;
+        // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
+        // around a failure in duplicate_definition_test.dart; fix this.
+        flow!.declare(declaredElement, declaredElement.type,
+            initialized: true, skipDuplicateCheck: true);
       }
     }
   }
@@ -283,8 +287,9 @@ class FlowAnalysisHelper {
       var variables = node.variables;
       for (var i = 0; i < variables.length; ++i) {
         var variable = variables[i];
-        flow!.declare(variable.declaredElement as PromotableElement,
-            variable.initializer != null);
+        var declaredElement = variable.declaredElement as PromotableElement;
+        flow!.declare(declaredElement, declaredElement.type,
+            initialized: variable.initializer != null);
       }
     }
   }
@@ -325,7 +330,12 @@ class FlowAnalysisHelper {
         if (node is LabeledStatement) {
           if (_hasLabel(node.labels, element)) {
             var statement = node.statement;
+            // The inner statement is returned for labeled loops and
+            // switch statements, while the LabeledStatement is returned
+            // for the other known targets. This could be possibly changed
+            // so that the inner statement is always returned.
             if (statement is Block ||
+                statement is BreakStatement ||
                 statement is IfStatement ||
                 statement is TryStatement) {
               return node;
@@ -621,13 +631,13 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitPatternVariableDeclarationStatement(
-    covariant PatternVariableDeclarationStatementImpl node,
+  void visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
   ) {
-    for (var variable in node.declaration.elements) {
+    for (var variable in node.elements) {
       assignedVariables.declare(variable);
     }
-    super.visitPatternVariableDeclarationStatement(node);
+    super.visitPatternVariableDeclaration(node);
   }
 
   @override
@@ -765,6 +775,8 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
         forLoopParts.initialization?.accept(this);
       } else if (forLoopParts is ForPartsWithDeclarations) {
         forLoopParts.variables.accept(this);
+      } else if (forLoopParts is ForPartsWithPattern) {
+        forLoopParts.variables.accept(this);
       } else {
         throw StateError('Unrecognized for loop parts');
       }
@@ -787,6 +799,10 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
       } else if (forLoopParts is ForEachPartsWithDeclaration) {
         var variable = forLoopParts.loopVariable.declaredElement!;
         assignedVariables.declare(variable);
+      } else if (forLoopParts is ForEachPartsWithPatternImpl) {
+        for (var variable in forLoopParts.variables) {
+          assignedVariables.declare(variable);
+        }
       } else {
         throw StateError('Unrecognized for loop parts');
       }

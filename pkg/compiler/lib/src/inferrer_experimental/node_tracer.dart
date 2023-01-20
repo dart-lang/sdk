@@ -420,7 +420,7 @@ abstract class TracerVisitor implements TypeInformationVisitor {
       bailout('Used as key in Map');
     }
 
-    // "a[...] = x" could be a list (container) or map assignemnt.
+    // "a[...] = x" could be a list (container) or map assignment.
     if (isIndexSetValue(info)) {
       var receiverType = info.receiver.type;
       if (inferrer.abstractValueDomain.isContainer(receiverType)) {

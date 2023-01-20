@@ -47,6 +47,7 @@ import '../ordered_typeset.dart';
 import '../serialization/serialization.dart';
 import '../universe/call_structure.dart';
 import '../universe/member_usage.dart';
+import '../universe/record_shape.dart';
 import '../universe/selector.dart';
 
 import 'closure.dart';
@@ -54,6 +55,7 @@ import 'elements.dart';
 import 'element_map.dart';
 import 'env.dart';
 import 'locals.dart';
+import 'records.dart' show JRecordClass, RecordClassData;
 
 class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   /// Tag used for identifying serialized [JsKernelToElementMap] objects in a
@@ -128,7 +130,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       this._environment,
       KernelToElementMap _elementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
-      Set<MemberEntity> liveAbstractMembers,
+      Iterable<MemberEntity> liveAbstractMembers,
       AnnotationsData annotations)
       : this.options = _elementMap.options {
     _elementEnvironment = JsElementEnvironment(this);
@@ -365,7 +367,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       if (env.cls != null) {
         classMap[env.cls!] = cls;
       }
-      if (cls is! JContext && cls is! JClosureClass) {
+      if (cls is! JContext && cls is! JClosureClass && cls is! JRecordClass) {
         // Synthesized classes are not part of the library environment.
         libraries.getEnv(cls.library).registerClass(cls.name, env);
       }
@@ -1135,7 +1137,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     assert(checkFamily(cls));
     JClassData data = classes.getData(cls);
     _ensureSupertypes(cls, data);
-    return data.interfaces /*!*/;
+    return data.interfaces;
   }
 
   MemberDefinition getMemberDefinitionInternal(covariant IndexedMember member) {
@@ -1478,7 +1480,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   @override
-  ConstantValue? getConstantValue(ir.Member memberContext, ir.Expression? node,
+  ConstantValue? getConstantValue(ir.Member? memberContext, ir.Expression? node,
       {bool requireConstant = true, bool implicitNull = false}) {
     if (node == null) {
       if (!implicitNull) {
@@ -1493,7 +1495,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       // be replaced in the scope visitor as part of the initializer complexity
       // computation.
       ir.StaticTypeContext staticTypeContext =
-          getStaticTypeContext(memberContext);
+          getStaticTypeContext(memberContext!);
       ir.Constant? constant = constantEvaluator.evaluateOrNull(
           staticTypeContext, node,
           requireConstant: requireConstant);
@@ -2165,6 +2167,53 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
       _generatorBodies[function] = generatorBody;
     }
     return generatorBody;
+  }
+
+  String _nameForShape(RecordShape shape) {
+    final sb = StringBuffer();
+    sb.write('_Record_');
+    sb.write(shape.fieldCount);
+    for (String name in shape.fieldNames) {
+      sb.write('_');
+      // 'hex' escape to remove `$` and `_`.
+      // `send_$_bux` --> `sendx5Fx24x5Fbux78`.
+      sb.write(name
+          .replaceAll(r'x', r'x78')
+          .replaceAll(r'$', r'x24')
+          .replaceAll(r'_', r'x5F'));
+    }
+    return sb.toString();
+  }
+
+  IndexedClass generateRecordShapeClass(
+      RecordShape shape, InterfaceType supertype) {
+    JLibrary library = supertype.element.library as JLibrary;
+
+    String name = _nameForShape(shape);
+    SourceSpan location = SourceSpan.unknown(); // TODO(50081): What to use?
+
+    Map<Name, IndexedMember> memberMap = {};
+    IndexedClass classEntity = JRecordClass(
+      library,
+      name,
+      isAbstract: false,
+    );
+
+    // Create a classData and set up the interfaces and subclass
+    // relationships that _ensureSupertypes and _ensureThisAndRawType are doing
+    InterfaceType thisType =
+        types.interfaceType(classEntity, const <DartType>[]);
+    RecordClassData recordData = RecordClassData(
+        RecordClassDefinition(location),
+        thisType,
+        supertype,
+        getOrderedTypeSet(supertype.element as IndexedClass)
+            .extendClass(types, thisType));
+    classes.register(classEntity, recordData, RecordClassEnv(memberMap));
+
+    // TODO(49718): Implement `==` specialized to the shape.
+
+    return classEntity;
   }
 }
 

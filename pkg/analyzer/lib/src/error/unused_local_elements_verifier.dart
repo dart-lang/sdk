@@ -207,8 +207,16 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRecordPatternField(RecordPatternField node) {
+    usedElements.addMember(node.fieldElement);
+    usedElements.addReadMember(node.fieldElement);
+    super.visitRecordPatternField(node);
+  }
+
+  @override
   void visitRelationalPattern(RelationalPattern node) {
     usedElements.addMember(node.element);
+    usedElements.addReadMember(node.element);
     super.visitRelationalPattern(node);
   }
 
@@ -488,6 +496,14 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitDeclaredIdentifier(DeclaredIdentifier node) {
     _visitLocalVariableElement(node.declaredElement!);
     super.visitDeclaredIdentifier(node);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    final declaredElement = node.declaredElement!;
+    _visitLocalVariableElement(declaredElement);
+
+    super.visitDeclaredVariablePattern(node);
   }
 
   @override
@@ -993,7 +1009,9 @@ class UsedLocalElements {
   }
 
   void addElement(Element? element) {
-    if (element != null) {
+    if (element is JoinPatternVariableElementImpl) {
+      elements.addAll(element.transitiveVariables);
+    } else if (element != null) {
       elements.add(element);
     }
   }
@@ -1010,6 +1028,11 @@ class UsedLocalElements {
   }
 
   void addReadMember(Element? element) {
+    // Store un-parameterized members.
+    if (element is ExecutableMember) {
+      element = element.declaration;
+    }
+
     if (element != null) {
       readMembers.add(element);
     }

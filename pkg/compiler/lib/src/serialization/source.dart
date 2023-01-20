@@ -1274,6 +1274,10 @@ class DataSourceReader {
             readMemberMap<FieldEntity, ConstantValue>(
                 (MemberEntity member) => readConstant());
         return ConstructedConstantValue(type, fields);
+      case ConstantValueKind.RECORD:
+        final shape = RecordShape.readFromDataSource(this);
+        final values = readConstants();
+        return RecordConstantValue(shape, values);
       case ConstantValueKind.TYPE:
         final representedType = readDartType();
         final type = readDartType() as InterfaceType;

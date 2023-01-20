@@ -935,7 +935,7 @@ class ParserProxy extends analyzer.Parser {
   /// Runs the specified function and returns the result. It checks the
   /// enclosing listener events, that the parse consumed all of the tokens, and
   /// that the result stack is empty.
-  _run(String enclosingEvent, Function() f) {
+  T _run<T>(String enclosingEvent, T Function() f) {
     _eventListener.begin(enclosingEvent);
 
     // Simulate error handling of parseUnit by skipping error tokens
@@ -1506,7 +1506,7 @@ class ParserTestCase with ParserTestHelpers implements AbstractParserTestCase {
 
 /// Helper methods that aid in parser tests.
 ///
-/// Intended to be mixed in to parser test case classes.
+/// Intended to be mixed into parser test case classes.
 mixin ParserTestHelpers {
   ExpectedError error(ErrorCode code, int offset, int length,
           {Pattern? correctionContains,

@@ -100,8 +100,8 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
   }
 
   @override
-  InterfaceType getTypeAsInstanceOf(
-      InterfaceType type, Class superclass, Library clientLibrary) {
+  InterfaceType getTypeAsInstanceOf(InterfaceType type, Class superclass,
+      {required bool isNonNullableByDefault}) {
     if (type.classNode == superclass) return type;
     return asSupertypeOf(type, superclass)!
         .asInterfaceType
@@ -122,14 +122,15 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
 
   @override
   InterfaceType getLegacyLeastUpperBound(
-      InterfaceType type1, InterfaceType type2, Library clientLibrary) {
+      InterfaceType type1, InterfaceType type2,
+      {required bool isNonNullableByDefault}) {
     if (type1 == type2) return type1;
 
     // LLUB(Null, List<dynamic>*) works differently for opt-in and opt-out
     // libraries.  In opt-out libraries the legacy behavior is preserved, so
     // LLUB(Null, List<dynamic>*) = List<dynamic>*.  In opt-out libraries the
     // rules imply that LLUB(Null, List<dynamic>*) = List<dynamic>?.
-    if (!clientLibrary.isNonNullableByDefault) {
+    if (!isNonNullableByDefault) {
       if (type1 is NullType) {
         return type2;
       }
@@ -153,10 +154,10 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
         continue;
       }
       if (nodes1.contains(node)) {
-        DartType candidate1 =
-            getTypeAsInstanceOf(type1, node.classBuilder.cls, clientLibrary);
-        DartType candidate2 =
-            getTypeAsInstanceOf(type2, node.classBuilder.cls, clientLibrary);
+        DartType candidate1 = getTypeAsInstanceOf(type1, node.classBuilder.cls,
+            isNonNullableByDefault: isNonNullableByDefault);
+        DartType candidate2 = getTypeAsInstanceOf(type2, node.classBuilder.cls,
+            isNonNullableByDefault: isNonNullableByDefault);
         if (candidate1 == candidate2) {
           common.add(node);
         }
@@ -172,7 +173,8 @@ class ClassHierarchyBuilder implements ClassHierarchyBase {
     for (int i = 0; i < common.length - 1; i++) {
       ClassHierarchyNode node = common[i];
       if (node.maxInheritancePath != common[i + 1].maxInheritancePath) {
-        return getTypeAsInstanceOf(type1, node.classBuilder.cls, clientLibrary)
+        return getTypeAsInstanceOf(type1, node.classBuilder.cls,
+                isNonNullableByDefault: isNonNullableByDefault)
             .withDeclaredNullability(
                 uniteNullabilities(type1.nullability, type2.nullability));
       } else {

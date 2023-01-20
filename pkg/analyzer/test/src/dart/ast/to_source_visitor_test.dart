@@ -159,21 +159,6 @@ var v = a * (b + c);
     );
   }
 
-  void test_visitBinaryPattern() {
-    var findNode = _parseStringToFindNode('''
-void f(x) {
-  switch (x) {
-    case int? _ && double? _ && Object? _:
-      break;
-  }
-}
-''');
-    _assertSource(
-      'int? _ && double? _ && Object? _',
-      findNode.binaryPattern('Object?'),
-    );
-  }
-
   void test_visitBlock_empty() {
     final code = '{}';
     final findNode = _parseStringToFindNode('''
@@ -907,13 +892,13 @@ void f() {
     var findNode = _parseStringToFindNode('''
 void f(x) {
   switch (x) {
-    case int? _:
+    case int? a:
       break;
   }
 }
 ''');
     _assertSource(
-      'int? _',
+      'int? a',
       findNode.declaredVariablePattern('int?'),
     );
   }
@@ -2333,6 +2318,36 @@ void f(x) {
     );
   }
 
+  void test_visitLogicalAndPattern() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case int? _ && double? _ && Object? _:
+      break;
+  }
+}
+''');
+    _assertSource(
+      'int? _ && double? _ && Object? _',
+      findNode.logicalAndPattern('Object?'),
+    );
+  }
+
+  void test_visitLogicalOrPattern() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case int? _ || double? _ || Object? _:
+      break;
+  }
+}
+''');
+    _assertSource(
+      'int? _ || double? _ || Object? _',
+      findNode.logicalOrPattern('Object?'),
+    );
+  }
+
   void test_visitMapLiteral_const() {
     final code = 'const {}';
     final findNode = _parseStringToFindNode('''
@@ -2778,7 +2793,7 @@ void f(x) {
 ''');
     _assertSource(
       'true!',
-      findNode.postfixPattern('true'),
+      findNode.nullAssertPattern('true'),
     );
   }
 
@@ -3778,6 +3793,21 @@ void f() {
 }
 ''');
     _assertSource(code, findNode.whileStatement(code));
+  }
+
+  void test_visitWildcardPattern() {
+    var findNode = _parseStringToFindNode('''
+void f(x) {
+  switch (x) {
+    case int? _:
+      break;
+  }
+}
+''');
+    _assertSource(
+      'int? _',
+      findNode.wildcardPattern('int?'),
+    );
   }
 
   void test_visitWithClause_multiple() {

@@ -19,13 +19,13 @@ inline class Class5 /* declaredRepresentationType = core::int */ {
 inline class Class6 /* declaredRepresentationType = core::int */ {
   constructor • = self::Class6|;
 }
-method Class1|(core::int field) → self::Class1
+static method Class1|(core::int field) → self::Class1
   ;
-method Class2|(core::int field) → self::Class2
+static method Class2|(core::int field) → self::Class2
   ;
-method Class4|(core::int field, dynamic nonexisting) → self::Class4
+static method Class4|(core::int field, dynamic nonexisting) → self::Class4
   ;
-method Class5|(core::int field) → self::Class5
+static method Class5|(core::int field) → self::Class5
   ;
-method Class6|(core::int field) → self::Class6
+static method Class6|(core::int field) → self::Class6
   ;

@@ -148,6 +148,7 @@ final fastaAnalyzerErrorCodes = <ErrorCode?>[
   ParserErrorCode.RECORD_TYPE_ONE_POSITIONAL_NO_TRAILING_COMMA,
   ParserErrorCode.ABSTRACT_SEALED_CLASS,
   ParserErrorCode.EXPERIMENT_NOT_ENABLED_OFF_BY_DEFAULT,
+  ParserErrorCode.ANNOTATION_SPACE_BEFORE_PARENTHESIS,
 ];
 
 class ParserErrorCode extends ErrorCode {
@@ -216,6 +217,13 @@ class ParserErrorCode extends ErrorCode {
   static const ParserErrorCode ANNOTATION_ON_TYPE_ARGUMENT = ParserErrorCode(
     'ANNOTATION_ON_TYPE_ARGUMENT',
     "Type arguments can't have annotations because they aren't declarations.",
+  );
+
+  static const ParserErrorCode ANNOTATION_SPACE_BEFORE_PARENTHESIS =
+      ParserErrorCode(
+    'ANNOTATION_SPACE_BEFORE_PARENTHESIS',
+    "Annotations can't have spaces or comments before the parenthesis.",
+    correctionMessage: "Remove any spaces or comments before the parenthesis.",
   );
 
   static const ParserErrorCode ANNOTATION_WITH_TYPE_ARGUMENTS = ParserErrorCode(

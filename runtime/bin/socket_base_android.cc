@@ -200,8 +200,8 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
   if (NO_RETRY_EXPECTED(getpeername(fd, &raw.addr, &size))) {
     return NULL;
   }
-  // sockaddr_un contains sa_family_t sun_familty and char[] sun_path.
-  // If size is the size of sa_familty_t, this is an unnamed socket and
+  // sockaddr_un contains sa_family_t sun_family and char[] sun_path.
+  // If size is the size of sa_family_t, this is an unnamed socket and
   // sun_path contains garbage.
   if (size == sizeof(sa_family_t)) {
     *port = 0;

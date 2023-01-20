@@ -16,6 +16,7 @@ import '../js_backend/string_reference.dart'
     show StringReference, StringReferencePolicy;
 import '../js_emitter/js_emitter.dart' show Emitter;
 import '../js_model/elements.dart';
+import '../js_model/records.dart';
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';
 import 'namer.dart';
@@ -206,6 +207,9 @@ class ModularConstantEmitter
 
   @override
   jsAst.Expression? visitList(ListConstantValue constant, [_]) => null;
+
+  @override
+  jsAst.Expression? visitRecord(RecordConstantValue constant, [_]) => null;
 }
 
 /// Generates the JavaScript expressions for constants.
@@ -224,6 +228,7 @@ class ConstantEmitter extends ModularConstantEmitter {
   final RuntimeTypesNeed _rtiNeed;
   final RecipeEncoder _rtiRecipeEncoder;
   final JFieldAnalysis _fieldAnalysis;
+  final RecordData _recordData;
   final Emitter _emitter;
   final _ConstantReferenceGenerator _constantReferenceGenerator;
   final _ConstantListGenerator _makeConstantList;
@@ -239,6 +244,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       this._rtiNeed,
       this._rtiRecipeEncoder,
       this._fieldAnalysis,
+      this._recordData,
       this._emitter,
       this._constantReferenceGenerator,
       this._makeConstantList);
@@ -406,6 +412,25 @@ class ConstantEmitter extends ModularConstantEmitter {
     });
     if (_rtiNeed.classNeedsTypeArguments(constant.type.element)) {
       fields.add(_reifiedTypeNewRti(constant.type));
+    }
+    return jsAst.New(constructor, fields);
+  }
+
+  @override
+  jsAst.Expression visitRecord(RecordConstantValue constant, [_]) {
+    RecordType recordType = constant.getType(_commonElements) as RecordType;
+    RecordRepresentation representation =
+        _recordData.representationForStaticType(recordType);
+    ClassEntity cls = representation.cls;
+    jsAst.Expression constructor = _emitter.constructorAccess(cls);
+    List<jsAst.Expression> fields = [
+      for (final value in constant.values) _constantReferenceGenerator(value)
+    ];
+    // TODO(50081): We just trust that the field order is correct. It would be
+    // more secure to invert the access paths and use that to look up the slot
+    // from the values.
+    if (representation.usesList) {
+      fields = [jsAst.ArrayInitializer(fields)];
     }
     return jsAst.New(constructor, fields);
   }

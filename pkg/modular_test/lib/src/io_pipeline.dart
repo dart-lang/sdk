@@ -46,7 +46,7 @@ class IOPipeline extends Pipeline<IOModularStep> {
 
   /// A unique number to denote the current modular test configuration.
   ///
-  /// When using [cacheSharedModules], a test can resuse the output of a
+  /// When using [cacheSharedModules], a test can reuse the output of a
   /// previous run of this pipeline if that output was generated with the same
   /// configuration.
   int? _currentConfiguration;

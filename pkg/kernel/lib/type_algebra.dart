@@ -235,6 +235,14 @@ abstract class Substitution {
         type.classNode.typeParameters, type.typeArguments));
   }
 
+  /// Substitutes the type parameters on the inline class of [type] with the
+  /// type arguments provided in [type].
+  static Substitution fromInlineType(InlineType type) {
+    if (type.typeArguments.isEmpty) return _NullSubstitution.instance;
+    return fromMap(new Map<TypeParameter, DartType>.fromIterables(
+        type.inlineClass.typeParameters, type.typeArguments));
+  }
+
   /// Substitutes the type parameters on the typedef of [type] with the
   /// type arguments provided in [type].
   static Substitution fromTypedefType(TypedefType type) {

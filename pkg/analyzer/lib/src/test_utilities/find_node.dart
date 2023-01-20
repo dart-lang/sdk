@@ -27,6 +27,32 @@ class FindNode {
     return result;
   }
 
+  /// Returns the [ForElement], there must be only one.
+  ForElement get singleForElement {
+    var nodes = <ForElement>[];
+    unit.accept(
+      FunctionAstVisitor(
+        forElement: (node) {
+          nodes.add(node);
+        },
+      ),
+    );
+    return nodes.single;
+  }
+
+  /// Returns the [ForStatement], there must be only one.
+  ForStatement get singleForStatement {
+    var nodes = <ForStatement>[];
+    unit.accept(
+      FunctionAstVisitor(
+        forStatement: (node) {
+          nodes.add(node);
+        },
+      ),
+    );
+    return nodes.single;
+  }
+
   /// Returns the [GuardedPattern], there must be only one.
   GuardedPattern get singleGuardedPattern {
     var nodes = <GuardedPattern>[];
@@ -107,6 +133,10 @@ class FindNode {
     return _node(search, (n) => n is AsExpression);
   }
 
+  AsExpression asExpression(String search) {
+    return _node(search, (n) => n is AsExpression);
+  }
+
   AssertStatement assertStatement(String search) {
     return _node(search, (n) => n is AssertStatement);
   }
@@ -129,10 +159,6 @@ class FindNode {
 
   BinaryExpression binary(String search) {
     return _node(search, (n) => n is BinaryExpression);
-  }
-
-  BinaryPattern binaryPattern(String search) {
-    return _node(search, (n) => n is BinaryPattern);
   }
 
   Block block(String search) {
@@ -455,6 +481,14 @@ class FindNode {
     return _node(search, (n) => n is ListPattern);
   }
 
+  LogicalAndPattern logicalAndPattern(String search) {
+    return _node(search, (n) => n is LogicalAndPattern);
+  }
+
+  LogicalOrPattern logicalOrPattern(String search) {
+    return _node(search, (n) => n is LogicalOrPattern);
+  }
+
   MapLiteralEntry mapLiteralEntry(String search) {
     return _node(search, (n) => n is MapLiteralEntry);
   }
@@ -497,6 +531,14 @@ class FindNode {
 
   NativeFunctionBody nativeFunctionBody(String search) {
     return _node(search, (n) => n is NativeFunctionBody);
+  }
+
+  NullAssertPattern nullAssertPattern(String search) {
+    return _node(search, (n) => n is NullAssertPattern);
+  }
+
+  NullCheckPattern nullCheckPattern(String search) {
+    return _node(search, (n) => n is NullCheckPattern);
   }
 
   NullLiteral nullLiteral(String search) {
@@ -551,10 +593,6 @@ class FindNode {
 
   PostfixExpression postfix(String search) {
     return _node(search, (n) => n is PostfixExpression);
-  }
-
-  PostfixPattern postfixPattern(String search) {
-    return _node(search, (n) => n is PostfixPattern);
   }
 
   PrefixExpression prefix(String search) {
@@ -757,6 +795,10 @@ class FindNode {
 
   WhileStatement whileStatement(String search) {
     return _node(search, (n) => n is WhileStatement);
+  }
+
+  WildcardPattern wildcardPattern(String search) {
+    return _node(search, (n) => n is WildcardPattern);
   }
 
   WithClause withClause(String search) {

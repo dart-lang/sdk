@@ -106,15 +106,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitBinaryPattern(BinaryPattern node) {
-    _visitNode(node.leftOperand);
-    sink.write(' ');
-    sink.write(node.operator.lexeme);
-    sink.write(' ');
-    _visitNode(node.rightOperand);
-  }
-
-  @override
   void visitBlock(Block node) {
     sink.write('{');
     _visitNodeList(node.statements, separator: ' ');
@@ -825,6 +816,24 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    _visitNode(node.leftOperand);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    _visitNode(node.rightOperand);
+  }
+
+  @override
+  void visitLogicalOrPattern(LogicalOrPattern node) {
+    _visitNode(node.leftOperand);
+    sink.write(' ');
+    sink.write(node.operator.lexeme);
+    sink.write(' ');
+    _visitNode(node.rightOperand);
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     _visitNode(node.key);
     sink.write(' : ');
@@ -913,6 +922,18 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitNullAssertPattern(NullAssertPattern node) {
+    _visitNode(node.pattern);
+    sink.write(node.operator.lexeme);
+  }
+
+  @override
+  void visitNullCheckPattern(NullCheckPattern node) {
+    _visitNode(node.pattern);
+    sink.write(node.operator.lexeme);
+  }
+
+  @override
   void visitNullLiteral(NullLiteral node) {
     sink.write('null');
   }
@@ -989,12 +1010,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitPostfixExpression(PostfixExpression node) {
     _writeOperand(node, node.operand);
-    sink.write(node.operator.lexeme);
-  }
-
-  @override
-  void visitPostfixPattern(PostfixPattern node) {
-    _visitNode(node.operand);
     sink.write(node.operator.lexeme);
   }
 
@@ -1367,6 +1382,13 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNode(node.condition);
     sink.write(') ');
     _visitNode(node.body);
+  }
+
+  @override
+  void visitWildcardPattern(WildcardPattern node) {
+    _visitToken(node.keyword, suffix: ' ');
+    _visitNode(node.type, suffix: ' ');
+    sink.write(node.name.lexeme);
   }
 
   @override

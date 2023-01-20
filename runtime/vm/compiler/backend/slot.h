@@ -266,8 +266,6 @@ class Slot : public ZoneAllocated {
                                          intptr_t offset_in_bytes);
 
   // Returns a slot corresponding to a record field at [offset_in_bytes].
-  // TODO(dartbug.com/49719): distinguish slots of records with different
-  // shapes.
   static const Slot& GetRecordFieldSlot(Thread* thread,
                                         intptr_t offset_in_bytes);
 

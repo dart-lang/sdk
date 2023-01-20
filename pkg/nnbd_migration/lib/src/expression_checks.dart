@@ -30,13 +30,8 @@ class ExpressionChecks {
 class ExpressionChecksOrigin extends EdgeOrigin {
   final ExpressionChecks checks;
 
-  /// Whether the origin of the edge is due to the assignment of a variable
-  /// from within function literal argument to the `setUp` function of the test
-  /// package.
-  final bool isSetupAssignment;
-
   ExpressionChecksOrigin(super.source, Expression? super.node, this.checks,
-      {this.isSetupAssignment = false});
+      {super.isSetupAssignment = false});
 
   @override
   String get description => 'data flow';

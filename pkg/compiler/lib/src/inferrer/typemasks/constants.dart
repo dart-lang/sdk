@@ -29,7 +29,10 @@ class ConstantValueTypeMasks
     return TypeMask.nonNullExact(constant.type.element, closedWorld);
   }
 
-  // TODO(49718): Record constants.
+  @override
+  TypeMask visitRecord(RecordConstantValue constant, JClosedWorld closedWorld) {
+    return _abstractValueDomain.recordType;
+  }
 
   @override
   TypeMask visitDeferredGlobal(

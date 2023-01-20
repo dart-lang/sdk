@@ -71,10 +71,17 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
 
     var prefixString = prefix.isNotEmpty ? '$prefix.' : '';
     final enumName_final = '$prefixString$enumName';
+    var isLeftBracketSynthetic = statement.leftBracket.isSynthetic;
+    var insertionOffset = isLeftBracketSynthetic
+        ? statement.rightParenthesis.end
+        : location.offset;
     await builder.addDartFileEdit(file, (builder) {
       // TODO(brianwilkerson) Consider inserting the names in order into the
       //  switch statement.
-      builder.addInsertion(location.offset, (builder) {
+      builder.addInsertion(insertionOffset, (builder) {
+        if (isLeftBracketSynthetic) {
+          builder.write(' {');
+        }
         builder.write(location.prefix);
         for (var constantName in enumConstantNames) {
           builder.write(statementIndent);
@@ -94,6 +101,9 @@ class AddMissingEnumCaseClauses extends CorrectionProducer {
           builder.writeln('break;');
         }
         builder.write(location.suffix);
+        if (statement.rightBracket.isSynthetic) {
+          builder.write('}');
+        }
       });
     });
   }

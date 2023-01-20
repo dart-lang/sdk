@@ -62,7 +62,7 @@ TEST_CASE(Log_Basic) {
   test_output_ = NULL;
   Log* log = new Log(TestPrinter);
 
-  EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
+  EXPECT_EQ(static_cast<const char*>(NULL), test_output_);
   log->Print("Hello %s", "World");
   EXPECT_STREQ("Hello World", test_output_);
 
@@ -74,23 +74,23 @@ TEST_CASE(Log_Block) {
   test_output_ = NULL;
   Log* log = new Log(TestPrinter);
 
-  EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
+  EXPECT_EQ(static_cast<const char*>(NULL), test_output_);
   {
     LogBlock ba(thread, log);
     log->Print("APPLE");
-    EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
+    EXPECT_EQ(static_cast<const char*>(NULL), test_output_);
     {
       LogBlock ba(thread, log);
       log->Print("BANANA");
-      EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
+      EXPECT_EQ(static_cast<const char*>(NULL), test_output_);
     }
-    EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
+    EXPECT_EQ(static_cast<const char*>(NULL), test_output_);
     {
       LogBlock ba(thread, log);
       log->Print("PEAR");
-      EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
+      EXPECT_EQ(static_cast<const char*>(NULL), test_output_);
     }
-    EXPECT_EQ(reinterpret_cast<const char*>(NULL), test_output_);
+    EXPECT_EQ(static_cast<const char*>(NULL), test_output_);
   }
   EXPECT_STREQ("APPLEBANANAPEAR", test_output_);
   delete log;

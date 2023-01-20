@@ -66,6 +66,7 @@ import 'cast_from_null_always_fails_test.dart' as cast_from_null_always_fails;
 import 'cast_to_non_type_test.dart' as cast_to_non_type;
 import 'class_instantiation_access_to_member_test.dart'
     as class_instantiation_access_to_member;
+import 'class_used_as_mixin_test.dart' as class_used_as_mixin;
 import 'concrete_class_has_enum_superinterface_test.dart'
     as concrete_class_has_enum_superinterface;
 import 'concrete_class_with_abstract_member_test.dart'
@@ -128,11 +129,11 @@ import 'const_with_undefined_constructor_test.dart'
     as const_with_undefined_constructor;
 import 'constant_pattern_with_non_constant_expression_test.dart'
     as constant_pattern_with_non_constant_expression;
+import 'continue_label_invalid_test.dart' as continue_label_invalid;
 import 'could_not_infer_test.dart' as could_not_infer;
 import 'creation_of_struct_or_union_test.dart' as creation_of_struct_or_union;
 import 'dead_code_test.dart' as dead_code;
 import 'dead_null_aware_expression_test.dart' as dead_null_aware_expression;
-import 'default_list_constructor_test.dart' as default_list_constructor;
 import 'default_value_in_function_type_test.dart'
     as default_value_in_function_type;
 import 'default_value_in_redirecting_factory_constructor_test.dart'
@@ -165,8 +166,12 @@ import 'duplicate_ignore_test.dart' as duplicate_ignore;
 import 'duplicate_import_test.dart' as duplicate_import;
 import 'duplicate_named_argument_test.dart' as duplicate_named_argument;
 import 'duplicate_part_test.dart' as duplicate_part;
+import 'duplicate_pattern_assignment_variable_test.dart'
+    as duplicate_pattern_assignment_variable;
 import 'duplicate_record_pattern_field_test.dart'
     as duplicate_record_pattern_field;
+import 'duplicate_rest_element_in_pattern_test.dart'
+    as duplicate_rest_element_in_pattern;
 import 'duplicate_shown_name_test.dart' as duplicate_shown_name;
 import 'duplicate_variable_pattern_test.dart' as duplicate_variable_pattern;
 import 'enum_constant_same_name_as_enclosing_test.dart'
@@ -182,6 +187,7 @@ import 'enum_with_name_values_test.dart' as enum_with_name_values;
 import 'equal_elements_in_const_set_test.dart' as equal_elements_in_const_set;
 import 'equal_elements_in_set_test.dart' as equal_elements_in_set;
 import 'equal_keys_in_const_map_test.dart' as equal_keys_in_const_map;
+import 'equal_keys_in_map_pattern_test.dart' as equal_keys_in_map_pattern;
 import 'equal_keys_in_map_test.dart' as equal_keys_in_map;
 import 'expected_one_list_pattern_type_arguments_test.dart'
     as expected_one_list_pattern_type_arguments;
@@ -542,9 +548,12 @@ import 'non_constant_map_element_test.dart' as non_constant_map_element;
 import 'non_constant_map_key_from_deferred_library_test.dart'
     as non_constant_map_key_from_deferred_library;
 import 'non_constant_map_key_test.dart' as non_constant_map_key;
+import 'non_constant_map_pattern_key_test.dart' as non_constant_map_pattern_key;
 import 'non_constant_map_value_from_deferred_library_test.dart'
     as non_constant_map_value_from_deferred_library;
 import 'non_constant_map_value_test.dart' as non_constant_map_value;
+import 'non_constant_relational_pattern_expression_test.dart'
+    as non_constant_relational_pattern_expression;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
 import 'non_constant_type_argument_test.dart' as non_constant_type_argument;
 import 'non_final_field_in_enum_test.dart' as non_final_field_in_enum;
@@ -613,6 +622,8 @@ import 'pattern_assignment_not_local_variable_test.dart'
     as pattern_assignment_not_local_variable;
 import 'pattern_type_mismatch_in_irrefutable_context_test.dart'
     as pattern_type_mismatch_in_irrefutable_context;
+import 'pattern_variable_assignment_inside_guard_test.dart'
+    as pattern_variable_assignment_inside_guard;
 import 'positional_super_formal_parameter_with_positional_argument_test.dart'
     as positional_super_formal_parameter_with_positional_argument;
 import 'prefix_collides_with_top_level_member_test.dart'
@@ -662,6 +673,10 @@ import 'refutable_pattern_in_irrefutable_context_test.dart'
     as refutable_pattern_in_irrefutable_context;
 import 'relational_pattern_operator_return_type_not_assignable_to_bool_test.dart'
     as relational_pattern_operator_return_type_not_assignable_to_bool;
+import 'removed_lint_use_test.dart' as removed_lint_in_ignore;
+import 'replaced_lint_use_test.dart' as replaced_lint_in_ignore;
+import 'rest_element_not_last_in_map_pattern_test.dart'
+    as rest_element_not_last_in_map_pattern;
 import 'rethrow_outside_catch_test.dart' as rethrow_outside_catch;
 import 'return_in_generative_constructor_test.dart'
     as return_in_generative_constructor;
@@ -785,9 +800,14 @@ import 'unnecessary_cast_test.dart' as unnecessary_cast;
 import 'unnecessary_final_test.dart' as unnecessary_final;
 import 'unnecessary_ignore_test.dart' as unnecessary_ignore;
 import 'unnecessary_import_test.dart' as unnecessary_import;
+import 'unnecessary_nan_comparison_test.dart' as unnecessary_nan_comparison;
 import 'unnecessary_no_such_method_test.dart' as unnecessary_no_such_method;
 import 'unnecessary_non_null_assertion_test.dart'
     as unnecessary_non_null_assertion;
+import 'unnecessary_null_assert_pattern_test.dart'
+    as unnecessary_null_assert_pattern;
+import 'unnecessary_null_check_pattern_test.dart'
+    as unnecessary_null_check_pattern;
 import 'unnecessary_null_comparison_test.dart' as unnecessary_null_comparison;
 import 'unnecessary_question_mark_test.dart' as unnecessary_question_mark;
 import 'unnecessary_type_check_test.dart' as unnecessary_type_check;
@@ -874,6 +894,7 @@ main() {
     cast_from_null_always_fails.main();
     cast_to_non_type.main();
     class_instantiation_access_to_member.main();
+    class_used_as_mixin.main();
     concrete_class_has_enum_superinterface.main();
     concrete_class_with_abstract_member.main();
     conflicting_constructor_and_static_field.main();
@@ -912,11 +933,11 @@ main() {
     const_with_type_parameters.main();
     const_with_undefined_constructor.main();
     constant_pattern_with_non_constant_expression.main();
+    continue_label_invalid.main();
     could_not_infer.main();
     creation_of_struct_or_union.main();
     dead_code.main();
     dead_null_aware_expression.main();
-    default_list_constructor.main();
     default_value_in_function_type.main();
     default_value_in_redirecting_factory_constructor.main();
     default_value_on_required_parameter.main();
@@ -940,7 +961,9 @@ main() {
     duplicate_import.main();
     duplicate_named_argument.main();
     duplicate_part.main();
+    duplicate_pattern_assignment_variable.main();
     duplicate_record_pattern_field.main();
+    duplicate_rest_element_in_pattern.main();
     duplicate_shown_name.main();
     duplicate_variable_pattern.main();
     enum_constant_same_name_as_enclosing.main();
@@ -952,6 +975,7 @@ main() {
     equal_elements_in_const_set.main();
     equal_elements_in_set.main();
     equal_keys_in_const_map.main();
+    equal_keys_in_map_pattern.main();
     equal_keys_in_map.main();
     expected_one_list_pattern_type_arguments.main();
     expected_one_list_type_arguments.main();
@@ -1179,9 +1203,11 @@ main() {
     non_constant_default_value.main();
     non_constant_list_element_from_deferred_library.main();
     non_constant_map_key.main();
+    non_constant_map_pattern_key.main();
     non_constant_map_key_from_deferred_library.main();
     non_constant_map_element.main();
     non_constant_map_value.main();
+    non_constant_relational_pattern_expression.main();
     non_constant_map_value_from_deferred_library.main();
     non_constant_set_element.main();
     non_constant_type_argument.main();
@@ -1231,6 +1257,7 @@ main() {
     part_of_non_part.main();
     pattern_assignment_not_local_variable.main();
     pattern_type_mismatch_in_irrefutable_context.main();
+    pattern_variable_assignment_inside_guard.main();
     positional_super_formal_parameter_with_positional_argument.main();
     prefix_collides_with_top_level_member.main();
     prefix_identifier_not_followed_by_dot.main();
@@ -1258,6 +1285,9 @@ main() {
     referenced_before_declaration.main();
     refutable_pattern_in_irrefutable_context.main();
     relational_pattern_operator_return_type_not_assignable_to_bool.main();
+    removed_lint_in_ignore.main();
+    replaced_lint_in_ignore.main();
+    rest_element_not_last_in_map_pattern.main();
     rethrow_outside_catch.main();
     return_in_generative_constructor.main();
     return_in_generator.main();
@@ -1347,8 +1377,11 @@ main() {
     unnecessary_cast.main();
     unnecessary_final.main();
     unnecessary_ignore.main();
+    unnecessary_nan_comparison.main();
     unnecessary_no_such_method.main();
     unnecessary_non_null_assertion.main();
+    unnecessary_null_assert_pattern.main();
+    unnecessary_null_check_pattern.main();
     unnecessary_null_comparison.main();
     unnecessary_question_mark.main();
     unnecessary_type_check.main();

@@ -375,7 +375,7 @@ bool HierarchyInfo::CanUseGenericSubtypeRangeCheckFor(
       TypeArguments::Handle(zone, Type::Cast(type).arguments());
   ASSERT(ta.Length() == num_type_arguments);
 
-  // The last [num_type_pararameters] entries in the [TypeArguments] vector [ta]
+  // The last [num_type_parameters] entries in the [TypeArguments] vector [ta]
   // are the values we have to check against.  Ensure we can handle all of them
   // via [CidRange]-based checks or that it is a type parameter.
   AbstractType& type_arg = AbstractType::Handle(zone);
@@ -3048,6 +3048,12 @@ Definition* BoxInstr::Canonicalize(FlowGraph* flow_graph) {
     return value()->definition();
   }
 
+  // Fold away Box<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
+  }
+
   // Fold away Box<rep>(Unbox<rep>(v)) if value is known to be of the
   // right class.
   UnboxInstr* unbox_defn = value()->definition()->AsUnbox();
@@ -3069,6 +3075,12 @@ Definition* BoxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
   if (input_use_list() == nullptr) {
     // Environments can accommodate any representation. No need to box.
     return value()->definition();
+  }
+
+  // Fold away Box<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
   }
 
   return this;
@@ -3116,6 +3128,12 @@ Definition* BoxInt64Instr::Canonicalize(FlowGraph* flow_graph) {
 Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses() && !CanDeoptimize()) return NULL;
 
+  // Fold away Unbox<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
+  }
+
   // Fold away Unbox<rep>(Box<rep>(v)).
   BoxInstr* box_defn = value()->definition()->AsBox();
   if ((box_defn != NULL) &&
@@ -3140,6 +3158,12 @@ Definition* UnboxInstr::Canonicalize(FlowGraph* flow_graph) {
 
 Definition* UnboxIntegerInstr::Canonicalize(FlowGraph* flow_graph) {
   if (!HasUses() && !CanDeoptimize()) return NULL;
+
+  // Fold away Unbox<rep>(v) if v has a target representation already.
+  Definition* value_defn = value()->definition();
+  if (value_defn->representation() == representation()) {
+    return value_defn;
+  }
 
   // Do not attempt to fold this instruction if we have not matched
   // input/output representations yet.
@@ -3239,7 +3263,7 @@ Definition* IntConverterInstr::Canonicalize(FlowGraph* flow_graph) {
 
   IntConverterInstr* box_defn = value()->definition()->AsIntConverter();
   if ((box_defn != NULL) && (box_defn->representation() == from())) {
-    // If the first convertion can erase bits (or deoptimize) we can't
+    // If the first conversion can erase bits (or deoptimize) we can't
     // canonicalize it away.
     auto src_defn = box_defn->value()->definition();
     if ((box_defn->from() == kUnboxedInt64) &&
@@ -4147,14 +4171,17 @@ void NativeEntryInstr::SaveArgument(
       ASSERT(pointer_loc.IsStack());
       // It's already on the stack, so we don't have to save it.
     }
-  } else {
-    ASSERT(nloc.IsMultiple());
+  } else if (nloc.IsMultiple()) {
     const auto& multiple = nloc.AsMultiple();
     const intptr_t num = multiple.locations().length();
     // Save the argument registers, in reverse order.
     for (intptr_t i = num; i-- > 0;) {
       SaveArgument(compiler, *multiple.locations().At(i));
     }
+  } else {
+    ASSERT(nloc.IsBoth());
+    const auto& both = nloc.AsBoth();
+    SaveArgument(compiler, both.location(0));
   }
 }
 
@@ -6258,7 +6285,7 @@ Definition* PhiInstr::Canonicalize(FlowGraph* flow_graph) {
     // If we are replacing a Phi which has redefinitions as all of its inputs
     // then to maintain the redefinition chain we are going to insert a
     // redefinition. If any input is *not* a redefinition that means that
-    // whatever properties were infered for a Phi also hold on a path
+    // whatever properties were inferred for a Phi also hold on a path
     // that does not pass through any redefinitions so there is no need
     // to redefine this value.
     auto zone = flow_graph->zone();
@@ -6635,7 +6662,22 @@ void NativeCallInstr::SetupNative() {
     return;
   }
 
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  // Currently we perform unoptimized compilations only on mutator threads. If
+  // the compiler has to resolve a native to a function pointer it calls out to
+  // the embedder to do so.
+  //
+  // Unfortunately that embedder API was designed by giving it a handle to a
+  // string. So the embedder will have to call back into the VM to convert it to
+  // a C string - which requires an active isolate.
+  //
+  // => To allow this `dart-->jit-compiler-->embedder-->dart api` we set the
+  //    active isolate again.
+  //
+  ActiveIsolateScope active_isolate(thread);
+
   const Class& cls = Class::Handle(zone, function().Owner());
   const Library& library = Library::Handle(zone, cls.library());
 
@@ -6713,9 +6755,19 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
     }
   }
 
+#if defined(TARGET_ARCH_X64) && !defined(DART_TARGET_OS_WINDOWS)
+  // Only use R13 if really needed, having R13 free causes less spilling.
+  const Register target_address =
+      marshaller_.contains_varargs()
+          ? R13
+          : CallingConventions::kFirstNonArgumentRegister;  // RAX
+  summary->set_in(TargetAddressIndex(),
+                  Location::RegisterLocation(target_address));
+#else
   summary->set_in(TargetAddressIndex(),
                   Location::RegisterLocation(
                       CallingConventions::kFirstNonArgumentRegister));
+#endif
   for (intptr_t i = 0, n = marshaller_.NumDefinitions(); i < n; ++i) {
     summary->set_in(i, marshaller_.LocInFfiCall(i));
   }

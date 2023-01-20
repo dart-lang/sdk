@@ -1,3 +1,5 @@
+NOTICE: Stream was rewritten by parser!
+
 void main() {
 try {
 ;
@@ -9,9 +11,7 @@ try {
 
 
 
-
-
-on(42);
+on(*synthetic*42){};
 }
 
 void on(e) {}
@@ -28,9 +28,7 @@ try[KeywordToken] {[BeginToken]
 
 
 
-
-
-on[KeywordToken]([BeginToken]42[StringToken])[SimpleToken];[SimpleToken]
+on[KeywordToken]([BeginToken][SyntheticStringToken]42[StringToken])[SimpleToken]{[SyntheticBeginToken]}[SyntheticToken];[SimpleToken]
 }[SimpleToken]
 
 void[KeywordToken] on[KeywordToken]([BeginToken]e[StringToken])[SimpleToken] {[BeginToken]}[SimpleToken]

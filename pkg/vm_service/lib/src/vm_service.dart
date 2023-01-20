@@ -26,7 +26,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '3.62.0';
+const String vmServiceVersion = '4.0.0';
 
 /// @optional
 const String optional = 'optional';
@@ -711,7 +711,7 @@ abstract class VmServiceInterface {
   /// The `offset` and `count` parameters are used to request subranges of
   /// Instance objects with the kinds: String, List, Map, Set, Uint8ClampedList,
   /// Uint8List, Uint16List, Uint32List, Uint64List, Int8List, Int16List,
-  /// Int32List, Int64List, Flooat32List, Float64List, Inst32x3List,
+  /// Int32List, Int64List, Float32List, Float64List, Inst32x3List,
   /// Float32x4List, and Float64x2List. These parameters are otherwise ignored.
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
@@ -1100,9 +1100,6 @@ abstract class VmServiceInterface {
   ///
   /// The `shouldPauseOnExit` parameter specify whether the target isolate
   /// should pause on exit.
-  ///
-  /// The `setExceptionPauseMode` RPC is used to control if an isolate pauses
-  /// when an exception is thrown.
   ///
   /// mode | meaning
   /// ---- | -------
@@ -2717,6 +2714,9 @@ class InstanceKind {
   static const String kFloat32x4List = 'Float32x4List';
   static const String kFloat64x2List = 'Float64x2List';
 
+  /// An instance of the Dart class Record.
+  static const String kRecord = 'Record';
+
   /// An instance of the Dart class StackTrace.
   static const String kStackTrace = 'StackTrace';
 
@@ -2747,6 +2747,9 @@ class InstanceKind {
 
   /// An instance of the Dart class FunctionType.
   static const String kFunctionType = 'FunctionType';
+
+  /// An instance of the Dart class RecordType.
+  static const String kRecordType = 'RecordType';
 
   /// An instance of the Dart class BoundedType.
   static const String kBoundedType = 'BoundedType';
@@ -2907,18 +2910,29 @@ class BoundField {
   static BoundField? parse(Map<String, dynamic>? json) =>
       json == null ? null : BoundField._fromJson(json);
 
+  /// Provided for fields of instances that are NOT of the following instance
+  /// kinds:
+  ///  - Record
+  ///
+  /// Note: this property is deprecated and will be replaced by `name`.
   FieldRef? decl;
+
+  /// [name] can be one of [String] or [int].
+  dynamic name;
 
   /// [value] can be one of [InstanceRef] or [Sentinel].
   dynamic value;
 
   BoundField({
     this.decl,
+    this.name,
     this.value,
   });
 
   BoundField._fromJson(Map<String, dynamic> json) {
     decl = createServiceObject(json['decl'], const ['FieldRef']) as FieldRef?;
+    name =
+        createServiceObject(json['name'], const ['String', 'int']) as dynamic;
     value =
         createServiceObject(json['value'], const ['InstanceRef', 'Sentinel'])
             as dynamic;
@@ -2928,12 +2942,14 @@ class BoundField {
     final json = <String, dynamic>{};
     json.addAll({
       'decl': decl?.toJson(),
+      'name': name?.toJson(),
       'value': value?.toJson(),
     });
     return json;
   }
 
-  String toString() => '[BoundField decl: ${decl}, value: ${value}]';
+  String toString() =>
+      '[BoundField decl: ${decl}, name: ${name}, value: ${value}]';
 }
 
 /// A `BoundVariable` represents a local variable bound to a particular value in
@@ -3626,13 +3642,6 @@ class CpuSamples extends Response {
   /// The number of samples returned.
   int? sampleCount;
 
-  /// The timespan the set of returned samples covers, in microseconds
-  /// (deprecated).
-  ///
-  /// Note: this property is deprecated and will always return -1. Use
-  /// `timeExtentMicros` instead.
-  int? timeSpan;
-
   /// The start of the period of time in which the returned samples were
   /// collected.
   int? timeOriginMicros;
@@ -3656,7 +3665,6 @@ class CpuSamples extends Response {
     this.samplePeriod,
     this.maxStackDepth,
     this.sampleCount,
-    this.timeSpan,
     this.timeOriginMicros,
     this.timeExtentMicros,
     this.pid,
@@ -3668,7 +3676,6 @@ class CpuSamples extends Response {
     samplePeriod = json['samplePeriod'] ?? -1;
     maxStackDepth = json['maxStackDepth'] ?? -1;
     sampleCount = json['sampleCount'] ?? -1;
-    timeSpan = json['timeSpan'] ?? -1;
     timeOriginMicros = json['timeOriginMicros'] ?? -1;
     timeExtentMicros = json['timeExtentMicros'] ?? -1;
     pid = json['pid'] ?? -1;
@@ -3692,7 +3699,6 @@ class CpuSamples extends Response {
       'samplePeriod': samplePeriod ?? -1,
       'maxStackDepth': maxStackDepth ?? -1,
       'sampleCount': sampleCount ?? -1,
-      'timeSpan': timeSpan ?? -1,
       'timeOriginMicros': timeOriginMicros ?? -1,
       'timeExtentMicros': timeExtentMicros ?? -1,
       'pid': pid ?? -1,
@@ -3702,7 +3708,9 @@ class CpuSamples extends Response {
     return json;
   }
 
-  String toString() => '[CpuSamples]';
+  String toString() => '[CpuSamples ' //
+      'samplePeriod: ${samplePeriod}, maxStackDepth: ${maxStackDepth}, ' //
+      'sampleCount: ${sampleCount}, timeOriginMicros: ${timeOriginMicros}, timeExtentMicros: ${timeExtentMicros}, pid: ${pid}, functions: ${functions}, samples: ${samples}]';
 }
 
 class CpuSamplesEvent {
@@ -3717,13 +3725,6 @@ class CpuSamplesEvent {
 
   /// The number of samples returned.
   int? sampleCount;
-
-  /// The timespan the set of returned samples covers, in microseconds
-  /// (deprecated).
-  ///
-  /// Note: this property is deprecated and will always return -1. Use
-  /// `timeExtentMicros` instead.
-  int? timeSpan;
 
   /// The start of the period of time in which the returned samples were
   /// collected.
@@ -3748,7 +3749,6 @@ class CpuSamplesEvent {
     this.samplePeriod,
     this.maxStackDepth,
     this.sampleCount,
-    this.timeSpan,
     this.timeOriginMicros,
     this.timeExtentMicros,
     this.pid,
@@ -3760,7 +3760,6 @@ class CpuSamplesEvent {
     samplePeriod = json['samplePeriod'] ?? -1;
     maxStackDepth = json['maxStackDepth'] ?? -1;
     sampleCount = json['sampleCount'] ?? -1;
-    timeSpan = json['timeSpan'] ?? -1;
     timeOriginMicros = json['timeOriginMicros'] ?? -1;
     timeExtentMicros = json['timeExtentMicros'] ?? -1;
     pid = json['pid'] ?? -1;
@@ -3778,7 +3777,6 @@ class CpuSamplesEvent {
       'samplePeriod': samplePeriod ?? -1,
       'maxStackDepth': maxStackDepth ?? -1,
       'sampleCount': sampleCount ?? -1,
-      'timeSpan': timeSpan ?? -1,
       'timeOriginMicros': timeOriginMicros ?? -1,
       'timeExtentMicros': timeExtentMicros ?? -1,
       'pid': pid ?? -1,
@@ -3788,7 +3786,9 @@ class CpuSamplesEvent {
     return json;
   }
 
-  String toString() => '[CpuSamplesEvent]';
+  String toString() => '[CpuSamplesEvent ' //
+      'samplePeriod: ${samplePeriod}, maxStackDepth: ${maxStackDepth}, ' //
+      'sampleCount: ${sampleCount}, timeOriginMicros: ${timeOriginMicros}, timeExtentMicros: ${timeExtentMicros}, pid: ${pid}, functions: ${functions}, samples: ${samples}]';
 }
 
 /// See [getCpuSamples] and [CpuSamples].
@@ -6023,15 +6023,24 @@ class InboundReference {
   /// The object holding the inbound reference.
   ObjRef? source;
 
-  /// If source is a List, parentListIndex is the index of the inbound
-  /// reference.
+  /// If source is a List, parentListIndex is the index of the inbound reference
+  /// (deprecated).
+  ///
+  /// Note: this property is deprecated and will be replaced by `parentField`.
   @optional
   int? parentListIndex;
 
-  /// If source is a field of an object, parentField is the field containing the
-  /// inbound reference.
+  /// If `source` is a `List`, `parentField` is the index of the inbound
+  /// reference. If `source` is a record, `parentField` is the field name of the
+  /// inbound reference. If `source` is an instance of any other kind,
+  /// `parentField` is the field containing the inbound reference.
+  ///
+  /// Note: In v5.0 of the spec, `@Field` will no longer be a part of this
+  /// property's type, i.e. the type will become `string|int`.
+  ///
+  /// [parentField] can be one of [FieldRef], [String] or [int].
   @optional
-  FieldRef? parentField;
+  dynamic parentField;
 
   InboundReference({
     this.source,
@@ -6042,8 +6051,8 @@ class InboundReference {
   InboundReference._fromJson(Map<String, dynamic> json) {
     source = createServiceObject(json['source'], const ['ObjRef']) as ObjRef?;
     parentListIndex = json['parentListIndex'];
-    parentField = createServiceObject(json['parentField'], const ['FieldRef'])
-        as FieldRef?;
+    parentField = createServiceObject(
+        json['parentField'], const ['FieldRef', 'String', 'int']) as dynamic;
   }
 
   Map<String, dynamic> toJson() {
@@ -7065,7 +7074,7 @@ class ProcessMemoryItem {
   /// size. That is, it includes the size of children.
   int? size;
 
-  /// Subdivisons of this bucket of memory.
+  /// Subdivisions of this bucket of memory.
   List<ProcessMemoryItem>? children;
 
   ProcessMemoryItem({
@@ -7141,7 +7150,9 @@ class RetainingObject {
   ObjRef? value;
 
   /// If `value` is a List, `parentListIndex` is the index where the previous
-  /// object on the retaining path is located.
+  /// object on the retaining path is located (deprecated).
+  ///
+  /// Note: this property is deprecated and will be replaced by `parentField`.
   @optional
   int? parentListIndex;
 
@@ -7152,8 +7163,10 @@ class RetainingObject {
 
   /// If `value` is a non-List, non-Map object, `parentField` is the name of the
   /// field containing the previous object on the retaining path.
+  ///
+  /// [parentField] can be one of [String] or [int].
   @optional
-  String? parentField;
+  dynamic parentField;
 
   RetainingObject({
     this.value,
@@ -7167,7 +7180,9 @@ class RetainingObject {
     parentListIndex = json['parentListIndex'];
     parentMapKey =
         createServiceObject(json['parentMapKey'], const ['ObjRef']) as ObjRef?;
-    parentField = json['parentField'];
+    parentField =
+        createServiceObject(json['parentField'], const ['String', 'int'])
+            as dynamic;
   }
 
   Map<String, dynamic> toJson() {
@@ -7177,7 +7192,7 @@ class RetainingObject {
     });
     _setIfNotNull(json, 'parentListIndex', parentListIndex);
     _setIfNotNull(json, 'parentMapKey', parentMapKey?.toJson());
-    _setIfNotNull(json, 'parentField', parentField);
+    _setIfNotNull(json, 'parentField', parentField?.toJson());
     return json;
   }
 

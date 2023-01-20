@@ -170,14 +170,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitBinaryPattern(BinaryPattern node) {
-    _writeln('BinaryPattern');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
-    });
-  }
-
-  @override
   void visitBlock(Block node) {
     _writeln('Block');
     _withIndent(() {
@@ -921,6 +913,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitLogicalAndPattern(LogicalAndPattern node) {
+    _writeln('LogicalAndPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitLogicalOrPattern(LogicalOrPattern node) {
+    _writeln('LogicalOrPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitMapLiteralEntry(MapLiteralEntry node) {
     _writeln('SetOrMapLiteral');
     _withIndent(() {
@@ -1005,6 +1013,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _withIndent(() {
       _writeNamedChildEntities(node);
       _writeType('type', node.type);
+    });
+  }
+
+  @override
+  void visitNullAssertPattern(NullAssertPattern node) {
+    _writeln('NullAssertPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitNullCheckPattern(NullCheckPattern node) {
+    _writeln('NullCheckPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -1110,14 +1134,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       }
       _writeElement('staticElement', node.staticElement);
       _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
-  void visitPostfixPattern(PostfixPattern node) {
-    _writeln('PostfixPattern');
-    _withIndent(() {
-      _writeNamedChildEntities(node);
     });
   }
 
@@ -1550,6 +1566,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitWildcardPattern(
+    covariant WildcardPatternImpl node,
+  ) {
+    _writeln('WildcardPattern');
+    _withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitWithClause(WithClause node) {
     _writeln('WithClause');
     _withIndent(() {
@@ -1648,13 +1674,13 @@ Expected parent: (${parent.runtimeType}) $parent
           ? _elementToReferenceString(enclosingElement)
           : 'root';
       return '$enclosingStr::@parameter::${element.name}';
-    } else if (element is VariablePatternJoinElementImpl) {
+    } else if (element is JoinPatternVariableElementImpl) {
       return [
         if (!element.isConsistent) 'notConsistent ',
         if (element.isFinal) 'final ',
         element.name,
         '[',
-        element.components.map(_elementToReferenceString).join(', '),
+        element.variables.map(_elementToReferenceString).join(', '),
         ']',
       ].join('');
     } else {

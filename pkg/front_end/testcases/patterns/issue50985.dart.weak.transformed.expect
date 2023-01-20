@@ -1,0 +1,66 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test1(core::List<dynamic> list) → core::String {
+  return block {
+    core::String #t1;
+    {
+      dynamic r1;
+      final core::List<dynamic> #t2 = list;
+      core::int #t3 = -1;
+      core::bool #t4 = false;
+      if(!#t4) {
+        final core::List<dynamic> #t5 = #t2;
+        if(#t5 is core::List<core::int> && #t5{core::List<core::int>}.{core::List::length}{core::int}.{core::num::>=}(4){(core::num) → core::bool}) {
+          final core::int #t6 = #t5{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int};
+          final core::int #t7 = #t5{core::List<core::int>}.{core::List::[]}(1){(core::int) → core::int};
+          final core::int #t8 = #t5{core::List<core::int>}.{core::List::[]}(2){(core::int) → core::int};
+          final core::int #t9 = #t5{core::List<core::int>}.{core::List::[]}(3){(core::int) → core::int};
+          final core::List<core::int> #t10 = #t5{core::List<core::int>}.{core::List::sublist}(4){(core::int, [core::int?]) → core::List<core::int>};
+          if(#t6 =={core::num::==}{(core::Object) → core::bool} #C1) {
+            if(#t7 =={core::num::==}{(core::Object) → core::bool} #C2) {
+              if(#t8 =={core::num::==}{(core::Object) → core::bool} #C3) {
+                if(#t9 =={core::num::==}{(core::Object) → core::bool} #C4) {
+                  r1 = #t10;
+                  #t3 = 0;
+                  #t4 = true;
+                }
+              }
+            }
+          }
+        }
+      }
+      if(!#t4) {
+        #t3 = 1;
+        #t4 = true;
+      }
+      #L1:
+      switch(#t3) {
+        #L2:
+        case #C5:
+          {
+            #t1 = r1.{core::Object::toString}(){() → core::String};
+            break #L1;
+          }
+        #L3:
+        case #C1:
+          {
+            #t1 = "default";
+            break #L1;
+          }
+      }
+    }
+  } =>#t1;
+}
+static method main() → dynamic {
+  self::test1(core::_GrowableList::_literal6<dynamic>(1, 2, 3, 4, 5, 6));
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+  #C3 = 3
+  #C4 = 4
+  #C5 = 0
+}

@@ -30,6 +30,9 @@
     ways instead, possibly with a StackOverflowError.
   - Removed the deprecated [`NoSuchMethodError`][] default constructor.
     Use the [`NoSuchMethodError.withInvocation`][] named constructor instead.
+  - Removed the deprecated [`BidirectionalIterator`][] class.
+    Existing bidirectional iterators can still work, they just don't have
+    a shared supertype locking them to a specific name for moving backwards.
 
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
 [`List.filled`]: https://api.dart.dev/stable/2.18.6/dart-core/List/List.filled.html
@@ -54,6 +57,7 @@
 [`NullThrownError`]: https://api.dart.dev/dev/2.19.0-430.0.dev/dart-core/NullThrownError-class.html
 [`AbstractClassInstantiationError`]: https://api.dart.dev/stable/2.18.3/dart-core/AbstractClassInstantiationError-class.html
 [`CyclicInitializationError`]: https://api.dart.dev/dev/2.19.0-430.0.dev/dart-core/CyclicInitializationError-class.html
+[`BidirectionalIterator`]: https://api.dart.dev/dev/2.19.0-430.0.dev/dart-core/BidirectionalIterator-class.html
 
 #### `dart:async`
 
@@ -65,17 +69,32 @@
 [`DeferredLibrary`]: https://api.dart.dev/stable/2.18.4/dart-async/DeferredLibrary-class.html
 [`deferred as`]: https://dart.dev/guides/language/language-tour#deferred-loading
 
+#### `dart:collection`
+
+- Deprecated the `HasNextIterator` class ([#50883][]).
+
+[#50883]: https://github.com/dart-lang/sdk/issues/50883
+
 #### `dart:developer`
 
 - **Breaking change** [#49529][]:
-  - Removed the deprecated [`MAX_USER_TAGS`][] constant. 
+  - Removed the deprecated [`MAX_USER_TAGS`][] constant.
     Use [`maxUserTags`][] instead.
 - Callbacks passed to `registerExtension` will be run in the zone from which
   they are registered.
 
+- **Breaking change** [#50231][]:
+  - Removed the deprecated [`Metrics`][], [`Metric`][], [`Counter`][],
+    and [`Gauge`][] classes as they have been broken since Dart 2.0.
+
 [#49529]: https://github.com/dart-lang/sdk/issues/49529
+[#50231]: https://github.com/dart-lang/sdk/issues/50231
 [`MAX_USER_TAGS`]: https://api.dart.dev/stable/dart-developer/UserTag/MAX_USER_TAGS-constant.html
 [`maxUserTags`]: https://api.dart.dev/beta/2.19.0-255.2.beta/dart-developer/UserTag/maxUserTags-constant.html
+[`Metrics`]: https://api.dart.dev/stable/2.18.2/dart-developer/Metrics-class.html
+[`Metric`]: https://api.dart.dev/stable/2.18.2/dart-developer/Metric-class.html
+[`Counter`]: https://api.dart.dev/stable/2.18.2/dart-developer/Counter-class.html
+[`Gauge`]: https://api.dart.dev/stable/2.18.2/dart-developer/Gauge-class.html
 
 #### `dart:html`
 
@@ -96,6 +115,9 @@
 
 ### Tools
 
+#### Web Dev Compiler (DDC)
+- Removed deprecated command line flags `-k`, `--kernel`, and `--dart-sdk`.
+
 #### Linter
 
 Updates the Linter to `1.32.0`, which includes changes that
@@ -107,6 +129,12 @@ Updates the Linter to `1.32.0`, which includes changes that
 - improve performance for `prefer_const_literals_to_create_immutables`.
 - update `use_build_context_synchronously` to check context properties.
 - fix a false positive for `avoid_private_typedef_functions` with generalized type aliases.
+
+#### Migration tool removal
+
+The null safety migration tool (`dart migrate`) has been removed.  If you still
+have code which needs to be migrated to null safety, please run `dart migrate`
+using Dart version 2.19, before upgrading to Dart version 3.0.
 
 ## 2.19.0
 
@@ -1030,7 +1058,7 @@ them, you must set the lower bound on the SDK constraint for your package to
   removed (they were previously deprecated).  Please use the corresponding
   `lowerCamelCase` constants instead.
 - **Breaking Change** [#48513](https://github.com/dart-lang/sdk/issues/48513):
-  Add a new `allowLegacyUnsafeRenegotiation` poperty to `SecurityContext`,
+  Add a new `allowLegacyUnsafeRenegotiation` property to `SecurityContext`,
   which allows TLS renegotiation for client secure sockets.
 - Add a optional `keyLog` parameter to `SecureSocket.connect` and
   `SecureSocket.startConnect`.
@@ -2579,7 +2607,7 @@ Updated the Linter to `0.1.129`, which includes:
   `pubspec.lock` for `package_foo`, allowing users to only upgrade a subset of
   dependencies.
 
-- New command `dart pub login` that logs in to pub.dev.
+- New command `dart pub login` that logs into pub.dev.
 
 - The `--server` option to `dart pub publish` and `dart pub uploader` are
   deprecated. Use `publish_to` in your `pubspec.yaml` or set the

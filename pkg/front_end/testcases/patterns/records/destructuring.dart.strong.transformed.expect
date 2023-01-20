@@ -1,0 +1,44 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+static method getLocation(core::String name) → (core::double, core::double) {
+  if(name =={core::String::==}{(core::Object) → core::bool} "Aarhus") {
+    return (56.1629, 10.2039);
+  }
+  else {
+    return (0.0, 0.0);
+  }
+}
+static method main(core::List<core::String> arguments) → void {
+  final dynamic #t1 = self::getLocation("Aarhus");
+  core::bool #t2 = true;
+  dynamic #t3;
+  dynamic #t4;
+  final dynamic #t5 = #t1;
+  if(#t5 is{ForNonNullableByDefault} (core::Object?, core::Object?)) {
+    final core::Object? #t6 = #t5{(core::Object?, core::Object?)}.$0{core::Object?};
+    final core::Object? #t7 = #t5{(core::Object?, core::Object?)}.$1{core::Object?};
+    #t3 = #t6;
+    #t4 = #t7;
+    #t2 = false;
+  }
+  if(#t2)
+    throw new _in::ReachabilityError::•();
+  final core::double lat = #t3{core::double};
+  final core::double long = #t4{core::double};
+  core::print("Current location: ${lat}, ${long}");
+  self::expect(56.1629, lat);
+  self::expect(10.2039, long);
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+
+
+Extra constant evaluation status:
+Evaluated: RecordLiteral @ org-dartlang-testcase:///destructuring.dart:7:12 -> RecordConstant(const (56.1629, 10.2039))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///destructuring.dart:9:12 -> RecordConstant(const (0.0, 0.0))
+Extra constant evaluation: evaluated: 38, effectively constant: 2

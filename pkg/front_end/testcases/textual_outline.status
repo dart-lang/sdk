@@ -21,7 +21,12 @@ regress/issue_39035.crash: EmptyOutput
 regress/issue_39091_2: EmptyOutput
 regress/utf_16_le_content.crash: EmptyOutput
 
+class_modifiers/base/base_class_declaration: FormatterCrash
+class_modifiers/final/final_class_declaration: FormatterCrash
+class_modifiers/interface/interface_class_declaration: FormatterCrash
 class_modifiers/mixin/mixin_class_declaration: FormatterCrash
+class_modifiers/mixin/mixin_class_generative_constructor: FormatterCrash
+class_modifiers/mixin/mixin_class_superclass_not_object: FormatterCrash
 const_functions/const_functions_const_ctor: FormatterCrash
 const_functions/const_functions_const_ctor_error: FormatterCrash
 const_functions/const_functions_const_factory: FormatterCrash
@@ -51,6 +56,7 @@ extensions/issue38712: FormatterCrash
 extensions/issue38745: FormatterCrash
 general/annotation_eof: FormatterCrash
 general/bad_setter_abstract: FormatterCrash
+general/base_class_declaration: FormatterCrash
 general/bug31124: FormatterCrash
 general/clone_function_type: FormatterCrash
 general/constants/js_semantics/number_folds: FormatterCrash
@@ -82,9 +88,11 @@ general/error_recovery/issue_39230.crash: FormatterCrash
 general/error_recovery/issue_39958_01: FormatterCrash
 general/error_recovery/issue_43090.crash: FormatterCrash
 general/extension_types_feature_not_enabled: FormatterCrash
+general/final_class_declaration: FormatterCrash
 general/function_type_default_value: FormatterCrash
 general/incomplete_field_formal_parameter: FormatterCrash
 general/inline_class_declaration: FormatterCrash
+general/interface_class_declaration: FormatterCrash
 general/invalid_operator2: FormatterCrash
 general/invalid_operator: FormatterCrash
 general/invalid_super_initializer: FormatterCrash
@@ -92,6 +100,7 @@ general/issue28565: FormatterCrash
 general/issue41842: FormatterCrash
 general/issue42997: FormatterCrash
 general/issue43363: FormatterCrash
+general/issue44781: FormatterCrash
 general/issue45490: FormatterCrash
 general/issue45700.crash: FormatterCrash
 general/issue47728_2: FormatterCrash
@@ -116,8 +125,11 @@ general/sealed_class_declaration: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash
-inline_class/constructors: FormatterCrash
+inline_class/constructor_access: FormatterCrash
 inline_class/constructor_bodies: FormatterCrash
+inline_class/constructors: FormatterCrash
+inline_class/external: FormatterCrash
+inline_class/field_access: FormatterCrash
 inline_class/initializers: FormatterCrash
 inline_class/inline_class_declaration: FormatterCrash
 inline_class/method_access: FormatterCrash
@@ -146,12 +158,15 @@ nnbd_mixed/inheritance_from_opt_in: FormatterCrash
 nnbd_mixed/issue41597: FormatterCrash
 nnbd_mixed/null_safety_invalid_language_version: FormatterCrash
 nonfunction_type_aliases/old_version: FormatterCrash
+patterns/pattern_matching: FormatterCrash
+patterns/records/destructuring: FormatterCrash
 patterns/records/record_pattern_inside_if_case: FormatterCrash
 patterns/switchExpression_empty: FormatterCrash
 patterns/switchExpression_onePattern_guarded: FormatterCrash
 patterns/switchExpression_onePattern_noTrailingComma: FormatterCrash
 patterns/switchExpression_onePattern_trailingComma: FormatterCrash
 patterns/switchExpression_twoPatterns: FormatterCrash
+patterns/switch_expressions_variable_capture: FormatterCrash
 rasta/bad_redirection: FormatterCrash
 rasta/issue_000032: FormatterCrash
 rasta/issue_000034: FormatterCrash

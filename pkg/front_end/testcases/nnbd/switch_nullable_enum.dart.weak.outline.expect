@@ -29,7 +29,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ListLiteral @ org-dartlang-testcase:///switch_nullable_enum.dart:5:6 -> ListConstant(const <Enum*>[const Enum{_Enum.index: 0, _Enum._name: "e1"}, const Enum{_Enum.index: 1, _Enum._name: "e2"}])
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///switch_nullable_enum.dart:5:13 -> InstanceConstant(const Enum{_Enum.index: 0, _Enum._name: "e1"})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///switch_nullable_enum.dart:5:17 -> InstanceConstant(const Enum{_Enum.index: 1, _Enum._name: "e2"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///switch_nullable_enum.dart:7:6 -> ListConstant(const <Enum*>[const Enum{_Enum.index: 0, _Enum._name: "e1"}, const Enum{_Enum.index: 1, _Enum._name: "e2"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///switch_nullable_enum.dart:7:13 -> InstanceConstant(const Enum{_Enum.index: 0, _Enum._name: "e1"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///switch_nullable_enum.dart:7:17 -> InstanceConstant(const Enum{_Enum.index: 1, _Enum._name: "e2"})
 Extra constant evaluation: evaluated: 8, effectively constant: 3

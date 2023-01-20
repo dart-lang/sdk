@@ -21,6 +21,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropNonExternalConstructor,
         messageJsInteropNonExternalMember,
         messageJsInteropOperatorsNotSupported,
+        messageJsInteropStaticInteropAnonymousFactoryTearoff,
         messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters,
         messageJsInteropStaticInteropGenerativeConstructor,
         messageJsInteropStaticInteropSyntheticConstructor,
@@ -38,9 +39,13 @@ import 'package:_js_interop_checks/src/transformations/export_checker.dart';
 import 'src/js_interop.dart';
 
 class JsInteropChecks extends RecursiveVisitor {
+  final Set<Constant> _constantCache = {};
   final CoreTypes _coreTypes;
   final DiagnosticReporter<Message, LocatedMessage> _diagnosticsReporter;
   final ExportChecker exportChecker;
+  // Errors on constants need source information, so we use the surrounding
+  // `ConstantExpression` as the source.
+  ConstantExpression? _lastConstantExpression;
   final Map<String, Class> _nativeClasses;
   final _TypeParameterVisitor _typeParameterVisitor = _TypeParameterVisitor();
   bool _classHasJSAnnotation = false;
@@ -427,13 +432,6 @@ class JsInteropChecks extends RecursiveVisitor {
         // invoking them, so they need to be excluded here.
         !_inTearoff &&
         hasStaticInteropAnnotation(constructor.enclosingClass)) {
-      // TODO(srujzs): This is insufficient to disallow use of synthetic
-      // constructors, as tear-offs may be used. However, use of such tear-offs
-      // are lowered as a StaticTearOffConstant. This means that we'll need a
-      // constant visitor in order to handle that correctly. It should be rare
-      // for users to use those tear-offs in favor of just invocation, but it's
-      // plausible. For now, in order to avoid the complexity and the extra
-      // visiting, we don't check tear-off usage.
       _diagnosticsReporter.report(
           messageJsInteropStaticInteropSyntheticConstructor,
           node.fileOffset,
@@ -441,6 +439,38 @@ class JsInteropChecks extends RecursiveVisitor {
           node.location?.file);
     }
     super.visitConstructorInvocation(node);
+  }
+
+  @override
+  void visitConstantExpression(ConstantExpression node) {
+    _lastConstantExpression = node;
+    node.constant.acceptReference(this);
+    _lastConstantExpression = null;
+  }
+
+  @override
+  void visitStaticTearOff(StaticTearOff node) {
+    _checkDisallowedConstructorTearoff(node.target, node);
+  }
+
+  @override
+  void defaultConstantReference(Constant node) {
+    if (_constantCache.add(node)) {
+      node.visitChildren(this);
+    }
+  }
+
+  @override
+  void visitStaticTearOffConstantReference(StaticTearOffConstant node) {
+    if (_constantCache.contains(node)) return;
+    if (_checkDisallowedConstructorTearoff(
+        node.target, _lastConstantExpression)) {
+      return;
+    }
+    // Only add to the cache if we don't find an error. This is to make sure
+    // that multiple usages of the same constant can be caught if it's
+    // disallowed.
+    _constantCache.add(node);
   }
 
   /// Reports an error if [functionNode] has named parameters.
@@ -576,6 +606,56 @@ class JsInteropChecks extends RecursiveVisitor {
 
     var onType = _libraryExtensionsIndex![member.reference]!.onType;
     return onType is InterfaceType && validateExtensionClass(onType.classNode);
+  }
+
+  /// Checks whether [procedure] is a disallowed constructor or factory
+  /// tear-off.
+  ///
+  /// [context] is used to report an error location if the procedure is a
+  /// tear-off that is disallowed. Note that constructor and factory tear-offs
+  /// are lowered using a static method, so we only check `StaticTearOff`s and
+  /// `StaticTearOffConstant`s. Returns whether the given procedure is
+  /// disallowed.
+  bool _checkDisallowedConstructorTearoff(
+      Procedure procedure, TreeNode? context) {
+    var enclosingClass = procedure.enclosingClass;
+    if (enclosingClass == null) return false;
+    if (!procedure.isStatic || !hasStaticInteropAnnotation(enclosingClass)) {
+      return false;
+    }
+    var name = extractConstructorNameFromTearOff(procedure.name);
+    if (name == null) return false;
+
+    if (name.isEmpty &&
+        enclosingClass.constructors.any((constructor) =>
+            constructor.isSynthetic && constructor.name.text.isEmpty)) {
+      // Use of a synthetic generative constructor on `@staticInterop` class.
+      if (context != null && context.location != null) {
+        _diagnosticsReporter.report(
+            messageJsInteropStaticInteropSyntheticConstructor,
+            context.fileOffset,
+            1,
+            context.location!.file);
+      }
+      return true;
+    }
+    if (hasAnonymousAnnotation(enclosingClass) &&
+        enclosingClass.procedures.any((procedure) =>
+            procedure.isExternal &&
+            procedure.isFactory &&
+            procedure.name.text == name)) {
+      // Tear-offs of an `@anonymous` `@staticInterop` external factory are
+      // disallowed.
+      if (context != null && context.location != null) {
+        _diagnosticsReporter.report(
+            messageJsInteropStaticInteropAnonymousFactoryTearoff,
+            context.fileOffset,
+            1,
+            context.location!.file);
+      }
+      return true;
+    }
+    return false;
   }
 }
 

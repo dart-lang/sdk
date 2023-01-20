@@ -92,6 +92,6 @@ class EditorRepository extends M.EditorRepository {
     assert(isolate != null);
     assert(l != null);
     return await isolate.invokeRpc(_getService()!.method,
-        {'scriptId': l!.script.id!, 'tokenPos': l.tokenPos});
+        {'scriptId': l!.script!.id!, 'tokenPos': l.tokenPos});
   }
 }

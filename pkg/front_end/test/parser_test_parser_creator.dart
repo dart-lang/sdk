@@ -132,6 +132,9 @@ class ParserCreatorListener extends Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {

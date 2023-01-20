@@ -1027,6 +1027,9 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
   static const int FlagMacro = 1 << 6;
   static const int FlagSealed = 1 << 7;
   static const int FlagMixinClass = 1 << 8;
+  static const int FlagBase = 1 << 9;
+  static const int FlagInterface = 1 << 10;
+  static const int FlagFinal = 1 << 11;
 
   int flags = 0;
 
@@ -1050,11 +1053,32 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     flags = value ? (flags | FlagMacro) : (flags & ~FlagMacro);
   }
 
-  /// Whether this class is a macro class.
+  /// Whether this class is a sealed class.
   bool get isSealed => flags & FlagSealed != 0;
 
   void set isSealed(bool value) {
     flags = value ? (flags | FlagSealed) : (flags & ~FlagSealed);
+  }
+
+  /// Whether this class is a base class.
+  bool get isBase => flags & FlagBase != 0;
+
+  void set isBase(bool value) {
+    flags = value ? (flags | FlagBase) : (flags & ~FlagBase);
+  }
+
+  /// Whether this class is an interface class.
+  bool get isInterface => flags & FlagInterface != 0;
+
+  void set isInterface(bool value) {
+    flags = value ? (flags | FlagInterface) : (flags & ~FlagInterface);
+  }
+
+  /// Whether this class is a final class.
+  bool get isFinal => flags & FlagFinal != 0;
+
+  void set isFinal(bool value) {
+    flags = value ? (flags | FlagFinal) : (flags & ~FlagFinal);
   }
 
   /// Whether this class is a synthetic implementation created for each
@@ -1983,6 +2007,21 @@ class InlineClass extends NamedNode implements Annotatable, FileUriNode {
   ///   }
   ///
   late DartType declaredRepresentationType;
+
+  /// The name of the representation field.
+  ///
+  /// For instance 'it' in the inline class B:
+  ///
+  ///   class A {}
+  ///   inline class B {
+  ///     final A it;
+  ///     B(this.it)
+  ///   }
+  ///
+  /// This name is used for accessing underlying representation from an inline
+  /// type. If the name starts with '_' is private wrt. the enclosing library
+  /// of the inline class.
+  late String representationName;
 
   /// The members declared by the inline class.
   ///
@@ -8010,6 +8049,7 @@ class AsExpression extends Expression {
   static const int FlagCovarianceCheck = 1 << 1;
   static const int FlagForDynamic = 1 << 2;
   static const int FlagForNonNullableByDefault = 1 << 3;
+  static const int FlagUnchecked = 1 << 4;
 
   /// If `true`, this test is an implicit down cast.
   ///
@@ -8065,6 +8105,18 @@ class AsExpression extends Expression {
     flags = value
         ? (flags | FlagForNonNullableByDefault)
         : (flags & ~FlagForNonNullableByDefault);
+  }
+
+  /// If `true`, this test is added to show the known static type of the
+  /// expression and should not be performed at runtime.
+  ///
+  /// This is the case for instance for access to inline class representation
+  /// fields on an inline type, where this node shows that the static type
+  /// changes from the inline type of the declared representation type.
+  bool get isUnchecked => flags & FlagUnchecked != 0;
+
+  void set isUnchecked(bool value) {
+    flags = value ? (flags | FlagUnchecked) : (flags & ~FlagUnchecked);
   }
 
   @override

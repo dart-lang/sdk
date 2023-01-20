@@ -361,7 +361,7 @@ static CatchEntryMove CatchEntryMoveFor(compiler::Assembler* assembler,
                                         intptr_t dst_index) {
   if (src.IsConstant()) {
     // Skip dead locations.
-    if (src.constant().ptr() == Symbols::OptimizedOut().ptr()) {
+    if (src.constant().ptr() == Object::optimized_out().ptr()) {
       return CatchEntryMove();
     }
     const intptr_t pool_index =
@@ -3538,6 +3538,20 @@ void FlowGraphCompiler::EmitNativeMove(
     const compiler::ffi::NativeLocation& destination,
     const compiler::ffi::NativeLocation& source,
     TemporaryRegisterAllocator* temp) {
+  if (destination.IsBoth()) {
+    // Copy to both.
+    const auto& both = destination.AsBoth();
+    EmitNativeMove(both.location(0), source, temp);
+    EmitNativeMove(both.location(1), source, temp);
+    return;
+  }
+  if (source.IsBoth()) {
+    // Copy from one of both.
+    const auto& both = source.AsBoth();
+    EmitNativeMove(destination, both.location(0), temp);
+    return;
+  }
+
   const auto& src_payload_type = source.payload_type();
   const auto& dst_payload_type = destination.payload_type();
   const auto& src_container_type = source.container_type();
@@ -3553,10 +3567,6 @@ void FlowGraphCompiler::EmitNativeMove(
 
   // This function does not deal with sign conversions yet.
   ASSERT(src_payload_type.IsSigned() == dst_payload_type.IsSigned());
-
-  // This function does not deal with bit casts yet.
-  ASSERT(src_container_type.IsFloat() == dst_container_type.IsFloat());
-  ASSERT(src_container_type.IsInt() == dst_container_type.IsInt());
 
   // If the location, payload, and container are equal, we're done.
   if (source.Equals(destination) && src_payload_type.Equals(dst_payload_type) &&

@@ -6,6 +6,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/options.dart';
+import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
 /// String identifiers mapped to associated severities.
@@ -46,7 +47,7 @@ class ErrorConfig {
     if (codes is YamlMap) {
       codes.nodes.forEach((k, v) {
         if (k is YamlScalar && v is YamlScalar) {
-          _process(k.value, v.value);
+          _process(k.value as String?, v.valueOrThrow);
         }
       });
     }

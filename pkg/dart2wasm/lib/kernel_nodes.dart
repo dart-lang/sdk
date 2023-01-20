@@ -11,14 +11,17 @@ mixin KernelNodes {
   Component get component;
 
   late final LibraryIndex index = LibraryIndex(component, [
+    "dart:_internal",
     "dart:async",
     "dart:collection",
     "dart:core",
     "dart:ffi",
-    "dart:_internal",
     "dart:typed_data",
     "dart:wasm"
   ]);
+
+  // dart:_internal classes
+  late final Class symbolClass = index.getClass("dart:_internal", "Symbol");
 
   // dart:collection classes
   late final Class hashFieldBaseClass =
@@ -33,7 +36,7 @@ mixin KernelNodes {
   late final Class boxedDoubleClass =
       index.getClass("dart:core", "_BoxedDouble");
   late final Class boxedIntClass = index.getClass("dart:core", "_BoxedInt");
-  late final Class functionClass = index.getClass("dart:core", "_Function");
+  late final Class closureClass = index.getClass("dart:core", "_Closure");
   late final Class listBaseClass = index.getClass("dart:core", "_ListBase");
   late final Class fixedLengthListClass = index.getClass("dart:core", "_List");
   late final Class growableListClass =
@@ -49,6 +52,8 @@ mixin KernelNodes {
   late final Class noSuchMethodErrorClass =
       index.getClass("dart:core", "NoSuchMethodError");
   late final Class typeErrorClass = index.getClass("dart:core", "_TypeError");
+  late final Class javaScriptErrorClass =
+      index.getClass("dart:core", "_JavaScriptError");
 
   // dart:core runtime type classes
   late final Class typeClass = index.getClass("dart:core", "_Type");
@@ -89,9 +94,6 @@ mixin KernelNodes {
   late final Class unmodifiableByteDataViewClass =
       index.getClass("dart:typed_data", "_UnmodifiableByteDataView");
 
-  // dart:_internal classes
-  late final Class symbolClass = index.getClass("dart:_internal", "Symbol");
-
   // dart:wasm classes
   late final Class wasmTypesBaseClass =
       index.getClass("dart:wasm", "_WasmBase");
@@ -101,19 +103,25 @@ mixin KernelNodes {
   late final wasmI64Class = index.getClass("dart:wasm", "WasmI64");
   late final wasmF32Class = index.getClass("dart:wasm", "WasmF32");
   late final wasmF64Class = index.getClass("dart:wasm", "WasmF64");
-  late final Class wasmArrayBaseClass =
-      index.getClass("dart:wasm", "_WasmArray");
   late final Class wasmAnyRefClass = index.getClass("dart:wasm", "WasmAnyRef");
   late final Class wasmExternRefClass =
       index.getClass("dart:wasm", "WasmExternRef");
   late final Class wasmFuncRefClass =
       index.getClass("dart:wasm", "WasmFuncRef");
   late final Class wasmEqRefClass = index.getClass("dart:wasm", "WasmEqRef");
-  late final Class wasmDataRefClass =
-      index.getClass("dart:wasm", "WasmDataRef");
+  late final Class wasmStructRefClass =
+      index.getClass("dart:wasm", "WasmStructRef");
+  late final Class wasmArrayRefClass =
+      index.getClass("dart:wasm", "WasmArrayRef");
   late final Class wasmFunctionClass =
       index.getClass("dart:wasm", "WasmFunction");
   late final Class wasmTableClass = index.getClass("dart:wasm", "WasmTable");
+
+  // dart:_internal procedures
+  late final Procedure loadLibrary =
+      index.getTopLevelProcedure("dart:_internal", "loadLibrary");
+  late final Procedure checkLibraryIsLoaded =
+      index.getTopLevelProcedure("dart:_internal", "checkLibraryIsLoaded");
 
   // dart:async procedures
   late final Procedure asyncHelper =
@@ -178,10 +186,18 @@ mixin KernelNodes {
       "dart:core", "_TypeError", "_throwArgumentTypeCheckError");
   late final Procedure throwAssertionError =
       index.getProcedure("dart:core", "AssertionError", "_throwWithMessage");
+  late final Procedure javaScriptErrorFactory =
+      index.getProcedure("dart:core", "_JavaScriptError", "_");
+  late final Procedure rangeErrorCheckValueInInterval =
+      index.getProcedure("dart:core", "RangeError", "checkValueInInterval");
 
   // dart:core type procedures
   late final Procedure isSubtype =
       index.getTopLevelProcedure("dart:core", "_isSubtype");
+  late final Procedure checkClosureShape =
+      index.getTopLevelProcedure("dart:core", "_checkClosureShape");
+  late final Procedure checkClosureType =
+      index.getTopLevelProcedure("dart:core", "_checkClosureType");
   late final Procedure typeAsNullable =
       index.getProcedure("dart:core", "_Type", "get:asNullable");
   late final Procedure createNormalizedFutureOrType = index.getProcedure(
@@ -190,10 +206,13 @@ mixin KernelNodes {
       "dart:core", "_TypeUniverse", "substituteFunctionTypeArgument");
 
   // dart:core dynamic invocation helper procedures
-  late final Procedure getNamedParameter =
-      index.getTopLevelProcedure("dart:core", "_getNamedParameter");
+  late final Procedure getNamedParameterIndex =
+      index.getTopLevelProcedure("dart:core", "_getNamedParameterIndex");
   late final Procedure namedParameterListToMap =
       index.getTopLevelProcedure("dart:core", "_namedParameterListToMap");
+  late final Procedure namedParameterMapToList =
+      index.getTopLevelProcedure("dart:core", "_namedParameterMapToList");
+  late final Procedure listOf = index.getProcedure("dart:core", "_List", "of");
 
   // dart:wasm procedures
   late final Procedure wasmFunctionCall =

@@ -20,8 +20,8 @@ static method test(dynamic x) → dynamic {
   {
     dynamic #t1;
     final dynamic #t2 = x;
-    final core::int #t3 = -1;
-    final core::bool #t4 = false;
+    core::int #t3 = -1;
+    core::bool #t4 = false;
     if(!#t4) {
       final dynamic #t5 = #t2;
       if(#t5 is self::C) {
@@ -29,9 +29,10 @@ static method test(dynamic x) → dynamic {
     case C(: var f as int):
          ^";
         final core::int #t7 = #t6;
+        core::int f = #t7;
         #t3 = 0;
         #t4 = true;
-        #t1 = #t7;
+        #t1 = f;
       }
     }
     switch(#t3) {

@@ -4,12 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'as_expression_test.dart' as as_expression;
 import 'assignment_test.dart' as assignment;
 import 'ast_rewrite_test.dart' as ast_rewrite;
 import 'augmentation_import_test.dart' as augmentation_import;
 import 'await_expression_test.dart' as await_expression;
 import 'binary_expression_test.dart' as binary_expression;
-import 'binary_pattern_test.dart' as binary_pattern;
 import 'cast_pattern_test.dart' as cast_pattern;
 import 'class_alias_test.dart' as class_alias;
 import 'class_test.dart' as class_resolution;
@@ -44,6 +44,7 @@ import 'instance_member_inference_class_test.dart'
 import 'instance_member_inference_mixin_test.dart'
     as instance_member_inference_mixin;
 import 'interpolation_string_test.dart' as interpolation_string;
+import 'is_expression_test.dart' as is_expression;
 import 'language_version_test.dart' as language_version;
 import 'library_augmentation_test.dart' as library_element2;
 import 'library_element_test.dart' as library_element;
@@ -53,6 +54,8 @@ import 'library_import_test.dart' as library_import;
 import 'list_pattern_test.dart' as list_pattern;
 import 'local_function_test.dart' as local_function;
 import 'local_variable_test.dart' as local_variable;
+import 'logical_and_pattern_test.dart' as logical_and_pattern;
+import 'logical_or_pattern_test.dart' as logical_or_pattern;
 import 'macro_test.dart' as macro;
 import 'map_pattern_test.dart' as map_pattern;
 import 'metadata_test.dart' as metadata;
@@ -63,6 +66,8 @@ import 'namespace_test.dart' as namespace;
 import 'node_text_expectations.dart';
 import 'non_nullable_blaze_workspace_test.dart' as non_nullable_blaze_workspace;
 import 'non_nullable_test.dart' as non_nullable;
+import 'null_assert_pattern_test.dart' as null_assert_pattern;
+import 'null_check_pattern_test.dart' as null_check_pattern;
 import 'object_pattern_test.dart' as object_pattern;
 import 'optional_const_test.dart' as optional_const;
 import 'parenthesized_pattern_test.dart' as parenthesized_pattern;
@@ -71,7 +76,6 @@ import 'pattern_assignment_test.dart' as pattern_assignment;
 import 'pattern_variable_declaration_statement_test.dart'
     as pattern_variable_declaration_statement;
 import 'postfix_expression_test.dart' as postfix_expression;
-import 'postfix_pattern_test.dart' as postfix_pattern;
 import 'prefix_element_test.dart' as prefix_element;
 import 'prefix_expression_test.dart' as prefix_expression;
 import 'prefixed_identifier_test.dart' as prefixed_identifier;
@@ -91,16 +95,17 @@ import 'type_inference/test_all.dart' as type_inference;
 import 'type_literal_test.dart' as type_literal;
 import 'type_name_test.dart' as type_name;
 import 'variance_test.dart' as variance_test;
+import 'wildcard_pattern_test.dart' as wildcard_pattern;
 import 'yield_statement_test.dart' as yield_statement;
 
 main() {
   defineReflectiveSuite(() {
+    as_expression.main();
     assignment.main();
     ast_rewrite.main();
     augmentation_import.main();
     await_expression.main();
     binary_expression.main();
-    binary_pattern.main();
     cast_pattern.main();
     class_alias.main();
     class_resolution.main();
@@ -132,6 +137,7 @@ main() {
     instance_member_inference_class.main();
     instance_member_inference_mixin.main();
     interpolation_string.main();
+    is_expression.main();
     language_version.main();
     library_element2.main();
     library_element.main();
@@ -141,6 +147,8 @@ main() {
     list_pattern.main();
     local_function.main();
     local_variable.main();
+    logical_and_pattern.main();
+    logical_or_pattern.main();
     macro.main();
     map_pattern.main();
     metadata.main();
@@ -150,6 +158,8 @@ main() {
     namespace.main();
     non_nullable_blaze_workspace.main();
     non_nullable.main();
+    null_assert_pattern.main();
+    null_check_pattern.main();
     object_pattern.main();
     optional_const.main();
     parenthesized_pattern.main();
@@ -157,7 +167,6 @@ main() {
     pattern_assignment.main();
     pattern_variable_declaration_statement.main();
     postfix_expression.main();
-    postfix_pattern.main();
     prefix_element.main();
     prefix_expression.main();
     prefixed_identifier.main();
@@ -177,6 +186,7 @@ main() {
     type_literal.main();
     type_name.main();
     variance_test.main();
+    wildcard_pattern.main();
     yield_statement.main();
     defineReflectiveTests(UpdateNodeTextExpectations);
   }, name: 'resolution');

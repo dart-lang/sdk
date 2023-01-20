@@ -115,6 +115,54 @@ PatternAssignment
 ''');
   }
 
+  test_container_objectPattern_implicitGetter() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+void f(int foo) {
+  A(:foo) = A();
+}
+''');
+    final node = findNode.singlePatternAssignment;
+    assertResolvedNodeText(node, r'''
+PatternAssignment
+  pattern: ObjectPattern
+    type: NamedType
+      name: SimpleIdentifier
+        token: A
+        staticElement: self::@class::A
+        staticType: null
+      type: A
+    leftParenthesis: (
+    fields
+      RecordPatternField
+        fieldName: RecordPatternFieldName
+          colon: :
+        pattern: AssignedVariablePattern
+          name: foo
+          element: self::@function::f::@parameter::foo
+        fieldElement: self::@class::A::@getter::foo
+    rightParenthesis: )
+  equals: =
+  expression: InstanceCreationExpression
+    constructorName: ConstructorName
+      type: NamedType
+        name: SimpleIdentifier
+          token: A
+          staticElement: self::@class::A
+          staticType: null
+        type: A
+      staticElement: self::@class::A::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: A
+  staticType: A
+''');
+  }
+
   test_container_parenthesizedPattern() async {
     await assertNoErrorsInCode(r'''
 void f(int x, num a) {
@@ -200,6 +248,46 @@ PatternAssignment
     staticElement: self::@function::f::@parameter::x
     staticType: ({int foo})
   staticType: ({int foo})
+''');
+  }
+
+  test_container_recordPattern_named_implicit() async {
+    await assertNoErrorsInCode(r'''
+void f(int a) {
+  (:a) = (a: 0);
+}
+''');
+    final node = findNode.singlePatternAssignment;
+    assertResolvedNodeText(node, r'''
+PatternAssignment
+  pattern: RecordPattern
+    leftParenthesis: (
+    fields
+      RecordPatternField
+        fieldName: RecordPatternFieldName
+          colon: :
+        pattern: AssignedVariablePattern
+          name: a
+          element: self::@function::f::@parameter::a
+        fieldElement: <null>
+    rightParenthesis: )
+  equals: =
+  expression: RecordLiteral
+    leftParenthesis: (
+    fields
+      NamedExpression
+        name: Label
+          label: SimpleIdentifier
+            token: a
+            staticElement: <null>
+            staticType: null
+          colon: :
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+    rightParenthesis: )
+    staticType: ({int a})
+  staticType: ({int a})
 ''');
   }
 

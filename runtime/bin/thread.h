@@ -42,7 +42,7 @@ class Thread {
   typedef void (*ThreadStartFunction)(uword parameter);
 
   // Start a thread running the specified function. Returns 0 if the
-  // thread started successfuly and a system specific error code if
+  // thread started successfully and a system specific error code if
   // the thread failed to start.
   static int Start(const char* name,
                    ThreadStartFunction function,

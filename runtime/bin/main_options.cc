@@ -469,7 +469,7 @@ bool Options::ParseArguments(int argc,
         skipVmOption = true;
       } else if (IsOption(argv[i], "no-analytics")) {
         // Just add this option even if we don't go to dartdev.
-        // It is irelevant for the vm.
+        // It is irrelevant for the vm.
         dart_options->AddArgument("--no-analytics");
         skipVmOption = true;
       } else if (IsOption(argv[i], "serve-devtools")) {

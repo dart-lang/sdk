@@ -415,7 +415,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
   ///
   /// The global information is summarized in [cleanup], after which [_callers]
   /// is set to `null`.
-  Map<MemberEntity, Setlet<ir.Node?>>? _callers;
+  Map<MemberEntity, Setlet<ir.Node>>? _callers;
 
   MemberTypeInformation._internal(
       AbstractValueDomain abstractValueDomain, this._member)
@@ -428,7 +428,7 @@ abstract class MemberTypeInformation extends ElementTypeInformation
 
   void addCall(MemberEntity caller, ir.Node node) {
     (_callers ??= <MemberEntity, Setlet<ir.Node>>{})
-        .putIfAbsent(caller, () => Setlet())
+        .putIfAbsent(caller, () => Setlet<ir.Node>())
         .add(node);
   }
 

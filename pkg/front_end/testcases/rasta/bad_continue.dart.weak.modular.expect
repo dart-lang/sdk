@@ -17,6 +17,10 @@ library /*isNonNullableByDefault*/;
 //   label: continue label;
 //          ^^^^^^^^
 //
+// pkg/front_end/testcases/rasta/bad_continue.dart:7:10: Error: A 'continue' label must be on a loop or a switch member.
+//   label: continue label;
+//          ^^^^^^^^
+//
 import self as self;
 
 static method main() → dynamic {
@@ -24,6 +28,7 @@ static method main() → dynamic {
 Try defining the label, or correcting the name to match an existing label.
   continue here;
            ^";
-  #L1:
-  break #L1;
+  invalid-expression "pkg/front_end/testcases/rasta/bad_continue.dart:7:10: Error: A 'continue' label must be on a loop or a switch member.
+  label: continue label;
+         ^^^^^^^^";
 }

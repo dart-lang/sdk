@@ -17,8 +17,7 @@ import "dart:_internal";
 class Class extends core::Object /*hasConstConstructor*/  {
   final field core::bool defaultValue /* from org-dartlang-testcase:///patch_lib.dart */;
   @_in::patch
-  external constructor generative({core::bool defaultValue = true}) → self2::Class
-    ;
+  external constructor generative({core::bool defaultValue = true}) → self2::Class;
   @_in::patch
   const constructor constGenerative({core::bool defaultValue = true}) → self2::Class
     : self2::Class::defaultValue = defaultValue, super core::Object::•()
@@ -28,8 +27,7 @@ class Class extends core::Object /*hasConstConstructor*/  {
 class Class2 extends core::Object {
   final field core::int injectedField /* from org-dartlang-testcase:///patch_lib.dart */;
   field core::int field;
-  external constructor •(core::int field) → self2::Class2
-    ;
+  external constructor •(core::int field) → self2::Class2;
 }
 
 

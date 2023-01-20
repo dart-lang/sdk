@@ -510,7 +510,9 @@ class Types {
       // necessary to test the type arguments.
       Class cls = translator.classForType(operandType);
       InterfaceType? base = translator.hierarchy
-          .getTypeAsInstanceOf(type, cls, codeGen.member.enclosingLibrary)
+          .getTypeAsInstanceOf(type, cls,
+              isNonNullableByDefault:
+                  codeGen.member.enclosingLibrary.isNonNullableByDefault)
           ?.withDeclaredNullability(operandType.declaredNullability);
       if (base != operandType) {
         makeType(codeGen, type);
@@ -524,8 +526,7 @@ class Types {
       b.drop();
       b.i32_const(1);
     } else if (type.classNode == coreTypes.functionClass) {
-      ClassInfo functionInfo = translator.classInfo[translator.functionClass]!;
-      b.ref_test(functionInfo.struct);
+      b.ref_test(translator.closureInfo.nonNullableType);
     } else if (concrete.isEmpty) {
       b.drop();
       b.i32_const(0);

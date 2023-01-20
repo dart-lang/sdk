@@ -14,11 +14,11 @@ abstract class RetainingPathItem {
   ObjectRef get source;
 
   /// [optional]
-  String get parentField;
+  dynamic get parentField;
 
   /// [optional]
-  int get parentListIndex;
+  int? get parentListIndex;
 
   /// [optional]
-  int get parentWordOffset;
+  int? get parentWordOffset;
 }

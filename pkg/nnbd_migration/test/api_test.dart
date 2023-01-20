@@ -1389,6 +1389,26 @@ Function f(C c) => c;
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_cascade_on_nullable() async {
+    var content = '''
+class C {
+  int /*?*/ x;
+  void f() {
+    x..isEven;
+  }
+}
+''';
+    var expected = '''
+class C {
+  int? x;
+  void f() {
+    x!..isEven;
+  }
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_catch_simple() async {
     var content = '''
 void f() {
@@ -4884,6 +4904,28 @@ Future<List<int>> getInts() {
     await _checkSingleFileChanges(content, expected);
   }
 
+  Future<void> test_generic_bound() async {
+    var content = '''
+abstract class C<T> {
+  void f<U extends T>();
+}
+void f(C<String> s, C<List<int>> i) {
+  s.f<String>();
+  i.f<List<int>>();
+}
+''';
+    var expected = '''
+abstract class C<T> {
+  void f<U extends T>();
+}
+void f(C<String> s, C<List<int>> i) {
+  s.f<String>();
+  i.f<List<int>>();
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
   Future<void> test_generic_exact_propagation() async {
     var content = '''
 class C<T> {
@@ -4921,7 +4963,7 @@ void g(C<int?> y) {
   Future<void> test_generic_exact_propagation_premigratedListClass() async {
     var content = '''
 void f() {
-  List<int> x = new List<int>();
+  List<int> x = new List<int>.empty();
   g(x);
 }
 void g(List<int> y) {
@@ -4930,7 +4972,7 @@ void g(List<int> y) {
 ''';
     var expected = '''
 void f() {
-  List<int?> x = new List<int?>();
+  List<int?> x = new List<int?>.empty();
   g(x);
 }
 void g(List<int?> y) {
@@ -5502,7 +5544,6 @@ class C<T> {
     await _checkSingleFileChanges(content, expected);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/49689')
   Future<void> test_infer_late_with_cascaded_usage() async {
     var content = '''
 class A {
@@ -9294,6 +9335,42 @@ void main() {
     var injector = Injector();
     int i = injector.get(int);
     i.isEven;
+  });
+}
+''';
+    await _checkSingleFileChanges(content, expected);
+  }
+
+  Future<void> test_testVariable_assignedInjectorGet_nullableUse() async {
+    addAngularPackage();
+    addTestCorePackage();
+    var content = '''
+import 'package:angular/angular.dart';
+import 'package:test/test.dart';
+void f(int /*?*/ i) {}
+void main() {
+  int i;
+  setUp(() {
+    var injector = Injector();
+    i = injector.get(int);
+  });
+  test('a', () {
+    f(i);
+  });
+}
+''';
+    var expected = '''
+import 'package:angular/angular.dart';
+import 'package:test/test.dart';
+void f(int? i) {}
+void main() {
+  late int i;
+  setUp(() {
+    var injector = Injector();
+    i = injector.get(int);
+  });
+  test('a', () {
+    f(i);
   });
 }
 ''';

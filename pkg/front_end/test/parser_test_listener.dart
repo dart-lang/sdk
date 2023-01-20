@@ -216,6 +216,9 @@ class ParserTestListener implements Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -224,6 +227,9 @@ class ParserTestListener implements Listener {
     seen(macroToken);
     seen(inlineToken);
     seen(sealedToken);
+    seen(baseToken);
+    seen(interfaceToken);
+    seen(finalToken);
     seen(augmentToken);
     seen(mixinToken);
     seen(name);
@@ -233,6 +239,9 @@ class ParserTestListener implements Listener {
         '$macroToken, '
         '$inlineToken, '
         '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
+        '$finalToken, '
         '$augmentToken, '
         '$mixinToken, '
         '$name)');
@@ -286,14 +295,26 @@ class ParserTestListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
+      Token? augmentToken,
+      Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
+      Token mixinKeyword,
+      Token name) {
     seen(augmentToken);
     seen(sealedToken);
+    seen(baseToken);
+    seen(interfaceToken);
+    seen(finalToken);
     seen(mixinKeyword);
     seen(name);
     doPrint('beginMixinDeclaration('
         '$augmentToken, '
         '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
+        '$finalToken, '
         '$mixinKeyword, '
         '$name)');
     indent++;
@@ -1085,6 +1106,9 @@ class ParserTestListener implements Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -1093,6 +1117,9 @@ class ParserTestListener implements Listener {
     seen(macroToken);
     seen(inlineToken);
     seen(sealedToken);
+    seen(baseToken);
+    seen(interfaceToken);
+    seen(finalToken);
     seen(augmentToken);
     seen(mixinToken);
     seen(name);
@@ -1102,6 +1129,9 @@ class ParserTestListener implements Listener {
         '$macroToken, '
         '$inlineToken, '
         '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
+        '$finalToken, '
         '$augmentToken, '
         '$mixinToken, '
         '$name)');
@@ -2711,6 +2741,12 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleSwitchExpressionCasePattern(Token token) {
+    seen(token);
+    doPrint('handleSwitchExpressionCasePattern(' '$token)');
+  }
+
+  @override
   void handleSymbolVoid(Token token) {
     seen(token);
     doPrint('handleSymbolVoid(' '$token)');
@@ -2739,9 +2775,23 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void beginPatternGuard(Token when) {
+    seen(when);
+    doPrint('beginPatternGuard(' '$when)');
+    indent++;
+  }
+
+  @override
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {
     seen(token);
     doPrint('beginParenthesizedExpressionOrRecordLiteral(' '$token)');
+    indent++;
+  }
+
+  @override
+  void beginSwitchCaseWhenClause(Token when) {
+    seen(when);
+    doPrint('beginSwitchCaseWhenClause(' '$when)');
     indent++;
   }
 
@@ -2760,10 +2810,24 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void endPatternGuard(Token token) {
+    indent--;
+    seen(token);
+    doPrint('endPatternGuard(' '$token)');
+  }
+
+  @override
   void endParenthesizedExpression(Token token) {
     indent--;
     seen(token);
     doPrint('endParenthesizedExpression(' '$token)');
+  }
+
+  @override
+  void endSwitchCaseWhenClause(Token token) {
+    indent--;
+    seen(token);
+    doPrint('endSwitchCaseWhenClause(' '$token)');
   }
 
   @override
@@ -2773,9 +2837,17 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleConstantPattern(Token? constKeyword) {
+  void beginConstantPattern(Token? constKeyword) {
     seen(constKeyword);
-    doPrint('handleConstantPattern(' '$constKeyword)');
+    doPrint('beginConstantPattern(' '$constKeyword)');
+    indent++;
+  }
+
+  @override
+  void endConstantPattern(Token? constKeyword) {
+    indent--;
+    seen(constKeyword);
+    doPrint('endConstantPattern(' '$constKeyword)');
   }
 
   @override

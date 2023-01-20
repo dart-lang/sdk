@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 3.62
+# Dart VM Service Protocol 4.0
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 3.62_ of the Dart VM Service Protocol. This
+This document describes of _version 4.0_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -121,7 +121,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [NativeFunction](#nativefunction)
   - [Null](#null)
   - [Object](#object)
-  - [Parameter](#parameter)[
+  - [Parameter](#parameter)
   - [PortList](#portlist)
   - [ReloadReport](#reloadreport)
   - [Response](#response)
@@ -144,7 +144,7 @@ The Service Protocol uses [JSON-RPC 2.0][].
   - [TimelineFlags](#timelineflags)
   - [Timestamp](#timestamp)
   - [TypeArguments](#typearguments)
-  - [TypeParameters](#typeparameters)[
+  - [TypeParameters](#typeparameters)
   - [UnresolvedSourceLocation](#unresolvedsourcelocation)
   - [UriList](#urilist)
   - [Version](#version)
@@ -964,7 +964,7 @@ collected, then an [Object](#object) will be returned.
 The _offset_ and _count_ parameters are used to request subranges of
 Instance objects with the kinds: String, List, Map, Set, Uint8ClampedList,
 Uint8List, Uint16List, Uint32List, Uint64List, Int8List, Int16List,
-Int32List, Int64List, Flooat32List, Float64List, Inst32x3List,
+Int32List, Int64List, Float32List, Float64List, Inst32x3List,
 Float32x4List, and Float64x2List.  These parameters are otherwise
 ignored.
 
@@ -1384,6 +1384,7 @@ The returned [Breakpoint](#breakpoint) is the updated breakpoint with its new
 values.
 
 See [Breakpoint](#breakpoint).
+
 ### setExceptionPauseMode
 
 ```
@@ -1416,9 +1417,6 @@ The _setIsolatePauseMode_ RPC is used to control if or when an isolate will
 pause due to a change in execution state.
 
 The _shouldPauseOnExit_ parameter specify whether the target isolate should pause on exit.
-
-The _setExceptionPauseMode_ RPC is used to control if an isolate pauses when
-an exception is thrown.
 
 mode | meaning
 ---- | -------
@@ -1708,7 +1706,12 @@ class AllocationProfile extends Response {
 
 ```
 class BoundField {
+  // Provided for fields of instances that are NOT of the following instance kinds:
+  //   Record
+  //
+  // Note: this property is deprecated and will be replaced by `name`.
   @Field decl;
+  string|int name;
   @Instance|Sentinel value;
 }
 ```
@@ -1980,12 +1983,6 @@ class CpuSamples extends Response {
   // The number of samples returned.
   int sampleCount;
 
-  // The timespan the set of returned samples covers, in microseconds (deprecated).
-  //
-  // Note: this property is deprecated and will always return -1. Use `timeExtentMicros`
-  // instead.
-  int timeSpan;
-
   // The start of the period of time in which the returned samples were
   // collected.
   int timeOriginMicros;
@@ -2021,12 +2018,6 @@ class CpuSamplesEvent {
 
   // The number of samples returned.
   int sampleCount;
-
-  // The timespan the set of returned samples covers, in microseconds (deprecated).
-  //
-  // Note: this property is deprecated and will always return -1. Use `timeExtentMicros`
-  // instead.
-  int timeSpan;
 
   // The start of the period of time in which the returned samples were
   // collected.
@@ -3133,6 +3124,9 @@ enum InstanceKind {
   Float32x4List,
   Float64x2List,
 
+  // An instance of the Dart class Record.
+  Record,
+
   // An instance of the Dart class StackTrace.
   StackTrace,
 
@@ -3163,6 +3157,9 @@ enum InstanceKind {
 
   // An instance of the Dart class FunctionType.
   FunctionType,
+
+  // An instance of the Dart class RecordType.
+  RecordType,
 
   // An instance of the Dart class BoundedType.
   BoundedType,
@@ -3344,12 +3341,21 @@ class InboundReference {
   // The object holding the inbound reference.
   @Object source;
 
-  // If source is a List, parentListIndex is the index of the inbound reference.
+  // If source is a List, parentListIndex is the index of the inbound reference (deprecated).
+  //
+  // Note: this property is deprecated and will be replaced by `parentField`.
   int parentListIndex [optional];
 
-  // If source is a field of an object, parentField is the field containing the
-  // inbound reference.
-  @Field parentField [optional];
+  // If `source` is a `List`, `parentField` is the index of the inbound
+  // reference.
+  // If `source` is a record, `parentField` is the field name of the inbound
+  // reference.
+  // If `source` is an instance of any other kind, `parentField` is the field
+  // containing the inbound reference.
+  //
+  // Note: In v5.0 of the spec, `@Field` will no longer be a part of this
+  // property's type, i.e. the type will become `string|int`.
+  @Field|string|int parentField [optional];
 }
 ```
 
@@ -3739,7 +3745,7 @@ class ProcessMemoryItem {
   // of children.
   int size;
 
-  // Subdivisons of this bucket of memory.
+  // Subdivisions of this bucket of memory.
   ProcessMemoryItem[] children;
 }
 ```
@@ -3761,7 +3767,9 @@ class RetainingObject {
   @Object value;
 
   // If `value` is a List, `parentListIndex` is the index where the previous
-  // object on the retaining path is located.
+  // object on the retaining path is located (deprecated).
+  //
+  // Note: this property is deprecated and will be replaced by `parentField`.
   int parentListIndex [optional];
 
   // If `value` is a Map, `parentMapKey` is the key mapping to the previous
@@ -3770,7 +3778,7 @@ class RetainingObject {
 
   // If `value` is a non-List, non-Map object, `parentField` is the name of the
   // field containing the previous object on the retaining path.
-  string parentField [optional];
+  string|int parentField [optional];
 }
 ```
 
@@ -4415,5 +4423,6 @@ version | comments
 3.60 | Added `gcType` property to `Event`.
 3.61 | Added `isolateGroupId` property to `@Isolate` and `Isolate`.
 3.62 | Added `Set` to `InstanceKind`.
+4.0 | Added `Record` and `RecordType` `InstanceKind`s, added a deprecation notice to the `decl` property of `BoundField`, added `name` property to `BoundField`, added a deprecation notice to the `parentListIndex` property of `InboundReference`, changed the type of the `parentField` property of `InboundReference` from `@Field` to `@Field\|string\|int`, added a deprecation notice to the `parentListIndex` property of `RetainingObject`, changed the type of the `parentField` property of `RetainingObject` from `string` to `string\|int`, removed the deprecated `timeSpan` property from `CpuSamples`, and removed the deprecated `timeSpan` property from `CpuSamplesEvent`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

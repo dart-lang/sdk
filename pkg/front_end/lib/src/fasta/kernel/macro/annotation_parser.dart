@@ -494,6 +494,9 @@ class _MacroListener implements Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -803,7 +806,13 @@ class _MacroListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
+      Token? augmentToken,
+      Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
+      Token mixinKeyword,
+      Token name) {
     _unexpected();
   }
 
@@ -819,6 +828,9 @@ class _MacroListener implements Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
@@ -2055,7 +2067,17 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void beginPatternGuard(Token token) {
+    _unhandled();
+  }
+
+  @override
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {
+    _unhandled();
+  }
+
+  @override
+  void beginSwitchCaseWhenClause(Token when) {
     _unhandled();
   }
 
@@ -2070,7 +2092,17 @@ class _MacroListener implements Listener {
   }
 
   @override
+  void endPatternGuard(Token token) {
+    _unhandled();
+  }
+
+  @override
   void endParenthesizedExpression(Token token) {
+    _unhandled();
+  }
+
+  @override
+  void endSwitchCaseWhenClause(Token token) {
     _unhandled();
   }
 
@@ -2080,7 +2112,12 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleConstantPattern(Token? constKeyword) {
+  void beginConstantPattern(Token? constKeyword) {
+    _unsupported();
+  }
+
+  @override
+  void endConstantPattern(Token? constKeyword) {
     _unsupported();
   }
 
@@ -2145,6 +2182,11 @@ class _MacroListener implements Listener {
   void handleAugmentSuperExpression(
       Token augmentToken, Token superToken, IdentifierContext context) {
     _unsupported();
+  }
+
+  @override
+  void handleSwitchExpressionCasePattern(Token token) {
+    _unhandled();
   }
 
   @override

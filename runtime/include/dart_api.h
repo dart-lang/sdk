@@ -1271,7 +1271,7 @@ DART_EXPORT void Dart_KillIsolate(Dart_Isolate isolate);
 DART_EXPORT void Dart_NotifyIdle(int64_t deadline);
 
 typedef void (*Dart_HeapSamplingCallback)(void* isolate_group_data,
-                                          Dart_Handle cls_name,
+                                          const char* cls_name,
                                           Dart_WeakPersistentHandle obj,
                                           uintptr_t size);
 
@@ -1290,9 +1290,11 @@ DART_EXPORT void Dart_DisableHeapSampling();
  *
  * Important notes:
  *
- * - When invoked, |cls_name| will be a handle to a Dart String representing
- *   the class name of the allocated object. This handle is stable and can be
- *   used as an identifier as it has the lifetime of its isolate group.
+ * - When invoked, |cls_name| will be a C String representing the class name
+ *   of the allocated object. This pointer is stable and can be used as an
+ *   identifier for all allocations of the class as it has the lifetime of its
+ *   isolate group. The VM is responsible for freeing |cls_name| and should not
+ *   be freed by the embedder.
  *
  * - |obj| is a weak persistent handle to the object which caused the
  *   allocation. The value of this handle will be set to null when the object is
@@ -1970,7 +1972,7 @@ DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function);
 DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function);
 
 /**
- * Determines whether a function handle referes to a static function
+ * Determines whether a function handle refers to a static function
  * of method.
  *
  * For the purposes of the embedding API, a top-level function is

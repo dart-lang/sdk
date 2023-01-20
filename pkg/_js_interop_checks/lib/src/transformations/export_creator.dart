@@ -86,6 +86,7 @@ class ExportCreator extends Transformer {
         return _createExport(node, dartType, staticInteropType, proto);
       }
     }
+    node.transformChildren(this);
     return node;
   }
 

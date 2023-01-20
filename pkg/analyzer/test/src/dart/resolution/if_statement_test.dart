@@ -66,7 +66,7 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
+      pattern: LogicalOrPattern
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
@@ -122,6 +122,83 @@ IfStatement
 ''');
   }
 
+  test_caseClause_variables_logicalOr2_nested() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  if (x case <int>[var a || var a] when a > 0) {
+    a;
+  }
+}
+''');
+
+    final node = findNode.ifStatement('if');
+    assertResolvedNodeText(node, r'''
+IfStatement
+  ifKeyword: if
+  leftParenthesis: (
+  condition: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  caseClause: CaseClause
+    caseKeyword: case
+    guardedPattern: GuardedPattern
+      pattern: ListPattern
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+          rightBracket: >
+        leftBracket: [
+        elements
+          LogicalOrPattern
+            leftOperand: DeclaredVariablePattern
+              keyword: var
+              name: a
+              declaredElement: hasImplicitType a@43
+                type: int
+            operator: ||
+            rightOperand: DeclaredVariablePattern
+              keyword: var
+              name: a
+              declaredElement: hasImplicitType a@52
+                type: int
+        rightBracket: ]
+        requiredType: List<int>
+      whenClause: WhenClause
+        whenKeyword: when
+        expression: BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: a
+            staticElement: a[a@43, a@52]
+            staticType: int
+          operator: >
+          rightOperand: IntegerLiteral
+            literal: 0
+            parameter: dart:core::@class::num::@method::>::@parameter::other
+            staticType: int
+          staticElement: dart:core::@class::num::@method::>
+          staticInvokeType: bool Function(num)
+          staticType: bool
+  rightParenthesis: )
+  thenStatement: Block
+    leftBracket: {
+    statements
+      ExpressionStatement
+        expression: SimpleIdentifier
+          token: a
+          staticElement: a[a@43, a@52]
+          staticType: int
+        semicolon: ;
+    rightBracket: }
+''');
+  }
+
   test_caseClause_variables_logicalOr2_notConsistent_differentFinality() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {
@@ -130,7 +207,8 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN, 53, 1),
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR, 53, 1),
     ]);
 
     final node = findNode.ifStatement('if');
@@ -145,7 +223,7 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
+      pattern: LogicalOrPattern
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
@@ -210,7 +288,8 @@ void f(Object? x) {
   }
 }
 ''', [
-      error(CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN, 50, 1),
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR, 50, 1),
     ]);
 
     final node = findNode.ifStatement('if');
@@ -225,7 +304,7 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
+      pattern: LogicalOrPattern
         leftOperand: DeclaredVariablePattern
           type: NamedType
             name: SimpleIdentifier
@@ -305,8 +384,8 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
-        leftOperand: BinaryPattern
+      pattern: LogicalOrPattern
+        leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
@@ -379,8 +458,8 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
-        leftOperand: BinaryPattern
+      pattern: LogicalOrPattern
+        leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
@@ -457,8 +536,8 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
-        leftOperand: BinaryPattern
+      pattern: LogicalOrPattern
+        leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
@@ -543,8 +622,8 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
-        leftOperand: BinaryPattern
+      pattern: LogicalOrPattern
+        leftOperand: LogicalOrPattern
           leftOperand: DeclaredVariablePattern
             type: NamedType
               name: SimpleIdentifier
@@ -624,8 +703,8 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
-        leftOperand: BinaryPattern
+      pattern: LogicalOrPattern
+        leftOperand: LogicalOrPattern
           leftOperand: ConstantPattern
             expression: IntegerLiteral
               literal: 1
@@ -698,8 +777,8 @@ IfStatement
   caseClause: CaseClause
     caseKeyword: case
     guardedPattern: GuardedPattern
-      pattern: BinaryPattern
-        leftOperand: BinaryPattern
+      pattern: LogicalOrPattern
+        leftOperand: LogicalOrPattern
           leftOperand: ConstantPattern
             expression: IntegerLiteral
               literal: 1
@@ -772,6 +851,8 @@ void f(Object? x) {
   }
 }
 ''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 57,
+          1),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 57, 1,
           contextMessages: [message('/home/test/lib/test.dart', 51, 1)]),
     ]);

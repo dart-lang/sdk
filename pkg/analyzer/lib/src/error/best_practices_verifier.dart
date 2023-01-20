@@ -372,6 +372,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitBinaryExpression(BinaryExpression node) {
     _checkForDivisionOptimizationHint(node);
     _deprecatedVerifier.binaryExpression(node);
+    _checkForInvariantNanComparison(node);
     _checkForInvariantNullComparison(node);
     _invalidAccessVerifier.verifyBinary(node);
     super.visitBinaryExpression(node);
@@ -422,7 +423,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     if (newKeyword != null &&
         _currentLibrary.featureSet.isEnabled(Feature.constructor_tearoffs)) {
       _errorReporter.reportErrorForToken(
-          HintCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, newKeyword, []);
+          WarningCode.DEPRECATED_NEW_IN_COMMENT_REFERENCE, newKeyword, []);
     }
     super.visitCommentReference(node);
   }
@@ -671,19 +672,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
     var element = node.declaredElement!;
     var enclosingElement = element.enclosingElement;
 
-    Name name = Name(_currentLibrary.source.uri, element.name);
-
-    ExecutableElement? getConcreteOverriddenElement() =>
-        element is ClassMemberElement && enclosingElement is InterfaceElement
-            ? _inheritanceManager.getMember2(enclosingElement, name,
-                forSuper: true)
-            : null;
-    ExecutableElement? getOverriddenPropertyAccessor() => element
-                is PropertyAccessorElement &&
-            enclosingElement is InterfaceElement
-        ? _inheritanceManager.getMember2(enclosingElement, name, forSuper: true)
-        : null;
-
     _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
     if (element.hasDoNotStore) {
       _inDoNotStoreMember = true;
@@ -695,6 +683,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       _mustCallSuperVerifier.checkMethodDeclaration(node);
       _checkForUnnecessaryNoSuchMethod(node);
 
+      var name = Name(_currentLibrary.source.uri, element.name);
       var elementIsOverride = element is ClassMemberElement &&
               enclosingElement is InterfaceElement
           ? _inheritanceManager.getOverridden2(enclosingElement, name) != null
@@ -708,10 +697,10 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         _checkStrictInferenceInParameters(node.parameters, body: node.body);
       }
 
-      var overriddenElement = getConcreteOverriddenElement();
-      if (overriddenElement == null && (node.isSetter || node.isGetter)) {
-        overriddenElement = getOverriddenPropertyAccessor();
-      }
+      var overriddenElement = enclosingElement is InterfaceElement
+          ? _inheritanceManager.getMember2(enclosingElement, name,
+              forSuper: true)
+          : null;
 
       if (overriddenElement != null &&
           _hasNonVirtualAnnotation(overriddenElement)) {
@@ -1001,8 +990,8 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         var value = constEvaluation.value;
         if (value != null && !alreadySeen.add(value)) {
           var errorCode = node.isSet
-              ? HintCode.EQUAL_ELEMENTS_IN_SET
-              : HintCode.EQUAL_KEYS_IN_MAP;
+              ? WarningCode.EQUAL_ELEMENTS_IN_SET
+              : WarningCode.EQUAL_KEYS_IN_MAP;
           _errorReporter.reportErrorForNode(errorCode, expression);
         }
       }
@@ -1216,6 +1205,40 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           }
         }
       }
+    }
+  }
+
+  void _checkForInvariantNanComparison(BinaryExpression node) {
+    void reportStartEnd(
+      HintCode errorCode,
+      SyntacticEntity startEntity,
+      SyntacticEntity endEntity,
+    ) {
+      var offset = startEntity.offset;
+      _errorReporter.reportErrorForOffset(
+        errorCode,
+        offset,
+        endEntity.end - offset,
+      );
+    }
+
+    bool isDoubleNan(Expression expression) =>
+        expression is PrefixedIdentifier &&
+        expression.prefix.name == 'double' &&
+        expression.identifier.name == 'nan';
+
+    void checkLeftRight(HintCode errorCode) {
+      if (isDoubleNan(node.leftOperand)) {
+        reportStartEnd(errorCode, node.leftOperand, node.operator);
+      } else if (isDoubleNan(node.rightOperand)) {
+        reportStartEnd(errorCode, node.operator, node.rightOperand);
+      }
+    }
+
+    if (node.operator.type == TokenType.BANG_EQ) {
+      checkLeftRight(HintCode.UNNECESSARY_NAN_COMPARISON_TRUE);
+    } else if (node.operator.type == TokenType.EQ_EQ) {
+      checkLeftRight(HintCode.UNNECESSARY_NAN_COMPARISON_FALSE);
     }
   }
 

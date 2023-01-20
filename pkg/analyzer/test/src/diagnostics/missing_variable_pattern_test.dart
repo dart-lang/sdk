@@ -16,13 +16,16 @@ main() {
 @reflectiveTest
 class MissingVariablePatternTest extends PubPackageResolutionTest {
   test_ifCase_differentStatements_nested() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   if (x case final a) {
     if (x case final b) {}
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 61, 1),
+    ]);
 
     final node1 = findNode.caseClause('case final a').guardedPattern;
     assertResolvedNodeText(node1, r'''
@@ -46,12 +49,15 @@ GuardedPattern
   }
 
   test_ifCase_differentStatements_sibling() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   if (x case final a) {}
   if (x case final b) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 60, 1),
+    ]);
 
     final node1 = findNode.caseClause('case final a').guardedPattern;
     assertResolvedNodeText(node1, r'''
@@ -75,14 +81,17 @@ GuardedPattern
   }
 
   test_ifCase_logicalOr2_both_direct() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   if (x case final a || final a) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: DeclaredVariablePattern
     keyword: final
     name: a
@@ -98,15 +107,18 @@ BinaryPattern
   }
 
   test_ifCase_logicalOr2_both_nested_logicalAnd() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   if (x case 0 && final a || final a) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalAndPattern
     leftOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 0
@@ -132,11 +144,12 @@ void f(num x) {
   if (x case final int a || 2) {}
 }
 ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: DeclaredVariablePattern
     keyword: final
     type: NamedType
@@ -163,10 +176,11 @@ void f(int x) {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
@@ -186,13 +200,14 @@ void f(num x) {
   if (x case final int a || 2 || 3) {}
 }
 ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
       type: NamedType
@@ -223,12 +238,14 @@ void f(num x) {
   if (x case final int a || final int a || 3) {}
 }
 ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 54, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 59, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
       type: NamedType
@@ -261,15 +278,19 @@ BinaryPattern
   }
 
   test_ifCase_logicalOr3_123() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   if (x case final a || final a || final a) {}
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 35, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
       name: a
@@ -296,12 +317,14 @@ void f(num x) {
   if (x case final int a || 2 || final int a) {}
 }
 ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 39, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 44, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 59, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: DeclaredVariablePattern
       keyword: final
       type: NamedType
@@ -340,12 +363,13 @@ void f(num x) {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 49, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 1
@@ -377,11 +401,13 @@ void f(int x) {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 40, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 1
@@ -408,11 +434,12 @@ void f(int x) {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 29, 6),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 45, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
-  leftOperand: BinaryPattern
+LogicalOrPattern
+  leftOperand: LogicalOrPattern
     leftOperand: ConstantPattern
       expression: IntegerLiteral
         literal: 1
@@ -432,17 +459,20 @@ BinaryPattern
   }
 
   test_switchStatement_case1_logicalOr2_both() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case final a || final a:
       return;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 57, 1),
+    ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: DeclaredVariablePattern
     keyword: final
     name: a
@@ -466,11 +496,12 @@ void f(num x) {
   }
 }
 ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 50, 1),
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 55, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: DeclaredVariablePattern
     keyword: final
     type: NamedType
@@ -500,10 +531,11 @@ void f(int x) {
 }
 ''', [
       error(CompileTimeErrorCode.MISSING_VARIABLE_PATTERN, 40, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 51, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalOrPattern
   leftOperand: ConstantPattern
     expression: IntegerLiteral
       literal: 1
@@ -518,7 +550,7 @@ BinaryPattern
   }
 
   test_switchStatement_case2_both() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case /*1*/ final a:
@@ -526,7 +558,10 @@ void f(int x) {
       return;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 52, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 76, 1),
+    ]);
 
     final node1 = findNode.switchPatternCase('case /*1*/').guardedPattern;
     assertResolvedNodeText(node1, r'''
@@ -550,19 +585,21 @@ GuardedPattern
   }
 
   test_switchStatement_case2_left() async {
-    await assertNoErrorsInCode(r'''
-void f(int x) {
+    await assertErrorsInCode(r'''
+void f(num x) {
   switch (x) {
-    case final a:
+    case final double a:
     case 2:
       return;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
+    ]);
   }
 
   test_switchStatement_case2_right() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case 1:
@@ -570,11 +607,13 @@ void f(int x) {
       return;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 58, 1),
+    ]);
   }
 
   test_switchStatement_differentCases_nested() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(int x) {
   switch (x) {
     case final a:
@@ -585,19 +624,23 @@ void f(int x) {
       return;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 46, 1),
+    ]);
   }
 
   test_switchStatement_differentCases_sibling() async {
-    await assertNoErrorsInCode(r'''
-void f(int x) {
+    await assertErrorsInCode(r'''
+void f(num x) {
   switch (x) {
-    case final a:
+    case final double a:
       return;
     case 2:
       return;
   }
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
+    ]);
   }
 }

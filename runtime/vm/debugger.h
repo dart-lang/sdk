@@ -700,6 +700,8 @@ class Debugger {
   explicit Debugger(Isolate* isolate);
   ~Debugger();
 
+  Isolate* isolate() const { return isolate_; }
+
   void NotifyIsolateCreated();
   void Shutdown();
 

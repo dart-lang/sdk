@@ -602,6 +602,12 @@ class ServerRecentPerformance {
   /// The maximum number of performance measurements to keep.
   static const int performanceListMaxLength = 50;
 
+  /// The maximum number of slow performance measurements to keep.
+  static const int slowRequestsListMaxLength = 1000;
+
+  /// The duration we use to categorize requests as slow.
+  static const Duration slowRequestsThreshold = Duration(milliseconds: 500);
+
   /// A list of code completion performance measurements for the latest
   /// completion operation up to [performanceListMaxLength] measurements.
   final RecentBuffer<CompletionPerformance> completion =
@@ -611,4 +617,9 @@ class ServerRecentPerformance {
   /// requests.
   final RecentBuffer<RequestPerformance> requests =
       RecentBuffer(performanceListMaxLength);
+
+  /// A [RecentBuffer] for performance information about the most recent
+  /// slow requests.
+  final RecentBuffer<RequestPerformance> slowRequests =
+      RecentBuffer(slowRequestsListMaxLength);
 }

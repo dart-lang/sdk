@@ -157,6 +157,22 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// See [assert_begin] for more information.
   void assert_end();
 
+  /// Call this method when the temporary variable holding the result of a
+  /// pattern match is assigned to a user-accessible variable.  (Depending on
+  /// the client's model, this might happen right after a variable pattern is
+  /// matched, or later, after one or more logical-or patterns have been
+  /// handled).
+  ///
+  /// [promotionKey] is the promotion key used by flow analysis to represent the
+  /// temporary variable holding the result of the pattern match, and [variable]
+  /// is the user-accessible variable that the value is being assigned to.
+  ///
+  /// Returns the promotion key used by flow analysis to represent [variable].
+  /// This may be used in future calls to [assignMatchedPatternVariable] to
+  /// handle nested logical-ors, or logical-ors nested within switch cases that
+  /// share a body.
+  int assignMatchedPatternVariable(Variable variable, int promotionKey);
+
   /// Call this method when visiting a boolean literal expression.
   void booleanLiteral(Expression expression, bool value);
 
@@ -183,17 +199,45 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Register a declaration of the [variable] in the current state.
   /// Should also be called for function parameters.
   ///
+  /// [staticType] should be the static type of the variable (after type
+  /// inference).
+  ///
   /// A local variable is [initialized] if its declaration has an initializer.
   /// A function parameter is always initialized, so [initialized] is `true`.
-  void declare(Variable variable, bool initialized);
+  ///
+  /// In debug builds, an assertion will normally verify that no variable gets
+  /// declared more than once.  This assertion may be disabled by passing `true`
+  /// to [skipDuplicateCheck].
+  ///
+  /// TODO(paulberry): try to remove all uses of skipDuplicateCheck
+  void declare(Variable variable, Type staticType,
+      {required bool initialized, bool skipDuplicateCheck = false});
 
   /// Call this method after visiting a variable pattern in a non-assignment
   /// context (or a wildcard pattern).
   ///
   /// [matchedType] should be the static type of the value being matched.
   /// [staticType] should be the static type of the variable pattern itself.
-  void declaredVariablePattern(
-      {required Type matchedType, required Type staticType});
+  /// [initializerExpression] should be the initializer expression being matched
+  /// (or `null` if there is no expression being matched to this variable).
+  /// [isFinal] indicates whether the variable is final, and [isImplicitlyTyped]
+  /// indicates whether the variable has an explicit type annotation.
+  ///
+  /// Although pattern variables in Dart cannot be late, the client is allowed
+  /// to model a traditional (non-patterned) variable declaration statement
+  /// using the same flow analysis machinery as it uses for pattern variable
+  /// declaration statements; when it does so, it may use [isLate] to indicate
+  /// whether the variable in question is a `late` variable.
+  ///
+  /// Returns the promotion key used by flow analysis to track the temporary
+  /// variable that holds the matched value.
+  int declaredVariablePattern(
+      {required Type matchedType,
+      required Type staticType,
+      Expression? initializerExpression,
+      bool isFinal = false,
+      bool isLate = false,
+      required bool isImplicitlyTyped});
 
   /// Call this method before visiting the body of a "do-while" statement.
   /// [doStatement] should be the same node that was passed to
@@ -477,6 +521,9 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
   /// Call this method just after visiting the initializer of a late variable.
   void lateInitializer_end();
 
+  /// Call this method just before visiting the subpatterns of a list pattern.
+  void listPattern_begin();
+
   /// Call this method before visiting the LHS of a logical binary operation
   /// ("||" or "&&").
   void logicalBinaryOp_begin();
@@ -554,6 +601,16 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Call this method after visiting a pattern assignment expression.
   void patternAssignment_end();
+
+  /// Call this method just after visiting the expression (which usually
+  /// implements `Iterable`, but can also be `dynamic`), and before visiting
+  /// the pattern or body.
+  ///
+  /// [elementType] is the element type of the `Iterable`, or `dynamic`.
+  void patternForIn_afterExpression(Type elementType);
+
+  /// Call this method after visiting the body.
+  void patternForIn_end();
 
   /// Call this method just after visiting the initializer of a pattern variable
   /// declaration, and before visiting the pattern.
@@ -644,7 +701,10 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Call this method just after visiting a `case` or `default` body.  See
   /// [switchStatement_expressionEnd] for details.
-  void switchStatement_afterCase();
+  ///
+  /// This method returns a boolean indicating whether the end of the case body
+  /// is "locally reachable" (i.e. reachable from its start).
+  bool switchStatement_afterCase();
 
   /// Call this method just before visiting a `case` or `default` clause.  See
   /// [switchStatement_expressionEnd] for details.
@@ -966,6 +1026,13 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
+  int assignMatchedPatternVariable(Variable variable, int promotionKey) {
+    return _wrap('assignMatchedPatternVariable($variable, $promotionKey)',
+        () => _wrapped.assignMatchedPatternVariable(variable, promotionKey),
+        isQuery: true, isPure: false);
+  }
+
+  @override
   void booleanLiteral(Expression expression, bool value) {
     _wrap('booleanLiteral($expression, $value)',
         () => _wrapped.booleanLiteral(expression, value));
@@ -1003,19 +1070,37 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void declare(Variable variable, bool initialized) {
-    _wrap('declare($variable, $initialized)',
-        () => _wrapped.declare(variable, initialized));
+  void declare(Variable variable, Type staticType,
+      {required bool initialized, bool skipDuplicateCheck = false}) {
+    _wrap(
+        'declare($variable, $staticType, '
+        'initialized: $initialized, skipDuplicateCheck: $skipDuplicateCheck)',
+        () => _wrapped.declare(variable, staticType,
+            initialized: initialized, skipDuplicateCheck: skipDuplicateCheck));
   }
 
   @override
-  void declaredVariablePattern(
-      {required Type matchedType, required Type staticType}) {
-    _wrap(
+  int declaredVariablePattern(
+      {required Type matchedType,
+      required Type staticType,
+      Expression? initializerExpression,
+      bool isFinal = false,
+      bool isLate = false,
+      required bool isImplicitlyTyped}) {
+    return _wrap(
         'declaredVariablePattern(matchedType: $matchedType, '
-        'staticType: $staticType)',
+        'staticType: $staticType, '
+        'initializerExpression: $initializerExpression, isFinal: $isFinal, '
+        'isLate: $isLate, isImplicitlyTyped: $isImplicitlyTyped)',
         () => _wrapped.declaredVariablePattern(
-            matchedType: matchedType, staticType: staticType));
+            matchedType: matchedType,
+            staticType: staticType,
+            initializerExpression: initializerExpression,
+            isFinal: isFinal,
+            isLate: isLate,
+            isImplicitlyTyped: isImplicitlyTyped),
+        isQuery: true,
+        isPure: false);
   }
 
   @override
@@ -1260,6 +1345,11 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
+  void listPattern_begin() {
+    _wrap('listPattern_begin()', () => _wrapped.listPattern_begin());
+  }
+
+  @override
   void logicalBinaryOp_begin() {
     _wrap('logicalBinaryOp_begin()', () => _wrapped.logicalBinaryOp_begin());
   }
@@ -1348,6 +1438,19 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
+  void patternForIn_afterExpression(Type elementType) {
+    _wrap(
+      'patternForIn_afterExpression($elementType)',
+      () => _wrapped.patternForIn_afterExpression(elementType),
+    );
+  }
+
+  @override
+  void patternForIn_end() {
+    _wrap('patternForIn_end()', () => _wrapped.patternForIn_end());
+  }
+
+  @override
   void patternVariableDeclaration_afterInitializer(
       Expression initializer, Type initializerType) {
     _wrap(
@@ -1414,9 +1517,10 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_afterCase() {
-    _wrap('switchStatement_afterCase()',
-        () => _wrapped.switchStatement_afterCase());
+  bool switchStatement_afterCase() {
+    return _wrap('switchStatement_afterCase()',
+        () => _wrapped.switchStatement_afterCase(),
+        isPure: false, isQuery: true);
   }
 
   @override
@@ -2129,18 +2233,19 @@ class FlowModel<Type extends Object> {
   FlowModel<Type> write<Variable extends Object>(
       FlowModelHelper<Type> helper,
       NonPromotionReason? nonPromotionReason,
-      Variable variable,
       int variableKey,
       Type writtenType,
       SsaNode<Type> newSsaNode,
       Operations<Variable, Type> operations,
-      {bool promoteToTypeOfInterest = true}) {
+      {bool promoteToTypeOfInterest = true,
+      required Type unpromotedType}) {
     FlowModel<Type>? newModel;
     VariableModel<Type>? infoForVar = variableInfo[variableKey];
     if (infoForVar != null) {
-      VariableModel<Type> newInfoForVar = infoForVar.write(nonPromotionReason,
-          variable, variableKey, writtenType, operations, newSsaNode,
-          promoteToTypeOfInterest: promoteToTypeOfInterest);
+      VariableModel<Type> newInfoForVar = infoForVar.write(
+          nonPromotionReason, variableKey, writtenType, operations, newSsaNode,
+          promoteToTypeOfInterest: promoteToTypeOfInterest,
+          unpromotedType: unpromotedType);
       if (!identical(newInfoForVar, infoForVar)) {
         newModel = _updateVariableInfo(variableKey, newInfoForVar);
       }
@@ -2814,12 +2919,12 @@ class VariableModel<Type extends Object> {
   /// reason for any potential demotion.
   VariableModel<Type> write<Variable extends Object>(
       NonPromotionReason? nonPromotionReason,
-      Variable variable,
       int variableKey,
       Type writtenType,
       Operations<Variable, Type> operations,
       SsaNode<Type> newSsaNode,
-      {required bool promoteToTypeOfInterest}) {
+      {required bool promoteToTypeOfInterest,
+      required Type unpromotedType}) {
     if (writeCaptured) {
       return new VariableModel<Type>(
           promotedTypes: promotedTypes,
@@ -2833,10 +2938,9 @@ class VariableModel<Type extends Object> {
         _demoteViaAssignment(writtenType, operations, nonPromotionReason);
     List<Type>? newPromotedTypes = demotionResult.promotedTypes;
 
-    Type declaredType = operations.variableType(variable);
     if (promoteToTypeOfInterest) {
       newPromotedTypes = _tryPromoteToTypeOfInterest(
-          operations, declaredType, newPromotedTypes, writtenType);
+          operations, unpromotedType, newPromotedTypes, writtenType);
     }
     // TODO(paulberry): remove demotions from demotionResult.nonPromotionHistory
     // that are no longer in effect due to re-promotion.
@@ -3261,8 +3365,11 @@ class _AssertContext<Type extends Object> extends _SimpleContext<Type> {
   _AssertContext(super.previous);
 
   @override
-  String toString() =>
-      '_AssertContext(previous: $_previous, conditionInfo: $_conditionInfo)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['conditionInfo'] = _conditionInfo;
+
+  @override
+  String get _debugType => '_AssertContext';
 }
 
 /// [_FlowContext] representing a language construct that branches on a boolean
@@ -3275,7 +3382,11 @@ class _BranchContext<Type extends Object> extends _FlowContext {
   _BranchContext(this._branchModel);
 
   @override
-  String toString() => '_BranchContext(branchModel: $_branchModel)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['branchModel'] = _branchModel;
+
+  @override
+  String get _debugType => '_BranchContext';
 }
 
 /// [_FlowContext] representing a language construct that can be targeted by
@@ -3298,8 +3409,13 @@ class _BranchTargetContext<Type extends Object> extends _FlowContext {
   _BranchTargetContext(this._checkpoint);
 
   @override
-  String toString() => '_BranchTargetContext(breakModel: $_breakModel, '
-      'continueModel: $_continueModel, checkpoint: $_checkpoint)';
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['breakModel'] = _breakModel
+    ..['continueModel'] = _continueModel
+    ..['checkpoint'] = _checkpoint;
+
+  @override
+  String get _debugType => '_BranchTargetContext';
 }
 
 /// [_FlowContext] representing a conditional expression.
@@ -3311,8 +3427,11 @@ class _ConditionalContext<Type extends Object> extends _BranchContext<Type> {
   _ConditionalContext(super._branchModel);
 
   @override
-  String toString() => '_ConditionalContext(branchModel: $_branchModel, '
-      'thenInfo: $_thenInfo)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['thenInfo'] = _thenInfo;
+
+  @override
+  String get _debugType => '_ConditionalContext';
 }
 
 /// Data structure representing the result of demoting a variable from one type
@@ -3413,18 +3532,24 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   final PromotionKeyStore<Variable> promotionKeyStore;
 
+  /// For debugging only: the set of [Variable]s that have been passed to
+  /// [declare] so far.  This is used to detect unnecessary calls to [declare].
+  final Set<Variable> _debugDeclaredVariables = {};
+
   _FlowAnalysisImpl(this.operations, this._assignedVariables,
       {required this.respectImplicitlyTypedVarInitializers})
       : promotionKeyStore = _assignedVariables.promotionKeyStore {
     if (!_assignedVariables.isFinished) {
       _assignedVariables.finish();
     }
-    AssignedVariablesNodeInfo anywhere = _assignedVariables.anywhere;
-    Set<int> implicitlyDeclaredVars = {...anywhere.read, ...anywhere.written};
-    implicitlyDeclaredVars.removeAll(anywhere.declared);
-    for (int variableKey in implicitlyDeclaredVars) {
-      _current = _current.declare(variableKey, true);
-    }
+    assert(() {
+      AssignedVariablesNodeInfo anywhere = _assignedVariables.anywhere;
+      Set<int> implicitlyDeclaredVars = {...anywhere.read, ...anywhere.written};
+      implicitlyDeclaredVars.removeAll(anywhere.declared);
+      assert(implicitlyDeclaredVars.isEmpty,
+          'All variables should be declared somewhere');
+      return true;
+    }());
   }
 
   @override
@@ -3459,6 +3584,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void assert_end() {
     _AssertContext<Type> context = _stack.removeLast() as _AssertContext<Type>;
     _current = _merge(context._previous, context._conditionInfo!.ifTrue);
+  }
+
+  @override
+  int assignMatchedPatternVariable(Variable variable, int promotionKey) {
+    int mergedKey = promotionKeyStore.keyForVariable(variable);
+    _current =
+        _current._updateVariableInfo(mergedKey, _current.infoFor(promotionKey));
+    return mergedKey;
   }
 
   @override
@@ -3518,14 +3651,24 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
-  void declare(Variable variable, bool initialized) {
+  void declare(Variable variable, Type staticType,
+      {required bool initialized, bool skipDuplicateCheck = false}) {
+    assert(
+        operations.isSameType(staticType, operations.variableType(variable)));
+    assert(_debugDeclaredVariables.add(variable) || skipDuplicateCheck,
+        'Variable $variable already declared');
     _current = _current.declare(
         promotionKeyStore.keyForVariable(variable), initialized);
   }
 
   @override
-  void declaredVariablePattern(
-      {required Type matchedType, required Type staticType}) {
+  int declaredVariablePattern(
+      {required Type matchedType,
+      required Type staticType,
+      Expression? initializerExpression,
+      bool isFinal = false,
+      bool isLate = false,
+      required bool isImplicitlyTyped}) {
     _PatternContext<Type> context = _stack.last as _PatternContext<Type>;
     ReferenceWithType<Type> matchedValueReference =
         context._matchedValueReference;
@@ -3541,7 +3684,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // If there's a scrutinee, and its value is known to be the same as that of
     // the synthetic cache variable, promote it too.
     if (scrutineeReference != null &&
-        _current.infoFor(matchedValueReference.promotionKey).ssaNode ==
+        _current.infoFor(scrutineeReference.promotionKey).ssaNode ==
             _scrutineeSsaNode) {
       ifTrue = ifTrue
           .tryPromoteForTypeCheck(this, scrutineeReference, staticType)
@@ -3554,6 +3697,16 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (!coversMatchedType) {
       _unmatched = _join(_unmatched!, ifFalse);
     }
+    // Choose a fresh promotion key to represent the temporary variable that
+    // stores the matched value, and mark it as initialized.
+    int promotionKey = promotionKeyStore.makeTemporaryKey();
+    _current = _current.declare(promotionKey, true);
+    _initialize(promotionKey, matchedType, initializerExpression,
+        isFinal: isFinal,
+        isLate: isLate,
+        isImplicitlyTyped: isImplicitlyTyped,
+        unpromotedType: staticType);
+    return promotionKey;
   }
 
   @override
@@ -3874,30 +4027,13 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       {required bool isFinal,
       required bool isLate,
       required bool isImplicitlyTyped}) {
+    Type unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
-    ExpressionInfo<Type>? expressionInfo;
-    if (isLate) {
-      // Don't get expression info for late variables, since we don't know when
-      // they'll be initialized.
-    } else if (isImplicitlyTyped && !respectImplicitlyTypedVarInitializers) {
-      // If the language version is too old, SSA analysis has to ignore
-      // initializer expressions for implicitly typed variables, in order to
-      // preserve the buggy behavior of
-      // https://github.com/dart-lang/language/issues/1785.
-    } else if (initializerExpression != null) {
-      expressionInfo = _getExpressionInfo(initializerExpression);
-    }
-    SsaNode<Type> newSsaNode = new SsaNode<Type>(
-        expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
-    _current = _current.write(
-        this, null, variable, variableKey, matchedType, newSsaNode, operations,
-        promoteToTypeOfInterest: !isImplicitlyTyped && !isFinal);
-    if (isImplicitlyTyped && operations.isTypeParameterType(matchedType)) {
-      _current = _current
-          .tryPromoteForTypeCheck(
-              this, _variableReference(variable, variableKey), matchedType)
-          .ifTrue;
-    }
+    _initialize(variableKey, matchedType, initializerExpression,
+        isFinal: isFinal,
+        isLate: isLate,
+        isImplicitlyTyped: isImplicitlyTyped,
+        unpromotedType: unpromotedType);
   }
 
   @override
@@ -3965,6 +4101,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // evaluation thunk that gets replaced by the result of `expr` once it is
     // evaluated).
     functionExpression_end();
+  }
+
+  @override
+  void listPattern_begin() {
+    // As a temporary measure, just assume the pattern might or might not match.
+    // This avoids some bogus "unreachable code" warnings in analyzer tests.
+    // TODO(paulberry): replace this with a full implementation.
+    _unmatched = _join(_unmatched!, _current);
   }
 
   @override
@@ -4102,6 +4246,18 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   @override
+  void patternForIn_afterExpression(Type elementType) {
+    _pushScrutinee(null, elementType);
+    _pushPattern();
+  }
+
+  @override
+  void patternForIn_end() {
+    _popPattern(null);
+    _popScrutinee();
+  }
+
+  @override
   void patternVariableDeclaration_afterInitializer(
       Expression initializer, Type initializerType) {
     _pushScrutinee(_getExpressionReference(initializer), initializerType);
@@ -4158,15 +4314,22 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       .variableInfo[promotionKeyStore.keyForVariable(variable)]?.ssaNode;
 
   @override
-  void switchStatement_afterCase() {
+  bool switchStatement_afterCase() {
     _SwitchStatementContext<Type> context =
         _stack.last as _SwitchStatementContext<Type>;
-    context._breakModel = _join(context._breakModel, _current);
+    bool isLocallyReachable = _current.reachable.locallyReachable;
+    _current = _current.unsplit();
+    if (isLocallyReachable) {
+      context._breakModel = _join(context._breakModel, _current);
+    }
+    return isLocallyReachable;
   }
 
   @override
   void switchStatement_beginAlternative() {
-    assert(_stack.last is _SwitchAlternativesContext<Type>);
+    _SwitchAlternativesContext<Type> context =
+        _stack.last as _SwitchAlternativesContext<Type>;
+    _current = context._switchStatementContext._unmatched;
     _pushPattern();
   }
 
@@ -4174,8 +4337,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   void switchStatement_beginAlternatives() {
     _SwitchStatementContext<Type> context =
         _stack.last as _SwitchStatementContext<Type>;
-    _current = context._previous.split();
-    _stack.add(new _SwitchAlternativesContext<Type>(_current));
+    _stack.add(new _SwitchAlternativesContext<Type>(context));
   }
 
   @override
@@ -4204,13 +4366,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void switchStatement_endAlternative(Expression? guard) {
-    // TODO(paulberry): make use of `unmatched`
-    // ignore: unused_local_variable
     FlowModel<Type> unmatched = _popPattern(guard);
     _SwitchAlternativesContext<Type> context =
         _stack.last as _SwitchAlternativesContext<Type>;
+    // Future alternatives will be analyzed under the assumption that this
+    // alternative didn't match.  This models the fact that a switch statement
+    // behaves like a chain of if/else tests.
+    context._switchStatementContext._unmatched = unmatched;
     context._combinedModel = _join(context._combinedModel, _current);
-    _current = context._previous;
   }
 
   @override
@@ -4218,20 +4381,19 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       {required bool hasLabels}) {
     _SwitchAlternativesContext<Type> alternativesContext =
         _stack.removeLast() as _SwitchAlternativesContext<Type>;
-    _SimpleStatementContext<Type> switchContext =
-        _stack.last as _SimpleStatementContext<Type>;
+    _SwitchStatementContext<Type> switchContext =
+        _stack.last as _SwitchStatementContext<Type>;
     if (hasLabels) {
       AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node!);
       _current = switchContext._previous
           .conservativeJoin(this, info.written, info.captured);
     } else {
-      _current =
-          (alternativesContext._combinedModel ?? alternativesContext._previous)
-              .unsplit();
+      _current = alternativesContext._combinedModel ?? switchContext._unmatched;
     }
-    // TODO(paulberry): consider doing a split here if unreachable, and a join
-    // later, so that one case matching everything won't prevent promotion in
-    // cases that follow
+    // Do a control flow split so that in switchStatement_afterCase, we'll be
+    // able to tell whether the end of the case body was reachable from its
+    // start.
+    _current = _current.split();
   }
 
   @override
@@ -4320,7 +4482,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _TryFinallyContext<Type> context =
         _stack.removeLast() as _TryFinallyContext<Type>;
     _current = context._afterBodyAndCatches!
-        .attachFinally(operations, context._beforeFinally, _current);
+        .attachFinally(operations, context._beforeFinally!, _current);
   }
 
   @override
@@ -4335,11 +4497,12 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   Type? variableRead(Expression expression, Variable variable) {
+    Type unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
     VariableModel<Type> variableModel = _current._getInfo(variableKey);
     Type? promotedType = variableModel.promotedTypes?.last;
     _storeExpressionReference(
-        expression, _variableReference(variable, variableKey));
+        expression, _variableReference(variableKey, unpromotedType));
     ExpressionInfo<Type>? expressionInfo = variableModel.ssaNode?.expressionInfo
         ?.rebaseForward(operations, _current);
     if (expressionInfo != null) {
@@ -4404,6 +4567,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   @override
   void write(Node node, Variable variable, Type writtenType,
       Expression? writtenExpression) {
+    Type unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
     ExpressionInfo<Type>? expressionInfo = writtenExpression == null
         ? null
@@ -4413,23 +4577,45 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     _current = _current.write(
         this,
         new DemoteViaExplicitWrite<Variable>(variable, node),
-        variable,
         variableKey,
         writtenType,
         newSsaNode,
-        operations);
+        operations,
+        unpromotedType: unpromotedType);
   }
 
   @override
   void _dumpState() {
     print('  current: $_current');
-    print('  expressionWithInfo: $_expressionWithInfo');
-    print('  expressionInfo: $_expressionInfo');
-    print('  expressionWithReference: $_expressionWithReference');
-    print('  expressionReference: $_expressionReference');
-    print('  stack:');
-    for (_FlowContext stackEntry in _stack.reversed) {
-      print('    $stackEntry');
+    if (_unmatched != null) {
+      print('  unmatched: $_unmatched');
+    }
+    if (_scrutineeReference != null) {
+      print('  scrutineeReference: $_scrutineeReference');
+    }
+    if (_scrutineeSsaNode != null) {
+      print('  scrutineeSsaNode: $_scrutineeSsaNode');
+    }
+    if (_scrutineeType != null) {
+      print('  scrutineeType: $_scrutineeType');
+    }
+    if (_expressionWithInfo != null) {
+      print('  expressionWithInfo: $_expressionWithInfo');
+    }
+    if (_expressionInfo != null) {
+      print('  expressionInfo: $_expressionInfo');
+    }
+    if (_expressionWithReference != null) {
+      print('  expressionWithReference: $_expressionWithReference');
+    }
+    if (_expressionReference != null) {
+      print('  expressionReference: $_expressionReference');
+    }
+    if (_stack.isNotEmpty) {
+      print('  stack:');
+      for (_FlowContext stackEntry in _stack.reversed) {
+        print('    $stackEntry');
+      }
     }
   }
 
@@ -4560,6 +4746,38 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     return promotedType;
   }
 
+  void _initialize(
+      int promotionKey, Type matchedType, Expression? initializerExpression,
+      {required bool isFinal,
+      required bool isLate,
+      required bool isImplicitlyTyped,
+      required Type unpromotedType}) {
+    ExpressionInfo<Type>? expressionInfo;
+    if (isLate) {
+      // Don't get expression info for late variables, since we don't know when
+      // they'll be initialized.
+    } else if (isImplicitlyTyped && !respectImplicitlyTypedVarInitializers) {
+      // If the language version is too old, SSA analysis has to ignore
+      // initializer expressions for implicitly typed variables, in order to
+      // preserve the buggy behavior of
+      // https://github.com/dart-lang/language/issues/1785.
+    } else if (initializerExpression != null) {
+      expressionInfo = _getExpressionInfo(initializerExpression);
+    }
+    SsaNode<Type> newSsaNode = new SsaNode<Type>(
+        expressionInfo is _TrivialExpressionInfo ? null : expressionInfo);
+    _current = _current.write(
+        this, null, promotionKey, matchedType, newSsaNode, operations,
+        promoteToTypeOfInterest: !isImplicitlyTyped && !isFinal,
+        unpromotedType: unpromotedType);
+    if (isImplicitlyTyped && operations.isTypeParameterType(matchedType)) {
+      _current = _current
+          .tryPromoteForTypeCheck(this,
+              _variableReference(promotionKey, unpromotedType), matchedType)
+          .ifTrue;
+    }
+  }
+
   FlowModel<Type> _join(FlowModel<Type>? first, FlowModel<Type>? second) =>
       FlowModel.join(operations, first, second, _current._emptyVariableMap);
 
@@ -4587,10 +4805,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       FlowModel.merge(operations, first, second, _current._emptyVariableMap);
 
   FlowModel<Type> _popPattern(Expression? guard) {
-    _FlowContext context = _stack.removeLast();
-    assert(context is _TopPatternContext<Type>);
+    _TopPatternContext<Type> context =
+        _stack.removeLast() as _TopPatternContext<Type>;
     FlowModel<Type> unmatched = _unmatched!;
-    _unmatched = null;
+    _unmatched = context._previousUnmatched;
     if (guard != null) {
       ExpressionInfo<Type> guardInfo = _expressionEnd(guard);
       _current = guardInfo.ifTrue;
@@ -4608,11 +4826,11 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   void _pushPattern() {
-    assert(_unmatched == null);
-    _unmatched = _current.setUnreachable();
     _stack.add(new _TopPatternContext<Type>(
         _makeTemporaryReference(_scrutineeSsaNode, _scrutineeType!),
-        _scrutineeType!));
+        _scrutineeType!,
+        _unmatched));
+    _unmatched = _current.setUnreachable();
   }
 
   void _pushScrutinee(
@@ -4652,15 +4870,51 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           isPromotable: false, isThisOrSuper: true);
 
   ReferenceWithType<Type> _variableReference(
-          Variable variable, int variableKey) =>
+          int variableKey, Type unpromotedType) =>
       new ReferenceWithType<Type>(variableKey,
-          promotedType(variable) ?? operations.variableType(variable),
+          _current.infoFor(variableKey).promotedTypes?.last ?? unpromotedType,
           isPromotable: true, isThisOrSuper: false);
 }
 
 /// Base class for objects representing constructs in the Dart programming
 /// language for which flow analysis information needs to be tracked.
-abstract class _FlowContext {}
+abstract class _FlowContext {
+  _FlowContext() {
+    assert(() {
+      // Check that `_debugType` has been overridden in a way that reflects the
+      // class name.  Note that this assumes the behavior of `runtimeType` in
+      // the VM, but that's ok, because this code is only active when asserts
+      // are enabled, and we only run unit tests on the VM.
+      String expectedDebugType = runtimeType.toString();
+      int lessThanIndex = expectedDebugType.indexOf('<');
+      if (lessThanIndex > 0) {
+        expectedDebugType = expectedDebugType.substring(0, lessThanIndex);
+      }
+      assert(_debugType == expectedDebugType,
+          'Expected a debug type of $expectedDebugType, got $_debugType');
+      return true;
+    }());
+  }
+
+  /// Returns a freshly allocated map whose keys are the names of fields in the
+  /// class, and whose values are the values of those fields.
+  ///
+  /// This is used by [toString] to print out information for debugging.
+  Map<String, Object?> get _debugFields => {};
+
+  /// Returns a string representation of the class name.  This is used by
+  /// [toString] to print out information for debugging.
+  String get _debugType;
+
+  @override
+  String toString() {
+    List<String> fields = [
+      for (MapEntry<String, Object?> entry in _debugFields.entries)
+        if (entry.value != null) '${entry.key}: ${entry.value}'
+    ];
+    return '$_debugType(${fields.join(', ')})';
+  }
+}
 
 /// [_FlowContext] representing a function expression.
 class _FunctionExpressionContext<Type extends Object>
@@ -4668,7 +4922,7 @@ class _FunctionExpressionContext<Type extends Object>
   _FunctionExpressionContext(super.previous);
 
   @override
-  String toString() => '_FunctionExpressionContext(previous: $_previous)';
+  String get _debugType => '_FunctionExpressionContext';
 }
 
 /// [_FlowContext] representing an `if` statement.
@@ -4680,8 +4934,11 @@ class _IfContext<Type extends Object> extends _BranchContext<Type> {
   _IfContext(super._branchModel);
 
   @override
-  String toString() =>
-      '_IfContext(branchModel: $_branchModel, afterThen: $_afterThen)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['afterThen'] = _afterThen;
+
+  @override
+  String get _debugType => '_IfContext';
 }
 
 /// [_FlowContext] representing an "if-null" (`??`) expression.
@@ -4693,7 +4950,11 @@ class _IfNullExpressionContext<Type extends Object> extends _FlowContext {
   _IfNullExpressionContext(this._shortcutState);
 
   @override
-  String toString() => '_IfNullExpressionContext($_shortcutState)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['shortcutState'] = _shortcutState;
+
+  @override
+  String get _debugType => '_IfNullExpressionContext';
 }
 
 /// Contextual information tracked by legacy type promotion about a binary "and"
@@ -4801,6 +5062,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void assert_end() {}
 
   @override
+  int assignMatchedPatternVariable(Variable variable, int promotionKey) => 0;
+
+  @override
   void booleanLiteral(Expression expression, bool value) {}
 
   @override
@@ -4824,11 +5088,18 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void constantPattern_end(Expression expression) {}
 
   @override
-  void declare(Variable variable, bool initialized) {}
+  void declare(Variable variable, Type staticType,
+      {required bool initialized, bool skipDuplicateCheck = false}) {}
 
   @override
-  void declaredVariablePattern(
-      {required Type matchedType, required Type staticType}) {}
+  int declaredVariablePattern(
+          {required Type matchedType,
+          required Type staticType,
+          Expression? initializerExpression,
+          bool isFinal = false,
+          bool isLate = false,
+          required bool isImplicitlyTyped}) =>
+      0;
 
   @override
   void doStatement_bodyBegin(Statement doStatement) {}
@@ -4995,6 +5266,9 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void lateInitializer_end() {}
 
   @override
+  void listPattern_begin() {}
+
+  @override
   void logicalBinaryOp_begin() {
     _writeStackForAnd.add({});
   }
@@ -5125,6 +5399,12 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   void patternAssignment_end() {}
 
   @override
+  void patternForIn_afterExpression(Type elementType) {}
+
+  @override
+  void patternForIn_end() {}
+
+  @override
   void patternVariableDeclaration_afterInitializer(
       Expression initializer, Type initializerType) {}
 
@@ -5159,7 +5439,7 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
   }
 
   @override
-  void switchStatement_afterCase() {}
+  bool switchStatement_afterCase() => true;
 
   @override
   void switchStatement_beginAlternative() {}
@@ -5346,7 +5626,7 @@ class _NullAwareAccessContext<Type extends Object>
   _NullAwareAccessContext(super.previous);
 
   @override
-  String toString() => '_NullAwareAccessContext(previous: $_previous)';
+  String get _debugType => '_NullAwareAccessContext';
 }
 
 /// [ExpressionInfo] representing a `null` literal.
@@ -5392,10 +5672,12 @@ class _OrPatternContext<Type extends Object> extends _PatternContext<Type> {
       this._previousUnmatched);
 
   @override
-  String toString() =>
-      '_OrPatternContext(matchedValueReference: $_matchedValueReference, '
-      'matchedValueType: $_matchedValueType, '
-      'previousUnmatched: $_previousUnmatched, lhsMatched: $_lhsMatched)';
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['previousUnmatched'] = _previousUnmatched
+    ..['lhsMatched'] = _lhsMatched;
+
+  @override
+  String get _debugType => '_OrPatternContext';
 }
 
 /// [_FlowContext] representing a pattern.
@@ -5409,9 +5691,12 @@ class _PatternContext<Type extends Object> extends _FlowContext {
   _PatternContext(this._matchedValueReference, this._matchedValueType);
 
   @override
-  String toString() =>
-      '_PatternContext(matchedValueReference: $_matchedValueReference, '
-      'matchedValueType: $_matchedValueType)';
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['matchedValueReference'] = _matchedValueReference
+    ..['matchedValueType'] = _matchedValueType;
+
+  @override
+  String get _debugType => '_PatternContext';
 }
 
 /// [ReferenceWithType] object representing a property get.
@@ -5451,10 +5736,13 @@ class _ScrutineeContext<Type extends Object> extends _FlowContext {
       required this.previousScrutineeType});
 
   @override
-  String toString() => '_ScrutineeContext('
-      'previousScrutineeReference: $previousScrutineeReference, '
-      'previousScrutineeSsaNode: $previousScrutineeSsaNode, '
-      'previousScrutineeType: $previousScrutineeType)';
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['previousScrutineeReference'] = previousScrutineeReference
+    ..['previousScrutineeSsaNode'] = previousScrutineeSsaNode
+    ..['previousScrutineeType'] = previousScrutineeType;
+
+  @override
+  String get _debugType => '_ScrutineeContext';
 }
 
 /// [_FlowContext] representing a language construct for which flow analysis
@@ -5467,6 +5755,10 @@ abstract class _SimpleContext<Type extends Object> extends _FlowContext {
   final FlowModel<Type> _previous;
 
   _SimpleContext(this._previous);
+
+  @override
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['previous'] = _previous;
 }
 
 /// [_FlowContext] representing a language construct that can be targeted by
@@ -5483,21 +5775,27 @@ class _SimpleStatementContext<Type extends Object>
   _SimpleStatementContext(super.checkpoint, this._previous);
 
   @override
-  String toString() => '_SimpleStatementContext(breakModel: $_breakModel, '
-      'continueModel: $_continueModel, previous: $_previous, '
-      'checkpoint: $_checkpoint)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['previous'] = _previous;
+
+  @override
+  String get _debugType => '_SimpleStatementContext';
 }
 
 class _SwitchAlternativesContext<Type extends Object> extends _FlowContext {
-  final FlowModel<Type> _previous;
+  /// The enclosing [_SwitchStatementContext].
+  final _SwitchStatementContext<Type> _switchStatementContext;
 
   FlowModel<Type>? _combinedModel;
 
-  _SwitchAlternativesContext(this._previous);
+  _SwitchAlternativesContext(this._switchStatementContext);
 
   @override
-  String toString() => '_SwitchAlternativesContext(previous: $_previous, '
-      'combinedModel: $_combinedModel)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['combinedModel'] = _combinedModel;
+
+  @override
+  String get _debugType => '_SwitchAlternativesContext';
 }
 
 /// [_FlowContext] representing a switch statement.
@@ -5506,23 +5804,37 @@ class _SwitchStatementContext<Type extends Object>
   /// The static type of the value being matched.
   final Type _scrutineeType;
 
+  /// Flow state for the code path where no switch cases have matched yet.  If
+  /// we think of a switch statement as syntactic sugar for a chain of if-else
+  /// statements, this is the flow state on entry to the next `if`.
+  FlowModel<Type> _unmatched;
+
   _SwitchStatementContext(
-      super.checkpoint, super._previous, this._scrutineeType);
+      super.checkpoint, super._previous, this._scrutineeType)
+      : _unmatched = _previous;
 
   @override
-  String toString() => '_SwitchStatementContext(breakModel: $_breakModel, '
-      'continueModel: $_continueModel, previous: $_previous, '
-      'checkpoint: $_checkpoint, scrutineeType: $_scrutineeType)';
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['scrutineeType'] = _scrutineeType
+    ..['unmatched'] = _unmatched;
+
+  @override
+  String get _debugType => '_SwitchStatementContext';
 }
 
 /// [_FlowContext] representing the top level of a pattern syntax tree.
 class _TopPatternContext<Type extends Object> extends _PatternContext<Type> {
-  _TopPatternContext(super._matchedValueReference, super.matchedValueType);
+  final FlowModel<Type>? _previousUnmatched;
+
+  _TopPatternContext(super._matchedValueReference, super.matchedValueType,
+      this._previousUnmatched);
 
   @override
-  String toString() =>
-      '_TopPatternContext(matchedValueReference: $_matchedValueReference, '
-      'matchedValueType: $_matchedValueType)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['previousUnmatched'] = _previousUnmatched;
+
+  @override
+  String get _debugType => '_TopPatternContext';
 }
 
 /// Specialization of [ExpressionInfo] for the case where the information we
@@ -5566,17 +5878,27 @@ class _TryContext<Type extends Object> extends _SimpleContext<Type> {
   _TryContext(super.previous);
 
   @override
-  String toString() =>
-      '_TryContext(previous: $_previous, beforeCatch: $_beforeCatch, '
-      'afterBodyAndCatches: $_afterBodyAndCatches)';
+  Map<String, Object?> get _debugFields => super._debugFields
+    ..['beforeCatch'] = _beforeCatch
+    ..['afterBodyAndCatches'] = '_afterBodyAndCatches';
+
+  @override
+  String get _debugType => '_TryContext';
 }
 
 class _TryFinallyContext<Type extends Object> extends _TryContext<Type> {
   /// The flow model representing program state at the top of the `finally`
   /// block.
-  late final FlowModel<Type> _beforeFinally;
+  FlowModel<Type>? _beforeFinally;
 
   _TryFinallyContext(super.previous);
+
+  @override
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['beforeFinally'] = _beforeFinally;
+
+  @override
+  String get _debugType => '_TryFinallyContext';
 }
 
 /// [_FlowContext] representing a `while` loop (or a C-style `for` loop, which
@@ -5588,7 +5910,9 @@ class _WhileContext<Type extends Object> extends _BranchTargetContext<Type> {
   _WhileContext(super.checkpoint, this._conditionInfo);
 
   @override
-  String toString() => '_WhileContext(breakModel: $_breakModel, '
-      'continueModel: $_continueModel, conditionInfo: $_conditionInfo, '
-      'checkpoint: $_checkpoint)';
+  Map<String, Object?> get _debugFields =>
+      super._debugFields..['conditionInfo'] = _conditionInfo;
+
+  @override
+  String get _debugType => '_WhileContext';
 }

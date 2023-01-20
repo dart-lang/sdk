@@ -28,6 +28,18 @@ class JSValue {
   bool operator ==(Object that) =>
       that is JSValue && areEqualInJS(_ref, that._ref);
 
+  // Because [JSValue] is a subtype of [Object] it can be used in Dart
+  // collections. Unfortunately, JS does not expose an efficient hash code
+  // operation. To avoid surprising behavior, we force all [JSValue]s to fall
+  // back to differentiation via equality, essentially making [Set] and [Map]
+  // a regular linked list when the keys are [JSValue]. This behavior is not
+  // intuitive.
+  // TODO(joshualitt): There are a lot of different directions we can go, but
+  // the most straightforward to to expose `JSMap` and `JSSet` from JS for users
+  // who need to efficiently manage JS objects in collections.
+  @override
+  int get hashCode => 0;
+
   @override
   String toString() => stringify(_ref);
 
@@ -508,20 +520,13 @@ List<int> jsIntTypedArrayToDartIntTypedData(
 List<Object?> toDartList(WasmExternRef? ref) => List<Object?>.generate(
     objectLength(ref).round(), (int n) => dartifyRaw(objectReadIndex(ref, n)));
 
-@pragma("wasm:import", "dart2wasm.wrapDartFunction")
-external WasmExternRef? _wrapDartFunctionRaw(WasmExternRef? dartFunction,
-    WasmExternRef? trampolineName, WasmExternRef? argCount);
+// These two trivial helpers are needed to work around an issue with tearing off
+// functions that take / return [WasmExternRef].
+bool _isDartFunctionWrapped<F extends Function>(F f) =>
+    functionToJSWrapper.containsKey(f);
 
-F _wrapDartFunction<F extends Function>(
-    F f, String trampolineName, int argCount) {
-  if (functionToJSWrapper.containsKey(f)) {
-    return f;
-  }
-  JSValue wrappedFunction = JSValue(_wrapDartFunctionRaw(
-      f.toJS().toExternRef(),
-      trampolineName.toJS().toExternRef(),
-      argCount.toDouble().toJS().toExternRef())!);
-  functionToJSWrapper[f] = wrappedFunction;
+F _wrapDartFunction<F extends Function>(F f, WasmExternRef ref) {
+  functionToJSWrapper[f] = JSValue(ref);
   return f;
 }
 

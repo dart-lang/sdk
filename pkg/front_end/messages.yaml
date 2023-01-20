@@ -1086,7 +1086,6 @@ ExtraneousModifier:
     - "abstract foo; main(){}"
     - "static foo; main(){}"
     - "external foo; main(){}"
-    - "final class C {}"
     - "abstract enum foo {bar}"
     - "abstract void foo() {}"
     - "static void foo() {}"
@@ -1224,6 +1223,12 @@ AnonymousBreakTargetOutsideFunction:
         break;
       }
     }
+
+ContinueLabelInvalid:
+  problemMessage: "A 'continue' label must be on a loop or a switch member."
+  analyzerCode: CONTINUE_LABEL_INVALID
+  statement:
+    - "L: { for (var i in [ ]) { continue L; } }"
 
 ContinueOutsideOfLoop:
   index: 2
@@ -1675,6 +1680,10 @@ YieldNotGenerator:
   problemMessage: "'yield' can only be used in 'sync*' or 'async*' methods."
   analyzerCode: YIELD_IN_NON_GENERATOR
 
+WasmSyncStar:
+  problemMessage: "Compilation to Wasm does not support 'sync*'."
+  severity: WARNING
+
 OnlyTry:
   index: 20
   problemMessage: "A try block must be followed by an 'on', 'catch', or 'finally' clause."
@@ -1776,6 +1785,23 @@ MetadataTypeArgumentsUninstantiated:
   analyzerCode: ParserErrorCode.ANNOTATION_WITH_TYPE_ARGUMENTS_UNINSTANTIATED
   script:
     - "@deprecated<int> class C {}"
+
+MetadataSpaceBeforeParenthesis:
+  index: 134
+  problemMessage: "Annotations can't have spaces or comments before the parenthesis."
+  correctionMessage: Remove any spaces or comments before the parenthesis.
+  analyzerCode: ParserErrorCode.ANNOTATION_SPACE_BEFORE_PARENTHESIS
+  script:
+    - >-
+      class Foo<T> {
+        const Foo();
+      }
+      @Foo<int> () var bar;
+    - >-
+      class Foo {
+        const Foo();
+      }
+      @Foo () class Bar {}
 
 ConstructorNotFound:
   problemMessage: "Couldn't find constructor '#name'."
@@ -5291,6 +5317,10 @@ JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
 
+JsInteropStaticInteropAnonymousFactoryTearoff:
+  problemMessage: "Factories of `@anonymous` `@staticInterop` classes can not be torn off."
+  correctionMessage: "Declare a closure that forwards to this factory instead."
+
 JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
   problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
   correctionMessage: "Try using a Dart extension member if you need type parameters instead."
@@ -6021,6 +6051,7 @@ SealedMixinSubtypeOutsideOfLibrary:
 
 CantUseClassAsMixin:
   problemMessage: "Class '#name' can't be used as a mixin."
+  analyzerCode: CLASS_USED_AS_MIXIN
   experiments: class-modifiers
   script:
     main.dart:
@@ -6036,3 +6067,27 @@ UnspecifiedGetterNameInObjectPattern:
   script: |
     abstract class A { int get foo;}
     test(dynamic x) { if (x case A(: 0)) {} }
+
+SwitchExpressionEmpty:
+  problemMessage: "Switch expressions must contain at least one case."
+  experiments: patterns
+  script: |
+    test(dynamic x) => switch (x) {};
+
+VariablePatternTypeMismatchInSwitchHeads:
+  problemMessage: "Variable pattern '#name' doesn't have the same type in all cases."
+  experiments: patterns
+  script: |
+    test(dynamic x) { switch (x) { case [int a]: case [double a] : return a; default: return null; } }
+
+RestPatternMoreThanOne:
+  problemMessage: "The '...' pattern can appear only once in the enclosing pattern."
+  experiments: patterns
+  script: |
+    test(dynamic x) { if (x case {..., 1: 1, ...}) {} }
+
+RestPatternNotLastInMapPattern:
+  problemMessage: "The '...' pattern can appear only at the end in map patterns."
+  experiments: patterns
+  script: |
+    test(dynamic x) { if (x case {..., 1: 1}) {} }

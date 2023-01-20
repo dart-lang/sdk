@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Unit tests specific to BCE (bounds check eliminaton),
+// Unit tests specific to BCE (bounds check elimination),
 // which runs as part of range analysis optimizations.
 
 #include "vm/compiler/backend/range_analysis.h"

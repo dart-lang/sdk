@@ -1816,6 +1816,7 @@ class ExtensionInstanceAccessGenerator extends Generator {
       int offset, List<TypeBuilder>? typeArguments, ArgumentsImpl arguments,
       {bool isTypeArgumentsInForest = false}) {
     if (invokeTarget != null) {
+      Expression thisAccess = _helper.createVariableGet(extensionThis, offset);
       return _helper.buildExtensionMethodInvocation(
           offset,
           invokeTarget!,
@@ -1824,12 +1825,14 @@ class ExtensionInstanceAccessGenerator extends Generator {
               _extensionTypeParameterCount,
               invokeTarget!.function.typeParameters.length -
                   _extensionTypeParameterCount,
-              _helper.createVariableGet(extensionThis, offset),
+              thisAccess,
               extensionTypeArguments: _createExtensionTypeArguments(),
               typeArguments: arguments.types,
               positionalArguments: arguments.positional,
               namedArguments: arguments.named,
-              argumentsOriginalOrder: arguments.argumentsOriginalOrder),
+              argumentsOriginalOrder: arguments.argumentsOriginalOrder != null
+                  ? [thisAccess, ...arguments.argumentsOriginalOrder!]
+                  : null),
           isTearOff: false);
     } else {
       return _helper.forest.createExpressionInvocation(
@@ -4330,6 +4333,12 @@ class ParserErrorGenerator extends Generator {
       {required bool allowPotentiallyConstantType,
       required bool performTypeCanonicalization}) {
     _helper.libraryBuilder.addProblem(message, fileOffset, noLength, _uri);
+    return new NamedTypeBuilder.forInvalidType(token.lexeme, nullabilityBuilder,
+        message.withLocation(_uri, fileOffset, noLength));
+  }
+
+  TypeBuilder buildTypeWithResolvedArgumentsDoNotAddProblem(
+      NullabilityBuilder nullabilityBuilder) {
     return new NamedTypeBuilder.forInvalidType(token.lexeme, nullabilityBuilder,
         message.withLocation(_uri, fileOffset, noLength));
   }

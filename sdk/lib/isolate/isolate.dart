@@ -492,9 +492,9 @@ class Isolate {
   /// no exit message will be sent.
   ///
   /// The [response] object must follow the same restrictions as enforced by
-  /// [SendPort.send].
-  /// It is recommended to only use simple values that can be sent to all
-  /// isolates, like `null`, booleans, numbers or strings.
+  /// [SendPort.send] when sending to an isolate from another isolate group;
+  /// only simple values that can be sent to all isolates, like `null`,
+  /// booleans, numbers or strings, are allowed.
   ///
   /// Since isolates run concurrently, it's possible for it to exit before the
   /// exit listener is established, and in that case no response will be
@@ -571,9 +571,9 @@ class Isolate {
   /// Requests that the isolate send [response] on the [responsePort].
   ///
   /// The [response] object must follow the same restrictions as enforced by
-  /// [SendPort.send].
-  /// It is recommended to only use simple values that can be sent to all
-  /// isolates, like `null`, booleans, numbers or strings.
+  /// [SendPort.send] when sending to an isolate from another isolate group;
+  /// only simple values that can be sent to all isolates, like `null`,
+  /// booleans, numbers or strings, are allowed.
   ///
   /// If the isolate is alive, it will eventually send `response`
   /// (defaulting to `null`) on the response port.
@@ -720,7 +720,9 @@ abstract class SendPort implements Capability {
   ///     - [List], [Map], [LinkedHashMap], [Set] and [LinkedHashSet]
   ///     - [TransferableTypedData]
   ///     - [Capability]
-  ///   - [SendPort] instances returned by [ReceivePort]'s `sendPort` getter
+  ///   - [SendPort] instances from [ReceivePort.sendPort] or
+  ///     [RawReceivePort.sendPort] where the receive ports are created
+  ///     using those classes' constructors.
   ///   - Instances of [Type] representing one of the types mentioned above,
   ///     `Object`, `dynamic`, `void` and `Never` as well as nullable variants
   ///     of all these types. For generic types type arguments must be sendable
@@ -731,7 +733,7 @@ abstract class SendPort implements Capability {
   /// contain any object, with the following exceptions:
   ///
   ///   - Objects with native resources (subclasses of e.g.
-  ///     `NativeFieldWrapperClass1`). A [Socket] object for example referrs
+  ///     `NativeFieldWrapperClass1`). A [Socket] object for example refers
   ///     internally to objects that have native resources attached and can
   ///     therefore not be sent.
   ///   - [ReceivePort]

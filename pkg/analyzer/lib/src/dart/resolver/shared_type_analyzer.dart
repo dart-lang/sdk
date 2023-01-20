@@ -46,8 +46,8 @@ class SharedTypeAnalyzerErrors
   void caseExpressionTypeMismatch(
       {required Expression scrutinee,
       required Expression caseExpression,
-      required scrutineeType,
-      required caseExpressionType,
+      required DartType scrutineeType,
+      required DartType caseExpressionType,
       required bool nullSafetyEnabled}) {
     if (nullSafetyEnabled) {
       _errorReporter.reportErrorForNode(
@@ -74,6 +74,22 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void duplicateAssignmentPatternVariable({
+    required covariant PromotableElement variable,
+    required covariant AssignedVariablePatternImpl original,
+    required covariant AssignedVariablePatternImpl duplicate,
+  }) {
+    _errorReporter.reportError(
+      DiagnosticFactory().duplicateAssignmentPatternVariable(
+        source: _errorReporter.source,
+        variable: variable,
+        original: original,
+        duplicate: duplicate,
+      ),
+    );
+  }
+
+  @override
   void duplicateRecordPatternField({
     required String name,
     required covariant SharedRecordPatternField original,
@@ -90,25 +106,76 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void duplicateRestPattern({
+    required AstNode node,
+    required covariant RestPatternElementImpl original,
+    required covariant RestPatternElementImpl duplicate,
+  }) {
+    _errorReporter.reportError(
+      DiagnosticFactory().duplicateRestElementInPattern(
+        source: _errorReporter.source,
+        originalElement: original,
+        duplicateElement: duplicate,
+      ),
+    );
+  }
+
+  @override
   void inconsistentJoinedPatternVariable({
     required PromotableElement variable,
     required PromotableElement component,
   }) {
     _errorReporter.reportErrorForElement(
-      CompileTimeErrorCode.NOT_CONSISTENT_VARIABLE_PATTERN,
+      CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_LOGICAL_OR,
       component,
       [variable.name],
     );
   }
 
   @override
+  void matchedTypeIsStrictlyNonNullable({
+    required DartPattern pattern,
+    required DartType matchedType,
+  }) {
+    if (pattern is NullAssertPattern) {
+      _errorReporter.reportErrorForToken(
+        StaticWarningCode.UNNECESSARY_NULL_ASSERT_PATTERN,
+        pattern.operator,
+      );
+    } else if (pattern is NullCheckPattern) {
+      _errorReporter.reportErrorForToken(
+        StaticWarningCode.UNNECESSARY_NULL_CHECK_PATTERN,
+        pattern.operator,
+      );
+    } else {
+      throw UnimplementedError('(${pattern.runtimeType}) $pattern');
+    }
+  }
+
+  @override
   void nonBooleanCondition(Expression node) {
-    throw UnimplementedError('TODO(paulberry)');
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.NON_BOOL_CONDITION,
+      node,
+    );
   }
 
   @override
   void patternDoesNotAllowLate(AstNode pattern) {
     throw UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void patternForInExpressionIsNotIterable({
+    required AstNode node,
+    required Expression expression,
+    required DartType expressionType,
+  }) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.FOR_IN_OF_INVALID_TYPE,
+      expression,
+      [expressionType, 'Iterable'],
+    );
   }
 
   @override
@@ -142,6 +209,17 @@ class SharedTypeAnalyzerErrors
       CompileTimeErrorCode
           .RELATIONAL_PATTERN_OPERATOR_RETURN_TYPE_NOT_ASSIGNABLE_TO_BOOL,
       node.operator,
+    );
+  }
+
+  @override
+  void restPatternNotLastInMap(
+    covariant MapPatternImpl node,
+    covariant RestPatternElementImpl element,
+  ) {
+    _errorReporter.reportErrorForNode(
+      CompileTimeErrorCode.REST_ELEMENT_NOT_LAST_IN_MAP_PATTERN,
+      element,
     );
   }
 

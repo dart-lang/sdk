@@ -231,6 +231,22 @@ class ConstantToTextVisitor
   }
 
   @override
+  void visitRecord(RecordConstantValue constant, StringBuffer sb) {
+    sb.write('Record(');
+    final shape = constant.shape;
+    final values = constant.values;
+    for (int i = 0; i < values.length; i++) {
+      if (i > 0) sb.write(',');
+      if (i >= shape.positionalFieldCount) {
+        sb.write(shape.fieldNames[i - shape.positionalFieldCount]);
+        sb.write(':');
+      }
+      visit(values[i], sb);
+    }
+    sb.write(')');
+  }
+
+  @override
   void visitType(TypeConstantValue constant, StringBuffer sb) {
     sb.write('TypeLiteral(');
     typeToText.visit(constant.representedType, sb);

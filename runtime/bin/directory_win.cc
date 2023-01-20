@@ -328,7 +328,7 @@ static bool DeleteRecursively(PathBuffer* path) {
     SetLastError(last_error);
     return false;
   }
-  // All content deleted succesfully, try to delete directory.
+  // All content deleted successfully, try to delete directory.
   prefixed_path.Reset(path_length -
                       1);  // Drop the "\" from the end of the path.
   return RemoveDirectoryW(prefixed_path.AsStringW()) != 0;

@@ -3,53 +3,61 @@ import self as self;
 import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
-  dynamic #t1;
-  dynamic #t2;
-  final dynamic #t3 = x;
-  final core::int #t4 = -1;
-  final core::bool #t5 = false;
-  if(!#t5) {
-    final dynamic #t6 = #t3;
-    if(#t6 is core::int) {
-      #t4 = 0;
-      #t5 = true;
-      #t1 = #t6{core::int};
-    }
-  }
-  if(!#t5) {
-    final dynamic #t7 = #t3;
-    if(#t7 is core::List<dynamic> && #t7{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(1){(core::Object) → core::bool}) {
-      final dynamic #t8 = #t7{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-      final dynamic #t9 = #t8;
-      if(#t9 is core::double) {
-        #t4 = 1;
+  #L1:
+  {
+    dynamic #t1;
+    dynamic #t2;
+    final dynamic #t3 = x;
+    core::int #t4 = -1;
+    core::bool #t5 = false;
+    if(!#t5) {
+      final dynamic #t6 = #t3;
+      if(#t6 is core::int) {
+        core::int y = #t6{core::int};
+        #t4 = 0;
         #t5 = true;
-        #t2 = #t9{core::double};
+        #t1 = y;
       }
     }
-  }
-  switch(#t4) {
-    #L1:
-    case #C1:
-      {
-        core::int y = #t1{core::int};
-        {
-          return y;
+    if(!#t5) {
+      final dynamic #t7 = #t3;
+      if(#t7 is core::List<dynamic> && #t7{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
+        final dynamic #t8 = #t7{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+        final dynamic #t9 = #t8;
+        if(#t9 is core::double) {
+          core::double z = #t9{core::double};
+          #t4 = 1;
+          #t5 = true;
+          #t2 = z;
         }
       }
-    #L2:
-    case #C2:
-      {
-        core::double z = #t2{core::double};
+    }
+    switch(#t4) {
+      #L2:
+      case #C1:
         {
-          return z;
+          core::int y = #t1{core::int};
+          {
+            return y;
+          }
         }
-      }
-    #L3:
-    default:
-      {
-        return null;
-      }
+      #L3:
+      case #C2:
+        {
+          core::double z = #t2{core::double};
+          {
+            return z;
+          }
+        }
+      #L4:
+      case #C3:
+      default:
+        {
+          {
+            return null;
+          }
+        }
+    }
   }
 }
 static method main() → dynamic {
@@ -67,4 +75,5 @@ static method expectEquals(dynamic x, dynamic y) → dynamic {
 constants  {
   #C1 = 0
   #C2 = 1
+  #C3 = 2
 }

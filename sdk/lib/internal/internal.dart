@@ -178,7 +178,6 @@ final Future<Null> nullFuture = Zone.root.run(() => Future<Null>.value(null));
 ///
 /// TODO(lrn): Consider specializing this code per platform,
 /// so the VM can use its 64-bit integers directly.
-@Since("2.11")
 class SystemHash {
   static int combine(int hash, int value) {
     hash = 0x1fffffff & (hash + value);
@@ -192,14 +191,14 @@ class SystemHash {
     return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
   }
 
-  static int hash2(int v1, int v2, [@Since("2.14") int seed = 0]) {
+  static int hash2(int v1, int v2, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
     return finish(hash);
   }
 
-  static int hash3(int v1, int v2, int v3, [@Since("2.14") int seed = 0]) {
+  static int hash3(int v1, int v2, int v3, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -207,8 +206,7 @@ class SystemHash {
     return finish(hash);
   }
 
-  static int hash4(int v1, int v2, int v3, int v4,
-      [@Since("2.14") int seed = 0]) {
+  static int hash4(int v1, int v2, int v3, int v4, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -217,8 +215,7 @@ class SystemHash {
     return finish(hash);
   }
 
-  static int hash5(int v1, int v2, int v3, int v4, int v5,
-      [@Since("2.14") int seed = 0]) {
+  static int hash5(int v1, int v2, int v3, int v4, int v5, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -228,8 +225,7 @@ class SystemHash {
     return finish(hash);
   }
 
-  static int hash6(int v1, int v2, int v3, int v4, int v5, int v6,
-      [@Since("2.14") int seed = 0]) {
+  static int hash6(int v1, int v2, int v3, int v4, int v5, int v6, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -240,8 +236,8 @@ class SystemHash {
     return finish(hash);
   }
 
-  static int hash7(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      [@Since("2.14") int seed = 0]) {
+  static int hash7(
+      int v1, int v2, int v3, int v4, int v5, int v6, int v7, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -253,9 +249,8 @@ class SystemHash {
     return finish(hash);
   }
 
-  static int hash8(
-      int v1, int v2, int v3, int v4, int v5, int v6, int v7, int v8,
-      [@Since("2.14") int seed = 0]) {
+  static int hash8(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
+      int v8, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -268,9 +263,8 @@ class SystemHash {
     return finish(hash);
   }
 
-  static int hash9(
-      int v1, int v2, int v3, int v4, int v5, int v6, int v7, int v8, int v9,
-      [@Since("2.14") int seed = 0]) {
+  static int hash9(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
+      int v8, int v9, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -285,8 +279,7 @@ class SystemHash {
   }
 
   static int hash10(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      int v8, int v9, int v10,
-      [@Since("2.14") int seed = 0]) {
+      int v8, int v9, int v10, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -301,10 +294,8 @@ class SystemHash {
     return finish(hash);
   }
 
-  @Since("2.14")
   static int hash11(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      int v8, int v9, int v10, int v11,
-      [int seed = 0]) {
+      int v8, int v9, int v10, int v11, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -320,10 +311,8 @@ class SystemHash {
     return finish(hash);
   }
 
-  @Since("2.14")
   static int hash12(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      int v8, int v9, int v10, int v11, int v12,
-      [int seed = 0]) {
+      int v8, int v9, int v10, int v11, int v12, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -340,10 +329,8 @@ class SystemHash {
     return finish(hash);
   }
 
-  @Since("2.14")
   static int hash13(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      int v8, int v9, int v10, int v11, int v12, int v13,
-      [int seed = 0]) {
+      int v8, int v9, int v10, int v11, int v12, int v13, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -361,10 +348,8 @@ class SystemHash {
     return finish(hash);
   }
 
-  @Since("2.14")
   static int hash14(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      int v8, int v9, int v10, int v11, int v12, int v13, int v14,
-      [int seed = 0]) {
+      int v8, int v9, int v10, int v11, int v12, int v13, int v14, int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -383,10 +368,23 @@ class SystemHash {
     return finish(hash);
   }
 
-  @Since("2.14")
-  static int hash15(int v1, int v2, int v3, int v4, int v5, int v6, int v7,
-      int v8, int v9, int v10, int v11, int v12, int v13, int v14, int v15,
-      [int seed = 0]) {
+  static int hash15(
+      int v1,
+      int v2,
+      int v3,
+      int v4,
+      int v5,
+      int v6,
+      int v7,
+      int v8,
+      int v9,
+      int v10,
+      int v11,
+      int v12,
+      int v13,
+      int v14,
+      int v15,
+      int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -406,7 +404,6 @@ class SystemHash {
     return finish(hash);
   }
 
-  @Since("2.14")
   static int hash16(
       int v1,
       int v2,
@@ -424,7 +421,7 @@ class SystemHash {
       int v14,
       int v15,
       int v16,
-      [int seed = 0]) {
+      int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -445,7 +442,6 @@ class SystemHash {
     return finish(hash);
   }
 
-  @Since("2.14")
   static int hash17(
       int v1,
       int v2,
@@ -464,7 +460,7 @@ class SystemHash {
       int v15,
       int v16,
       int v17,
-      [int seed = 0]) {
+      int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -486,7 +482,6 @@ class SystemHash {
     return finish(hash);
   }
 
-  @Since("2.14")
   static int hash18(
       int v1,
       int v2,
@@ -506,7 +501,7 @@ class SystemHash {
       int v16,
       int v17,
       int v18,
-      [int seed = 0]) {
+      int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -529,7 +524,6 @@ class SystemHash {
     return finish(hash);
   }
 
-  @Since("2.14")
   static int hash19(
       int v1,
       int v2,
@@ -550,7 +544,7 @@ class SystemHash {
       int v17,
       int v18,
       int v19,
-      [int seed = 0]) {
+      int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -574,7 +568,6 @@ class SystemHash {
     return finish(hash);
   }
 
-  @Since("2.14")
   static int hash20(
       int v1,
       int v2,
@@ -596,7 +589,7 @@ class SystemHash {
       int v18,
       int v19,
       int v20,
-      [int seed = 0]) {
+      int seed) {
     int hash = seed;
     hash = combine(hash, v1);
     hash = combine(hash, v2);
@@ -644,14 +637,12 @@ class SystemHash {
 }
 
 /// Sentinel values that should never be exposed outside of platform libraries.
-@Since("2.14")
 class SentinelValue {
   final int id;
   const SentinelValue(this.id);
 }
 
 /// A default value to use when only one sentinel is needed.
-@Since("2.14")
 const Object sentinelValue = const SentinelValue(0);
 
 /// Given an [instance] of some generic type [T], and [extract], a first-class

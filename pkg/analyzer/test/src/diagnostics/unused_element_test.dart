@@ -17,6 +17,62 @@ main() {
 
 @reflectiveTest
 class UnusedElementTest extends PubPackageResolutionTest {
+  test_class_field_isUsed_objectPattern() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  if (x case A(_foo: var bar)) {
+    bar;
+  }
+}
+
+class A {
+  int _foo = 0;
+}
+''');
+  }
+
+  test_class_field_isUsed_objectPattern_generic() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  if (x case A<int>(_foo: var bar)) {
+    bar;
+  }
+}
+
+abstract class A<T> {
+  abstract T _foo;
+}
+''');
+  }
+
+  test_class_getter_isUsed_objectPattern_hasName() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  if (x case A(_foo: var bar)) {
+    bar;
+  }
+}
+
+class A {
+  int get _foo => 0;
+}
+''');
+  }
+
+  test_class_getter_isUsed_objectPattern_hasName_generic() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  if (x case A<int>(_foo: var bar)) {
+    bar;
+  }
+}
+
+class A<T> {
+  T get _foo => throw 0;
+}
+''');
+  }
+
   test_class_isUsed_isExpression_expression() async {
     await assertNoErrorsInCode('''
 class _A {}
@@ -127,6 +183,34 @@ enum E {
 ''', [
       error(HintCode.UNUSED_ELEMENT_PARAMETER, 37, 1),
     ]);
+  }
+
+  test_extension_unnamed_getter_isUsed_objectPattern() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  if (x case int(foo: var bar)) {
+    bar;
+  }
+}
+
+extension on int {
+  int get foo => 0;
+}
+''');
+  }
+
+  test_extension_unnamed_getter_isUsed_objectPattern_generic() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  if (x case List<int>(foo: var bar)) {
+    bar;
+  }
+}
+
+extension<T> on List<T> {
+  T get foo => throw 0;
+}
+''');
   }
 
   test_extension_unnamed_operator_isUsed_relationalPattern() async {
@@ -1024,7 +1108,7 @@ main() {
     await assertNoErrorsInCode(r'''
 class _A {}
 main() {
-  var v = new List<_A>();
+  var v = new List<_A>.empty();
   print(v);
 }
 ''');
@@ -1305,7 +1389,7 @@ main(_F f) {
     await assertNoErrorsInCode(r'''
 typedef _F(a, b);
 main() {
-  var v = new List<_F>();
+  var v = new List<_F>.empty();
   print(v);
 }
 ''');
@@ -1367,7 +1451,7 @@ class A {
   test_getter_isUsed_invocation_parameterized() async {
     await assertNoErrorsInCode(r'''
 class A<T> {
-  List<int> _list = List(1);
+  List<int> _list = List.filled(1, 1);
   int get _item => _list.first;
   set _item(int item) => _list[0] = item;
 }
@@ -2618,7 +2702,7 @@ main(_F f) {
     await assertNoErrorsInCode(r'''
 typedef _F = void Function();
 main() {
-  var v = new List<_F>();
+  var v = new List<_F>.empty();
   print(v);
 }
 ''');

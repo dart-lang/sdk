@@ -1,0 +1,67 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/rest_pattern_in_map_pattern_errors.dart:6:26: Error: The '...' pattern can appear only once in the enclosing pattern.
+//   if (x case {..., 1: 1, ...}) { // Error.
+//                          ^
+//
+// pkg/front_end/testcases/patterns/rest_pattern_in_map_pattern_errors.dart:9:37: Error: The '...' pattern can appear only once in the enclosing pattern.
+//   if (x case {..., 1: 1, ..., 2: 2, ...}) { // Error.
+//                                     ^
+//
+// pkg/front_end/testcases/patterns/rest_pattern_in_map_pattern_errors.dart:9:26: Error: The '...' pattern can appear only once in the enclosing pattern.
+//   if (x case {..., 1: 1, ..., 2: 2, ...}) { // Error.
+//                          ^
+//
+// pkg/front_end/testcases/patterns/rest_pattern_in_map_pattern_errors.dart:12:21: Error: The '...' pattern can appear only at the end in map patterns.
+//   if (x case {1: 1, ..., 2: 2}) { // Error.
+//                     ^
+//
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → dynamic {
+  final dynamic #t1 = x;
+  final dynamic #t2 = #t1;
+  if(#t2 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #t2{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(1){(core::Object?) → core::bool} && #t2{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(1){(core::num) → core::bool}) {
+    final dynamic #t3 = #t2{core::Map<dynamic, dynamic>}.{core::Map::[]}(1){(core::Object?) → dynamic};
+    if(#t3 =={core::Object::==}{(core::Object) → core::bool} #C1) {
+      {
+        return 0;
+      }
+    }
+  }
+  final dynamic #t4 = x;
+  final dynamic #t5 = #t4;
+  if(#t5 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#t5{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(1){(core::Object?) → core::bool} && #t5{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(2){(core::Object?) → core::bool}) && #t5{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool}) {
+    final dynamic #t6 = #t5{core::Map<dynamic, dynamic>}.{core::Map::[]}(1){(core::Object?) → dynamic};
+    final dynamic #t7 = #t5{core::Map<dynamic, dynamic>}.{core::Map::[]}(2){(core::Object?) → dynamic};
+    if(#t6 =={core::Object::==}{(core::Object) → core::bool} #C1) {
+      if(#t7 =={core::Object::==}{(core::Object) → core::bool} #C2) {
+        {
+          return 1;
+        }
+      }
+    }
+  }
+  final dynamic #t8 = x;
+  final dynamic #t9 = #t8;
+  if(#t9 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (#t9{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(1){(core::Object?) → core::bool} && #t9{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(2){(core::Object?) → core::bool}) && #t9{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int}.{core::num::>=}(2){(core::num) → core::bool}) {
+    final dynamic #t10 = #t9{core::Map<dynamic, dynamic>}.{core::Map::[]}(1){(core::Object?) → dynamic};
+    final dynamic #t11 = #t9{core::Map<dynamic, dynamic>}.{core::Map::[]}(2){(core::Object?) → dynamic};
+    if(#t10 =={core::Object::==}{(core::Object) → core::bool} #C1) {
+      if(#t11 =={core::Object::==}{(core::Object) → core::bool} #C2) {
+        {
+          return 2;
+        }
+      }
+    }
+  }
+}
+static method main() → dynamic {}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+}

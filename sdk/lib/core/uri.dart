@@ -239,7 +239,7 @@ abstract class Uri {
   ///
   /// The `path` component is set from the [unencodedPath]
   /// argument. The path passed must not be encoded as this constructor
-  /// encodes the path. Only `/` is recognized as path separtor.
+  /// encodes the path. Only `/` is recognized as path separator.
   /// If omitted, the path defaults to being empty.
   ///
   /// The `query` component is set from the optional [queryParameters]

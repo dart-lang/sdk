@@ -4,12 +4,14 @@
 
 import 'c_types.dart';
 
+/// All function types to test.
 final functions = [
   ...functionsStructArguments,
   ...functionsStructReturn,
   ...functionsReturnArgument,
 ];
 
+/// Functions that pass structs as arguments.
 final functionsStructArguments = [
   FunctionType(List.filled(10, struct1byteInt), int64, """
 Smallest struct with data.
@@ -436,6 +438,7 @@ Returning a bool."""),
 Returning a wchar."""),
 ];
 
+/// Functions that return a struct by value.
 final functionsStructReturn = [
   FunctionType(struct1byteInt.memberTypes, struct1byteInt, """
 Smallest struct with data."""),
@@ -475,7 +478,7 @@ Return value split over FP and integer register in x64."""),
 Return value split over FP and integer register in x64.
 The integer register contains half float half int."""),
   FunctionType(struct17bytesInt.memberTypes, struct17bytesInt, """
-Rerturn value returned in preallocated space passed by pointer on most ABIs.
+Return value returned in preallocated space passed by pointer on most ABIs.
 Is non word size on purpose, to test that structs are rounded up to word size
 on all ABIs."""),
   FunctionType(struct19bytesInt.memberTypes, struct19bytesInt, """
@@ -521,6 +524,7 @@ Returning a mixed-size union."""),
 Returning union with homogenous floats."""),
 ];
 
+/// Functions that return an argument by value.
 final functionsReturnArgument = [
   FunctionType(
       [struct1byteInt],
@@ -685,6 +689,134 @@ final compounds = [
   union16bytesFloat,
   union16bytesFloat2,
   structArrayWChar,
+];
+
+/// Function signatures for variadic argument tests.
+final functionsVarArgs = [
+  FunctionType(
+    varArgsIndex: 1,
+    [int64, int64],
+    int64,
+    "Single variadic argument.",
+  ),
+  FunctionType(
+    varArgsIndex: 1,
+    [double_, double_],
+    double_,
+    "Single variadic argument.",
+  ),
+  FunctionType(
+    varArgsIndex: 1,
+    [int64, int64, int64, int64, int64],
+    int64,
+    "Variadic arguments.",
+  ),
+  FunctionType(
+    varArgsIndex: 1,
+    [double_, double_, double_, double_, double_],
+    double_,
+    "Variadic arguments.",
+  ),
+  FunctionType(
+    varArgsIndex: 1,
+    List.filled(20, int64),
+    int64,
+    "Variadic arguments exhaust registers.",
+  ),
+  FunctionType(
+    varArgsIndex: 1,
+    List.filled(20, double_),
+    double_,
+    "Variadic arguments exhaust registers.",
+  ),
+  FunctionType(
+    varArgsIndex: 1,
+    [int64, int64, struct8bytesInt, int64],
+    int64,
+    "Variadic arguments including struct.",
+  ),
+  FunctionType(
+    varArgsIndex: 1,
+    [double_, double_, struct32bytesDouble, double_],
+    double_,
+    "Variadic arguments including struct.",
+  ),
+  FunctionType(
+    varArgsIndex: 1,
+    [double_, struct12bytesFloat, double_],
+    double_,
+    "Variadic arguments including struct.",
+  ),
+  FunctionType(
+    varArgsIndex: 1,
+    [int32, struct20bytesInt, int32],
+    int32,
+    "Variadic arguments including struct.",
+  ),
+  FunctionType(
+    varArgsIndex: 1,
+    [double_, struct20bytesFloat, double_],
+    double_,
+    "Variadic arguments including struct.",
+  ),
+  FunctionType(
+    varArgsIndex: 2,
+    [int32, int64, intptr],
+    int32,
+    """Regression test for variadic arguments.
+https://github.com/dart-lang/sdk/issues/49460""",
+  ),
+  FunctionType(
+    varArgsIndex: 1,
+    [double_, int64, int32, double_, int64, int32],
+    double_,
+    "Variadic arguments mixed.",
+  ),
+  FunctionType(
+    varArgsIndex: 1,
+    [
+      int64, // Argument passed normally.
+      int32, // First argument passed as varargs, misaligning stack.
+      struct12bytesFloat, // Homogenous float struct, should be aligned.
+    ],
+    double_,
+    "Variadic arguments homogenous struct stack alignment on macos_arm64.",
+  ),
+  FunctionType(
+    varArgsIndex: 11,
+    [
+      ...List.filled(8, double_), // Exhaust FPU registers.
+      float, // Misalign stack.
+      struct12bytesFloat, // Homogenous struct, not aligned to wordsize on stack.
+      int64, // Start varargs.
+      int32, // Misalign stack again.
+      struct12bytesFloat, // Homogenous struct, aligned to wordsize on stack.
+    ],
+    double_,
+    "Variadic arguments homogenous struct stack alignment on macos_arm64.",
+  ),
+  FunctionType(
+    varArgsIndex: 1,
+    [
+      double_,
+      int64,
+      int32,
+      struct20bytesInt,
+      double_,
+      int64,
+      int32,
+      struct12bytesFloat,
+      int64,
+    ],
+    double_,
+    "Variadic arguments mixed.",
+  ),
+  FunctionType(
+    varArgsIndex: 5,
+    [double_, double_, double_, double_, double_],
+    double_,
+    "Variadic arguments function definition, but not passing any.",
+  ),
 ];
 
 final struct1byteBool = StructType([bool_]);

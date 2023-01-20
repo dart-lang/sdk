@@ -185,6 +185,8 @@ class TestParser extends Parser {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       DirectiveContext? directiveState) {
     doPrint('parseTopLevelKeywordDeclaration('
         '$start, '
@@ -192,10 +194,19 @@ class TestParser extends Parser {
         '$macroToken, '
         '$inlineToken, '
         '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
         '$directiveState)');
     indent++;
     var result = super.parseTopLevelKeywordDeclaration(
-        start, keyword, macroToken, inlineToken, sealedToken, directiveState);
+        start,
+        keyword,
+        macroToken,
+        inlineToken,
+        sealedToken,
+        baseToken,
+        interfaceToken,
+        directiveState);
     indent--;
     return result;
   }
@@ -655,6 +666,9 @@ class TestParser extends Parser {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token classKeyword) {
@@ -663,6 +677,9 @@ class TestParser extends Parser {
         '$macroToken, '
         '$inlineToken, '
         '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
+        '$finalToken, '
         '$augmentToken, '
         '$mixinToken, '
         '$classKeyword)');
@@ -672,6 +689,9 @@ class TestParser extends Parser {
         macroToken,
         inlineToken,
         sealedToken,
+        baseToken,
+        interfaceToken,
+        finalToken,
         augmentToken,
         mixinToken,
         classKeyword);
@@ -749,11 +769,18 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseMixin(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword) {
-    doPrint('parseMixin(' '$augmentToken, ' '$sealedToken, ' '$mixinKeyword)');
+  Token parseMixin(Token? augmentToken, Token? sealedToken, Token? baseToken,
+      Token? interfaceToken, Token? finalToken, Token mixinKeyword) {
+    doPrint('parseMixin('
+        '$augmentToken, '
+        '$sealedToken, '
+        '$baseToken, '
+        '$interfaceToken, '
+        '$finalToken, '
+        '$mixinKeyword)');
     indent++;
-    var result = super.parseMixin(augmentToken, sealedToken, mixinKeyword);
+    var result = super.parseMixin(augmentToken, sealedToken, baseToken,
+        interfaceToken, finalToken, mixinKeyword);
     indent--;
     return result;
   }
@@ -1909,10 +1936,10 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseArgumentsOptMetadata(Token token) {
-    doPrint('parseArgumentsOptMetadata(' '$token)');
+  Token parseArgumentsOptMetadata(Token token, bool hasTypeArguments) {
+    doPrint('parseArgumentsOptMetadata(' '$token, ' '$hasTypeArguments)');
     indent++;
-    var result = super.parseArgumentsOptMetadata(token);
+    var result = super.parseArgumentsOptMetadata(token, hasTypeArguments);
     indent--;
     return result;
   }

@@ -637,7 +637,7 @@ class SetCommand extends DebuggerCommand {
   };
 
   static Future _setBreakOnException(debugger, name, value) async {
-    var result = await debugger.isolate.setExceptionPauseMode(value);
+    var result = await debugger.isolate.setIsolatePauseMode(value);
     if (result.isError) {
       debugger.console.print(result.toString());
     } else {
@@ -1583,7 +1583,7 @@ class ObservatoryDebugger extends Debugger {
       if (result.isSentinel) {
         // The isolate has gone away.  The IsolateExit event will
         // clear the isolate for the debugger page.
-        return;
+        return null;
       }
       stack = result;
       stackElement.updateStack(stack!, pauseEvent);
@@ -1593,6 +1593,7 @@ class ObservatoryDebugger extends Debugger {
         currentFrame = null;
       }
       input.focus();
+      return null;
     });
   }
 
@@ -1686,7 +1687,6 @@ class ObservatoryDebugger extends Debugger {
   }
 
   Future _reportBreakpointEvent(S.ServiceEvent event) async {
-    var bpt = event.breakpoint;
     var verb = null;
     switch (event.kind) {
       case S.ServiceEvent.kBreakpointAdded:
@@ -1701,11 +1701,13 @@ class ObservatoryDebugger extends Debugger {
       default:
         break;
     }
-    var script = bpt!.location!.script;
+    var bpt = event.breakpoint!;
+    var location = bpt.location!;
+    var script = location.script!;
     await script.load();
 
     var bpId = bpt.number;
-    var locString = await bpt.location!.toUserString();
+    var locString = await location.toUserString();
     if (bpt.resolved!) {
       console.print('Breakpoint ${bpId} ${verb} at ${locString}');
     } else {

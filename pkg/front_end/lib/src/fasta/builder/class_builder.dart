@@ -93,6 +93,13 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 
   bool get isSealed;
 
+  bool get isBase;
+
+  bool get isInterface;
+
+  @override
+  bool get isFinal;
+
   bool get isAugmentation;
 
   bool get declaresConstConstructor;
@@ -108,9 +115,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   bool get isAnonymousMixinApplication;
 
   abstract TypeBuilder? mixedInTypeBuilder;
-
-  MemberBuilder? findConstructorOrFactory(
-      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary);
 
   /// The [Class] built by this builder.
   ///
@@ -235,23 +239,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       return origin.findStaticBuilder(
           name, charOffset, fileUri, accessingLibrary,
           isSetter: isSetter);
-    }
-    return declaration;
-  }
-
-  @override
-  MemberBuilder? findConstructorOrFactory(
-      String name, int charOffset, Uri uri, LibraryBuilder accessingLibrary) {
-    if (accessingLibrary.nameOriginBuilder.origin !=
-            libraryBuilder.nameOriginBuilder.origin &&
-        name.startsWith("_")) {
-      return null;
-    }
-    MemberBuilder? declaration =
-        constructorScope.lookup(name == 'new' ? '' : name, charOffset, uri);
-    if (declaration == null && isPatch) {
-      return origin.findConstructorOrFactory(
-          name, charOffset, uri, accessingLibrary);
     }
     return declaration;
   }

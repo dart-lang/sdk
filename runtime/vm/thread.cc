@@ -461,6 +461,13 @@ ErrorPtr Thread::HandleInterrupts() {
         sample_buffer->ProcessCompletedBlocks();
       }
     }
+    HeapProfileSampler& sampler = heap_sampler();
+    if (sampler.ShouldSetThreadSamplingInterval()) {
+      sampler.SetThreadSamplingInterval();
+    }
+    if (sampler.ShouldUpdateThreadEnable()) {
+      sampler.UpdateThreadEnable();
+    }
 #endif  // !defined(PRODUCT)
   }
   if ((interrupt_bits & kMessageInterrupt) != 0) {

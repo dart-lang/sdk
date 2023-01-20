@@ -68,7 +68,7 @@ static void AddToEpollInstance(intptr_t epoll_fd_, DescriptorInfo* di) {
     // TODO(dart:io): Verify that the dart end is handling this correctly.
 
     // Epoll does not accept the file descriptor. It could be due to
-    // already closed file descriptor, or unuspported devices, such
+    // already closed file descriptor, or unsupported devices, such
     // as /dev/null. In such case, mark the file descriptor as closed,
     // so dart will handle it accordingly.
     di->NotifyAllDartPorts(1 << kCloseEvent);

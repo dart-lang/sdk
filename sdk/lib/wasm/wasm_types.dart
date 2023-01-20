@@ -72,17 +72,20 @@ class WasmEqRef extends WasmAnyRef {
   external factory WasmEqRef.fromObject(Object o);
 }
 
-/// The Wasm `dataref` type.
+/// The Wasm `structref` type.
 @pragma("wasm:entry-point")
-class WasmDataRef extends WasmEqRef {
-  /// Upcast Dart object to `dataref`.
-  external factory WasmDataRef.fromObject(Object o);
+class WasmStructRef extends WasmEqRef {
+  /// Upcast Dart object to `structref`.
+  external factory WasmStructRef.fromObject(Object o);
 }
 
-abstract class _WasmArray extends WasmDataRef {
+/// The Wasm `arrayref` type.
+@pragma("wasm:entry-point")
+class WasmArrayRef extends WasmEqRef {
   /// Dummy factory to silence error about missing superclass constructor.
-  external factory _WasmArray._dummy();
+  external factory WasmArrayRef._dummy();
 
+  /// Length of array.
   external int get length;
 }
 
@@ -131,7 +134,7 @@ class WasmF64 extends _WasmFloat {
 
 /// A Wasm array with integer element type.
 @pragma("wasm:entry-point")
-class WasmIntArray<T extends _WasmInt> extends _WasmArray {
+class WasmIntArray<T extends _WasmInt> extends WasmArrayRef {
   external factory WasmIntArray(int length);
 
   external int readSigned(int index);
@@ -141,7 +144,7 @@ class WasmIntArray<T extends _WasmInt> extends _WasmArray {
 
 /// A Wasm array with float element type.
 @pragma("wasm:entry-point")
-class WasmFloatArray<T extends _WasmFloat> extends _WasmArray {
+class WasmFloatArray<T extends _WasmFloat> extends WasmArrayRef {
   external factory WasmFloatArray(int length);
 
   external double read(int index);
@@ -150,7 +153,7 @@ class WasmFloatArray<T extends _WasmFloat> extends _WasmArray {
 
 /// A Wasm array with reference element type, containing Dart objects.
 @pragma("wasm:entry-point")
-class WasmObjectArray<T extends Object?> extends _WasmArray {
+class WasmObjectArray<T extends Object?> extends WasmArrayRef {
   external factory WasmObjectArray(int length);
 
   external T read(int index);
@@ -196,7 +199,7 @@ class WasmTable<T> extends _WasmBase {
   external WasmI32 get size;
 
   /// Call a function stored in the table using the `call_indirect` Wasm
-  /// instructionm. The function value returned from this method must be
+  /// instruction. The function value returned from this method must be
   /// called directly.
   @pragma("wasm:entry-point")
   external F callIndirect<F extends Function>(WasmI32 index);

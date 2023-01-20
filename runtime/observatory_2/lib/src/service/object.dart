@@ -1894,8 +1894,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return invokeRpc('setName', {'name': newName});
   }
 
-  Future setExceptionPauseMode(String mode) {
-    return invokeRpc('setExceptionPauseMode', {'mode': mode});
+  Future setIsolatePauseMode(String mode) {
+    return invokeRpc('setIsolatePauseMode', {'exceptionPauseMode': mode});
   }
 
   Future<ServiceMap> getStack({int limit}) {

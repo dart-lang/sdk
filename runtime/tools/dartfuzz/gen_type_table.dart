@@ -1394,7 +1394,6 @@ void visitCompilationUnit(
           (classElement.name == 'StackTrace') ||
           (classElement.name == 'NoSuchMethodError') ||
           (classElement.name == 'Comparable') ||
-          (classElement.name == 'BidirectionalIterator') ||
           (classElement.name == 'Iterator') ||
           (classElement.name == 'Stopwatch') ||
           (classElement.name == 'Finalizer') ||

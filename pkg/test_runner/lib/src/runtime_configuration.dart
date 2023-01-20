@@ -32,10 +32,10 @@ abstract class RuntimeConfiguration {
         return DummyRuntimeConfiguration();
 
       case Runtime.jsshell:
-        return JsshellRuntimeConfiguration();
+        return JsshellRuntimeConfiguration(configuration.compiler);
 
       case Runtime.d8:
-        return D8RuntimeConfiguration();
+        return D8RuntimeConfiguration(configuration.compiler);
 
       case Runtime.none:
         return NoneRuntimeConfiguration();
@@ -175,7 +175,9 @@ class CommandLineJavaScriptRuntime extends RuntimeConfiguration {
 
 /// Chrome/V8-based development shell (d8).
 class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
-  D8RuntimeConfiguration() : super('d8');
+  final Compiler compiler;
+
+  D8RuntimeConfiguration(this.compiler) : super('d8');
 
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
@@ -185,9 +187,17 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
       bool isCrashExpected) {
     // TODO(ahe): Avoid duplication of this method between d8 and jsshell.
     checkArtifact(artifact!);
-    return [
-      JSCommandLineCommand(moniker, d8FileName, arguments, environmentOverrides)
-    ];
+    if (compiler == Compiler.dart2wasm) {
+      return [
+        Dart2WasmCommandLineCommand(
+            moniker, d8FileName, arguments, environmentOverrides)
+      ];
+    } else {
+      return [
+        JSCommandLineCommand(
+            moniker, d8FileName, arguments, environmentOverrides)
+      ];
+    }
   }
 
   List<String> dart2jsPreambles(Uri preambleDir) {
@@ -197,7 +207,9 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
 /// Firefox/SpiderMonkey-based development shell (jsshell).
 class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
-  JsshellRuntimeConfiguration() : super('jsshell');
+  final Compiler compiler;
+
+  JsshellRuntimeConfiguration(this.compiler) : super('jsshell');
 
   List<Command> computeRuntimeCommands(
       CommandArtifact? artifact,
@@ -206,10 +218,17 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
       List<String> extraLibs,
       bool isCrashExpected) {
     checkArtifact(artifact!);
-    return [
-      JSCommandLineCommand(
-          moniker, jsShellFileName, arguments, environmentOverrides)
-    ];
+    if (compiler == Compiler.dart2wasm) {
+      return [
+        Dart2WasmCommandLineCommand(
+            moniker, jsShellFileName, arguments, environmentOverrides)
+      ];
+    } else {
+      return [
+        JSCommandLineCommand(
+            moniker, jsShellFileName, arguments, environmentOverrides)
+      ];
+    }
   }
 
   List<String> dart2jsPreambles(Uri preambleDir) {

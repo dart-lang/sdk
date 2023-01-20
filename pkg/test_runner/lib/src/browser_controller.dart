@@ -1395,7 +1395,7 @@ body div {
       function reportError(msg) {
         function handleReady() {
           if (this.readyState == this.DONE && this.status != 200) {
-            var error = 'Sending back error did not succeeed: ' + this.status;
+            var error = 'Sending back error did not succeed: ' + this.status;
             error = error + '. Failed to send msg: ' + msg;
             error_div.innerHTML = error;
           }

@@ -14,9 +14,13 @@
 #include "vm/bootstrap_natives.h"
 #include "vm/dart_api_impl.h"
 #include "vm/exceptions.h"
+#include "vm/ffi/native_assets.h"
 #include "vm/globals.h"
+#include "vm/hash_table.h"
 #include "vm/native_entry.h"
 #include "vm/object_store.h"
+#include "vm/symbols.h"
+#include "vm/uri.h"
 
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
     defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
@@ -241,6 +245,108 @@ static void* FfiResolveWithFfiNativeResolver(Thread* const thread,
   return result;
 }
 
+static StringPtr GetPlatformScriptPath(Thread* thread) {
+  auto* const zone = thread->zone();
+  IsolateGroupSource* const source = thread->isolate_group()->source();
+  auto& result = String::Handle(zone, String::New(source->script_uri));
+  const auto& fileSchema = String::Handle(zone, String::New("file://"));
+  if (result.StartsWith(fileSchema)) {
+    // Isolate.spawnUri sets a `source` including the file schema.
+    result ^= String::SubString(result, fileSchema.Length());
+  }
+  return result.ptr();
+}
+
+// Array::null if asset is not in mapping or no mapping.
+static ArrayPtr GetAssetLocation(Thread* const thread, const String& asset) {
+  Zone* const zone = thread->zone();
+  auto& result = Array::Handle(zone);
+
+  const auto& native_assets_map =
+      Array::Handle(zone, GetNativeAssetsMap(thread));
+  if (!native_assets_map.IsNull()) {
+    NativeAssetsMap map(native_assets_map.ptr());
+    const auto& lookup = Object::Handle(zone, map.GetOrNull(asset));
+    if (!lookup.IsNull()) {
+      result = Array::Cast(lookup).ptr();
+    }
+    map.Release();
+  }
+  return result.ptr();
+}
+
+// If an error occurs populates |error| with an error message
+// (caller must free this message when it is no longer needed).
+//
+// The |asset_location| is formatted as follows:
+// ['<path_type>', '<path (optional)>']
+// The |asset_location| is comform to: pkg/vm/lib/native_assets/validator.dart
+static void* FfiResolveAsset(Thread* const thread,
+                             const Array& asset_location,
+                             const String& symbol,
+                             char** error) {
+  Zone* const zone = thread->zone();
+
+  const auto& asset_type =
+      String::Cast(Object::Handle(zone, asset_location.At(0)));
+  String& path = String::Handle(zone);
+  if (asset_type.Equals(Symbols::absolute()) ||
+      asset_type.Equals(Symbols::relative()) ||
+      asset_type.Equals(Symbols::system())) {
+    path = String::RawCast(asset_location.At(1));
+  }
+  void* handle = nullptr;
+  if (asset_type.Equals(Symbols::absolute())) {
+    handle = LoadDynamicLibrary(path.ToCString(), error);
+  } else if (asset_type.Equals(Symbols::relative())) {
+    const auto& platform_script_path =
+        String::Handle(zone, GetPlatformScriptPath(thread));
+    const char* target_uri = nullptr;
+    const bool resolved = ResolveUri(
+        path.ToCString(), platform_script_path.ToCString(), &target_uri);
+    if (!resolved) {
+      *error = OS::SCreate(/*use malloc*/ nullptr,
+                           "Failed to resolve '%s' relative to '%s'.",
+                           path.ToCString(), platform_script_path.ToCString());
+    } else {
+      handle = LoadDynamicLibrary(target_uri, error);
+    }
+  } else if (asset_type.Equals(Symbols::system())) {
+    handle = LoadDynamicLibrary(path.ToCString(), error);
+  } else if (asset_type.Equals(Symbols::process())) {
+#if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
+    defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
+    handle = RTLD_DEFAULT;
+#else
+    handle = kWindowsDynamicLibraryProcessPtr;
+#endif
+  } else if (asset_type.Equals(Symbols::executable())) {
+    handle = LoadDynamicLibrary(nullptr, error);
+  } else {
+    UNREACHABLE();
+  }
+  if (*error != nullptr) {
+    char* inner_error = *error;
+    *error = OS::SCreate(/*use malloc*/ nullptr,
+                         "Failed to load dynamic library '%s': %s",
+                         path.ToCString(), inner_error);
+    free(inner_error);
+  } else {
+    void* const result = ResolveSymbol(handle, symbol.ToCString(), error);
+    if (*error != nullptr) {
+      char* inner_error = *error;
+      *error = OS::SCreate(/*use malloc*/ nullptr,
+                           "Failed to lookup symbol '%s': %s",
+                           symbol.ToCString(), inner_error);
+      free(inner_error);
+    } else {
+      return result;
+    }
+  }
+  ASSERT(*error != nullptr);
+  return nullptr;
+}
+
 // Frees |error|.
 static void ThrowFfiResolveError(const String& symbol,
                                  const String& asset,
@@ -272,6 +378,18 @@ static intptr_t FfiResolve(Dart_Handle asset_handle,
       ThrowFfiResolveError(symbol, asset, error);
     }
     return reinterpret_cast<intptr_t>(ffi_native_result);
+  }
+
+  // Native assets resolution.
+  const auto& asset_location =
+      Array::Handle(zone, GetAssetLocation(thread, asset));
+  if (!asset_location.IsNull()) {
+    void* asset_result =
+        FfiResolveAsset(thread, asset_location, symbol, &error);
+    if (error != nullptr) {
+      ThrowFfiResolveError(symbol, asset, error);
+    }
+    return reinterpret_cast<intptr_t>(asset_result);
   }
 
   // Resolution in current process.

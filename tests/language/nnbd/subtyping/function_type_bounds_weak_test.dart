@@ -17,7 +17,7 @@ main() {
   Expect.isTrue(test1);
 
   // void fn<T extends Null>() is void Function<T extends Never>()
-  // Should pass with weak checking because because Null becomes equivalent to
+  // Should pass with weak checking because Null becomes equivalent to
   // the bottom type.
   Expect.isTrue(fnWithNullBound is fnTypeWithNeverBound);
   const test2 = fnWithNullBound is fnTypeWithNeverBound;

@@ -377,9 +377,9 @@ static bool GetAndValidateThreadStackBounds(OSThread* os_thread,
   return ValidateThreadStackBounds(fp, sp, *stack_lower, *stack_upper);
 }
 
-// Some simple sanity checking of |pc|, |fp|, and |sp|.
-static bool InitialRegisterCheck(uintptr_t pc, uintptr_t fp, uintptr_t sp) {
-  if ((sp == 0) || (fp == 0) || (pc == 0)) {
+// Some simple sanity checking of |fp|, and |sp|.
+static bool InitialStackRegistersCheck(uintptr_t fp, uintptr_t sp) {
+  if ((sp == 0) || (fp == 0)) {
     // None of these registers should be zero.
     return false;
   }
@@ -392,6 +392,17 @@ static bool InitialRegisterCheck(uintptr_t pc, uintptr_t fp, uintptr_t sp) {
 
   return true;
 }
+
+#if !defined(PRODUCT)
+// Some simple sanity checking of |pc|, |fp|, and |sp|.
+static bool InitialRegisterCheck(uintptr_t pc, uintptr_t fp, uintptr_t sp) {
+  if (pc == 0) {
+    return false;
+  }
+
+  return InitialStackRegistersCheck(fp, sp);
+}
+#endif  // !defined(PRODUCT)
 
 void Profiler::DumpStackTrace(void* context) {
   if (context == NULL) {
@@ -444,13 +455,22 @@ void Profiler::DumpStackTrace(bool for_crash) {
   DumpStackTrace(sp, fp, pc, for_crash);
 }
 
+static void DumpCompilerState(Thread* thread) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (thread != nullptr && thread->execution_state() == Thread::kThreadInVM &&
+      thread->HasCompilerState()) {
+    thread->compiler_state().ReportCrash();
+  }
+#endif
+}
+
 void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
   if (for_crash) {
     // Allow only one stack trace to prevent recursively printing stack traces
     // if we hit an assert while printing the stack.
     static RelaxedAtomic<uintptr_t> started_dump = 0;
     if (started_dump.fetch_add(1u) != 0) {
-      OS::PrintErr("Aborting re-entrant request for stack trace.\n");
+      OS::PrintErr("Aborting reentrant request for stack trace.\n");
       return;
     }
   }
@@ -496,9 +516,15 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
                vm_source == nullptr
                    ? 0
                    : reinterpret_cast<uword>(vm_source->snapshot_instructions));
+  OS::PrintErr("fp=%" Px ", sp=%" Px ", pc=%" Px "\n", fp, sp, pc);
 
-  if (!InitialRegisterCheck(pc, fp, sp)) {
-    OS::PrintErr("Stack dump aborted because InitialRegisterCheck failed.\n");
+  if (!InitialStackRegistersCheck(fp, sp)) {
+    OS::PrintErr(
+        "Stack dump aborted because InitialStackRegistersCheck failed.\n");
+    if (pc != 0) {  // At the very least dump the top frame.
+      DumpStackFrame(0, pc, fp);
+    }
+    DumpCompilerState(thread);
     return;
   }
 
@@ -508,6 +534,10 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
                                        &stack_upper)) {
     OS::PrintErr(
         "Stack dump aborted because GetAndValidateThreadStackBounds failed.\n");
+    if (pc != 0) {  // At the very least dump the top frame.
+      DumpStackFrame(0, pc, fp);
+    }
+    DumpCompilerState(thread);
     return;
   }
 
@@ -524,13 +554,10 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
       StackFrame::DumpCurrentTrace();
     } else if (thread->execution_state() == Thread::kThreadInVM) {
       StackFrame::DumpCurrentTrace();
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      if (thread->HasCompilerState()) {
-        thread->compiler_state().ReportCrash();
-      }
-#endif
     }
   }
+
+  DumpCompilerState(thread);
 }
 #endif  // !defined(PRODUCT) || defined(DART_PRECOMPILER)
 

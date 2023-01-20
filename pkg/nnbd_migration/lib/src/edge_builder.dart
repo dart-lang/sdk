@@ -920,7 +920,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   @override
   DecoratedType visitExpressionStatement(ExpressionStatement node) {
     var decoratedType = _dispatch(node.expression)!;
-    _graph.connectDummy(decoratedType.node, DummyOrigin(source, node));
+    if (node.expression is! CascadeExpression) {
+      // Don't add a dummy edge for cascade expression, since
+      // it forces the target of cascade to be nullable, which
+      // is almost always wrong.
+      _graph.connectDummy(decoratedType.node, DummyOrigin(source, node));
+    }
     return decoratedType;
   }
 
@@ -2058,7 +2063,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       }
       try {
         if (declaredElement is PromotableElement) {
-          _flowAnalysis!.declare(declaredElement, initializer != null);
+          _flowAnalysis!.declare(
+              declaredElement, _variables.decoratedElementType(declaredElement),
+              initialized: initializer != null);
         }
         if (initializer == null) {
           // For top level variables and static fields, we have to generate an
@@ -2115,7 +2122,12 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   void _addParametersToFlowAnalysis(FormalParameterList? parameters) {
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        _flowAnalysis!.declare(parameter.declaredElement!, true);
+        var declaredElement = parameter.declaredElement!;
+        // TODO(paulberry): `skipDuplicateCheck` is currently needed to work
+        // around a failure in api_test.dart; fix this.
+        _flowAnalysis!.declare(
+            declaredElement, _variables.decoratedElementType(declaredElement),
+            initialized: true, skipDuplicateCheck: true);
       }
     }
   }
@@ -2197,7 +2209,10 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
         respectImplicitlyTypedVarInitializers: true);
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        _flowAnalysis!.declare(parameter.declaredElement!, true);
+        var declaredElement = parameter.declaredElement!;
+        _flowAnalysis!.declare(
+            declaredElement, _variables.decoratedElementType(declaredElement),
+            initialized: true);
       }
     }
   }
@@ -2502,7 +2517,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       _graph.makeNonNullable(
           destinationType.node,
           AssignmentFromAngularInjectorGetOrigin(
-              source, assignmentExpression!.leftHandSide as SimpleIdentifier));
+              source, assignmentExpression!.leftHandSide as SimpleIdentifier,
+              isSetupAssignment: sourceIsSetupCall));
     }
 
     if (questionAssignNode != null) {
@@ -2935,7 +2951,9 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
       DecoratedType? lhsType;
       if (parts is ForEachPartsWithDeclaration) {
         var variableElement = parts.loopVariable.declaredElement!;
-        _flowAnalysis!.declare(variableElement, true);
+        _flowAnalysis!.declare(
+            variableElement, _variables.decoratedElementType(variableElement),
+            initialized: true);
         lhsElement = variableElement;
         _dispatch(parts.loopVariable.type);
         lhsType = _variables.decoratedElementType(lhsElement);
@@ -3382,7 +3400,8 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
   EdgeOrigin _makeEdgeOrigin(DecoratedType sourceType, Expression expression,
       {bool isSetupAssignment = false}) {
     if (sourceType.type!.isDynamic) {
-      return DynamicAssignmentOrigin(source, expression);
+      return DynamicAssignmentOrigin(source, expression,
+          isSetupAssignment: isSetupAssignment);
     } else {
       ExpressionChecksOrigin expressionChecksOrigin = ExpressionChecksOrigin(
           source, expression, ExpressionChecks(),

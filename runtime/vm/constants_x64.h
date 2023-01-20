@@ -520,9 +520,12 @@ class CallingConventions {
       R(XMM0) | R(XMM1) | R(XMM2) | R(XMM3);
   static const intptr_t kNumFpuArgRegs = 4;
 
-  // can ArgumentRegisters[i] and XmmArgumentRegisters[i] both be used at the
-  // same time? (Windows no, rest yes)
+  // Whether ArgumentRegisters[i] prevents using XmmArgumentRegisters[i] at the
+  // same time and vice versa.
   static const bool kArgumentIntRegXorFpuReg = true;
+
+  // AL not set on vararg calls in Windows.
+  static const Register kVarArgFpuRegisterCount = kNoRegister;
 
   // > The x64 Application Binary Interface (ABI) uses a four-register
   // > fast-call calling convention by default. Space is allocated on the call
@@ -559,6 +562,8 @@ class CallingConventions {
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
       kAlignedToWordSize;
+  static constexpr AlignmentStrategy kArgumentRegisterAlignmentVarArgs =
+      kArgumentRegisterAlignment;
 
   // How stack arguments are aligned.
   static constexpr AlignmentStrategy kArgumentStackAlignment =
@@ -593,9 +598,18 @@ class CallingConventions {
                                                 R(XMM6) | R(XMM7);
   static const intptr_t kNumFpuArgRegs = 8;
 
-  // can ArgumentRegisters[i] and XmmArgumentRegisters[i] both be used at the
-  // same time? (Windows no, rest yes)
+  // Whether ArgumentRegisters[i] prevents using XmmArgumentRegisters[i] at the
+  // same time and vice versa.
   static const bool kArgumentIntRegXorFpuReg = false;
+
+  // > For calls that may call functions that use varargs or stdargs
+  // > (prototype-less calls or calls to functions containing ellipsis (...) in
+  // > the declaration) %al16 is used as hidden argument to specify the number
+  // > of vector registers used. The contents of %al do not need to match
+  // > exactly the number of registers, but must be an upper bound on the number
+  // > of vector registers used and is in the range 0–8 inclusive.
+  // System V ABI spec.
+  static const Register kVarArgFpuRegisterCount = RAX;
 
   static const intptr_t kShadowSpaceBytes = 0;
 
@@ -618,6 +632,8 @@ class CallingConventions {
   // Whether larger than wordsize arguments are aligned to even registers.
   static constexpr AlignmentStrategy kArgumentRegisterAlignment =
       kAlignedToWordSize;
+  static constexpr AlignmentStrategy kArgumentRegisterAlignmentVarArgs =
+      kArgumentRegisterAlignment;
 
   // How stack arguments are aligned.
   static constexpr AlignmentStrategy kArgumentStackAlignment =

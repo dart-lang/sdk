@@ -50,7 +50,7 @@ void main(List<String> args) async {
     ..addFlag('sound-null-safety',
         help: 'Compile for sound null safety at runtime. Passed through to the '
             'DDC binary. Defaults to false.',
-        defaultsTo: false)
+        negatable: true, defaultsTo: true)
     ..addFlag('emit-debug-symbols',
         help: 'Pass through flag for DDC, emits debug symbols file along with '
             'the compiled module.',
@@ -223,7 +223,7 @@ void main(List<String> args) async {
   var buildDir = resolveBuildDir(sdkRoot, arch);
   var requirePath = p.join(sdkRoot, 'third_party', 'requirejs');
   var sdkOutlineDill = p.join(buildDir,
-      soundNullSafety ? 'ddc_outline_sound.dill' : 'ddc_outline.dill');
+      soundNullSafety ? 'ddc_outline.dill' : 'ddc_outline_unsound.dill');
   var suffix = soundNullSafety ? p.join('sound', mod) : p.join('kernel', mod);
   var sdkJsPath = p.join(buildDir, 'gen', 'utils', 'dartdevc', suffix);
 

@@ -622,7 +622,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
             returnTypeBase.isDartCoreNull) {
           return;
         } else {
-          errorCode = HintCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
+          errorCode = WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_NULLABLE;
         }
       }
       if (errorNode is ConstructorDeclaration) {
@@ -782,7 +782,22 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         _replacements[expression] ?? expression, replacementExpression));
     var staticType = replacementExpression.staticType;
     if (staticType == null) {
-      assert(replacementExpression is ExtensionOverride);
+      var shouldHaveType = true;
+      if (replacementExpression is ExtensionOverride) {
+        shouldHaveType = false;
+      } else if (replacementExpression is IdentifierImpl) {
+        var element = replacementExpression.staticElement;
+        if (element is ExtensionElement || element is InterfaceElement) {
+          shouldHaveType = false;
+        }
+      }
+      if (shouldHaveType) {
+        assert(
+          false,
+          'No static type for: '
+          '(${replacementExpression.runtimeType}) $replacementExpression',
+        );
+      }
       staticType = unknownType;
     }
     return SimpleTypeAnalysisResult<DartType>(type: staticType);
@@ -865,7 +880,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void finishJoinedPatternVariable(
-    covariant VariablePatternJoinElementImpl variable, {
+    covariant JoinPatternVariableElementImpl variable, {
+    required JoinedPatternVariableLocation location,
     required bool isConsistent,
     required bool isFinal,
     required DartType type,
@@ -873,13 +889,26 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     variable.isConsistent &= isConsistent;
     variable.isFinal = isFinal;
     variable.type = type;
+
+    if (location == JoinedPatternVariableLocation.sharedCaseScope) {
+      for (var reference in variable.references) {
+        if (!variable.isConsistent) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode
+                .INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+            reference,
+            [variable.name],
+          );
+        }
+      }
+    }
   }
 
   @override
   List<PromotableElement>? getJoinedVariableComponents(
       PromotableElement variable) {
-    if (variable is VariablePatternJoinElementImpl) {
-      return variable.components;
+    if (variable is JoinPatternVariableElementImpl) {
+      return variable.variables;
     }
     return null;
   }
@@ -1391,11 +1420,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
   /// or implicit [PrefixExpression] or [PostfixExpression].
   PropertyElementResolverResult resolveForWrite({
-    required AstNode node,
+    required Expression node,
     required bool hasRead,
   }) {
     if (node is IndexExpression) {
-      node.target?.accept(this);
+      var target = node.target;
+      if (target != null) {
+        analyzeExpression(target, null);
+        popRewrite();
+      }
+
       startNullAwareIndexExpression(node);
 
       var result = _propertyElementResolver.resolveIndexExpression(
@@ -1464,7 +1498,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
       return result;
     } else {
-      node.accept(this);
+      analyzeExpression(node, null);
+      popRewrite();
       return PropertyElementResolverResult();
     }
   }
@@ -1780,11 +1815,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitAsExpression(AsExpression node, {DartType? contextType}) {
+  void visitAsExpression(
+    covariant AsExpressionImpl node, {
+    DartType? contextType,
+  }) {
     checkUnreachableNode(node);
-    node.visitChildren(this);
-    typeAnalyzer.visitAsExpression(node as AsExpressionImpl,
-        contextType: contextType);
+
+    analyzeExpression(node.expression, null);
+    popRewrite();
+
+    node.type.accept(this);
+
+    typeAnalyzer.visitAsExpression(node, contextType: contextType);
     flowAnalysis.asExpression(node);
     _insertImplicitCallReference(
         insertGenericFunctionInstantiation(node, contextType: contextType),
@@ -2529,12 +2571,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node,
-      {DartType? contextType}) {
+  void visitFunctionExpressionInvocation(
+    covariant FunctionExpressionInvocationImpl node, {
+    DartType? contextType,
+  }) {
+    analyzeExpression(node.function, null);
+    node.function = popRewrite()!;
+
     var whyNotPromotedList = <Map<DartType, NonPromotionReason> Function()>[];
-    node.function.accept(this);
-    _functionExpressionInvocationResolver.resolve(
-        node as FunctionExpressionInvocationImpl, whyNotPromotedList,
+    _functionExpressionInvocationResolver.resolve(node, whyNotPromotedList,
         contextType: contextType);
     nullShortingTermination(node);
     var replacement =
@@ -2665,7 +2710,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitIndexExpression(covariant IndexExpressionImpl node,
       {DartType? contextType}) {
     checkUnreachableNode(node);
-    node.target?.accept(this);
+
+    var target = node.target;
+    if (target != null) {
+      analyzeExpression(target, null);
+      popRewrite();
+    }
+
     startNullAwareIndexExpression(node);
 
     var result = _propertyElementResolver.resolveIndexExpression(
@@ -2734,11 +2785,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitIsExpression(IsExpression node, {DartType? contextType}) {
+  void visitIsExpression(
+    covariant IsExpressionImpl node, {
+    DartType? contextType,
+  }) {
     checkUnreachableNode(node);
-    node.visitChildren(this);
-    typeAnalyzer.visitIsExpression(node as IsExpressionImpl,
-        contextType: contextType);
+
+    analyzeExpression(node.expression, null);
+    popRewrite();
+
+    node.type.accept(this);
+
+    typeAnalyzer.visitIsExpression(node, contextType: contextType);
     flowAnalysis.isExpression(node);
   }
 
@@ -2974,15 +3032,18 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    // TODO(scheglov) Support for `late` was removed.
+    analyzePatternVariableDeclaration(node, node.pattern, node.expression,
+        isFinal: node.keyword.keyword == Keyword.FINAL, isLate: false);
+    popRewrite(); // expression
+  }
+
+  @override
   void visitPatternVariableDeclarationStatement(
       PatternVariableDeclarationStatement node) {
     checkUnreachableNode(node);
-    var declaration = node.declaration;
-    // TODO(scheglov) Support for `late` was removed.
-    analyzePatternVariableDeclarationStatement(
-        node, declaration.pattern, declaration.expression,
-        isFinal: declaration.keyword.keyword == Keyword.FINAL, isLate: false);
-    popRewrite(); // expression
+    node.declaration.accept(this);
   }
 
   @override
@@ -3024,7 +3085,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitPropertyAccess(covariant PropertyAccessImpl node,
       {DartType? contextType}) {
     checkUnreachableNode(node);
-    node.target?.accept(this);
+
+    var target = node.target;
+    if (target != null) {
+      analyzeExpression(target, null);
+      popRewrite();
+    }
+
     startNullAwarePropertyAccess(node);
 
     var result = _propertyElementResolver.resolvePropertyAccess(
@@ -3475,7 +3542,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         }
 
         errorReporter.reportErrorForToken(
-          HintCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR,
+          WarningCode.BODY_MIGHT_COMPLETE_NORMALLY_CATCH_ERROR,
           errorNode.block.leftBracket,
           [returnTypeBase],
         );
@@ -4305,6 +4372,23 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitForEachPartsWithPattern(
+    covariant ForEachPartsWithPatternImpl node,
+  ) {
+    //
+    // We visit the iterator before the pattern because the pattern variables
+    // cannot be in scope while visiting the iterator.
+    //
+    node.iterable.accept(this);
+
+    for (var variable in node.variables) {
+      _define(variable);
+    }
+
+    node.pattern.accept(this);
+  }
+
+  @override
   void visitForElement(ForElement node) {
     Scope outerNameScope = nameScope;
     try {
@@ -4544,6 +4628,26 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitGuardedPattern(covariant GuardedPatternImpl node) {
+    var patternVariables = node.variables.values.toList();
+    for (var variable in patternVariables) {
+      _define(variable);
+    }
+
+    node.pattern.accept(this);
+
+    for (var variable in patternVariables) {
+      variable.isVisitingWhenClause = true;
+    }
+
+    node.whenClause?.accept(this);
+
+    for (var variable in patternVariables) {
+      variable.isVisitingWhenClause = false;
+    }
+  }
+
+  @override
   void visitIfElement(covariant IfElementImpl node) {
     _visitIf(node);
   }
@@ -4645,6 +4749,17 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
   }
 
   @override
+  void visitPatternVariableDeclaration(
+    covariant PatternVariableDeclarationImpl node,
+  ) {
+    for (var variable in node.elements) {
+      _define(variable);
+    }
+
+    super.visitPatternVariableDeclaration(node);
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     // Do not visit the identifier after the `.`, since it is not meant to be
     // looked up in the current scope.
@@ -4693,12 +4808,22 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     if (kind == ElementKind.LOCAL_VARIABLE || kind == ElementKind.PARAMETER) {
       node.staticElement = element;
       if (node.inSetterContext()) {
+        if (element is PatternVariableElementImpl &&
+            element.isVisitingWhenClause) {
+          errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.PATTERN_VARIABLE_ASSIGNMENT_INSIDE_GUARD,
+            node,
+          );
+        }
         _localVariableInfo.potentiallyMutatedInScope.add(element);
         if (_enclosingClosure != null &&
             element.enclosingElement != _enclosingClosure) {
           _localVariableInfo.potentiallyMutatedInClosure.add(element);
         }
       }
+    }
+    if (element is JoinPatternVariableElementImpl) {
+      element.references.add(node);
     }
   }
 
@@ -4760,10 +4885,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
             member.expression.accept(this);
           } else if (member is SwitchPatternCaseImpl) {
             _withNameScope(() {
-              var variables = member.guardedPattern.variables;
-              for (var variable in variables.values) {
-                _define(variable);
-              }
               member.guardedPattern.accept(this);
             });
           }
@@ -4858,7 +4979,16 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
             labelNode,
             [labelNode.name]);
       }
-      return definingScope.node;
+      var node = definingScope.node;
+      if (isContinue &&
+          node is! DoStatement &&
+          node is! ForStatement &&
+          node is! SwitchMember &&
+          node is! WhileStatement) {
+        errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONTINUE_LABEL_INVALID, parentNode);
+      }
+      return node;
     }
   }
 
@@ -4869,10 +4999,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
     if (caseClause != null) {
       var guardedPattern = caseClause.guardedPattern;
       _withNameScope(() {
-        var patternVariables = guardedPattern.variables;
-        for (var variable in patternVariables.values) {
-          _define(variable);
-        }
         guardedPattern.accept(this);
         node.ifTrue.accept(this);
       });

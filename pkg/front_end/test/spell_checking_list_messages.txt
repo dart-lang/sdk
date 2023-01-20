@@ -75,6 +75,7 @@ opts
 outdated
 part(s)
 patch(es)
+patterns
 placing
 pubspec.yaml
 r

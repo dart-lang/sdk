@@ -139,6 +139,9 @@ class Listener implements UnescapeErrorListener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {}
@@ -200,8 +203,14 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Handle the beginning of a mixin declaration.
-  void beginMixinDeclaration(Token? augmentToken, Token? sealedToken,
-      Token mixinKeyword, Token name) {}
+  void beginMixinDeclaration(
+      Token? augmentToken,
+      Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
+      Token mixinKeyword,
+      Token name) {}
 
   /// Handle an on clause in a mixin declaration. Substructures:
   /// - implemented types
@@ -785,6 +794,9 @@ class Listener implements UnescapeErrorListener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {}
@@ -1874,6 +1886,10 @@ class Listener implements UnescapeErrorListener {
     logEvent("Operator");
   }
 
+  void handleSwitchExpressionCasePattern(Token token) {
+    logEvent("SwitchExpressionCasePattern");
+  }
+
   void handleSymbolVoid(Token token) {
     logEvent("SymbolVoid");
   }
@@ -1898,9 +1914,19 @@ class Listener implements UnescapeErrorListener {
     logEvent("ParenthesizedCondition");
   }
 
+  /// Starts a pattern guard, the expression that follows the 'when' keyword
+  void beginPatternGuard(Token when) {
+    logEvent("PatternGuard");
+  }
+
   /// Starts a parenthesized expression or a record literal. Will be ended with
   /// either [endParenthesizedExpression] or [endRecordLiteral].
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {}
+
+  /// Starts a guard expression in a switch case, after the 'when' keyword
+  void beginSwitchCaseWhenClause(Token when) {
+    logEvent("SwitchCaseWhenClause");
+  }
 
   /// Ends a record literal with [count] entries.
   void endRecordLiteral(Token token, int count, Token? constKeyword) {
@@ -1913,11 +1939,21 @@ class Listener implements UnescapeErrorListener {
     logEvent("RecordPattern");
   }
 
+  /// End a pattern guard, the expression that follows the 'when' keyword
+  void endPatternGuard(Token token) {
+    logEvent("PatternGuard");
+  }
+
   /// End a parenthesized expression.
   /// These may be within the condition expression of a control structure
   /// but will not be the condition of a control structure.
   void endParenthesizedExpression(Token token) {
     logEvent("ParenthesizedExpression");
+  }
+
+  /// Starts a guard expression in a switch case, after the 'when' keyword
+  void endSwitchCaseWhenClause(Token token) {
+    logEvent("SwitchCaseWhenClause");
   }
 
   /// Called after the parser has consumed a parenthesized pattern, consisting
@@ -1934,8 +1970,23 @@ class Listener implements UnescapeErrorListener {
   /// pattern or the constant expression.  This ambiguity is resolved in favor
   /// of associating the `const` keyword with the constant pattern.  So for
   /// example, in `case const []` the `const` keyword is passed to
-  /// [handleConstantPattern] rather than [handleLiteralList].
-  void handleConstantPattern(Token? constKeyword) {
+  /// [beginConstantPattern] and [endConstantPattern] rather than
+  /// [handleLiteralList].
+  void beginConstantPattern(Token? constKeyword) {
+    logEvent("ConstantPattern");
+  }
+
+  /// Called after the parser has consumed a constant pattern, consisting of an
+  /// optional `const` and an expression.
+  ///
+  /// Note that some expressions can legally begin with `const`, so there is
+  /// ambiguity as to whether to associate the `const` keyword with the constant
+  /// pattern or the constant expression.  This ambiguity is resolved in favor
+  /// of associating the `const` keyword with the constant pattern.  So for
+  /// example, in `case const []` the `const` keyword is passed to
+  /// [beginConstantPattern] and [endConstantPattern] rather than
+  /// [handleLiteralList].
+  void endConstantPattern(Token? constKeyword) {
     logEvent("ConstantPattern");
   }
 

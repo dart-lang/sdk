@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:io';
+
 import 'package:kernel/kernel.dart';
 import 'package:test/test.dart';
 import 'package:vm/kernel_front_end.dart';
+import 'package:vm/native_assets/diagnostic_message.dart';
 import 'package:vm/native_assets/validator.dart';
 import 'package:vm/native_assets/synthesizer.dart';
 
@@ -43,5 +46,20 @@ constants  {
 }
 ''';
     expect(libraryToString, equals(expectedKernel));
+  });
+
+  test('no file', () async {
+    final errors = <NativeAssetsDiagnosticMessage>[];
+    final errorDetector = ErrorDetector(
+        previousErrorHandler: (message) =>
+            errors.add(message as NativeAssetsDiagnosticMessage));
+    final uri = Directory.systemTemp.uri.resolve('file_does_not_exist.yaml');
+    Object? result =
+        await NativeAssetsSynthesizer.synthesizeLibraryFromYamlFile(
+            uri, errorDetector);
+    expect(result, null);
+    expect(errorDetector.hasCompilationErrors, true);
+    expect(errors.single.message,
+        equals("Native assets file ${uri.toFilePath()} doesn't exist."));
   });
 }

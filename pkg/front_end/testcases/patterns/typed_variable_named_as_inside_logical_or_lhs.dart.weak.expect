@@ -7,12 +7,12 @@ static method test(dynamic x) → dynamic {
   {
     dynamic #t1;
     final dynamic #t2 = x;
-    final core::int #t3 = -1;
-    final core::bool #t4 = false;
+    core::int #t3 = -1;
+    core::bool #t4 = false;
     if(!#t4) {
       final dynamic #t5 = #t2;
-      final core::bool #t6 = false;
-      final core::bool #t7 = false;
+      core::bool #t6 = false;
+      core::bool #t7 = false;
       dynamic #t8;
       dynamic #t9;
       final dynamic #t10 = #t5;
@@ -22,16 +22,17 @@ static method test(dynamic x) → dynamic {
       }
       if(!#t6) {
         final dynamic #t11 = #t5;
-        if(#t11 is core::List<dynamic> && #t11{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(1){(core::Object) → core::bool}) {
+        if(#t11 is core::List<dynamic> && #t11{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
           final dynamic #t12 = #t11{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
           #t7 = true;
           #t9 = #t12;
         }
       }
       if(#t6 || #t7) {
+        dynamic as = #t6 ?{dynamic} #t8{core::int} : #t9{dynamic};
         #t3 = 0;
         #t4 = true;
-        #t1 = #t6 ?{dynamic} #t8{core::int} : #t9{dynamic};
+        #t1 = as;
       }
     }
     switch(#t3) {

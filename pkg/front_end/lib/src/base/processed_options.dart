@@ -378,7 +378,7 @@ class ProcessedOptions {
   flags.GlobalFeatures get globalFeatures => _raw.globalFeatures;
 
   /// Returns the minimum language version needed for a library with the given
-  /// [importUri] to opt in to the experiment with the given [flag].
+  /// [importUri] to opt into the experiment with the given [flag].
   ///
   /// Note that the experiment might not be enabled at all for the library, as
   /// computed by [isExperimentEnabledInLibrary].

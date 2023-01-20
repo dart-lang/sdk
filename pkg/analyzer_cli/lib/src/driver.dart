@@ -28,6 +28,7 @@ import 'package:analyzer/src/source/path_filter.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/batch_mode.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
@@ -94,6 +95,7 @@ class Driver implements CommandLineStarter {
     }
     _isStarted = true;
     var startTime = DateTime.now().millisecondsSinceEpoch;
+    noSoundNullSafety = false;
 
     linter.registerLintRules();
 
@@ -249,6 +251,7 @@ class Driver implements CommandLineStarter {
             content,
             analysisDriver.sourceFactory,
             analysisDriver.currentSession.analysisContext.contextRoot.root.path,
+            analysisDriver.analysisOptions.sdkVersionConstraint,
           );
           await formatter.formatErrors([
             ErrorsResultImpl(
@@ -467,7 +470,6 @@ class Driver implements CommandLineStarter {
         newOptions.defaultPackagesPath == previous.defaultPackagesPath &&
         _equalMaps(newOptions.declaredVariables, previous.declaredVariables) &&
         newOptions.log == previous.log &&
-        newOptions.disableHints == previous.disableHints &&
         newOptions.defaultLanguageVersion == previous.defaultLanguageVersion &&
         newOptions.disableCacheFlushing == previous.disableCacheFlushing &&
         _equalLists(

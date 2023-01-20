@@ -7,6 +7,7 @@
 // therefore not allowed to use `dart_api.h`. (The flutter/flutter integration
 // tests will run dart tests using this library only.)
 
+#include <stdarg.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -1173,6 +1174,30 @@ DART_EXPORT int64_t WCharMinValue() {
 }
 DART_EXPORT int64_t WCharMaxValue() {
   return WCHAR_MAX;
+}
+
+struct VarArgs {
+  int32_t a;
+};
+
+DART_EXPORT int64_t VariadicStructVarArgs(VarArgs a0, ...) {
+  va_list var_args;
+  va_start(var_args, a0);
+  VarArgs a1 = va_arg(var_args, VarArgs);
+  va_end(var_args);
+
+  std::cout << "VariadicStructVarArgs"
+            << "(" << a0.a << ", " << a1.a << ")"
+            << "\n";
+
+  int64_t result = 0;
+
+  result += a0.a;
+  result += a1.a;
+
+  std::cout << "result = " << result << "\n";
+
+  return result;
 }
 
 }  // namespace dart

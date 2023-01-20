@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 91;
+  UInt32 formatVersion = 93;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -174,7 +174,7 @@ type MetadataMapping {
 
 // Component index with all fixed-size-32-bit integers.
 // This gives "semi-random-access" to certain parts of the binary.
-// By reading the last 4 bytes one knows the number of libaries,
+// By reading the last 4 bytes one knows the number of libraries,
 // which allows to skip to any other field in this component index,
 // which again allows to skip to what it points to.
 type ComponentIndex {
@@ -320,7 +320,7 @@ type Class extends Node {
   FileOffset fileEndOffset;
   UInt flags (isAbstract, isEnum, isAnonymousMixin, isEliminatedMixin,
               isMixinDeclaration, hasConstConstructor, isMacro, isSealed,
-              isMixinClass);
+              isMixinClass, isBase, isInterface, isFinal);
   StringReference name;
   List<Expression> annotations;
   List<TypeParameter> typeParameters;
@@ -385,7 +385,8 @@ type InlineClass extends Node {
   FileOffset fileOffset;
   Byte flags ();
   List<TypeParameter> typeParameters;
-  DartType representationType;
+  DartType declaredRepresentationType;
+  StringReference representationName;
   List<InlineClassMemberDescriptor> members;
 }
 
@@ -1620,7 +1621,7 @@ type InlineType extends DartType {
   Byte nullability; // Index into the Nullability enum above.
   InlineClassReference inlineClassReference;
   List<DartType> typeArguments;
-  DartType representationType;
+  DartType instantiatedRepresentationType;
 }
 
 type TypedefType {

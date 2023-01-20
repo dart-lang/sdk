@@ -120,7 +120,7 @@ class LiteralType extends TypeBase with LiteralValueMixin {
 /// A special class of Union types where the values are all literals of the same
 /// type.
 ///
-/// This allows the Dart field for this type to be the the common base type
+/// This allows the Dart field for this type to be the common base type
 /// rather than an EitherX<>.
 class LiteralUnionType extends UnionType {
   final List<LiteralType> literalTypes;

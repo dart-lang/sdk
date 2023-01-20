@@ -6,6 +6,9 @@ try {
 } on Foo {
 ;
 }
+
+
+
 on.toString();
 }
 
@@ -19,6 +22,9 @@ try[KeywordToken] {[BeginToken]
 }[SimpleToken] on[KeywordToken] Foo[StringToken] {[BeginToken]
 ;[SimpleToken]
 }[SimpleToken]
+
+
+
 on[KeywordToken].[SimpleToken]toString[StringToken]([BeginToken])[SimpleToken];[SimpleToken]
 }[SimpleToken]
 

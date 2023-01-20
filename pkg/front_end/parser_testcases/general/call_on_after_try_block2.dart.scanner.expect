@@ -7,6 +7,8 @@ try {
 ;
 }
 
+
+
 on(e) {
 ;
 }
@@ -23,6 +25,8 @@ try[KeywordToken] {[BeginToken]
 }[SimpleToken] on[KeywordToken] Foo[StringToken] {[BeginToken]
 ;[SimpleToken]
 }[SimpleToken]
+
+
 
 on[KeywordToken]([BeginToken]e[StringToken])[SimpleToken] {[BeginToken]
 ;[SimpleToken]

@@ -431,3 +431,6 @@ class FinalizerEntry {
   @FfiNative<Void Function(Handle, IntPtr)>('FinalizerEntry_SetExternalSize')
   external void setExternalSize(int externalSize);
 }
+
+@pragma("vm:external-name", "StringBase_intern")
+external String intern(String str);

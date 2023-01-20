@@ -7,6 +7,8 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
+import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/lint/state.dart';
 
 /// Used to validate the ignore comments in a single file.
 class IgnoreValidator {
@@ -62,7 +64,8 @@ class IgnoreValidator {
         }
       }
     }
-    _reportUnknownAndDuplicateIgnores(unignorable, duplicated, ignoredForFile);
+    _reportUnignorableAndDuplicateIgnores(
+        unignorable, duplicated, ignoredForFile);
     for (var ignoredOnLine in ignoredOnLineMap.values) {
       var namedIgnoredOnLine = <String>{};
       var typesIgnoredOnLine = <String>{};
@@ -85,7 +88,8 @@ class IgnoreValidator {
           }
         }
       }
-      _reportUnknownAndDuplicateIgnores(unignorable, duplicated, ignoredOnLine);
+      _reportUnignorableAndDuplicateIgnores(
+          unignorable, duplicated, ignoredOnLine);
     }
     //
     // Remove all of the errors that are actually being ignored.
@@ -103,15 +107,15 @@ class IgnoreValidator {
     //
     // Report any remaining ignored names as being unnecessary.
     //
-    _reportUnnecessaryIgnores(ignoredForFile);
+    _reportUnnecessaryOrRemovedOrDeprecatedIgnores(ignoredForFile);
     for (var ignoredOnLine in ignoredOnLineMap.values) {
-      _reportUnnecessaryIgnores(ignoredOnLine);
+      _reportUnnecessaryOrRemovedOrDeprecatedIgnores(ignoredOnLine);
     }
   }
 
   /// Report the names that are [unignorable] or [duplicated] and remove them
   /// from the [list] of names from which they were extracted.
-  void _reportUnknownAndDuplicateIgnores(List<IgnoredElement> unignorable,
+  void _reportUnignorableAndDuplicateIgnores(List<IgnoredElement> unignorable,
       List<IgnoredElement> duplicated, List<IgnoredElement> list) {
     // TODO(brianwilkerson) Uncomment the code below after the unignorable
     //  ignores in the Flutter code base have been cleaned up.
@@ -124,12 +128,12 @@ class IgnoreValidator {
     for (var ignoredElement in duplicated) {
       if (ignoredElement is DiagnosticName) {
         var name = ignoredElement.name;
-        _errorReporter.reportErrorForOffset(HintCode.DUPLICATE_IGNORE,
+        _errorReporter.reportErrorForOffset(WarningCode.DUPLICATE_IGNORE,
             ignoredElement.offset, name.length, [name]);
         list.remove(ignoredElement);
       } else if (ignoredElement is DiagnosticType) {
         _errorReporter.reportErrorForOffset(
-          HintCode.DUPLICATE_IGNORE,
+          WarningCode.DUPLICATE_IGNORE,
           ignoredElement.offset,
           ignoredElement.length,
           [ignoredElement.type],
@@ -140,15 +144,38 @@ class IgnoreValidator {
   }
 
   /// Report the [ignoredNames] as being unnecessary.
-  void _reportUnnecessaryIgnores(List<IgnoredElement> ignoredNames) {
-    // TODO(brianwilkerson) Uncomment the code below after the unnecessary
-    //  ignores in the Flutter code base have been cleaned up.
-    // for (var ignoredName in ignoredNames) {
-    //   var name = ignoredName.name;
-    //   _errorReporter.reportErrorForOffset(
-    //       HintCode.UNNECESSARY_IGNORE, ignoredName.offset, name.length,
-    //       [name]);
-    // }
+  void _reportUnnecessaryOrRemovedOrDeprecatedIgnores(
+      List<IgnoredElement> ignoredNames) {
+    for (var ignoredName in ignoredNames) {
+      if (ignoredName is DiagnosticName) {
+        var name = ignoredName.name;
+        var rule = Registry.ruleRegistry.getRule(name);
+        if (rule != null) {
+          var state = rule.state;
+          var since = state.since.toString();
+          if (state is DeprecatedState) {
+            // todo(pq): implement
+          } else if (state is RemovedState) {
+            var replacedBy = state.replacedBy;
+            if (replacedBy != null) {
+              _errorReporter.reportErrorForOffset(HintCode.REPLACED_LINT_USE,
+                  ignoredName.offset, name.length, [name, since, replacedBy]);
+              continue;
+            } else {
+              _errorReporter.reportErrorForOffset(HintCode.REMOVED_LINT_USE,
+                  ignoredName.offset, name.length, [name, since]);
+              continue;
+            }
+          }
+        }
+
+        // TODO(brianwilkerson) Uncomment the code below after the unnecessary
+        //  ignores in the Flutter code base have been cleaned up.
+        //   _errorReporter.reportErrorForOffset(
+        //       HintCode.UNNECESSARY_IGNORE, ignoredName.offset, name.length,
+        //       [name]);
+      }
+    }
   }
 }
 

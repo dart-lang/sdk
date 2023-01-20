@@ -53,6 +53,83 @@ f() {}
 ''');
   }
 
+  Future<void> test_invalidAnnotationTarget() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class A {
+  @mustBeOverridden
+  static int f = 0;
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A {
+  static int f = 0;
+}
+''');
+  }
+
+  Future<void> test_invalidInternalAnnotation() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+@internal
+class A {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A {}
+''');
+  }
+
+  Future<void> test_invalidNonVirtualAnnotation() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+@nonVirtual
+class A {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class A {}
+''');
+  }
+
+  Future<void> test_invalidNonVisibilityAnnotation() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+class C {
+  @visibleForTesting C._() {}
+}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class C {
+  C._() {}
+}
+''');
+  }
+
+  Future<void> test_invalidVisibleForOverridingAnnotation() async {
+    await resolveTestCode('''
+import 'package:meta/meta.dart';
+
+@visibleForOverriding
+class C {}
+''');
+    await assertHasFix('''
+import 'package:meta/meta.dart';
+
+class C {}
+''');
+  }
+
   Future<void> test_literal() async {
     await resolveTestCode('''
 import 'package:meta/meta.dart';

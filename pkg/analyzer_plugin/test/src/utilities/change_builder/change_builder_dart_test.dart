@@ -1119,6 +1119,27 @@ class A {}
         equalsIgnoringWhitespace('(int a, {bool b = false, String c})'));
   }
 
+  Future<void> test_writeParameters_noDefaults() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = 'f(int a, {bool b = false, String c = ""}) {}';
+    addSource(path, content);
+
+    var unit = (await resolveFile(path)).unit;
+    var f = unit.declarations[0] as FunctionDeclaration;
+    var parameters = f.functionExpression.parameters;
+    var elements = parameters?.parameters.map((p) => p.declaredElement!);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParameters(elements!, includeDefaultValues: false);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement,
+        equalsIgnoringWhitespace('(int a, {bool b, String c})'));
+  }
+
   Future<void> test_writeParameters_positional() async {
     var path = convertPath('/home/test/lib/test.dart');
     var content = 'f(int a, [bool b = false, String c]) {}';
@@ -1844,6 +1865,76 @@ class DartFileEditBuilderImplTest extends AbstractContextTest
     expect(edits, hasLength(2));
     expect(edits[0].replacement, equalsIgnoringWhitespace('async'));
     expect(edits[1].replacement, equalsIgnoringWhitespace('Future<String>'));
+  }
+
+  Future<void> test_fileHeader_emptyFile() async {
+    var initialCode = '''
+''';
+    var path = convertPath('/home/test/lib/test.dart');
+    newFile(path, initialCode);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.fileHeader = '''
+// File header
+''';
+    });
+
+    var edits = getEdits(builder);
+    var resultCode = SourceEdit.applySequence(initialCode, edits);
+    expect(resultCode, r'''
+// File header
+
+''');
+  }
+
+  Future<void> test_fileHeader_withImports() async {
+    var initialCode = '''
+class C {}
+''';
+    var path = convertPath('/home/test/lib/test.dart');
+    newFile(path, initialCode);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.fileHeader = '''
+// File header
+''';
+      builder.importLibrary(Uri.parse('package:p/p.dart'));
+    });
+
+    var edits = getEdits(builder);
+    var resultCode = SourceEdit.applySequence(initialCode, edits);
+    expect(resultCode, r'''
+// File header
+
+import 'package:p/p.dart';
+
+class C {}
+''');
+  }
+
+  Future<void> test_fileHeader_withoutImports() async {
+    var initialCode = '''
+class C {}
+''';
+    var path = convertPath('/home/test/lib/test.dart');
+    newFile(path, initialCode);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.fileHeader = '''
+// File header
+''';
+    });
+
+    var edits = getEdits(builder);
+    var resultCode = SourceEdit.applySequence(initialCode, edits);
+    expect(resultCode, r'''
+// File header
+
+class C {}
+''');
   }
 
   Future<void> test_format_hasEdits() async {

@@ -24,6 +24,12 @@ if_break(bool b) {
   1;
 }
 
+label_break() {
+  label:
+  break label;
+  1;
+}
+
 try_break(bool b) {
   label:
   try {

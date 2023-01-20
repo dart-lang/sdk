@@ -161,9 +161,13 @@ class RefType extends ValueType {
   const RefType.func({required bool nullable})
       : this._(HeapType.func, nullable);
 
-  /// A (possibly nullable) reference to the `data` heap type.
-  const RefType.data({required bool nullable})
-      : this._(HeapType.data, nullable);
+  /// A (possibly nullable) reference to the `struct` heap type.
+  const RefType.struct({required bool nullable})
+      : this._(HeapType.struct, nullable);
+
+  /// A (possibly nullable) reference to the `array` heap type.
+  const RefType.array({required bool nullable})
+      : this._(HeapType.array, nullable);
 
   /// A (possibly nullable) reference to the `i31` heap type.
   const RefType.i31({required bool nullable}) : this._(HeapType.i31, nullable);
@@ -185,7 +189,7 @@ class RefType extends ValueType {
       : this(defType, nullable: nullable);
 
   @override
-  ValueType withNullability(bool nullable) =>
+  RefType withNullability(bool nullable) =>
       nullable == this.nullable ? this : RefType(heapType, nullable: nullable);
 
   @override
@@ -243,8 +247,11 @@ abstract class HeapType implements Serializable {
   /// The `func` heap type.
   static const func = FuncHeapType._();
 
-  /// The `data` heap type.
-  static const data = DataHeapType._();
+  /// The `struct` heap type.
+  static const struct = StructHeapType._();
+
+  /// The `array` heap type.
+  static const array = ArrayHeapType._();
 
   /// The `i31` heap type.
   static const i31 = I31HeapType._();
@@ -410,9 +417,9 @@ class FuncHeapType extends HeapType {
   String toString() => "func";
 }
 
-/// The `data` heap type.
-class DataHeapType extends HeapType {
-  const DataHeapType._();
+/// The `struct` heap type.
+class StructHeapType extends HeapType {
+  const StructHeapType._();
 
   static const defaultNullability = true;
 
@@ -430,13 +437,42 @@ class DataHeapType extends HeapType {
       other == HeapType.common ||
       other == HeapType.any ||
       other == HeapType.eq ||
-      other == HeapType.data;
+      other == HeapType.struct;
 
   @override
   void serialize(Serializer s) => s.writeByte(0x67);
 
   @override
-  String toString() => "data";
+  String toString() => "struct";
+}
+
+/// The `array` heap type.
+class ArrayHeapType extends HeapType {
+  const ArrayHeapType._();
+
+  static const defaultNullability = true;
+
+  @override
+  bool? get nullableByDefault => defaultNullability;
+
+  @override
+  HeapType get topType => HeapType.any;
+
+  @override
+  HeapType get bottomType => HeapType.none;
+
+  @override
+  bool isSubtypeOf(HeapType other) =>
+      other == HeapType.common ||
+      other == HeapType.any ||
+      other == HeapType.eq ||
+      other == HeapType.array;
+
+  @override
+  void serialize(Serializer s) => s.writeByte(0x66);
+
+  @override
+  String toString() => "array";
 }
 
 /// The `i31` heap type.
@@ -652,7 +688,7 @@ class FunctionType extends DefType {
   String toString() => "(${inputs.join(", ")}) -> (${outputs.join(", ")})";
 }
 
-/// A subtype of the `data` heap type, i.e. `struct` or `array`.
+/// A named deftype, i.e. `struct` or `array`.
 abstract class DataType extends DefType {
   final String name;
 
@@ -677,8 +713,7 @@ class StructType extends DataType {
   }
 
   @override
-  // TODO(askesc): Change this to HeapType.struct if that is added.
-  HeapType get abstractSuperType => HeapType.data;
+  HeapType get abstractSuperType => HeapType.struct;
 
   @override
   Iterable<StorageType> get constituentTypes =>
@@ -689,7 +724,7 @@ class StructType extends DataType {
     if (other == HeapType.common ||
         other == HeapType.any ||
         other == HeapType.eq ||
-        other == HeapType.data) {
+        other == HeapType.struct) {
       return true;
     }
     if (other is! StructType) return false;
@@ -716,8 +751,7 @@ class ArrayType extends DataType {
   }
 
   @override
-  // TODO(askesc): Change this to HeapType.array when that is added.
-  HeapType get abstractSuperType => HeapType.data;
+  HeapType get abstractSuperType => HeapType.array;
 
   @override
   Iterable<StorageType> get constituentTypes => [elementType.type];
@@ -727,7 +761,7 @@ class ArrayType extends DataType {
     if (other == HeapType.common ||
         other == HeapType.any ||
         other == HeapType.eq ||
-        other == HeapType.data) {
+        other == HeapType.array) {
       return true;
     }
     if (other is! ArrayType) return false;

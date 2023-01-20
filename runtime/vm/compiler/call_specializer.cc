@@ -183,7 +183,7 @@ void CallSpecializer::SpecializePolymorphicInstanceCall(
 
   const intptr_t receiver_cid = call->Receiver()->Type()->ToCid();
   if (receiver_cid == kDynamicCid) {
-    return;  // No information about receiver was infered.
+    return;  // No information about receiver was inferred.
   }
 
   const ICData& ic_data = *call->ic_data();

@@ -17,15 +17,24 @@ import '../messages/codes.dart'
 
 import '../scanner/scanner.dart' show Token;
 
+import '../util/stack_checker.dart';
+import '../util/value_kind.dart';
 import 'identifier_context.dart' show IdentifierContext;
 
 import 'parser.dart' show Listener, MemberKind, lengthOfSpan;
 
 import 'quote.dart' show unescapeString;
 
-import 'value_kind.dart';
+import '../util/null_value.dart';
 
-enum NullValue {
+/// Sentinel values used for typed `null` values on a stack.
+///
+/// This is used to avoid mixing `null` values between different kinds. For
+/// instance a stack entry is meant to contain an expression or null, the
+/// `NullValues.Expression` is pushed on the stack instead of `null` and when
+/// popping the entry `NullValues.Expression` is passed show how `null` is
+/// represented.
+enum NullValues implements NullValue<Object> {
   Arguments,
   As,
   AwaitToken,
@@ -78,15 +87,13 @@ enum NullValue {
   TypeVariable,
   TypeVariables,
   VarFinalOrConstToken,
+  VariableDeclarationList,
   WithClause,
 }
 
-abstract class StackListener extends Listener {
+abstract class StackListener extends Listener with StackChecker {
   static const bool debugStack = false;
   final Stack stack = debugStack ? new DebugStack() : new StackImpl();
-
-  /// Used to report an internal error encountered in the stack listener.
-  Never internalProblem(Message message, int charOffset, Uri uri);
 
   /// Checks that [value] matches the expected [kind].
   ///
@@ -95,23 +102,8 @@ abstract class StackListener extends Listener {
   ///     assert(checkValue(token, ValueKind.Token, value));
   ///
   /// to document and validate the expected value kind.
-  bool checkValue(Token? token, ValueKind kind, Object value) {
-    if (!kind.check(value)) {
-      String message = 'Unexpected value `${value}` (${value.runtimeType}). '
-          'Expected ${kind}.';
-      if (token != null) {
-        // If offset is available report and internal problem to show the
-        // parsed code in the output.
-        throw internalProblem(
-            new Message(const Code<String>('Internal error'),
-                problemMessage: message),
-            token.charOffset,
-            uri);
-      } else {
-        throw message;
-      }
-    }
-    return true;
+  bool checkValue(Token? token, ValueKind kind, Object? value) {
+    return checkStackValue(uri, token?.charOffset, kind, value);
   }
 
   /// Checks the top of the current stack against [kinds]. If a mismatch is
@@ -125,97 +117,14 @@ abstract class StackListener extends Listener {
   /// to document the expected stack and get earlier errors on unexpected stack
   /// content.
   bool checkState(Token? token, List<ValueKind> kinds) {
-    bool success = true;
-    for (int kindIndex = 0; kindIndex < kinds.length; kindIndex++) {
-      ValueKind kind = kinds[kindIndex];
-      if (kindIndex < stack.length) {
-        Object? value = stack[kindIndex];
-        if (!kind.check(value)) {
-          success = false;
-        }
-      } else {
-        success = false;
-      }
-    }
-    if (!success) {
-      StringBuffer sb = new StringBuffer();
-
-      String safeToString(Object? object) {
-        try {
-          return '$object';
-        } catch (e) {
-          // Judgments fail on toString.
-          return object.runtimeType.toString();
-        }
-      }
-
-      String padLeft(Object object, int length) {
-        String text = safeToString(object);
-        if (text.length < length) {
-          return ' ' * (length - text.length) + text;
-        }
-        return text;
-      }
-
-      String padRight(Object object, int length) {
-        String text = safeToString(object);
-        if (text.length < length) {
-          return text + ' ' * (length - text.length);
-        }
-        return text;
-      }
-
-      // Compute kind/stack frame information for all expected values plus 3 more
-      // stack elements if available.
-      for (int kindIndex = 0; kindIndex < kinds.length + 3; kindIndex++) {
-        if (kindIndex >= stack.length && kindIndex >= kinds.length) {
-          // No more stack elements nor kinds to display.
-          break;
-        }
-        sb.write(padLeft(kindIndex, 4));
-        sb.write(': ');
-        ValueKind? kind;
-        if (kindIndex < kinds.length) {
-          kind = kinds[kindIndex];
-          sb.write(padRight(kind, 60));
-        } else {
-          sb.write(padRight('---', 60));
-        }
-        if (kindIndex < stack.length) {
-          Object? value = stack[kindIndex];
-          if (kind == null || kind.check(value)) {
-            sb.write(' ');
-          } else {
-            sb.write('*');
-          }
-          sb.write(safeToString(value));
-          sb.write(' (${value.runtimeType})');
-        } else {
-          if (kind == null) {
-            sb.write(' ');
-          } else {
-            sb.write('*');
-          }
-          sb.write('---');
-        }
-        sb.writeln();
-      }
-
-      String message = '$runtimeType failure\n$sb';
-      if (token != null) {
-        // If offset is available report and internal problem to show the
-        // parsed code in the output.
-        throw internalProblem(
-            new Message(const Code<String>('Internal error'),
-                problemMessage: message),
-            token.charOffset,
-            uri);
-      } else {
-        throw message;
-      }
-    }
-    return success;
+    return checkStackStateForAssert(uri, token?.charOffset, kinds);
   }
+
+  @override
+  int get stackHeight => stack.length;
+
+  @override
+  Object? lookupStack(int index) => stack[index];
 
   @override
   Uri get uri;
@@ -294,7 +203,7 @@ abstract class StackListener extends Listener {
   @override
   void handleNoName(Token token) {
     debugEvent("NoName");
-    push(NullValue.Identifier);
+    push(NullValues.Identifier);
   }
 
   @override
@@ -368,13 +277,13 @@ abstract class StackListener extends Listener {
   @override
   void handleNoTypeArguments(Token token) {
     debugEvent("NoTypeArguments");
-    push(NullValue.TypeArguments);
+    push(NullValues.TypeArguments);
   }
 
   @override
   void handleNoTypeVariables(Token token) {
     debugEvent("NoTypeVariables");
-    push(NullValue.TypeVariables);
+    push(NullValues.TypeVariables);
   }
 
   @override
@@ -385,25 +294,25 @@ abstract class StackListener extends Listener {
   @override
   void handleNoType(Token lastConsumed) {
     debugEvent("NoType");
-    push(NullValue.TypeBuilder);
+    push(NullValues.TypeBuilder);
   }
 
   @override
   void handleNoFormalParameters(Token token, MemberKind kind) {
     debugEvent("NoFormalParameters");
-    push(NullValue.FormalParameters);
+    push(NullValues.FormalParameters);
   }
 
   @override
   void handleNoArguments(Token token) {
     debugEvent("NoArguments");
-    push(NullValue.Arguments);
+    push(NullValues.Arguments);
   }
 
   @override
   void handleNativeFunctionBody(Token nativeToken, Token semicolon) {
     debugEvent("NativeFunctionBody");
-    push(NullValue.FunctionBody);
+    push(NullValues.FunctionBody);
   }
 
   @override
@@ -419,13 +328,13 @@ abstract class StackListener extends Listener {
   @override
   void handleNoFunctionBody(Token token) {
     debugEvent("NoFunctionBody");
-    push(NullValue.FunctionBody);
+    push(NullValues.FunctionBody);
   }
 
   @override
   void handleNoInitializers() {
     debugEvent("NoInitializers");
-    push(NullValue.Initializers);
+    push(NullValues.Initializers);
   }
 
   @override

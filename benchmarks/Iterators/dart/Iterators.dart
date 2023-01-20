@@ -337,7 +337,7 @@ class BenchmarkListIntSystem1 extends MonoBenchmark {
   // have growable and const lists at the same use-site (e.g. the const coming
   // from a default argument).
   //
-  // Ideally some combination of the class heirarchy or compiler tricks would
+  // Ideally some combination of the class hierarchy or compiler tricks would
   // ensure there is little cost of having this gentle polymorphism.
   BenchmarkListIntSystem1(int size)
       : _list1 = List.generate(size, (i) => i),
@@ -364,7 +364,7 @@ class BenchmarkListIntSystem2 extends MonoBenchmark {
   // have fixed-length and const lists at the same use-site (e.g. the const
   // coming from a default argument).
   //
-  // Ideally some combination of the class heirarchy or compiler tricks would
+  // Ideally some combination of the class hierarchy or compiler tricks would
   // ensure there is little cost of having this gentle polymorphism.
   BenchmarkListIntSystem2(int size)
       : _list1 = List.generate(size, (i) => i, growable: false),

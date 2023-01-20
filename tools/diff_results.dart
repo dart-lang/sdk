@@ -352,12 +352,12 @@ Set<String> loadVmBuildersFromTestMatrix(List<Glob> globs) {
 List<String> extractBuilderPattern(List<String> builders) {
   final all = Set<String>.from(builders);
 
-  String reduce(String builder, List<String> posibilities) {
-    for (final pos in posibilities) {
+  String reduce(String builder, List<String> possibilities) {
+    for (final pos in possibilities) {
       if (builder.contains(pos)) {
         final existing = <String>[];
         final available = <String>[];
-        for (final pos2 in posibilities) {
+        for (final pos2 in possibilities) {
           final builder2 = builder.replaceFirst(pos, pos2);
           if (all.contains(builder2)) {
             existing.add(builder2);

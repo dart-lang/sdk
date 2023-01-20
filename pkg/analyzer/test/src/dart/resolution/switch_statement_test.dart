@@ -43,8 +43,8 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: PostfixPattern
-          operand: ConstantPattern
+        pattern: NullCheckPattern
+          pattern: ConstantPattern
             expression: IntegerLiteral
               literal: 0
               staticType: int
@@ -93,8 +93,8 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: PostfixPattern
-          operand: ConstantPattern
+        pattern: NullCheckPattern
+          pattern: ConstantPattern
             expression: IntegerLiteral
               literal: 0
               staticType: int
@@ -103,8 +103,8 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: PostfixPattern
-          operand: ConstantPattern
+        pattern: NullCheckPattern
+          pattern: ConstantPattern
             expression: IntegerLiteral
               literal: 1
               staticType: int
@@ -117,8 +117,8 @@ SwitchStatement
     SwitchPatternCase
       keyword: case
       guardedPattern: GuardedPattern
-        pattern: PostfixPattern
-          operand: ConstantPattern
+        pattern: NullCheckPattern
+          pattern: ConstantPattern
             expression: IntegerLiteral
               literal: 2
               staticType: int
@@ -422,8 +422,232 @@ SwitchStatement
 ''');
   }
 
-  test_variables_joinedCase_declareBoth_notConsistent_differentFinality() async {
+  test_variables_joinedCase_declareBoth_consistent_logicalOr2() async {
     await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  switch (x) {
+    case int a || [int a] when a < 0:
+    case int a || [int a] when a > 0:
+      a;
+  }
+}
+''');
+
+    final node = findNode.switchStatement('switch');
+    assertResolvedNodeText(node, r'''
+SwitchStatement
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  rightParenthesis: )
+  leftBracket: {
+  members
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: LogicalOrPattern
+          leftOperand: DeclaredVariablePattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+            name: a
+            declaredElement: a@48
+              type: int
+          operator: ||
+          rightOperand: ListPattern
+            leftBracket: [
+            elements
+              DeclaredVariablePattern
+                type: NamedType
+                  name: SimpleIdentifier
+                    token: int
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+                name: a
+                declaredElement: a@58
+                  type: int
+            rightBracket: ]
+            requiredType: List<Object?>
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: a
+              staticElement: a[a@48, a@58]
+              staticType: int
+            operator: <
+            rightOperand: IntegerLiteral
+              literal: 0
+              parameter: dart:core::@class::num::@method::<::@parameter::other
+              staticType: int
+            staticElement: dart:core::@class::num::@method::<
+            staticInvokeType: bool Function(num)
+            staticType: bool
+      colon: :
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: LogicalOrPattern
+          leftOperand: DeclaredVariablePattern
+            type: NamedType
+              name: SimpleIdentifier
+                token: int
+                staticElement: dart:core::@class::int
+                staticType: null
+              type: int
+            name: a
+            declaredElement: a@86
+              type: int
+          operator: ||
+          rightOperand: ListPattern
+            leftBracket: [
+            elements
+              DeclaredVariablePattern
+                type: NamedType
+                  name: SimpleIdentifier
+                    token: int
+                    staticElement: dart:core::@class::int
+                    staticType: null
+                  type: int
+                name: a
+                declaredElement: a@96
+                  type: int
+            rightBracket: ]
+            requiredType: List<Object?>
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: a
+              staticElement: a[a@86, a@96]
+              staticType: int
+            operator: >
+            rightOperand: IntegerLiteral
+              literal: 0
+              parameter: dart:core::@class::num::@method::>::@parameter::other
+              staticType: int
+            staticElement: dart:core::@class::num::@method::>
+            staticInvokeType: bool Function(num)
+            staticType: bool
+      colon: :
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            staticElement: a[a[a@48, a@58], a[a@86, a@96]]
+            staticType: int
+          semicolon: ;
+  rightBracket: }
+''');
+  }
+
+  test_variables_joinedCase_declareBoth_notConsistent_differentFinality() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  switch (x) {
+    case final int a when a < 0:
+    case int a when a > 0:
+      a;
+  }
+}
+''', [
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          101,
+          1),
+    ]);
+
+    final node = findNode.switchStatement('switch');
+    assertResolvedNodeText(node, r'''
+SwitchStatement
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  rightParenthesis: )
+  leftBracket: {
+  members
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: DeclaredVariablePattern
+          keyword: final
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          name: a
+          declaredElement: isFinal a@54
+            type: int
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: a
+              staticElement: a@54
+              staticType: int
+            operator: <
+            rightOperand: IntegerLiteral
+              literal: 0
+              parameter: dart:core::@class::num::@method::<::@parameter::other
+              staticType: int
+            staticElement: dart:core::@class::num::@method::<
+            staticInvokeType: bool Function(num)
+            staticType: bool
+      colon: :
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: DeclaredVariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          name: a
+          declaredElement: a@81
+            type: int
+        whenClause: WhenClause
+          whenKeyword: when
+          expression: BinaryExpression
+            leftOperand: SimpleIdentifier
+              token: a
+              staticElement: a@81
+              staticType: int
+            operator: >
+            rightOperand: IntegerLiteral
+              literal: 0
+              parameter: dart:core::@class::num::@method::>::@parameter::other
+              staticType: int
+            staticElement: dart:core::@class::num::@method::>
+            staticInvokeType: bool Function(num)
+            staticType: bool
+      colon: :
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            staticElement: notConsistent a[a@54, a@81]
+            staticType: dynamic
+          semicolon: ;
+  rightBracket: }
+''');
+  }
+
+  test_variables_joinedCase_declareBoth_notConsistent_differentFinalityTypes() async {
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   switch (x) {
     case final int a when a < 0:
@@ -431,7 +655,12 @@ void f(Object? x) {
       a;
   }
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          101,
+          1),
+    ]);
 
     final node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -516,7 +745,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareBoth_notConsistent_differentTypes() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a < 0:
@@ -524,7 +753,12 @@ void f(Object? x) {
       a;
   }
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          95,
+          1),
+    ]);
 
     final node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -608,7 +842,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareFirst() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   switch (x) {
     case 0:
@@ -616,7 +850,12 @@ void f(Object? x) {
       a;
   }
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          80,
+          1),
+    ]);
 
     final node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -679,7 +918,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_declareSecond() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a > 0:
@@ -687,7 +926,12 @@ void f(Object? x) {
       a;
   }
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          80,
+          1),
+    ]);
 
     final node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -750,7 +994,7 @@ SwitchStatement
   }
 
   test_variables_joinedCase_hasDefault() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f(Object? x) {
   switch (x) {
     case int a when a > 0:
@@ -758,7 +1002,12 @@ void f(Object? x) {
       a;
   }
 }
-''');
+''', [
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          81,
+          1),
+    ]);
 
     final node = findNode.switchStatement('switch');
     assertResolvedNodeText(node, r'''
@@ -815,6 +1064,67 @@ SwitchStatement
 ''');
   }
 
+  test_variables_joinedCase_hasDefault2() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  switch (x) {
+    case var a:
+    case var a:
+    default:
+      a;
+  }
+}
+''', [
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          86,
+          1),
+    ]);
+
+    final node = findNode.switchStatement('switch');
+    assertResolvedNodeText(node, r'''
+SwitchStatement
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  rightParenthesis: )
+  leftBracket: {
+  members
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: DeclaredVariablePattern
+          keyword: var
+          name: a
+          declaredElement: hasImplicitType a@48
+            type: Object?
+      colon: :
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: DeclaredVariablePattern
+          keyword: var
+          name: a
+          declaredElement: hasImplicitType a@64
+            type: Object?
+      colon: :
+    SwitchDefault
+      keyword: default
+      colon: :
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            staticElement: notConsistent a[a@48, a@64]
+            staticType: Object?
+          semicolon: ;
+  rightBracket: }
+''');
+  }
+
   test_variables_joinedCase_hasLabel() async {
     await assertErrorsInCode(r'''
 void f(Object? x) {
@@ -826,6 +1136,10 @@ void f(Object? x) {
 }
 ''', [
       error(HintCode.UNUSED_LABEL, 39, 8),
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          81,
+          1),
     ]);
 
     final node = findNode.switchStatement('switch');
@@ -887,6 +1201,174 @@ SwitchStatement
 ''');
   }
 
+  test_variables_joinedCase_notConsistent3() async {
+    await assertErrorsInCode(r'''
+void f(Object? x) {
+  switch (x) {
+    case int a:
+    case double b:
+    case String c:
+      a;
+      b;
+      c;
+  }
+}
+''', [
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          95,
+          1),
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          104,
+          1),
+      error(
+          CompileTimeErrorCode.INCONSISTENT_PATTERN_VARIABLE_SHARED_CASE_SCOPE,
+          113,
+          1),
+    ]);
+
+    final node = findNode.switchStatement('switch');
+    assertResolvedNodeText(node, r'''
+SwitchStatement
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  rightParenthesis: )
+  leftBracket: {
+  members
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: DeclaredVariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: int
+              staticElement: dart:core::@class::int
+              staticType: null
+            type: int
+          name: a
+          declaredElement: a@48
+            type: int
+      colon: :
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: DeclaredVariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: double
+              staticElement: dart:core::@class::double
+              staticType: null
+            type: double
+          name: b
+          declaredElement: b@67
+            type: double
+      colon: :
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: DeclaredVariablePattern
+          type: NamedType
+            name: SimpleIdentifier
+              token: String
+              staticElement: dart:core::@class::String
+              staticType: null
+            type: String
+          name: c
+          declaredElement: c@86
+            type: String
+      colon: :
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            staticElement: notConsistent a[a@48]
+            staticType: int
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: b
+            staticElement: notConsistent b[b@67]
+            staticType: double
+          semicolon: ;
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: c
+            staticElement: notConsistent c[c@86]
+            staticType: String
+          semicolon: ;
+  rightBracket: }
+''');
+  }
+
+  test_variables_logicalOr() async {
+    await assertNoErrorsInCode(r'''
+void f(Object? x) {
+  switch (x) {
+    case <int>[var a || var a]:
+      a;
+  }
+}
+''');
+
+    final node = findNode.switchStatement('switch');
+    assertResolvedNodeText(node, r'''
+SwitchStatement
+  switchKeyword: switch
+  leftParenthesis: (
+  expression: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: Object?
+  rightParenthesis: )
+  leftBracket: {
+  members
+    SwitchPatternCase
+      keyword: case
+      guardedPattern: GuardedPattern
+        pattern: ListPattern
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: SimpleIdentifier
+                  token: int
+                  staticElement: dart:core::@class::int
+                  staticType: null
+                type: int
+            rightBracket: >
+          leftBracket: [
+          elements
+            LogicalOrPattern
+              leftOperand: DeclaredVariablePattern
+                keyword: var
+                name: a
+                declaredElement: hasImplicitType a@54
+                  type: int
+              operator: ||
+              rightOperand: DeclaredVariablePattern
+                keyword: var
+                name: a
+                declaredElement: hasImplicitType a@63
+                  type: int
+          rightBracket: ]
+          requiredType: List<int>
+      colon: :
+      statements
+        ExpressionStatement
+          expression: SimpleIdentifier
+            token: a
+            staticElement: a[a@54, a@63]
+            staticType: int
+          semicolon: ;
+  rightBracket: }
+''');
+  }
+
   test_variables_scope() async {
     await assertErrorsInCode(r'''
 const a = 0;
@@ -897,6 +1379,8 @@ void f(Object? x) {
   }
 }
 ''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION, 68,
+          1),
       error(CompileTimeErrorCode.REFERENCED_BEFORE_DECLARATION, 68, 1,
           contextMessages: [message('/home/test/lib/test.dart', 62, 1)]),
     ]);

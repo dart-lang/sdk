@@ -535,20 +535,18 @@ static method main() → dynamic {
   self::A a = new self::A::•();
   final self::A #t10 = a;
   final self::A #t11 = #t10;
-  if(#t11.{core::List::length}{core::int}.{core::num::==}(2){(core::Object) → core::bool}) {
-    final dynamic #t12 = #t11{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
-    final dynamic #t13 = #t11{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic};
+  if(#t11.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 2) {
+    final dynamic #t12 = #t11.{core::List::[]}(0){(core::int) → dynamic};
+    final dynamic #t13 = #t11.{core::List::[]}(1){(core::int) → dynamic};
     final dynamic #t14 = #t12;
     if(#t14 is core::int) {
       final dynamic #t15 = #t13;
       if(#t15 is core::int) {
+        core::int x = #t14{core::int};
+        core::int y = #t15{core::int};
         {
-          core::int x = #t14{core::int};
-          core::int y = #t15{core::int};
-          {
-            self::expectEquals(x, 0);
-            self::expectEquals(y, 0);
-          }
+          self::expectEquals(x, 0);
+          self::expectEquals(y, 0);
         }
       }
     }

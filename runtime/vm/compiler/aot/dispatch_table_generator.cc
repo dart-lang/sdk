@@ -564,7 +564,7 @@ void DispatchTableGenerator::SetupSelectorRows() {
     obj = classes_->At(cid);
     if (obj.IsClass()) {
       klass = Class::RawCast(obj.ptr());
-      GrowableArray<Interval>& subclasss_cid_ranges = cid_subclass_ranges[cid];
+      GrowableArray<Interval>& subclass_cid_ranges = cid_subclass_ranges[cid];
 
       functions = klass.current_functions();
       if (!functions.IsNull()) {
@@ -579,8 +579,8 @@ void DispatchTableGenerator::SetupSelectorRows() {
                 // A function handle that survives until the table is built.
                 auto& function_handle = Function::ZoneHandle(Z, function.ptr());
 
-                for (intptr_t i = 0; i < subclasss_cid_ranges.length(); i++) {
-                  Interval& subclass_cid_range = subclasss_cid_ranges[i];
+                for (intptr_t i = 0; i < subclass_cid_ranges.length(); i++) {
+                  Interval& subclass_cid_range = subclass_cid_ranges[i];
                   selector_rows[sid].DefineSelectorImplementationForInterval(
                       cid, depth, subclass_cid_range, &function_handle);
                 }

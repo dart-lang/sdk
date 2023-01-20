@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:vm/kernel_front_end.dart';
 import 'package:yaml/yaml.dart';
@@ -22,22 +20,6 @@ class NativeAssetsValidator {
       involvedFiles: involvedFiles,
       severity: severity,
     ));
-  }
-
-  /// Loads the contents of [nativeAssetsFileUri] and returns the parsed result
-  /// if valid and otherwise `null`.
-  ///
-  /// Reports errors to [errorDetector].
-  Future<Map?> loadAndValidate(Uri nativeAssetsFileUri) async {
-    involvedFiles = [nativeAssetsFileUri];
-    final nativeAssetsFile = File.fromUri(nativeAssetsFileUri);
-    if (!await nativeAssetsFile.exists()) {
-      _reportError(
-          "Native assets file ${nativeAssetsFileUri.toFilePath()} doesn't exist.");
-      return null;
-    }
-    final nativeAssetsYamlString = await nativeAssetsFile.readAsString();
-    return parseAndValidate(nativeAssetsYamlString);
   }
 
   /// Parses and validates [nativeAssetsYamlString].

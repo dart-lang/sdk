@@ -1,0 +1,102 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+class Const<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  final field self::Const::T% value;
+  const constructor •(self::Const::T% value) → self::Const<self::Const::T%>
+    : self::Const::value = value, super core::Object::•()
+    ;
+}
+static method main() → dynamic {
+  self::test(42, false);
+  self::test(<core::int>[42], true);
+  self::test(<core::num>[42], true);
+  self::test(<core::int, core::String>{42: "foo"}, true);
+  self::test(<core::num, core::Object>{42: "foo"}, true);
+  self::test(new self::Const::•<core::int>(42), true);
+  self::test(new self::Const::•<core::num>(42), true);
+  self::test(#C2, true);
+  self::test(#C3, true);
+  self::test(#C5, true);
+  self::test(#C6, true);
+  self::test(#C7, true);
+  self::test(#C8, true);
+}
+static method test(dynamic value, core::bool expected) → void {
+  core::bool matched = false;
+  final dynamic #t1 = value;
+  final dynamic #t2 = #t1;
+  if(#t2 is core::List<dynamic> && #t2{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
+    final dynamic #t3 = #t2{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    if(#t3 =={core::Object::==}{(core::Object) → core::bool} #C1) {
+      {
+        matched = true;
+      }
+    }
+  }
+  final dynamic #t4 = value;
+  final dynamic #t5 = #t4;
+  if(#t5 is core::List<core::num> && #t5{core::List<core::num>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
+    final core::num #t6 = #t5{core::List<core::num>}.{core::List::[]}(0){(core::int) → core::num};
+    if(#t6 =={core::num::==}{(core::Object) → core::bool} #C1) {
+      {
+        matched = true;
+      }
+    }
+  }
+  final dynamic #t7 = value;
+  final dynamic #t8 = #t7;
+  if(#t8 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #t8{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(42){(core::Object?) → core::bool} && #t8{core::Map<dynamic, dynamic>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
+    final dynamic #t9 = #t8{core::Map<dynamic, dynamic>}.{core::Map::[]}(42){(core::Object?) → dynamic};
+    if(#t9 =={core::Object::==}{(core::Object) → core::bool} #C4) {
+      {
+        matched = true;
+      }
+    }
+  }
+  final dynamic #t10 = value;
+  final dynamic #t11 = #t10;
+  if(#t11 is{ForNonNullableByDefault} core::Map<core::num, core::Object> && #t11{core::Map<core::num, core::Object>}.{core::Map::containsKey}(42){(core::Object?) → core::bool} && #t11{core::Map<core::num, core::Object>}.{core::Map::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
+    final core::Object #t12 = #t11{core::Map<core::num, core::Object>}.{core::Map::[]}(42){(core::Object?) → core::Object?};
+    if(#t12 =={core::Object::==}{(core::Object) → core::bool} #C4) {
+      {
+        matched = true;
+      }
+    }
+  }
+  final dynamic #t13 = value;
+  final dynamic #t14 = #t13;
+  if(#t14 is self::Const<dynamic>) {
+    {
+      matched = true;
+    }
+  }
+  final dynamic #t15 = value;
+  final dynamic #t16 = #t15;
+  if(#t16 is self::Const<core::num>) {
+    {
+      matched = true;
+    }
+  }
+  if(!(matched =={core::Object::==}{(core::Object) → core::bool} expected)) {
+    core::print("FAIL: ${value} ${matched ?{core::String} "matched" : "didn't match"}");
+  }
+}
+
+constants  {
+  #C1 = 42
+  #C2 = <core::int>[#C1]
+  #C3 = <core::num>[#C1]
+  #C4 = "foo"
+  #C5 = <core::int, core::String>{#C1:#C4)
+  #C6 = <core::num, core::Object>{#C1:#C4)
+  #C7 = self::Const<core::int> {value:#C1}
+  #C8 = self::Const<core::num> {value:#C1}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///non_constant_pattern_in_if.dart:
+- Const. (from org-dartlang-testcase:///non_constant_pattern_in_if.dart:8:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

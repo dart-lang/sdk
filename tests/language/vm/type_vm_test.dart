@@ -123,7 +123,7 @@ class TypeTest {
     return 1;
   }
 
-  static int testListAssigment() {
+  static int testListAssignment() {
     // Note: Many of these used to be runtime errors when implicit downcasts
     // were permitted. Now these are mostly compile time errors.
     int result = 0;
@@ -181,7 +181,7 @@ class TypeTest {
     Expect.equals(1, testFunctionNum());
     Expect.equals(9, testBoolCheck());
     Expect.equals(1, testFactory());
-    Expect.equals(8, testListAssigment());
+    Expect.equals(8, testListAssignment());
   }
 }
 

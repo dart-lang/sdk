@@ -27,7 +27,7 @@ static method _extension#0|get#setter(lowered final core::Object #this) → core
   ;
 static method _extension#0|set#getter(lowered final core::Object #this, core::int value) → void
   ;
-method InlineClass|(core::int it) → self::InlineClass
+static method InlineClass|(core::int it) → self::InlineClass
   ;
 static method InlineClass|test(lowered final self::InlineClass #this) → dynamic
   ;

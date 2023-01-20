@@ -613,7 +613,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameters(Iterable<ParameterElement> parameters,
-      {ExecutableElement? methodBeingCopied, bool requiredTypes = false}) {
+      {ExecutableElement? methodBeingCopied,
+      bool includeDefaultValues = true,
+      bool requiredTypes = false}) {
     var parameterNames = <String>{};
     for (var i = 0; i < parameters.length; i++) {
       var name = parameters.elementAt(i).name;
@@ -659,10 +661,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
           typeGroupName: '${groupPrefix}TYPE$i',
           isRequiredType: requiredTypes);
       // default value
-      var defaultCode = parameter.defaultValueCode;
-      if (defaultCode != null) {
-        write(' = ');
-        write(defaultCode);
+      if (includeDefaultValues) {
+        var defaultCode = parameter.defaultValueCode;
+        if (defaultCode != null) {
+          write(' = ');
+          write(defaultCode);
+        }
       }
     }
     // close parameters
@@ -1255,8 +1259,12 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write('Function');
       writeTypeParameters(type.typeFormals,
           methodBeingCopied: methodBeingCopied);
-      writeParameters(type.parameters,
-          methodBeingCopied: methodBeingCopied, requiredTypes: true);
+      writeParameters(
+        type.parameters,
+        methodBeingCopied: methodBeingCopied,
+        includeDefaultValues: false,
+        requiredTypes: true,
+      );
       if (type.nullabilitySuffix == NullabilitySuffix.question) {
         write('?');
       }
@@ -1393,6 +1401,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// or `null` if the receiver is the builder for the library.
   final DartFileEditBuilderImpl? libraryChangeBuilder;
 
+  @override
+  String? fileHeader;
+
   /// Whether to create edits that add imports for any written types that are
   /// not already imported.
   final bool createEditsForImports;
@@ -1420,7 +1431,8 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
       resolvedUnit.session.analysisContext.analysisOptions.codeStyleOptions;
 
   @override
-  bool get hasEdits => super.hasEdits || librariesToImport.isNotEmpty;
+  bool get hasEdits =>
+      super.hasEdits || librariesToImport.isNotEmpty || fileHeader != null;
 
   @override
   List<Uri> get requiredImports => librariesToImport.keys.toList();
@@ -1490,6 +1502,12 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   void finalize() {
     if (createEditsForImports && librariesToImport.isNotEmpty) {
       _addLibraryImports(librariesToImport.values);
+    }
+    var header = fileHeader;
+    if (header != null) {
+      addInsertion(0, insertBeforeExisting: true, (builder) {
+        builder.writeln(header);
+      });
     }
   }
 

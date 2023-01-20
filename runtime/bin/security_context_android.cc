@@ -40,7 +40,7 @@ void SSLCertContext::TrustBuiltinRoots() {
     return;
   }
 
-  // On Android, we don't compile in the trusted root certificates. Insead,
+  // On Android, we don't compile in the trusted root certificates. Instead,
   // we use the directory of trusted certificates already present on the device.
   // This saves ~240KB from the size of the binary. This has the drawback that
   // SSL_do_handshake will synchronously hit the filesystem looking for root

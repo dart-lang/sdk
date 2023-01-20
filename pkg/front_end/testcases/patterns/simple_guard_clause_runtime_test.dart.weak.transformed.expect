@@ -1,0 +1,36 @@
+library /*isNonNullableByDefault*/;
+import self as self;
+import "dart:core" as core;
+
+static method test(dynamic x) → dynamic {
+  final dynamic #t1 = x;
+  final dynamic #t2 = #t1;
+  if(#t2 is core::List<dynamic> && #t2{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
+    final dynamic #t3 = #t2{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
+    final dynamic #t4 = #t3;
+    if(#t4 is core::int) {
+      core::int a = #t4{core::int};
+      if(a.{core::num::>}(0){(core::num) → core::bool}) {
+        {
+          return a;
+        }
+      }
+    }
+  }
+  return 0;
+}
+static method main() → dynamic {
+  self::expectEquals(1, self::test(core::_GrowableList::_literal1<core::int>(1)));
+  self::expectEquals(0, self::test(core::_GrowableList::_literal1<core::int>(0)));
+  self::expectEquals(0, self::test(core::_GrowableList::_literal1<core::int>(1.{core::int::unary-}(){() → core::int})));
+}
+static method expectEquals(dynamic x, dynamic y) → dynamic {
+  if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {
+    throw "Expected ${x} to be equal to ${y}.";
+  }
+}
+
+
+Extra constant evaluation status:
+Evaluated: InstanceInvocation @ org-dartlang-testcase:///simple_guard_clause_runtime_test.dart:15:25 -> IntConstant(-1)
+Extra constant evaluation: evaluated: 35, effectively constant: 1

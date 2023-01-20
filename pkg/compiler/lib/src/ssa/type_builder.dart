@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'builder_interfaces.dart';
+import 'builder.dart';
 import 'nodes.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
@@ -73,7 +73,7 @@ abstract class TypeBuilder {
 
   /// Produces code that checks the runtime type is actually the type specified
   /// by attempting a type conversion.
-  HInstruction _checkBoolConverion(HInstruction original) {
+  HInstruction _checkBoolConversion(HInstruction original) {
     var checkInstruction =
         HBoolConversion(original, _abstractValueDomain.boolType);
     if (checkInstruction.isRedundant(_closedWorld)) {
@@ -154,7 +154,7 @@ abstract class TypeBuilder {
     if (conditionCheckPolicy.isTrusted) {
       checkedOrTrusted = _trustType(original, boolType);
     } else if (conditionCheckPolicy.isEmitted) {
-      checkedOrTrusted = _checkBoolConverion(original);
+      checkedOrTrusted = _checkBoolConversion(original);
     }
     if (checkedOrTrusted == original) return original;
     builder.add(checkedOrTrusted);

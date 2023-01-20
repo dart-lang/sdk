@@ -3,12 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert' show jsonDecode;
-
 import 'dart:io' show File;
 
-import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
-import 'package:front_end/src/fasta/util/outline_extractor.dart';
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
+import 'package:front_end/src/api_prototype/compiler_options.dart';
+import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart';
+import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/fasta/util/outline_extractor.dart';
+import 'package:kernel/ast.dart';
+import 'package:kernel/src/equivalence.dart';
 import 'package:testing/testing.dart'
     show
         Chain,
@@ -18,17 +21,11 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription,
         runMe;
-import 'package:kernel/src/equivalence.dart';
-import 'package:front_end/src/api_prototype/compiler_options.dart';
-import 'package:front_end/src/api_prototype/memory_file_system.dart';
-import 'package:kernel/ast.dart';
 
 import 'fasta/testing/suite.dart' show UPDATE_EXPECTATIONS;
-import 'utils/kernel_chain.dart' show MatchContext;
-
-import 'testing_utils.dart' show checkEnvironment;
-
 import 'incremental_suite.dart' as helper;
+import 'testing_utils.dart' show checkEnvironment;
+import 'utils/kernel_chain.dart' show MatchContext;
 
 const String EXPECTATIONS = '''
 [
@@ -49,11 +46,11 @@ void main([List<String> arguments = const []]) =>
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
   const Set<String> knownEnvironmentKeys = {
-    "updateExpectations",
+    UPDATE_EXPECTATIONS,
   };
   checkEnvironment(environment, knownEnvironmentKeys);
 
-  bool updateExpectations = environment["updateExpectations"] == "true";
+  bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
 
   return new Context(suite.name, updateExpectations);
 }

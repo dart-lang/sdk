@@ -27,6 +27,7 @@ actively
 adequate
 adi
 adjusts
+adoption
 advantage
 affecting
 affords
@@ -839,6 +840,7 @@ lx
 ly
 lz
 m
+machinery
 macos
 macro
 macros
@@ -998,6 +1000,7 @@ partof
 patchup
 path
 pattern's
+patterned
 patterns
 paulberry
 pay

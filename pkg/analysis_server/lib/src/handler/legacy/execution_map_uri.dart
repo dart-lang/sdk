@@ -14,7 +14,8 @@ import 'package:analyzer/file_system/file_system.dart';
 class ExecutionMapUriHandler extends LegacyHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  ExecutionMapUriHandler(super.server, super.request, super.cancellationToken);
+  ExecutionMapUriHandler(
+      super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {

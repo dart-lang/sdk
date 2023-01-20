@@ -40,8 +40,8 @@ class SharedTypeAnalyzerErrors
   void caseExpressionTypeMismatch(
       {required Expression scrutinee,
       required Expression caseExpression,
-      required caseExpressionType,
-      required scrutineeType,
+      required DartType caseExpressionType,
+      required DartType scrutineeType,
       required bool nullSafetyEnabled}) {
     helper.addProblem(
         nullSafetyEnabled
@@ -58,6 +58,15 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void duplicateAssignmentPatternVariable({
+    required VariableDeclaration variable,
+    required Pattern original,
+    required Pattern duplicate,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
   void duplicateRecordPatternField({
     required String name,
     required RecordPatternField<Node, Pattern> original,
@@ -67,12 +76,29 @@ class SharedTypeAnalyzerErrors
   }
 
   @override
+  void duplicateRestPattern({
+    required Node node,
+    required Node original,
+    required Node duplicate,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
   void inconsistentJoinedPatternVariable({
     required VariableDeclaration variable,
     required VariableDeclaration component,
   }) {
-    // TODO(scheglov): implement logicalOrPatternInconsistentVariablePair
-    throw new UnimplementedError('TODO(scheglov)');
+    // TODO(cstefantsova): Currently this error is reported elsewhere due to
+    // the order the types are inferred.
+  }
+
+  @override
+  void matchedTypeIsStrictlyNonNullable({
+    required Pattern pattern,
+    required DartType matchedType,
+  }) {
+    // TODO(scheglov) Implement it.
   }
 
   @override
@@ -83,6 +109,15 @@ class SharedTypeAnalyzerErrors
   @override
   void patternDoesNotAllowLate(Node pattern) {
     throw new UnimplementedError('TODO(paulberry)');
+  }
+
+  @override
+  void patternForInExpressionIsNotIterable({
+    required Node node,
+    required Expression expression,
+    required DartType expressionType,
+  }) {
+    throw new UnimplementedError('TODO(scheglov)');
   }
 
   @override
@@ -104,6 +139,11 @@ class SharedTypeAnalyzerErrors
     required Node node,
     required DartType returnType,
   }) {
+    throw new UnimplementedError('TODO(scheglov)');
+  }
+
+  @override
+  void restPatternNotLastInMap(Pattern node, Node element) {
     throw new UnimplementedError('TODO(scheglov)');
   }
 

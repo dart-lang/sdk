@@ -557,9 +557,9 @@ void main() async {
     final platformKernel =
         computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
     final ddcPlatformKernel =
-        computePlatformBinariesLocation().resolve('ddc_outline_sound.dill');
+        computePlatformBinariesLocation().resolve('ddc_outline.dill');
     final ddcPlatformKernelWeak =
-        computePlatformBinariesLocation().resolve('ddc_sdk.dill');
+        computePlatformBinariesLocation().resolve('ddc_outline_unsound.dill');
     final sdkRoot = computePlatformBinariesLocation();
 
     late Directory tempDir;

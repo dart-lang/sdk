@@ -66,7 +66,7 @@ class _LintConfig implements LintConfig {
   void addAsListOrString(Object? value, List<String> list) {
     if (value is List) {
       for (var entry in value) {
-        list.add(entry);
+        list.add(entry as String);
       }
     } else if (value is String) {
       list.add(value);
@@ -74,7 +74,7 @@ class _LintConfig implements LintConfig {
   }
 
   bool? asBool(Object scalar) {
-    Object value = scalar is YamlScalar ? scalar.value : scalar;
+    var value = scalar is YamlScalar ? scalar.valueOrThrow : scalar;
     if (value is bool) {
       return value;
     }
@@ -90,7 +90,7 @@ class _LintConfig implements LintConfig {
   }
 
   String? asString(Object scalar) {
-    Object value = scalar is YamlScalar ? scalar.value : scalar;
+    var value = scalar is YamlScalar ? scalar.valueOrThrow : scalar;
     if (value is String) {
       return value;
     }
@@ -142,7 +142,7 @@ class _LintConfig implements LintConfig {
 
           // style_guide: {unnecessary_getters: false, camel_case_types: true}
           if (v is YamlMap) {
-            v.nodes.forEach((key, value) {
+            v.nodes.cast<Object, YamlNode>().forEach((key, value) {
               //{unnecessary_getters: false}
               if (asBool(value) != null) {
                 var config = _RuleConfig();
@@ -153,7 +153,7 @@ class _LintConfig implements LintConfig {
 
               // style_guide: {unnecessary_getters: false, camel_case_types: true}
               if (value is YamlMap) {
-                value.nodes.forEach((rule, args) {
+                value.nodes.cast<Object, YamlNode>().forEach((rule, args) {
                   // TODO: verify format
                   // unnecessary_getters: false
                   var config = _RuleConfig();

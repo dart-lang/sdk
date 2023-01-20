@@ -121,6 +121,7 @@ void ensureDictionariesLoaded(List<Dictionaries> dictionaries) {
   void addWords(Uri uri, Set<String> dictionary) {
     for (String word in File.fromUri(uri)
         .readAsStringSync()
+        .replaceAll("\r\n", "\n")
         .split("\n")
         .map((s) => s.toLowerCase())) {
       if (word.startsWith("#")) continue;

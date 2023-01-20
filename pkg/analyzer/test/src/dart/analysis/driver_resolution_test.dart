@@ -1045,7 +1045,7 @@ main() {
   test_closure_generic() async {
     addTestFile(r'''
 main() {
-  foo(<T>() => new List<T>(4));
+  foo(<T>() => new List<T>.from([4]));
 }
 
 void foo(List<T> Function<T>() createList) {}
@@ -1070,7 +1070,7 @@ void foo(List<T> Function<T>() createList) {}
     var creation = findNode.instanceCreation('new List');
     assertType(creation, 'List<T>');
 
-    var tRef = findNode.simple('T>(4)');
+    var tRef = findNode.simple('T>.from([4])');
     assertElement(tRef, tElement);
   }
 

@@ -133,7 +133,7 @@ void FUNCTION_NAME(SecureSocket_Destroy)(Dart_NativeArguments args) {
   // There are two paths that can clean up an SSLFilter object. First,
   // there is this explicit call to Destroy(), called from
   // _SecureFilter.destroy() in Dart code. After a call to destroy(), the Dart
-  // code maintains the invariant that there will be no futher SSLFilter
+  // code maintains the invariant that there will be no further SSLFilter
   // requests sent to the IO Service. Therefore, the internals of the SSLFilter
   // are safe to deallocate, but not the SSLFilter itself, which is already
   // set up to be cleaned up by the finalizer.

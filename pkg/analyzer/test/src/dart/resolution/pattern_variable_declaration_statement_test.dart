@@ -77,13 +77,15 @@ PatternVariableDeclarationStatement
   }
 
   test_rewrite_expression() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f() {
   var (a) = A();
 }
 
 class A {}
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 18, 1),
+    ]);
     final node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
@@ -148,13 +150,15 @@ PatternVariableDeclarationStatement
   }
 
   test_var_typed_typeSchema() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f() {
   var (int a) = g();
 }
 
 T g<T>() => throw 0;
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
+    ]);
     final node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement
@@ -218,11 +222,14 @@ PatternVariableDeclarationStatement
   }
 
   test_var_untyped_multiple() async {
-    await assertNoErrorsInCode(r'''
+    await assertErrorsInCode(r'''
 void f((int, String) x) {
   var (a, b) = x;
 }
-''');
+''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 36, 1),
+    ]);
     final node = findNode.singlePatternVariableDeclarationStatement;
     assertResolvedNodeText(node, r'''
 PatternVariableDeclarationStatement

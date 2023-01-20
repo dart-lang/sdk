@@ -19,8 +19,7 @@ typedef AliasImpl<T extends core::num> = self2::ClassImpl<T>;
 class Class<T extends core::Object? = dynamic> extends core::Object {
   static final field dynamic _redirecting# = <dynamic>[self2::Class::redirect, self2::Class::redirect2]/*isLegacy*/;
   @_in::patch
-  external constructor •({core::bool defaultValue = true, required self2::Class::T% value = null}) → self2::Class<self2::Class::T%>
-    ;
+  external constructor •({core::bool defaultValue = true, required self2::Class::T% value = null}) → self2::Class<self2::Class::T%>;
   @_in::patch
   external static factory fact<T extends core::Object? = dynamic>({has-declared-initializer core::bool defaultValue, required self2::Class::fact::T% value}) → self2::Class<self2::Class::fact::T%>;
   @_in::patch
@@ -35,8 +34,7 @@ class ClassImpl<T extends core::Object? = dynamic> extends core::Object implemen
   constructor •({core::bool defaultValue = true, required self2::ClassImpl::T% value = null}) → self2::ClassImpl<self2::ClassImpl::T%>
     ;
   @_in::patch
-  external constructor patched({core::bool defaultValue = true, required self2::ClassImpl::T% value = null}) → self2::ClassImpl<self2::ClassImpl::T%>
-    ;
+  external constructor patched({core::bool defaultValue = true, required self2::ClassImpl::T% value = null}) → self2::ClassImpl<self2::ClassImpl::T%>;
 }
 static method _#Alias#new#tearOff<T extends core::num>({has-declared-initializer core::bool defaultValue, required self2::_#Alias#new#tearOff::T value}) → self2::Class<self2::_#Alias#new#tearOff::T>
   return new self2::Class::•<self2::_#Alias#new#tearOff::T>(defaultValue: defaultValue, value: value);

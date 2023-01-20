@@ -22,7 +22,7 @@ const a = 0;
 ''');
 
     await assertNoErrorsInCode(r'''
-// @dart = 2.8
+// @dart = 2.12
 import 'a.dart';
 
 void f(int e) {

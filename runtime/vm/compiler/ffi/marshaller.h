@@ -105,6 +105,8 @@ class BaseMarshaller : public ZoneAllocated {
   // The C Type (expressed in a Dart Type) of the argument at `arg_index`.
   //
   // Excluding the #0 argument which is the function pointer.
+  //
+  // Recurses into VarArgs if needed.
   AbstractTypePtr CType(intptr_t arg_index) const;
 
   // Requires boxing or unboxing.
@@ -130,6 +132,10 @@ class BaseMarshaller : public ZoneAllocated {
   }
 
   bool ContainsHandles() const;
+
+  bool contains_varargs() const {
+    return native_calling_convention_.contains_varargs();
+  }
 
   const Function& dart_signature() const { return dart_signature_; }
   StringPtr function_name() const { return dart_signature_.name(); }
@@ -174,7 +180,7 @@ class CallMarshaller : public BaseMarshaller {
   // The location of the inputs to the IL FfiCall instruction.
   dart::Location LocInFfiCall(intptr_t def_index_global) const;
 
-  // Allocate a TypedData before the FfiCall and pass it in to the FfiCall so
+  // Allocate a TypedData before the FfiCall and pass it into the FfiCall so
   // that it can be populated in assembly.
   bool PassTypedData() const;
   intptr_t TypedDataSizeInBytes() const;

@@ -7,7 +7,7 @@ description: >-
 repository: https://github.com/dart-lang/sdk/tree/main/pkg/vm_service
 
 environment:
-  sdk: '>=2.15.0 <3.0.0'
+  sdk: '>=2.15.0 <4.0.0'
 
 dependencies:
 
@@ -25,3 +25,7 @@ dev_dependencies:
   pub_semver: any
   test_package: any
   test: any
+
+dependency_overrides:
+  test_package:
+    path: 'test/test_package'

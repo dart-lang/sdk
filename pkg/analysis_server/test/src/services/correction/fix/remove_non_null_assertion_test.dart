@@ -48,4 +48,44 @@ void f(String a) {
 }
 ''');
   }
+
+  Future<void> test_nonNullableCasePattern() async {
+    await resolveTestCode('''
+void f() {
+  List<String> row = ['h', 'e', 'l'];
+  switch (row) {
+    case ['user', var name!]:
+    print(name);
+  }
+}
+''');
+    await assertHasFix('''
+void f() {
+  List<String> row = ['h', 'e', 'l'];
+  switch (row) {
+    case ['user', var name]:
+    print(name);
+  }
+}
+''');
+  }
+
+  Future<void> test_nonNullablePattern() async {
+    await resolveTestCode('''
+void f() {
+  (int, int?) p = (1, 2);
+  var (x!, y!) = p;
+  print(x);
+  print(y);
+}
+''');
+    await assertHasFix('''
+void f() {
+  (int, int?) p = (1, 2);
+  var (x, y!) = p;
+  print(x);
+  print(y);
+}
+''');
+  }
 }

@@ -47,6 +47,29 @@ class RemoveQuestionMarkTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.REMOVE_QUESTION_MARK;
 
+  Future<void> test_casePattern() async {
+    await resolveTestCode('''
+void f() {
+  String? maybeString = 'hello';
+  switch (maybeString) {
+    case
+      var s?:
+      print(s);
+  }
+}
+''');
+    await assertHasFix('''
+void f() {
+  String? maybeString = 'hello';
+  switch (maybeString) {
+    case
+      var s:
+      print(s);
+  }
+}
+''');
+  }
+
   Future<void> test_catchClause() async {
     await resolveTestCode('''
 class A {}

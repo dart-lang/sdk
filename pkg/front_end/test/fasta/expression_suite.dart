@@ -5,42 +5,30 @@
 library fasta.test.expression_test;
 
 import "dart:io" show File, IOSink;
-
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/util/colors.dart' as colors;
-
 import "package:front_end/src/api_prototype/compiler_options.dart"
     show CompilerOptions, DiagnosticMessage;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
-
 import 'package:front_end/src/api_prototype/expression_compilation_tools.dart'
     show createDefinitionsWithTypes, createTypeParametersWithBounds;
-
 import 'package:front_end/src/api_prototype/incremental_kernel_generator.dart'
     show IncrementalCompilerResult;
-
 import "package:front_end/src/api_prototype/memory_file_system.dart"
     show MemoryFileSystem;
-
 import "package:front_end/src/api_prototype/terminal_color_support.dart"
     show printDiagnosticMessage;
-
 import 'package:front_end/src/base/processed_options.dart'
     show ProcessedOptions;
-
 import 'package:front_end/src/compute_platform_binaries_location.dart'
     show computePlatformBinariesLocation;
-
 import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
-
 import 'package:front_end/src/fasta/incremental_compiler.dart'
     show IncrementalCompiler;
-
 import 'package:front_end/src/fasta/kernel/utils.dart'
     show serializeComponent, serializeProcedure;
 import 'package:front_end/src/testing/compiler_common.dart';
-
 import "package:kernel/ast.dart"
     show
         Class,
@@ -53,23 +41,17 @@ import "package:kernel/ast.dart"
         Member,
         Procedure,
         TypeParameter;
-
 import 'package:kernel/target/targets.dart' show TargetFlags;
-
 import 'package:kernel/text/ast_to_text.dart' show Printer;
-
 import "package:testing/src/log.dart" show splitLines;
-
 import "package:testing/testing.dart"
     show Chain, ChainContext, Result, Step, TestDescription, runMe;
-
 import 'package:vm/target/vm.dart' show VmTarget;
-
 import "package:yaml/yaml.dart" show YamlMap, YamlList, loadYamlNode;
 
 import '../testing_utils.dart' show checkEnvironment;
-
 import '../utils/kernel_chain.dart' show runDiff, openWrite;
+import 'testing/suite.dart';
 
 class Context extends ChainContext {
   final CompilerContext compilerContext;
@@ -114,6 +96,7 @@ class Context extends ChainContext {
 class CompilationResult {
   Procedure? compiledProcedure;
   List<DiagnosticMessage> errors;
+
   CompilationResult(this.compiledProcedure, this.errors);
 
   String printResult(Uri entryPoint, Context context) {
@@ -237,7 +220,7 @@ class MatchProcedureExpectations extends Step<List<TestCase>, Null, Context> {
     File expectedFile = new File("${testUri.toFilePath()}$suffix");
     if (await expectedFile.exists()) {
       String expected = await expectedFile.readAsString();
-      if (expected.trim() != actual.trim()) {
+      if (expected.replaceAll("\r\n", "\n").trim() != actual.trim()) {
         if (!updateExpectations) {
           String diff = await runDiff(expectedFile.uri, actual);
           return fail(
@@ -653,7 +636,7 @@ class CompileExpression extends Step<List<TestCase>, List<TestCase>, Context> {
 Future<Context> createContext(
     Chain suite, Map<String, String> environment) async {
   const Set<String> knownEnvironmentKeys = {
-    "updateExpectations",
+    UPDATE_EXPECTATIONS,
     "fuzz",
   };
   checkEnvironment(environment, knownEnvironmentKeys);
@@ -713,7 +696,7 @@ Future<Context> createContext(
   final ProcessedOptions optionsNoNNBD =
       new ProcessedOptions(options: optionBuilderNoNNBD, inputs: [entryPoint]);
 
-  final bool updateExpectations = environment["updateExpectations"] == "true";
+  final bool updateExpectations = environment[UPDATE_EXPECTATIONS] == "true";
 
   final bool fuzz = environment["fuzz"] == "true";
 

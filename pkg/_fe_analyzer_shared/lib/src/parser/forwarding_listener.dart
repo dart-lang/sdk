@@ -73,11 +73,24 @@ class ForwardingListener implements Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
-    listener?.beginClassDeclaration(begin, abstractToken, macroToken,
-        inlineToken, sealedToken, augmentToken, mixinToken, name);
+    listener?.beginClassDeclaration(
+        begin,
+        abstractToken,
+        macroToken,
+        inlineToken,
+        sealedToken,
+        baseToken,
+        interfaceToken,
+        finalToken,
+        augmentToken,
+        mixinToken,
+        name);
   }
 
   @override
@@ -387,9 +400,15 @@ class ForwardingListener implements Listener {
 
   @override
   void beginMixinDeclaration(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword, Token name) {
-    listener?.beginMixinDeclaration(
-        augmentToken, sealedToken, mixinKeyword, name);
+      Token? augmentToken,
+      Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
+      Token mixinKeyword,
+      Token name) {
+    listener?.beginMixinDeclaration(augmentToken, sealedToken, baseToken,
+        interfaceToken, finalToken, mixinKeyword, name);
   }
 
   @override
@@ -404,11 +423,24 @@ class ForwardingListener implements Listener {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token name) {
-    listener?.beginNamedMixinApplication(begin, abstractToken, macroToken,
-        inlineToken, sealedToken, augmentToken, mixinToken, name);
+    listener?.beginNamedMixinApplication(
+        begin,
+        abstractToken,
+        macroToken,
+        inlineToken,
+        sealedToken,
+        baseToken,
+        interfaceToken,
+        finalToken,
+        augmentToken,
+        mixinToken,
+        name);
   }
 
   @override
@@ -1827,8 +1859,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void beginPatternGuard(Token when) {
+    listener?.beginPatternGuard(when);
+  }
+
+  @override
   void beginParenthesizedExpressionOrRecordLiteral(Token token) {
     listener?.beginParenthesizedExpressionOrRecordLiteral(token);
+  }
+
+  @override
+  void beginSwitchCaseWhenClause(Token when) {
+    listener?.beginSwitchCaseWhenClause(when);
   }
 
   @override
@@ -1842,8 +1884,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void endPatternGuard(Token token) {
+    listener?.endPatternGuard(token);
+  }
+
+  @override
   void endParenthesizedExpression(Token token) {
     listener?.endParenthesizedExpression(token);
+  }
+
+  @override
+  void endSwitchCaseWhenClause(Token token) {
+    listener?.endSwitchCaseWhenClause(token);
   }
 
   @override
@@ -1852,8 +1904,13 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleConstantPattern(Token? constKeyword) {
-    listener?.handleConstantPattern(constKeyword);
+  void beginConstantPattern(Token? constKeyword) {
+    listener?.beginConstantPattern(constKeyword);
+  }
+
+  @override
+  void endConstantPattern(Token? constKeyword) {
+    listener?.endConstantPattern(constKeyword);
   }
 
   @override
@@ -1929,6 +1986,11 @@ class ForwardingListener implements Listener {
   void handleAugmentSuperExpression(
       Token augmentToken, Token superToken, IdentifierContext context) {
     listener?.handleAugmentSuperExpression(augmentToken, superToken, context);
+  }
+
+  @override
+  void handleSwitchExpressionCasePattern(Token token) {
+    listener?.handleSwitchExpressionCasePattern(token);
   }
 
   @override

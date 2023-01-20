@@ -5,10 +5,10 @@ import "dart:_internal" as _in;
 
 static method test1(dynamic x) → dynamic {
   final dynamic #t1 = x;
-  final core::bool #t2 = true;
+  core::bool #t2 = true;
   dynamic #t3;
   final dynamic #t4 = #t1;
-  if(#t4 is core::List<dynamic> && #t4{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::==}(1){(core::Object) → core::bool}) {
+  if(#t4 is core::List<dynamic> && #t4{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} 1) {
     final dynamic #t5 = #t4{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic};
     final dynamic #t6 = #t5;
     if(#t6 is core::int) {
@@ -23,7 +23,7 @@ static method test1(dynamic x) → dynamic {
 }
 static method test2(dynamic x) → dynamic {
   final dynamic #t7 = x;
-  final core::bool #t8 = true;
+  core::bool #t8 = true;
   dynamic #t9;
   dynamic #t10;
   final dynamic #t11 = #t7;

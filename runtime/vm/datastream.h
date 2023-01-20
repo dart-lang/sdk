@@ -118,7 +118,7 @@ class ReadStream : public ValueObject {
     current_ = reinterpret_cast<const uint8_t*>(cursor);
     // With big-endian order and the has-more marker being 0, the correction
     // factor to remove the last-byte marker is a constant, which can be folded
-    // in to subsequent load offsets.
+    // into subsequent load offsets.
     return result + 128;
   }
 

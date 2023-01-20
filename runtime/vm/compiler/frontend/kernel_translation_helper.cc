@@ -26,7 +26,6 @@ namespace kernel {
 TranslationHelper::TranslationHelper(Thread* thread)
     : thread_(thread),
       zone_(thread->zone()),
-      isolate_(thread->isolate()),
       isolate_group_(thread->isolate_group()),
       allocation_space_(Heap::kNew),
       string_offsets_(TypedData::Handle(Z)),
@@ -42,7 +41,6 @@ TranslationHelper::TranslationHelper(Thread* thread)
 TranslationHelper::TranslationHelper(Thread* thread, Heap::Space space)
     : thread_(thread),
       zone_(thread->zone()),
-      isolate_(thread->isolate()),
       isolate_group_(thread->isolate_group()),
       allocation_space_(space),
       string_offsets_(TypedData::Handle(Z)),
@@ -2228,7 +2226,7 @@ void KernelReaderHelper::SkipDartType() {
       ReadNullability();
       SkipCanonicalNameReference();  // read index for canonical name.
       SkipListOfDartTypes();         // read type arguments
-      SkipDartType();                // read representation type.
+      SkipDartType();                // read instantiated representation type.
       break;
     }
     case kTypedefType:
@@ -3514,7 +3512,7 @@ void TypeTranslator::BuildInlineType() {
   helper_->ReadNullability();
   helper_->SkipCanonicalNameReference();  // read index for canonical name.
   helper_->SkipListOfDartTypes();         // read type arguments
-  BuildTypeInternal();                    // read representation type.
+  BuildTypeInternal();  // read instantiated representation type.
 }
 
 const TypeArguments& TypeTranslator::BuildTypeArguments(intptr_t length) {

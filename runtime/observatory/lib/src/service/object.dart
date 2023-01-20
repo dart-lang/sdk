@@ -58,7 +58,7 @@ class ServerRpcException extends RpcException implements M.RequestException {
   Map? data;
 
   static _getMessage(Map errorMap) {
-    Map data = errorMap['data'];
+    Map? data = errorMap['data'];
     if (data != null && data['details'] != null) {
       return data['details'];
     } else {
@@ -83,12 +83,14 @@ class NetworkRpcException extends RpcException
   String toString() => 'NetworkRpcException(${message})';
 }
 
-Future<ServiceObject?> ignoreNetworkErrors(Object error, StackTrace st,
-    [ServiceObject? resultOnNetworkError]) {
-  if (error is NetworkRpcException) {
-    return new Future.value(resultOnNetworkError);
-  }
-  return new Future.error(error, st);
+Future<void> ignoreNetworkErrors(Future<ServiceObject> future) {
+  // Can't use catchError because we're changing the future's type.
+  return future.then((value) => null, onError: (exception, stack) {
+    if (exception is NetworkRpcException) {
+      return null;
+    }
+    return new Future<void>.error(exception, stack);
+  });
 }
 
 class MalformedResponseRpcException extends RpcException {
@@ -418,9 +420,7 @@ abstract class HeapObject extends ServiceObject implements M.Object {
       if (clazz!.isolate!.runnable) {
         // No one awaits on this request so we silence any network errors
         // that occur here but forward other errors.
-        clazz!
-            .load()
-            .catchError((error, st) => ignoreNetworkErrors(error, st, clazz));
+        ignoreNetworkErrors(clazz!.load());
       }
     }
 
@@ -450,7 +450,7 @@ abstract class ServiceObjectOwner extends ServiceObject {
 }
 
 abstract class Location implements M.Location {
-  Script get script;
+  Script? get script;
   int? get tokenPos;
   Future<int?> getLine();
   Future<int?> getColumn();
@@ -505,7 +505,7 @@ class SourceLocation extends ServiceObject
 // code which has not been precisely mapped to a token position.
 class UnresolvedSourceLocation extends ServiceObject
     implements Location, M.UnresolvedSourceLocation {
-  late Script script;
+  Script? script;
   String? scriptUri;
   int? line;
   int? column;
@@ -513,8 +513,8 @@ class UnresolvedSourceLocation extends ServiceObject
 
   Future<int?> getLine() async {
     if (tokenPos != null) {
-      await script.load();
-      return script.tokenToLine(tokenPos);
+      await script!.load();
+      return script!.tokenToLine(tokenPos);
     } else {
       return line;
     }
@@ -522,8 +522,8 @@ class UnresolvedSourceLocation extends ServiceObject
 
   Future<int?> getColumn() async {
     if (tokenPos != null) {
-      await script.load();
-      return script.tokenToCol(tokenPos);
+      await script!.load();
+      return script!.tokenToCol(tokenPos);
     } else {
       return column;
     }
@@ -552,7 +552,7 @@ class UnresolvedSourceLocation extends ServiceObject
     int? column = await getColumn();
 
     if (script != null) {
-      sb.write('${script.name}:');
+      sb.write('${script!.name}:');
     } else {
       sb.write('${scriptUri}:');
     }
@@ -567,7 +567,7 @@ class UnresolvedSourceLocation extends ServiceObject
   String toString() {
     StringBuffer sb = new StringBuffer();
     if (script != null) {
-      sb.write('${script.name}:');
+      sb.write('${script!.name}:');
     } else {
       sb.write('${scriptUri}:');
     }
@@ -794,7 +794,7 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
       return this;
     }
 
-    String id = map['id'];
+    String? id = map['id'];
     if ((id != null)) {
       if (id.startsWith(_isolateIdPrefix)) {
         // Check cache.
@@ -962,22 +962,20 @@ abstract class VM extends ServiceObjectOwner implements M.VM {
     return invokeRpc("_enableProfiler", {});
   }
 
-  Future<ServiceObject> _streamListen(String streamId) {
+  Future<void> _streamListen(String streamId) {
     Map params = {
       'streamId': streamId,
     };
     // Ignore network errors on stream listen.
-    return invokeRpc('streamListen', params)
-        .catchError((e, st) => ignoreNetworkErrors(e, st));
+    return ignoreNetworkErrors(invokeRpc('streamListen', params));
   }
 
-  Future<ServiceObject> _streamCancel(String streamId) {
+  Future<void> _streamCancel(String streamId) {
     Map params = {
       'streamId': streamId,
     };
     // Ignore network errors on stream cancel.
-    return invokeRpc('streamCancel', params)
-        .catchError((e, st) => ignoreNetworkErrors(e, st));
+    return ignoreNetworkErrors(invokeRpc('streamCancel', params));
   }
 
   // A map from stream id to event stream state.
@@ -1168,9 +1166,9 @@ class InboundReferences implements M.InboundReferences {
 
 class InboundReference implements M.InboundReference {
   final ServiceObject /*HeapObject*/ source;
-  final HeapObject parentField;
-  final int parentListIndex;
-  final int parentWordOffset;
+  final dynamic parentField;
+  final int? parentListIndex;
+  final int? parentWordOffset;
 
   InboundReference(Map map)
       : source = map['source'],
@@ -1192,9 +1190,9 @@ class RetainingPath implements M.RetainingPath {
 
 class RetainingPathItem implements M.RetainingPathItem {
   final ServiceObject /*HeapObject*/ source;
-  final String parentField;
-  final int parentListIndex;
-  final int parentWordOffset;
+  final dynamic parentField;
+  final int? parentListIndex;
+  final int? parentWordOffset;
 
   RetainingPathItem(Map map)
       : source = map['value'],
@@ -1664,7 +1662,9 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     runnable = map['runnable'] == true;
     _upgradeCollection(map, isolate);
     originNumber = int.tryParse(map['_originNumber']);
-    rootLibrary = map['rootLib'];
+    if (map['rootLib'] != null) {
+      rootLibrary = map['rootLib'];
+    }
     if (map['entry'] != null) {
       entry = map['entry'];
     }
@@ -1886,8 +1886,8 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return invokeRpc('setName', {'name': newName});
   }
 
-  Future setExceptionPauseMode(String mode) {
-    return invokeRpc('setExceptionPauseMode', {'mode': mode});
+  Future setIsolatePauseMode(String mode) {
+    return invokeRpc('setIsolatePauseMode', {'exceptionPauseMode': mode});
   }
 
   Future<ServiceMap> getStack({int? limit}) {
@@ -2454,7 +2454,7 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
   }
 
   Future<void> setState(bool enable) {
-    return location!.script.isolate!.invokeRpcNoUpgrade('setBreakpointState', {
+    return location!.script!.isolate!.invokeRpcNoUpgrade('setBreakpointState', {
       'breakpointId': 'breakpoints/$number',
       'enable': enable,
     }).then((Map result) {
@@ -2463,7 +2463,7 @@ class Breakpoint extends ServiceObject implements M.Breakpoint {
   }
 
   void remove() {
-    location!.script._removeBreakpoint(this);
+    location!.script!._removeBreakpoint(this);
   }
 
   String toString() {
@@ -3232,8 +3232,10 @@ class ServiceFunction extends HeapObject implements M.ServiceFunction {
       Class ownerClass = dartOwner as Class;
       library = ownerClass.library;
       qualifiedName = "${ownerClass.name}.${name}";
-    } else {
+    } else if (dartOwner is Library) {
       library = dartOwner as Library;
+      qualifiedName = name;
+    } else {
       qualifiedName = name;
     }
 
@@ -3623,7 +3625,9 @@ class Script extends HeapObject implements M.Script {
     super._update(map, mapIsRef);
 
     uri = map['uri'];
-    kind = map['_kind'];
+    if (map['_kind'] != null) {
+      kind = map['_kind'];
+    }
     _shortUri = uri.substring(uri.lastIndexOf('/') + 1);
     name = _shortUri;
     vmName = uri;
@@ -3676,7 +3680,7 @@ class Script extends HeapObject implements M.Script {
     }
   }
 
-  void _processSource(String source) {
+  void _processSource(String? source) {
     if (source == null) {
       return;
     }
@@ -3761,7 +3765,7 @@ class Script extends HeapObject implements M.Script {
   }
 
   List<LocalVarLocation> scanForLocalVariableLocations(
-      String name, int tokenPos, int endTokenPos) {
+      String name, int? tokenPos, int? endTokenPos) {
     // A pattern that matches:
     // start of line OR non-(alpha numeric OR period) character followed by
     // name followed by
@@ -4177,7 +4181,7 @@ class CodeInstruction {
   final int pcOffset;
   final String machine;
   final String human;
-  final ServiceObject object;
+  final ServiceObject? object;
   CodeInstruction? jumpTarget;
   List<PcDescriptor> descriptors = <PcDescriptor>[];
 

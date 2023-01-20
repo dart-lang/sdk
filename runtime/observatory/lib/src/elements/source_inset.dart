@@ -76,7 +76,7 @@ class SourceInsetElement extends CustomElement implements Renderable {
   void render() {
     children = <Element>[
       new ScriptInsetElement(
-              _isolate, _location.script, _scripts, _objects, _events,
+              _isolate, _location.script!, _scripts, _objects, _events,
               startPos: _location.tokenPos,
               endPos: _location.endTokenPos,
               currentPos: _currentPos,

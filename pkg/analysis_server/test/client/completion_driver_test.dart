@@ -199,7 +199,7 @@ name: test
           return false;
         }
         // Library URIs are not available in protocol v1 so skip the check to
-        // allow the the same test to verify for v2.
+        // allow the same test to verify for v2.
         if (!isProtocolVersion1 &&
             libraryUri != null &&
             s.libraryUri != libraryUri) {
@@ -271,7 +271,7 @@ class BasicCompletionTest2 extends AbstractCompletionDriverTest
 }
 
 mixin BasicCompletionTestCases on AbstractCompletionDriverTest {
-  /// Duplicates (and potentially replaces DeprecatedMemberRelevanceTest).
+  /// Duplicates (and potentially replaces) [DeprecatedMemberRelevanceTest].
   Future<void> test_deprecated_member_relevance() async {
     await addTestFile('''
 class A {

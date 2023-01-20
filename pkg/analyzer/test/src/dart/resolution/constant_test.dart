@@ -8,6 +8,7 @@ import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
+import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -23,6 +24,7 @@ main() {
 @reflectiveTest
 class ConstantResolutionTest extends PubPackageResolutionTest {
   test_constructor_nullSafe_fromLegacy_super() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A(List<Object> a);
@@ -46,6 +48,7 @@ const b = B(a);
   }
 
   test_constructor_nullSafe_fromLegacy_this() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   const A(List<Object> a) : this(a);
@@ -87,6 +90,7 @@ class A<T, U> {
   }
 
   test_field_optIn_fromOptOut() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class A {
   static const foo = 42;
@@ -105,6 +109,7 @@ const bar = A.foo;
   }
 
   test_fromEnvironment_optOut_fromOptIn() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.5
 
@@ -133,6 +138,7 @@ const vString = cString;
   }
 
   test_topLevelVariable_optIn_fromOptOut() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 const foo = 42;
 ''');
@@ -150,6 +156,7 @@ const bar = foo;
   }
 
   test_topLevelVariable_optOut2() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 const a = 42;
 ''');
@@ -173,6 +180,7 @@ const c = b;
   }
 
   test_topLevelVariable_optOut3() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 // @dart = 2.7
 const a = int.fromEnvironment('a', defaultValue: 42);
@@ -409,6 +417,7 @@ extension E on int {
 
   /// See https://github.com/dart-lang/sdk/issues/43462
   test_useLanguageVersionOfEnclosingLibrary() async {
+    noSoundNullSafety = false;
     newFile('$testPackageLibPath/a.dart', r'''
 class Wrapper {
   final int value;

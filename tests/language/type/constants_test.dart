@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// SharedOptions=--enable-experiment=patterns,records
+
 // Test that the value of constant type literals are allowed as
 // constant map keys and case expressions, and the value of non-constant type
 // literals are not.
@@ -24,8 +26,9 @@ void testSwitch<T extends MyType>(args) {
   var types = [MyType, T, argumentType<MyType>(), argumentType<T>()];
   for (int i = 0; i < types.length; i++) {
     switch (types[i]) {
-      // Must be type literal or not override `==`.
-      case const MyType(0): //# 01: compile-time error
+      // A constantPattern expression does not have to have primitive equality.
+      case const MyType(0):
+        throw "unreachable: const MyType(0)";
 
       // Must not be type variable.
       case T: //# 02: compile-time error
@@ -43,7 +46,7 @@ void testSwitch<T extends MyType>(args) {
       case MyType:
         break;
       // Must be type literal or not override `==`.
-      case fromEnvironment ? const MyType(1) : Type: //# 07: compile-time error
+      case fromEnvironment ? const MyType(1) : Type: //# 07: syntax error
       default:
         throw "unreachable: default #$i";
     }

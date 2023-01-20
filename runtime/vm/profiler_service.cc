@@ -1559,9 +1559,6 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
   obj->AddProperty("maxStackDepth",
                    static_cast<intptr_t>(FLAG_max_profile_depth));
   obj->AddProperty("sampleCount", sample_count());
-  // TODO(bkonyi): remove timeSpan after next major revision.
-  ASSERT(SERVICE_PROTOCOL_MAJOR_VERSION == 3);
-  obj->AddProperty64("timeSpan", -1);
   obj->AddPropertyTimeMicros("timeOriginMicros", min_time());
   obj->AddPropertyTimeMicros("timeExtentMicros", GetTimeSpan());
   obj->AddProperty64("pid", pid);

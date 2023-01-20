@@ -4,6 +4,12 @@ import "dart:core" as core;
 
 static method f(dynamic x) → void {
   final dynamic #t1 = x;
-  if(#t1 =={core::Object::==}{(core::Object) → core::bool} 0) {
+  if(#t1 =={core::Object::==}{(core::Object) → core::bool} #C1) {
+    if(true) {
+    }
   }
+}
+
+constants  {
+  #C1 = 0
 }

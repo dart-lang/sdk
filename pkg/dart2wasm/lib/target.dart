@@ -7,8 +7,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/js_interop.dart' as jsInteropHelper;
 import 'package:_js_interop_checks/src/transformations/export_creator.dart';
-import 'package:_js_interop_checks/src/transformations/js_util_wasm_optimizer.dart';
-import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
@@ -59,6 +57,7 @@ class WasmTarget extends Target {
         'dart:_internal',
         'dart:_http',
         'dart:_js_helper',
+        'dart:_js_interop',
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:io',
@@ -77,6 +76,23 @@ class WasmTarget extends Target {
         'dart:js_util',
         'dart:wasm',
       ];
+
+  @override
+  bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
+      super.allowPlatformPrivateLibraryAccess(importer, imported) ||
+      _allowedTestLibrary(importer, imported);
+
+  /// Returns whether [importer] is a script that is allowed to import
+  /// [imported] for testing purposes.
+  bool _allowedTestLibrary(Uri importer, Uri imported) {
+    // TODO(srujzs): This enables using `dart:_js_interop` in these tests.
+    // Remove `allowPlatformPrivateLibraryAccess` once we make it public.
+    return imported.toString() == 'dart:_js_interop' &&
+        [
+          'tests/lib/js/static_interop_test',
+          'tests/lib_2/js/static_interop_test',
+        ].any((pattern) => importer.path.contains(pattern));
+  }
 
   void _patchHostEndian(CoreTypes coreTypes) {
     // Fix Endian.host to be a const field equal to Endian.little instead of
@@ -112,19 +128,8 @@ class WasmTarget extends Target {
     }
     final exportCreator = ExportCreator(TypeEnvironment(coreTypes, hierarchy),
         diagnosticReporter, jsInteropChecks.exportChecker);
-    final jsUtilOptimizer = JsUtilWasmOptimizer(coreTypes, hierarchy);
     for (Library library in interopDependentLibraries) {
       exportCreator.visitLibrary(library);
-      jsUtilOptimizer.visitLibrary(library);
-    }
-    // Do the erasure after any possible mock creation to avoid erasing types
-    // that need to be used during mock conformance checking.
-    final staticInteropClassEraser = StaticInteropClassEraser(
-        coreTypes, referenceFromIndex,
-        libraryForJavaScriptObject: 'dart:_js_helper',
-        classNameOfJavaScriptObject: 'JSValue');
-    for (Library library in interopDependentLibraries) {
-      staticInteropClassEraser.visitLibrary(library);
     }
   }
 
@@ -187,7 +192,8 @@ class WasmTarget extends Target {
       logger?.call("Transformed ffi annotations");
     }
 
-    wasmTrans.transformLibraries(libraries, coreTypes, hierarchy);
+    wasmTrans.transformLibraries(
+        libraries, coreTypes, hierarchy, diagnosticReporter);
   }
 
   @override
@@ -209,6 +215,7 @@ class WasmTarget extends Target {
       return StaticInvocation(invocationSetter,
           Arguments([SymbolLiteral(name), arguments.positional.single]));
     } else if (name.startsWith("get:")) {
+      name = name.substring(4);
       Procedure invocationGetter = coreTypes.invocationClass.procedures
           .firstWhere((c) => c.name.text == "getter");
       return StaticInvocation(

@@ -7,6 +7,7 @@ import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -41,6 +42,9 @@ abstract class RefactoringProducer {
   /// Return the node that was selected, or `null` if the selection is not
   /// valid.
   AstNode? get selectedNode => _context.selectedNode;
+
+  /// Return the selection, or `null` if the selection is not valid.
+  Selection? get selection => _context.selection;
 
   /// Return the offset of the first character after the selection range.
   int get selectionEnd => selectionOffset + selectionLength;

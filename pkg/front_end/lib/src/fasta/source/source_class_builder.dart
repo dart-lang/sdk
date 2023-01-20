@@ -111,6 +111,15 @@ class SourceClassBuilder extends ClassBuilderImpl
   final bool isSealed;
 
   @override
+  final bool isBase;
+
+  @override
+  final bool isInterface;
+
+  @override
+  final bool isFinal;
+
+  @override
   final bool isAugmentation;
 
   @override
@@ -158,6 +167,9 @@ class SourceClassBuilder extends ClassBuilderImpl
       this.isMixinDeclaration = false,
       this.isMacro = false,
       this.isSealed = false,
+      this.isBase = false,
+      this.isInterface = false,
+      this.isFinal = false,
       this.isAugmentation = false,
       this.isMixinClass = false})
       : actualCls = initializeClass(cls, typeVariables, name, parent,
@@ -278,6 +290,9 @@ class SourceClassBuilder extends ClassBuilderImpl
     cls.isMacro = isMacro;
     cls.isMixinClass = isMixinClass;
     cls.isSealed = isSealed;
+    cls.isBase = isBase;
+    cls.isInterface = isInterface;
+    cls.isFinal = isFinal;
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         interfaceBuilders![i] = _checkSupertype(interfaceBuilders![i]);
@@ -787,6 +802,32 @@ class SourceClassBuilder extends ClassBuilderImpl
         superClass = decl;
       }
     }
+    if (cls.isMixinClass) {
+      // Check that the class does not have a constructor.
+      Iterator<SourceMemberBuilder> constructorIterator =
+          fullConstructorIterator<SourceMemberBuilder>();
+      while (constructorIterator.moveNext()) {
+        SourceMemberBuilder constructor = constructorIterator.current;
+        // Assumes the constructor isn't synthetic since
+        // [installSyntheticConstructors] hasn't been called yet.
+        addProblem(
+            templateIllegalMixinDueToConstructors
+                .withArguments(fullNameForErrors),
+            charOffset,
+            noLength,
+            context: [
+              templateIllegalMixinDueToConstructorsCause
+                  .withArguments(fullNameForErrors)
+                  .withLocation(
+                      constructor.fileUri!, constructor.charOffset, noLength)
+            ]);
+      }
+      // Check that the class has 'Object' as their superclass.
+      if (superClass != null && superClass.cls != objectClass) {
+        addProblem(templateMixinInheritsFromNotObject.withArguments(name),
+            charOffset, noLength);
+      }
+    }
     if (classHierarchyNode.isMixinApplication) {
       assert(mixedInTypeBuilder != null,
           "No mixed in type builder for mixin application $this.");
@@ -878,7 +919,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       InterfaceType requiredInterface =
           substitution.substituteSupertype(constraint).asInterfaceType;
       InterfaceType? implementedInterface = hierarchy.getTypeAsInstanceOf(
-          supertype, requiredInterface.classNode, libraryBuilder.library);
+          supertype, requiredInterface.classNode,
+          isNonNullableByDefault: libraryBuilder.isNonNullableByDefault);
       if (implementedInterface == null ||
           !typeEnvironment.areMutualSubtypes(
               implementedInterface,

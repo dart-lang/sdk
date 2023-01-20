@@ -7,16 +7,17 @@ static method test(dynamic x) → dynamic {
   {
     dynamic #t1;
     final dynamic #t2 = x;
-    final core::int #t3 = -1;
-    final core::bool #t4 = false;
+    core::int #t3 = -1;
+    core::bool #t4 = false;
     if(!#t4) {
       final dynamic #t5 = #t2;
       if(!(#t5 == null)) {
         final dynamic #t6 = #t5;
         if(#t6 is core::int) {
+          final core::int y = #t6{core::int};
           #t3 = 0;
           #t4 = true;
-          #t1 = #t6{core::int};
+          #t1 = y;
         }
       }
     }

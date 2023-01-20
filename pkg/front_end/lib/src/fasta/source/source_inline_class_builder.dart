@@ -93,6 +93,7 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
   InlineClass build(LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
     DartType representationType;
+    String representationName;
     if (representationFieldBuilder != null) {
       TypeBuilder typeBuilder = representationFieldBuilder!.type;
       if (typeBuilder.isExplicit) {
@@ -101,10 +102,13 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
       } else {
         representationType = const DynamicType();
       }
+      representationName = representationFieldBuilder!.name;
     } else {
       representationType = const InvalidType();
+      representationName = '#';
     }
     _inlineClass.declaredRepresentationType = representationType;
+    _inlineClass.representationName = representationName;
 
     buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
 

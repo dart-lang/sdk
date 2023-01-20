@@ -24,7 +24,8 @@ class EditGetAssistsHandler extends LegacyHandler
     with RequestHandlerMixin<LegacyAnalysisServer> {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
-  EditGetAssistsHandler(super.server, super.request, super.cancellationToken);
+  EditGetAssistsHandler(
+      super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {
@@ -40,19 +41,23 @@ class EditGetAssistsHandler extends LegacyHandler
     // Allow plugins to start computing assists.
     //
     var requestParams = plugin.EditGetAssistsParams(file, offset, length);
-    var driver = server.getAnalysisDriver(file);
+    var driver = performance.run(
+        "getAnalysisDriver", (_) => server.getAnalysisDriver(file));
     var pluginFutures = server.broadcastRequestToPlugins(requestParams, driver);
 
     //
     // Compute fixes associated with server-generated errors.
     //
-    var changes = await _computeServerAssists(request, file, offset, length);
+    var changes = await performance.runAsync("_computeServerAssists",
+        (_) => _computeServerAssists(request, file, offset, length));
 
     //
     // Add the fixes produced by plugins to the server-generated fixes.
     //
-    var responses =
-        await waitForResponses(pluginFutures, requestParameters: requestParams);
+    var responses = await performance.runAsync(
+        "waitForResponses",
+        (_) =>
+            waitForResponses(pluginFutures, requestParameters: requestParams));
     server.requestStatistics?.addItemTimeNow(request, 'pluginResponses');
     var converter = ResultConverter();
     var pluginChanges = <plugin.PrioritizedSourceChange>[];

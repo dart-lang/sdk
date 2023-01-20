@@ -6,10 +6,6 @@ library /*isNonNullableByDefault*/;
 //   Extension(c);
 //   ^^^^^^^^^
 //
-// pkg/front_end/testcases/extensions/explicit_invalid_access.dart:11:3: Error: Explicit extension application cannot be a target for assignment.
-//   Extension(c) = 42;
-//   ^^^^^^^^^
-//
 // pkg/front_end/testcases/extensions/explicit_invalid_access.dart:12:3: Error: Explicit extension application cannot be used as an expression.
 //   Extension(c) += 42;
 //   ^^^^^^^^^
@@ -24,6 +20,7 @@ library /*isNonNullableByDefault*/;
 //
 import self as self;
 import "dart:core" as core;
+import "dart:_internal" as _in;
 
 class Class extends core::Object {
   synthetic constructor •() → self::Class
@@ -36,9 +33,13 @@ static method errors(self::Class c) → dynamic {
   invalid-expression "pkg/front_end/testcases/extensions/explicit_invalid_access.dart:10:3: Error: Explicit extension application cannot be used as an expression.
   Extension(c);
   ^^^^^^^^^";
-  invalid-expression "pkg/front_end/testcases/extensions/explicit_invalid_access.dart:11:3: Error: Explicit extension application cannot be a target for assignment.
-  Extension(c) = 42;
-  ^^^^^^^^^";
+  block {
+    final dynamic #t1 = 42;
+    core::bool #t2 = true;
+    #t2 = false;
+    if(#t2)
+      throw new _in::ReachabilityError::•();
+  } =>#t1;
   invalid-expression "pkg/front_end/testcases/extensions/explicit_invalid_access.dart:12:3: Error: Explicit extension application cannot be used as an expression.
   Extension(c) += 42;
   ^^^^^^^^^";

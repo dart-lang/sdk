@@ -21,12 +21,14 @@ void f(int x) {
   if (x case var a && var a) {}
 }
 ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 33, 1),
       error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 42, 1,
           contextMessages: [message('/home/test/lib/test.dart', 33, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 42, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalAndPattern
   leftOperand: DeclaredVariablePattern
     keyword: var
     name: a
@@ -50,12 +52,14 @@ void f(int x) {
   }
 }
 ''', [
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 44, 1),
       error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 53, 1,
           contextMessages: [message('/home/test/lib/test.dart', 44, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 53, 1),
     ]);
     final node = findNode.singleGuardedPattern.pattern;
     assertResolvedNodeText(node, r'''
-BinaryPattern
+LogicalAndPattern
   leftOperand: DeclaredVariablePattern
     keyword: var
     name: a
@@ -73,11 +77,13 @@ BinaryPattern
   test_variableDeclaration() async {
     await assertErrorsInCode(r'''
 void f(x) {
-  var (var a, var a) = x;
+  var (a, a) = x;
 }
 ''', [
-      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 30, 1,
-          contextMessages: [message('/home/test/lib/test.dart', 23, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 19, 1),
+      error(CompileTimeErrorCode.DUPLICATE_VARIABLE_PATTERN, 22, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 19, 1)]),
+      error(HintCode.UNUSED_LOCAL_VARIABLE, 22, 1),
     ]);
   }
 }

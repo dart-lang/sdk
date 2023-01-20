@@ -42,7 +42,7 @@ class Range {
 
   intptr_t Length() const { return end_exclusive_ - start_; }
 
-  // Returs true iff number is in this range.
+  // Returns true iff number is in this range.
   bool Contains(intptr_t number) const {
     return start_ <= number && number < end_exclusive_;
   }

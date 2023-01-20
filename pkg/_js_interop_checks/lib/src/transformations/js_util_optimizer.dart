@@ -7,7 +7,12 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/type_environment.dart';
 
-import '../js_interop.dart' show getJSName, hasTrustTypesAnnotation;
+import '../js_interop.dart'
+    show
+        getJSName,
+        hasInternalJSInteropAnnotation,
+        hasStaticInteropAnnotation,
+        hasTrustTypesAnnotation;
 
 /// Replaces js_util methods with inline calls to foreign_helper JS which
 /// emits the code as a JavaScript code fragment.
@@ -20,6 +25,8 @@ class JsUtilOptimizer extends Transformer {
   final List<Procedure> _callConstructorUncheckedTargets;
   final Procedure _getPropertyTarget;
   final Procedure _getPropertyTrustTypeTarget;
+  final Procedure _globalThisTarget;
+  final InterfaceType _objectType;
   final Procedure _setPropertyTarget;
   final Procedure _setPropertyUncheckedTarget;
 
@@ -41,6 +48,11 @@ class JsUtilOptimizer extends Transformer {
   final StatefulStaticTypeContext _staticTypeContext;
   Map<Reference, ExtensionMemberDescriptor>? _extensionMemberIndex;
   late Set<Reference> _shouldTrustType;
+
+  static const Set<String> _existingJsAnnotationsUsers = {
+    'dart:_engine',
+    'dart:ui'
+  };
 
   JsUtilOptimizer(this._coreTypes, ClassHierarchy hierarchy)
       : _callMethodTarget =
@@ -65,6 +77,9 @@ class JsUtilOptimizer extends Transformer {
             .getTopLevelProcedure('dart:js_util', 'getProperty'),
         _getPropertyTrustTypeTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', '_getPropertyTrustType'),
+        _globalThisTarget = _coreTypes.index
+            .getTopLevelProcedure('dart:js_util', 'get:globalThis'),
+        _objectType = hierarchy.coreTypes.objectNonNullableRawType,
         _setPropertyTarget = _coreTypes.index
             .getTopLevelProcedure('dart:js_util', 'setProperty'),
         _setPropertyUncheckedTarget = _coreTypes.index
@@ -102,30 +117,108 @@ class JsUtilOptimizer extends Transformer {
   visitProcedure(Procedure node) {
     _staticTypeContext.enterMember(node);
     ReturnStatement? transformedBody;
-    if (node.isExternal && node.isExtensionMember) {
-      var index = _extensionMemberIndex ??=
-          _createExtensionMembersIndex(node.enclosingLibrary);
-      Reference reference = node.reference;
-      var nodeDescriptor = index[reference]!;
-      bool shouldTrustType = _shouldTrustType.contains(reference);
-      if (!nodeDescriptor.isStatic) {
-        if (nodeDescriptor.kind == ExtensionMemberKind.Getter) {
-          transformedBody = _getExternalGetterBody(node, shouldTrustType);
-        } else if (nodeDescriptor.kind == ExtensionMemberKind.Setter) {
-          transformedBody = _getExternalSetterBody(node);
-        } else if (nodeDescriptor.kind == ExtensionMemberKind.Method) {
-          transformedBody = _getExternalMethodBody(node, shouldTrustType);
+    if (node.isExternal) {
+      if (node.isExtensionMember) {
+        var index = _extensionMemberIndex ??=
+            _createExtensionMembersIndex(node.enclosingLibrary);
+        Reference reference = node.reference;
+        var nodeDescriptor = index[reference]!;
+        bool shouldTrustType = _shouldTrustType.contains(reference);
+        if (!nodeDescriptor.isStatic) {
+          if (nodeDescriptor.kind == ExtensionMemberKind.Getter) {
+            transformedBody = _getExternalGetterBody(node, shouldTrustType);
+          } else if (nodeDescriptor.kind == ExtensionMemberKind.Setter) {
+            transformedBody = _getExternalSetterBody(node);
+          } else if (nodeDescriptor.kind == ExtensionMemberKind.Method) {
+            transformedBody = _getExternalMethodBody(node, shouldTrustType);
+          }
+        }
+      } else if (node.isStatic &&
+          ((node.enclosingClass != null &&
+                  hasStaticInteropAnnotation(node.enclosingClass!)) ||
+              // We only lower top-levels if we're using the
+              // `dart:_js_annotations`' `@JS` annotation to avoid a breaking
+              // change for `package:js` users. There are some internal
+              // libraries that already use this library, so we exclude them
+              // here.
+              // TODO(srujzs): When they're ready to migrate to sound semantics,
+              // we should remove this exception.
+              ((hasInternalJSInteropAnnotation(node) ||
+                      hasInternalJSInteropAnnotation(node.enclosingLibrary)) &&
+                  !_existingJsAnnotationsUsers
+                      .contains(node.enclosingLibrary.importUri.toString())))) {
+        // Fetch the dotted prefix of the member.
+        var libraryName = getJSName(node.enclosingLibrary);
+        var dottedPrefix = libraryName;
+        var enclosingClass = node.enclosingClass;
+        var shouldTrustType = false;
+        if (enclosingClass == null) {
+          // Top-level. If the `@JS` value of the node has any '.'s, we take the
+          // entries before the last '.' to determine the dotted prefix name.
+          var jsName = getJSName(node);
+          if (jsName.isNotEmpty) {
+            var lastDotIndex = jsName.lastIndexOf('.');
+            if (lastDotIndex >= 0) {
+              dottedPrefix = _getCombinedJSName(
+                  dottedPrefix, jsName.substring(0, lastDotIndex));
+            }
+          }
+        } else if (hasStaticInteropAnnotation(enclosingClass)) {
+          // Class static member, use the class name as part of the dotted
+          // prefix.
+          var className = getJSName(enclosingClass);
+          if (className.isEmpty) className = enclosingClass.name;
+          dottedPrefix = _getCombinedJSName(dottedPrefix, className);
+          shouldTrustType = hasTrustTypesAnnotation(enclosingClass);
+        }
+        var receiver = _getObjectOffGlobalThis(
+            node, dottedPrefix.isEmpty ? [] : dottedPrefix.split('.'));
+        if (node.kind == ProcedureKind.Getter) {
+          transformedBody =
+              _getExternalGetterBody(node, shouldTrustType, receiver);
+        } else if (node.kind == ProcedureKind.Setter) {
+          transformedBody = _getExternalSetterBody(node, receiver);
+        } else if (node.kind == ProcedureKind.Method) {
+          transformedBody =
+              _getExternalMethodBody(node, shouldTrustType, receiver);
         }
       }
     }
     if (transformedBody != null) {
       node.function.body = transformedBody;
+      transformedBody.parent = node.function;
       node.isExternal = false;
     } else {
       node.transformChildren(this);
     }
     _staticTypeContext.leaveMember(node);
     return node;
+  }
+
+  /// Given two `@JS` values, combines them into a qualified name using '.'.
+  ///
+  /// If either parameters are empty, returns the other.
+  String _getCombinedJSName(String prefix, String suffix) {
+    if (prefix.isEmpty) return suffix;
+    if (suffix.isEmpty) return prefix;
+    return '$prefix.$suffix';
+  }
+
+  /// Given a list of strings, [selectors], recursively fetches the property
+  /// that corresponds to each string off of the `globalThis` object.
+  ///
+  /// Returns an expression that contains the nested property gets.
+  Expression _getObjectOffGlobalThis(Procedure node, List<String> selectors) {
+    Expression currentTarget = StaticGet(_globalThisTarget)
+      ..fileOffset = node.fileOffset;
+    for (String selector in selectors) {
+      currentTarget = StaticInvocation(
+          _getPropertyTrustTypeTarget,
+          Arguments([currentTarget, StringLiteral(selector)],
+              types: [_objectType]))
+        ..fileOffset = node.fileOffset;
+    }
+    return currentTarget;
   }
 
   /// Returns and initializes `_extensionMemberIndex` to an index of the member
@@ -151,17 +244,23 @@ class JsUtilOptimizer extends Transformer {
   /// Returns a new function body for the given [node] external getter.
   ///
   /// The new function body will call the optimized version of
-  /// `js_util.getProperty` for the given external getter.
-  ReturnStatement _getExternalGetterBody(Procedure node, bool shouldTrustType) {
+  /// `js_util.getProperty` for the given external getter. If [shouldTrustType]
+  /// is true, we call a variant that does not check the return type. If
+  /// [receiver] is non-null, we use that instead of the first positional
+  /// parameter as the receiver for `js_util.getProperty`.
+  ReturnStatement _getExternalGetterBody(Procedure node, bool shouldTrustType,
+      [Expression? receiver]) {
     var function = node.function;
-    assert(function.positionalParameters.length == 1);
+    // Parameter `this` only exists for instance extension members.
+    assert(function.positionalParameters.length ==
+        (_isInstanceExtensionMember(node) ? 1 : 0));
     Procedure target =
         shouldTrustType ? _getPropertyTrustTypeTarget : _getPropertyTarget;
     var getPropertyInvocation = StaticInvocation(
         target,
         Arguments([
-          VariableGet(function.positionalParameters.first),
-          StringLiteral(_getExtensionMemberName(node))
+          receiver ?? VariableGet(function.positionalParameters.first),
+          StringLiteral(_getMemberJSName(node))
         ], types: [
           function.returnType
         ]))
@@ -172,16 +271,21 @@ class JsUtilOptimizer extends Transformer {
   /// Returns a new function body for the given [node] external setter.
   ///
   /// The new function body will call the optimized version of
-  /// `js_util.setProperty` for the given external setter.
-  ReturnStatement _getExternalSetterBody(Procedure node) {
+  /// `js_util.setProperty` for the given external setter. If [receiver] is
+  /// non-null, we use that instead of the first positional parameter as the
+  /// receiver for `js_util.setProperty`.
+  ReturnStatement _getExternalSetterBody(Procedure node,
+      [Expression? receiver]) {
     var function = node.function;
-    assert(function.positionalParameters.length == 2);
+    // Parameter `this` only exists for instance extension members.
+    assert(function.positionalParameters.length ==
+        (_isInstanceExtensionMember(node) ? 2 : 1));
     var value = function.positionalParameters.last;
     var setPropertyInvocation = StaticInvocation(
         _setPropertyTarget,
         Arguments([
-          VariableGet(function.positionalParameters.first),
-          StringLiteral(_getExtensionMemberName(node)),
+          receiver ?? VariableGet(function.positionalParameters.first),
+          StringLiteral(_getMemberJSName(node)),
           VariableGet(value)
         ], types: [
           value.type
@@ -193,18 +297,26 @@ class JsUtilOptimizer extends Transformer {
   /// Returns a new function body for the given [node] external method.
   ///
   /// The new function body will call the optimized version of
-  /// `js_util.callMethod` for the given external method.
-  ReturnStatement _getExternalMethodBody(Procedure node, bool shouldTrustType) {
+  /// `js_util.callMethod` for the given external method. If [shouldTrustType]
+  /// is true, we call a variant that does not check the return type. If
+  /// [receiver] is non-null, we use that instead of the first positional
+  /// parameter as the receiver for `js_util.callMethod`.
+  ReturnStatement _getExternalMethodBody(Procedure node, bool shouldTrustType,
+      [Expression? receiver]) {
     var function = node.function;
     Procedure target =
         shouldTrustType ? _callMethodTrustTypeTarget : _callMethodTarget;
+    var positionalParameters = function.positionalParameters;
+    if (_isInstanceExtensionMember(node)) {
+      // Ignore `this` for instance extension members.
+      positionalParameters = positionalParameters.sublist(1);
+    }
     var callMethodInvocation = StaticInvocation(
         target,
         Arguments([
-          VariableGet(function.positionalParameters.first),
-          StringLiteral(_getExtensionMemberName(node)),
-          ListLiteral(function.positionalParameters
-              .sublist(1)
+          receiver ?? VariableGet(function.positionalParameters.first),
+          StringLiteral(_getMemberJSName(node)),
+          ListLiteral(positionalParameters
               .map<Expression>((argument) => VariableGet(argument))
               .toList())
         ], types: [
@@ -215,17 +327,29 @@ class JsUtilOptimizer extends Transformer {
         shouldTrustType: shouldTrustType));
   }
 
-  /// Returns the extension member name.
+  /// Return whether [node] is an extension member that's declared as
+  /// non-`static`.
+  bool _isInstanceExtensionMember(Member node) =>
+      node.isExtensionMember &&
+      !_extensionMemberIndex![node.reference]!.isStatic;
+
+  /// Returns the underlying JS name.
   ///
   /// Returns either the name from the `@JS` annotation if non-empty, or the
-  /// declared name of the extension member. Does not return the CFE generated
-  /// name for the top level member for this extension member.
-  String _getExtensionMemberName(Procedure node) {
+  /// declared name of the member. In the case of an extension member, this
+  /// does not return the CFE generated name for the top level member.
+  String _getMemberJSName(Procedure node) {
     var jsAnnotationName = getJSName(node);
     if (jsAnnotationName.isNotEmpty) {
-      return jsAnnotationName;
+      // In the case of top-level external members, this may contain '.'. The
+      // namespacing before the last '.' should be resolved when we provide a
+      // receiver to the lowerings. Here, we just take the final identifier.
+      return jsAnnotationName.split('.').last;
     }
-    return _extensionMemberIndex![node.reference]!.name.text;
+    if (node.isExtensionMember) {
+      return _extensionMemberIndex![node.reference]!.name.text;
+    }
+    return node.name.text;
   }
 
   /// Replaces js_util method calls with optimization when possible.
@@ -286,12 +410,13 @@ class JsUtilOptimizer extends Transformer {
         node, targets, arguments.positional.sublist(0, 2));
   }
 
-  /// Lowers the given js_util `callConstructor` call to `_callConstructorUncheckedN`
-  /// when the additional validation checks on the arguments can be elided.
+  /// Lowers the given js_util `callConstructor` call to
+  /// `_callConstructorUncheckedN` when the additional validation checks on the
+  /// arguments can be elided.
   ///
   /// Calls will be lowered when using a List literal or constant list with 0-4
-  /// elements for the `callConstructor` arguments, or the `List.empty()` factory.
-  /// Removing the checks allows further inlining by the compilers.
+  /// elements for the `callConstructor` arguments, or the `List.empty()`
+  /// factory. Removing the checks allows further inlining by the compilers.
   StaticInvocation _lowerCallConstructor(StaticInvocation node) {
     Arguments arguments = node.arguments;
     assert(arguments.positional.length == 2);

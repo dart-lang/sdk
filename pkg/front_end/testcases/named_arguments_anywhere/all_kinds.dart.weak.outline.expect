@@ -24,6 +24,7 @@ extension E on self::A {
   tearoff method1 = self::E|get#method1;
   method method2 = self::E|method2;
   tearoff method2 = self::E|get#method2;
+  static method staticMethod2 = self::E|staticMethod2;
 }
 static method foo(core::int x, core::int y, {required core::int z}) → dynamic
   ;
@@ -35,6 +36,8 @@ static method E|method2(lowered final self::A #this, core::int bar, {core::int? 
   ;
 static method E|get#method2(lowered final self::A #this) → (core::int, {foo: core::int?}) → dynamic
   return (core::int bar, {core::int? foo}) → dynamic => self::E|method2(#this, bar, foo: foo);
+static method E|staticMethod2(core::int bar, {core::int? foo}) → dynamic
+  ;
 static method test(dynamic d, core::Function f, self::A a) → dynamic
   ;
 static method main() → dynamic

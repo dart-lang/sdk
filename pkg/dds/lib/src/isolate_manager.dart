@@ -242,7 +242,7 @@ class IsolateManager {
           }
         }
         if (dds.cachedUserTags.isNotEmpty) {
-          await dds.vmServiceClient.sendRequest(
+          await dds.vmServiceClient.sendRequestAndIgnoreMethodNotFound(
             'streamCpuSamplesWithUserTag',
             {
               'userTags': dds.cachedUserTags,

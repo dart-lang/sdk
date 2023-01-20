@@ -777,6 +777,47 @@ PropertyAccess
   staticType: dynamic
 ''');
   }
+
+  test_ofSwitchExpression() async {
+    await assertNoErrorsInCode('''
+void f(Object? x) {
+  (switch (x) {
+    _ => 0,
+  }.isEven);
+}
+''');
+
+    var node = findNode.propertyAccess('.isEven');
+    assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: SwitchExpression
+    switchKeyword: switch
+    leftParenthesis: (
+    expression: SimpleIdentifier
+      token: x
+      staticElement: self::@function::f::@parameter::x
+      staticType: Object?
+    rightParenthesis: )
+    leftBracket: {
+    cases
+      SwitchExpressionCase
+        guardedPattern: GuardedPattern
+          pattern: WildcardPattern
+            name: _
+        arrow: =>
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+    rightBracket: }
+    staticType: int
+  operator: .
+  propertyName: SimpleIdentifier
+    token: isEven
+    staticElement: dart:core::@class::int::@getter::isEven
+    staticType: bool
+  staticType: bool
+''');
+  }
 }
 
 mixin PropertyAccessResolutionTestCases on PubPackageResolutionTest {

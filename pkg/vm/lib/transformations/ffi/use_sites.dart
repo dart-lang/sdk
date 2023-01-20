@@ -549,8 +549,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     return ConstructorInvocation(constructor, Arguments([pointer]));
   }
 
-  /// Replaces a `.ref=` or `[]=` on a compound pointer extension with a memcopy
-  /// call.
+  /// Replaces a `.ref=` or `[]=` on a compound pointer extension with a mem
+  /// copy call.
   Expression _replaceSetRef(StaticInvocation node) {
     final target = node.arguments.positional[0]; // Receiver of extension
 
@@ -755,6 +755,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         klass == structClass ||
         klass == unionClass ||
         klass == abiSpecificIntegerClass ||
+        klass == varArgsClass ||
         classNativeTypes[klass] != null) {
       return null;
     }

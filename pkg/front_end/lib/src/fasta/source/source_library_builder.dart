@@ -1795,6 +1795,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int supertypeOffset,
       {required bool isMacro,
       required bool isSealed,
+      required bool isBase,
+      required bool isInterface,
+      required bool isFinal,
       required bool isAugmentation,
       required bool isMixinClass}) {
     _addClass(
@@ -1812,6 +1815,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         supertypeOffset,
         isMacro: isMacro,
         isSealed: isSealed,
+        isBase: isBase,
+        isInterface: isInterface,
+        isFinal: isFinal,
         isAugmentation: isAugmentation,
         isMixinClass: isMixinClass);
   }
@@ -1828,6 +1834,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int endOffset,
       int supertypeOffset,
       {required bool isSealed,
+      required bool isBase,
+      required bool isInterface,
+      required bool isFinal,
       required bool isAugmentation}) {
     TypeBuilder? supertype;
     MixinApplicationBuilder? mixinApplication;
@@ -1855,6 +1864,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         supertypeOffset,
         isMacro: false,
         isSealed: isSealed,
+        isBase: isBase,
+        isInterface: isInterface,
+        isFinal: isFinal,
         isAugmentation: isAugmentation,
         isMixinClass: false);
   }
@@ -1874,6 +1886,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int supertypeOffset,
       {required bool isMacro,
       required bool isSealed,
+      required bool isBase,
+      required bool isInterface,
+      required bool isFinal,
       required bool isAugmentation,
       required bool isMixinClass}) {
     // Nested declaration began in `OutlineBuilder.beginClassDeclaration`.
@@ -1914,6 +1929,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             typeVariables: typeVariables,
             isMacro: false,
             isSealed: false,
+            isBase: false,
+            isInterface: false,
+            isFinal: false,
             // TODO(johnniwinther): How can we support class with mixins?
             isAugmentation: false,
             isMixinClass: false),
@@ -1932,6 +1950,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         isMixinDeclaration: isMixinDeclaration,
         isMacro: isMacro,
         isSealed: isSealed,
+        isBase: isBase,
+        isInterface: isInterface,
+        isFinal: isFinal,
         isAugmentation: isAugmentation,
         isMixinClass: isMixinClass);
 
@@ -2286,6 +2307,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       List<TypeBuilder>? interfaces,
       required bool isMacro,
       required bool isSealed,
+      required bool isBase,
+      required bool isInterface,
+      required bool isFinal,
       required bool isAugmentation,
       required bool isMixinClass}) {
     if (name == null) {
@@ -2523,6 +2547,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
             isMacro: isNamedMixinApplication && isMacro,
             isSealed: isNamedMixinApplication && isSealed,
+            isBase: isNamedMixinApplication && isBase,
+            isInterface: isNamedMixinApplication && isInterface,
+            isFinal: isNamedMixinApplication && isFinal,
             isAugmentation: isNamedMixinApplication && isAugmentation,
             isMixinClass: isNamedMixinApplication && isMixinClass);
         // TODO(ahe, kmillikin): Should always be true?
@@ -2584,6 +2611,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charEndOffset,
       {required bool isMacro,
       required bool isSealed,
+      required bool isBase,
+      required bool isInterface,
+      required bool isFinal,
       required bool isAugmentation,
       required bool isMixinClass}) {
     // Nested declaration began in `OutlineBuilder.beginNamedMixinApplication`.
@@ -2598,6 +2628,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         interfaces: interfaces,
         isMacro: isMacro,
         isSealed: isSealed,
+        isBase: isBase,
+        isInterface: isInterface,
+        isFinal: isFinal,
         isAugmentation: isAugmentation,
         isMixinClass: isMixinClass)!;
     checkTypeVariables(typeVariables, supertype.declaration);
@@ -3100,6 +3133,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             typeVariables: typeVariables,
             isMacro: false,
             isSealed: false,
+            isBase: false,
+            isInterface: false,
+            isFinal: false,
             isAugmentation: false,
             isMixinClass: false),
         interfaceBuilders,

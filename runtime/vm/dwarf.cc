@@ -887,6 +887,7 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
       String& uri = String::Handle(zone_);
       for (intptr_t i = 0; i < scripts_.length(); i++) {
         const Script& script = *(scripts_[i]);
+        const char* uri_cstr = nullptr;
         if (FLAG_resolve_dwarf_paths) {
           uri = script.resolved_url();
           // Strictly enforce this to catch unresolvable cases.
@@ -894,18 +895,18 @@ void Dwarf::WriteLineNumberProgram(DwarfWriteStream* stream) {
             FATAL("no resolved URI for Script %s available",
                   script.ToCString());
           }
-        } else {
-          uri = script.url();
-        }
-        ASSERT(!uri.IsNull());
-        auto uri_cstr = Deobfuscate(uri.ToCString());
-        if (FLAG_resolve_dwarf_paths) {
-          auto const converted_cstr = ConvertResolvedURI(uri_cstr);
+          // resolved_url is never obfuscated, so just convert the prefix.
+          auto const orig_cstr = uri.ToCString();
+          auto const converted_cstr = ConvertResolvedURI(orig_cstr);
           // Strictly enforce this to catch inconvertible cases.
           if (converted_cstr == nullptr) {
-            FATAL("cannot convert resolved URI %s", uri_cstr);
+            FATAL("cannot convert resolved URI %s", orig_cstr);
           }
           uri_cstr = converted_cstr;
+        } else {
+          uri = script.url();
+          ASSERT(!uri.IsNull());
+          uri_cstr = Deobfuscate(uri.ToCString());
         }
         RELEASE_ASSERT(strlen(uri_cstr) != 0);
 

@@ -20,7 +20,7 @@ class CompletionGetSuggestionDetails2Handler extends CompletionHandler {
   /// Initialize a newly created handler to be able to service requests for the
   /// [server].
   CompletionGetSuggestionDetails2Handler(
-      super.server, super.request, super.cancellationToken);
+      super.server, super.request, super.cancellationToken, super.performance);
 
   @override
   Future<void> handle() async {

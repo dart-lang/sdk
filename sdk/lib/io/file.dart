@@ -640,7 +640,7 @@ abstract class RandomAccessFile {
 
   /// Synchronously reads into an existing [buffer].
   ///
-  /// Reads bytes and writes then into the range of [buffer]
+  /// Reads bytes and writes them into the range of [buffer]
   /// from [start] to [end].
   /// The [start] must be non-negative and no greater than [buffer].length.
   /// If [end] is omitted, it defaults to [buffer].length.

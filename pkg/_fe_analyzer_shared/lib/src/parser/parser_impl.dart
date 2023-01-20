@@ -526,6 +526,8 @@ class Parser {
           /* macroToken = */ null,
           /* inlineToken = */ null,
           /* sealedToken = */ null,
+          /* baseToken = */ null,
+          /* interfaceToken = */ null,
           directiveState);
     }
     Token start = token;
@@ -533,10 +535,14 @@ class Parser {
     if (next.isModifier) {
       if (optional('var', next) ||
           optional('late', next) ||
-          ((optional('const', next) || optional('final', next)) &&
-              // Ignore `const class` and `final class` so that it is reported
-              // below as an invalid modifier on a class.
-              !optional('class', next.next!))) {
+          (optional('final', next) &&
+              (!optional('class', next.next!) &&
+                  !optional('mixin', next.next!))) ||
+          // Ignore using 'final' as a modifier for a class or a mixin, but
+          // allow in other contexts.
+          (optional('const', next) && !optional('class', next.next!))) {
+        // Ignore `const class` so that it is reported below as an invalid
+        // modifier on a class.
         directiveState?.checkDeclaration();
         return parseTopLevelMemberImpl(token);
       }
@@ -548,6 +554,8 @@ class Parser {
     Token? macroToken;
     Token? inlineToken;
     Token? sealedToken;
+    Token? baseToken;
+    Token? interfaceToken;
     if (next.isIdentifier &&
         next.lexeme == 'inline' &&
         optional('class', next.next!)) {
@@ -569,6 +577,17 @@ class Parser {
         start = next;
         next = next.next!.next!;
       }
+    } else if (next.isIdentifier && next.lexeme == 'base') {
+      baseToken = next;
+      if (optional('class', next.next!) || optional('mixin', next.next!)) {
+        next = next.next!;
+      }
+    } else if (next.isIdentifier && next.lexeme == 'interface') {
+      interfaceToken = next;
+      if (optional('class', next.next!) || optional('mixin', next.next!)) {
+        next = next.next!;
+      }
+      // TODO(kallentu): Handle incorrect ordering of modifiers.
     }
     if (next.isTopLevelKeyword) {
       return parseTopLevelKeywordDeclaration(
@@ -577,6 +596,8 @@ class Parser {
           /* macroToken = */ macroToken,
           /* inlineToken = */ inlineToken,
           /* sealedToken = */ sealedToken,
+          /* baseToken = */ baseToken,
+          /* interfaceToken = */ interfaceToken,
           directiveState);
     } else if (next.isKeywordOrIdentifier) {
       // TODO(danrubel): improve parseTopLevelMember
@@ -615,12 +636,22 @@ class Parser {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       DirectiveContext? directiveState) {
     assert(keyword.isTopLevelKeyword);
     final String? value = keyword.stringValue;
     if (identical(value, 'class')) {
-      return _handleModifiersForClassDeclaration(start, keyword, macroToken,
-          inlineToken, sealedToken, null, directiveState);
+      return _handleModifiersForClassDeclaration(
+          start,
+          keyword,
+          macroToken,
+          inlineToken,
+          sealedToken,
+          baseToken,
+          interfaceToken,
+          null,
+          directiveState);
     } else if (identical(value, 'enum')) {
       directiveState?.checkDeclaration();
       ModifierContext context = new ModifierContext(this);
@@ -679,12 +710,23 @@ class Parser {
           return parseTypedef(keyword);
         } else if (identical(value, 'mixin')) {
           if (identical(nextValue, 'class')) {
-            return _handleModifiersForClassDeclaration(start, keyword.next!,
-                macroToken, inlineToken, sealedToken, keyword, directiveState);
+            // TODO(kallentu): Error handling for any class modifier here other
+            // than base. Only base mixin classes are allowed.
+            return _handleModifiersForClassDeclaration(
+                start,
+                keyword.next!,
+                macroToken,
+                inlineToken,
+                sealedToken,
+                baseToken,
+                null,
+                keyword,
+                directiveState);
           }
           context.parseMixinModifiers(start, keyword);
           directiveState?.checkDeclaration();
-          return parseMixin(context.augmentToken, sealedToken, keyword);
+          return parseMixin(context.augmentToken, sealedToken, baseToken,
+              interfaceToken, context.finalToken, keyword);
         } else if (identical(value, 'extension')) {
           context.parseTopLevelKeywordModifiers(start, keyword);
           directiveState?.checkDeclaration();
@@ -715,6 +757,8 @@ class Parser {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
       Token? mixinToken,
       DirectiveContext? directiveState) {
     directiveState?.checkDeclaration();
@@ -724,10 +768,17 @@ class Parser {
     } else {
       context.parseClassModifiers(start, classKeyword);
     }
-    Token? abstractToken = context.abstractToken;
-    Token? augmentToken = context.augmentToken;
-    return parseClassOrNamedMixinApplication(abstractToken, macroToken,
-        inlineToken, sealedToken, augmentToken, mixinToken, classKeyword);
+    return parseClassOrNamedMixinApplication(
+        context.abstractToken,
+        macroToken,
+        inlineToken,
+        sealedToken,
+        baseToken,
+        interfaceToken,
+        context.finalToken,
+        context.augmentToken,
+        mixinToken,
+        classKeyword);
   }
 
   bool _isIdentifierOrQuestionIdentifier(Token token) {
@@ -1234,7 +1285,7 @@ class Parser {
       reportRecoverableError(
           token, codes.messageMetadataTypeArgumentsUninstantiated);
     }
-    token = parseArgumentsOptMetadata(token);
+    token = parseArgumentsOptMetadata(token, hasTypeArguments);
     listener.endMetadata(atToken, period, token.next!);
     return token;
   }
@@ -1328,7 +1379,7 @@ class Parser {
             bool recover = false;
             if (optional(';', endGroup.next!)) {
               // Missing parenthesis. Insert them.
-              // Turn "<whatever>;" in to "<whatever>();"
+              // Turn "<whatever>;" into "<whatever>();"
               // Insert missing 'Function' below.
               reportRecoverableError(endGroup,
                   missingParameterMessage(MemberKind.FunctionTypeAlias));
@@ -1894,9 +1945,6 @@ class Parser {
       next = token.next!;
     }
 
-    final bool isNamedParameter =
-        parameterKind == FormalParameterKind.optionalNamed;
-
     Token? thisKeyword;
     Token? superKeyword;
     Token? periodAfterThisOrSuper;
@@ -2006,6 +2054,7 @@ class Parser {
     if (periodAfterThisOrSuper != null) {
       token = periodAfterThisOrSuper;
     }
+    final bool isNamedParameter = parameterKind.isNamed;
     next = token.next!;
     if (inFunctionType &&
         !isNamedParameter &&
@@ -2486,6 +2535,9 @@ class Parser {
       Token? macroToken,
       Token? inlineToken,
       Token? sealedToken,
+      Token? baseToken,
+      Token? interfaceToken,
+      Token? finalToken,
       Token? augmentToken,
       Token? mixinToken,
       Token classKeyword) {
@@ -2501,12 +2553,32 @@ class Parser {
       reportRecoverableError(sealedToken, codes.messageAbstractSealedClass);
     }
     if (optional('=', token.next!)) {
-      listener.beginNamedMixinApplication(begin, abstractToken, macroToken,
-          inlineToken, sealedToken, augmentToken, mixinToken, name);
+      listener.beginNamedMixinApplication(
+          begin,
+          abstractToken,
+          macroToken,
+          inlineToken,
+          sealedToken,
+          baseToken,
+          interfaceToken,
+          finalToken,
+          augmentToken,
+          mixinToken,
+          name);
       return parseNamedMixinApplication(token, begin, classKeyword);
     } else {
-      listener.beginClassDeclaration(begin, abstractToken, macroToken,
-          inlineToken, sealedToken, augmentToken, mixinToken, name);
+      listener.beginClassDeclaration(
+          begin,
+          abstractToken,
+          macroToken,
+          inlineToken,
+          sealedToken,
+          baseToken,
+          interfaceToken,
+          finalToken,
+          augmentToken,
+          mixinToken,
+          name);
       return parseClass(token, begin, classKeyword, name.lexeme);
     }
   }
@@ -2720,13 +2792,15 @@ class Parser {
   ///
   /// ```
   /// mixinDeclaration:
-  ///   metadata? 'augment'? 'sealed'? 'mixin' [SimpleIdentifier]
+  ///   metadata? 'augment'? mixinModifiers? 'mixin' [SimpleIdentifier]
   ///        [TypeParameterList]? [OnClause]? [ImplementsClause]?
   ///        '{' [ClassMember]* '}'
   /// ;
+  ///
+  /// mixinModifiers: 'sealed' | 'base' | 'interface' | 'final'
   /// ```
-  Token parseMixin(
-      Token? augmentToken, Token? sealedToken, Token mixinKeyword) {
+  Token parseMixin(Token? augmentToken, Token? sealedToken, Token? baseToken,
+      Token? interfaceToken, Token? finalToken, Token mixinKeyword) {
     assert(optional('mixin', mixinKeyword));
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(mixinKeyword);
     Token name = ensureIdentifier(
@@ -2734,8 +2808,8 @@ class Parser {
     Token headerStart = computeTypeParamOrArg(
             name, /* inDeclaration = */ true, /* allowsVariance = */ true)
         .parseVariables(name, this);
-    listener.beginMixinDeclaration(
-        augmentToken, sealedToken, mixinKeyword, name);
+    listener.beginMixinDeclaration(augmentToken, sealedToken, baseToken,
+        interfaceToken, finalToken, mixinKeyword, name);
     Token token = parseMixinHeaderOpt(headerStart, mixinKeyword);
     if (!optional('{', token.next!)) {
       // Recovery
@@ -6324,7 +6398,9 @@ class Parser {
       Token? when;
       if (optional('when', next)) {
         when = token = next;
+        listener.beginPatternGuard(when);
         token = parseExpression(token);
+        listener.endPatternGuard(when);
       }
       token = ensureCloseParen(token, begin);
       listener.handleParenthesizedCondition(begin, case_, when);
@@ -7137,13 +7213,39 @@ class Parser {
   /// has to follow the previous token without space.
   /// See also
   /// https://github.com/dart-lang/language/blob/master/accepted/future-releases/records/records-feature-specification.md#ambiguity-with-metadata-annotations
-  Token parseArgumentsOptMetadata(Token token) {
-    Token next = token.next!;
-    if (!optional('(', next) || (token.charEnd != next.charOffset)) {
+  Token parseArgumentsOptMetadata(Token token, bool hasTypeArguments) {
+    final Token next = token.next!;
+    if (!optional('(', next)) {
       listener.handleNoArguments(next);
       return token;
-    } else {
+    } else if (token.charEnd == next.charOffset) {
       return parseArguments(token);
+    } else {
+      // There is a '(', but it's not technically arguments to the metadata.
+      // Decide if we should recover as if it is. This should only be done
+      // if we know that it isn't a record type.
+      if (hasTypeArguments) {
+        // Arguments are required, so parse as arguments anyway.
+        reportRecoverableError(
+            next, codes.messageMetadataSpaceBeforeParenthesis);
+        return parseArguments(token);
+      }
+      final Token startParen = next;
+      final Token endParen = startParen.endGroup!;
+      final Token afterParen = endParen.next!;
+      final String? value = afterParen.stringValue;
+      if (identical(value, 'class') || identical(value, 'enum')) {
+        // The 'class' and 'enum' keywords are reserved keywords and recovery
+        // should be safe. Other keywords aren't reserved and needs more
+        // lookahead to determine if recovery here would be good.
+        //For now we don't.
+        reportRecoverableError(
+            next, codes.messageMetadataSpaceBeforeParenthesis);
+        return parseArguments(token);
+      }
+
+      listener.handleNoArguments(next);
+      return token;
     }
   }
 
@@ -8218,16 +8320,11 @@ class Parser {
       Token? onKeyword = null;
       if (identical(value, 'on')) {
         // 'on' type catchPart?
+        // Note https://github.com/dart-lang/language/blob/master/accepted/future-releases/records/records-feature-specification.md#ambiguity-with-on-clauses
+        // "Whenever on appears after a try block or after a preceding on clause
+        // on a try block, we unconditionally parse it as an on clause".
         onKeyword = token;
         TypeInfo typeInfo = computeType(token, /* required = */ true);
-        if (catchCount > 0 && (typeInfo == noType || typeInfo.recovered)) {
-          // Not a valid on-clause and we have enough catch counts to be a valid
-          // try block already.
-          // This could for instance be code like `on([...])` or `on = 42` after
-          // some actual catch/on as that could be a valid method call, local
-          // function, assignment etc.
-          break;
-        }
         listener.beginCatchClause(token);
         didBeginCatchClause = true;
         lastConsumed = typeInfo.ensureTypeNotVoid(token, this);
@@ -8414,7 +8511,9 @@ class Parser {
           Token? when;
           if (optional('when', next)) {
             when = token = next;
+            listener.beginSwitchCaseWhenClause(when);
             token = parseExpression(token);
+            listener.endSwitchCaseWhenClause(token);
           }
           token = ensureColon(token);
           listener.endCaseExpression(caseKeyword, when, token);
@@ -9416,9 +9515,10 @@ class Parser {
         // the grammar.  Pay careful attention to making sure that constructs
         // like `const const Foo()`, `const const []`, and `const const {}`
         // lead to errors.
+        listener.beginConstantPattern(const_);
         token = parsePrecedenceExpression(
             const_, SELECTOR_PRECEDENCE, /* allowCascades = */ false);
-        listener.handleConstantPattern(const_);
+        listener.endConstantPattern(const_);
         return token;
     }
     TokenType type = next.type;
@@ -9488,9 +9588,10 @@ class Parser {
     }
     // TODO(paulberry): report error if this constant is not permitted by the
     // grammar
+    listener.beginConstantPattern(/* constKeyword = */ null);
     token = parsePrecedenceExpression(
         token, SELECTOR_PRECEDENCE, /* allowCascades = */ false);
-    listener.handleConstantPattern(/* constKeyword = */ null);
+    listener.endConstantPattern(/* constKeyword = */ null);
     return token;
   }
 
@@ -9936,6 +10037,7 @@ class Parser {
       while (true) {
         listener.beginSwitchExpressionCase();
         token = parsePattern(token, PatternContext.matching);
+        listener.handleSwitchExpressionCasePattern(token);
         Token? when;
         next = token.next!;
         if (optional('when', next)) {

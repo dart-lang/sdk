@@ -58,9 +58,15 @@ class AnalysisOptionsFileConfig {
     buffer.writeln('    strict-casts: $strictCasts');
     buffer.writeln('    strict-inference: $strictInference');
     buffer.writeln('    strict-raw-types: $strictRawTypes');
-    buffer.writeln('  strong-mode:');
-    buffer.writeln('    implicit-casts: $implicitCasts');
-    buffer.writeln('    implicit-dynamic: $implicitDynamic');
+    if (!implicitCasts || !implicitDynamic) {
+      buffer.writeln('  strong-mode:');
+      if (!implicitCasts) {
+        buffer.writeln('    implicit-casts: $implicitCasts');
+      }
+      if (!implicitDynamic) {
+        buffer.writeln('    implicit-dynamic: $implicitDynamic');
+      }
+    }
 
     buffer.writeln('linter:');
     buffer.writeln('  rules:');
@@ -183,7 +189,6 @@ class ContextResolutionTest with ResourceProviderMixin {
       InstrumentationService.NULL_SERVICE,
     );
 
-    server.pendingFilesRemoveOverlayDelay = const Duration(milliseconds: 10);
     server.pluginManager = pluginManager;
     server.completionState.budgetDuration = const Duration(seconds: 30);
   }

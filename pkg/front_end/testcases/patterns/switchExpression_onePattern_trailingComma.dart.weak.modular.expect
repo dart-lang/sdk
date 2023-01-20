@@ -1,5 +1,28 @@
 library /*isNonNullableByDefault*/;
 import self as self;
+import "dart:core" as core;
 
 static method f(dynamic x) → dynamic
-  return invalid-expression "SwitchExpression(switch (x) { case _ => 0 })";
+  return block {
+    core::int #t1;
+    final dynamic #t2 = x;
+    core::int #t3 = -1;
+    core::bool #t4 = false;
+    if(!#t4) {
+      #t3 = 0;
+      #t4 = true;
+    }
+    #L1:
+    switch(#t3) {
+      #L2:
+      case #C1:
+        {
+          #t1 = 0;
+          break #L1;
+        }
+    }
+  } =>#t1;
+
+constants  {
+  #C1 = 0
+}

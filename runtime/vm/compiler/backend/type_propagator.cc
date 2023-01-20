@@ -947,7 +947,8 @@ bool CompileType::CanBeFuture() {
   ObjectStore* object_store = isolate_group->object_store();
 
   if (cid_ != kIllegalCid && cid_ != kDynamicCid) {
-    if ((cid_ == kNullCid) || (cid_ == kNeverCid)) {
+    if ((cid_ == kNullCid) || (cid_ == kNeverCid) ||
+        IsInternalOnlyClassId(cid_) || cid_ == kTypeArgumentsCid) {
       return false;
     }
     const Class& cls = Class::Handle(isolate_group->class_table()->At(cid_));
@@ -1668,6 +1669,17 @@ CompileType LoadClassIdInstr::ComputeType() const {
 }
 
 CompileType LoadFieldInstr::ComputeType() const {
+  if (slot().IsRecordField()) {
+    const AbstractType* instance_type = instance()->Type()->ToAbstractType();
+    if (instance_type->IsRecordType()) {
+      const intptr_t index = compiler::target::Record::field_index_at_offset(
+          slot().offset_in_bytes());
+      const auto& field_type = AbstractType::ZoneHandle(
+          RecordType::Cast(*instance_type).FieldTypeAt(index));
+      return CompileType::FromAbstractType(field_type, CompileType::kCanBeNull,
+                                           CompileType::kCannotBeSentinel);
+    }
+  }
   CompileType type = slot().ComputeCompileType();
   if (calls_initializer()) {
     type = type.CopyNonSentinel();

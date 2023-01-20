@@ -556,7 +556,7 @@ class Object {
       sum = (sum + objectHash) & mask;
       count += 1;
     }
-    return SystemHash.hash2(sum, count);
+    return SystemHash.hash2(sum, count, 0);
   }
 }
 

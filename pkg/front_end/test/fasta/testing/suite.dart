@@ -17,6 +17,7 @@ import 'package:_fe_analyzer_shared/src/util/options.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
 import 'package:compiler/src/options.dart' as dart2jsOptions
     show CompilerOptions;
+import 'package:dart2wasm/target.dart';
 import 'package:dev_compiler/src/kernel/target.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show
@@ -866,7 +867,8 @@ class Run extends Step<ComponentResult, ComponentResult, FastaContext> {
         case "none":
         case "dart2js":
         case "dartdevc":
-          // TODO(johnniwinther): Support running dart2js and/or dartdevc.
+        case "wasm":
+          // TODO(johnniwinther): Support running dart2js, dartdevc and/or wasm.
           return pass(result);
         default:
           throw new ArgumentError(
@@ -2198,6 +2200,9 @@ Target createTarget(FolderOptions folderOptions, FastaContext context) {
     case "dartdevc":
       target = new TestDevCompilerTarget(targetFlags);
       break;
+    case "wasm":
+      target = new TestWasmTarget(targetFlags);
+      break;
     default:
       throw new ArgumentError(
           "Unsupported test target '${folderOptions.target}'.");
@@ -2557,6 +2562,13 @@ class TestVmTarget extends VmTarget with TestTarget, TestTargetMixin {
   final TestTargetFlags flags;
 
   TestVmTarget(this.flags) : super(flags);
+}
+
+class TestWasmTarget extends WasmTarget with TestTarget, TestTargetMixin {
+  @override
+  final TestTargetFlags flags;
+
+  TestWasmTarget(this.flags);
 }
 
 class EnsureNoErrors
