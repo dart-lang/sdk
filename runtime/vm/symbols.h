@@ -267,6 +267,7 @@ class ObjectPointerVisitor;
   V(UnwindError, "UnwindError")                                                \
   V(Value, "value")                                                            \
   V(Values, "values")                                                          \
+  V(VarArgs, "VarArgs")                                                        \
   V(WeakArray, "WeakArray")                                                    \
   V(WeakSerializationReference, "WeakSerializationReference")                  \
   V(_AsyncStarStreamController, "_AsyncStarStreamController")                  \

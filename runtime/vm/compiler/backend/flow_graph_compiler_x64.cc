@@ -851,8 +851,6 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
     const compiler::ffi::NativeLocation& source) {
   const auto& src_type = source.payload_type();
   const auto& dst_type = destination.payload_type();
-  ASSERT(src_type.IsFloat() == dst_type.IsFloat());
-  ASSERT(src_type.IsInt() == dst_type.IsInt());
   ASSERT(src_type.IsSigned() == dst_type.IsSigned());
   ASSERT(src_type.IsPrimitive());
   ASSERT(dst_type.IsPrimitive());
@@ -901,8 +899,18 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
       }
 
     } else if (destination.IsFpuRegisters()) {
-      // Fpu Registers should only contain doubles and registers only ints.
-      UNIMPLEMENTED();
+      const auto& dst = destination.AsFpuRegisters();
+      ASSERT(src_size == dst_size);
+      switch (dst_size) {
+        case 8:
+          __ movq(dst.fpu_reg(), src_reg);
+          return;
+        case 4:
+          __ movd(dst.fpu_reg(), src_reg);
+          return;
+        default:
+          UNREACHABLE();
+      }
 
     } else {
       ASSERT(destination.IsStack());
@@ -933,8 +941,20 @@ void FlowGraphCompiler::EmitNativeMoveArchitecture(
     ASSERT(src_type.Equals(dst_type));
 
     if (destination.IsRegisters()) {
-      // Fpu Registers should only contain doubles and registers only ints.
-      UNIMPLEMENTED();
+      ASSERT(src_size == dst_size);
+      const auto& dst = destination.AsRegisters();
+      ASSERT(dst.num_regs() == 1);
+      const auto dst_reg = dst.reg_at(0);
+      switch (dst_size) {
+        case 8:
+          __ movq(dst_reg, src.fpu_reg());
+          return;
+        case 4:
+          __ movl(dst_reg, src.fpu_reg());
+          return;
+        default:
+          UNREACHABLE();
+      }
 
     } else if (destination.IsFpuRegisters()) {
       const auto& dst = destination.AsFpuRegisters();

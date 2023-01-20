@@ -77,3 +77,7 @@ abstract class Handle extends NativeType {}
 @patch
 @pragma("vm:entry-point")
 abstract class NativeFunction<T extends Function> extends NativeType {}
+
+@patch
+@pragma("vm:entry-point")
+abstract class VarArgs<T extends Record> extends NativeType {}

@@ -7,6 +7,7 @@
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:_fe_analyzer_shared/src/sdk/allowed_experiments.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -18,6 +19,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/util/comment.dart';
 import 'package:path/path.dart' as path;
@@ -84,6 +86,13 @@ Future<bool> validateLibrary(Directory dir) async {
   return validDocs;
 }
 
+final Future<AllowedExperiments> allowedExperiments = () async {
+  final allowedExperimentsFile =
+      File('sdk/lib/_internal/allowed_experiments.json');
+  final contents = await allowedExperimentsFile.readAsString();
+  return parseAllowedExperiments(contents);
+}();
+
 Future<bool> verifyFile(
   AnalysisHelper analysisHelper,
   String coreLibName,
@@ -93,7 +102,10 @@ Future<bool> verifyFile(
   final text = file.readAsStringSync();
   var parseResult = parseString(
     content: text,
-    featureSet: FeatureSet.latestLanguageVersion(),
+    featureSet: FeatureSet.fromEnableFlags2(
+      sdkLanguageVersion: ExperimentStatus.currentVersion,
+      flags: (await allowedExperiments).sdkDefaultExperiments,
+    ),
     path: file.path,
     throwIfDiagnostics: false,
   );
@@ -486,7 +498,7 @@ class AnalysisHelper {
   final String libraryName;
   final resourceProvider =
       OverlayResourceProvider(PhysicalResourceProvider.INSTANCE);
-  final pathRoot = Platform.isWindows ? r'c:\' : '/';
+  final pathRoot = Directory('sdk/lib/').absolute.path;
   late AnalysisContextCollection collection;
   int index = 0;
 

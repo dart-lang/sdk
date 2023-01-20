@@ -881,7 +881,7 @@ UNIT_TEST_CASE_WITH_ZONE(NativeCallingConvention_variadic_register_alignment) {
 // `int ioctl(int, unsigned long, ...)`
 //
 // Binding in Dart with single variadic argument:
-// `Int32 Function(Int32, Int64, VarArgs<Pointer<Void>>)`
+// `Int32 Function(Int32, Int64, VarArgs<(Pointer<Void>,)>)`
 //
 // https://github.com/dart-lang/sdk/issues/49460
 //

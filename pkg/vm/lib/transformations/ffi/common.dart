@@ -185,6 +185,7 @@ class FfiTransformer extends Transformer {
   final Class unionClass;
   final Class abiSpecificIntegerClass;
   final Class abiSpecificIntegerMappingClass;
+  final Class varArgsClass;
   final Class ffiNativeClass;
   final Class nativeFieldWrapperClass1Class;
   final Class ffiStructLayoutClass;
@@ -341,6 +342,7 @@ class FfiTransformer extends Transformer {
             index.getClass('dart:ffi', 'AbiSpecificInteger'),
         abiSpecificIntegerMappingClass =
             index.getClass('dart:ffi', 'AbiSpecificIntegerMapping'),
+        varArgsClass = index.getClass('dart:ffi', 'VarArgs'),
         ffiNativeClass = index.getClass('dart:ffi', 'FfiNative'),
         nativeFieldWrapperClass1Class =
             index.getClass('dart:nativewrappers', 'NativeFieldWrapperClass1'),
@@ -614,12 +616,40 @@ class FfiTransformer extends Transformer {
     final DartType? returnType = convertNativeTypeToDartType(fun.returnType,
         allowCompounds: true, allowHandle: true);
     if (returnType == null) return null;
-    final List<DartType> argumentTypes = fun.positionalParameters
-        .map((t) =>
-            convertNativeTypeToDartType(t,
-                allowCompounds: true, allowHandle: true) ??
-            dummyDartType)
-        .toList();
+    final argumentTypes = <DartType>[];
+    bool seenVarArgs = false;
+    for (final paramDartType in fun.positionalParameters) {
+      if (seenVarArgs) {
+        // VarArgs is not last.
+        return null;
+      }
+      if (paramDartType is InterfaceType &&
+          paramDartType.classNode == varArgsClass) {
+        seenVarArgs = true;
+        final typeArgument = paramDartType.typeArguments.single;
+        if (typeArgument is RecordType) {
+          if (typeArgument.named.isNotEmpty) {
+            // Named record fields are not supported.
+            return null;
+          }
+          for (final paramDartType in typeArgument.positional) {
+            argumentTypes.add(
+              convertNativeTypeToDartType(paramDartType,
+                      allowCompounds: true, allowHandle: true) ??
+                  dummyDartType,
+            );
+          }
+        } else {
+          return null;
+        }
+      } else {
+        argumentTypes.add(
+          convertNativeTypeToDartType(paramDartType,
+                  allowCompounds: true, allowHandle: true) ??
+              dummyDartType,
+        );
+      }
+    }
     if (argumentTypes.contains(dummyDartType)) return null;
     return FunctionType(argumentTypes, returnType, Nullability.legacy);
   }

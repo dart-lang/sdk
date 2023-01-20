@@ -4171,14 +4171,17 @@ void NativeEntryInstr::SaveArgument(
       ASSERT(pointer_loc.IsStack());
       // It's already on the stack, so we don't have to save it.
     }
-  } else {
-    ASSERT(nloc.IsMultiple());
+  } else if (nloc.IsMultiple()) {
     const auto& multiple = nloc.AsMultiple();
     const intptr_t num = multiple.locations().length();
     // Save the argument registers, in reverse order.
     for (intptr_t i = num; i-- > 0;) {
       SaveArgument(compiler, *multiple.locations().At(i));
     }
+  } else {
+    ASSERT(nloc.IsBoth());
+    const auto& both = nloc.AsBoth();
+    SaveArgument(compiler, both.location(0));
   }
 }
 
@@ -6752,9 +6755,19 @@ LocationSummary* FfiCallInstr::MakeLocationSummaryInternal(
     }
   }
 
+#if defined(TARGET_ARCH_X64) && !defined(DART_TARGET_OS_WINDOWS)
+  // Only use R13 if really needed, having R13 free causes less spilling.
+  const Register target_address =
+      marshaller_.contains_varargs()
+          ? R13
+          : CallingConventions::kFirstNonArgumentRegister;  // RAX
+  summary->set_in(TargetAddressIndex(),
+                  Location::RegisterLocation(target_address));
+#else
   summary->set_in(TargetAddressIndex(),
                   Location::RegisterLocation(
                       CallingConventions::kFirstNonArgumentRegister));
+#endif
   for (intptr_t i = 0, n = marshaller_.NumDefinitions(); i < n; ++i) {
     summary->set_in(i, marshaller_.LocInFfiCall(i));
   }
