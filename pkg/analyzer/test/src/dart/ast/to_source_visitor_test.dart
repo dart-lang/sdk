@@ -364,6 +364,16 @@ augment class A {}
     );
   }
 
+  void test_visitClassDeclaration_base() {
+    var findNode = _parseStringToFindNode(r'''
+base class A {}
+''');
+    _assertSource(
+      'base class A {}',
+      findNode.classDeclaration('class A'),
+    );
+  }
+
   void test_visitClassDeclaration_empty() {
     final code = 'class C {}';
     final findNode = _parseStringToFindNode(code);
@@ -404,12 +414,32 @@ void f() {}
     _assertSource(code, findNode.classDeclaration(code));
   }
 
+  void test_visitClassDeclaration_final() {
+    var findNode = _parseStringToFindNode(r'''
+final class A {}
+''');
+    _assertSource(
+      'final class A {}',
+      findNode.classDeclaration('class A'),
+    );
+  }
+
   void test_visitClassDeclaration_implements() {
     final code = 'class C implements B {}';
     final findNode = _parseStringToFindNode('''
 $code
 ''');
     _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  void test_visitClassDeclaration_interface() {
+    var findNode = _parseStringToFindNode(r'''
+interface class A {}
+''');
+    _assertSource(
+      'interface class A {}',
+      findNode.classDeclaration('class A'),
+    );
   }
 
   void test_visitClassDeclaration_macro() {
@@ -551,6 +581,26 @@ augment class A = S with M;
     );
   }
 
+  void test_visitClassTypeAlias_base() {
+    var findNode = _parseStringToFindNode(r'''
+base class A = S with M;
+''');
+    _assertSource(
+      'base class A = S with M;',
+      findNode.classTypeAlias('class A'),
+    );
+  }
+
+  void test_visitClassTypeAlias_final() {
+    var findNode = _parseStringToFindNode(r'''
+final class A = S with M;
+''');
+    _assertSource(
+      'final class A = S with M;',
+      findNode.classTypeAlias('class A'),
+    );
+  }
+
   void test_visitClassTypeAlias_generic() {
     final code = 'class C<E> = S<E> with M<E>;';
     final findNode = _parseStringToFindNode('''
@@ -565,6 +615,16 @@ $code
 $code
 ''');
     _assertSource(code, findNode.classTypeAlias(code));
+  }
+
+  void test_visitClassTypeAlias_interface() {
+    var findNode = _parseStringToFindNode(r'''
+interface class A = S with M;
+''');
+    _assertSource(
+      'interface class A = S with M;',
+      findNode.classTypeAlias('class A'),
+    );
   }
 
   void test_visitClassTypeAlias_macro() {
@@ -2628,6 +2688,46 @@ void f() {
 }
 ''');
     _assertSource(code, findNode.methodInvocation(code));
+  }
+
+  void test_visitMixinDeclaration_base() {
+    var findNode = _parseStringToFindNode(r'''
+base mixin M {}
+''');
+    _assertSource(
+      'base mixin M {}',
+      findNode.mixinDeclaration('mixin M'),
+    );
+  }
+
+  void test_visitMixinDeclaration_final() {
+    var findNode = _parseStringToFindNode(r'''
+final mixin M {}
+''');
+    _assertSource(
+      'final mixin M {}',
+      findNode.mixinDeclaration('mixin M'),
+    );
+  }
+
+  void test_visitMixinDeclaration_interface() {
+    var findNode = _parseStringToFindNode(r'''
+interface mixin M {}
+''');
+    _assertSource(
+      'interface mixin M {}',
+      findNode.mixinDeclaration('mixin M'),
+    );
+  }
+
+  void test_visitMixinDeclaration_sealed() {
+    var findNode = _parseStringToFindNode(r'''
+sealed mixin M {}
+''');
+    _assertSource(
+      'sealed mixin M {}',
+      findNode.mixinDeclaration('mixin M'),
+    );
   }
 
   void test_visitNamedExpression() {

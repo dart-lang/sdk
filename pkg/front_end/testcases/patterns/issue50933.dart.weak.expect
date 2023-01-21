@@ -1,0 +1,97 @@
+library /*isNonNullableByDefault*/;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/patterns/issue50933.dart:17:23: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
+//   } else if (x case A(: [1, 2])) { // Error
+//                       ^
+//
+// pkg/front_end/testcases/patterns/issue50933.dart:19:22: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
+//   } else if (x case (: [1, 2])) { // Error
+//                      ^
+//
+import self as self;
+import "dart:core" as core;
+
+abstract class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  abstract get foo() → core::int;
+  abstract get bar() → core::int;
+  abstract get baz() → core::int;
+  abstract get boz() → core::num;
+}
+static method test(dynamic x) → dynamic {
+  final dynamic #t1 = x;
+  core::bool #t2 = true;
+  final dynamic #t3 = #t1;
+  if(#t3 is self::A) {
+    final core::int #t4 = #t3{self::A}.{self::A::foo}{core::int};
+    final core::int #t5 = #t3{self::A}.{self::A::bar}{core::int};
+    final core::int #t6 = #t3{self::A}.{self::A::baz}{core::int};
+    final core::int #t7 = #t4!;
+    final core::int #t8 = #t6;
+    if(!(#t8 == null)) {
+      core::int foo = #t7;
+      core::int bar = #t5;
+      core::int baz = #t8;
+      #t2 = false;
+      {
+        return 0;
+      }
+    }
+  }
+  if(#t2) {
+    final dynamic #t9 = x;
+    core::bool #t10 = true;
+    final dynamic #t11 = #t9;
+    if(#t11 is{ForNonNullableByDefault} (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})) {
+      final core::Object? #t12 = #t11{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.foo{core::Object?};
+      final core::Object? #t13 = #t11{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.bar{core::Object?};
+      final core::Object? #t14 = #t11{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.baz{core::Object?};
+      final core::Object? #t15 = #t11{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?})}.$0{core::Object?};
+      final core::Object #t16 = #t12!;
+      final core::Object? #t17 = #t14;
+      if(!(#t17 == null)) {
+        final core::double #t18 = #t15 as{ForNonNullableByDefault} core::double;
+        dynamic foo = #t16;
+        dynamic bar = #t13;
+        dynamic baz = #t17{core::Object};
+        core::double boz = #t18;
+        #t10 = false;
+        {
+          return 1;
+        }
+      }
+    }
+    if(#t10) {
+      final dynamic #t19 = x;
+      core::bool #t20 = true;
+      final dynamic #t21 = #t19;
+      if(#t21 is self::A) {
+        #t20 = false;
+        {
+          return 2;
+        }
+      }
+      if(#t20) {
+        final dynamic #t22 = x;
+        final dynamic #t23 = #t22;
+        if(#t23 is{ForNonNullableByDefault} (core::Object?)) {
+          final core::Object? #t24 = #t23{(core::Object?)}.$0{core::Object?};
+          if(#t24 =={core::Object::==}{(core::Object) → core::bool} invalid-expression "pkg/front_end/testcases/patterns/issue50933.dart:19:22: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
+  } else if (x case (: [1, 2])) { // Error
+                     ^") {
+            final const invalid-type #t25 = invalid-expression "pkg/front_end/testcases/patterns/issue50933.dart:19:22: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
+  } else if (x case (: [1, 2])) { // Error
+                     ^";
+            {
+              return 3;
+            }
+          }
+        }
+      }
+    }
+  }
+}

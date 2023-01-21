@@ -922,6 +922,18 @@ library
 ''');
   }
 
+  test_class_base() async {
+    var library = await buildLibrary('base class C {}');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      base class C @11
+        constructors
+          synthetic @-1
+''');
+  }
+
   test_class_constructor_const() async {
     var library = await buildLibrary('class C { const C(); }');
     checkElementText(library, r'''
@@ -6115,6 +6127,18 @@ library
 ''');
   }
 
+  test_class_final() async {
+    var library = await buildLibrary('final class C {}');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      final class C @12
+        constructors
+          synthetic @-1
+''');
+  }
+
   test_class_getter_abstract() async {
     var library = await buildLibrary('abstract class C { int get x; }');
     checkElementText(library, r'''
@@ -6357,6 +6381,18 @@ library
             returnType: void
           get x @47
             returnType: int
+''');
+  }
+
+  test_class_interface() async {
+    var library = await buildLibrary('interface class C {}');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      interface class C @16
+        constructors
+          synthetic @-1
 ''');
   }
 
@@ -8785,6 +8821,35 @@ library
 ''');
   }
 
+  test_classAlias_base() async {
+    var library = await buildLibrary('''
+base class C = Object with M;
+mixin M {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      base class alias C @11
+        supertype: Object
+        mixins
+          M
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::new
+    mixins
+      mixin M @36
+        superclassConstraints
+          Object
+''');
+  }
+
   test_classAlias_documented() async {
     var library = await buildLibrary('''
 /**
@@ -8899,6 +8964,35 @@ library
 ''');
   }
 
+  test_classAlias_final() async {
+    var library = await buildLibrary('''
+final class C = Object with M;
+mixin M {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      final class alias C @12
+        supertype: Object
+        mixins
+          M
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::new
+    mixins
+      mixin M @37
+        superclassConstraints
+          Object
+''');
+  }
+
   test_classAlias_generic() async {
     var library = await buildLibrary('''
 class Z = A with B<int>, C<double>;
@@ -8940,6 +9034,35 @@ library
             defaultType: dynamic
         constructors
           synthetic @-1
+''');
+  }
+
+  test_classAlias_interface() async {
+    var library = await buildLibrary('''
+interface class C = Object with M;
+mixin M {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      interface class alias C @16
+        supertype: Object
+        mixins
+          M
+        constructors
+          synthetic const @-1
+            constantInitializers
+              SuperConstructorInvocation
+                superKeyword: super @0
+                argumentList: ArgumentList
+                  leftParenthesis: ( @0
+                  rightParenthesis: ) @0
+                staticElement: dart:core::@class::Object::@constructor::new
+    mixins
+      mixin M @41
+        superclassConstraints
+          Object
 ''');
   }
 
@@ -33616,6 +33739,20 @@ library
 ''');
   }
 
+  test_mixin_base() async {
+    var library = await buildLibrary(r'''
+base mixin M on A {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      base mixin M @11
+        superclassConstraints
+          Object
+''');
+  }
+
   test_mixin_field_inferredType_final() async {
     var library = await buildLibrary('''
 mixin M {
@@ -33634,6 +33771,20 @@ library
         accessors
           synthetic get x @-1
             returnType: int
+''');
+  }
+
+  test_mixin_final() async {
+    var library = await buildLibrary(r'''
+final mixin M on A {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      final mixin M @12
+        superclassConstraints
+          Object
 ''');
   }
 
@@ -34239,6 +34390,20 @@ library
           alias: self::@typeAlias::M2
             typeArguments
               T3
+''');
+  }
+
+  test_mixin_interface() async {
+    var library = await buildLibrary(r'''
+interface mixin M on A {}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      interface mixin M @16
+        superclassConstraints
+          Object
 ''');
   }
 

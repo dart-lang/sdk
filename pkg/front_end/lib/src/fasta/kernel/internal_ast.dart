@@ -3698,6 +3698,16 @@ abstract class Pattern extends TreeNode with InternalTreeNode {
       {required Expression matchedExpression,
       required DartType matchedType,
       required Expression variableInitializingContext});
+
+  /// Returns the variable name that this pattern defines, if any.
+  ///
+  /// This is used to derive an implicit variable name from a pattern to use
+  /// on object patterns. For instance
+  ///
+  ///    if (o case Foo(:var bar, :var baz!)) { ... }
+  ///
+  /// the getter names 'bar' and 'baz' are implicitly defined by the patterns.
+  String? get variableName => null;
 }
 
 class DummyPattern extends Pattern {
@@ -4079,6 +4089,9 @@ class CastPattern extends Pattern {
   }
 
   @override
+  String? get variableName => pattern.variableName;
+
+  @override
   List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
 
   @override
@@ -4139,6 +4152,9 @@ class NullAssertPattern extends Pattern {
   NullAssertPattern(this.pattern, int fileOffset) : super(fileOffset) {
     pattern.parent = this;
   }
+
+  @override
+  String? get variableName => pattern.variableName;
 
   @override
   List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
@@ -4202,6 +4218,9 @@ class NullCheckPattern extends Pattern {
   NullCheckPattern(this.pattern, int fileOffset) : super(fileOffset) {
     pattern.parent = this;
   }
+
+  @override
+  String? get variableName => pattern.variableName;
 
   @override
   List<VariableDeclaration> get declaredVariables => pattern.declaredVariables;
@@ -4613,48 +4632,32 @@ class ObjectPattern extends Pattern {
     PatternTransformationResult transformationResult =
         new PatternTransformationResult([]);
     for (NamedPattern field in fields) {
-      String? fieldNameString;
-      if (field.name.isNotEmpty) {
-        fieldNameString = field.name;
-      } else {
-        // The name is defined by the nested variable pattern.
-        Pattern nestedPattern = field.pattern;
-        if (nestedPattern is VariablePattern) {
-          fieldNameString = nestedPattern.name;
-        }
-      }
-
+      String fieldNameString = field.name;
       Expression objectElement;
       DartType fieldType;
-      if (fieldNameString != null) {
-        Name fieldName = new Name(fieldNameString);
+      Name fieldName = new Name(fieldNameString);
 
-        ObjectAccessTarget fieldAccessTarget = base.findInterfaceMember(
-            targetObjectType, fieldName, fileOffset,
-            callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+      ObjectAccessTarget fieldAccessTarget = base.findInterfaceMember(
+          targetObjectType, fieldName, fileOffset,
+          callSiteAccessKind: CallSiteAccessKind.getterInvocation);
 
-        if (fieldAccessTarget.member != null) {
-          fieldType = fieldAccessTarget.getGetterType(base);
+      if (fieldAccessTarget.member != null) {
+        fieldType = fieldAccessTarget.getGetterType(base);
 
-          // objectElement: `objectVariable`.`fieldName`
-          //   ==> OVAR.`fieldName`
-          objectElement = createInstanceGet(
-              base,
-              targetObjectType,
-              createVariableGet(objectVariable, promotedType: targetObjectType),
-              fieldName,
-              fileOffset: fileOffset);
-        } else {
-          objectElement = base.helper.buildProblem(
-              templateUndefinedGetter.withArguments(fieldNameString,
-                  targetObjectType, base.isNonNullableByDefault),
-              fileOffset,
-              noLength);
-          fieldType = const InvalidType();
-        }
+        // objectElement: `objectVariable`.`fieldName`
+        //   ==> OVAR.`fieldName`
+        objectElement = createInstanceGet(
+            base,
+            targetObjectType,
+            createVariableGet(objectVariable, promotedType: targetObjectType),
+            fieldName,
+            fileOffset: fileOffset);
       } else {
         objectElement = base.helper.buildProblem(
-            messageUnspecifiedGetterNameInObjectPattern, fileOffset, noLength);
+            templateUndefinedGetter.withArguments(
+                fieldNameString, targetObjectType, base.isNonNullableByDefault),
+            fileOffset,
+            noLength);
         fieldType = const InvalidType();
       }
 
@@ -5505,6 +5508,9 @@ class VariablePattern extends Pattern {
 
   VariablePattern(this.type, this.name, this.variable, int fileOffset)
       : super(fileOffset);
+
+  @override
+  String? get variableName => variable.name;
 
   @override
   void acceptInference(

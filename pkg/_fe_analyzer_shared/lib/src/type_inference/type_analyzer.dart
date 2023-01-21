@@ -382,7 +382,10 @@ mixin TypeAnalyzer<
 
   /// Analyzes a variable pattern in a non-assignment context.  [node] is the
   /// pattern itself, [variable] is the variable, [declaredType] is the
-  /// explicitly declared type (if present).
+  /// explicitly declared type (if present).  [variableName] is the name of the
+  /// variable; this is used to match up corresponding variables in the
+  /// different branches of logical-or patterns, as well as different switch
+  /// cases that share a body.
   ///
   /// See [dispatchPattern] for the meaning of [context].
   ///
@@ -393,6 +396,7 @@ mixin TypeAnalyzer<
     MatchContext<Node, Expression, Pattern, Type, Variable> context,
     Pattern node,
     Variable variable,
+    String variableName,
     Type? declaredType,
   ) {
     Type matchedType = flow.getMatchedValueType();
@@ -417,6 +421,7 @@ mixin TypeAnalyzer<
         isLate: context.isLate,
         isImplicitlyTyped: isImplicitlyTyped);
     setVariableType(variable, staticType);
+    (context.componentVariables[variableName] ??= []).add(variable);
     flow.declare(variable, staticType, initialized: false);
     flow.assignMatchedPatternVariable(variable, promotionKey);
     return staticType;
@@ -457,6 +462,10 @@ mixin TypeAnalyzer<
   /// the expression, [pattern] for the pattern to match, [ifTrue] for the
   /// "then" branch, and [ifFalse] for the "else" branch (if present).
   ///
+  /// [variables] should be a map from variable name to the variable the client
+  /// wishes to use to represent that variable.  This is used to join together
+  /// variables that appear in different branches of logical-or patterns.
+  ///
   /// Stack effect: pushes (Expression scrutinee, Pattern, Expression guard,
   /// CollectionElement ifTrue, CollectionElement ifFalse).  If there is no
   /// `else` clause, the representation for `ifFalse` will be pushed by
@@ -466,6 +475,7 @@ mixin TypeAnalyzer<
     required Node node,
     required Expression expression,
     required Pattern pattern,
+    required Map<String, Variable> variables,
     required Expression? guard,
     required Node ifTrue,
     required Node? ifFalse,
@@ -476,12 +486,17 @@ mixin TypeAnalyzer<
     Type initializerType = analyzeExpression(expression, unknownType);
     flow.ifCaseStatement_afterExpression(expression, initializerType);
     // Stack: (Expression)
+    Map<String, List<Variable>> componentVariables = {};
     // TODO(paulberry): rework handling of isFinal
     dispatchPattern(
         new MatchContext<Node, Expression, Pattern, Type, Variable>(
-            isFinal: false, topPattern: pattern),
+            isFinal: false,
+            topPattern: pattern,
+            componentVariables: componentVariables),
         pattern);
     // Stack: (Expression, Pattern)
+    _finishJoinedPatternVariables(variables, componentVariables,
+        location: JoinedPatternVariableLocation.singlePattern);
     if (guard != null) {
       _checkGuardType(guard, analyzeExpression(guard, boolType));
     } else {
@@ -520,17 +535,20 @@ mixin TypeAnalyzer<
     Type initializerType = analyzeExpression(expression, unknownType);
     flow.ifCaseStatement_afterExpression(expression, initializerType);
     // Stack: (Expression)
+    Map<String, List<Variable>> componentVariables = {};
     // TODO(paulberry): rework handling of isFinal
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: false,
         topPattern: pattern,
+        componentVariables: componentVariables,
       ),
       pattern,
     );
 
     _finishJoinedPatternVariables(
       variables,
+      componentVariables,
       location: JoinedPatternVariableLocation.singlePattern,
     );
 
@@ -1040,6 +1058,7 @@ mixin TypeAnalyzer<
     Type rhsType = analyzeExpression(rhs, dispatchPatternSchema(pattern));
     // Stack: (Expression)
     flow.patternAssignment_afterRhs(rhs, rhsType);
+    Map<String, List<Variable>> componentVariables = {};
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: false,
@@ -1047,9 +1066,15 @@ mixin TypeAnalyzer<
         irrefutableContext: node,
         topPattern: pattern,
         assignedVariables: <Variable, Pattern>{},
+        componentVariables: componentVariables,
       ),
       pattern,
     );
+    if (componentVariables.isNotEmpty) {
+      // Declared pattern variables should never appear in a pattern assignment
+      // so this should never happen.
+      errors?.assertInErrorRecovery();
+    }
     flow.patternAssignment_end();
     // Stack: (Expression, Pattern)
     return new SimpleTypeAnalysisResult<Type>(type: rhsType);
@@ -1067,7 +1092,6 @@ mixin TypeAnalyzer<
   void analyzePatternForIn({
     required Node node,
     required Pattern pattern,
-    required Iterable<Variable> patternVariables,
     required Expression expression,
     required void Function() dispatchBody,
   }) {
@@ -1090,11 +1114,13 @@ mixin TypeAnalyzer<
     }
     flow.patternForIn_afterExpression(elementType);
 
+    Map<String, List<Variable>> componentVariables = {};
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: false,
         irrefutableContext: node,
         topPattern: pattern,
+        componentVariables: componentVariables,
       ),
       pattern,
     );
@@ -1137,6 +1163,7 @@ mixin TypeAnalyzer<
     }
     flow.patternVariableDeclaration_afterInitializer(
         initializer, initializerType);
+    Map<String, List<Variable>> componentVariables = {};
     dispatchPattern(
       new MatchContext<Node, Expression, Pattern, Type, Variable>(
         isFinal: isFinal,
@@ -1144,9 +1171,12 @@ mixin TypeAnalyzer<
         initializer: initializer,
         irrefutableContext: node,
         topPattern: pattern,
+        componentVariables: componentVariables,
       ),
       pattern,
     );
+    _finishJoinedPatternVariables({}, componentVariables,
+        location: JoinedPatternVariableLocation.singlePattern);
     flow.patternVariableDeclaration_end();
     // Stack: (Expression, Pattern)
   }
@@ -1332,16 +1362,19 @@ mixin TypeAnalyzer<
       Node? pattern = memberInfo.head.pattern;
       Expression? guard;
       if (pattern != null) {
+        Map<String, List<Variable>> componentVariables = {};
         dispatchPattern(
           new MatchContext<Node, Expression, Pattern, Type, Variable>(
             isFinal: false,
             switchScrutinee: scrutinee,
             topPattern: pattern,
+            componentVariables: componentVariables,
           ),
           pattern,
         );
         _finishJoinedPatternVariables(
           memberInfo.head.variables,
+          componentVariables,
           location: JoinedPatternVariableLocation.singlePattern,
         );
         // Stack: (Expression, i * ExpressionCase, Pattern)
@@ -1406,16 +1439,19 @@ mixin TypeAnalyzer<
         flow.switchStatement_beginAlternative();
         Expression? guard;
         if (pattern != null) {
+          Map<String, List<Variable>> componentVariables = {};
           dispatchPattern(
             new MatchContext<Node, Expression, Pattern, Type, Variable>(
               isFinal: false,
               switchScrutinee: scrutinee,
               topPattern: pattern,
+              componentVariables: componentVariables,
             ),
             pattern,
           );
           _finishJoinedPatternVariables(
             head.variables,
+            componentVariables,
             location: JoinedPatternVariableLocation.singlePattern,
           );
           // Stack: (Expression, numExecutionPaths * StatementCase,
@@ -1443,8 +1479,10 @@ mixin TypeAnalyzer<
           hasLabels: memberInfo.hasLabels);
       Map<String, Variable> variables = memberInfo.variables;
       if (memberInfo.hasLabels || heads.length > 1) {
+        // TODO(paulberry): pass the proper value for componentVariables.
         _finishJoinedPatternVariables(
           variables,
+          {},
           location: JoinedPatternVariableLocation.sharedCaseScope,
         );
       }
@@ -1884,9 +1922,20 @@ mixin TypeAnalyzer<
   }
 
   void _finishJoinedPatternVariables(
-    Map<String, Variable> variables, {
+    Map<String, Variable> variables,
+    Map<String, List<Variable>> componentVariables, {
     required JoinedPatternVariableLocation location,
   }) {
+    assert(() {
+      // Every entry in `variables` should match a variable we know about.
+      for (String variableName in variables.keys) {
+        // TODO(paulberry): make this work properly when location is
+        // `sharedCaseScope`.
+        assert(componentVariables.containsKey(variableName) ||
+            location == JoinedPatternVariableLocation.sharedCaseScope);
+      }
+      return true;
+    }());
     for (MapEntry<String, Variable> entry in variables.entries) {
       Variable variable = entry.value;
       List<Variable>? components = getJoinedVariableComponents(variable);

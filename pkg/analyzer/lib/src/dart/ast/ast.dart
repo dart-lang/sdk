@@ -1843,12 +1843,15 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token? sealedKeyword;
 
   /// The 'base' keyword, or `null` if the keyword was absent.
+  @override
   final Token? baseKeyword;
 
   /// The 'interface' keyword, or `null` if the keyword was absent.
+  @override
   final Token? interfaceKeyword;
 
   /// The 'final' keyword, or `null` if the keyword was absent.
+  @override
   final Token? finalKeyword;
 
   /// The 'augment' keyword, or `null` if the keyword was absent.
@@ -2087,14 +2090,17 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   /// The token for the 'base' keyword, or `null` if this is not defining a base
   /// class.
+  @override
   final Token? baseKeyword;
 
   /// The token for the 'interface' keyword, or `null` if this is not defining
   /// an interface class.
+  @override
   final Token? interfaceKeyword;
 
   /// The token for the 'final' keyword, or `null` if this is not defining a
   /// final class.
+  @override
   final Token? finalKeyword;
 
   /// The token for the 'augment' keyword, or `null` if this is not defining an
@@ -3632,8 +3638,8 @@ class DeclaredVariablePatternImpl extends VariablePatternImpl
     ResolverVisitor resolverVisitor,
     SharedMatchContext context,
   ) {
-    resolverVisitor.analyzeDeclaredVariablePattern(
-        context, this, declaredElement!, type?.typeOrThrow);
+    resolverVisitor.analyzeDeclaredVariablePattern(context, this,
+        declaredElement!, declaredElement!.name, type?.typeOrThrow);
   }
 
   @override
@@ -9049,12 +9055,15 @@ class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token? sealedKeyword;
 
   /// Return the 'base' keyword, or `null` if the keyword was absent.
+  @override
   final Token? baseKeyword;
 
   /// Return the 'interface' keyword, or `null` if the keyword was absent.
+  @override
   final Token? interfaceKeyword;
 
   /// Return the 'final' keyword, or `null` if the keyword was absent.
+  @override
   final Token? finalKeyword;
 
   @override

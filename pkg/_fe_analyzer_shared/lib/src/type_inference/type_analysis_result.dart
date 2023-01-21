@@ -67,6 +67,11 @@ class MatchContext<Node extends Object, Expression extends Node,
   /// assigned so far.
   final Map<Variable, Pattern>? assignedVariables;
 
+  /// For each variable name in the pattern, a list of the variables which might
+  /// capture that variable's value, depending upon which alternative is taken
+  /// in a logical-or pattern.
+  final Map<String, List<Variable>> componentVariables;
+
   MatchContext({
     Expression? initializer,
     this.irrefutableContext,
@@ -75,6 +80,7 @@ class MatchContext<Node extends Object, Expression extends Node,
     Expression? switchScrutinee,
     required this.topPattern,
     this.assignedVariables,
+    required this.componentVariables,
   })  : _initializer = initializer,
         _switchScrutinee = switchScrutinee;
 
@@ -100,6 +106,7 @@ class MatchContext<Node extends Object, Expression extends Node,
               isLate: isLate,
               switchScrutinee: _switchScrutinee,
               topPattern: topPattern,
+              componentVariables: componentVariables,
             );
 }
 

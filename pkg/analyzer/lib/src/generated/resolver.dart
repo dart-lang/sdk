@@ -2630,6 +2630,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         node: node,
         expression: node.expression,
         pattern: guardedPattern.pattern,
+        variables: guardedPattern.variables,
         guard: guardedPattern.whenClause?.expression,
         ifTrue: node.thenElement,
         ifFalse: node.elseElement,

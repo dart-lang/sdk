@@ -185,6 +185,9 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.abstractKeyword, suffix: ' ');
     _visitToken(node.macroKeyword, suffix: ' ');
     _visitToken(node.sealedKeyword, suffix: ' ');
+    _visitToken(node.baseKeyword, suffix: ' ');
+    _visitToken(node.interfaceKeyword, suffix: ' ');
+    _visitToken(node.finalKeyword, suffix: ' ');
     _visitToken(node.mixinKeyword, suffix: ' ');
     sink.write('class ');
     _visitToken(node.name);
@@ -204,6 +207,9 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitToken(node.abstractKeyword, suffix: ' ');
     _visitToken(node.macroKeyword, suffix: ' ');
     _visitToken(node.sealedKeyword, suffix: ' ');
+    _visitToken(node.baseKeyword, suffix: ' ');
+    _visitToken(node.interfaceKeyword, suffix: ' ');
+    _visitToken(node.finalKeyword, suffix: ' ');
     _visitToken(node.mixinKeyword, suffix: ' ');
     sink.write('class ');
     _visitToken(node.name);
@@ -883,6 +889,10 @@ class ToSourceVisitor implements AstVisitor<void> {
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.sealedKeyword, suffix: ' ');
+    _visitToken(node.baseKeyword, suffix: ' ');
+    _visitToken(node.interfaceKeyword, suffix: ' ');
+    _visitToken(node.finalKeyword, suffix: ' ');
     sink.write('mixin ');
     _visitToken(node.name);
     _visitNode(node.typeParameters);

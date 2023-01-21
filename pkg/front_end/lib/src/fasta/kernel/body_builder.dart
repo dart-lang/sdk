@@ -8824,15 +8824,20 @@ class BodyBuilder extends StackListenerImpl
     Pattern pattern = toPattern(value);
     if (colon != null) {
       Identifier? identifier = pop() as Identifier?;
-      String name;
+      String? name;
       if (identifier != null) {
         name = identifier.name;
       } else {
-        // TODO(johnniwinther): Derive the name from a variable reference in
-        // [pattern].
-        name = '';
+        name = pattern.variableName;
       }
-      push(new NamedPattern(name, pattern, colon.charOffset));
+      if (name == null) {
+        push(toPattern(buildProblem(
+            fasta.messageUnspecifiedGetterNameInObjectPattern,
+            colon.charOffset,
+            noLength)));
+      } else {
+        push(new NamedPattern(name, pattern, colon.charOffset));
+      }
     } else {
       push(pattern);
     }

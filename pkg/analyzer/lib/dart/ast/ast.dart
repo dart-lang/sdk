@@ -990,7 +990,9 @@ abstract class ClassAugmentationDeclaration
 ///        [ExtendsClause]? [WithClause]? [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
 ///
-///    classModifiers ::= 'sealed' | 'abstract'? | 'abstract'? 'mixin'
+///    classModifiers ::= 'sealed'
+///      | 'abstract'? ('base' | 'interface' | 'final')?
+///      | 'abstract'? 'base'? 'mixin'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassDeclaration implements ClassOrAugmentationDeclaration {
@@ -1048,6 +1050,9 @@ abstract class ClassOrAugmentationDeclaration
   /// In valid code only [ClassDeclaration] can specify it.
   Token? get abstractKeyword;
 
+  /// Return the 'base' keyword, or `null` if the keyword was absent.
+  Token? get baseKeyword;
+
   /// Returns the token representing the 'class' keyword.
   Token get classKeyword;
 
@@ -1064,9 +1069,15 @@ abstract class ClassOrAugmentationDeclaration
   /// In valid code only [ClassDeclaration] can specify it.
   ExtendsClause? get extendsClause;
 
+  /// Return the 'final' keyword, or `null` if the keyword was absent.
+  Token? get finalKeyword;
+
   /// Returns the `implements` clause for the class, or `null` if the class
   /// does not implement any interfaces.
   ImplementsClause? get implementsClause;
+
+  /// Return the 'interface' keyword, or `null` if the keyword was absent.
+  Token? get interfaceKeyword;
 
   /// Returns the left curly bracket.
   Token get leftBracket;
@@ -1097,7 +1108,9 @@ abstract class ClassOrAugmentationDeclaration
 ///    classTypeAlias ::=
 ///        name [TypeParameterList]? '=' classModifiers mixinApplication
 ///
-///    classModifiers ::= 'sealed' | 'abstract'? | 'abstract'? 'mixin'
+///    classModifiers ::= 'sealed'
+///      | 'abstract'? ('base' | 'interface' | 'final')?
+///      | 'abstract'? 'base'? 'mixin'
 ///
 ///    mixinApplication ::=
 ///        [TypeName] [WithClause] [ImplementsClause]? ';'
@@ -1107,6 +1120,9 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// Return the token for the 'abstract' keyword, or `null` if this is not
   /// defining an abstract class.
   Token? get abstractKeyword;
+
+  /// Return the 'base' keyword, or `null` if the keyword was absent.
+  Token? get baseKeyword;
 
   @override
   ClassElement? get declaredElement;
@@ -1118,9 +1134,15 @@ abstract class ClassTypeAlias implements TypeAlias {
   /// Return the token for the '=' separating the name from the definition.
   Token get equals;
 
+  /// Return the 'final' keyword, or `null` if the keyword was absent.
+  Token? get finalKeyword;
+
   /// Return the implements clause for this class, or `null` if there is no
   /// implements clause.
   ImplementsClause? get implementsClause;
+
+  /// Return the 'interface' keyword, or `null` if the keyword was absent.
+  Token? get interfaceKeyword;
 
   /// Return the 'mixin' keyword, or `null` if the keyword was absent.
   Token? get mixinKeyword;
@@ -3786,8 +3808,10 @@ abstract class MixinAugmentationDeclaration
 /// The declaration of a mixin.
 ///
 ///    mixinDeclaration ::=
-///        'sealed'? 'mixin' name [TypeParameterList]?
+///        mixinModifiers? 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
+///
+///    mixinModifiers ::= 'sealed' | 'base' | 'interface' | 'final'
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinDeclaration implements MixinOrAugmentationDeclaration {
@@ -3828,6 +3852,9 @@ abstract class MixinDeclaration implements MixinOrAugmentationDeclaration {
 @experimental
 abstract class MixinOrAugmentationDeclaration
     implements NamedCompilationUnitMember {
+  /// Return the 'base' keyword, or `null` if the keyword was absent.
+  Token? get baseKeyword;
+
   @override
   MixinOrAugmentationElement? get declaredElement;
 
@@ -3835,9 +3862,15 @@ abstract class MixinOrAugmentationDeclaration
   @override
   MixinOrAugmentationElement? get declaredElement2;
 
+  /// Return the 'final' keyword, or `null` if the keyword was absent.
+  Token? get finalKeyword;
+
   /// Returns the `implements` clause for the mixin, or `null` if the mixin
   /// does not implement any interfaces.
   ImplementsClause? get implementsClause;
+
+  /// Return the 'interface' keyword, or `null` if the keyword was absent.
+  Token? get interfaceKeyword;
 
   /// Returns the left curly bracket.
   Token get leftBracket;
