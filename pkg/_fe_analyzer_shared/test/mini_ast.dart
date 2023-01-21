@@ -1446,17 +1446,36 @@ abstract class Pattern extends Node
   }
 }
 
+/// A variable modelling an implicit join of variables declared inside
+/// logical-or patterns or switch cases sharing a body.
+///
+/// The analyzer and CFE make such variables automatically when needed, but in
+/// the flow analysis and type inference unit tests, we create them manually so
+/// that we can refer to them in later code.
 class PatternVariableJoin extends Var {
-  final List<Var> components;
+  /// The component variables joined together by this variable.  When the test
+  /// is run, an assertion will verify that these components match those passed
+  /// to [VariableBinder.joinPatternVariables].
+  final List<Var> expectedComponents;
 
+  /// Indicates whether this variable has been found to be inconsistent; a value
+  /// of `true` either means that the variable is consistent or that analysis
+  /// has not yet completed.
   @override
-  bool isConsistent;
+  bool isConsistent = true;
 
-  PatternVariableJoin(
-    super.name, {
-    required this.components,
-    required this.isConsistent,
-  });
+  /// Indicates whether [VariableBinder.joinPatternVariables] has been called
+  /// for this variable join yet.
+  bool isJoined = false;
+
+  PatternVariableJoin(super.name,
+      {required this.expectedComponents, super.identity})
+      : super(location: computeLocation()) {
+    for (var component in expectedComponents) {
+      assert(component._joinedVar == null);
+      component._joinedVar = this;
+    }
+  }
 
   @override
   String get stringToCheckVariables {
@@ -1475,8 +1494,20 @@ class PatternVariableJoin extends Var {
       name,
     ].join(' ');
     var componentsStr =
-        components.map((v) => v.stringToCheckVariables).join(', ');
+        expectedComponents.map((v) => v.stringToCheckVariables).join(', ');
     return '$declarationStr = [$componentsStr]';
+  }
+
+  /// Called by [VariableBinder.joinPatternVariables].
+  void _handleJoin(
+      {required List<Var> components, required bool isConsistent}) {
+    expect(isJoined, false);
+    expect(components.map((c) => c.identity),
+        expectedComponents.map((c) => c.identity),
+        reason: 'at $location');
+    expect(components, expectedComponents, reason: 'at $location');
+    this.isConsistent = isConsistent;
+    this.isJoined = true;
   }
 }
 
@@ -1619,9 +1650,12 @@ class Var extends Node implements Promotable {
   /// the same name to be distinguished.
   final String identity;
 
-  Var(this.name, {this.isFinal = false, String? identity})
+  /// The [PatternVariableJoin] that this variable is a component of, if any.
+  PatternVariableJoin? _joinedVar;
+
+  Var(this.name, {this.isFinal = false, String? identity, String? location})
       : identity = identity ?? name,
-        super._(location: computeLocation());
+        super._(location: location ?? computeLocation());
 
   /// Creates an L-value representing a reference to this variable.
   LValue get expr =>
@@ -3696,7 +3730,7 @@ class _MiniAstTypeAnalyzer
   @override
   List<Var>? getJoinedVariableComponents(Var variable) {
     if (variable is PatternVariableJoin) {
-      return variable.components;
+      return variable.expectedComponents;
     }
     return null;
   }
@@ -4855,17 +4889,13 @@ class _VariableBinder extends VariableBinder<Node, Var> {
     required List<Var> components,
     required bool isConsistent,
   }) {
-    return PatternVariableJoin(
-      components.first.name,
-      components: [
-        for (var variable in components)
-          if (key is _LogicalOrPattern && variable is PatternVariableJoin)
-            ...variable.components
-          else
-            variable
-      ],
-      isConsistent: isConsistent && components.every((e) => e.isConsistent),
-    );
+    var joinedVariable = components[0]._joinedVar;
+    if (joinedVariable == null) {
+      fail('No joined variable for ${components[0].location}');
+    }
+    joinedVariable._handleJoin(
+        components: components, isConsistent: isConsistent);
+    return joinedVariable;
   }
 }
 

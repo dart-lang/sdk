@@ -403,6 +403,7 @@ main() {
           test('consistent', () {
             var x1 = Var('x', identity: 'x1');
             var x2 = Var('x', identity: 'x2');
+            PatternVariableJoin('x', expectedComponents: [x1, x2]);
             h.run([
               switchExpr(expr('double'), [
                 x1.pattern().or(x2.pattern()).thenExpr(expr('int')),
@@ -424,6 +425,7 @@ main() {
             test('different finality', () {
               var x1 = Var('x', identity: 'x1', isFinal: true);
               var x2 = Var('x', identity: 'x2')..errorId = 'x2';
+              PatternVariableJoin('x', expectedComponents: [x1, x2]);
               h.run([
                 switchExpr(expr('double'), [
                   x1.pattern().or(x2.pattern()).thenExpr(expr('int')),
@@ -447,6 +449,7 @@ main() {
             test('different types', () {
               var x1 = Var('x', identity: 'x1');
               var x2 = Var('x', identity: 'x2')..errorId = 'x2';
+              PatternVariableJoin('x', expectedComponents: [x1, x2]);
               h.run([
                 switchExpr(expr('double'), [
                   x1
@@ -821,6 +824,7 @@ main() {
             test('With the same type and finality', () {
               var x1 = Var('x', identity: 'x1');
               var x2 = Var('x', identity: 'x2');
+              PatternVariableJoin('x', expectedComponents: [x1, x2]);
               h.run([
                 switch_(
                   expr('int'),
@@ -843,6 +847,9 @@ main() {
               var x1 = Var('x', identity: 'x1');
               var x2 = Var('x', identity: 'x2');
               var x3 = Var('x', identity: 'x3');
+              var x4 = PatternVariableJoin('x',
+                  expectedComponents: [x1, x2], identity: 'x4');
+              PatternVariableJoin('x', expectedComponents: [x4, x3]);
               h.run([
                 switch_(
                   expr('int'),
@@ -867,6 +874,7 @@ main() {
               test('explicit / explicit', () {
                 var x1 = Var('x', identity: 'x1');
                 var x2 = Var('x', identity: 'x2');
+                PatternVariableJoin('x', expectedComponents: [x1, x2]);
                 h.run([
                   switch_(
                     expr('int'),
@@ -889,6 +897,7 @@ main() {
               test('explicit / implicit', () {
                 var x1 = Var('x', identity: 'x1');
                 var x2 = Var('x', identity: 'x2');
+                PatternVariableJoin('x', expectedComponents: [x1, x2]);
                 h.run([
                   switch_(
                     expr('int'),
@@ -911,6 +920,7 @@ main() {
               test('implicit / implicit', () {
                 var x1 = Var('x', identity: 'x1');
                 var x2 = Var('x', identity: 'x2');
+                PatternVariableJoin('x', expectedComponents: [x1, x2]);
                 h.run([
                   switch_(
                     expr('List<int>'),
@@ -936,6 +946,7 @@ main() {
             test('With different finality', () {
               var x1 = Var('x', isFinal: true, identity: 'x1');
               var x2 = Var('x', identity: 'x2');
+              PatternVariableJoin('x', expectedComponents: [x1, x2]);
               h.run([
                 switch_(
                   expr('int'),
@@ -957,6 +968,7 @@ main() {
           });
           test('case has, case not', () {
             var x1 = Var('x', identity: 'x1');
+            PatternVariableJoin('x', expectedComponents: [x1]);
             h.run([
               switch_(
                 expr('int'),
@@ -976,6 +988,7 @@ main() {
           });
           test('case not, case has', () {
             var x1 = Var('x', identity: 'x1');
+            PatternVariableJoin('x', expectedComponents: [x1]);
             h.run([
               switch_(
                 expr('int'),
@@ -995,6 +1008,7 @@ main() {
           });
           test('case has, default', () {
             var x1 = Var('x', identity: 'x1');
+            PatternVariableJoin('x', expectedComponents: [x1]);
             h.run([
               switch_(
                 expr('int'),
@@ -1014,6 +1028,7 @@ main() {
           });
           test('case has, with label', () {
             var x1 = Var('x', identity: 'x1');
+            PatternVariableJoin('x', expectedComponents: [x1]);
             h.run([
               switch_(
                 expr('int'),
@@ -2384,6 +2399,7 @@ main() {
             test('explicit / explicit', () {
               var x1 = Var('x', identity: 'x1');
               var x2 = Var('x', identity: 'x2');
+              PatternVariableJoin('x', expectedComponents: [x1, x2]);
               h.run([
                 ifCase(
                   expr('Object'),
@@ -2399,6 +2415,7 @@ main() {
             test('explicit / explicit, normalized', () {
               var x1 = Var('x', identity: 'x1');
               var x2 = Var('x', identity: 'x2');
+              PatternVariableJoin('x', expectedComponents: [x1, x2]);
               h.run([
                 ifCase(
                   expr('Object'),
@@ -2416,6 +2433,7 @@ main() {
             test('explicit / implicit', () {
               var x1 = Var('x', identity: 'x1');
               var x2 = Var('x', identity: 'x2');
+              PatternVariableJoin('x', expectedComponents: [x1, x2]);
               h.run([
                 ifCase(
                   expr('int'),
@@ -2430,6 +2448,7 @@ main() {
             test('implicit / explicit', () {
               var x1 = Var('x', identity: 'x1');
               var x2 = Var('x', identity: 'x2');
+              PatternVariableJoin('x', expectedComponents: [x1, x2]);
               h.run([
                 ifCase(
                   expr('int'),
@@ -2444,6 +2463,7 @@ main() {
             test('implicit / implicit', () {
               var x1 = Var('x', identity: 'x1');
               var x2 = Var('x', identity: 'x2');
+              PatternVariableJoin('x', expectedComponents: [x1, x2]);
               h.run([
                 ifCase(
                   expr('int'),
@@ -2460,6 +2480,7 @@ main() {
             test('explicit / explicit', () {
               var x1 = Var('x', identity: 'x1');
               var x2 = Var('x', identity: 'x2')..errorId = 'x2';
+              PatternVariableJoin('x', expectedComponents: [x1, x2]);
               h.run([
                 ifCase(
                   expr('Object'),
@@ -2478,6 +2499,7 @@ main() {
             test('explicit / implicit', () {
               var x1 = Var('x', identity: 'x1');
               var x2 = Var('x', identity: 'x2')..errorId = 'x2';
+              PatternVariableJoin('x', expectedComponents: [x1, x2]);
               h.run([
                 ifCase(
                   expr('num'),
@@ -2498,6 +2520,7 @@ main() {
         test('Should have same finality', () {
           var x1 = Var('x', isFinal: true, identity: 'x1');
           var x2 = Var('x', identity: 'x2')..errorId = 'x2';
+          PatternVariableJoin('x', expectedComponents: [x1, x2]);
           h.run([
             ifCase(
               expr('int'),
@@ -2517,6 +2540,7 @@ main() {
           test('Both have', () {
             var x1 = Var('x', identity: 'x1');
             var x2 = Var('x', identity: 'x2');
+            PatternVariableJoin('x', expectedComponents: [x1, x2]);
             h.run([
               ifCase(
                 expr('int'),
@@ -2530,6 +2554,7 @@ main() {
           });
           test('Left has', () {
             var x1 = Var('x', identity: 'x1')..errorId = 'x1';
+            PatternVariableJoin('x', expectedComponents: [x1]);
             h.run([
               ifCase(
                 expr('int'),
@@ -2546,6 +2571,7 @@ main() {
           });
           test('Right has', () {
             var x1 = Var('x', identity: 'x1')..errorId = 'x1';
+            PatternVariableJoin('x', expectedComponents: [x1]);
             h.run([
               ifCase(
                 expr('int'),
