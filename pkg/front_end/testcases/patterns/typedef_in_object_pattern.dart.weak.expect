@@ -23,7 +23,7 @@ static method test1(dynamic x) → dynamic {
   final dynamic #t3 = #t1;
   if(#t3 is self::A) {
     final core::int #t4 = #t3{self::A}.{self::A::foo}{core::int};
-    dynamic foo = #t4;
+    core::int foo = #t4;
     #t2 = false;
     {
       return foo;
@@ -39,7 +39,7 @@ static method test2(dynamic x) → dynamic {
   final dynamic #t7 = #t5;
   if(#t7 is self::C<core::String, core::String>) {
     final core::String #t8 = #t7{self::C<core::String, core::String>}.{self::C::x}{core::String};
-    dynamic x = #t8;
+    core::String x = #t8;
     #t6 = false;
     {
       return x;

@@ -1,11 +1,4 @@
 library /*isNonNullableByDefault*/;
-//
-// Problems in library:
-//
-// pkg/front_end/testcases/patterns/cast_inside_extractor_pattern_implicitly_named.dart:10:10: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
-//     case C(: var f as int):
-//          ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -25,10 +18,8 @@ static method test(dynamic x) → dynamic {
     if(!#t4) {
       final dynamic #t5 = #t2;
       if(#t5 is self::C) {
-        final invalid-type #t6 = invalid-expression "pkg/front_end/testcases/patterns/cast_inside_extractor_pattern_implicitly_named.dart:10:10: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
-    case C(: var f as int):
-         ^";
-        final core::int #t7 = #t6;
+        final core::int? #t6 = #t5{self::C}.{self::C::f}{core::int?};
+        final core::int #t7 = let core::int? #t8 = #t6 in #t8 == null ?{core::int} #t8 as{ForNonNullableByDefault} core::int : #t8{core::int};
         core::int f = #t7;
         #t3 = 0;
         #t4 = true;

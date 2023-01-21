@@ -11,9 +11,9 @@ static method test(dynamic x) → dynamic {
     core::bool #t4 = false;
     if(!#t4) {
       final dynamic #t5 = #t2;
-      if(#t5 is{ForNonNullableByDefault} (core::Object?, {: core::Object?})) {
-        final core::Object? #t6 = #t5{(core::Object?, {: core::Object?})}.{core::Object?};
-        final core::Object? #t7 = #t5{(core::Object?, {: core::Object?})}.$0{core::Object?};
+      if(#t5 is{ForNonNullableByDefault} (core::Object?, {n: core::Object?})) {
+        final core::Object? #t6 = #t5{(core::Object?, {n: core::Object?})}.n{core::Object?};
+        final core::Object? #t7 = #t5{(core::Object?, {n: core::Object?})}.$0{core::Object?};
         final core::Object? #t8 = #t6;
         if(!(#t8 == null) && #t7 =={core::Object::==}{(core::Object) → core::bool} #C1) {
           dynamic n = #t8{core::Object};
