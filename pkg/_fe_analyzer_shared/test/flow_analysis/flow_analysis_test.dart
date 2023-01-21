@@ -2233,6 +2233,7 @@ main() {
     test('switchStatement_endAlternative() joins branches', () {
       var x1 = Var('x', identity: 'x1');
       var x2 = Var('x', identity: 'x2');
+      PatternVariableJoin('x', expectedComponents: [x1, x2]);
       var y = Var('y');
       var z = Var('z');
       h.run([
