@@ -87,17 +87,6 @@ abstract class AbstractCompletionDriverTest
   /// Asserts that the [response] has the [expected] textual dump produced
   /// using [printerConfiguration].
   void assertResponse(String expected) {
-    assertResponseText(response, expected);
-  }
-
-  /// Asserts that the [response] has the [expected] textual dump produced
-  /// using [printerConfiguration].
-  void assertResponseText(
-    CompletionResponseForTesting response,
-    String expected, {
-    // TODO(brianwilkerson) Remove this parameter and improve the output.
-    bool printIfFailed = true,
-  }) {
     final buffer = StringBuffer();
     printer.CompletionResponsePrinter(
       buffer: buffer,
@@ -107,12 +96,18 @@ abstract class AbstractCompletionDriverTest
     final actual = buffer.toString();
 
     if (actual != expected) {
-      if (printIfFailed) {
-        print(actual);
-      }
+      // TODO(brianwilkerson) Improve the output to make it easier to debug. For
+      //  example, print the type of the covering node and the `entity` used to
+      //  compute the suggestions.
       TextExpectationsCollector.add(actual);
+      fail('''
+The actual suggestions do not match the expected suggestions.
+
+To accept the current state change the expectation to
+
+$actual
+''');
     }
-    expect(actual, expected);
   }
 
   void assertSuggestion({
@@ -133,11 +128,22 @@ abstract class AbstractCompletionDriverTest
         isNotNull);
   }
 
-  /// TODO(brianwilkerson) Proposed replacement for [getTestCodeSuggestions].
+  /// TODO(scheglov) Use it everywhere instead of [addTestFile].
   Future<void> computeSuggestions(
     String content,
   ) async {
-    response = await getTestCodeSuggestions(content);
+    // Give the server time to create analysis contexts.
+    await pumpEventQueue(times: 1000);
+
+    await addTestFile(content);
+
+    response = CompletionResponseForTesting(
+      requestOffset: driver.completionOffset,
+      replacementOffset: driver.replacementOffset,
+      replacementLength: driver.replacementLength,
+      isIncomplete: false, // TODO(scheglov) not correct
+      suggestions: suggestions,
+    );
   }
 
   Future<List<CompletionSuggestion>> getSuggestions() async {
@@ -155,24 +161,6 @@ abstract class AbstractCompletionDriverTest
         break;
     }
     return suggestions;
-  }
-
-  /// TODO(scheglov) Use it everywhere instead of [addTestFile].
-  Future<CompletionResponseForTesting> getTestCodeSuggestions(
-    String content,
-  ) async {
-    // Give the server time to create analysis contexts.
-    await pumpEventQueue(times: 1000);
-
-    await addTestFile(content);
-
-    return CompletionResponseForTesting(
-      requestOffset: driver.completionOffset,
-      replacementOffset: driver.replacementOffset,
-      replacementLength: driver.replacementLength,
-      isIncomplete: false, // TODO(scheglov) not correct
-      suggestions: suggestions,
-    );
   }
 
   /// Display sorted suggestions.

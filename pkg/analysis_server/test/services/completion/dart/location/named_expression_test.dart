@@ -42,7 +42,7 @@ mixin NamedExpressionExpressionTestCases on AbstractCompletionDriverTest {
   }
 
   Future<void> test_beforePositional() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 void f(int x) {
   g(b: ^, 0);
 }
@@ -50,7 +50,7 @@ void f(int x) {
 void g(int a, {required int b}) {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   x
     kind: parameter
@@ -58,7 +58,7 @@ suggestions
   }
 
   Future<void> test_lastArgument() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 void f(int x) {
   g(0, b: ^);
 }
@@ -66,7 +66,7 @@ void f(int x) {
 void g(int a, {required int b}) {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   x
     kind: parameter
@@ -74,7 +74,7 @@ suggestions
   }
 
   Future<void> test_onlyArgument() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 void f(int x) {
   g(a: ^);
 }
@@ -82,7 +82,7 @@ void f(int x) {
 void g({required int a}) {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   x
     kind: parameter

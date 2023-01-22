@@ -34,14 +34,14 @@ class RecordTypeAnnotationTest extends AbstractCompletionDriverTest {
   }
 
   Future<void> test_named_comma_space_prefix_x_right() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A01 {}
 class A02 {}
 class B01 {}
 ({int foo01, A0^}) f() {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 replacement
   left: 2
 suggestions
@@ -53,14 +53,14 @@ suggestions
   }
 
   Future<void> test_named_comma_space_prefix_x_space_name_right() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A01 {}
 class A02 {}
 class B01 {}
 ({int foo01, A0^ foo02}) f() {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 replacement
   left: 2
 suggestions
@@ -72,14 +72,14 @@ suggestions
   }
 
   Future<void> test_named_comma_space_type_space_prefix_x_right() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A01 {}
 class A02 {}
 class B01 {}
 ({int foo01, StringBuffer str^}) f() {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 replacement
   left: 3
 suggestions
@@ -89,14 +89,14 @@ suggestions
   }
 
   Future<void> test_named_comma_space_type_space_x_right() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A01 {}
 class A02 {}
 class B01 {}
 ({int foo01, StringBuffer ^}) f() {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   buffer
     kind: identifier
@@ -106,14 +106,14 @@ suggestions
   }
 
   Future<void> test_named_comma_space_x_right() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A01 {}
 class A02 {}
 class B01 {}
 ({int foo01, ^}) f() {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   A01
     kind: class
@@ -125,14 +125,14 @@ suggestions
   }
 
   Future<void> test_named_comma_space_x_space_name_right() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A01 {}
 class A02 {}
 class B01 {}
 ({int foo01, ^ foo02}) f() {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   A01
     kind: class
@@ -144,14 +144,14 @@ suggestions
   }
 
   Future<void> test_positional_comma_space_prefix_x_right() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A01 {}
 class A02 {}
 class B01 {}
 (int, A0^) f() {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 replacement
   left: 2
 suggestions
@@ -163,14 +163,14 @@ suggestions
   }
 
   Future<void> test_positional_comma_space_prefix_x_space_name_right() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A01 {}
 class A02 {}
 class B01 {}
 (int, A0^ foo) f() {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 replacement
   left: 2
 suggestions
@@ -182,14 +182,14 @@ suggestions
   }
 
   Future<void> test_positional_comma_space_prefix_x_suffix_right() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A01 {}
 class A02 {}
 class B01 {}
 (int, A0^foo) f() {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 replacement
   left: 2
   right: 3
@@ -202,14 +202,14 @@ suggestions
   }
 
   Future<void> test_positional_comma_space_x_right() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A01 {}
 class A02 {}
 class B01 {}
 (int, ^) f() {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   A01
     kind: class
@@ -221,14 +221,14 @@ suggestions
   }
 
   Future<void> test_positional_comma_space_x_space_name_right() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A01 {}
 class A02 {}
 class B01 {}
 (int, ^ foo) f() {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   A01
     kind: class
@@ -240,14 +240,14 @@ suggestions
   }
 
   Future<void> test_positional_comma_space_x_suffix_right() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A01 {}
 class A02 {}
 class B01 {}
 (int, ^foo) f() {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 replacement
   right: 3
 suggestions

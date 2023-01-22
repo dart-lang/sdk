@@ -40,7 +40,7 @@ mixin SuperFormalParameterTestCases on AbstractCompletionDriverTest {
   }
 
   Future<void> test_explicit_optionalNamed_hasArgument_named() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -50,7 +50,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   second
     kind: parameter
@@ -59,7 +59,7 @@ suggestions
   }
 
   Future<void> test_explicit_optionalNamed_hasArgument_positional() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -69,7 +69,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   first
     kind: parameter
@@ -82,7 +82,7 @@ suggestions
 
   /// It is an error, but the user already typed `super.`, so maybe do it.
   Future<void> test_explicit_requiredPositional_hasArgument_positional() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A(int first, double second);
 }
@@ -92,7 +92,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   first
     kind: parameter
@@ -101,7 +101,7 @@ suggestions
   }
 
   Future<void> test_explicitNamed_noOther() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A.named(int first, double second);
   A(int third)
@@ -112,7 +112,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   first
     kind: parameter
@@ -121,7 +121,7 @@ suggestions
   }
 
   Future<void> test_implicit_optionalNamed_hasNamed_notSuper() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -131,7 +131,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   first
     kind: parameter
@@ -143,7 +143,7 @@ suggestions
   }
 
   Future<void> test_implicit_optionalNamed_hasNamed_notSuper2() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -153,7 +153,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   second
     kind: parameter
@@ -162,7 +162,7 @@ suggestions
   }
 
   Future<void> test_implicit_optionalNamed_hasNamed_super() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -172,7 +172,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   second
     kind: parameter
@@ -181,7 +181,7 @@ suggestions
   }
 
   Future<void> test_implicit_optionalNamed_hasNamed_super2() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -191,7 +191,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   first
     kind: parameter
@@ -200,7 +200,7 @@ suggestions
   }
 
   Future<void> test_implicit_optionalNamed_hasPositional_notSuper() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -210,7 +210,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   first
     kind: parameter
@@ -222,7 +222,7 @@ suggestions
   }
 
   Future<void> test_implicit_optionalNamed_hasPositional_super() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A({int first, double second});
 }
@@ -232,7 +232,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   second
     kind: parameter
@@ -241,7 +241,7 @@ suggestions
   }
 
   Future<void> test_implicit_optionalNamed_noOther() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A(bool first, {int second, double third});
 }
@@ -251,7 +251,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   second
     kind: parameter
@@ -263,7 +263,7 @@ suggestions
   }
 
   Future<void> test_implicit_optionalPositional_hasPositional_notSuper() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A([int first, double second]);
 }
@@ -273,7 +273,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   first
     kind: parameter
@@ -282,7 +282,7 @@ suggestions
   }
 
   Future<void> test_implicit_optionalPositional_hasPositional_super() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A([int first, double second, bool third]);
 }
@@ -292,7 +292,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   second
     kind: parameter
@@ -301,7 +301,7 @@ suggestions
   }
 
   Future<void> test_implicit_optionalPositional_hasPositional_super2() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A([int first, double second, bool third]);
 }
@@ -313,7 +313,7 @@ class B extends A {
 
     // It does not matter what is the name of the positional parameter.
     // Here `super.second` consumes `int first`.
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   second
     kind: parameter
@@ -322,7 +322,7 @@ suggestions
   }
 
   Future<void> test_implicit_optionalPositional_noOther() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A([int first, double second]);
 }
@@ -332,7 +332,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   first
     kind: parameter
@@ -341,7 +341,7 @@ suggestions
   }
 
   Future<void> test_implicit_requiredPositional_hasPositional_notSuper() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A(int first, double second);
 }
@@ -351,7 +351,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   first
     kind: parameter
@@ -360,7 +360,7 @@ suggestions
   }
 
   Future<void> test_implicit_requiredPositional_hasPositional_super() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A(int first, double second, bool third);
 }
@@ -370,7 +370,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   second
     kind: parameter
@@ -379,7 +379,7 @@ suggestions
   }
 
   Future<void> test_implicit_requiredPositional_hasPositional_super2() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A(int first, double second, bool third);
 }
@@ -391,7 +391,7 @@ class B extends A {
 
     // It does not matter what is the name of the positional parameter.
     // Here `super.second` consumes `int first`.
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   second
     kind: parameter
@@ -400,7 +400,7 @@ suggestions
   }
 
   Future<void> test_implicit_requiredPositional_noOther() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   A(int first, double second);
   A.named(int third);
@@ -411,7 +411,7 @@ class B extends A {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   first
     kind: parameter

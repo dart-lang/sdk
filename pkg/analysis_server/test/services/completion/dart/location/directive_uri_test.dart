@@ -7,7 +7,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../../client/completion_driver_test.dart';
-import '../completion_check.dart';
 import '../completion_printer.dart' as printer;
 
 void main() {
@@ -35,9 +34,9 @@ class DirectiveUriTest extends AbstractCompletionDriverTest {
   Future<void> test_uri_end() async {
     await _checkDirectives(
       uriContent: 'foo0^',
-      validator: (response) {
+      validator: () {
         // We have both `foo0x`, but no `bar`.
-        assertResponseText(response, r'''
+        assertResponse('''
 replacement
   left: 4
 suggestions
@@ -53,9 +52,9 @@ suggestions
   Future<void> test_uri_notEnd() async {
     await _checkDirectives(
       uriContent: 'foo0^xyz',
-      validator: (response) {
+      validator: () {
         // We ignore 'xyz' after the caret.
-        assertResponseText(response, r'''
+        assertResponse('''
 replacement
   left: 4
   right: 3
@@ -71,23 +70,23 @@ suggestions
 
   Future<void> _checkDirectives({
     required String uriContent,
-    required void Function(CompletionResponseForTesting response) validator,
+    required void Function() validator,
   }) async {
     _configurePackagesFooBar();
     await pumpEventQueue(times: 5000);
 
     {
-      var response = await getTestCodeSuggestions('''
+      await computeSuggestions('''
 export '$uriContent';
 ''');
-      validator(response);
+      validator();
     }
 
     {
-      var response = await getTestCodeSuggestions('''
+      await computeSuggestions('''
 import '$uriContent';
 ''');
-      validator(response);
+      validator();
     }
   }
 
