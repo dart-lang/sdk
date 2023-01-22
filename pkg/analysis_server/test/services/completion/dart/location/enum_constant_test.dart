@@ -29,13 +29,13 @@ class EnumConstantDeclarationTest2 extends AbstractCompletionDriverTest
 
 mixin EnumConstantDeclarationTestCases on AbstractCompletionDriverTest {
   Future<void> test_afterName_atEnd() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E {
   v^
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 replacement
   left: 1
 suggestions

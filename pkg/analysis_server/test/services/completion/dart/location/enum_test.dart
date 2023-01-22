@@ -29,13 +29,13 @@ class EnumDeclarationTest2 extends AbstractCompletionDriverTest
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
 
   Future<void> test_afterName_w() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E w^ {
   v
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 replacement
   left: 1
 suggestions
@@ -62,25 +62,25 @@ mixin EnumDeclarationTestCases on AbstractCompletionDriverTest {
   }
 
   Future<void> test_afterConstants_noSemicolon() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E {
   v ^
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
 ''');
   }
 
   Future<void> test_afterImplements() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E implements ^ {
   v
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   Object
     kind: class
@@ -88,13 +88,13 @@ suggestions
   }
 
   Future<void> test_afterImplementsClause() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E implements A ^ {
   v
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   with
     kind: keyword
@@ -102,13 +102,13 @@ suggestions
   }
 
   Future<void> test_afterName() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E ^ {
   v
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   implements
     kind: keyword
@@ -118,13 +118,13 @@ suggestions
   }
 
   Future<void> test_afterName_atEnd() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E^ {
   v
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 replacement
   left: 1
 suggestions
@@ -132,13 +132,13 @@ suggestions
   }
 
   Future<void> test_afterName_atLeftCurlyBracket() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E ^{
   v
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   implements
     kind: keyword
@@ -148,13 +148,13 @@ suggestions
   }
 
   Future<void> test_afterName_beforeImplements() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E ^ implements A {
   v
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   with
     kind: keyword
@@ -162,38 +162,38 @@ suggestions
   }
 
   Future<void> test_afterName_hasWith_hasImplements() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E ^ with M implements A {
   v
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
 ''');
   }
 
   Future<void> test_afterName_language216() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 // @dart = 2.16
 enum E ^ {
   v
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
 ''');
   }
 
   Future<void> test_afterWith() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E with ^ {
   v
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   Object
     kind: class
@@ -201,13 +201,13 @@ suggestions
   }
 
   Future<void> test_afterWithClause() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E with M ^ {
   v
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   implements
     kind: keyword
@@ -215,31 +215,31 @@ suggestions
   }
 
   Future<void> test_beforeConstants_hasSemicolon() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E {
  ^ v;
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
 ''');
   }
 
   Future<void> test_beforeConstants_noSemicolon() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E {
  ^ v
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
 ''');
   }
 
   Future<void> test_constantName_dot_name_x_argumentList_named() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E {
   v.foo0^();
   const E.foo01();
@@ -249,7 +249,7 @@ enum E {
 ''');
 
     if (isProtocolVersion2) {
-      assertResponseText(response, r'''
+      assertResponse('''
 replacement
   left: 4
 suggestions
@@ -262,7 +262,7 @@ suggestions
   }
 
   Future<void> test_constantName_dot_name_x_semicolon_named() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E {
   v.foo0^;
   const E.foo01();
@@ -272,7 +272,7 @@ enum E {
 ''');
 
     if (isProtocolVersion2) {
-      assertResponseText(response, r'''
+      assertResponse('''
 replacement
   left: 4
 suggestions
@@ -285,7 +285,7 @@ suggestions
   }
 
   Future<void> test_constantName_dot_x_argumentList_named() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E {
   v.^();
   const E.foo01();
@@ -293,7 +293,7 @@ enum E {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   foo01
     kind: constructorInvocation
@@ -303,7 +303,7 @@ suggestions
   }
 
   Future<void> test_constantName_dot_x_semicolon_named() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E {
   v.^;
   const E.foo01();
@@ -311,7 +311,7 @@ enum E {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   foo01
     kind: constructorInvocation
@@ -321,14 +321,14 @@ suggestions
   }
 
   Future<void> test_constantName_dot_x_semicolon_unnamed_declared() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E {
   v.^;
   const E();
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   new
     kind: constructorInvocation
@@ -336,13 +336,13 @@ suggestions
   }
 
   Future<void> test_constantName_dot_x_unnamed_implicit() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E {
   v.^
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   new
     kind: constructorInvocation
@@ -350,20 +350,20 @@ suggestions
   }
 
   Future<void> test_constantName_dot_x_unnamed_language216() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 // @dart = 2.16
 enum E {
   v.^
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
 ''');
   }
 
   Future<void> test_constantName_typeArguments_dot_x_semicolon_named() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 enum E<T> {
   v<int>.^;
   const E.foo01();
@@ -371,7 +371,7 @@ enum E<T> {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   foo01
     kind: constructorInvocation

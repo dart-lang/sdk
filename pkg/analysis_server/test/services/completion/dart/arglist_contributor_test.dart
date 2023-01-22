@@ -5,7 +5,6 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../client/completion_driver_test.dart';
-import 'completion_check.dart';
 import 'completion_printer.dart' as printer;
 
 void main() {
@@ -36,7 +35,7 @@ class ArgListContributorTest extends AbstractCompletionDriverTest {
       ..withDocumentation = true
       ..withElement = true;
 
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   /// aaa
   ///
@@ -50,7 +49,7 @@ void f() {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse(r'''
 suggestions
   |fff: |
     kind: namedArgument
@@ -67,7 +66,7 @@ suggestions
       ..withDocumentation = true
       ..withElement = true;
 
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 class A {
   int fff;
   A({this.fff});
@@ -77,7 +76,7 @@ void f() {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   |fff: |
     kind: namedArgument
@@ -90,7 +89,7 @@ suggestions
   Future<void> test_flutter_InstanceCreationExpression_0() async {
     writeTestPackageConfig(flutter: true);
 
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'package:flutter/widgets.dart';
 
 build() => new Row(
@@ -102,7 +101,7 @@ build() => new Row(
       return suggestion.completion.startsWith('children');
     };
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   children: [],
     kind: namedArgument
@@ -113,7 +112,7 @@ suggestions
   Future<void> test_flutter_InstanceCreationExpression_01() async {
     writeTestPackageConfig(flutter: true);
 
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'package:flutter/material.dart';
 
 build() => new Scaffold(
@@ -127,7 +126,7 @@ build() => new Scaffold(
       return suggestion.completion.startsWith('backgroundColor');
     };
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   backgroundColor: ,
     kind: namedArgument
@@ -138,7 +137,7 @@ suggestions
   Future<void> test_flutter_InstanceCreationExpression_1() async {
     writeTestPackageConfig(flutter: true);
 
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'package:flutter/material.dart';
 
 build() => new Row(
@@ -151,7 +150,7 @@ build() => new Row(
       return suggestion.completion.startsWith('children');
     };
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   children: [],
     kind: namedArgument
@@ -162,7 +161,7 @@ suggestions
   Future<void> test_flutter_InstanceCreationExpression_2() async {
     writeTestPackageConfig(flutter: true);
 
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'package:flutter/material.dart';
 
 build() => new Row(
@@ -175,7 +174,7 @@ build() => new Row(
       return suggestion.completion.startsWith('children');
     };
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   children: [],
     kind: namedArgument
@@ -187,7 +186,7 @@ suggestions
     // Ensure a trailing comma is not added when only replacing the name.
     writeTestPackageConfig(flutter: true);
 
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'package:flutter/material.dart';
 
 build() => new Row(
@@ -199,7 +198,7 @@ build() => new Row(
       return suggestion.completion.startsWith('key');
     };
 
-    assertResponseText(response, r'''
+    assertResponse('''
 replacement
   left: 2
 suggestions
@@ -214,7 +213,7 @@ suggestions
     // type it's children.
     writeTestPackageConfig(flutter: true);
 
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'package:flutter/material.dart';
 
 build() => new Container(
@@ -226,7 +225,7 @@ class DynamicRow extends Widget {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   children: [],
     kind: namedArgument
@@ -239,7 +238,7 @@ suggestions
     // Ensure we don't include list markers if there's already a value.
     writeTestPackageConfig(flutter: true);
 
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'package:flutter/material.dart';
 
 build() => new Row(
@@ -247,7 +246,7 @@ build() => new Row(
   );
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 replacement
   left: 2
 suggestions
@@ -260,7 +259,7 @@ suggestions
     // Ensure we don't generate Map params for a future API
     writeTestPackageConfig(flutter: true);
 
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'package:flutter/material.dart';
 
 build() => new Container(
@@ -272,7 +271,7 @@ class MapRow extends Widget {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   children: ,
     kind: namedArgument
@@ -283,7 +282,7 @@ suggestions
   Future<void> test_flutter_InstanceCreationExpression_slivers() async {
     writeTestPackageConfig(flutter: true);
 
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'package:flutter/material.dart';
 
 build() => new CustomScrollView(
@@ -295,7 +294,7 @@ class CustomScrollView extends Widget {
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   slivers: [],
     kind: namedArgument
@@ -310,7 +309,7 @@ suggestions
     // the 'material' library). Determine whether the test is still valid.
     writeTestPackageConfig(flutter: true);
 
-    final response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 import 'package:flutter/material.dart';
 
 void f() {
@@ -320,7 +319,7 @@ void f() {
 foo({String children}) {}
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   |children: |
     kind: namedArgument
@@ -349,8 +348,8 @@ class ArgumentListContributorNamedTest extends AbstractCompletionDriverTest {
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 suggestions
   |foo01: |
   |foo02: |
@@ -363,8 +362,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo0^)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 replacement
   left: 4
 suggestions
@@ -379,8 +378,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(f^ foo02: 2)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 replacement
   left: 1
 suggestions
@@ -395,8 +394,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(f^, foo02: 2)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 replacement
   left: 1
 suggestions
@@ -410,8 +409,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(f^ , foo02: 2)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 replacement
   left: 1
 suggestions
@@ -425,8 +424,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^f,)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 replacement
   right: 1
 suggestions
@@ -441,8 +440,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^ foo02: 2)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 suggestions
   foo01: ,
     selection: 7
@@ -455,8 +454,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^foo02: 2)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 replacement
   right: 5
 suggestions
@@ -471,8 +470,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^, foo02: 2)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 suggestions
   |foo01: |
 ''');
@@ -484,8 +483,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(^ , foo02: 2)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 suggestions
   |foo01: |
 ''');
@@ -497,8 +496,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '(int foo01, {int? foo02, int? foo03})',
       arguments: '(1, ^, foo03: 3)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 suggestions
   |foo02: |
 ''');
@@ -510,8 +509,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '(int foo01, {int? foo02, int? foo03})',
       arguments: '(1, ^ foo03: 3)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 suggestions
   foo02: ,
     selection: 7
@@ -524,8 +523,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '(int foo01, {int? foo02, int? foo03})',
       arguments: '(1, ^foo03: 3)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 replacement
   right: 5
 suggestions
@@ -541,13 +540,10 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2^)',
-      check: (response) {
-        assertResponseText(
-            response,
-            r'''
+      check: () {
+        assertResponse('''
 suggestions
-''',
-            printIfFailed: false);
+''');
       },
     );
   }
@@ -557,14 +553,11 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2 ^)',
-      check: (response) {
-        assertResponseText(
-            response,
-            r'''
+      check: () {
+        assertResponse('''
 suggestions
   |, foo01: |
-''',
-            printIfFailed: false);
+''');
       },
     );
   }
@@ -573,8 +566,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2, ^)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 suggestions
   |foo01: |
 ''');
@@ -586,8 +579,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2, f^)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 replacement
   left: 1
 suggestions
@@ -601,8 +594,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo02: 2, f^,)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 replacement
   left: 1
 suggestions
@@ -616,8 +609,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '(int foo01, int foo02, int foo03, {int? foo04, int? foo05})',
       arguments: '(1, ^, 3)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 suggestions
   |foo04: |
   |foo05: |
@@ -631,8 +624,8 @@ suggestions
       languageVersion: '2.15',
       parameters: '(int foo01, int foo02, int foo03, {int? foo04, int? foo05})',
       arguments: '(1, ^, 3)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 suggestions
 ''');
       },
@@ -643,8 +636,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(f^: 0)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 replacement
   left: 1
 suggestions
@@ -659,8 +652,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '(bool foo01, {int? foo02, int? foo03})',
       arguments: '(false, ^f: 2)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 replacement
   right: 1
 suggestions
@@ -677,8 +670,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '(int foo01, {int? foo02})',
       arguments: '(0, foo^ba: 2)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 replacement
   left: 3
   right: 2
@@ -693,8 +686,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '(bool foo01, {int? foo02, int? foo03})',
       arguments: '(0, ^: 2)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 suggestions
   foo02
   foo03
@@ -707,8 +700,8 @@ suggestions
     await _tryParametersArguments(
       parameters: '({int? foo01, int? foo02})',
       arguments: '(foo01: ^)',
-      check: (response) {
-        assertResponseText(response, r'''
+      check: () {
+        assertResponse('''
 suggestions
 ''');
       },
@@ -719,15 +712,15 @@ suggestions
     String? languageVersion,
     required String parameters,
     required String arguments,
-    required void Function(CompletionResponseForTesting response) check,
+    required void Function() check,
   }) async {
     var languageVersionLine = languageVersion != null
         ? '// @dart = $languageVersion'
         : '// no language version override';
 
     Future<void> computeAndCheck(String code) async {
-      final response = await getTestCodeSuggestions(code);
-      check(response);
+      await computeSuggestions(code);
+      check();
     }
 
     // Annotation, local class.

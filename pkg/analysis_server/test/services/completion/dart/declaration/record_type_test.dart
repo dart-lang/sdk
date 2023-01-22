@@ -40,13 +40,13 @@ mixin RecordTypeTestCases on AbstractCompletionDriverTest {
   }
 
   Future<void> test_mixed() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 void f((int, {String foo02}) r) {
   r.^
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse(r'''
 suggestions
   hashCode
     kind: getter
@@ -70,13 +70,13 @@ suggestions
   }
 
   Future<void> test_named() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 void f(({int foo01, String foo02}) r) {
   r.^
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse('''
 suggestions
   hashCode
     kind: getter
@@ -100,13 +100,13 @@ suggestions
   }
 
   Future<void> test_positional() async {
-    var response = await getTestCodeSuggestions('''
+    await computeSuggestions('''
 void f((int, String) r) {
   r.^
 }
 ''');
 
-    assertResponseText(response, r'''
+    assertResponse(r'''
 suggestions
   hashCode
     kind: getter
