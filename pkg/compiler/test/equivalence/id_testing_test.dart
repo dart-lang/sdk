@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:io';
 import 'package:async_helper/async_helper.dart';
 import 'package:compiler/src/compiler.dart';
@@ -40,7 +38,7 @@ class IdTestingDataComputer extends DataComputer<String> {
   @override
   void computeClassData(
       Compiler compiler, ClassEntity cls, Map<Id, ActualData<String>> actualMap,
-      {bool verbose}) {
+      {required bool verbose}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Class node = elementMap.getClassNode(cls);
@@ -51,7 +49,7 @@ class IdTestingDataComputer extends DataComputer<String> {
   @override
   void computeLibraryData(Compiler compiler, LibraryEntity library,
       Map<Id, ActualData<String>> actualMap,
-      {bool verbose}) {
+      {required bool verbose}) {
     KernelFrontendStrategy frontendStrategy = compiler.frontendStrategy;
     KernelToElementMap elementMap = frontendStrategy.elementMap;
     ir.Library node = elementMap.getLibraryNode(library);
@@ -65,7 +63,7 @@ class IdTestingDataComputer extends DataComputer<String> {
   @override
   String computeErrorData(
       Compiler compiler, Id id, List<CollectedMessage> errors) {
-    return errors.map((c) => c.message.message).join(',');
+    return errors.map((c) => c.message!.message).join(',');
   }
 
   @override
@@ -99,7 +97,7 @@ class IdTestingDataExtractor extends IrDataExtractor<String> {
 
   String computeMemberName(ir.Member member) {
     if (member.enclosingClass != null) {
-      return '${computeClassName(member.enclosingClass)}.'
+      return '${computeClassName(member.enclosingClass!)}.'
           '${getMemberName(member)}';
     }
     return getMemberName(member);
@@ -111,7 +109,7 @@ class IdTestingDataExtractor extends IrDataExtractor<String> {
   }
 
   @override
-  String computeNodeValue(Id id, ir.TreeNode node) {
+  String? computeNodeValue(Id id, ir.TreeNode node) {
     if (node is ir.FunctionDeclaration) {
       return '${computeMemberName(getEnclosingMember(node))}.'
           '${node.variable.name}';

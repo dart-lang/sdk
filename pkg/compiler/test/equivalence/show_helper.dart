@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 /// Helper program that shows the equivalence-based data on a dart program.
 
 import 'dart:io';
@@ -38,7 +36,7 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
 
   String file = argResults.rest.first;
   Uri entryPoint = Uri.base.resolve(nativeToUriPath(file));
-  List<String> show;
+  List<String>? show;
   if (argResults['all']) {
     show = null;
   } else if (argResults.rest.length > 1) {
@@ -51,18 +49,18 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
   if (omitImplicitChecks) {
     options.add(Flags.omitImplicitChecks);
   }
-  Dart2jsCompiledData<T> data = await computeData<T>(
+  Dart2jsCompiledData<T>? data = await computeData<T>(
       file, entryPoint, const {}, dataComputer,
       options: options,
       testFrontend: dataComputer.testFrontend,
       forUserLibrariesOnly: false,
       skipUnprocessedMembers: true,
       skipFailedCompilations: true,
-      verbose: verbose);
+      verbose: verbose) as Dart2jsCompiledData<T>?;
   if (data == null) {
     print('Compilation failed.');
   } else {
-    SourceFileProvider provider = data.compiler.provider;
+    final provider = data.compiler.provider as SourceFileProvider;
     for (Uri uri in data.actualMaps.keys) {
       Uri fileUri = uri;
       if (fileUri.isScheme('org-dartlang-sdk')) {
@@ -71,18 +69,14 @@ show<T>(ArgResults argResults, DataComputer<T> dataComputer,
       if (show != null && !show.any((f) => '$fileUri'.endsWith(f))) {
         continue;
       }
-      SourceFile<List<int>> sourceFile =
-          provider.readUtf8FromFileSyncForTesting(fileUri);
-      String sourceCode = sourceFile?.slowText();
+      final sourceFile = provider.readUtf8FromFileSyncForTesting(fileUri)
+          as SourceFile<List<int>>?;
+      String? sourceCode = sourceFile?.slowText();
       if (sourceCode == null) {
         sourceCode = new File.fromUri(fileUri).readAsStringSync();
       }
-      if (sourceCode == null) {
-        print('--source code missing for $uri--------------------------------');
-      } else {
-        print('--annotations for $uri----------------------------------------');
-        print(withAnnotations(sourceCode, data.computeAnnotations(uri)));
-      }
+      print('--annotations for $uri----------------------------------------');
+      print(withAnnotations(sourceCode, data.computeAnnotations(uri)));
     }
   }
 }
