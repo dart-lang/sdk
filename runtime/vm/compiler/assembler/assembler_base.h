@@ -331,7 +331,7 @@ class Label : public ZoneAllocated {
   // On ARM/ARM64 we track LR state: whether it contains return address or
   // whether it can be clobbered. To make sure that our tracking it correct
   // for non linear code sequences we additionally verify at labels that
-  // incomming states are compatible.
+  // incoming states are compatible.
   LRState lr_state_ = LRState::Unknown();
 
   void UpdateLRState(LRState new_state) {

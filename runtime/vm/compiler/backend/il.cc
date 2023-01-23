@@ -6847,7 +6847,7 @@ void FfiCallInstr::EmitParamMoves(FlowGraphCompiler* compiler,
       ConstantTemporaryAllocator temp_alloc(temp0);
       if (origin.IsConstant()) {
         // Can't occur because we currently don't inline FFI trampolines (see
-        // http://dartbug.com/45055), which means all incomming arguments
+        // http://dartbug.com/45055), which means all incoming arguments
         // originate from parameters and thus are non-constant.
         UNREACHABLE();
       }

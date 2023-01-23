@@ -32,7 +32,7 @@ bool checkNonExistentFileSystemException(e, str) {
   Expect.isTrue(e is PathNotFoundException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf(str) != -1);
-  // File not not found has error code 2 on all supported platforms.
+  // File not found has error code 2 on all supported platforms.
   Expect.equals(2, e.osError.errorCode);
   return true;
 }
@@ -151,7 +151,7 @@ bool checkResolveSymbolicLinksOnNonExistentFileSystemException(e) {
   Expect.isTrue(e is FileSystemException);
   Expect.isTrue(e.osError != null);
   Expect.isTrue(e.toString().indexOf("Cannot resolve symbolic links") != -1);
-  // File not not found has error code 2 on all supported platforms.
+  // File not found has error code 2 on all supported platforms.
   Expect.equals(2, e.osError.errorCode);
 
   return true;

@@ -7,7 +7,7 @@ import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 
 void main() {
-  // A virtual tun/tap interface should be created with following instrutctions:
+  // A virtual tun/tap interface should be created with following instructions:
   // Create an interface with name [tap0],
   //    sudo ip tuntap add name [tap0] mode tap
   // Assign an ipv6 address [fe80:1::1],

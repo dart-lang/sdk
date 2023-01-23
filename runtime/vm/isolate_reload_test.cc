@@ -4826,7 +4826,7 @@ TEST_CASE(IsolateReload_SuperGetterReboundToMethod) {
 // with multicomponent Kernel binary. When loading kernel blobs through tag
 // handler (Dart_kKernelTag) we need to make sure to preserve a link between
 // KernelProgramInfo objects and original typed data, because it might be
-// comming with a finalizer, which otherwise might end up being called
+// coming with a finalizer, which otherwise might end up being called
 // prematurely.
 namespace {
 
