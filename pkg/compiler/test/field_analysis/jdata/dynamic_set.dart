@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 main() {
   method1(new Class1a());
   method2(new Class2a<int>());
@@ -15,7 +13,7 @@ main() {
 
 class Class1a {
   /*member: Class1a.field1:elided*/
-  int field1;
+  int? field1;
 }
 
 @pragma('dart2js:noInline')
@@ -25,7 +23,7 @@ method1(dynamic c) {
 
 class Class2a<T> {
   /*member: Class2a.field2:elided*/
-  T field2;
+  T? field2;
 }
 
 @pragma('dart2js:noInline')
@@ -35,12 +33,12 @@ method2(dynamic c) {
 
 class Class3a {
   /*member: Class3a.field3:elided*/
-  int field3;
+  int? field3;
 }
 
 class Class3b {
   /*member: Class3b.field3:elided*/
-  int field3;
+  int? field3;
 }
 
 @pragma('dart2js:noInline')
@@ -50,13 +48,13 @@ method3(dynamic c) {
 
 class Class4a {
   /*member: Class4a.field4:elided*/
-  int field4;
+  int? field4;
 }
 
 class Class4b implements Class4a {
   /*member: Class4b.field4:elided*/
   @override
-  int field4;
+  int? field4;
 }
 
 @pragma('dart2js:noInline')

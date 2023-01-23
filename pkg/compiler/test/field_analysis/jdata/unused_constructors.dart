@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 class Class1 {
   /*member: Class1.field:constant=IntConstant(87)*/
   final int field;
@@ -14,7 +12,7 @@ class Class1 {
 }
 
 class Class2 {
-  final int field;
+  final int? field;
 
   const Class2([this.field]);
 }
