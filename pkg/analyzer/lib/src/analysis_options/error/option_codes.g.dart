@@ -172,6 +172,19 @@ class AnalysisOptionsWarningCode extends ErrorCode {
     correctionMessage: "Remove all plugins following the first, '{0}'.",
   );
 
+  ///  An error code indicating a specified include file includes itself recursively.
+  ///
+  ///  Parameters:
+  ///  0: the URI of the file to be included
+  ///  1: the path of the file containing the include directive
+  static const AnalysisOptionsWarningCode RECURSIVE_INCLUDE_FILE =
+      AnalysisOptionsWarningCode(
+    'RECURSIVE_INCLUDE_FILE',
+    "The include file '{0}' in '{1}' includes itself recursively.",
+    correctionMessage:
+        "Try changing the chain of 'include's to not re-include this file.",
+  );
+
   ///  An error code indicating a removed lint rule.
   ///
   ///  Parameters:
