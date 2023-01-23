@@ -7,6 +7,7 @@ import 'dart:async';
 
 import 'package:args/args.dart';
 
+import 'package:mmap/mmap.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'analysis.dart';
@@ -136,7 +137,7 @@ class LoadCommand extends Command {
       return;
     }
     try {
-      final bytes = File(filename).readAsBytesSync();
+      final bytes = mmapOrReadFileSync(filename);
       state.initialize(
           Analysis(HeapSnapshotGraph.fromChunks([bytes.buffer.asByteData()])));
       state.output.print('Loaded heapsnapshot from "$filename".');

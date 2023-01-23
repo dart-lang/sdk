@@ -11,7 +11,8 @@ environment:
 
 dependencies:
   args: ^2.0.0
-  vm_service: ^9.3.0
+  vm_service: ^10.0.0
+  mmap: any
 
 dev_dependencies:
   test: ^1.21.6
@@ -19,6 +20,5 @@ dev_dependencies:
   dart_console: ^1.1.2
 
 dependency_overrides:
-  # For obj.referrers (TODO: publish new package:vm_service version)
-  vm_service:
-    path: ../../../pkg/vm_service
+  mmap:
+    path: ../../../pkg/mmap
