@@ -49,6 +49,7 @@ import 'package:analyzer/src/summary2/macro.dart';
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 
 /// This class computes [AnalysisResult]s for Dart files.
 ///
@@ -747,7 +748,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// [uri], which is either resynthesized from the provided external summary
   /// store, or built for a file to which the given [uri] is resolved.
   Future<SomeLibraryElementResult> getLibraryByUri(String uri) async {
-    var uriObj = Uri.parse(uri);
+    var uriObj = uriCache.parse(uri);
     var fileOr = _fsState.getFileForUri(uriObj);
     return fileOr.map(
       (file) async {
@@ -1528,7 +1529,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     _hasDartCoreDiscovered = true;
 
-    _fsState.getFileForUri(Uri.parse('dart:core')).map(
+    _fsState.getFileForUri(uriCache.parse('dart:core')).map(
       (file) {
         final kind = file?.kind as LibraryFileKind;
         kind.discoverReferencedFiles();
@@ -1654,7 +1655,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   }
 
   bool _hasLibraryByUri(String uriStr) {
-    var uri = Uri.parse(uriStr);
+    var uri = uriCache.parse(uriStr);
     var fileOr = _fsState.getFileForUri(uri);
     return fileOr.map(
       (file) => file != null && file.exists,

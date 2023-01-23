@@ -19,12 +19,12 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart' as idl;
 import 'package:analyzer/src/summary/idl.dart' as idl;
 import 'package:analyzer/src/util/comment.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
 import 'package:meta/meta.dart';
@@ -1891,7 +1891,7 @@ class _File {
     List<String> partOrUriList,
     Uri relative,
   ) {
-    var absoluteUri = resolveRelativeUri(uri, relative);
+    var absoluteUri = uriCache.resolveRelative(uri, relative);
     return tracker._getFileByUri(context, partOrUriList, absoluteUri);
   }
 

@@ -29,7 +29,6 @@ import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
@@ -38,6 +37,7 @@ import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:collection/collection.dart';
 import 'package:convert/convert.dart';
@@ -570,14 +570,14 @@ class FileState {
       return DirectiveUri();
     }
 
-    final relativeUri = Uri.tryParse(relativeUriStr);
+    final relativeUri = uriCache.tryParse(relativeUriStr);
     if (relativeUri == null) {
       return DirectiveUriWithString(
         relativeUriStr: relativeUriStr,
       );
     }
 
-    final absoluteUri = resolveRelativeUri(uri, relativeUri);
+    final absoluteUri = uriCache.resolveRelative(uri, relativeUri);
     return _fsState.getFileForUri(absoluteUri).map(
       (file) {
         if (file != null) {
@@ -629,14 +629,15 @@ class FileState {
     );
   }
 
-  /// Return the [FileState] for the given [relativeUri], or `null` if the
+  /// Return the [FileState] for the given [relativeUriStr], or `null` if the
   /// URI cannot be parsed, cannot correspond any file, etc.
   Either2<FileState?, ExternalLibrary> _fileForRelativeUri(
-    String relativeUri,
+    String relativeUriStr,
   ) {
     Uri absoluteUri;
     try {
-      absoluteUri = resolveRelativeUri(uri, Uri.parse(relativeUri));
+      var relativeUri = uriCache.parse(relativeUriStr);
+      absoluteUri = uriCache.resolveRelative(uri, relativeUri);
     } on FormatException {
       return Either2.t1(null);
     }
@@ -752,8 +753,8 @@ class FileState {
       }
       final Uri absoluteUri;
       try {
-        final relativeUri = Uri.parse(relativeUriStr);
-        absoluteUri = resolveRelativeUri(uri, relativeUri);
+        final relativeUri = uriCache.parse(relativeUriStr);
+        absoluteUri = uriCache.resolveRelative(uri, relativeUri);
       } on FormatException {
         return;
       }
