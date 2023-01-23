@@ -8,8 +8,6 @@
  c_steps=[c=(f1)]
 */
 
-// @dart = 2.7
-
 import 'lib1.dart';
 import 'lib2.dart' deferred as c;
 

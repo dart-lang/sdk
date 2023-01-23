@@ -8,7 +8,6 @@
  c_steps=[libb=(f1)]
 */
 
-// @dart = 2.7
 import 'libb.dart' deferred as libb;
 import 'libc.dart';
 
