@@ -2,15 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
+import 'package:compiler/src/common.dart';
 import "package:expect/expect.dart";
 import "package:compiler/src/js/js.dart";
 import "package:compiler/src/js/rewrite_async.dart";
 import "package:compiler/src/js_backend/js_backend.dart" show StringBackedName;
 
+class SimpleErrorReporter implements DiagnosticReporter {
+  @override
+  noSuchMethod(Invocation invocation) {
+    return super.noSuchMethod(invocation);
+  }
+}
+
 void testTransform(String source, String expected, AsyncRewriterBase rewriter) {
-  Fun fun = js(source);
+  final fun = js(source) as Fun;
   Fun rewritten = rewriter.rewrite(fun, null, null);
 
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions();
@@ -26,7 +32,7 @@ void testAsyncTransform(String source, String expected) {
       source,
       expected,
       new AsyncRewriter(
-          null, // The diagnostic helper should not be used in these tests.
+          SimpleErrorReporter(), // The diagnostic helper should not be used in these tests.
           null,
           asyncStart: new VariableUse("startHelper"),
           asyncAwait: new VariableUse("awaitHelper"),
@@ -43,7 +49,7 @@ void testSyncStarTransform(String source, String expected) {
   testTransform(
       source,
       expected,
-      new SyncStarRewriter(null, null,
+      new SyncStarRewriter(SimpleErrorReporter(), null,
           endOfIteration: new VariableUse("endOfIteration"),
           iterableFactory: new VariableUse("NewIterable"),
           iterableFactoryTypeArguments: [new VariableUse("IterableType")],

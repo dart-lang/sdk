@@ -14,8 +14,6 @@
   l2=(f2)]
 */
 
-// @dart = 2.7
-
 import 'shared.dart';
 import 'lib1.dart' deferred as l1;
 

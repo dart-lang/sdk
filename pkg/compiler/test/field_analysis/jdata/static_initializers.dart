@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 main() {
   print(field1a);
   print(field1b);
@@ -82,7 +80,7 @@ final field1a = 0;
 var field1b = 0;
 
 /*member: field1c:initial=IntConstant(0)*/
-var field1c = 0;
+int? field1c = 0;
 
 /*member: field2a:constant=ListConstant([])*/
 final field2a = const [];
@@ -91,7 +89,7 @@ final field2a = const [];
 var field2b = const [];
 
 /*member: field2c:initial=ListConstant([])*/
-var field2c = const [];
+List? field2c = const [];
 
 /*member: field3a:eager,final*/
 final field3a = [];
@@ -100,7 +98,7 @@ final field3a = [];
 var field3b = [];
 
 /*member: field3c:eager*/
-var field3c = [];
+List? field3c = [];
 
 /*member: field3d:eager,final*/
 var field3d = [1, 2, 3];
@@ -228,7 +226,7 @@ var field9b = field9a;
 var field9d = [field9a];
 
 /*member: field9e:eager*/
-var field9e = [];
+List? field9e = [];
 
 /*member: field9f:final,lazy*/
 var field9f = field9e;

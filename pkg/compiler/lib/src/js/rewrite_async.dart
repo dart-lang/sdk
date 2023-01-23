@@ -1805,7 +1805,7 @@ class AsyncRewriter extends AsyncRewriterBase {
 
   final js.Expression wrapBody;
 
-  AsyncRewriter(DiagnosticReporter reporter, Spannable spannable,
+  AsyncRewriter(DiagnosticReporter reporter, Spannable? spannable,
       {required this.asyncStart,
       required this.asyncAwait,
       required this.asyncReturn,

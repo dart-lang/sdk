@@ -8,8 +8,6 @@
  c_steps=[b=(f1)]
 */
 
-// @dart = 2.7
-
 // Test instantiation used only in a deferred library.
 
 /*class: global#Instantiation:class_unit=1{b},type_unit=1{b}*/

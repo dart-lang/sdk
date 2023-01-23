@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
@@ -68,7 +66,7 @@ void test(String title, RunResult result,
 
 Future<RunResult> run(
     {Map<String, String> memorySourceFiles = const {'main.dart': 'main() {}'},
-    api.CompilerDiagnostics diagnostics}) async {
+    api.CompilerDiagnostics? diagnostics}) async {
   RunResult result = new RunResult();
   await runZoned(() async {
     try {
@@ -95,7 +93,7 @@ class RunResult {
 class CrashingDiagnostics extends DiagnosticCollector {
   @override
   void report(
-      code, Uri uri, int begin, int end, String text, api.Diagnostic kind) {
+      code, Uri? uri, int? begin, int? end, String text, api.Diagnostic kind) {
     throw EXCEPTION;
   }
 }

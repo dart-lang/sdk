@@ -8,8 +8,6 @@
  c_steps=[lib=(f1)]
 */
 
-// @dart = 2.7
-
 // Test that when a deferred import fails to load, it is possible to retry.
 
 import 'lib.dart' deferred as lib;

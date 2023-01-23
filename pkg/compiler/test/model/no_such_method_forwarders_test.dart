@@ -116,7 +116,7 @@ main() {
     void check(String className,
         {bool hasMethod, bool isAbstract = false, String declaringClass}) {
       MemberEntity member =
-          findClassMember(closedWorld, className, 'method', required: false);
+          findClassMemberOrNull(closedWorld, className, 'method');
       if (hasMethod) {
         Expect.isNotNull(
             member, "Missing member 'method' in class '$className'.");

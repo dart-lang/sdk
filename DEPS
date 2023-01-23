@@ -86,33 +86,40 @@ vars = {
   # Scripts that make 'git cl format' work.
   "clang_format_scripts_rev": "bb994c6f067340c1135eb43eed84f4b33cfa7397",
 
-  "gperftools_revision": "bf8b714bf5075d0a6f2f28504b43095e2b1e11c5",
+  ### /third_party/ dependencies
 
-  # Revisions of /third_party/* dependencies.
-  # Note that putting an EOL comment after a dependency below will prevent the
-  # 'tools/rev_sdk_deps.dart' tool from attempting to rev to a newer revision.
+  # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
+  "binaryen_rev" : "36e2abbcdd22b2b1707757b49fb4ac8844f28e5d",
+  "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
+  "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
+  "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
+  "devtools_rev": "c7a81f64dabb4b9f2cae0cf2c9411ef8bb805191",
+  "gperftools_revision": "bf8b714bf5075d0a6f2f28504b43095e2b1e11c5",
+  "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
+  "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
+  "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
+  "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
+  "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
+  "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
+  "zlib_rev": "27c2f474b71d0d20764f86f60ef8b00da1a16cda",
+
+  ### /third_party/pkg dependencies
+  # 'tools/rev_sdk_deps.dart' can rev pkg dependencies to their latest; put an
+  # EOL comment after a dependency to pin it at its current revision.
 
   "args_rev": "ac0e2c82f94d049b2d3b318b487863bf288258b1",
   "async_rev": "de1ce93c6f58c22fda4dd4d6267ecebebed622c3",
   "bazel_worker_rev": "b35c25e6cecced319b80c6686b9d025e462c7053",
   "benchmark_harness_rev": "76881df31f4b76ff7bc50e3389d540b7fb2a69e6",
   "boolean_selector_rev": "ba7d86b66382aa808576cd55840d4c34f0225066",
-  "boringssl_gen_rev": "ced85ef0a00bbca77ce5a91261a5f2ae61b1e62f",
-  "boringssl_rev": "87f316d7748268eb56f2dc147bd593254ae93198",
-  "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "browser_launcher_rev": "f2f01e4c7e719c633ca3c35d55c5331d4fe8b54b",
   "characters_rev": "fff80aa37a584adffb4e90bc5e01196a8c6ebe82",
-  "chrome_rev": "19997",
   "cli_util_rev": "32bc0779a604c1bde1bb0782789c99cac222e651",
   "clock_rev": "65e8a13ddf26c9d21884ccc8f8532725697d40df",
   "collection_rev": "85e987cf1b8aaba60bdc8b16dd1ee6233436549f",
   "convert_rev": "20d136c2fa4edc229fc3d7684bbeb8df5105580b",
   "crypto_rev": "f854f2fa730acb107aa41ebe431403081f7161e4",
   "csslib_rev": "7054945b62bd83c4c7a0fab693fa73c3f137c202",
-
-  # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
-  "binaryen_rev" : "36e2abbcdd22b2b1707757b49fb4ac8844f28e5d",
-
   # Note: Updates to dart_style have to be coordinated with the infrastructure
   # team so that the internal formatter `tools/sdks/dart-sdk/bin/dart format`
   # matches the version here. Please follow this process to make updates:
@@ -124,37 +131,30 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "d0c6b1da52c9f80679a7aaa05e5935ef5c6bb52f", # manually rev'd
-
   "dartdoc_rev": "ed56883d7b3c31aea3faa27232c3bffc2c97aaa4",
-  "devtools_rev": "c7a81f64dabb4b9f2cae0cf2c9411ef8bb805191",
   "ffi_rev": "2a56c2a9a87122c057168874bde384debbb806b0",
   "file_rev": "b768f79dcd104a5feabafab47101c4355b71cd8f",
   "fixnum_rev": "71f0d4d16054e6be7d8e22bdb3b082b9f82061be",
   "glob_rev": "4579281741e59e2e4ad02a197e0b1f4d6558dede",
   "html_rev": "3dd00b0ca99e222697e6b6dc653774dc877da420",
+  "http_rev": "57c53b05e9f42546149f51348bc063bc7279283c",
   "http_multi_server_rev": "cce50802b66d33f703f82b3189988aa8e51976ac",
   "http_parser_rev": "6f73e4a399df013ded8f4c81f151d122b36d361b",
-  "http_rev": "57c53b05e9f42546149f51348bc063bc7279283c",
-  "icu_rev": "81d656878ec611cb0b42d52c82e9dae93920d9ba",
   "intl_rev": "6140b600b3fd42d86e289f7d92c18488fe7e4bb9",
-  "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_rev": "bd9f8d90ec9ce9d0da5c11f3e71b87af3aaca3b4",
-  "linter_rev": "8f7b75f8a3501ca2c4d5bbc1f003d90d66447544", # 1.32.0 (avoid_field_initializers_in_const_classes cherry-pick)
+  "linter_rev": "8f7b75f8a3501ca2c4d5bbc1f003d90d66447544", # 1.32.0
   "lints_rev": "dfded5e265015f21ce154577fe8488dc244e33c2",
   "logging_rev": "34ed68fe23291c82bb685984e4e2ffc06860a4a8",
   "markdown_rev": "ee3f4e976efcfed87c6ec78364bc2dd3c6e717b9", # https://github.com/dart-lang/markdown/pull/494
-  "markupsafe_rev": "8f45f5cfa0009d2a70589bcda0349b8cb2b72783",
   "matcher_rev": "deedda179c33b00b3e06aa107ebfc3dd2f8a5f49",
   "mime_rev": "034471a60d5603a6988de6d9811bee1cb0657f70",
   "mockito_rev": "9cc958a991dc6d6b563196893a77973eee58603c",
   "package_config_rev": "2e1a8eca1ebeac01f45003642c25e24e63d45b50",
   "path_rev": "9768908ef81cf92fc77cb259c2cf01ca8725de88",
-  "ply_rev": "604b32590ffad5cbb82e4afef1d305512d06ae93",
   "pool_rev": "ad4e2a7fde6a2937b2f7f59af271b437376d8e3d",
   "protobuf_rev": "cc0f287fb6a8680e431eb9210225f1d0ac33c047",
   "pub_rev": "0cbaf7a2fb8c8ca543c6f222bf25d5f5c63abbf3", # manually rev'd
   "pub_semver_rev": "3946e33446365aa6af84abc0b1f47ad3a6f3b490",
-  "root_certificates_rev": "692f6d6488af68e0121317a9c2c9eb393eb0ee50",
   "shelf_rev": "a44e95e00324b6051bbee5ea235355f843795d1c",
   "source_map_stack_trace_rev": "adea3e51269f355514b59b66a4fcecabd1fa6e95",
   "source_maps_rev": "d995912983f4f4c33a040c629952fb4632aeea70",
@@ -165,23 +165,21 @@ vars = {
   "string_scanner_rev": "045498024df8f0a1cd0f717f12d60aec77d3d8ae",
   "sync_http_rev": "36a1bd086798cbdb48e7541b05e5a14b5e5bb56b",
   "term_glyph_rev": "8cd931827bc3bfc1c62fd7ea44cbbc99b8a94f4d",
+  "test_rev": "19582a8d45670a53fa4fca8d06a3746d1616d46e",
   "test_descriptor_rev": "b73c691c4e38e23bf8383148d3d68fa65e4a57e9",
   "test_process_rev": "62ea2ba786d9e0e7cccedaf305d3972ee41fbc6a",
   "test_reflective_loader_rev": "cf58259b91c4d3cccc90abd4c0b44273e6421646",
-  "test_rev": "19582a8d45670a53fa4fca8d06a3746d1616d46e",
   "typed_data_rev": "9c209b9c99ca7528a45c23d5d09579788b3ea81b",
   "usage_rev": "2773c7d334db9a902582feb8c5f38899c83d7b54",
   "vector_math_rev": "1eee95b15e5d35cf519514cc253037b19705fb7a",
   "watcher_rev": "3b49c7ea087cc158bdcba19fe8919283fdc1cd86",
   "web_components_rev": "8f57dac273412a7172c8ade6f361b407e2e4ed02",
   "web_socket_channel_rev": "28d7b82986cf931e6d977d973a7849cfc7c0bab9",
-  "WebCore_rev": "bcb10901266c884e7b3740abc597ab95373ab55c",
   "webdev_rev": "f978b90cdfc97967b8caec1b5e2a4919ce9fa3d2",
   "webdriver_rev": "00c887daa14de516c0dd02f1021225d478f503c1",
   "webkit_inspection_protocol_rev": "15244ffbab9221f1603eb04eaae74ae7c7ca3944",
-  "yaml_edit_rev": "299f74594ff9fda412c1da5c0b5d5231d0c6fc42",
   "yaml_rev": "b2fce6cb8f07f091967b849d5434ed495cbb305f",
-  "zlib_rev": "27c2f474b71d0d20764f86f60ef8b00da1a16cda",
+  "yaml_edit_rev": "299f74594ff9fda412c1da5c0b5d5231d0c6fc42",
 
   # Windows deps
   "crashpad_rev": "bf327d8ceb6a669607b0dbab5a83a275d03f99ed",

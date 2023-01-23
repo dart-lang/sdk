@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test the command line options of dart2js.
 
 import 'dart:async';
@@ -364,24 +362,24 @@ main() {
 }
 
 Future test(List<String> arguments,
-    {int exitCode,
-    String out,
-    String readClosedWorld,
-    String writeClosedWorld,
-    String readData,
-    String writeData,
-    String readCodegen,
-    String writeCodegen,
-    int codegenShard,
-    int codegenShards}) async {
+    {int? exitCode,
+    String? out,
+    String? readClosedWorld,
+    String? writeClosedWorld,
+    String? readData,
+    String? writeData,
+    String? readCodegen,
+    String? writeCodegen,
+    int? codegenShard,
+    int? codegenShards}) async {
   print('--------------------------------------------------------------------');
   print('dart2js ${arguments.join(' ')}');
   print('--------------------------------------------------------------------');
   entry.CompileFunc oldCompileFunc = entry.compileFunc;
   entry.ExitFunc oldExitFunc = entry.exitFunc;
 
-  CompilerOptions options;
-  int actualExitCode;
+  late final CompilerOptions options;
+  int? actualExitCode;
   entry.compileFunc = (_options, input, diagnostics, output) {
     options = _options;
     return new Future<api.CompilationResult>.value(
@@ -398,7 +396,6 @@ Future test(List<String> arguments,
   }
   Expect.equals(exitCode, actualExitCode, "Unexpected exit code");
   if (actualExitCode == null) {
-    Expect.isNotNull(options, "Missing options object");
     Expect.equals(toUri(out), options.outputUri, "Unexpected output uri.");
     Expect.equals(toUri(readClosedWorld), options.readClosedWorldUri,
         "Unexpected readClosedWorld uri");
@@ -422,4 +419,4 @@ Future test(List<String> arguments,
   entry.exitFunc = oldExitFunc;
 }
 
-Uri toUri(String path) => path != null ? Uri.base.resolve(path) : null;
+Uri? toUri(String? path) => path != null ? Uri.base.resolve(path) : null;

@@ -53,8 +53,6 @@
   libC=(f4, f3)]
 */
 
-// @dart = 2.7
-
 import 'liba.dart' deferred as libA;
 import 'libb.dart' deferred as libB;
 import 'libc.dart' deferred as libC;

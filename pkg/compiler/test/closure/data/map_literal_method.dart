@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:expect/expect.dart';
 
 @pragma('dart2js:noInline')
@@ -13,9 +11,19 @@ method<T>() {
 }
 
 @pragma('dart2js:noInline')
+methodNullable<T>() {
+  /*fields=[T],free=[T]*/ dynamic local() => <T?, int?>{};
+  return local;
+}
+
+@pragma('dart2js:noInline')
 test(o) => o is Map<int, int>;
+
+@pragma('dart2js:noInline')
+testNullable(o) => o is Map<int?, int?>;
 
 main() {
   Expect.isTrue(test(method<int>().call()));
+  Expect.isTrue(testNullable(methodNullable<int>().call()));
   Expect.isFalse(test(method<String>().call()));
 }

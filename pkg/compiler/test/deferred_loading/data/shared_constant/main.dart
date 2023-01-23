@@ -10,8 +10,6 @@
   s2=(f1)]
 */
 
-// @dart = 2.7
-
 /// Regression test for issue https://github.com/dart-lang/sdk/issues/31306.
 ///
 /// When 1 constant was imported in two libraries by using the same exact
