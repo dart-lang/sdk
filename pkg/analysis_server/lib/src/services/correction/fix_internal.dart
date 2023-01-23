@@ -894,7 +894,7 @@ class FixProcessor extends BaseProcessor {
     HintCode.DEPRECATED_MEMBER_USE_WITH_MESSAGE: [
       DataDriven.new,
     ],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
       DataDriven.new,
     ],
     WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
@@ -1408,18 +1408,6 @@ class FixProcessor extends BaseProcessor {
     HintCode.NULLABLE_TYPE_IN_CATCH_CLAUSE: [
       RemoveQuestionMark.new,
     ],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_FIELD: [
-      RemoveAnnotation.new,
-    ],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER: [
-      RemoveAnnotation.new,
-    ],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
-      RemoveAnnotation.new,
-    ],
-    HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
-      RemoveAnnotation.new,
-    ],
     HintCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT: [
       RemoveCharacter.new,
       ReplaceWithUnicodeEscape.new,
@@ -1557,6 +1545,18 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.DUPLICATE_SHOWN_NAME: [
       RemoveNameFromCombinator.new,
+    ],
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_FIELD: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_GETTER: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
+      RemoveAnnotation.new,
+    ],
+    WarningCode.OVERRIDE_ON_NON_OVERRIDING_SETTER: [
+      RemoveAnnotation.new,
     ],
     WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
       UpdateSdkConstraints.version_2_2_2,
