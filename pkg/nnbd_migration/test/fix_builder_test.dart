@@ -1452,9 +1452,9 @@ extension E on C/*?*/ {
 }
 f(C/*?*/ c) => c();
 ''');
-    var functoinExpressionInvocation =
+    var functionExpressionInvocation =
         findNode.functionExpressionInvocation('c()');
-    visitSubexpression(functoinExpressionInvocation, 'void');
+    visitSubexpression(functionExpressionInvocation, 'void');
   }
 
   Future<void>
@@ -1466,9 +1466,9 @@ extension E on C/*?*/ {
 }
 f(C/*?*/ c) => E(c)();
 ''');
-    var functoinExpressionInvocation =
+    var functionExpressionInvocation =
         findNode.functionExpressionInvocation('E(c)()');
-    visitSubexpression(functoinExpressionInvocation, 'void');
+    visitSubexpression(functionExpressionInvocation, 'void');
   }
 
   Future<void>

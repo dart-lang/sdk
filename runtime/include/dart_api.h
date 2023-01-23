@@ -1376,7 +1376,7 @@ DART_EXPORT void Dart_StartProfiling(void);
 /**
  * Stops the CPU sampling profiler.
  *
- * Note that some profile samples might still be taken after this fucntion
+ * Note that some profile samples might still be taken after this function
  * returns due to the asynchronous nature of the implementation on some
  * platforms.
  */

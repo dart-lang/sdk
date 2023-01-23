@@ -887,7 +887,7 @@ abstract class NodeProducingEditPlan extends EditPlan {
   /// Modifies [changes] to insert parentheses enclosing the [sourceNode].  This
   /// works even if [changes] already includes modifications at the beginning or
   /// end of [sourceNode]--the parentheses are inserted outside of any
-  /// pre-existing changes.
+  /// preexisting changes.
   Map<int?, List<AtomicEdit>>? _createAddParenChanges(
       Map<int?, List<AtomicEdit>>? changes) {
     changes ??= {};

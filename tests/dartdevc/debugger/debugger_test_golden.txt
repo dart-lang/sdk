@@ -4294,7 +4294,7 @@ Value:
     ]
 ]
 -----------------------------------
-Test: Function with functon arguments formatting header
+Test: Function with function arguments formatting header
 Value:
 [
     "span",
@@ -4304,7 +4304,7 @@ Value:
     "(String, (Event$) => bool) => Null"
 ]
 -----------------------------------
-Test: Function with functon arguments formatting body
+Test: Function with function arguments formatting body
 Value:
 [
     "ol",

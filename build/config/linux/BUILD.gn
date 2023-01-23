@@ -41,7 +41,7 @@ config("sdk") {
     }
 
     # When using the pulled Debian sysroot with gcc, we have to specify these
-    # excplicitly.
+    # explicitly.
     if (dart_sysroot == "debian" && !is_clang) {
       cflags += [
         "-I=/usr/include/c++/4.8",

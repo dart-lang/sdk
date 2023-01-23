@@ -18,7 +18,7 @@ class JSValue {
 
   JSValue(this._ref);
 
-  // Currently we always explictly box JS ref's in [JSValue] objects. In the
+  // Currently we always explicitly box JS ref's in [JSValue] objects. In the
   // future, we will want to leave these values unboxed when possible, even when
   // they are nullable.
   static JSValue? box(WasmExternRef? ref) =>

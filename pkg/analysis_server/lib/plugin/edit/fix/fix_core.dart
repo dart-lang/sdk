@@ -25,7 +25,7 @@ class Fix {
     return 'Fix(kind=$kind, change=$change)';
   }
 
-  /// A finction that can be used to sort fixes by their relevance.
+  /// A function that can be used to sort fixes by their relevance.
   ///
   /// The most relevant fixes will be sorted before fixes with a lower
   /// relevance. Fixes with the same relevance are sorted alphabetically.

@@ -495,7 +495,7 @@ class ClassDeserializationCluster : public DeserializationCluster {
 // explicitly as Array objects into the snapshot and instead utilize a different
 // encoding: objects in a cluster representing a canonical set are sorted
 // to appear in the same order they appear in the Array representing the set,
-// and we additionaly write out array of values describing gaps between objects.
+// and we additionally write out array of values describing gaps between objects.
 //
 // In some situations not all canonical objects of the some type need to
 // be added to the resulting canonical set because they are cached in some

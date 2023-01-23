@@ -1633,7 +1633,7 @@ bool FlowGraphCompiler::NeedsEdgeCounter(BlockEntryInstr* block) {
          (!block->last_instruction()->IsGoto() || block->IsFunctionEntry());
 }
 
-// Allocate a register that is not explictly blocked.
+// Allocate a register that is not explicitly blocked.
 static Register AllocateFreeRegister(bool* blocked_registers) {
   for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
     intptr_t regno = (i + kRegisterAllocationBias) % kNumberOfCpuRegisters;
@@ -1646,7 +1646,7 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
   return kNoRegister;
 }
 
-// Allocate a FPU register that is not explictly blocked.
+// Allocate a FPU register that is not explicitly blocked.
 static FpuRegister AllocateFreeFpuRegister(bool* blocked_registers) {
   for (intptr_t regno = 0; regno < kNumberOfFpuRegisters; regno++) {
     if (!blocked_registers[regno]) {

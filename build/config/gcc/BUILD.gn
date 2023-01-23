@@ -5,7 +5,7 @@
 # This config causes functions not to be automatically exported from shared
 # libraries. By default, all symbols are exported but this means there are
 # lots of exports that slow everything down. In general we explicitly mark
-# which functiosn we want to export from components.
+# which function we want to export from components.
 #
 # Some third_party code assumes all functions are exported so this is separated
 # into its own config so such libraries can remove this config to make symbols
