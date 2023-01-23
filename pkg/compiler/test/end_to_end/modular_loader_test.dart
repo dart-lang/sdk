@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 import 'package:compiler/src/elements/names.dart';
 
 import 'package:compiler/src/util/memory_compiler.dart';
@@ -46,25 +44,25 @@ main() {
         memorySourceFiles: {'a.dill': aDill, 'b.dill': bDill, 'c.dill': cDill},
         diagnosticHandler: diagnostics,
         outputProvider: output);
-    load_kernel.Output result = await load_kernel.run(load_kernel.Input(
+    load_kernel.Output result = (await load_kernel.run(load_kernel.Input(
         compiler.options,
         compiler.provider,
         compiler.reporter,
         compiler.initializedCompilerState,
-        false));
+        false)))!;
     compiler.frontendStrategy
-        .registerLoadedLibraries(result.component, result.libraries);
+        .registerLoadedLibraries(result.component, result.libraries!);
 
     Expect.equals(0, diagnostics.errors.length);
     Expect.equals(0, diagnostics.warnings.length);
 
     ElementEnvironment environment =
         compiler.frontendStrategy.elementEnvironment;
-    LibraryEntity library = environment.lookupLibrary(toTestUri('b1.dart'));
+    LibraryEntity? library = environment.lookupLibrary(toTestUri('b1.dart'));
     Expect.isNotNull(library);
-    ClassEntity clss = environment.lookupClass(library, 'B1');
+    ClassEntity? clss = environment.lookupClass(library!, 'B1');
     Expect.isNotNull(clss);
-    var member = environment.lookupClassMember(clss, PublicName('foo'));
+    var member = environment.lookupClassMember(clss!, PublicName('foo'));
     Expect.isNotNull(member);
   });
 }
@@ -97,7 +95,7 @@ Future<List<int>> compileUnit(List<String> inputs, Map<String, dynamic> sources,
   var inputUris = inputs.map(toTestUri).toList();
   var inputUriSet = inputUris.toSet();
   var component = (await kernelForModule(inputUris, options)).component;
-  for (var lib in component.libraries) {
+  for (var lib in component!.libraries) {
     if (!inputUriSet.contains(lib.importUri)) {
       lib.bindCanonicalNames(component.root);
     }

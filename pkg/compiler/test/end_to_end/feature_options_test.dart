@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// @dart = 2.7
-
 // Test the command line options of dart2js.
 
 import 'package:expect/expect.dart';
@@ -24,13 +22,13 @@ class TestFeatureOptions extends FeatureOptions {
   FeatureOption noCf4 = FeatureOption('cf4', isNegativeFlag: true);
 
   @override
-  List<FeatureOption> shipped;
+  late final List<FeatureOption> shipped;
 
   @override
-  List<FeatureOption> shipping;
+  late final List<FeatureOption> shipping;
 
   @override
-  List<FeatureOption> canary;
+  late final List<FeatureOption> canary;
 
   // Initialize feature lists.
   TestFeatureOptions() {
